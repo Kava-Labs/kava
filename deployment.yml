@@ -1,0 +1,41 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: kava-deployment
+  labels:
+    app: kava
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kava
+  template:
+    metadata:
+      labels:
+        app: kava
+    spec:
+      containers:
+      - name: gaiad
+        image: kava/cosmos-sdk
+        command: ["gaiad", "start"]
+        ports:
+        - containerPort: 46656
+        - containerPort: 46657
+        volumeMounts:
+        - name: kava-persistent-storage-gaiad
+          mountPath: /root/.gaiad
+        - name: kava-persistent-storage-gaiacli
+          mountPath: /root/.gaiacli
+        - name: kava-config-map-volume
+          mountPath: /root/gaia/.gaiad/config
+      volumes:
+      - name: kava-persistent-storage-gaiad
+        persistentVolumeClaim:
+          claimName: kava-pvc-gaiad
+      - name: kava-persistent-storage-gaiacli
+        persistentVolumeClaim:
+          claimName: kava-pvc-gaiacli
+      - name: kava-config-map-volume
+        configMap:
+          name: kava-config-map
+
