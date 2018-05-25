@@ -1,0 +1,45 @@
+package main
+
+import (
+	"encoding/json"
+	"os"
+
+	"github.com/spf13/cobra"
+
+	abci "github.com/tendermint/abci/types"
+	"github.com/tendermint/tmlibs/cli"
+	dbm "github.com/tendermint/tmlibs/db"
+	"github.com/tendermint/tmlibs/log"
+
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/kava-labs/kava/kava/app"
+)
+
+func main() {
+	cdc := app.MakeCodec()
+	ctx := server.NewDefaultContext()
+
+	rootCmd := &cobra.Command{
+		Use:               "basecoind",
+		Short:             "Basecoin Daemon (server)",
+		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+	}
+
+	server.AddCommands(ctx, cdc, rootCmd, server.DefaultAppInit,
+		server.ConstructAppCreator(newApp, "basecoin"),
+		server.ConstructAppExporter(exportAppState, "basecoin"))
+
+	// prepare and add flags
+	rootDir := os.ExpandEnv("$HOME/.basecoind")
+	executor := cli.PrepareBaseCmd(rootCmd, "BC", rootDir)
+	executor.Execute()
+}
+
+func newApp(logger log.Logger, db dbm.DB) abci.Application {
+	return app.NewBasecoinApp(logger, db)
+}
+
+func exportAppState(logger log.Logger, db dbm.DB) (json.RawMessage, error) {
+	bapp := app.NewBasecoinApp(logger, db)
+	return bapp.ExportAppStateJSON()
+}
