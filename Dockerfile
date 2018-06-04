@@ -1,8 +1,3 @@
-# Simple usage with a mounted data directory:
-# > docker build -t gaia .
-# > docker run -v $HOME/.gaiad:/root/.gaiad gaia init
-# > docker run -v $HOME/.gaiad:/root/.gaiad gaia start
-
 FROM alpine:edge
 
 # Set up dependencies
@@ -38,6 +33,5 @@ RUN cd $REPO_PATH && make all && make install
 # remove packages
 RUN apk del $PACKAGES
 
-# Set entrypoint
-#ENTRYPOINT ["gaiad"]
-CMD ["gaiad"]
+# Set default command
+CMD ["kavad"]
