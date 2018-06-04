@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: gaiad
-        image: kava/cosmos-sdk
+        image: kava/cosmos-sdk:ilp-demo
         command: ["gaiad", "start"]
         ports:
         - containerPort: 46656

@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
       - name: run-init
-        image: kava/cosmos-sdk
+        image: kava/cosmos-sdk:ilp-demo
         command: ["gaiad", "init", "--chain-id", "kava", "--name", "kava"]
         volumeMounts:
         - name: kava-persistent-storage-gaiad
