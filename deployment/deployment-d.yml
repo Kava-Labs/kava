@@ -1,22 +1,31 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1beta2
+kind: Deployment
 metadata:
-  name: start-new-chain-job
+  name: kava-d-deployment
   labels:
     app: kava
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kava-d
   template:
+    metadata:
+      labels:
+        app: kava-d
     spec:
       containers:
-      - name: run-init
+      - name: gaiad
         image: kava/cosmos-sdk:ilp-demo
-        command: ["gaiad", "init", "--chain-id", "kava", "--name", "kava"]
+        command: ["gaiad", "start"]
+        ports:
+        - containerPort: 46656
+        - containerPort: 46657
         volumeMounts:
         - name: kava-persistent-storage-gaiad
           mountPath: /root/.gaiad
         - name: kava-persistent-storage-gaiacli
           mountPath: /root/.gaiacli
-      restartPolicy: Never
       volumes:
       - name: kava-persistent-storage-gaiad
         persistentVolumeClaim:

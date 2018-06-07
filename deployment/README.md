@@ -1,9 +1,12 @@
 To initialise a network:
 
  - delete everything (including persistant volume claim)
- - deploy everything except the deployment
- - wait until the job has finished, then deploy the deployment
- - check job pod logs for the validator account backup phrase :\
+ - deploy everything except the deployments
+ - wait until the job has finished, then deploy deployment-d
+ - check job pod logs for the validator account backup phrase :(
+ - use `kubectl exec` on the deployment-d pod and use gaiacli to recover the validator
+ - do the same to add other keys and move tokens around
+ - start up lcd pod (looks like only one instance of gaiacli can access the keys DB)
 
 Examples of using light client with the node:
 
