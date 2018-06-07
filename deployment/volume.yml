@@ -2,6 +2,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: kava-pvc-gaiad
+  labels:
+    app: kava
 spec:
   accessModes:
     - ReadWriteOnce
@@ -13,6 +15,8 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: kava-pvc-gaiacli
+  labels:
+    app: kava
 spec:
   accessModes:
     - ReadWriteOnce
