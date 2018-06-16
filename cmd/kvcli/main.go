@@ -26,8 +26,8 @@ import (
 // rootCmd is the entry point for this binary
 var (
 	rootCmd = &cobra.Command{
-		Use:   "basecli",
-		Short: "Basecoin light-client",
+		Use:   "kvcli",
+		Short: "Kava Light-Client",
 	}
 )
 
@@ -59,8 +59,8 @@ func main() {
 			bankcmd.SendTxCmd(cdc),
 			ibccmd.IBCTransferCmd(cdc),
 			ibccmd.IBCRelayCmd(cdc),
-			stakecmd.GetCmdDeclareCandidacy(cdc),
-			stakecmd.GetCmdEditCandidacy(cdc),
+			stakecmd.GetCmdCreateValidator(cdc),
+			stakecmd.GetCmdEditValidator(cdc),
 			stakecmd.GetCmdDelegate(cdc),
 			stakecmd.GetCmdUnbond(cdc),
 		)...)
@@ -75,9 +75,6 @@ func main() {
 	)
 
 	// prepare and add flags
-	executor := cli.PrepareMainCmd(rootCmd, "BC", os.ExpandEnv("$HOME/.basecli"))
+	executor := cli.PrepareMainCmd(rootCmd, "KV", os.ExpandEnv("$HOME/.kvcli"))
 	executor.Execute()
 }
-
-func Blarg() {
-	45}

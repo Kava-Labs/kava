@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/abci/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tmlibs/cli"
 	dbm "github.com/tendermint/tmlibs/db"
 	"github.com/tendermint/tmlibs/log"
@@ -20,26 +21,26 @@ func main() {
 	ctx := server.NewDefaultContext()
 
 	rootCmd := &cobra.Command{
-		Use:               "kavad",
+		Use:               "kvd",
 		Short:             "Kava Daemon",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
 	server.AddCommands(ctx, cdc, rootCmd, server.DefaultAppInit,
 		server.ConstructAppCreator(newApp, "kava"),
-		server.ConstructAppExporter(exportAppState, "kava"))
+		server.ConstructAppExporter(exportAppStateAndTMValidators, "kava"))
 
 	// prepare and add flags
-	rootDir := os.ExpandEnv("$HOME/.kavad")
+	rootDir := os.ExpandEnv("$HOME/.kvd")
 	executor := cli.PrepareBaseCmd(rootCmd, "KV", rootDir)
 	executor.Execute()
 }
 
 func newApp(logger log.Logger, db dbm.DB) abci.Application {
-	return app.NewBasecoinApp(logger, db)
+	return app.NewKavaApp(logger, db)
 }
 
-func exportAppState(logger log.Logger, db dbm.DB) (json.RawMessage, error) {
-	bapp := app.NewBasecoinApp(logger, db)
-	return bapp.ExportAppStateJSON()
+func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB) (json.RawMessage, []tmtypes.GenesisValidator, error) {
+	bapp := app.NewKavaApp(logger, db)
+	return bapp.ExportAppStateAndValidators()
 }
