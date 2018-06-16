@@ -14,3 +14,7 @@
 # Exclude build files
 vendor
 build
+
+# Exclude text editor files
+*.sublime-project
+*.sublime-workspace
