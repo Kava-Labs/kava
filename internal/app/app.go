@@ -16,7 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	"github.com/cosmos/cosmos-sdk/x/stake"
 
-	"github.com/kava-labs/kava/kava/types"
+	"github.com/kava-labs/kava/internal/types"
 )
 
 const (
@@ -96,7 +96,7 @@ func MakeCodec() *wire.Codec {
 
 	// register custom AppAccount
 	cdc.RegisterInterface((*sdk.Account)(nil), nil)
-	cdc.RegisterConcrete(&types.AppAccount{}, "basecoin/Account", nil)
+	cdc.RegisterConcrete(&types.AppAccount{}, "kava/Account", nil)
 	return cdc
 }
 

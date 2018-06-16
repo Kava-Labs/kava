@@ -12,7 +12,7 @@ import (
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/kava-labs/kava/kava/app"
+	"github.com/kava-labs/kava/internal/app"
 )
 
 func main() {
@@ -20,18 +20,18 @@ func main() {
 	ctx := server.NewDefaultContext()
 
 	rootCmd := &cobra.Command{
-		Use:               "basecoind",
-		Short:             "Basecoin Daemon (server)",
+		Use:               "kavad",
+		Short:             "Kava Daemon",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
 	server.AddCommands(ctx, cdc, rootCmd, server.DefaultAppInit,
-		server.ConstructAppCreator(newApp, "basecoin"),
-		server.ConstructAppExporter(exportAppState, "basecoin"))
+		server.ConstructAppCreator(newApp, "kava"),
+		server.ConstructAppExporter(exportAppState, "kava"))
 
 	// prepare and add flags
-	rootDir := os.ExpandEnv("$HOME/.basecoind")
-	executor := cli.PrepareBaseCmd(rootCmd, "BC", rootDir)
+	rootDir := os.ExpandEnv("$HOME/.kavad")
+	executor := cli.PrepareBaseCmd(rootCmd, "KV", rootDir)
 	executor.Execute()
 }
 

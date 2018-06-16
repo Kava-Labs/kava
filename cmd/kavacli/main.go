@@ -19,8 +19,8 @@ import (
 	ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
 	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
 
-	"github.com/kava-labs/kava/kava/app"
-	"github.com/kava-labs/kava/kava/types"
+	"github.com/kava-labs/kava/internal/app"
+	"github.com/kava-labs/kava/internal/types"
 )
 
 // rootCmd is the entry point for this binary
@@ -78,3 +78,6 @@ func main() {
 	executor := cli.PrepareMainCmd(rootCmd, "BC", os.ExpandEnv("$HOME/.basecli"))
 	executor.Execute()
 }
+
+func Blarg() {
+	45}

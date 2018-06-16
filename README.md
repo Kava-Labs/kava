@@ -2,5 +2,5 @@
 
 ## Installation
 
-    go install ./kava/cmd/kavad
-    go install ./kava/cmd/kavacli
+    go install ./cmd/kavad
+    go install ./cmd/kavacli
