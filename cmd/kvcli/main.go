@@ -16,11 +16,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
-	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
+	//ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
+	//stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
 
 	"github.com/kava-labs/kava/internal/app"
-	"github.com/kava-labs/kava/internal/types"
+	//"github.com/kava-labs/kava/internal/types"
 )
 
 // rootCmd is the entry point for this binary
@@ -51,18 +51,18 @@ func main() {
 	// add query/post commands (custom to binary)
 	rootCmd.AddCommand(
 		client.GetCommands(
-			authcmd.GetAccountCmd("acc", cdc, types.GetAccountDecoder(cdc)),
+			authcmd.GetAccountCmd("acc", cdc, authcmd.GetAccountDecoder(cdc)),
 		)...)
 
 	rootCmd.AddCommand(
 		client.PostCommands(
 			bankcmd.SendTxCmd(cdc),
-			ibccmd.IBCTransferCmd(cdc),
-			ibccmd.IBCRelayCmd(cdc),
-			stakecmd.GetCmdCreateValidator(cdc),
-			stakecmd.GetCmdEditValidator(cdc),
-			stakecmd.GetCmdDelegate(cdc),
-			stakecmd.GetCmdUnbond(cdc),
+			//ibccmd.IBCTransferCmd(cdc),
+			//ibccmd.IBCRelayCmd(cdc),
+			//stakecmd.GetCmdCreateValidator(cdc),
+			//stakecmd.GetCmdEditValidator(cdc),
+			//stakecmd.GetCmdDelegate(cdc),
+			//stakecmd.GetCmdUnbond(cdc),
 		)...)
 
 	// add proxy, version and key info

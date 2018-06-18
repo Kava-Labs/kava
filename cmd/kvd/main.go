@@ -26,7 +26,7 @@ func main() {
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
-	server.AddCommands(ctx, cdc, rootCmd, server.DefaultAppInit,
+	server.AddCommands(ctx, cdc, rootCmd, app.CreateAppInit(),
 		server.ConstructAppCreator(newApp, "kava"),
 		server.ConstructAppExporter(exportAppStateAndTMValidators, "kava"))
 
