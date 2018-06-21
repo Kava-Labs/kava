@@ -18,8 +18,8 @@ import (
 	"github.com/kava-labs/kava/internal/types"
 )
 
-// I want to be able to create a genesis.json with the initial state of the kava network.
-// This is done by creating a custom AppInit object to be handed to the server when it creates commands.
+// A file, genesis.json, is created with the initial state of the kava network.
+// This is done by creating an AppInit object to be handed to the server when it creates commands.
 // When `kvd init` is run, a genesis tx is created. Then, from that, an initial app state.
 
 func CreateAppInit() server.AppInit {
@@ -90,7 +90,6 @@ func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (appState jso
 		accAuth.Coins = sdk.Coins{
 			{"KVA", 10000000000},
 		}
-		accAuth.PubKey = genTx.PubKey
 		acc := types.NewGenesisAccount(&accAuth)
 		genaccs[i] = acc
 	}

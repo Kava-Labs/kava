@@ -56,9 +56,8 @@ type GenesisState struct {
 // GenesisAccount doesn't need pubkey or sequence
 type GenesisAccount struct {
 	//Name    string      `json:"name"`
-	Address sdk.Address   `json:"address"`
-	Coins   sdk.Coins     `json:"coins"`
-	PubKey  crypto.PubKey `json:"pub_key"` //add in pub key so I can send coins?
+	Address sdk.Address `json:"address"`
+	Coins   sdk.Coins   `json:"coins"`
 }
 
 func NewGenesisAccount(aa *auth.BaseAccount) GenesisAccount {
@@ -66,7 +65,6 @@ func NewGenesisAccount(aa *auth.BaseAccount) GenesisAccount {
 		//Name:    aa.Name,
 		Address: aa.Address,
 		Coins:   aa.Coins.Sort(),
-		PubKey:  aa.PubKey, // add in pub key
 	}
 }
 
@@ -75,6 +73,5 @@ func (ga *GenesisAccount) ToAppAccount() (acc *auth.BaseAccount, err error) {
 	return &auth.BaseAccount{
 		Address: ga.Address,
 		Coins:   ga.Coins.Sort(),
-		PubKey:  ga.PubKey, // add in pub key
 	}, nil
 }
