@@ -9,7 +9,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 
@@ -20,6 +19,7 @@ import (
 	//stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
 
 	"github.com/kava-labs/kava/internal/app"
+	"github.com/kava-labs/kava/internal/lcd"
 	//"github.com/kava-labs/kava/internal/types"
 )
 
