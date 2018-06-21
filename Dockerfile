@@ -1,37 +1,21 @@
-FROM alpine:edge
+# Start with go container
+FROM golang:alpine AS builder
+WORKDIR /go/src/github.com/kava-labs/kava
 
-# Set up dependencies
-ENV PACKAGES go glide make git libc-dev bash
+# Install go package manager
+#RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh - doesn't work as alpine has no curl
+RUN apk add --no-cache git && go get -u github.com/golang/dep/cmd/dep
 
-# Set up GOPATH & PATH
-ENV GOPATH       /root/go
-ENV BASE_PATH    $GOPATH/src/github.com/cosmos
-ENV REPO_PATH    $BASE_PATH/cosmos-sdk
-ENV WORKDIR      /cosmos/
-ENV PATH         $GOPATH/bin:$PATH
+# Install go packages (without updating Gopkg, as there is no source code to update from)(also with -v for verbose)
+ADD Gopkg.toml Gopkg.lock ./
+RUN dep ensure --vendor-only -v
 
-# Link expected Go repo path
-RUN mkdir -p $WORKDIR $GOPATH/pkg $ $GOPATH/bin $BASE_PATH
+# Copy in app code and build
+COPY . .
+RUN go build ./cmd/kvd && go build ./cmd/kvcli
 
-#Install apk dependencies
-RUN apk add --no-cache $PACKAGES
-
-# Add build files
-COPY Gopkg.* Makefile $REPO_PATH/
-COPY .git $REPO_PATH/.git
-COPY tools $REPO_PATH/tools
-
-# Intsall go packages
-RUN cd $REPO_PATH && make get_tools && make get_vendor_deps
-
-# Add source files
-COPY . $REPO_PATH
-
-# Build app
-RUN cd $REPO_PATH && make all && make install
-
-# remove packages
-RUN apk del $PACKAGES
-
-# Set default command
-CMD ["kavad"]
+# Copy app binary over to small container.
+# Using alpine instad of scratch to aid in debugging and avoid complicated compile
+FROM alpine
+COPY --from=builder /go/src/github.com/kava-labs/kava/kvd /go/src/github.com/kava-labs/kava/kvcli /usr/bin/
+CMD ["kvd", "start"]

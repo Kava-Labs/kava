@@ -17,3 +17,7 @@ vendor
 # Exclude text editor files
 *.sublime-project
 *.sublime-workspace
+
+# Exclude chain data
+.kvd/
+.kvcli/

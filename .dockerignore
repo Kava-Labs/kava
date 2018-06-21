@@ -1,0 +1,7 @@
+vendor/
+Dockerfile
+deployment/
+*.sublime-project
+*.sublime-workspace
+.kvd/
+.kvcli/
