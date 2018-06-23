@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kava-d-service
+  name: kava-d-service2
   labels:
     app: kava
 spec:
@@ -16,12 +16,12 @@ spec:
       protocol: TCP
       targetPort: 46656
   selector:
-    app: kava-d
+    pod: kvd
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: kava-lcd-service
+  name: kava-lcd-service2
   labels:
     app: kava
 spec:
@@ -32,4 +32,4 @@ spec:
       protocol: TCP
       targetPort: 1317
   selector:
-    app: kava-lcd
+    pod: kvcli-lcd

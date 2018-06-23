@@ -1,0 +1,31 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: kava-d-deployment2
+  labels:
+    app: kava
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: kvd
+  template:
+    metadata:
+      labels:
+        app: kava
+        pod: kvd
+    spec:
+      containers:
+      - name: kvd
+        image: kava/kava
+        command: ["kvd", "start"]
+        ports:
+        - containerPort: 46656
+        - containerPort: 46657
+        volumeMounts:
+        - name: persistent-storage-kvd
+          mountPath: /root/.kvd
+      volumes:
+      - name: persistent-storage-kvd
+        persistentVolumeClaim:
+          claimName: kava-pvc-kvd2

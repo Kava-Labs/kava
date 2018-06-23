@@ -18,6 +18,5 @@ vendor
 *.sublime-project
 *.sublime-workspace
 
-# Exclude chain data
-.kvd/
-.kvcli/
+# Exclude kubernetes secrets
+deployment/secret*.yml

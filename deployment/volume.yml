@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: kava-pvc-gaiad
+  name: kava-pvc-kvd2
   labels:
     app: kava
 spec:
@@ -14,7 +14,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: kava-pvc-gaiacli
+  name: kava-pvc-kvcli2
   labels:
     app: kava
 spec:

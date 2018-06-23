@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: start-new-chain-job
+  name: kava-init-data2
   labels:
     app: kava
 spec:
@@ -9,18 +9,28 @@ spec:
     spec:
       containers:
       - name: run-init
-        image: kava/cosmos-sdk:ilp-demo
-        command: ["gaiad", "init", "--chain-id", "kava", "--name", "kava"]
+        image: kava/kava-init
         volumeMounts:
-        - name: kava-persistent-storage-gaiad
-          mountPath: /root/.gaiad
-        - name: kava-persistent-storage-gaiacli
-          mountPath: /root/.gaiacli
+        - name: kava-persistent-storage-kvd
+          mountPath: /root/.kvd
+        - name: kava-persistent-storage-kvcli
+          mountPath: /root/.kvcli
+        - name: user-keys
+          mountPath: /init-data/
+        - name: node-config
+          mountPath: /init-data/.kvd/config/
       restartPolicy: Never
       volumes:
-      - name: kava-persistent-storage-gaiad
+      - name: kava-persistent-storage-kvd
         persistentVolumeClaim:
-          claimName: kava-pvc-gaiad
-      - name: kava-persistent-storage-gaiacli
+          claimName: kava-pvc-kvd2
+      - name: kava-persistent-storage-kvcli
         persistentVolumeClaim:
-          claimName: kava-pvc-gaiacli
+          claimName: kava-pvc-kvcli2
+      - name: user-keys
+        secret:
+          secretName: kava-user-keys
+      - name: node-config
+        secret:
+          secretName: kava-node-config
+
