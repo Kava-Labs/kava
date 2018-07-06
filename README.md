@@ -1,4 +1,4 @@
-# Kava
+# Kava Blockchain
 
 ## Installation
 
