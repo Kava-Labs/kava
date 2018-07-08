@@ -55,8 +55,9 @@ func main() {
 		)...)
 
 	rootCmd.AddCommand(
-		client.PostCommands(
+		client.PostCommands( // this just wraps the input cmds with common flags
 			bankcmd.SendTxCmd(cdc),
+			// paychan commands...
 			//ibccmd.IBCTransferCmd(cdc),
 			//ibccmd.IBCRelayCmd(cdc),
 			//stakecmd.GetCmdCreateValidator(cdc),
