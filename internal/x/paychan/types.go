@@ -11,6 +11,7 @@ struct Paychan {
 	balance sdk.Coins
 	sender sdk.Address
 	receiver sdk.Address
+	id integer
 }
 
 

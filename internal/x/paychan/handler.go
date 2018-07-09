@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// Called when adding routes to a newly created app.
 // NewHandler returns a handler for "paychan" type messages.
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
