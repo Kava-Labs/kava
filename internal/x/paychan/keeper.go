@@ -2,12 +2,15 @@ package paychan
 
 import (
 	"strconv"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/wire"
 )
 
 // keeper of the paychan store
 type Keeper struct {
 	storeKey sdk.StoreKey
-	//cdc        *wire.Codec // needed?
+	cdc        *wire.Codec // needed to serialize objects before putting them in the store
 	coinKeeper bank.Keeper
 
 	// codespace
@@ -16,10 +19,10 @@ type Keeper struct {
 
 // Called when creating new app.
 //func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper, codespace sdk.CodespaceType) Keeper {
-func NewKeeper(key sdk.StoreKey, ck bank.Keeper) Keeper {
+func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey: key,
-		//cdc:        cdc,
+		cdc:        cdc,
 		coinKeeper: ck,
 		//codespace:  codespace,
 	}
@@ -58,7 +61,9 @@ func (keeper Keeper) setPaychan(pych Paychan) sdk.Error {
 }
 
 // Create a new payment channel and lock up sender funds.
-func (keeer Keeper) CreatePaychan(sender sdk.Address, receiver sdkAddress, id integer, amt sdk.Coins) (Paychan, sdk.Error) {
+func (keeer Keeper) CreatePaychan(sender sdk.Address, receiver sdkAddress, amt sdk.Coins) (sdk.Tags, sdk.Error) {
+	// Calculate next id (num existing paychans plus 1)
+	id := len(keeper.GetPaychans(sender, receiver)) + 1
 	// subtract coins from sender
 	k.coinKeeper.SubtractCoins(ctx, sender, amt)
 	// create new Paychan struct (create ID)
@@ -69,16 +74,18 @@ func (keeer Keeper) CreatePaychan(sender sdk.Address, receiver sdkAddress, id in
 	// save to db
 	err := k.setPaychan(pych)
 
-	return pych, err
 
 	// TODO validation
 	// sender has enough coins - done in Subtract method
 	// receiver address exists?
 	// paychan doesn't exist already
+
+	tags := sdk.NewTags()
+	return tags, err
 }
 
 // Close a payment channel and distribute funds to participants.
-func (keeper Keeper) ClosePaychan(sender sdk.Address, receiver sdk.Address, id integer, receiverAmt sdk.Coins) sdk.Error {
+func (keeper Keeper) ClosePaychan(sender sdk.Address, receiver sdk.Address, id integer, receiverAmt sdk.Coins) (sdk.Tags, sdk.Error) {
 	pych := GetPaychan(ctx, sender, receiver, id)
 	// compute coin distribution
 	senderAmt = pych.balance.Minus(receiverAmt) // Minus sdk.Coins method
@@ -96,7 +103,13 @@ func (keeper Keeper) ClosePaychan(sender sdk.Address, receiver sdk.Address, id i
 	// output coins are less than paychan balance
 	// sender and receiver addresses exist?
 
-	return nil
+	//sdk.NewTags(
+	//	"action", []byte("channel closure"),
+	//	"receiver", receiver.Bytes(),
+	//	"sender", sender.Bytes(),
+	//	"id", ??)
+	tags := sdk.NewTags()
+	return tags, nil
 }
 
 // Creates a key to reference a paychan in the blockchain store.
@@ -109,4 +122,10 @@ func paychanKey(sender sdk.Address, receiver sdk.Address, id integer) []byte {
 	return append(sender.Bytes(), receiver.Bytes()..., idAsBytes...)
 }
 
+// Get all paychans between a given sender and receiver.
+func (keeper Keeper) GetPaychans(sender sdk.Address, receiver sdk.Address) []Paychan {
+	var paychans []Paychan
+	// TODO Implement this
+	return paychans
+}
 // maybe getAllPaychans(sender sdk.address) []Paychan

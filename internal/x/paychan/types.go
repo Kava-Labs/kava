@@ -8,10 +8,10 @@ import (
 
 // probably want to convert this to a general purpose "state"
 struct Paychan {
-	balance sdk.Coins
 	sender sdk.Address
 	receiver sdk.Address
 	id integer
+	balance sdk.Coins
 }
 
 
@@ -40,29 +40,29 @@ struct Paychan {
 
 /////////////// CreatePayChan
 // find a less confusing name
-type CreateMsg struct {
+type MsgCreate struct {
 	// maybe just wrap a paychan struct
 	sender sdk.Address
 	receiver sdk.Address
-	amount sdk.Balance
+	amount sdk.Coins
 }
 
-func (msg CreatMsg) NewCreateMsg() CreateMsg {
-	return CreateMsg{ }
+func (msg CreatMsg) NewMsgCreate() MsgCreate {
+	return MsgCreate{ }
 }
 
-func (msg CreateMsg) Type() string { return "paychan" }
+func (msg MsgCreate) Type() string { return "paychan" }
 
-func (msg CreateMsg) GetSigners() []sdk.Address {
+func (msg MsgCreate) GetSigners() []sdk.Address {
 	// sender
 	//return []sdk.Address{msg.sender}
 }
 
-func (msg CreateMsg) GetSignBytes() []byte {
+func (msg MsgCreate) GetSignBytes() []byte {
 	
 }
 
-func (msg CreateMsg) ValidateBasic() sdk.Error {
+func (msg MsgCreate) ValidateBasic() sdk.Error {
 	// verify msg as much as possible without using external information (such as account balance)
 	// are all fields present
 	// are all fields valid
@@ -70,7 +70,7 @@ func (msg CreateMsg) ValidateBasic() sdk.Error {
 }
 
 /////////////////
-type CloseMsg struct {
+type MsgClose struct {
 	// have to include sender and receiver in msg explicitly (rather than just universal paychanID)
 	//  this gives ability to verify signatures with no external information
 	sender sdk.Address
@@ -79,21 +79,21 @@ type CloseMsg struct {
 	receiverAmount sdk.Coins // amount the receiver should get - sender amount implicit with paychan balance
 }
 
-func (msg CloseMsg) NewCloseMsg( args... ) CloseMsg {
-	return CloseMsg{ args... }
+func (msg MsgClose) NewMsgClose( args... ) MsgClose {
+	return MsgClose{ args... }
 }
 
-func (msg CloseMsg) Type() string { return "paychan" }
+func (msg MsgClose) Type() string { return "paychan" }
 
-func (msg CloseMsg) GetSigners() []sdk.Address {
+func (msg MsgClose) GetSigners() []sdk.Address {
 	// sender and receiver
 }
 
-func (msg CloseMsg) GetSignBytes() []byte {
+func (msg MsgClose) GetSignBytes() []byte {
 	
 }
 
-func (msg CloseMsg) ValidateBasic() sdk.Error {
+func (msg MsgClose) ValidateBasic() sdk.Error {
 	return msg.IBCPacket.ValidateBasic()
 }
 
