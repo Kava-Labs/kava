@@ -79,13 +79,12 @@ func (msg MsgCreate) GetSignBytes() []byte {
 
 func (msg MsgCreate) ValidateBasic() sdk.Error {
 	// TODO implement
-	// verify msg as much as possible without using external information (such as account balance)
-	// are all fields present
-	// are all fields valid
-	// maybe check if sender and receiver is different
+	// Validate msg as an optimisation to avoid all validation going to keeper. It's run before the sigs are checked by the auth module.
+	// Validate without external information (such as account balance)
 
-	// maybe add custom errors
-	// learn how the errors work
+	// check if all fields present / not 0 valued
+	// do coin checks for amount
+	// check if Address valid?
 
 	// example from bank
 	// if len(in.Address) == 0 {
@@ -149,7 +148,11 @@ func (msg MsgClose) GetSignBytes() []byte {
 
 func (msg MsgClose) ValidateBasic() sdk.Error {
 	// TODO implement
-	//return msg.IBCPacket.ValidateBasic()
+	
+	// check if all fields present / not 0 valued
+	// check id ≥ 0
+	// do coin checks for amount
+	// check if Address valid?
 }
 
 func (msg MsgClose) GetSigners() []sdk.Address {

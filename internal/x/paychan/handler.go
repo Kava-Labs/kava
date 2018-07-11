@@ -21,9 +21,9 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-// TODO does validation go here or in the keeper?
 
 // Handle CreateMsg.
+// Leaves validation to the keeper methods.
 func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 	// TODO maybe remove tags for first version
 	tags, err := k.CreatePaychan(msg.sender, msg.receiver, msg.amount)
@@ -37,6 +37,7 @@ func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 }
 
 // Handle CloseMsg.
+// Leaves validation to the keeper methods.
 func handleMsgClose(ctx sdk.Context, k Keeper, msg MsgClose) sdk.Result {
 	// TODO maybe remove tags for first version
 	tags, err := k.ClosePaychan(msg.sender, msg.receiver, msg.id, msg.receiverAmount)

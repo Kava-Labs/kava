@@ -8,6 +8,8 @@ import (
 )
 
 // keeper of the paychan store
+// Handles validation internally. Does not rely on calling code to do validation.
+// Aim to keep public methids safe, private ones not necessaily.
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc        *wire.Codec // needed to serialize objects before putting them in the store
@@ -63,7 +65,7 @@ func (keeper Keeper) setPaychan(pych Paychan) sdk.Error {
 // Create a new payment channel and lock up sender funds.
 func (keeer Keeper) CreatePaychan(sender sdk.Address, receiver sdkAddress, amt sdk.Coins) (sdk.Tags, sdk.Error) {
 	// Calculate next id (num existing paychans plus 1)
-	id := len(keeper.GetPaychans(sender, receiver)) + 1
+	id := len(keeper.GetPaychans(sender, receiver)) + 1 // TODO check for overflow?
 	// subtract coins from sender
 	k.coinKeeper.SubtractCoins(ctx, sender, amt)
 	// create new Paychan struct (create ID)
@@ -76,9 +78,13 @@ func (keeer Keeper) CreatePaychan(sender sdk.Address, receiver sdkAddress, amt s
 
 
 	// TODO validation
+	// coins valid and positive
+
 	// sender has enough coins - done in Subtract method
 	// receiver address exists?
 	// paychan doesn't exist already
+	// sender and receiver different?
+
 
 	tags := sdk.NewTags()
 	return tags, err
@@ -99,9 +105,12 @@ func (keeper Keeper) ClosePaychan(sender sdk.Address, receiver sdk.Address, id i
 
 
 	// TODO validation
+	// id ≥ 0
+	// coins valid and positive
 	// paychan exists
-	// output coins are less than paychan balance
+	// output coins are equal to paychan balance
 	// sender and receiver addresses exist?
+	// overflow in sender and receiver balances?
 
 	//sdk.NewTags(
 	//	"action", []byte("channel closure"),
