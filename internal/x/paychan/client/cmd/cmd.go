@@ -19,6 +19,11 @@ import (
 // send paychan payment
 // get balance from receiver
 
+// minimum
+// create paychan (sender signs)
+// create state update (sender signs) (just a half signed close tx, (json encoded?))
+// close paychan (receiver signs) (provide state update as arg)
+
 // example from x/auth
 /*
 func GetAccountCmd(storeName string, cdc *wire.Codec, decoder auth.AccountDecoder) *cobra.Command {
