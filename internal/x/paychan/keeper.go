@@ -58,60 +58,108 @@ func (keeper Keeper) setPaychan(pych Paychan) sdk.Error {
 	bz := k.cdc.MustMarshalBinary(pych)
 	// write to db
 	pychKey := paychanKey(pych.sender, pych.receiver, pych.id)
-	store.Set(pychKey, bz)
-	// TODO handler errors
+	store.Set(pychKey, bz) // panics if something goes wrong
 }
 
 // Create a new payment channel and lock up sender funds.
-func (keeer Keeper) CreatePaychan(sender sdk.Address, receiver sdkAddress, amt sdk.Coins) (sdk.Tags, sdk.Error) {
+func (keeer Keeper) CreatePaychan(ctx sdk.Context, sender sdk.Address, receiver sdkAddress, amt sdk.Coins) (sdk.Tags, sdk.Error) {
+	// TODO move validation somewhere nicer
+	// args present
+	if len(sender) == 0 {
+		return sdk.ErrInvalidAddress(sender.String())
+	}
+	if len(receiver) == 0 {
+		return sdk.ErrInvalidAddress(receiver.String())
+	}
+	if len(amount) == 0 {
+		return sdk.ErrInvalidCoins(amount.String())
+	}
+	// Check if coins are sorted, non zero, positive
+	if !amount.IsValid() {
+		return sdk.ErrInvalidCoins(amount.String())
+	}
+	if !amount.IsPositive() {
+		return sdk.ErrInvalidCoins(amount.String())
+	}
+	// sender should exist already as they had to sign.
+	// receiver address exists. am is the account mapper in the coin keeper.
+	// TODO automatically create account if not present?
+	if k.coinKepper.am.GetAccount(ctx, receiver) == nil {
+		return sdk.ErrUnknownAddress(receiver.String())
+	}
+	// sender has enough coins - done in Subtract method
+	// TODO check if sender and receiver different?
+	
+
 	// Calculate next id (num existing paychans plus 1)
 	id := len(keeper.GetPaychans(sender, receiver)) + 1 // TODO check for overflow?
 	// subtract coins from sender
-	k.coinKeeper.SubtractCoins(ctx, sender, amt)
-	// create new Paychan struct (create ID)
+	coins, tags, err := k.coinKeeper.SubtractCoins(ctx, sender, amt)
+	if err != nil {
+		return nil, err
+	}
+	// create new Paychan struct
 	pych := Paychan{sender,
-		receiver,
-		id,
-		balance: amt}
+					receiver,
+					id,
+					balance: amt}
 	// save to db
-	err := k.setPaychan(pych)
+	k.setPaychan(pych)
+	
 
-
-	// TODO validation
-	// coins valid and positive
-
-	// sender has enough coins - done in Subtract method
-	// receiver address exists?
-	// paychan doesn't exist already
-	// sender and receiver different?
-
-
+	// TODO create tags
 	tags := sdk.NewTags()
 	return tags, err
 }
 
 // Close a payment channel and distribute funds to participants.
 func (keeper Keeper) ClosePaychan(sender sdk.Address, receiver sdk.Address, id integer, receiverAmt sdk.Coins) (sdk.Tags, sdk.Error) {
-	pych := GetPaychan(ctx, sender, receiver, id)
+	if len(msg.sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.sender.String())
+	}
+	if len(msg.receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.receiver.String())
+	}
+	if len(msg.receiverAmount) == 0 {
+		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	}
+	// check id ≥ 0
+	if msg.id < 0 {
+		return sdk.ErrInvalidAddress(strconv.Itoa(id)) // TODO implement custom errors
+	}
+
+	// Check if coins are sorted, non zero, non negative
+	if !msg.receiverAmount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	}
+	if !msg.receiverAmount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	}
+
+
+	store := ctx.KVStore(k.storeKey)
+
+	pych, exists := GetPaychan(ctx, sender, receiver, id)
+	if !exists {
+		return nil, sdk.ErrUnknownAddress() // TODO implement custom errors
+	}
 	// compute coin distribution
 	senderAmt = pych.balance.Minus(receiverAmt) // Minus sdk.Coins method
+	// check that receiverAmt not greater than paychan balance
+	if !senderAmt.IsNotNegative() {
+		return nil, sdk.ErrInsufficientFunds(pych.balance.String())
+	}
 	// add coins to sender
+	// creating account if it doesn't exist
 	k.coinKeeper.AddCoins(ctx, sender, senderAmt)
 	// add coins to receiver
 	k.coinKeeper.AddCoins(ctx, receiver, receiverAmt)
+
 	// delete paychan from db
 	pychKey := paychanKey(pych.sender, pych.receiver, pych.id)
 	store.Delete(pychKey)
 
-
-	// TODO validation
-	// id ≥ 0
-	// coins valid and positive
-	// paychan exists
-	// output coins are equal to paychan balance
-	// sender and receiver addresses exist?
-	// overflow in sender and receiver balances?
-
+	// TODO create tags
 	//sdk.NewTags(
 	//	"action", []byte("channel closure"),
 	//	"receiver", receiver.Bytes(),

@@ -1,6 +1,7 @@
 package paychan
 
 import (
+	"strconv"
 	sdk "github.com/cosmos/cosmos-sdk/types"          
 )
 
@@ -78,24 +79,27 @@ func (msg MsgCreate) GetSignBytes() []byte {
 }
 
 func (msg MsgCreate) ValidateBasic() sdk.Error {
-	// TODO implement
 	// Validate msg as an optimisation to avoid all validation going to keeper. It's run before the sigs are checked by the auth module.
 	// Validate without external information (such as account balance)
 
 	// check if all fields present / not 0 valued
-	// do coin checks for amount
-	// check if Address valid?
-
-	// example from bank
-	// if len(in.Address) == 0 {
-	// 	return sdk.ErrInvalidAddress(in.Address.String())
-	// }
-	// if !in.Coins.IsValid() {
-	// 	return sdk.ErrInvalidCoins(in.Coins.String())
-	// }
-	// if !in.Coins.IsPositive() {
-	// 	return sdk.ErrInvalidCoins(in.Coins.String())
-	// }
+	if len(msg.sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.sender.String())
+	}
+	if len(msg.receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.receiver.String())
+	}
+	if len(msg.amount) == 0 {
+		return sdk.ErrInvalidCoins(msg.amount.String())
+	}
+	// Check if coins are sorted, non zero, non negative
+	if !msg.amount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.amount.String())
+	}
+	if !msg.amount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.amount.String())
+	}
+	// TODO check if Address valid?
 }
 
 func (msg MsgCreate) GetSigners() []sdk.Address {
@@ -147,12 +151,28 @@ func (msg MsgClose) GetSignBytes() []byte {
 }
 
 func (msg MsgClose) ValidateBasic() sdk.Error {
-	// TODO implement
-	
 	// check if all fields present / not 0 valued
+	if len(msg.sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.sender.String())
+	}
+	if len(msg.receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.receiver.String())
+	}
+	if len(msg.receiverAmount) == 0 {
+		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	}
 	// check id ≥ 0
-	// do coin checks for amount
-	// check if Address valid?
+	if msg.id < 0 {
+		return sdk.ErrInvalidAddress(strconv.Itoa(id)) // TODO implement custom errors
+	}
+	// Check if coins are sorted, non zero, non negative
+	if !msg.receiverAmount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	}
+	if !msg.receiverAmount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	}
+	// TODO check if Address valid?
 }
 
 func (msg MsgClose) GetSigners() []sdk.Address {
