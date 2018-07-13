@@ -1,20 +1,19 @@
 package paychan
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strconv"
-	sdk "github.com/cosmos/cosmos-sdk/types"          
 )
 
 // Paychan Type
 // Used to represent paychan in keeper module and to serialize.
 // probably want to convert this to a general purpose "state"
-struct Paychan {
-	sender sdk.Address
+type Paychan struct {
+	sender   sdk.Address
 	receiver sdk.Address
-	id integer
-	balance sdk.Coins
+	id       int64
+	balance  sdk.Coins
 }
-
 
 // Message Types
 
@@ -38,7 +37,6 @@ struct Paychan {
 // 	// CONTRACT: Returns addrs in some deterministic order.
 // 	GetSigners() []Address
 // }
-
 
 // A message to create a payment channel.
 type MsgCreate struct {
@@ -100,6 +98,7 @@ func (msg MsgCreate) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(msg.amount.String())
 	}
 	// TODO check if Address valid?
+	return nil
 }
 
 func (msg MsgCreate) GetSigners() []sdk.Address {
@@ -107,16 +106,13 @@ func (msg MsgCreate) GetSigners() []sdk.Address {
 	return []sdk.Address{msg.sender}
 }
 
-
-
-
 // A message to close a payment channel.
 type MsgClose struct {
 	// have to include sender and receiver in msg explicitly (rather than just universal paychanID)
 	//  this gives ability to verify signatures with no external information
 	sender         sdk.Address
 	receiver       sdk.Address
-	id             integer
+	id             int64     // TODO is another int type better?
 	receiverAmount sdk.Coins // amount the receiver should get - sender amount implicit with paychan balance
 }
 
@@ -136,13 +132,13 @@ func (msg MsgClose) GetSignBytes() []byte {
 	b, err := msgCdc.MarshalJSON(struct {
 		SenderAddr     string    `json:"sender_addr"`
 		ReceiverAddr   string    `json:"receiver_addr"`
-		Id             integer   `json:"id"`
+		Id             int64     `json:"id"`
 		ReceiverAmount sdk.Coins `json:"receiver_amount"`
 	}{
-		SenderAddr:   sdk.MustBech32ifyAcc(msg.sender),
-		ReceiverAddr: sdk.MustBech32ifyAcc(msg.receiver),
-		Id:           msg.id
-		Amount:       msg.receiverAmount,
+		SenderAddr:     sdk.MustBech32ifyAcc(msg.sender),
+		ReceiverAddr:   sdk.MustBech32ifyAcc(msg.receiver),
+		Id:             msg.id,
+		ReceiverAmount: msg.receiverAmount,
 	})
 	if err != nil {
 		panic(err)
@@ -163,7 +159,7 @@ func (msg MsgClose) ValidateBasic() sdk.Error {
 	}
 	// check id ≥ 0
 	if msg.id < 0 {
-		return sdk.ErrInvalidAddress(strconv.Itoa(id)) // TODO implement custom errors
+		return sdk.ErrInvalidAddress(strconv.Itoa(int(msg.id))) // TODO implement custom errors
 	}
 	// Check if coins are sorted, non zero, non negative
 	if !msg.receiverAmount.IsValid() {
@@ -173,10 +169,10 @@ func (msg MsgClose) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
 	}
 	// TODO check if Address valid?
+	return nil
 }
 
 func (msg MsgClose) GetSigners() []sdk.Address {
 	// Both sender and receiver must sign in order to close a channel
-	retutn []sdk.Address{sender, receiver}
+	return []sdk.Address{msg.sender, msg.receiver}
 }
-
