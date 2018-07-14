@@ -17,6 +17,7 @@ import (
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	//ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
 	//stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
+	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cli"
 
 	"github.com/kava-labs/kava/internal/app"
 	"github.com/kava-labs/kava/internal/lcd"
@@ -57,7 +58,6 @@ func main() {
 	rootCmd.AddCommand(
 		client.PostCommands( // this just wraps the input cmds with common flags
 			bankcmd.SendTxCmd(cdc),
-			// paychan commands...
 			//ibccmd.IBCTransferCmd(cdc),
 			//ibccmd.IBCRelayCmd(cdc),
 			//stakecmd.GetCmdCreateValidator(cdc),
@@ -66,6 +66,19 @@ func main() {
 			//stakecmd.GetCmdUnbond(cdc),
 		)...)
 
+	paychanCmd := &cobra.Command{
+		Use:   "paychan",
+		Short: "Payment channel subcommands",
+	}
+	stakeCmd.AddCommand(
+		client.PostCommands(
+			paychancmd.CreatePaychanCmd(cdc),
+			paychancmd.GenerateNewStateCmd(cdc),
+			paychancmd.ClosePaychanCmd(cdc),
+		)...)
+	rootCmd.AddCommand(
+		paychanCmd,
+	)
 	// add proxy, version and key info
 	rootCmd.AddCommand(
 		client.LineBreak,

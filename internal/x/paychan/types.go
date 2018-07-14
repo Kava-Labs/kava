@@ -41,9 +41,9 @@ type Paychan struct {
 // A message to create a payment channel.
 type MsgCreate struct {
 	// maybe just wrap a paychan struct
-	sender   sdk.Address
-	receiver sdk.Address
-	amount   sdk.Coins
+	Sender   sdk.Address
+	Receiver sdk.Address
+	Amount   sdk.Coins
 }
 
 // Create a new message.
@@ -66,9 +66,9 @@ func (msg MsgCreate) GetSignBytes() []byte {
 		ReceiverAddr string    `json:"receiver_addr"`
 		Amount       sdk.Coins `json:"amount"`
 	}{
-		SenderAddr:   sdk.MustBech32ifyAcc(msg.sender),
-		ReceiverAddr: sdk.MustBech32ifyAcc(msg.receiver),
-		Amount:       msg.amount,
+		SenderAddr:   sdk.MustBech32ifyAcc(msg.Sender),
+		ReceiverAddr: sdk.MustBech32ifyAcc(msg.Receiver),
+		Amount:       msg.Amount,
 	})
 	if err != nil {
 		panic(err)
@@ -81,21 +81,21 @@ func (msg MsgCreate) ValidateBasic() sdk.Error {
 	// Validate without external information (such as account balance)
 
 	// check if all fields present / not 0 valued
-	if len(msg.sender) == 0 {
-		return sdk.ErrInvalidAddress(msg.sender.String())
+	if len(msg.Sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.Sender.String())
 	}
-	if len(msg.receiver) == 0 {
-		return sdk.ErrInvalidAddress(msg.receiver.String())
+	if len(msg.Receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.Receiver.String())
 	}
-	if len(msg.amount) == 0 {
-		return sdk.ErrInvalidCoins(msg.amount.String())
+	if len(msg.Amount) == 0 {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
 	// Check if coins are sorted, non zero, non negative
-	if !msg.amount.IsValid() {
-		return sdk.ErrInvalidCoins(msg.amount.String())
+	if !msg.Amount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
-	if !msg.amount.IsPositive() {
-		return sdk.ErrInvalidCoins(msg.amount.String())
+	if !msg.Amount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
 	// TODO check if Address valid?
 	return nil
@@ -103,17 +103,17 @@ func (msg MsgCreate) ValidateBasic() sdk.Error {
 
 func (msg MsgCreate) GetSigners() []sdk.Address {
 	// Only sender must sign to create a paychan
-	return []sdk.Address{msg.sender}
+	return []sdk.Address{msg.Sender}
 }
 
 // A message to close a payment channel.
 type MsgClose struct {
 	// have to include sender and receiver in msg explicitly (rather than just universal paychanID)
 	//  this gives ability to verify signatures with no external information
-	sender         sdk.Address
-	receiver       sdk.Address
-	id             int64     // TODO is another int type better?
-	receiverAmount sdk.Coins // amount the receiver should get - sender amount implicit with paychan balance
+	Sender         sdk.Address
+	Receiver       sdk.Address
+	Id             int64     // TODO is another int type better?
+	ReceiverAmount sdk.Coins // amount the receiver should get - sender amount implicit with paychan balance
 }
 
 // func (msg MsgClose) NewMsgClose(sender sdk.Address, receiver sdk.Address, id integer, receiverAmount sdk.Coins) MsgClose {
@@ -135,10 +135,10 @@ func (msg MsgClose) GetSignBytes() []byte {
 		Id             int64     `json:"id"`
 		ReceiverAmount sdk.Coins `json:"receiver_amount"`
 	}{
-		SenderAddr:     sdk.MustBech32ifyAcc(msg.sender),
-		ReceiverAddr:   sdk.MustBech32ifyAcc(msg.receiver),
-		Id:             msg.id,
-		ReceiverAmount: msg.receiverAmount,
+		SenderAddr:     sdk.MustBech32ifyAcc(msg.Sender),
+		ReceiverAddr:   sdk.MustBech32ifyAcc(msg.Receiver),
+		Id:             msg.Id,
+		ReceiverAmount: msg.ReceiverAmount,
 	})
 	if err != nil {
 		panic(err)
@@ -148,25 +148,25 @@ func (msg MsgClose) GetSignBytes() []byte {
 
 func (msg MsgClose) ValidateBasic() sdk.Error {
 	// check if all fields present / not 0 valued
-	if len(msg.sender) == 0 {
-		return sdk.ErrInvalidAddress(msg.sender.String())
+	if len(msg.Sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.Sender.String())
 	}
-	if len(msg.receiver) == 0 {
-		return sdk.ErrInvalidAddress(msg.receiver.String())
+	if len(msg.Receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.Receiver.String())
 	}
-	if len(msg.receiverAmount) == 0 {
-		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	if len(msg.ReceiverAmount) == 0 {
+		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
 	}
 	// check id ≥ 0
-	if msg.id < 0 {
-		return sdk.ErrInvalidAddress(strconv.Itoa(int(msg.id))) // TODO implement custom errors
+	if msg.Id < 0 {
+		return sdk.ErrInvalidAddress(strconv.Itoa(int(msg.Id))) // TODO implement custom errors
 	}
 	// Check if coins are sorted, non zero, non negative
-	if !msg.receiverAmount.IsValid() {
-		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	if !msg.ReceiverAmount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
 	}
-	if !msg.receiverAmount.IsPositive() {
-		return sdk.ErrInvalidCoins(msg.receiverAmount.String())
+	if !msg.ReceiverAmount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
 	}
 	// TODO check if Address valid?
 	return nil
@@ -174,5 +174,5 @@ func (msg MsgClose) ValidateBasic() sdk.Error {
 
 func (msg MsgClose) GetSigners() []sdk.Address {
 	// Both sender and receiver must sign in order to close a channel
-	return []sdk.Address{msg.sender, msg.receiver}
+	return []sdk.Address{msg.Sender, msg.Receiver}
 }

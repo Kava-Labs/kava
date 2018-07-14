@@ -25,7 +25,7 @@ func NewHandler(k Keeper) sdk.Handler {
 // Leaves validation to the keeper methods.
 func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 	// TODO maybe remove tags for first version
-	tags, err := k.CreatePaychan(ctx, msg.sender, msg.receiver, msg.amount)
+	tags, err := k.CreatePaychan(ctx, msg.Sender, msg.Receiver, msg.Amount)
 	if err != nil {
 		return err.Result()
 	}
@@ -39,7 +39,7 @@ func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 // Leaves validation to the keeper methods.
 func handleMsgClose(ctx sdk.Context, k Keeper, msg MsgClose) sdk.Result {
 	// TODO maybe remove tags for first version
-	tags, err := k.ClosePaychan(ctx, msg.sender, msg.receiver, msg.id, msg.receiverAmount)
+	tags, err := k.ClosePaychan(ctx, msg.Sender, msg.Receiver, msg.Id, msg.ReceiverAmount)
 	if err != nil {
 		return err.Result()
 	}
