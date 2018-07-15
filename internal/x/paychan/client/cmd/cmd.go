@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 
 	"github.com/kava-labs/kava/internal/x/paychan"
 )
@@ -44,7 +45,7 @@ func CreatePaychanCmd(cdc *wire.Codec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
 
 			// Get sender adress
 			senderAddress, err := ctx.GetFromAddress()
@@ -95,12 +96,12 @@ func GenerateNewStateCmd(cdc *wire.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "new-state",
 		Short: "Generate a new payment channel state.",
-		Long:  "Generate a new state for an existing payment channel and print it out. The new state is represented as a half signed close transaction.",
+		Long:  "Generate a new state for an existing payment channel and print it out. The new state is represented as a half signed close transaction, signed by the sender.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
 
 			// Get sender adress
 			senderAddress, err := ctx.GetFromAddress()
@@ -141,8 +142,8 @@ func GenerateNewStateCmd(cdc *wire.Codec) *cobra.Command {
 
 			// Print out the signed msg
 			fmt.Println("txBytes:", txBytes)
-			encodedTxBytes := make([]byte, base64.StdEncoding.EncodedLen(len(txBytes)))
-			base64.StdEncoding.Encode(encodedTxBytes, txBytes)
+			//encodedTxBytes := make([]byte, base64.StdEncoding.EncodedLen(len(txBytes)))
+			encodedTxBytes := base64.StdEncoding.EncodeToString(txBytes)
 			fmt.Println("base64TxBytes:", encodedTxBytes)
 			return nil
 		},
@@ -159,10 +160,10 @@ func ClosePaychanCmd(cdc *wire.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "close",
 		Short: "Close a payment channel, given a state",
-		Long:  "Close an existing payment channel with a state received from a sender.",
+		Long:  "Close an existing payment channel with a state received from a sender. This signs it as the receiver before submitting to the blockchain.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.NewCoreContextFromViper()
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
 
 			// Get the sender-signed close tx
 			state := viper.GetString(flagState)
@@ -171,7 +172,7 @@ func ClosePaychanCmd(cdc *wire.Codec) *cobra.Command {
 				return err
 			}
 			stdTx := auth.StdTx{}
-			cdc.UnmarshalBinary(txBytes, stdTx)
+			cdc.UnmarshalBinary(txBytes, &stdTx)
 
 			// Sign close tx
 
@@ -187,7 +188,6 @@ func ClosePaychanCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// Append signature to close tx
-
 			stdTx.Signatures = append(stdTx.Signatures, sig)
 			// encode close tx
 			txBytes, err = cdc.MarshalBinary(stdTx)

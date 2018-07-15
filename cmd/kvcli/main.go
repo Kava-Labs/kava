@@ -17,7 +17,7 @@ import (
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	//ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
 	//stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
-	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cli"
+	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cmd"
 
 	"github.com/kava-labs/kava/internal/app"
 	"github.com/kava-labs/kava/internal/lcd"
@@ -70,7 +70,7 @@ func main() {
 		Use:   "paychan",
 		Short: "Payment channel subcommands",
 	}
-	stakeCmd.AddCommand(
+	paychanCmd.AddCommand(
 		client.PostCommands(
 			paychancmd.CreatePaychanCmd(cdc),
 			paychancmd.GenerateNewStateCmd(cdc),
