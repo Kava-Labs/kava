@@ -51,6 +51,7 @@ func setupCodec() *wire.Codec {
 
 func TestKeeper(t *testing.T) {
 	// Setup
+
 	// create multistore and key
 	ms, authKey, paychanKey := setupMultiStore()
 
@@ -77,14 +78,14 @@ func TestKeeper(t *testing.T) {
 
 	// Test paychan can be set and get
 	p := Paychan{
-		sender:   sdk.Address([]byte("senderAddress")),
-		receiver: sdk.Address([]byte("receiverAddress")),
-		id:       0,
-		balance:  sdk.Coins{{"KVA", 100}},
+		Sender:   sdk.Address([]byte("senderAddress")),
+		Receiver: sdk.Address([]byte("receiverAddress")),
+		Id:       0,
+		Balance:  sdk.Coins{{"KVA", 100}},
 	}
 	paychanKeeper.setPaychan(ctx, p)
 
-	_, exists = paychanKeeper.GetPaychan(ctx, p.sender, p.receiver, p.id)
+	_, exists = paychanKeeper.GetPaychan(ctx, p.Sender, p.Receiver, p.Id)
 	if !exists {
 		t.Error("payment channel not found")
 	}
@@ -102,100 +103,39 @@ func TestKeeper(t *testing.T) {
 		t.Error("unexpected error created payment channel", err)
 	}
 
-	p, _ = paychanKeeper.GetPaychan(ctx, senderAddress, receiverAddress, 0)
-	if !p.balance.IsEqual(balance) {
-		t.Error("payment channel balance incorrect", p.balance, balance)
+	p, exists = paychanKeeper.GetPaychan(ctx, senderAddress, receiverAddress, 0)
+	if !exists {
+		t.Error("payment channel missing")
+	}
+	if !p.Balance.IsEqual(balance) {
+		t.Error("payment channel balance incorrect", p.Balance, balance)
 	}
 	expectedNewSenderFunds := senderFunds.Minus(balance)
 	if !coinKeeper.GetCoins(ctx, senderAddress).IsEqual(expectedNewSenderFunds) {
 		t.Error("sender has incorrect balance after paychan creation")
 	}
 
+	// Test close paychan under normal conditions
+	senderFunds = coinKeeper.GetCoins(ctx, senderAddress)
+	receiverAmount := sdk.Coins{{"KVA", 9}}
+	_, err = paychanKeeper.ClosePaychan(ctx, senderAddress, receiverAddress, 0, receiverAmount)
+	if err != nil {
+		t.Error("unexpected error closing payment channel", err)
+	}
+	// paychan shouldn't exist
+	_, exists = paychanKeeper.GetPaychan(ctx, senderAddress, receiverAddress, 0)
+	if exists {
+		t.Error("payment channel should not exist")
+	}
+	// sender's funds should have increased
+	expectedNewSenderFunds = senderFunds.Plus(balance.Minus(receiverAmount))
+	if !coinKeeper.GetCoins(ctx, senderAddress).IsEqual(expectedNewSenderFunds) {
+		t.Error("sender has incorrect balance after paychan creation", expectedNewSenderFunds)
+	}
+	// receiver's funds should have increased
+	expectedNewReceiverFunds := receiverAmount // started at zero
+	if !coinKeeper.GetCoins(ctx, receiverAddress).IsEqual(expectedNewReceiverFunds) {
+		t.Error("receiver has incorrect balance after paychan creation")
+	}
+
 }
-
-// example from x/bank
-
-//func TestKeeper(t *testing.T) {
-// ms, authKey := setupMultiStore()
-
-// cdc := wire.NewCodec()
-// auth.RegisterBaseAccount(cdc)
-
-// ctx := sdk.NewContext(ms, abci.Header{}, false, nil, log.NewNopLogger())
-// accountMapper := auth.NewAccountMapper(cdc, authKey, &auth.BaseAccount{})
-// coinKeeper := NewKeeper(accountMapper)
-
-// addr := sdk.Address([]byte("addr1"))
-// addr2 := sdk.Address([]byte("addr2"))
-// addr3 := sdk.Address([]byte("addr3"))
-// acc := accountMapper.NewAccountWithAddress(ctx, addr)
-
-// // Test GetCoins/SetCoins
-// accountMapper.SetAccount(ctx, acc)
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{}))
-
-// coinKeeper.SetCoins(ctx, addr, sdk.Coins{{"foocoin", 10}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"foocoin", 10}}))
-
-// // Test HasCoins
-// assert.True(t, coinKeeper.HasCoins(ctx, addr, sdk.Coins{{"foocoin", 10}}))
-// assert.True(t, coinKeeper.HasCoins(ctx, addr, sdk.Coins{{"foocoin", 5}}))
-// assert.False(t, coinKeeper.HasCoins(ctx, addr, sdk.Coins{{"foocoin", 15}}))
-// assert.False(t, coinKeeper.HasCoins(ctx, addr, sdk.Coins{{"barcoin", 5}}))
-
-// // Test AddCoins
-// coinKeeper.AddCoins(ctx, addr, sdk.Coins{{"foocoin", 15}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"foocoin", 25}}))
-
-// coinKeeper.AddCoins(ctx, addr, sdk.Coins{{"barcoin", 15}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"barcoin", 15}, {"foocoin", 25}}))
-
-// // Test SubtractCoins
-// coinKeeper.SubtractCoins(ctx, addr, sdk.Coins{{"foocoin", 10}})
-// coinKeeper.SubtractCoins(ctx, addr, sdk.Coins{{"barcoin", 5}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"barcoin", 10}, {"foocoin", 15}}))
-
-// coinKeeper.SubtractCoins(ctx, addr, sdk.Coins{{"barcoin", 11}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"barcoin", 10}, {"foocoin", 15}}))
-
-// coinKeeper.SubtractCoins(ctx, addr, sdk.Coins{{"barcoin", 10}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"foocoin", 15}}))
-// assert.False(t, coinKeeper.HasCoins(ctx, addr, sdk.Coins{{"barcoin", 1}}))
-
-// // Test SendCoins
-// coinKeeper.SendCoins(ctx, addr, addr2, sdk.Coins{{"foocoin", 5}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"foocoin", 10}}))
-// assert.True(t, coinKeeper.GetCoins(ctx, addr2).IsEqual(sdk.Coins{{"foocoin", 5}}))
-
-// _, err2 := coinKeeper.SendCoins(ctx, addr, addr2, sdk.Coins{{"foocoin", 50}})
-// assert.Implements(t, (*sdk.Error)(nil), err2)
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"foocoin", 10}}))
-// assert.True(t, coinKeeper.GetCoins(ctx, addr2).IsEqual(sdk.Coins{{"foocoin", 5}}))
-
-// coinKeeper.AddCoins(ctx, addr, sdk.Coins{{"barcoin", 30}})
-// coinKeeper.SendCoins(ctx, addr, addr2, sdk.Coins{{"barcoin", 10}, {"foocoin", 5}})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"barcoin", 20}, {"foocoin", 5}}))
-// assert.True(t, coinKeeper.GetCoins(ctx, addr2).IsEqual(sdk.Coins{{"barcoin", 10}, {"foocoin", 10}}))
-
-// // Test InputOutputCoins
-// input1 := NewInput(addr2, sdk.Coins{{"foocoin", 2}})
-// output1 := NewOutput(addr, sdk.Coins{{"foocoin", 2}})
-// coinKeeper.InputOutputCoins(ctx, []Input{input1}, []Output{output1})
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"barcoin", 20}, {"foocoin", 7}}))
-// assert.True(t, coinKeeper.GetCoins(ctx, addr2).IsEqual(sdk.Coins{{"barcoin", 10}, {"foocoin", 8}}))
-
-// inputs := []Input{
-// 	NewInput(addr, sdk.Coins{{"foocoin", 3}}),
-// 	NewInput(addr2, sdk.Coins{{"barcoin", 3}, {"foocoin", 2}}),
-// }
-
-// outputs := []Output{
-// 	NewOutput(addr, sdk.Coins{{"barcoin", 1}}),
-// 	NewOutput(addr3, sdk.Coins{{"barcoin", 2}, {"foocoin", 5}}),
-// }
-// coinKeeper.InputOutputCoins(ctx, inputs, outputs)
-// assert.True(t, coinKeeper.GetCoins(ctx, addr).IsEqual(sdk.Coins{{"barcoin", 21}, {"foocoin", 4}}))
-// assert.True(t, coinKeeper.GetCoins(ctx, addr2).IsEqual(sdk.Coins{{"barcoin", 7}, {"foocoin", 6}}))
-// assert.True(t, coinKeeper.GetCoins(ctx, addr3).IsEqual(sdk.Coins{{"barcoin", 2}, {"foocoin", 5}}))
-
-//}

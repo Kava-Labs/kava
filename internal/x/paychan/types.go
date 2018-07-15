@@ -9,10 +9,10 @@ import (
 // Used to represent paychan in keeper module and to serialize.
 // probably want to convert this to a general purpose "state"
 type Paychan struct {
-	sender   sdk.Address
-	receiver sdk.Address
-	id       int64
-	balance  sdk.Coins
+	Sender   sdk.Address
+	Receiver sdk.Address
+	Id       int64
+	Balance  sdk.Coins
 }
 
 // Message Types

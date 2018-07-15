@@ -57,7 +57,7 @@ func (k Keeper) setPaychan(ctx sdk.Context, pych Paychan) {
 	// marshal
 	bz := k.cdc.MustMarshalBinary(pych) // panics if something goes wrong
 	// write to db
-	pychKey := paychanKey(pych.sender, pych.receiver, pych.id)
+	pychKey := paychanKey(pych.Sender, pych.Receiver, pych.Id)
 	store.Set(pychKey, bz) // panics if something goes wrong
 }
 
@@ -92,8 +92,8 @@ func (k Keeper) CreatePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.
 	// sender has enough coins - done in Subtract method
 	// TODO check if sender and receiver different?
 
-	// Calculate next id (num existing paychans plus 1)
-	id := int64(len(k.GetPaychans(sender, receiver)) + 1) // TODO check for overflow?
+	// Calculate next id (just num of existing paychans - zero indexed)
+	id := int64(len(k.GetPaychans(sender, receiver)))
 	// subtract coins from sender
 	_, tags, err := k.coinKeeper.SubtractCoins(ctx, sender, amount)
 	if err != nil {
@@ -101,10 +101,10 @@ func (k Keeper) CreatePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.
 	}
 	// create new Paychan struct
 	pych := Paychan{
-		sender:   sender,
-		receiver: receiver,
-		id:       id,
-		balance:  amount,
+		Sender:   sender,
+		Receiver: receiver,
+		Id:       id,
+		Balance:  amount,
 	}
 	// save to db
 	k.setPaychan(ctx, pych)
@@ -145,10 +145,10 @@ func (k Keeper) ClosePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.A
 		return nil, sdk.ErrUnknownAddress("paychan not found") // TODO implement custom errors
 	}
 	// compute coin distribution
-	senderAmount := pych.balance.Minus(receiverAmount) // Minus sdk.Coins method
+	senderAmount := pych.Balance.Minus(receiverAmount) // Minus sdk.Coins method
 	// check that receiverAmt not greater than paychan balance
 	if !senderAmount.IsNotNegative() {
-		return nil, sdk.ErrInsufficientFunds(pych.balance.String())
+		return nil, sdk.ErrInsufficientFunds(pych.Balance.String())
 	}
 	// add coins to sender
 	// creating account if it doesn't exist
@@ -157,7 +157,7 @@ func (k Keeper) ClosePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.A
 	k.coinKeeper.AddCoins(ctx, receiver, receiverAmount)
 
 	// delete paychan from db
-	pychKey := paychanKey(pych.sender, pych.receiver, pych.id)
+	pychKey := paychanKey(pych.Sender, pych.Receiver, pych.Id)
 	store.Delete(pychKey)
 
 	// TODO create tags
