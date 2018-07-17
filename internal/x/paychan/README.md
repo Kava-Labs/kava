@@ -1,4 +1,4 @@
-Paychan Sketch
+Payment channel implementation sketch
 
 Simplifications:
 
@@ -8,8 +8,8 @@ Simplifications:
 
 
  TODO
-  - fill in details
-  - add tests
-  - is errors.go needed?
-  - is wire.go needed?
-  - remove simplifications
+  - fix issue with multisig accounts and sequence numbers
+  - create a nicer paychan store key for querying (and implement query)
+  - expand client code
+  - tidy up - add return tags
+  - start removing simplifications, refactor
