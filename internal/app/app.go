@@ -2,29 +2,36 @@ package app
 
 import (
 	"encoding/json"
+	"io"
+	"os"
 
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	dbm "github.com/tendermint/tendermint/libs/db"
+	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
-	cmn "github.com/tendermint/tmlibs/common"
-	dbm "github.com/tendermint/tmlibs/db"
-	"github.com/tendermint/tmlibs/log"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	//"github.com/cosmos/cosmos-sdk/x/gov"
 	//"github.com/cosmos/cosmos-sdk/x/ibc"
-	//"github.com/cosmos/cosmos-sdk/x/slashing"
-	//"github.com/cosmos/cosmos-sdk/x/stake"
-	"github.com/kava-labs/kava/internal/types"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/stake"
 )
 
 const (
 	appName = "KavaApp"
 )
 
-// Extended ABCI application
+// Set default directories for data
+var (
+	DefaultCLIHome  = os.ExpandEnv("$HOME/.kvcli")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.kvd")
+)
+
 type KavaApp struct {
 	*bam.BaseApp
 	cdc *wire.Codec
@@ -32,61 +39,78 @@ type KavaApp struct {
 	// keys to access the substores
 	keyMain    *sdk.KVStoreKey
 	keyAccount *sdk.KVStoreKey
-	//keyIBC      *sdk.KVStoreKey
-	//keyStake    *sdk.KVStoreKey
-	//keySlashing *sdk.KVStoreKey
+	//keyIBC           *sdk.KVStoreKey
+	keyStake    *sdk.KVStoreKey
+	keySlashing *sdk.KVStoreKey
+	//keyGov           *sdk.KVStoreKey
+	keyFeeCollection *sdk.KVStoreKey
 
-	// Manage getting and setting accounts
+	// keepers
 	accountMapper       auth.AccountMapper
 	feeCollectionKeeper auth.FeeCollectionKeeper
 	coinKeeper          bank.Keeper
 	//ibcMapper           ibc.Mapper
-	//stakeKeeper         stake.Keeper
-	//slashingKeeper      slashing.Keeper
+	stakeKeeper    stake.Keeper
+	slashingKeeper slashing.Keeper
+	//govKeeper           gov.Keeper
 }
 
-func NewKavaApp(logger log.Logger, db dbm.DB) *KavaApp {
+// Creates a new KavaApp.
+func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptions ...func(*bam.BaseApp)) *KavaApp {
 
-	// Create app-level codec for txs and accounts.
-	var cdc = MakeCodec()
+	// Create a codec for use across the whole app
+	cdc := CreateKavaAppCodec()
 
-	// Create your application object.
+	// Create a new base app
+	bApp := bam.NewBaseApp(appName, cdc, logger, db, baseAppOptions...)
+	bApp.SetCommitMultiStoreTracer(traceStore)
+
+	// Create the kava app, extending baseApp
 	var app = &KavaApp{
-		BaseApp:    bam.NewBaseApp(appName, cdc, logger, db),
+		BaseApp:    bApp,
 		cdc:        cdc,
 		keyMain:    sdk.NewKVStoreKey("main"),
 		keyAccount: sdk.NewKVStoreKey("acc"),
 		//keyIBC:      sdk.NewKVStoreKey("ibc"),
-		//keyStake:    sdk.NewKVStoreKey("stake"),
-		//keySlashing: sdk.NewKVStoreKey("slashing"),
+		keyStake:    sdk.NewKVStoreKey("stake"),
+		keySlashing: sdk.NewKVStoreKey("slashing"),
+		//keyGov:           sdk.NewKVStoreKey("gov"),
+		keyFeeCollection: sdk.NewKVStoreKey("fee"),
 	}
 
-	// Define the accountMapper.
+	// Define the accountMapper and base account
 	app.accountMapper = auth.NewAccountMapper(
 		cdc,
-		app.keyAccount, // target store
-		&auth.BaseAccount{},
+		app.keyAccount,
+		auth.ProtoBaseAccount,
 	)
 
-	// add accountMapper/handlers
+	// Create the keepers
 	app.coinKeeper = bank.NewKeeper(app.accountMapper)
 	//app.ibcMapper = ibc.NewMapper(app.cdc, app.keyIBC, app.RegisterCodespace(ibc.DefaultCodespace))
-	//app.stakeKeeper = stake.NewKeeper(app.cdc, app.keyStake, app.coinKeeper, app.RegisterCodespace(stake.DefaultCodespace))
-	//app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, app.stakeKeeper, app.RegisterCodespace(slashing.DefaultCodespace))
+	app.stakeKeeper = stake.NewKeeper(app.cdc, app.keyStake, app.coinKeeper, app.RegisterCodespace(stake.DefaultCodespace))
+	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, app.stakeKeeper, app.RegisterCodespace(slashing.DefaultCodespace))
+	//app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.coinKeeper, app.stakeKeeper, app.RegisterCodespace(gov.DefaultCodespace))
+	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(app.cdc, app.keyFeeCollection)
 
-	// register message routes
+	// Register the message handlers
 	app.Router().
-		AddRoute("auth", auth.NewHandler(app.accountMapper)).
-		AddRoute("bank", bank.NewHandler(app.coinKeeper))
+		AddRoute("bank", bank.NewHandler(app.coinKeeper)).
 		//AddRoute("ibc", ibc.NewHandler(app.ibcMapper, app.coinKeeper)).
-		//AddRoute("stake", stake.NewHandler(app.stakeKeeper))
+		AddRoute("stake", stake.NewHandler(app.stakeKeeper)).
+		AddRoute("slashing", slashing.NewHandler(app.slashingKeeper))
+		//AddRoute("gov", gov.NewHandler(app.govKeeper))
 
-	// Initialize BaseApp.
+	// Set func to initialze the chain from appState in genesis file
 	app.SetInitChainer(app.initChainer)
+
+	// Set functions that run before and after txs / blocks
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper))
-	app.MountStoresIAVL(app.keyMain, app.keyAccount) //, app.keyIBC, app.keyStake, app.keySlashing)
+
+	// Mount stores
+	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyStake, app.keySlashing, app.keyFeeCollection)
 	err := app.LoadLatestVersion(app.keyMain)
 	if err != nil {
 		cmn.Exit(err.Error())
@@ -94,95 +118,90 @@ func NewKavaApp(logger log.Logger, db dbm.DB) *KavaApp {
 	return app
 }
 
-// Custom tx codec
-func MakeCodec() *wire.Codec {
-	var cdc = wire.NewCodec()
-	wire.RegisterCrypto(cdc) // Register crypto.
-	sdk.RegisterWire(cdc)    // Register Msgs
-	bank.RegisterWire(cdc)
-	//stake.RegisterWire(cdc)
-	//slashing.RegisterWire(cdc)
+// Creates a codec for use across the whole app.
+func CreateKavaAppCodec() *wire.Codec {
+	cdc := wire.NewCodec()
 	//ibc.RegisterWire(cdc)
+	bank.RegisterWire(cdc)
+	stake.RegisterWire(cdc)
+	slashing.RegisterWire(cdc)
+	//gov.RegisterWire(cdc)
 	auth.RegisterWire(cdc)
-
-	// register custom AppAccount
-	//cdc.RegisterInterface((*auth.Account)(nil), nil)
-	//cdc.RegisterConcrete(&types.BaseAccount{}, "kava/Account", nil)
+	sdk.RegisterWire(cdc)
+	wire.RegisterCrypto(cdc)
 	return cdc
 }
 
-// application updates every end block
+// The function baseapp runs on receipt of a BeginBlock ABCI message
 func (app *KavaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	//tags := slashing.BeginBlocker(ctx, req, app.slashingKeeper)
+	tags := slashing.BeginBlocker(ctx, req, app.slashingKeeper)
 
-	//return abci.ResponseBeginBlock{
-	//	Tags: tags.ToKVPairs(),
-	//}
-	return abci.ResponseBeginBlock{}
+	return abci.ResponseBeginBlock{
+		Tags: tags.ToKVPairs(),
+	}
 }
 
-// application updates every end block
+// The function baseapp runs on receipt of a EndBlock ABCI message
 func (app *KavaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	//validatorUpdates := stake.EndBlocker(ctx, app.stakeKeeper)
+	validatorUpdates := stake.EndBlocker(ctx, app.stakeKeeper)
 
-	//return abci.ResponseEndBlock{
-	//	ValidatorUpdates: validatorUpdates,
-	//}
-	return abci.ResponseEndBlock{}
+	//tags, _ := gov.EndBlocker(ctx, app.govKeeper)
+
+	return abci.ResponseEndBlock{
+		ValidatorUpdates: validatorUpdates,
+		//Tags:             tags,
+	}
 }
 
-// Custom logic for initialization
+// Initialzes the app db from the appState in the genesis file. Baseapp runs this on receipt of an InitChain ABCI message
 func (app *KavaApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
 
-	genesisState := new(types.GenesisState)
-	err := app.cdc.UnmarshalJSON(stateJSON, genesisState)
+	var genesisState GenesisState
+	err := app.cdc.UnmarshalJSON(stateJSON, &genesisState)
 	if err != nil {
-		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
-		// return sdk.ErrGenesisParse("").TraceCause(err, "")
+		panic(err)
 	}
 
+	// load the accounts
 	for _, gacc := range genesisState.Accounts {
-		acc, err := gacc.ToAppAccount()
-		if err != nil {
-			panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
-			//	return sdk.ErrGenesisParse("").TraceCause(err, "")
-		}
+		acc := gacc.ToAccount()
 		acc.AccountNumber = app.accountMapper.GetNextAccountNumber(ctx)
 		app.accountMapper.SetAccount(ctx, acc)
 	}
 
 	// load the initial stake information
-	//stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
+	err = stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
+	if err != nil {
+		panic(err)
+	}
+
+	//gov.InitGenesis(ctx, app.govKeeper, gov.DefaultGenesisState())
 
 	return abci.ResponseInitChain{}
 }
 
-// Custom logic for state export
+//
 func (app *KavaApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 	ctx := app.NewContext(true, abci.Header{})
 
 	// iterate to get the accounts
-	accounts := []types.GenesisAccount{}
+	accounts := []GenesisAccount{}
 	appendAccount := func(acc auth.Account) (stop bool) {
-		account := types.GenesisAccount{
-			Address: acc.GetAddress(),
-			Coins:   acc.GetCoins(),
-		}
+		account := NewGenesisAccountI(acc)
 		accounts = append(accounts, account)
 		return false
 	}
 	app.accountMapper.IterateAccounts(ctx, appendAccount)
 
-	genState := types.GenesisState{
-		Accounts: accounts,
+	genState := GenesisState{
+		Accounts:  accounts,
+		StakeData: stake.WriteGenesis(ctx, app.stakeKeeper),
 	}
 	appState, err = wire.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	validators = make([]tmtypes.GenesisValidator, 0) // TODO export the actual validators
-
-	return appState, validators, err
+	validators = stake.WriteValidators(ctx, app.stakeKeeper)
+	return appState, validators, nil
 }

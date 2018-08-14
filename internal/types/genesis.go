@@ -1,5 +1,8 @@
 package types
 
+// DEPRECATED
+
+/*
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	crypto "github.com/tendermint/go-crypto"
@@ -41,7 +44,7 @@ func GetAccountDecoder(cdc *wire.Codec) auth.AccountDecoder {
 }
 */
 //___________________________________________________________________________________
-
+/*
 type GenTx struct {
 	Address sdk.Address   `json:"address"`
 	PubKey  crypto.PubKey `json:"pub_key"`
@@ -75,3 +78,4 @@ func (ga *GenesisAccount) ToAppAccount() (acc *auth.BaseAccount, err error) {
 		Coins:   ga.Coins.Sort(),
 	}, nil
 }
+*/
