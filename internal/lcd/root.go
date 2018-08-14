@@ -1,5 +1,6 @@
 package lcd
 
+/*
 import (
 	"net/http"
 	"os"
@@ -24,6 +25,7 @@ import (
 	//ibc "github.com/cosmos/cosmos-sdk/x/ibc/client/rest"
 	//stake "github.com/cosmos/cosmos-sdk/x/stake/client/rest"
 )
+*/
 
 // ServeCommand will generate a long-running rest server
 // (aka Light Client Daemon) that exposes functionality similar
