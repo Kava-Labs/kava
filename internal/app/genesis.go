@@ -160,11 +160,10 @@ func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisState
 			return
 		}
 
-		// create the genesis account, give'm few steaks and a buncha token with there name
+		// create the genesis account
 		accAuth := auth.NewBaseAccountWithAddress(genTx.Address)
 		accAuth.Coins = sdk.Coins{
-			{genTx.Name + "Token", sdk.NewInt(1000)},
-			{"steak", sdk.NewInt(freeFermionsAcc)},
+			{"KVA", sdk.NewInt(freeFermionsAcc)},
 		}
 		acc := NewGenesisAccount(&accAuth)
 		genaccs[i] = acc
