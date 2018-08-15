@@ -17,9 +17,9 @@ import (
 )
 
 var (
-	// bonded tokens given to genesis validators/accounts
-	freeFermionVal  = int64(100)
-	freeFermionsAcc = int64(50)
+	// Tokens given to genesis validators and accounts
+	numStartingTokensValidators = int64(500000)
+	numStartingTokensAccounts   = int64(500000)
 )
 
 // Initial app state to be written to (and read from) genesis file
@@ -133,7 +133,7 @@ func KavaAppGenTxNF(cdc *wire.Codec, pk crypto.PubKey, addr sdk.AccAddress, name
 	// Create the validator
 	validator = tmtypes.GenesisValidator{
 		PubKey: pk,
-		Power:  freeFermionVal,
+		Power:  numStartingTokensValidators,
 	}
 	return
 }
@@ -149,6 +149,8 @@ func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisState
 
 	// start with the default staking genesis state
 	stakeData := stake.DefaultGenesisState()
+	// change denom of staking coin
+	stakeData.Params.BondDenom = "KVA"
 
 	// get genesis flag account information
 	genaccs := make([]GenesisAccount, len(appGenTxs))
@@ -163,11 +165,11 @@ func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisState
 		// create the genesis account
 		accAuth := auth.NewBaseAccountWithAddress(genTx.Address)
 		accAuth.Coins = sdk.Coins{
-			{"KVA", sdk.NewInt(freeFermionsAcc)},
+			{"KVA", sdk.NewInt(numStartingTokensAccounts)},
 		}
 		acc := NewGenesisAccount(&accAuth)
 		genaccs[i] = acc
-		stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens.Add(sdk.NewRat(freeFermionsAcc)) // increase the supply
+		stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens.Add(sdk.NewRat(numStartingTokensAccounts)) // increase the supply
 
 		// add the validator
 		if len(genTx.Name) > 0 {
@@ -175,11 +177,11 @@ func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisState
 			validator := stake.NewValidator(genTx.Address,
 				sdk.MustGetAccPubKeyBech32(genTx.PubKey), desc)
 
-			stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens.Add(sdk.NewRat(freeFermionVal)) // increase the supply
+			stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens.Add(sdk.NewRat(numStartingTokensValidators)) // increase the supply
 
 			// add some new shares to the validator
 			var issuedDelShares sdk.Rat
-			validator, stakeData.Pool, issuedDelShares = validator.AddTokensFromDel(stakeData.Pool, freeFermionVal)
+			validator, stakeData.Pool, issuedDelShares = validator.AddTokensFromDel(stakeData.Pool, numStartingTokensValidators)
 			stakeData.Validators = append(stakeData.Validators, validator)
 
 			// create the self-delegation from the issuedDelShares
