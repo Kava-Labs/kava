@@ -58,9 +58,9 @@ TODO users need to set up keys first?
 This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`.
 The default password is 'password'.
 
-Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-0/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
+Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-1/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
 
-Add the kava node address (`4db23d731b4255c9624b283d0ca4e5b219e6cf67@validator.connector.kava.io:26656`) to `seeds` in `$HOME/.kvd/config/config.toml`
+Add the kava node address (`0dfd43e440e34fc193ddee4ae99547184f3cb5d1@validator.connector.kava.io:26656`) to `seeds` in `$HOME/.kvd/config/config.toml`
 
 Start your full node
 
@@ -76,7 +76,7 @@ Ask @rhuairahrighairidh in the chat to give you some coins.
 Get your validator pubkey with `kvd tendermint show_validator`
 
 	kvcli stake create-validator \
-            --amount 100000KVA \
+            --amount 1000KVA \
             --pubkey <you validator pubkey from above> \
             --address-validator <your address from above> \
             --moniker "<your name>" \
