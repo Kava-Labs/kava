@@ -1,0 +1,99 @@
+{
+  "genesis_time": "2018-08-16T20:19:19.700191483Z",
+  "chain_id": "kava-test-0",
+  "consensus_params": {
+    "block_size_params": {
+      "max_bytes": "22020096",
+      "max_txs": "10000",
+      "max_gas": "-1"
+    },
+    "tx_size_params": {
+      "max_bytes": "10240",
+      "max_gas": "-1"
+    },
+    "block_gossip_params": {
+      "block_part_size_bytes": "65536"
+    },
+    "evidence_params": {
+      "max_age": "100000"
+    }
+  },
+  "validators": [
+    {
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "dnl/bkhWxCMuq5ia4AWwU4r2HRl+MJjU4bSS0qsmI/0="
+      },
+      "power": "500000",
+      "name": ""
+    }
+  ],
+  "app_hash": "",
+  "app_state": {
+    "accounts": [
+      {
+        "address": "cosmosaccaddr10fa3g29glhkekp6nhsqq4njwrpv69kl9zt4a7q",
+        "coins": [
+          {
+            "denom": "KVA",
+            "amount": "500000"
+          }
+        ]
+      }
+    ],
+    "stake": {
+      "pool": {
+        "loose_tokens": "1000000",
+        "bonded_tokens": "0",
+        "inflation_last_time": "0",
+        "inflation": "7/100",
+        "date_last_commission_reset": "0",
+        "prev_bonded_shares": "0"
+      },
+      "params": {
+        "inflation_rate_change": "13/100",
+        "inflation_max": "1/5",
+        "inflation_min": "7/100",
+        "goal_bonded": "67/100",
+        "unbonding_time": "259200",
+        "max_validators": 100,
+        "bond_denom": "KVA"
+      },
+      "validators": [
+        {
+          "owner": "cosmosaccaddr10fa3g29glhkekp6nhsqq4njwrpv69kl9zt4a7q",
+          "pub_key": {
+            "type": "tendermint/PubKeyEd25519",
+            "value": "dnl/bkhWxCMuq5ia4AWwU4r2HRl+MJjU4bSS0qsmI/0="
+          },
+          "revoked": false,
+          "status": 0,
+          "tokens": "500000",
+          "delegator_shares": "500000",
+          "description": {
+            "moniker": "kava-validator",
+            "identity": "",
+            "website": "",
+            "details": ""
+          },
+          "bond_height": "0",
+          "bond_intra_tx_counter": 0,
+          "proposer_reward_pool": [],
+          "commission": "0",
+          "commission_max": "0",
+          "commission_change_rate": "0",
+          "commission_change_today": "0",
+          "prev_bonded_tokens": "0"
+        }
+      ],
+      "bonds": [
+        {
+          "delegator_addr": "cosmosaccaddr10fa3g29glhkekp6nhsqq4njwrpv69kl9zt4a7q",
+          "validator_addr": "cosmosaccaddr10fa3g29glhkekp6nhsqq4njwrpv69kl9zt4a7q",
+          "shares": "500000",
+          "height": "0"
+        }
+      ]
+    }
+  }
+}

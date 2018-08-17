@@ -1,5 +1,6 @@
 package lcd
 
+/*
 import (
 	"net/http"
 	//"encoding/hex"
@@ -10,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 )
+*/
 
 type TxBody struct {
 	TxBase64 string `json:"txbase64"`

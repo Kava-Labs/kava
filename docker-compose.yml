@@ -4,18 +4,18 @@ services:
     image: kava/kava
     command: ["kvd", "start"]
     ports:
-      - 46657:46657
+      - 26657:26657
     volumes:
       - ~/.kvd:/root/.kvd
       - ~/.kvcli:/root/.kvcli
-    # Avoid printing out all the tendermint logs
-    logging:
-      driver: "none"
-  lcd:
-    image: kava/kava
-    command: "kvcli rest-server --chain-id test-kava --node kvd:46657 --laddr tcp://0.0.0.0:1317"
-    ports:
-      - 1317:1317
-    volumes:
-      - ~/.kvd:/root/.kvd
-      - ~/.kvcli:/root/.kvcli
+  #   # Avoid printing out all the tendermint logs
+  #   logging:
+  #     driver: "none"
+  # lcd:
+  #   image: kava/kava
+  #   command: "kvcli rest-server --chain-id test-kava --node kvd:46657 --laddr tcp://0.0.0.0:1317"
+  #   ports:
+  #     - 1317:1317
+  #   volumes:
+  #     - ~/.kvd:/root/.kvd
+  #     - ~/.kvcli:/root/.kvcli
