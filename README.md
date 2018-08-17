@@ -1,4 +1,4 @@
-![Kava](https://raw.githubusercontent.com/Kava-Labs/kava/master/kava-logo.svg)
+![Kava](./kava-logo.svg)
 
 ---
 
