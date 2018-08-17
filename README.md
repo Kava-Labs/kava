@@ -1,4 +1,6 @@
-# Kava Blockchain
+![Kava](https://raw.githubusercontent.com/Kava-Labs/kava/master/kava-logo.svg)
+
+---
 
 A decentralized fast-finality blockchain for interoperable payment channel networks.
 Building on the work of Tendermint and Interledger.
@@ -8,7 +10,6 @@ Project status: We're currently in a very early public testnet. With future feat
 Try it out - send txs using our public node, or run a full node to sync to the testnet, or even run a validator.
 
 
-# Try It Out
 
 ## Install
 
@@ -68,8 +69,7 @@ Start your full node
 
 
 ## Run a Validator
-Join the chat first. Follow setup for a full node above.
-
+Join the validator chat. [![riot.im](https://img.shields.io/badge/riot.im-JOIN%20CHAT-green.svg)](https://riot.im/app/#/room/#kava-validators:matrix.org) Follow setup for a full node above.
 Get you address with `kvcli keys list`. Should look like `cosmosaccaddr10jpp289accvkhsvrpz4tlj9zhqdaey2tl9m4rg`.
 Ask @rhuairahrighairidh in the chat to give you some coins.
 
