@@ -18,8 +18,8 @@ import (
 
 var (
 	// Tokens given to genesis validators and accounts
-	numStartingTokensValidators = int64(500000)
-	numStartingTokensAccounts   = int64(500000)
+	numStartingTokensValidators = int64(1000)
+	numStartingTokensAccounts   = int64(99000)
 )
 
 // Initial app state to be written to (and read from) genesis file
