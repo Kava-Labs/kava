@@ -1,6 +1,5 @@
-![Kava](./kava-logo.svg)
-
----
+<!--![Kava](./kava-logo.svg)-->
+# Kava Blockchain
 
 A decentralized fast-finality blockchain for interoperable payment channel networks.
 Building on the work of Tendermint and Interledger.
