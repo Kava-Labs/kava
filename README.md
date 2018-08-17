@@ -69,7 +69,7 @@ Start your full node
 
 
 ## Run a Validator
-Join the validator chat. [![riot.im](https://img.shields.io/badge/riot.im-JOIN%20CHAT-green.svg)](https://riot.im/app/#/room/#kava-validators:matrix.org) Follow setup for a full node above.
+Join the [validator chat](https://riot.im/app/#/room/#kava-validators:matrix.org). Follow setup for a full node above.
 Get you address with `kvcli keys list`. Should look like `cosmosaccaddr10jpp289accvkhsvrpz4tlj9zhqdaey2tl9m4rg`.
 Ask @rhuairahrighairidh in the chat to give you some coins.
 
