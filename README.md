@@ -20,6 +20,7 @@ Requirements: go installed and set up.
 	cd $GOPATH/src/github.com/kava-labs
 	git clone https://github.com/kava-labs/kava
 	cd kava
+	dep ensure
 	go install ./cmd/kvd
 	go install ./cmd/kvcli
 
