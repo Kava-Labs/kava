@@ -7,7 +7,7 @@ Building on the work of Tendermint and Interledger.
 
 Project status: We're currently in a very early public testnet. With future features being implemented.
 
-Try it out - send txs using our public node, or run a full node to sync to the testnet, or even run a validator.
+Try it out - run a full node to sync to the testnet, or set up as a validator.
 
 
 
@@ -17,17 +17,23 @@ Try it out - send txs using our public node, or run a full node to sync to the t
 
 Requirements: go installed and set up.
 
-	mkdir -p $GOPATH/src/github.com/kava-labs
-	cd $GOPATH/src/github.com/kava-labs
-	git clone https://github.com/kava-labs/kava
-	cd kava
-	mkdir $GOPATH/bin
-	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-	dep ensure
-	go install ./cmd/kvd
-	go install ./cmd/kvcli
+ 1. Get the code.
+ 
+		mkdir -p $GOPATH/src/github.com/kava-labs
+		cd $GOPATH/src/github.com/kava-labs
+		git clone https://github.com/kava-labs/kava
+		cd kava
+	
+ 2. Install the dependencies.
+ 
+		mkdir $GOPATH/bin
+		curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+		dep ensure
 
-<!-- Make sure GOBIN environment variable is set if you want to access programs anywhere -->
+3. Install the code
+
+		go install ./cmd/kvd
+		go install ./cmd/kvcli
 
 ### Docker
 
@@ -57,14 +63,16 @@ TODO users need to set up keys first?
 
 ## Run a Full Node
 
-	kvd init --name <your-name> --chain-id kava-test-0
+	kvd init --name <your-name> --chain-id kava-test-1
 
-This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`.
+This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`.  
 The default password is 'password'.
+
+Note: Make sure `GOBIN` is set and added to your path if you want to be able to run installed go programs from any folder.
 
 Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-1/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
 
-Add the kava node address (`0dfd43e440e34fc193ddee4ae99547184f3cb5d1@validator.connector.kava.io:26656`) to `seeds` in `$HOME/.kvd/config/config.toml`
+Add the kava node address, `0dfd43e440e34fc193ddee4ae99547184f3cb5d1@validator.connector.kava.io:26656`, to `seeds` in `$HOME/.kvd/config/config.toml`
 
 Start your full node
 
@@ -73,28 +81,31 @@ Start your full node
 
 ## Run a Validator
 Join the [validator chat](https://riot.im/app/#/room/#kava-validators:matrix.org). Follow setup for a full node above.
-Get you address with `kvcli keys list`. Should look like `cosmosaccaddr10jpp289accvkhsvrpz4tlj9zhqdaey2tl9m4rg`.
+
+Get you address with `kvcli keys list`. Should look something like `cosmosaccaddr10jpp289accvkhsvrpz4tlj9zhqdaey2tl9m4rg`.
+
 Ask @rhuairahrighairidh in the chat to give you some coins.
 
 Get your validator pubkey with `kvd tendermint show_validator`
 
+Then run
+
 	kvcli stake create-validator \
-            --amount 1000KVA \
+            --amount 900KVA \
             --pubkey <you validator pubkey from above> \
             --address-validator <your address from above> \
             --moniker "<your name>" \
-            --chain-id kava-test-0 \
+            --chain-id kava-test-1 \
             --from <your name>
 
 Now you should be participating in consensus and validating blocks!
 
-
-Running a validator requires that you keep validating blocks. If you stop then your stake will be slashed.
+Running a validator requires that you keep validating blocks. If you stop, your stake will be slashed.  
 In order to stop validating, first remove yourself as validator, then you can stop your node.
 
 	kvcli stake unbond begin \
 		--address-delegator <your address> \
 		--address-validator <your address> \
-		--chain-id kava-test-0 \
+		--chain-id kava-test-1 \
 		--shares-percent 1 \
 		--from <your name>
