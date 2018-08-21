@@ -18,6 +18,7 @@ Try it out - run a full node to sync to the testnet, or set up as a validator.
 Requirements: go installed and set up (version 1.10+).
 
  0. If installing from a new Ubuntu server (16.04 or 18.04), here's how to setup go:
+		
 		sudo apt update
 		sudo apt upgrade -y
 		sudo apt install git gcc make wget -y
