@@ -13,9 +13,9 @@ Try it out - run a full node to sync to the testnet, or set up as a validator.
 
 ## Install
 
-### Source
+<!--### Source-->
 
-Requirements: go installed and set up.
+Requirements: go installed and set up (version 1.10+).
 
  1. Get the code.
  
@@ -35,10 +35,9 @@ Requirements: go installed and set up.
 		go install ./cmd/kvd
 		go install ./cmd/kvcli
 
-### Docker
+<!--### Docker
 
-TODO
-<!-- Requirements: docker installed.
+Requirements: docker installed.
 
 No installation necessary, just prepend commands with `docker run kava/kava`.  TODO name necessary to avoid new contianer being created each time?
 
@@ -65,10 +64,9 @@ TODO users need to set up keys first?
 
 	kvd init --name <your-name> --chain-id kava-test-1
 
-This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`.  
-The default password is 'password'.
+This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`. The default password is 'password'.
 
-Note: Make sure `GOBIN` is set and added to your path if you want to be able to run installed go programs from any folder.
+> Note: Make sure `GOBIN` is set and added to your path if you want to be able to run installed go programs from any folder.
 
 Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-1/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
 
@@ -77,6 +75,8 @@ Add the kava node address, `0dfd43e440e34fc193ddee4ae99547184f3cb5d1@validator.c
 Start your full node
 
 	kvd start
+	
+> Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:26657/abci_info).
 
 
 ## Run a Validator
@@ -88,7 +88,7 @@ Ask @rhuairahrighairidh in the chat to give you some coins.
 
 Get your validator pubkey with `kvd tendermint show_validator`
 
-Then run
+Then, your full running in the background or separate window, run:
 
 	kvcli stake create-validator \
             --amount 900KVA \
@@ -97,8 +97,9 @@ Then run
             --moniker "<your name>" \
             --chain-id kava-test-1 \
             --from <your name>
+> Note You'll need to type in the default password "password"
 
-Now you should be participating in consensus and validating blocks!
+Now your full node should be participating in consensus and validating blocks!
 
 Running a validator requires that you keep validating blocks. If you stop, your stake will be slashed.  
 In order to stop validating, first remove yourself as validator, then you can stop your node.
