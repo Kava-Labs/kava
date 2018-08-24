@@ -13,10 +13,3 @@
 
 # Exclude build files
 vendor
-
-# Exclude text editor files
-*.sublime-project
-*.sublime-workspace
-
-# Exclude kubernetes secrets
-deployment/secret*.yml

@@ -16,6 +16,7 @@ RUN go build ./cmd/kvd && go build ./cmd/kvcli
 
 # Copy app binary over to small container.
 # Using alpine instad of scratch to aid in debugging and avoid complicated compile
+# note the home directory for alpine is /root/
 FROM alpine
 COPY --from=builder /go/src/github.com/kava-labs/kava/kvd /go/src/github.com/kava-labs/kava/kvcli /usr/bin/
 CMD ["kvd", "start"]
