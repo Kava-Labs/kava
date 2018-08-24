@@ -12,8 +12,8 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case MsgCreate:
 			return handleMsgCreate(ctx, k, msg)
-		case MsgClose:
-			return handleMsgClose(ctx, k, msg)
+		case MsgSubmitUpdate:
+			return handleMsgSubmitUpdate(ctx, k, msg)
 		default:
 			errMsg := "Unrecognized paychan Msg type: " + reflect.TypeOf(msg).Name()
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -21,11 +21,10 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-// Handle CreateMsg.
+// Handle MsgCreate
 // Leaves validation to the keeper methods.
 func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
-	// TODO maybe remove tags for first version
-	tags, err := k.CreatePaychan(ctx, msg.Sender, msg.Receiver, msg.Amount)
+	tags, err := k.CreateChannel(ctx, msg.Participants[0], msg.Participants[len(msg.Participants)-1], msg.Coins)
 	if err != nil {
 		return err.Result()
 	}
@@ -35,15 +34,19 @@ func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 	}
 }
 
-// Handle CloseMsg.
+// Handle MsgSubmitUpdate
 // Leaves validation to the keeper methods.
-func handleMsgClose(ctx sdk.Context, k Keeper, msg MsgClose) sdk.Result {
-	// TODO maybe remove tags for first version
-	tags, err := k.ClosePaychan(ctx, msg.Sender, msg.Receiver, msg.Id, msg.ReceiverAmount)
+func handleMsgSubmitUpdate(ctx sdk.Context, k Keeper, msg MsgSubmitUpdate) sdk.Result {
+
+	// if only sender sig then
+	tags, err := k.InitChannelCloseBySender()
+	// else (if there are both)
+	tags, err := k.ChannelCloseByReceiver()
+
 	if err != nil {
 		return err.Result()
 	}
-	// These tags can be used to subscribe to channel closures
+	// These tags can be used by clients to subscribe to channel close attempts
 	return sdk.Result{
 		Tags: tags,
 	}

@@ -7,6 +7,7 @@ import (
 	//"github.com/cosmos/cosmos-sdk/wire"
 )
 
+/*
 // RegisterRoutes registers paychan-related REST handlers to a router
 func RegisterRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
 	//r.HandleFunc("/accounts/{address}/send", SendRequestHandlerFn(cdc, kb, ctx)).Methods("POST")
@@ -20,3 +21,4 @@ func RegisterRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb 
 // get balance from receiver
 // get balance from local storage
 // handle incoming payment
+*/

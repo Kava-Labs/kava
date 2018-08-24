@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/wire"
 )
 
+/*
 func RegisterWire(cdc *wire.Codec) {
 	cdc.RegisterConcrete(MsgCreate{}, "paychan/MsgCreate", nil)
 	cdc.RegisterConcrete(MsgClose{}, "paychan/MsgClose", nil)
@@ -16,3 +17,4 @@ func init() {
 	// TODO is this needed?
 	//wire.RegisterCrypto(msgCdc)
 }
+*/

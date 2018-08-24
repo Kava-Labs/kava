@@ -8,20 +8,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
-// keeper of the paychan store
+// Keeper of the paychan store
 // Handles validation internally. Does not rely on calling code to do validation.
-// Aim to keep public methids safe, private ones not necessaily.
+// Aim to keep public methods safe, private ones not necessaily.
 type Keeper struct {
 	storeKey   sdk.StoreKey
 	cdc        *wire.Codec // needed to serialize objects before putting them in the store
 	coinKeeper bank.Keeper
 
-	// codespace
-	//codespace sdk.CodespaceType // ??
+	// TODO investigate codespace
+	//codespace sdk.CodespaceType
 }
 
 // Called when creating new app.
-//func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper, codespace sdk.CodespaceType) Keeper {
 func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper) Keeper {
 	keeper := Keeper{
 		storeKey:   key,
@@ -33,7 +32,7 @@ func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper) Keeper {
 }
 
 // bunch of business logic ...
-
+/*
 // Reteive a payment channel struct from the blockchain store.
 // They are indexed by a concatenation of sender address, receiver address, and an integer.
 func (k Keeper) GetPaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, id int64) (Paychan, bool) {
@@ -60,60 +59,91 @@ func (k Keeper) setPaychan(ctx sdk.Context, pych Paychan) {
 	pychKey := paychanKey(pych.Sender, pych.Receiver, pych.Id)
 	store.Set(pychKey, bz) // panics if something goes wrong
 }
+*/
 
 // Create a new payment channel and lock up sender funds.
-func (k Keeper) CreatePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, amount sdk.Coins) (sdk.Tags, sdk.Error) {
-	// TODO move validation somewhere nicer
-	// args present
-	if len(sender) == 0 {
-		return nil, sdk.ErrInvalidAddress(sender.String())
-	}
-	if len(receiver) == 0 {
-		return nil, sdk.ErrInvalidAddress(receiver.String())
-	}
-	if len(amount) == 0 {
-		return nil, sdk.ErrInvalidCoins(amount.String())
-	}
-	// Check if coins are sorted, non zero, positive
-	if !amount.IsValid() {
-		return nil, sdk.ErrInvalidCoins(amount.String())
-	}
-	if !amount.IsPositive() {
-		return nil, sdk.ErrInvalidCoins(amount.String())
-	}
-	// sender should exist already as they had to sign.
-	// receiver address exists. am is the account mapper in the coin keeper.
-	// TODO automatically create account if not present?
-	// TODO remove as account mapper not available to this pkg
-	//if k.coinKeeper.am.GetAccount(ctx, receiver) == nil {
-	//	return nil, sdk.ErrUnknownAddress(receiver.String())
-	//}
+func (k Keeper) CreatePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, coins sdk.Coins) (sdk.Tags, sdk.Error) {
+	// TODO do validation and maybe move somewhere nicer
+	/*
+		// args present
+		if len(sender) == 0 {
+			return nil, sdk.ErrInvalidAddress(sender.String())
+		}
+		if len(receiver) == 0 {
+			return nil, sdk.ErrInvalidAddress(receiver.String())
+		}
+		if len(amount) == 0 {
+			return nil, sdk.ErrInvalidCoins(amount.String())
+		}
+		// Check if coins are sorted, non zero, positive
+		if !amount.IsValid() {
+			return nil, sdk.ErrInvalidCoins(amount.String())
+		}
+		if !amount.IsPositive() {
+			return nil, sdk.ErrInvalidCoins(amount.String())
+		}
+		// sender should exist already as they had to sign.
+		// receiver address exists. am is the account mapper in the coin keeper.
+		// TODO automatically create account if not present?
+		// TODO remove as account mapper not available to this pkg
+		//if k.coinKeeper.am.GetAccount(ctx, receiver) == nil {
+		//	return nil, sdk.ErrUnknownAddress(receiver.String())
+		//}
 
-	// sender has enough coins - done in Subtract method
-	// TODO check if sender and receiver different?
+		// sender has enough coins - done in Subtract method
+		// TODO check if sender and receiver different?
+	*/
 
-	// Calculate next id (just num of existing paychans - zero indexed)
-	id := int64(len(k.GetPaychans(sender, receiver)))
+	// Calculate next id
+	id := k.getNewChannelID(ctx)
 	// subtract coins from sender
-	_, tags, err := k.coinKeeper.SubtractCoins(ctx, sender, amount)
+	_, tags, err := k.coinKeeper.SubtractCoins(ctx, sender, coins)
 	if err != nil {
 		return nil, err
 	}
 	// create new Paychan struct
-	pych := Paychan{
-		Sender:   sender,
-		Receiver: receiver,
-		Id:       id,
-		Balance:  amount,
+	channel := Channel{
+		ID: id
+		Participants:	[2]sdk.AccAddress{sender, receiver},
+		Coins:  coins,
 	}
 	// save to db
-	k.setPaychan(ctx, pych)
+	k.setChannel(ctx, channel)
 
 	// TODO create tags
 	//tags := sdk.NewTags()
 	return tags, err
 }
 
+/* This is how gov manages creating unique IDs. Needs to be deterministic - can't use UUID
+func (keeper Keeper) getNewChannelID(ctx sdk.Context) (channelID int64, err sdk.Error) {
+	store := ctx.KVStore(keeper.storeKey)
+	bz := store.Get(KeyNextProposalID)
+	if bz == nil {
+		return -1, ErrInvalidGenesis(keeper.codespace, "InitialProposalID never set")
+	}
+	keeper.cdc.MustUnmarshalBinary(bz, &proposalID)
+	bz = keeper.cdc.MustMarshalBinary(proposalID + 1)
+	store.Set(KeyNextProposalID, bz)
+	return proposalID, nil
+*/
+
+func (k Keeper) ChannelCloseByReceiver() () {
+	// Validate inputs
+	// k.closeChannel
+}
+
+func (k Keeper) InitChannelCloseBySender() () {
+	// Validate inputs
+	// Create SubmittedUpdate from Update and add to queue
+}
+
+func (k Keeper) closeChannel() () {
+	// Remove corresponding SubmittedUpdate from queue (if it exist)
+	// Add coins to sender and receiver
+	// Delete Channel
+}
+/*
 // Close a payment channel and distribute funds to participants.
 func (k Keeper) ClosePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, id int64, receiverAmount sdk.Coins) (sdk.Tags, sdk.Error) {
 	if len(sender) == 0 {
@@ -190,3 +220,4 @@ func (k Keeper) GetPaychans(sender sdk.Address, receiver sdk.Address) []Paychan 
 }
 
 // maybe getAllPaychans(sender sdk.address) []Paychan
+*/

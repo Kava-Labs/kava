@@ -5,81 +5,91 @@ import (
 	"strconv"
 )
 
-// Paychan Type
-// Used to represent paychan in keeper module and to serialize.
-// probably want to convert this to a general purpose "state"
-type Paychan struct {
-	Sender   sdk.Address
-	Receiver sdk.Address
-	Id       int64
-	Balance  sdk.Coins
+/*  CHANNEL TYPES  */
+
+// Used to represent a channel in the keeper module.
+// Participants is limited to two as currently these are unidirectional channels.
+// Last participant is designated as receiver.
+type Channel struct {
+	ID       int64
+	Participants [2]sdk.AccAddress
+	Coins  sdk.Coins
 }
 
-// Message Types
+// The data that is passed between participants as payments, and submitted to the blockchain to close a channel.
+type Update struct {
+	ChannelID int64
+	CoinsUpdate //TODO type
+	Sequence int64
+	sig // TODO type, only sender needs to sign
+}
 
-// Message implement the sdk.Msg interface:
+// An update that has been submitted to the blockchain, but not yet acted on.
+type SubmittedUpdate {
+	Update
+	executionDate int64 // BlockHeight
+}
 
-// type Msg interface {
+/*  MESSAGE TYPES  */
+/*
+Message implement the sdk.Msg interface:
+type Msg interface {
 
-// 	// Return the message type.
-// 	// Must be alphanumeric or empty.
-// 	Type() string
+	// Return the message type.
+	// Must be alphanumeric or empty.
+	Type() string
 
-// 	// Get the canonical byte representation of the Msg.
-// 	GetSignBytes() []byte
+	// Get the canonical byte representation of the Msg.
+	GetSignBytes() []byte
 
-// 	// ValidateBasic does a simple validation check that
-// 	// doesn't require access to any other information.
-// 	ValidateBasic() Error
+	// ValidateBasic does a simple validation check that
+	// doesn't require access to any other information.
+	ValidateBasic() Error
 
-// 	// Signers returns the addrs of signers that must sign.
-// 	// CONTRACT: All signatures must be present to be valid.
-// 	// CONTRACT: Returns addrs in some deterministic order.
-// 	GetSigners() []Address
-// }
+	// Signers returns the addrs of signers that must sign.
+	// CONTRACT: All signatures must be present to be valid.
+	// CONTRACT: Returns addrs in some deterministic order.
+	GetSigners() []Address
+}
+*/
 
 // A message to create a payment channel.
 type MsgCreate struct {
-	// maybe just wrap a paychan struct
-	Sender   sdk.Address
-	Receiver sdk.Address
-	Amount   sdk.Coins
+	Participants	[2]sdk.AccAddress
+	Coins	sdk.Coins
 }
 
-// Create a new message.
-// Called in client code when constructing transaction from cli args to send to the network.
-// maybe just a placeholder for more advanced future functionality?
-// func (msg CreatMsg) NewMsgCreate(sender sdk.Address, receiver sdk.Address, amount sdk.Coins) MsgCreate {
-// 	return MsgCreate{
-// 		sender
-// 		receiver
-// 		amount
-// 	}
-// }
+//Create a new message.
+/*
+Called in client code when constructing transaction from cli args to send to the network.
+maybe just a placeholder for more advanced future functionality?
+func (msg CreatMsg) NewMsgCreate(sender sdk.Address, receiver sdk.Address, amount sdk.Coins) MsgCreate {
+	return MsgCreate{
+		sender
+		receiver
+		amount
+	}
+}
+*/
 
 func (msg MsgCreate) Type() string { return "paychan" }
 
 func (msg MsgCreate) GetSignBytes() []byte {
 	// TODO create msgCdc in wire.go
-	b, err := msgCdc.MarshalJSON(struct {
-		SenderAddr   string    `json:"sender_addr"`
-		ReceiverAddr string    `json:"receiver_addr"`
-		Amount       sdk.Coins `json:"amount"`
-	}{
-		SenderAddr:   sdk.MustBech32ifyAcc(msg.Sender),
-		ReceiverAddr: sdk.MustBech32ifyAcc(msg.Receiver),
-		Amount:       msg.Amount,
-	})
+	bz, err := msgCdc.Marshal(msg)
 	if err != nil {
 		panic(err)
 	}
-	return b
+	return MustSortJSON(bz)
 }
 
 func (msg MsgCreate) ValidateBasic() sdk.Error {
 	// Validate msg as an optimisation to avoid all validation going to keeper. It's run before the sigs are checked by the auth module.
 	// Validate without external information (such as account balance)
 
+	//TODO implement
+
+	/*
 	// check if all fields present / not 0 valued
 	if len(msg.Sender) == 0 {
 		return sdk.ErrInvalidAddress(msg.Sender.String())
@@ -98,55 +108,42 @@ func (msg MsgCreate) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
 	// TODO check if Address valid?
+	*/
 	return nil
 }
 
 func (msg MsgCreate) GetSigners() []sdk.Address {
 	// Only sender must sign to create a paychan
-	return []sdk.Address{msg.Sender}
+	return []sdk.AccAddress{msg.Participants[0]} // select sender address
 }
 
 // A message to close a payment channel.
-type MsgClose struct {
-	// have to include sender and receiver in msg explicitly (rather than just universal paychanID)
-	//  this gives ability to verify signatures with no external information
-	Sender         sdk.Address
-	Receiver       sdk.Address
-	Id             int64     // TODO is another int type better?
-	ReceiverAmount sdk.Coins // amount the receiver should get - sender amount implicit with paychan balance
+type MsgSubmitUpdate struct {
+	Update
+	// might need a "signer" to be able to say who is signing this as either can or not
 }
 
-// func (msg MsgClose) NewMsgClose(sender sdk.Address, receiver sdk.Address, id integer, receiverAmount sdk.Coins) MsgClose {
-// 	return MsgClose{
-// 		sender
-// 		receiver
-// 		id
-// 		receiverAmount
+// func (msg MsgSubmitUpdate) NewMsgSubmitUpdate(update Update) MsgSubmitUpdate {
+// 	return MsgSubmitUpdate{
+// 		update
 // 	}
 // }
 
-func (msg MsgClose) Type() string { return "paychan" }
+func (msg MsgSubmitUpdate) Type() string { return "paychan" }
 
-func (msg MsgClose) GetSignBytes() []byte {
+func (msg MsgSubmitUpdate) GetSignBytes() []byte {
 	// TODO create msgCdc in wire.go
-	b, err := msgCdc.MarshalJSON(struct {
-		SenderAddr     string    `json:"sender_addr"`
-		ReceiverAddr   string    `json:"receiver_addr"`
-		Id             int64     `json:"id"`
-		ReceiverAmount sdk.Coins `json:"receiver_amount"`
-	}{
-		SenderAddr:     sdk.MustBech32ifyAcc(msg.Sender),
-		ReceiverAddr:   sdk.MustBech32ifyAcc(msg.Receiver),
-		Id:             msg.Id,
-		ReceiverAmount: msg.ReceiverAmount,
-	})
+	bz, err := msgCdc.Marshal(msg)
 	if err != nil {
 		panic(err)
 	}
-	return b
+	return MustSortJSON(bz)
 }
 
-func (msg MsgClose) ValidateBasic() sdk.Error {
+func (msg MsgSubmitUpdate) ValidateBasic() sdk.Error {
+
+	// TODO implement
+	/*
 	// check if all fields present / not 0 valued
 	if len(msg.Sender) == 0 {
 		return sdk.ErrInvalidAddress(msg.Sender.String())
@@ -169,10 +166,12 @@ func (msg MsgClose) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
 	}
 	// TODO check if Address valid?
+	*/
 	return nil
 }
 
-func (msg MsgClose) GetSigners() []sdk.Address {
-	// Both sender and receiver must sign in order to close a channel
-	return []sdk.Address{msg.Sender, msg.Receiver}
+func (msg MsgSubmitUpdate) GetSigners() []sdk.Address {
+	// Signing not strictly necessary as signatures contained within the channel update.
+	// TODO add signature by submitting address
+	return []sdk.Address{}
 }

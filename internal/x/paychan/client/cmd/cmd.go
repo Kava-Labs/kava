@@ -33,6 +33,7 @@ import (
 // send paychan payment
 // get balance from receiver
 
+/*
 func CreatePaychanCmd(cdc *wire.Codec) *cobra.Command {
 	flagTo := "to"
 	flagAmount := "amount"
@@ -297,3 +298,4 @@ func EnsureSignBuild(ctx context.CoreContext, name string, msg sdk.Msg, cdc *wir
 	}
 	return txBytes, nil
 }
+*/
