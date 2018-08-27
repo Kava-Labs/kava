@@ -38,10 +38,15 @@ func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 // Leaves validation to the keeper methods.
 func handleMsgSubmitUpdate(ctx sdk.Context, k Keeper, msg MsgSubmitUpdate) sdk.Result {
 
-	// if only sender sig then
-	tags, err := k.InitChannelCloseBySender()
-	// else (if there are both)
-	tags, err := k.ChannelCloseByReceiver()
+	participants := k.getChannel(ctx, msg.Update.ChannelID).Participants
+
+	// if only sender signed
+	if msg.submitter == participants[0] {
+		tags, err := k.InitCloseChannelBySender()
+		// else if receiver signed
+	} else if msg.submitter == participants[len(participants)-1] {
+		tags, err := k.CloseChannelByReceiver()
+	}
 
 	if err != nil {
 		return err.Result()

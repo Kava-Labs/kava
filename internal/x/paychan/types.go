@@ -11,15 +11,17 @@ import (
 // Participants is limited to two as currently these are unidirectional channels.
 // Last participant is designated as receiver.
 type Channel struct {
-	ID       int64
+	ID       ChannelID
 	Participants [2]sdk.AccAddress
 	Coins  sdk.Coins
 }
 
+type ChannelID int64 // TODO should this be positive only
+
 // The data that is passed between participants as payments, and submitted to the blockchain to close a channel.
 type Update struct {
 	ChannelID int64
-	CoinsUpdate //TODO type
+	CoinsUpdate map[sdk.AccAddress]sdk.Coins
 	Sequence int64
 	sig // TODO type, only sender needs to sign
 }
@@ -27,8 +29,34 @@ type Update struct {
 // An update that has been submitted to the blockchain, but not yet acted on.
 type SubmittedUpdate {
 	Update
-	executionDate int64 // BlockHeight
+	executionTime int64 // BlockHeight
 }
+
+type SubmittedUpdateQueue []ChannelID
+// Check if value is in queue
+func (suq SubmittedChannelID) Contains(channelID ChannelID) bool {
+	found := false
+	for _, id := range(suq) {
+		if id == channelID {
+			found = true
+			break
+		}
+	}
+	return found
+}
+// Remove all values from queue that match argument
+func (suq SubmittedUpdateQueue) RemoveMatchingElements(channelID ChannelID) {
+	newSUQ := SubmittedUpdateQueue{}
+
+	for _, id := range(suq) {
+		if id != channelID {
+			newSUQ = append(newSUQ, id)
+		}
+	}
+	suq = newSUQ
+}
+
+var ChannelDisputeTime = 2000 // measured in blocks
 
 /*  MESSAGE TYPES  */
 /*
@@ -120,7 +148,7 @@ func (msg MsgCreate) GetSigners() []sdk.Address {
 // A message to close a payment channel.
 type MsgSubmitUpdate struct {
 	Update
-	// might need a "signer" to be able to say who is signing this as either can or not
+	submitter sdk.AccAddress
 }
 
 // func (msg MsgSubmitUpdate) NewMsgSubmitUpdate(update Update) MsgSubmitUpdate {
