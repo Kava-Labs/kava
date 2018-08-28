@@ -37,15 +37,19 @@ func handleMsgCreate(ctx sdk.Context, k Keeper, msg MsgCreate) sdk.Result {
 // Handle MsgSubmitUpdate
 // Leaves validation to the keeper methods.
 func handleMsgSubmitUpdate(ctx sdk.Context, k Keeper, msg MsgSubmitUpdate) sdk.Result {
+	var err sdk.Error
+	tags := sdk.EmptyTags()
 
-	participants := k.getChannel(ctx, msg.Update.ChannelID).Participants
+	// TODO refactor signer detection - move to keeper or find nicer setup
+	channel, _ := k.getChannel(ctx, msg.Update.ChannelID)
+	participants := channel.Participants
 
 	// if only sender signed
-	if msg.submitter == participants[0] {
-		tags, err := k.InitCloseChannelBySender()
+	if reflect.DeepEqual(msg.submitter, participants[0]) {
+		tags, err = k.InitCloseChannelBySender(ctx, msg.Update)
 		// else if receiver signed
-	} else if msg.submitter == participants[len(participants)-1] {
-		tags, err := k.CloseChannelByReceiver()
+	} else if reflect.DeepEqual(msg.submitter, participants[len(participants)-1]) {
+		tags, err = k.CloseChannelByReceiver(ctx, msg.Update)
 	}
 
 	if err != nil {

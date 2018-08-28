@@ -1,8 +1,7 @@
 package paychan
 
 import (
-	"strconv"
-
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -33,9 +32,8 @@ func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper) Keeper {
 
 // ============================================== Main Business Logic
 
-
 // Create a new payment channel and lock up sender funds.
-func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, coins sdk.Coins) (sdk.Tags, sdk.Error) {
+func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.AccAddress, receiver sdk.AccAddress, coins sdk.Coins) (sdk.Tags, sdk.Error) {
 	// TODO do validation and maybe move somewhere nicer
 	/*
 		// args present
@@ -67,18 +65,18 @@ func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.Address, receiver sdk.
 		// TODO check if sender and receiver different?
 	*/
 
-	// Calculate next id
-	id := k.getNewChannelID(ctx)
 	// subtract coins from sender
 	_, tags, err := k.coinKeeper.SubtractCoins(ctx, sender, coins)
 	if err != nil {
 		return nil, err
 	}
+	// Calculate next id
+	id := k.getNewChannelID(ctx)
 	// create new Paychan struct
 	channel := Channel{
-		ID: id
-		Participants:	[2]sdk.AccAddress{sender, receiver},
-		Coins:  coins,
+		ID:           id,
+		Participants: [2]sdk.AccAddress{sender, receiver},
+		Coins:        coins,
 	}
 	// save to db
 	k.setChannel(ctx, channel)
@@ -88,51 +86,64 @@ func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.Address, receiver sdk.
 	return tags, err
 }
 
-
-
-func (k Keeper) InitCloseChannelBySender(update Update) {
+func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	// This is roughly the default path for non unidirectional channels
 
 	// TODO Validate update - e.g. check signed by sender
 
-	q := k.getSubmittedUpdateQueue(ctx)
+	q, found := k.getSubmittedUpdatesQueue(ctx)
+	if !found {
+		panic("SubmittedUpdatesQueue not found.") // TODO nicer custom errors
+	}
 	if q.Contains(update.ChannelID) {
 		// Someone has previously tried to update channel
-		existingSUpdate := k.getSubmittedUpdate(ctx, update.ChannelID)
-		k.addToSubmittedUpdateQueue(ctx, k.applyNewUpdate(existingSUpdate, update))
-	} else {
-		// No one has tried to update channel.
-		submittedUpdate := SubmittedUpdate{
-			Update: update
-			executionTime: ctx.BlockHeight()+ChannelDisputeTime //TODO check what exactly BlockHeight refers to
+		existingSUpdate, found := k.getSubmittedUpdate(ctx, update.ChannelID)
+		if !found {
+			panic("can't find element in queue that should exist")
 		}
-		k.addToSubmittedUpdateQueue(ctx, submittedUpdate)
+		k.addToSubmittedUpdatesQueue(ctx, k.applyNewUpdate(existingSUpdate, update))
+	} else {
+		// No one has tried to update channel
+		submittedUpdate := SubmittedUpdate{
+			Update:        update,
+			ExecutionTime: ctx.BlockHeight() + ChannelDisputeTime, //TODO check what exactly BlockHeight refers to
+		}
+		k.addToSubmittedUpdatesQueue(ctx, submittedUpdate)
 	}
+
+	tags := sdk.EmptyTags() // TODO tags
+
+	return tags, nil
 }
 
-func (k Keeper) CloseChannelByReceiver(update Update) () {
+func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	// TODO Validate update
 
 	// Check if there is an update in the queue already
-	q := k.getSubmittedUpdateQueue(ctx)
+	q, found := k.getSubmittedUpdatesQueue(ctx)
+	if !found {
+		panic("SubmittedUpdatesQueue not found.") // TODO nicer custom errors
+	}
 	if q.Contains(update.ChannelID) {
 		// Someone has previously tried to update channel but receiver has final say
-		k.removeFromSubmittedUpdateQueue(ctx, update.ChannelID)
+		k.removeFromSubmittedUpdatesQueue(ctx, update.ChannelID)
 	}
-	
-	k.closeChannel(ctx, update)
+
+	tags, err := k.closeChannel(ctx, update)
+
+	return tags, err
 }
 
 // Main function that compare updates against each other.
 // Pure function
-func (k Keeper) applyNewUpdate(existingSUpdate, proposedUpdate) SubmittedUpdate {
+func (k Keeper) applyNewUpdate(existingSUpdate SubmittedUpdate, proposedUpdate Update) SubmittedUpdate {
 	var returnUpdate SubmittedUpdate
 
-	if existingSUpdate.sequence > proposedUpdate.sequence {
+	if existingSUpdate.Sequence > proposedUpdate.Sequence {
 		// update accepted
 		returnUpdate = SubmittedUpdate{
-			Update: proposedUpdate
-			ExecutionTime: existingSUpdate.ExecutionTime
+			Update:        proposedUpdate,
+			ExecutionTime: existingSUpdate.ExecutionTime,
 		}
 	} else {
 		// update rejected
@@ -141,62 +152,79 @@ func (k Keeper) applyNewUpdate(existingSUpdate, proposedUpdate) SubmittedUpdate 
 	return returnUpdate
 }
 
-func (k Keeper) closeChannel(ctx sdk.Context, update Update) {
-	channel := k.getChannel(ctx, update.ChannelID)
+// unsafe close channel - doesn't check if update matches existing channel TODO make safer?
+func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
+	var err error
+	var sdkErr sdk.Error
+	var tags sdk.Tags
 
 	// Add coins to sender and receiver
-	for address, coins := range update.CoinsUpdate {
+	// TODO check for possible errors first to avoid coins being half paid out?
+	var address sdk.AccAddress
+	for bech32Address, coins := range update.CoinsUpdate {
+		address, err = sdk.AccAddressFromBech32(bech32Address)
+		if err != nil {
+			panic(err)
+		}
 		// TODO check somewhere if coins are not negative?
-		k.ck.AddCoins(ctx, address, coins)
+		_, tags, sdkErr = k.coinKeeper.AddCoins(ctx, address, coins)
+		if sdkErr != nil {
+			panic(sdkErr)
+		}
 	}
-	
+
 	k.deleteChannel(ctx, update.ChannelID)
+
+	return tags, nil
 }
 
-
-
 // =========================================== QUEUE
-
 
 func (k Keeper) addToSubmittedUpdatesQueue(ctx sdk.Context, sUpdate SubmittedUpdate) {
 	// always overwrite prexisting values - leave paychan logic to higher levels
 	// get current queue
-	q := k.getSubmittedUpdateQueue(ctx)
+	q, found := k.getSubmittedUpdatesQueue(ctx)
+	if !found {
+		panic("SubmittedUpdatesQueue not found.")
+	}
 	// append ID to queue
-	if q.Contains(sUpdate.ChannelID)! {
+	if !q.Contains(sUpdate.ChannelID) {
 		q = append(q, sUpdate.ChannelID)
 	}
 	// set queue
-	k.setSubmittedUpdateQueue(ctx, q)
+	k.setSubmittedUpdatesQueue(ctx, q)
 	// store submittedUpdate
 	k.setSubmittedUpdate(ctx, sUpdate)
 }
-func (k Keeper) removeFromSubmittdUpdatesQueue(ctx sdk.Context, channelID) {
+func (k Keeper) removeFromSubmittedUpdatesQueue(ctx sdk.Context, channelID ChannelID) {
 	// get current queue
-	q := k.getSubmittedUpdateQueue(ctx)
+	q, found := k.getSubmittedUpdatesQueue(ctx)
+	if !found {
+		panic("SubmittedUpdatesQueue not found.")
+	}
 	// remove id
 	q.RemoveMatchingElements(channelID)
 	// set queue
-	k.setSubmittedUpdateQueue(ctx, q)
+	k.setSubmittedUpdatesQueue(ctx, q)
 	// delete submittedUpdate
 	k.deleteSubmittedUpdate(ctx, channelID)
 }
 
-func (k Keeper) getSubmittedUpdatesQueue(ctx sdk.Context) (Queue, bool) {
+func (k Keeper) getSubmittedUpdatesQueue(ctx sdk.Context) (SubmittedUpdatesQueue, bool) {
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getSubmittedUpdatesQueueKey())
 
-	var q Queue
+	var suq SubmittedUpdatesQueue
 	if bz == nil {
-		return q, false
+		return suq, false // TODO maybe create custom error to pass up here
 	}
 	// unmarshal
-	k.cdc.MustUnmarshalBinary(bz, &q)
+	k.cdc.MustUnmarshalBinary(bz, &suq)
 	// return
-	return q, true
+	return suq, true
 }
-func (k Keeper) setSubmittedUpdatesQueue(ctx sdk.Context, q Queue) {
+func (k Keeper) setSubmittedUpdatesQueue(ctx sdk.Context, q SubmittedUpdatesQueue) {
 	store := ctx.KVStore(k.storeKey)
 	// marshal
 	bz := k.cdc.MustMarshalBinary(q)
@@ -213,7 +241,7 @@ func (k Keeper) getSubmittedUpdatesQueueKey() []byte {
 // This section deals with only setting and getting
 
 func (k Keeper) getSubmittedUpdate(ctx sdk.Context, channelID ChannelID) (SubmittedUpdate, bool) {
-	
+
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getSubmittedUpdateKey(channelID))
@@ -234,11 +262,11 @@ func (k Keeper) setSubmittedUpdate(ctx sdk.Context, sUpdate SubmittedUpdate) {
 	// marshal
 	bz := k.cdc.MustMarshalBinary(sUpdate) // panics if something goes wrong
 	// write to db
-	key := k.getSubmittedUpdateKey(sUpdate.channelID)
+	key := k.getSubmittedUpdateKey(sUpdate.ChannelID)
 	store.Set(key, bz) // panics if something goes wrong
 }
 
-func (k Keeper) deleteSubmittedUpdate(ctx sdk.Context, channelID ) {
+func (k Keeper) deleteSubmittedUpdate(ctx sdk.Context, channelID ChannelID) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(k.getSubmittedUpdateKey(channelID))
 	// TODO does this have return values? What happens when key doesn't exist?
@@ -247,12 +275,10 @@ func (k Keeper) getSubmittedUpdateKey(channelID ChannelID) []byte {
 	return []byte(fmt.Sprintf("submittedUpdate:%d", channelID))
 }
 
-
 // ========================================== CHANNELS
 
 // Reteive a payment channel struct from the blockchain store.
 func (k Keeper) getChannel(ctx sdk.Context, channelID ChannelID) (Channel, bool) {
-	
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getChannelKey(channelID))
@@ -273,27 +299,28 @@ func (k Keeper) setChannel(ctx sdk.Context, channel Channel) {
 	// marshal
 	bz := k.cdc.MustMarshalBinary(channel) // panics if something goes wrong
 	// write to db
-	key := sdk.getChannelKey(channel.ID)
+	key := k.getChannelKey(channel.ID)
 	store.Set(key, bz) // panics if something goes wrong
 }
 
-func (k Keeper) deleteChannel(ctx sdk.Context, channelID ) {
+func (k Keeper) deleteChannel(ctx sdk.Context, channelID ChannelID) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(k.getChannelKey(channelID))
 	// TODO does this have return values? What happens when key doesn't exist?
 }
 
-func (k Keeper) getNewChannelID(ctx sdk.Context) (int64, error) {
+func (k Keeper) getNewChannelID(ctx sdk.Context) ChannelID {
 	// get last channel ID
-	store := k.KVStore(k.storeKey)
+	var lastID ChannelID
+	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getLastChannelIDKey())
 	if bz == nil {
-		return nil, // TODO throw some error (assumes this has been initialized elsewhere) or just set to zero here
+		lastID = -1 // TODO is just setting to zero if uninitialized ok?
+	} else {
+		k.cdc.MustUnmarshalBinary(bz, &lastID)
 	}
-	var lastID ChannelID
-	k.cdc.MustUnmarshalBinary(bz, &lastID)
 	// increment to create new one
-	newID := lastID+1
+	newID := lastID + 1
 	bz = k.cdc.MustMarshalBinary(newID)
 	// set last channel id again
 	store.Set(k.getLastChannelIDKey(), bz)
@@ -302,11 +329,12 @@ func (k Keeper) getNewChannelID(ctx sdk.Context) (int64, error) {
 }
 
 func (k Keeper) getChannelKey(channelID ChannelID) []byte {
-	return []bytes(fmt.Sprintf("channel:%d", channelID))
+	return []byte(fmt.Sprintf("channel:%d", channelID))
 }
 func (k Keeper) getLastChannelIDKey() []byte {
-	return []bytes("lastChannelID")
+	return []byte("lastChannelID")
 }
+
 /*
 // Close a payment channel and distribute funds to participants.
 func (k Keeper) ClosePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, id int64, receiverAmount sdk.Coins) (sdk.Tags, sdk.Error) {
