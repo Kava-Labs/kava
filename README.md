@@ -32,7 +32,7 @@ Requirements: go installed and set up (version 1.10+).
 		export PATH=\$GOPATH/bin:\$GOROOT/bin:\$PATH
 		EOF
 
-		soruce ~/.profile
+		source ~/.profile
 
  1. Get the code.
  
