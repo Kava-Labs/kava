@@ -1,31 +1,153 @@
 package paychan
 
-/*
 import (
-	"testing"
-	//"github.com/stretchr/testify/assert"
-
-	abci "github.com/tendermint/abci/types"
-	dbm "github.com/tendermint/tmlibs/db"
-	"github.com/tendermint/tmlibs/log"
-
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/wire"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/stretchr/testify/assert"
+	//"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
+	"testing"
 )
 
-// GetPaychan
-//  - gets a paychan if it exists, and not if it doesn't
-// setPaychan
-//  - sets a paychan
-// CreatePaychan
-//  - creates a paychan under normal conditions
-// ClosePaychan
-//  - closes a paychan under normal conditions
-// GetPaychans
-// paychanKey
+func TestKeeper(t *testing.T) {
+
+	t.Run("CreateChannel", func(t *testing.T) {
+
+		//
+		////// SETUP
+		// create basic mock app
+		ctx, coinKeeper, channelKeeper, addrs, genAccFunding := createMockApp()
+
+		sender := addrs[0]
+		receiver := addrs[1]
+		coins := sdk.Coins{sdk.NewCoin("KVA", 10)}
+
+		//
+		////// ACTION
+		_, err := channelKeeper.CreateChannel(ctx, sender, receiver, coins)
+
+		//
+		////// CHECK RESULTS
+		assert.Nil(t, err)
+		// channel exists with correct attributes
+		channelID := ChannelID(0) // should be 0 as first channel
+		expectedChan := Channel{
+			ID:           channelID,
+			Participants: [2]sdk.AccAddress{sender, receiver},
+			Coins:        coins,
+		}
+		createdChan, _ := channelKeeper.getChannel(ctx, channelID)
+		assert.Equal(t, expectedChan, createdChan)
+		// check coins deducted from sender
+		assert.Equal(t, genAccFunding.Minus(coins), coinKeeper.GetCoins(ctx, sender))
+		// check no coins deducted from receiver
+		assert.Equal(t, genAccFunding, coinKeeper.GetCoins(ctx, receiver))
+		// check next chan id
+		assert.Equal(t, ChannelID(1), channelKeeper.getNewChannelID(ctx))
+	})
+
+	t.Run("ReceiverCloseChannel", func(t *testing.T) {
+		// SETUP
+		ctx, coinKeeper, channelKeeper, addrs, genAccFunding := createMockApp()
+
+		sender := addrs[0]
+		receiver := addrs[1]
+		coins := sdk.Coins{sdk.NewCoin("KVA", 10)}
+
+		// create new channel
+		channelID := ChannelID(0) // should be 0 as first channel
+		channel := Channel{
+			ID:           channelID,
+			Participants: [2]sdk.AccAddress{sender, receiver},
+			Coins:        coins,
+		}
+		channelKeeper.setChannel(ctx, channel)
+
+		// create closing update
+		payouts := Payouts{
+			{sender, sdk.Coins{sdk.NewCoin("KVA", 3)}},
+			{receiver, sdk.Coins{sdk.NewCoin("KVA", 7)}},
+		}
+		update := Update{
+			ChannelID: channelID,
+			Payouts:   payouts,
+			Sequence:  0,
+			Sigs:      [1]crypto.Signature{},
+		}
+		// Set empty submittedUpdatesQueue TODO work out proper genesis initialisation
+		channelKeeper.setSubmittedUpdatesQueue(ctx, SubmittedUpdatesQueue{})
+
+		// ACTION
+		_, err := channelKeeper.CloseChannelByReceiver(ctx, update)
+
+		// CHECK RESULTS
+		// no error
+		assert.Nil(t, err)
+		// coins paid out
+		senderPayout, _ := payouts.Get(sender)
+		assert.Equal(t, genAccFunding.Plus(senderPayout), coinKeeper.GetCoins(ctx, sender))
+		receiverPayout, _ := payouts.Get(receiver)
+		assert.Equal(t, genAccFunding.Plus(receiverPayout), coinKeeper.GetCoins(ctx, receiver))
+		// channel deleted
+		_, found := channelKeeper.getChannel(ctx, channelID)
+		assert.False(t, found)
+
+	})
+
+	t.Run("SenderInitCloseChannel", func(t *testing.T) {
+		// SETUP
+		ctx, _, channelKeeper, addrs, _ := createMockApp()
+
+		sender := addrs[0]
+		receiver := addrs[1]
+		coins := sdk.Coins{sdk.NewCoin("KVA", 10)}
+
+		// create new channel
+		channelID := ChannelID(0) // should be 0 as first channel
+		channel := Channel{
+			ID:           channelID,
+			Participants: [2]sdk.AccAddress{sender, receiver},
+			Coins:        coins,
+		}
+		channelKeeper.setChannel(ctx, channel)
+
+		// create closing update
+		payouts := Payouts{
+			{sender, sdk.Coins{sdk.NewCoin("KVA", 3)}},
+			{receiver, sdk.Coins{sdk.NewCoin("KVA", 7)}},
+		}
+		update := Update{
+			ChannelID: channelID,
+			Payouts:   payouts,
+			Sequence:  0,
+			Sigs:      [1]crypto.Signature{},
+		}
+		// Set empty submittedUpdatesQueue TODO work out proper genesis initialisation
+		channelKeeper.setSubmittedUpdatesQueue(ctx, SubmittedUpdatesQueue{})
+
+		// ACTION
+		_, err := channelKeeper.InitCloseChannelBySender(ctx, update)
+
+		// CHECK RESULTS
+		// no error
+		assert.Nil(t, err)
+		// submittedupdate in queue and correct
+		suq, found := channelKeeper.getSubmittedUpdatesQueue(ctx)
+		assert.True(t, found)
+		assert.True(t, suq.Contains(channelID))
+
+		su, found := channelKeeper.getSubmittedUpdate(ctx, channelID)
+		assert.True(t, found)
+		expectedSubmittedUpdate := SubmittedUpdate{
+			Update:        update,
+			ExecutionTime: ChannelDisputeTime,
+		}
+		assert.Equal(t, expectedSubmittedUpdate, su)
+		// TODO check channel is still in db and coins haven't changed?
+	})
+
+}
+
+/*
 
 func setupMultiStore() (sdk.MultiStore, *sdk.KVStoreKey, *sdk.KVStoreKey) {
 	// create db

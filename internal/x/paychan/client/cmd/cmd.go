@@ -21,10 +21,10 @@ import (
 // list of functions that return pointers to cobra commands
 // No local storage needed for cli acting as a sender
 
-// Currently minimum set of cli commands are implemented:
-// create paychan - create and fund
-// generate new paychan state - print a half signed close tx (sender signs)
-// close paychan - close using state (receiver signs)
+// Current minimal set of cli commands:
+// create paychan - create and fund (sender signs tx)
+// generate new update - print a signed update (from sender)
+// submit update - send update to chain (either can sign tx)
 
 // Future cli commands:
 // create paychan

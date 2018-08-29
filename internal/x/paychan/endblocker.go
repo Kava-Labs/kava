@@ -24,6 +24,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) sdk.Tags {
 			panic("can't find element in queue that should exist")
 		}
 		if ctx.BlockHeight() >= sUpdate.ExecutionTime {
+			k.removeFromSubmittedUpdatesQueue(ctx, sUpdate.ChannelID)
 			channelTags, err = k.closeChannel(ctx, sUpdate.Update)
 			if err != nil {
 				panic(err)

@@ -3,6 +3,7 @@ package paychan
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	"reflect"
 )
 
 /*  CHANNEL TYPES  */
@@ -20,13 +21,28 @@ type ChannelID int64 // TODO should this be positive only
 
 // The data that is passed between participants as payments, and submitted to the blockchain to close a channel.
 type Update struct {
-	ChannelID   ChannelID
-	CoinsUpdate map[string]sdk.Coins // map of bech32 addresses to coins
-	Sequence    int64
-	Sigs        [1]{crypto.Signature} // only sender needs to sign
+	ChannelID ChannelID
+	Payouts   Payouts //map[string]sdk.Coins // map of bech32 addresses to coins
+	Sequence  int64
+	Sigs      [1]crypto.Signature // only sender needs to sign
+}
+type Payout struct {
+	Address sdk.AccAddress
+	Coins   sdk.Coins
+}
+type Payouts []Payout
+
+// Get the coins associated with payout address. TODO constrain payouts to only have one entry per address
+func (payouts Payouts) Get(addr sdk.AccAddress) (sdk.Coins, bool) {
+	for _, p := range payouts {
+		if reflect.DeepEqual(p.Address, addr) {
+			return p.Coins, true
+		}
+	}
+	return nil, false
 }
 
-var ChannelDisputeTime = int64(2000) // measured in blocks TODO pick reasonable time
+const ChannelDisputeTime = int64(2000) // measured in blocks TODO pick reasonable time
 
 // An update that has been submitted to the blockchain, but not yet acted on.
 type SubmittedUpdate struct {
@@ -49,15 +65,15 @@ func (suq SubmittedUpdatesQueue) Contains(channelID ChannelID) bool {
 }
 
 // Remove all values from queue that match argument
-func (suq SubmittedUpdatesQueue) RemoveMatchingElements(channelID ChannelID) {
+func (suq *SubmittedUpdatesQueue) RemoveMatchingElements(channelID ChannelID) {
 	newSUQ := SubmittedUpdatesQueue{}
 
-	for _, id := range suq {
+	for _, id := range *suq {
 		if id != channelID {
 			newSUQ = append(newSUQ, id)
 		}
 	}
-	suq = newSUQ
+	*suq = newSUQ
 }
 
 /*  MESSAGE TYPES  */

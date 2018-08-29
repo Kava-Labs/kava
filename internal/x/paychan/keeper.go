@@ -154,22 +154,16 @@ func (k Keeper) applyNewUpdate(existingSUpdate SubmittedUpdate, proposedUpdate U
 
 // unsafe close channel - doesn't check if update matches existing channel TODO make safer?
 func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
-	var err error
-	var sdkErr sdk.Error
+	var err sdk.Error
 	var tags sdk.Tags
 
 	// Add coins to sender and receiver
 	// TODO check for possible errors first to avoid coins being half paid out?
-	var address sdk.AccAddress
-	for bech32Address, coins := range update.CoinsUpdate {
-		address, err = sdk.AccAddressFromBech32(bech32Address)
+	for _, payout := range update.Payouts {
+		// TODO check somewhere if coins are not negative?
+		_, tags, err = k.coinKeeper.AddCoins(ctx, payout.Address, payout.Coins)
 		if err != nil {
 			panic(err)
-		}
-		// TODO check somewhere if coins are not negative?
-		_, tags, sdkErr = k.coinKeeper.AddCoins(ctx, address, coins)
-		if sdkErr != nil {
-			panic(sdkErr)
 		}
 	}
 
@@ -224,10 +218,10 @@ func (k Keeper) getSubmittedUpdatesQueue(ctx sdk.Context) (SubmittedUpdatesQueue
 	// return
 	return suq, true
 }
-func (k Keeper) setSubmittedUpdatesQueue(ctx sdk.Context, q SubmittedUpdatesQueue) {
+func (k Keeper) setSubmittedUpdatesQueue(ctx sdk.Context, suq SubmittedUpdatesQueue) {
 	store := ctx.KVStore(k.storeKey)
 	// marshal
-	bz := k.cdc.MustMarshalBinary(q)
+	bz := k.cdc.MustMarshalBinary(suq)
 	// write to db
 	key := k.getSubmittedUpdatesQueueKey()
 	store.Set(key, bz)
