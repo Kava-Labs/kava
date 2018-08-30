@@ -12,8 +12,8 @@ Simplifications:
  - refactor queue into one object
  - Do all the small functions need to be methods on the keeper or can they just be floating around?
  - Tidy up - standardise var names, method descriptions, heading comments
- - is having all the get functions return a bool if not found reasonable?
  - any problem in signing your own address?
  - Gas
  - Codespace
  - find nicer name for payouts
+ - tags - return channel id

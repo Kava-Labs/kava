@@ -97,11 +97,18 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 	}
 	if q.Contains(update.ChannelID) {
 		// Someone has previously tried to update channel
-		existingSUpdate, found := k.getSubmittedUpdate(ctx, update.ChannelID)
-		if !found {
-			panic("can't find element in queue that should exist")
-		}
-		k.addToSubmittedUpdatesQueue(ctx, k.applyNewUpdate(existingSUpdate, update))
+		// In bidirectional channels the new update is compared against existing and replaces it if it has a higher sequence number.
+
+		// existingSUpdate, found := k.getSubmittedUpdate(ctx, update.ChannelID)
+		// if !found {
+		// 	panic("can't find element in queue that should exist")
+		// }
+		// k.addToSubmittedUpdatesQueue(ctx, k.applyNewUpdate(existingSUpdate, update))
+
+		// However in unidirectional case, only the sender can close a channel this way. No clear need for them to be able to submit an update replacing a previous one they sent, so don't allow it.
+		// TODO tags
+		// TODO custom errors return sdk.EmptyTags(), sdk.NewError("Sender can't submit an update for channel if one has already been submitted.")
+		panic("Sender can't submit an update for channel if one has already been submitted.")
 	} else {
 		// No one has tried to update channel
 		submittedUpdate := SubmittedUpdate{
@@ -136,21 +143,22 @@ func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags
 
 // Main function that compare updates against each other.
 // Pure function
-func (k Keeper) applyNewUpdate(existingSUpdate SubmittedUpdate, proposedUpdate Update) SubmittedUpdate {
-	var returnUpdate SubmittedUpdate
+// Not needed in unidirectional case.
+// func (k Keeper) applyNewUpdate(existingSUpdate SubmittedUpdate, proposedUpdate Update) SubmittedUpdate {
+// 	var returnUpdate SubmittedUpdate
 
-	if existingSUpdate.Sequence > proposedUpdate.Sequence {
-		// update accepted
-		returnUpdate = SubmittedUpdate{
-			Update:        proposedUpdate,
-			ExecutionTime: existingSUpdate.ExecutionTime,
-		}
-	} else {
-		// update rejected
-		returnUpdate = existingSUpdate
-	}
-	return returnUpdate
-}
+// 	if existingSUpdate.Sequence > proposedUpdate.Sequence {
+// 		// update accepted
+// 		returnUpdate = SubmittedUpdate{
+// 			Update:        proposedUpdate,
+// 			ExecutionTime: existingSUpdate.ExecutionTime, // FIXME any new update proposal should be subject to full dispute period from submission
+// 		}
+// 	} else {
+// 		// update rejected
+// 		returnUpdate = existingSUpdate
+// 	}
+// 	return returnUpdate
+// }
 
 // unsafe close channel - doesn't check if update matches existing channel TODO make safer?
 func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {

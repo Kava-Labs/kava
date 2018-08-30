@@ -70,7 +70,6 @@ func TestKeeper(t *testing.T) {
 		update := Update{
 			ChannelID: channelID,
 			Payouts:   payouts,
-			Sequence:  0,
 			Sigs:      [1]crypto.Signature{},
 		}
 		// Set empty submittedUpdatesQueue TODO work out proper genesis initialisation
@@ -118,7 +117,6 @@ func TestKeeper(t *testing.T) {
 		update := Update{
 			ChannelID: channelID,
 			Payouts:   payouts,
-			Sequence:  0,
 			Sigs:      [1]crypto.Signature{},
 		}
 		// Set empty submittedUpdatesQueue TODO work out proper genesis initialisation

@@ -23,8 +23,8 @@ type ChannelID int64 // TODO should this be positive only
 type Update struct {
 	ChannelID ChannelID
 	Payouts   Payouts //map[string]sdk.Coins // map of bech32 addresses to coins
-	Sequence  int64
-	Sigs      [1]crypto.Signature // only sender needs to sign
+	//Sequence  int64 Not needed for unidirectional channels
+	Sigs [1]crypto.Signature // only sender needs to sign in unidirectional
 }
 type Payout struct {
 	Address sdk.AccAddress

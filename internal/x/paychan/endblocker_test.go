@@ -31,7 +31,6 @@ func TestEndBlocker(t *testing.T) {
 	update := Update{
 		ChannelID: channelID,
 		Payouts:   payouts,
-		Sequence:  0,
 		Sigs:      [1]crypto.Signature{},
 	}
 	sUpdate := SubmittedUpdate{
