@@ -9,7 +9,6 @@ Simplifications:
  TODO
  - in code TODOs
  - Tidy up - method descriptions, heading comments, remove uneccessary comments, README/docs
- - chnge module name to "channel"?
  - Find a better name for Queue - clarify distinction between int slice and abstract queue concept
  - write some sort of integration test
  - find nicer name for payout

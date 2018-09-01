@@ -79,15 +79,12 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 	if !found {
 		return nil, sdk.ErrInternal("Channel doesn't exist")
 	}
-	err := k.VerifyUpdate(channel, update)
+	err := VerifyUpdate(channel, update)
 	if err != nil {
 		return nil, err
 	}
 
-	q, found := k.getSubmittedUpdatesQueue(ctx)
-	if !found {
-		panic("SubmittedUpdatesQueue not found.") // TODO nicer custom errors
-	}
+	q := k.getSubmittedUpdatesQueue(ctx)
 	if q.Contains(update.ChannelID) {
 		// Someone has previously tried to update channel
 		// In bidirectional channels the new update is compared against existing and replaces it if it has a higher sequence number.
@@ -123,16 +120,13 @@ func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags
 	if !found {
 		return nil, sdk.ErrInternal("Channel doesn't exist")
 	}
-	err := k.VerifyUpdate(channel, update)
+	err := VerifyUpdate(channel, update)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if there is an update in the queue already
-	q, found := k.getSubmittedUpdatesQueue(ctx)
-	if !found {
-		panic("SubmittedUpdatesQueue not found.") // TODO nicer custom errors
-	}
+	q := k.getSubmittedUpdatesQueue(ctx)
 	if q.Contains(update.ChannelID) {
 		// Someone has previously tried to update channel but receiver has final say
 		k.removeFromSubmittedUpdatesQueue(ctx, update.ChannelID)
@@ -162,7 +156,7 @@ func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags
 // 	return returnUpdate
 // }
 
-func (k Keeper) VerifyUpdate(channel Channel, update Update) sdk.Error {
+func VerifyUpdate(channel Channel, update Update) sdk.Error {
 
 	// Check the num of payout participants match channel participants
 	if len(update.Payout) != len(channel.Participants) {
@@ -183,7 +177,7 @@ func (k Keeper) VerifyUpdate(channel Channel, update Update) sdk.Error {
 		return sdk.ErrInternal("Payout amount doesn't match channel amount")
 	}
 	// Check sender signature is OK
-	if !k.verifySignatures(channel, update) {
+	if !verifySignatures(channel, update) {
 		return sdk.ErrInternal("Signature on update not valid")
 	}
 	return nil
@@ -212,7 +206,7 @@ func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Erro
 	return tags, nil
 }
 
-func (k Keeper) verifySignatures(channel Channel, update Update) bool {
+func verifySignatures(channel Channel, update Update) bool {
 	// In non unidirectional channels there will be more than one signature to check
 
 	signBytes := update.GetSignBytes()
@@ -234,10 +228,7 @@ func (k Keeper) verifySignatures(channel Channel, update Update) bool {
 func (k Keeper) addToSubmittedUpdatesQueue(ctx sdk.Context, sUpdate SubmittedUpdate) {
 	// always overwrite prexisting values - leave paychan logic to higher levels
 	// get current queue
-	q, found := k.getSubmittedUpdatesQueue(ctx)
-	if !found {
-		panic("SubmittedUpdatesQueue not found.")
-	}
+	q := k.getSubmittedUpdatesQueue(ctx)
 	// append ID to queue
 	if !q.Contains(sUpdate.ChannelID) {
 		q = append(q, sUpdate.ChannelID)
@@ -249,10 +240,7 @@ func (k Keeper) addToSubmittedUpdatesQueue(ctx sdk.Context, sUpdate SubmittedUpd
 }
 func (k Keeper) removeFromSubmittedUpdatesQueue(ctx sdk.Context, channelID ChannelID) {
 	// get current queue
-	q, found := k.getSubmittedUpdatesQueue(ctx)
-	if !found {
-		panic("SubmittedUpdatesQueue not found.")
-	}
+	q := k.getSubmittedUpdatesQueue(ctx)
 	// remove id
 	q.RemoveMatchingElements(channelID)
 	// set queue
@@ -261,19 +249,18 @@ func (k Keeper) removeFromSubmittedUpdatesQueue(ctx sdk.Context, channelID Chann
 	k.deleteSubmittedUpdate(ctx, channelID)
 }
 
-func (k Keeper) getSubmittedUpdatesQueue(ctx sdk.Context) (SubmittedUpdatesQueue, bool) {
+func (k Keeper) getSubmittedUpdatesQueue(ctx sdk.Context) SubmittedUpdatesQueue {
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getSubmittedUpdatesQueueKey())
 
-	var suq SubmittedUpdatesQueue
-	if bz == nil {
-		return suq, false // TODO maybe create custom error to pass up here
+	var suq SubmittedUpdatesQueue // if the submittedUpdatesQueue not found then return an empty one
+	if bz != nil {
+		// unmarshal
+		k.cdc.MustUnmarshalBinary(bz, &suq)
 	}
-	// unmarshal
-	k.cdc.MustUnmarshalBinary(bz, &suq)
-	// return
-	return suq, true
+	return suq
+
 }
 func (k Keeper) setSubmittedUpdatesQueue(ctx sdk.Context, suq SubmittedUpdatesQueue) {
 	store := ctx.KVStore(k.storeKey)
@@ -332,7 +319,7 @@ func (k Keeper) getSubmittedUpdateKey(channelID ChannelID) []byte {
 func (k Keeper) getChannel(ctx sdk.Context, channelID ChannelID) (Channel, bool) {
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(k.GetChannelKey(channelID))
+	bz := store.Get(GetChannelKey(channelID))
 
 	var channel Channel
 	if bz == nil {
@@ -350,13 +337,13 @@ func (k Keeper) setChannel(ctx sdk.Context, channel Channel) {
 	// marshal
 	bz := k.cdc.MustMarshalBinary(channel) // panics if something goes wrong
 	// write to db
-	key := k.GetChannelKey(channel.ID)
+	key := GetChannelKey(channel.ID)
 	store.Set(key, bz) // panics if something goes wrong
 }
 
 func (k Keeper) deleteChannel(ctx sdk.Context, channelID ChannelID) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(k.GetChannelKey(channelID))
+	store.Delete(GetChannelKey(channelID))
 	// TODO does this have return values? What happens when key doesn't exist?
 }
 
@@ -364,7 +351,7 @@ func (k Keeper) getNewChannelID(ctx sdk.Context) ChannelID {
 	// get last channel ID
 	var lastID ChannelID
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(k.getLastChannelIDKey())
+	bz := store.Get(getLastChannelIDKey())
 	if bz == nil {
 		lastID = -1 // TODO is just setting to zero if uninitialized ok?
 	} else {
@@ -374,14 +361,14 @@ func (k Keeper) getNewChannelID(ctx sdk.Context) ChannelID {
 	newID := lastID + 1
 	bz = k.cdc.MustMarshalBinary(newID)
 	// set last channel id again
-	store.Set(k.getLastChannelIDKey(), bz)
+	store.Set(getLastChannelIDKey(), bz)
 	// return
 	return newID
 }
 
-func (k Keeper) GetChannelKey(channelID ChannelID) []byte {
+func GetChannelKey(channelID ChannelID) []byte {
 	return []byte(fmt.Sprintf("channel:%d", channelID))
 }
-func (k Keeper) getLastChannelIDKey() []byte {
+func getLastChannelIDKey() []byte {
 	return []byte("lastChannelID")
 }

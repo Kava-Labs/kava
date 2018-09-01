@@ -151,6 +151,7 @@ func (app *KavaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) ab
 
 // The function baseapp runs on receipt of a EndBlock ABCI message
 func (app *KavaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	paychan.EndBlocker(ctx, app.paychanKeeper)
 	validatorUpdates := stake.EndBlocker(ctx, app.stakeKeeper)
 
 	//tags, _ := gov.EndBlocker(ctx, app.govKeeper)

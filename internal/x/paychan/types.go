@@ -80,7 +80,7 @@ type SubmittedUpdate struct {
 	ExecutionTime int64 // BlockHeight
 }
 
-type SubmittedUpdatesQueue []ChannelID
+type SubmittedUpdatesQueue []ChannelID // not technically a queue
 
 // Check if value is in queue
 func (suq SubmittedUpdatesQueue) Contains(channelID ChannelID) bool {

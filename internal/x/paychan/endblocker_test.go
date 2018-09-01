@@ -49,7 +49,7 @@ func TestEndBlocker(t *testing.T) {
 	_, found := channelKeeper.getChannel(ctx, channelID)
 	assert.False(t, found)
 	// check queue is empty, NOTE: due to encoding, an empty queue (underneath just an int slice) will be decoded as nil slice rather than an empty slice
-	suq, _ := channelKeeper.getSubmittedUpdatesQueue(ctx)
+	suq := channelKeeper.getSubmittedUpdatesQueue(ctx)
 	assert.Equal(t, SubmittedUpdatesQueue(nil), suq)
 	// check submittedUpdate is gone
 	_, found = channelKeeper.getSubmittedUpdate(ctx, channelID)

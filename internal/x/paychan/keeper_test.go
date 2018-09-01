@@ -11,6 +11,8 @@ import (
 func TestKeeper(t *testing.T) {
 	t.Run("CreateChannel", func(t *testing.T) {
 
+		// TODO test for receiver account not existing (OK) and sender not existing (not ok)
+
 		accountSeeds := []string{"senderSeed", "receiverSeed"}
 		const (
 			senderAccountIndex   int = 0

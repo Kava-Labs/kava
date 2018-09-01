@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 
 	"github.com/kava-labs/kava/internal/x/paychan"
@@ -21,7 +20,6 @@ import (
 
 // list of functions that return pointers to cobra commands
 // No local storage needed for cli acting as a sender
-
 
 func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 	flagTo := "to"
@@ -46,7 +44,7 @@ func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 
 			// Get receiver address
 			toStr := viper.GetString(flagTo)
-			receiver, err := sdk.GetAccAddressBech32(toStr)
+			receiver, err := sdk.AccAddressFromBech32(toStr)
 			if err != nil {
 				return err
 			}
@@ -60,7 +58,7 @@ func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 
 			// Create the create channel msg to send
 			msg := paychan.MsgCreate{
-				Participants: []sdk.AccAddress{sender, receiver},
+				Participants: [2]sdk.AccAddress{sender, receiver},
 				Coins:        coins,
 			}
 			err = msg.ValidateBasic()
@@ -69,16 +67,15 @@ func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// Build and sign the transaction, then broadcast to the blockchain
-			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
+			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
 			return nil
 		},
 	}
 	cmd.Flags().String(flagTo, "", "Recipient address of the payment channel.")
-	cmd.Flags().String(flagAmount, "", "Amount of coins to fund the payment channel with.")
+	cmd.Flags().String(flagCoins, "", "Amount of coins to fund the payment channel with.")
 	return cmd
 }
 
@@ -105,7 +102,7 @@ func GeneratePaymentCmd(cdc *wire.Codec) *cobra.Command {
 			// }
 
 			// Get the paychan id
-			id := viper.GetInt64(flagId) // TODO make this default to pulling id from chain
+			id := paychan.ChannelID(viper.GetInt64(flagId)) // TODO make this default to pulling id from chain
 
 			// Get channel receiver amount
 			senderCoins, err := sdk.ParseCoins(viper.GetString(flagSenderAmount))
@@ -141,13 +138,16 @@ func GeneratePaymentCmd(cdc *wire.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			update.Sigs = [1]paychan.UpdateSignature{
+			update.Sigs = [1]paychan.UpdateSignature{{
 				PubKey:          pubKey,
 				CryptoSignature: sig,
-			}
+			}}
 
 			// Print out the update
-			jsonUpdate := cdc.MarshalJSONIndent(update)
+			jsonUpdate, err := wire.MarshalJSONIndent(cdc, update)
+			if err != nil {
+				return err
+			}
 			fmt.Println(string(jsonUpdate))
 
 			return nil
@@ -159,7 +159,7 @@ func GeneratePaymentCmd(cdc *wire.Codec) *cobra.Command {
 	return cmd
 }
 
-func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName, string) *cobra.Command {
+func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "verify",
@@ -167,6 +167,9 @@ func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName, string) *cobra.Command 
 		Long:  "",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// Create a "client context" stuct populated with info from common flags
+			ctx := context.NewCoreContextFromViper()
 
 			// read in update
 			bz, err := ioutil.ReadAll(os.Stdin)
@@ -178,7 +181,7 @@ func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName, string) *cobra.Command 
 			var update paychan.Update
 			cdc.UnmarshalJSON(bz, &update)
 
-// get the channel from the node
+			// get the channel from the node
 			res, err := ctx.QueryStore(paychan.GetChannelKey(update.ChannelID), paychanStoreName)
 			if len(res) == 0 || err != nil {
 				return errors.Errorf("channel with ID '%d' does not exist", update.ChannelID)
@@ -187,7 +190,7 @@ func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName, string) *cobra.Command 
 			cdc.MustUnmarshalBinary(res, &channel)
 
 			//verify
-			updateIsOK := paychan.Keeper.VerifyUpdate(channel ,update)
+			updateIsOK := paychan.VerifyUpdate(channel, update)
 
 			// print result
 			fmt.Println(updateIsOK)
@@ -199,7 +202,7 @@ func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName, string) *cobra.Command 
 	return cmd
 }
 
-func SubmitPaymentChannelCmd(cdc *wire.Codec) *cobra.Command {
+func SubmitPaymentCmd(cdc *wire.Codec) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "submit",
@@ -238,11 +241,10 @@ func SubmitPaymentChannelCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// Build and sign the transaction, then broadcast to the blockchain
-			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
+			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
 			return nil
 		},
 	}

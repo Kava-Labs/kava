@@ -39,7 +39,7 @@ func main() {
 	// add standard rpc commands
 	rpc.AddCommands(rootCmd)
 
-	//Add state commands
+	// Add state commands
 	tendermintCmd := &cobra.Command{
 		Use:   "tendermint",
 		Short: "Tendermint state querying subcommands",
@@ -50,7 +50,7 @@ func main() {
 	)
 	tx.AddCommands(tendermintCmd, cdc)
 
-	//Add IBC commands
+	// Add IBC commands
 	// ibcCmd := &cobra.Command{
 	// 	Use:   "ibc",
 	// 	Short: "Inter-Blockchain Communication subcommands",
@@ -76,7 +76,7 @@ func main() {
 		client.LineBreak,
 	)
 
-	//Add stake commands
+	// Add stake commands
 	stakeCmd := &cobra.Command{
 		Use:   "stake",
 		Short: "Stake and validation subcommands",
@@ -102,7 +102,7 @@ func main() {
 		stakeCmd,
 	)
 
-	//Add stake commands
+	// Add gov commands
 	// govCmd := &cobra.Command{
 	// 	Use:   "gov",
 	// 	Short: "Governance and voting subcommands",
@@ -123,7 +123,7 @@ func main() {
 	// 	govCmd,
 	// )
 
-	//Add auth and bank commands
+	// Add auth and bank commands
 	rootCmd.AddCommand(
 		client.GetCommands(
 			authcmd.GetAccountCmd("acc", cdc, authcmd.GetAccountDecoder(cdc)),
@@ -133,19 +133,22 @@ func main() {
 			bankcmd.SendTxCmd(cdc),
 		)...)
 
+	// Add paychan commands
 	paychanCmd := &cobra.Command{
 		Use:   "paychan",
-		Short: "Payment channel subcommands",
+		Short: "Payment channel subcommand",
 	}
 	paychanCmd.AddCommand(
 		client.PostCommands(
-			paychancmd.CreatePaychanCmd(cdc),
-			paychancmd.GenerateNewStateCmd(cdc),
-			paychancmd.ClosePaychanCmd(cdc),
+			paychancmd.CreateChannelCmd(cdc),
+			paychancmd.GeneratePaymentCmd(cdc),
+			paychancmd.VerifyPaymentCmd(cdc, "paychan"), // pass in storeKey
+			paychancmd.SubmitPaymentCmd(cdc),
 		)...)
 	rootCmd.AddCommand(
 		paychanCmd,
 	)
+
 	// add proxy, version and key info
 	rootCmd.AddCommand(
 		keys.Commands(),

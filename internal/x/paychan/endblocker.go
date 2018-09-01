@@ -11,11 +11,10 @@ func EndBlocker(ctx sdk.Context, k Keeper) sdk.Tags {
 
 	// Iterate through submittedUpdatesQueue
 	// TODO optimise so it doesn't pull every update from DB every block
+	q := k.getSubmittedUpdatesQueue(ctx)
 	var sUpdate SubmittedUpdate
-	q, found := k.getSubmittedUpdatesQueue(ctx)
-	if !found {
-		panic("SubmittedUpdatesQueue not found.")
-	}
+	var found bool
+
 	for _, id := range q {
 		// close the channel if the update has reached its execution time.
 		// Using >= in case some are somehow missed.
