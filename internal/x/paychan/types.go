@@ -45,7 +45,7 @@ type UpdateSignature struct {
 	CryptoSignature crypto.Signature
 }
 
-type Payout []sdk.Coins // a list of coins to be paid to each of Channel.Participants
+type Payout [2]sdk.Coins // a list of coins to be paid to each of Channel.Participants
 func (p Payout) IsNotNegative() bool {
 	result := true
 	for _, coins := range p {
@@ -195,7 +195,7 @@ func (msg MsgCreate) GetSigners() []sdk.AccAddress {
 // A message to close a payment channel.
 type MsgSubmitUpdate struct {
 	Update
-	submitter sdk.AccAddress
+	Submitter sdk.AccAddress
 }
 
 // func (msg MsgSubmitUpdate) NewMsgSubmitUpdate(update Update) MsgSubmitUpdate {
@@ -247,5 +247,5 @@ func (msg MsgSubmitUpdate) ValidateBasic() sdk.Error {
 func (msg MsgSubmitUpdate) GetSigners() []sdk.AccAddress {
 	// Signing not strictly necessary as signatures contained within the channel update.
 	// TODO add signature by submitting address
-	return []sdk.AccAddress{msg.submitter}
+	return []sdk.AccAddress{msg.Submitter}
 }

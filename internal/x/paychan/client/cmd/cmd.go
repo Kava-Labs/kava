@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -21,62 +22,54 @@ import (
 // list of functions that return pointers to cobra commands
 // No local storage needed for cli acting as a sender
 
-// Current minimal set of cli commands:
-// create paychan - create and fund (sender signs tx)
-// generate new update - print a signed update (from sender)
-// submit update - send update to chain (either can sign tx)
 
-// Future cli commands:
-// create paychan
-// close paychan
-// get paychan(s)
-// send paychan payment
-// get balance from receiver
-
-/*
-func CreatePaychanCmd(cdc *wire.Codec) *cobra.Command {
+func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 	flagTo := "to"
-	flagAmount := "amount"
+	flagCoins := "amount"
 
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new payment channel",
-		Long:  "Create a new payment channel from a local address to a remote address, funded with some amount of coins. These coins are removed from the sender account and put into the payment channel.",
+		Long:  "Create a new unidirectional payment channel from a local address to a remote address, funded with some amount of coins. These coins are removed from the sender account and put into the channel.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			// Create a "client context" stuct populated with info from common flags
 			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			// ctx.PrintResponse = true TODO is this needed for channelID
 
 			// Get sender adress
-			senderAddress, err := ctx.GetFromAddress()
+			sender, err := ctx.GetFromAddress()
 			if err != nil {
 				return err
 			}
 
 			// Get receiver address
 			toStr := viper.GetString(flagTo)
-			receiverAddress, err := sdk.GetAccAddressBech32(toStr)
+			receiver, err := sdk.GetAccAddressBech32(toStr)
 			if err != nil {
 				return err
 			}
 
 			// Get channel funding amount
-			amountString := viper.GetString(flagAmount)
-			amount, err := sdk.ParseCoins(amountString)
+			coinsString := viper.GetString(flagCoins)
+			coins, err := sdk.ParseCoins(coinsString)
 			if err != nil {
 				return err
 			}
 
 			// Create the create channel msg to send
-			// TODO write NewMsgCreate func?
 			msg := paychan.MsgCreate{
-				Sender:   senderAddress,
-				Receiver: receiverAddress,
-				Amount:   amount,
+				Participants: []sdk.AccAddress{sender, receiver},
+				Coins:        coins,
 			}
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
 			// Build and sign the transaction, then broadcast to the blockchain
-			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, msg, cdc)
+			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
 			if err != nil {
 				return err
 			}
@@ -84,77 +77,180 @@ func CreatePaychanCmd(cdc *wire.Codec) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().String(flagTo, "", "Recipient address of the payment channel")
-	cmd.Flags().String(flagAmount, "", "Amount of coins to fund the paymetn channel with")
+	cmd.Flags().String(flagTo, "", "Recipient address of the payment channel.")
+	cmd.Flags().String(flagAmount, "", "Amount of coins to fund the payment channel with.")
 	return cmd
 }
 
-func GenerateNewStateCmd(cdc *wire.Codec) *cobra.Command {
-	flagId := "id"
-	flagTo := "to"
-	flagAmount := "amount"
+func GeneratePaymentCmd(cdc *wire.Codec) *cobra.Command {
+	flagId := "id"                   // ChannelID
+	flagReceiverAmount := "r-amount" // amount the receiver should received on closing the channel
+	flagSenderAmount := "s-amount"   //
 
 	cmd := &cobra.Command{
-		Use:   "new-state",
-		Short: "Generate a new payment channel state.",
-		Long:  "Generate a new state for an existing payment channel and print it out. The new state is represented as a half signed close transaction, signed by the sender.",
+		Use:   "pay",
+		Short: "Generate a .", // TODO descriptions
+		Long:  "Generate a new ",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			// Create a "client context" stuct populated with info from common flags
 			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			// ctx.PrintResponse = false TODO is this needed to stop any other output messing up json?
 
 			// Get sender adress
-			senderAddress, err := ctx.GetFromAddress()
-			if err != nil {
-				return err
-			}
+			// senderAddress, err := ctx.GetFromAddress()
+			// if err != nil {
+			// 	return err
+			// }
 
 			// Get the paychan id
-			id := viper.GetInt64(flagId)
+			id := viper.GetInt64(flagId) // TODO make this default to pulling id from chain
 
-			// Get receiver address
-			toStr := viper.GetString(flagTo)
-			receiverAddress, err := sdk.GetAccAddressBech32(toStr)
+			// Get channel receiver amount
+			senderCoins, err := sdk.ParseCoins(viper.GetString(flagSenderAmount))
 			if err != nil {
 				return err
 			}
-
 			// Get channel receiver amount
-			amountString := viper.GetString(flagAmount)
-			amount, err := sdk.ParseCoins(amountString)
+			receiverCoins, err := sdk.ParseCoins(viper.GetString(flagReceiverAmount))
 			if err != nil {
 				return err
 			}
 
 			// create close paychan msg
-			msg := paychan.MsgClose{
-				Sender:         senderAddress,
-				Receiver:       receiverAddress,
-				Id:             id,
-				ReceiverAmount: amount,
+			update := paychan.Update{
+				ChannelID: id,
+				Payout:    paychan.Payout{senderCoins, receiverCoins},
+				// empty sigs
 			}
 
-			// Sign the msg as the sender
-			txBytes, err := EnsureSignBuild(ctx, ctx.FromAddressName, msg, cdc)
+			// Sign the update as the sender
+			keybase, err := keys.GetKeyBase()
 			if err != nil {
 				return err
 			}
+			name := ctx.FromAddressName
+			passphrase, err := ctx.GetPassphraseFromStdin(name)
+			if err != nil {
+				return err
+			}
+			bz := update.GetSignBytes()
 
-			// Print out the signed msg
-			fmt.Println("txBytes:", txBytes)
-			//encodedTxBytes := make([]byte, base64.StdEncoding.EncodedLen(len(txBytes)))
-			encodedTxBytes := base64.StdEncoding.EncodeToString(txBytes)
-			fmt.Println("base64TxBytes:", encodedTxBytes)
+			sig, pubKey, err := keybase.Sign(name, passphrase, bz)
+			if err != nil {
+				return err
+			}
+			update.Sigs = [1]paychan.UpdateSignature{
+				PubKey:          pubKey,
+				CryptoSignature: sig,
+			}
+
+			// Print out the update
+			jsonUpdate := cdc.MarshalJSONIndent(update)
+			fmt.Println(string(jsonUpdate))
+
 			return nil
 		},
 	}
 	cmd.Flags().Int(flagId, 0, "ID of the payment channel.")
-	cmd.Flags().String(flagTo, "", "Recipient address of the payment channel")
-	cmd.Flags().String(flagAmount, "", "Amount of coins to fund the paymetn channel with")
+	cmd.Flags().String(flagSenderAmount, "", "")
+	cmd.Flags().String(flagReceiverAmount, "", "")
 	return cmd
 }
 
+func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName, string) *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:   "verify",
+		Short: "", // TODO
+		Long:  "",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// read in update
+			bz, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				// TODO add nice message about how to feed in stdin
+				return err
+			}
+			// decode json
+			var update paychan.Update
+			cdc.UnmarshalJSON(bz, &update)
+
+// get the channel from the node
+			res, err := ctx.QueryStore(paychan.GetChannelKey(update.ChannelID), paychanStoreName)
+			if len(res) == 0 || err != nil {
+				return errors.Errorf("channel with ID '%d' does not exist", update.ChannelID)
+			}
+			var channel paychan.Channel
+			cdc.MustUnmarshalBinary(res, &channel)
+
+			//verify
+			updateIsOK := paychan.Keeper.VerifyUpdate(channel ,update)
+
+			// print result
+			fmt.Println(updateIsOK)
+
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func SubmitPaymentChannelCmd(cdc *wire.Codec) *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use:   "submit",
+		Short: "",
+		Long:  "",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// Create a "client context" stuct populated with info from common flags
+			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			// ctx.PrintResponse = true TODO is this needed for channelID
+
+			// Get sender adress
+			submitter, err := ctx.GetFromAddress()
+			if err != nil {
+				return err
+			}
+
+			// read in update
+			bz, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				return err
+			}
+			// decode json
+			var update paychan.Update
+			cdc.UnmarshalJSON(bz, &update)
+
+			// Create the create channel msg to send
+			msg := paychan.MsgSubmitUpdate{
+				Update:    update,
+				Submitter: submitter,
+			}
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			// Build and sign the transaction, then broadcast to the blockchain
+			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+/*
 func ClosePaychanCmd(cdc *wire.Codec) *cobra.Command {
 	flagState := "state"
 

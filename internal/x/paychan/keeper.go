@@ -74,7 +74,12 @@ func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.AccAddress, receiver s
 func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	// This is roughly the default path for non unidirectional channels
 
-	err := k.validateUpdate(ctx, update)
+	// get the channel
+	channel, found := k.getChannel(ctx, update.ChannelID)
+	if !found {
+		return nil, sdk.ErrInternal("Channel doesn't exist")
+	}
+	err := k.VerifyUpdate(channel, update)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +118,12 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 
 func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 
-	err := k.validateUpdate(ctx, update)
+	// get the channel
+	channel, found := k.getChannel(ctx, update.ChannelID)
+	if !found {
+		return nil, sdk.ErrInternal("Channel doesn't exist")
+	}
+	err := k.VerifyUpdate(channel, update)
 	if err != nil {
 		return nil, err
 	}
@@ -152,12 +162,8 @@ func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags
 // 	return returnUpdate
 // }
 
-func (k Keeper) validateUpdate(ctx sdk.Context, update Update) sdk.Error {
-	// Check that channel exists
-	channel, found := k.getChannel(ctx, update.ChannelID)
-	if !found {
-		return sdk.ErrInternal("Channel doesn't exist")
-	}
+func (k Keeper) VerifyUpdate(channel Channel, update Update) sdk.Error {
+
 	// Check the num of payout participants match channel participants
 	if len(update.Payout) != len(channel.Participants) {
 		return sdk.ErrInternal("Payout doesn't match number of channel participants")
@@ -177,7 +183,7 @@ func (k Keeper) validateUpdate(ctx sdk.Context, update Update) sdk.Error {
 		return sdk.ErrInternal("Payout amount doesn't match channel amount")
 	}
 	// Check sender signature is OK
-	if !k.verifySignatures(ctx, channel, update) {
+	if !k.verifySignatures(channel, update) {
 		return sdk.ErrInternal("Signature on update not valid")
 	}
 	return nil
@@ -206,7 +212,7 @@ func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Erro
 	return tags, nil
 }
 
-func (k Keeper) verifySignatures(ctx sdk.Context, channel Channel, update Update) bool {
+func (k Keeper) verifySignatures(channel Channel, update Update) bool {
 	// In non unidirectional channels there will be more than one signature to check
 
 	signBytes := update.GetSignBytes()
@@ -326,7 +332,7 @@ func (k Keeper) getSubmittedUpdateKey(channelID ChannelID) []byte {
 func (k Keeper) getChannel(ctx sdk.Context, channelID ChannelID) (Channel, bool) {
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(k.getChannelKey(channelID))
+	bz := store.Get(k.GetChannelKey(channelID))
 
 	var channel Channel
 	if bz == nil {
@@ -344,13 +350,13 @@ func (k Keeper) setChannel(ctx sdk.Context, channel Channel) {
 	// marshal
 	bz := k.cdc.MustMarshalBinary(channel) // panics if something goes wrong
 	// write to db
-	key := k.getChannelKey(channel.ID)
+	key := k.GetChannelKey(channel.ID)
 	store.Set(key, bz) // panics if something goes wrong
 }
 
 func (k Keeper) deleteChannel(ctx sdk.Context, channelID ChannelID) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(k.getChannelKey(channelID))
+	store.Delete(k.GetChannelKey(channelID))
 	// TODO does this have return values? What happens when key doesn't exist?
 }
 
@@ -373,7 +379,7 @@ func (k Keeper) getNewChannelID(ctx sdk.Context) ChannelID {
 	return newID
 }
 
-func (k Keeper) getChannelKey(channelID ChannelID) []byte {
+func (k Keeper) GetChannelKey(channelID ChannelID) []byte {
 	return []byte(fmt.Sprintf("channel:%d", channelID))
 }
 func (k Keeper) getLastChannelIDKey() []byte {

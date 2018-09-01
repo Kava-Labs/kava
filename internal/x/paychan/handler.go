@@ -45,10 +45,10 @@ func handleMsgSubmitUpdate(ctx sdk.Context, k Keeper, msg MsgSubmitUpdate) sdk.R
 	participants := channel.Participants
 
 	// if only sender signed
-	if reflect.DeepEqual(msg.submitter, participants[0]) {
+	if reflect.DeepEqual(msg.Submitter, participants[0]) {
 		tags, err = k.InitCloseChannelBySender(ctx, msg.Update)
 		// else if receiver signed
-	} else if reflect.DeepEqual(msg.submitter, participants[len(participants)-1]) {
+	} else if reflect.DeepEqual(msg.Submitter, participants[len(participants)-1]) {
 		tags, err = k.CloseChannelByReceiver(ctx, msg.Update)
 	}
 
