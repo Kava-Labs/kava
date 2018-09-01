@@ -7,16 +7,17 @@ Simplifications:
 
 
  TODO
+ - in code TODOs
+ - write basic cmds
+ - Tidy up - method descriptions, heading comments, remove uneccessary comments, README/docs
  - chnge module name to "channel"?
  - Find a better name for Queue - clarify distinction between int slice and abstract queue concept
- - refactor queue into one object
- - Do all the small functions need to be methods on the keeper or can they just be floating around?
- - Tidy up - standardise var names, method descriptions, heading comments
- - any problem in signing your own address?
- - Gas
+ - write some sort of integration test
  - find nicer name for payout
- - tags - return channel id
- - create custom errors instead of using sdk.ErrInternal
- - maybe split off signatures from update as with txs/msgs - testing easier, code easier to use, doesn't store sigs unecessarily on chain
+ - add Gas usage
+ - add tags (return channel id on creation)
+ - use custom errors instead of using sdk.ErrInternal
+ - split off signatures from update as with txs/msgs - testing easier, code easier to use, doesn't store sigs unecessarily on chain
  - consider removing pubKey from UpdateSignature - instead let channel module access accountMapper
  - remove printout from tests when app initialised
+ - refactor queue into one object
