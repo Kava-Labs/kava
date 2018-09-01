@@ -1,6 +1,7 @@
 package paychan
 
 import (
+	"bytes"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
@@ -15,7 +16,6 @@ type Keeper struct {
 	cdc        *wire.Codec // needed to serialize objects before putting them in the store
 	coinKeeper bank.Keeper
 
-	// TODO investigate codespace
 	//codespace sdk.CodespaceType
 }
 
@@ -34,36 +34,21 @@ func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper) Keeper {
 
 // Create a new payment channel and lock up sender funds.
 func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.AccAddress, receiver sdk.AccAddress, coins sdk.Coins) (sdk.Tags, sdk.Error) {
-	// TODO do validation and maybe move somewhere nicer
-	/*
-		// args present
-		if len(sender) == 0 {
-			return nil, sdk.ErrInvalidAddress(sender.String())
-		}
-		if len(receiver) == 0 {
-			return nil, sdk.ErrInvalidAddress(receiver.String())
-		}
-		if len(amount) == 0 {
-			return nil, sdk.ErrInvalidCoins(amount.String())
-		}
-		// Check if coins are sorted, non zero, positive
-		if !amount.IsValid() {
-			return nil, sdk.ErrInvalidCoins(amount.String())
-		}
-		if !amount.IsPositive() {
-			return nil, sdk.ErrInvalidCoins(amount.String())
-		}
-		// sender should exist already as they had to sign.
-		// receiver address exists. am is the account mapper in the coin keeper.
-		// TODO automatically create account if not present?
-		// TODO remove as account mapper not available to this pkg
-		//if k.coinKeeper.am.GetAccount(ctx, receiver) == nil {
-		//	return nil, sdk.ErrUnknownAddress(receiver.String())
-		//}
 
-		// sender has enough coins - done in Subtract method
-		// TODO check if sender and receiver different?
-	*/
+	// Check addresses valid (Technicaly don't need to check sender address is valid as SubtractCoins does that)
+	if len(sender) == 0 {
+		return nil, sdk.ErrInvalidAddress(sender.String())
+	}
+	if len(receiver) == 0 {
+		return nil, sdk.ErrInvalidAddress(receiver.String())
+	}
+	// check coins are sorted and positive (disallow channels with zero balance)
+	if !coins.IsValid() {
+		return nil, sdk.ErrInvalidCoins(coins.String())
+	}
+	if !coins.IsPositive() {
+		return nil, sdk.ErrInvalidCoins(coins.String())
+	}
 
 	// subtract coins from sender
 	_, tags, err := k.coinKeeper.SubtractCoins(ctx, sender, coins)
@@ -89,7 +74,10 @@ func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.AccAddress, receiver s
 func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	// This is roughly the default path for non unidirectional channels
 
-	// TODO Validate update - e.g. check signed by sender
+	err := k.validateUpdate(ctx, update)
+	if err != nil {
+		return nil, err
+	}
 
 	q, found := k.getSubmittedUpdatesQueue(ctx)
 	if !found {
@@ -108,7 +96,7 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 		// However in unidirectional case, only the sender can close a channel this way. No clear need for them to be able to submit an update replacing a previous one they sent, so don't allow it.
 		// TODO tags
 		// TODO custom errors return sdk.EmptyTags(), sdk.NewError("Sender can't submit an update for channel if one has already been submitted.")
-		panic("Sender can't submit an update for channel if one has already been submitted.")
+		sdk.ErrInternal("Sender can't submit an update for channel if one has already been submitted.")
 	} else {
 		// No one has tried to update channel
 		submittedUpdate := SubmittedUpdate{
@@ -124,7 +112,11 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 }
 
 func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
-	// TODO Validate update
+
+	err := k.validateUpdate(ctx, update)
+	if err != nil {
+		return nil, err
+	}
 
 	// Check if there is an update in the queue already
 	q, found := k.getSubmittedUpdatesQueue(ctx)
@@ -160,16 +152,50 @@ func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags
 // 	return returnUpdate
 // }
 
+func (k Keeper) validateUpdate(ctx sdk.Context, update Update) sdk.Error {
+	// Check that channel exists
+	channel, found := k.getChannel(ctx, update.ChannelID)
+	if !found {
+		return sdk.ErrInternal("Channel doesn't exist")
+	}
+	// Check the num of payout participants match channel participants
+	if len(update.Payout) != len(channel.Participants) {
+		return sdk.ErrInternal("Payout doesn't match number of channel participants")
+	}
+	// Check each coins are valid
+	for _, coins := range update.Payout {
+		if !coins.IsValid() {
+			return sdk.ErrInternal("Payout coins aren't formatted correctly")
+		}
+	}
+	// Check payout coins are each not negative (can be zero though)
+	if !update.Payout.IsNotNegative() {
+		return sdk.ErrInternal("Payout cannot be negative")
+	}
+	// Check payout sums to match channel.Coins
+	if !channel.Coins.IsEqual(update.Payout.Sum()) {
+		return sdk.ErrInternal("Payout amount doesn't match channel amount")
+	}
+	// Check sender signature is OK
+	if !k.verifySignatures(ctx, channel, update) {
+		return sdk.ErrInternal("Signature on update not valid")
+	}
+	return nil
+}
+
 // unsafe close channel - doesn't check if update matches existing channel TODO make safer?
 func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	var err sdk.Error
 	var tags sdk.Tags
 
+	channel, _ := k.getChannel(ctx, update.ChannelID)
+	// TODO check channel exists and participants matches update payout length
+
 	// Add coins to sender and receiver
 	// TODO check for possible errors first to avoid coins being half paid out?
-	for _, payout := range update.Payouts {
+	for i, coins := range update.Payout {
 		// TODO check somewhere if coins are not negative?
-		_, tags, err = k.coinKeeper.AddCoins(ctx, payout.Address, payout.Coins)
+		_, tags, err = k.coinKeeper.AddCoins(ctx, channel.Participants[i], coins)
 		if err != nil {
 			panic(err)
 		}
@@ -178,6 +204,23 @@ func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Erro
 	k.deleteChannel(ctx, update.ChannelID)
 
 	return tags, nil
+}
+
+func (k Keeper) verifySignatures(ctx sdk.Context, channel Channel, update Update) bool {
+	// In non unidirectional channels there will be more than one signature to check
+
+	signBytes := update.GetSignBytes()
+
+	address := channel.Participants[0]
+	pubKey := update.Sigs[0].PubKey
+	cryptoSig := update.Sigs[0].CryptoSignature
+
+	// Check public key submitted with update signature matches the account address
+	valid := bytes.Equal(pubKey.Address(), address) &&
+		// Check the signature is correct
+		pubKey.VerifyBytes(signBytes, cryptoSig)
+	return valid
+
 }
 
 // =========================================== QUEUE
@@ -239,7 +282,7 @@ func (k Keeper) getSubmittedUpdatesQueueKey() []byte {
 }
 
 // ============= SUBMITTED UPDATES
-// These are keyed by the IDs of thei associated Channels
+// These are keyed by the IDs of their associated Channels
 // This section deals with only setting and getting
 
 func (k Keeper) getSubmittedUpdate(ctx sdk.Context, channelID ChannelID) (SubmittedUpdate, bool) {
@@ -336,82 +379,3 @@ func (k Keeper) getChannelKey(channelID ChannelID) []byte {
 func (k Keeper) getLastChannelIDKey() []byte {
 	return []byte("lastChannelID")
 }
-
-/*
-// Close a payment channel and distribute funds to participants.
-func (k Keeper) ClosePaychan(ctx sdk.Context, sender sdk.Address, receiver sdk.Address, id int64, receiverAmount sdk.Coins) (sdk.Tags, sdk.Error) {
-	if len(sender) == 0 {
-		return nil, sdk.ErrInvalidAddress(sender.String())
-	}
-	if len(receiver) == 0 {
-		return nil, sdk.ErrInvalidAddress(receiver.String())
-	}
-	if len(receiverAmount) == 0 {
-		return nil, sdk.ErrInvalidCoins(receiverAmount.String())
-	}
-	// check id ≥ 0
-	if id < 0 {
-		return nil, sdk.ErrInvalidAddress(strconv.Itoa(int(id))) // TODO implement custom errors
-	}
-
-	// Check if coins are sorted, non zero, non negative
-	if !receiverAmount.IsValid() {
-		return nil, sdk.ErrInvalidCoins(receiverAmount.String())
-	}
-	if !receiverAmount.IsPositive() {
-		return nil, sdk.ErrInvalidCoins(receiverAmount.String())
-	}
-
-	store := ctx.KVStore(k.storeKey)
-
-	pych, exists := k.GetPaychan(ctx, sender, receiver, id)
-	if !exists {
-		return nil, sdk.ErrUnknownAddress("paychan not found") // TODO implement custom errors
-	}
-	// compute coin distribution
-	senderAmount := pych.Balance.Minus(receiverAmount) // Minus sdk.Coins method
-	// check that receiverAmt not greater than paychan balance
-	if !senderAmount.IsNotNegative() {
-		return nil, sdk.ErrInsufficientFunds(pych.Balance.String())
-	}
-	// add coins to sender
-	// creating account if it doesn't exist
-	k.coinKeeper.AddCoins(ctx, sender, senderAmount)
-	// add coins to receiver
-	k.coinKeeper.AddCoins(ctx, receiver, receiverAmount)
-
-	// delete paychan from db
-	pychKey := paychanKey(pych.Sender, pych.Receiver, pych.Id)
-	store.Delete(pychKey)
-
-	// TODO create tags
-	//sdk.NewTags(
-	//	"action", []byte("channel closure"),
-	//	"receiver", receiver.Bytes(),
-	//	"sender", sender.Bytes(),
-	//	"id", ??)
-	tags := sdk.NewTags()
-	return tags, nil
-}
-
-// Creates a key to reference a paychan in the blockchain store.
-func paychanKey(sender sdk.Address, receiver sdk.Address, id int64) []byte {
-
-	//sdk.Address is just a slice of bytes under a different name
-	//convert id to string then to byte slice
-	idAsBytes := []byte(strconv.Itoa(int(id)))
-	// concat sender and receiver and integer ID
-	key := append(sender.Bytes(), receiver.Bytes()...)
-	key = append(key, idAsBytes...)
-	return key
-}
-
-// Get all paychans between a given sender and receiver.
-func (k Keeper) GetPaychans(sender sdk.Address, receiver sdk.Address) []Paychan {
-	var paychans []Paychan
-	// TODO Implement this
-	return paychans
-}
-
-// maybe getAllPaychans(sender sdk.address) []Paychan
-*/

@@ -14,6 +14,9 @@ Simplifications:
  - Tidy up - standardise var names, method descriptions, heading comments
  - any problem in signing your own address?
  - Gas
- - Codespace
- - find nicer name for payouts
+ - find nicer name for payout
  - tags - return channel id
+ - create custom errors instead of using sdk.ErrInternal
+ - maybe split off signatures from update as with txs/msgs - testing easier, code easier to use, doesn't store sigs unecessarily on chain
+ - consider removing pubKey from UpdateSignature - instead let channel module access accountMapper
+ - remove printout from tests when app initialised

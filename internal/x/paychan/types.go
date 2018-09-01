@@ -3,7 +3,6 @@ package paychan
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
-	"reflect"
 )
 
 /*  CHANNEL TYPES  */
@@ -22,25 +21,56 @@ type ChannelID int64 // TODO should this be positive only
 // The data that is passed between participants as payments, and submitted to the blockchain to close a channel.
 type Update struct {
 	ChannelID ChannelID
-	Payouts   Payouts //map[string]sdk.Coins // map of bech32 addresses to coins
+	Payout    Payout //map[string]sdk.Coins // map of bech32 addresses to coins
 	//Sequence  int64 Not needed for unidirectional channels
-	Sigs [1]crypto.Signature // only sender needs to sign in unidirectional
+	Sigs [1]UpdateSignature // only sender needs to sign in unidirectional
 }
-type Payout struct {
-	Address sdk.AccAddress
-	Coins   sdk.Coins
+
+func (u Update) GetSignBytes() []byte {
+	bz, err := msgCdc.MarshalJSON(struct {
+		ChannelID ChannelID
+		Payout    Payout
+	}{
+		ChannelID: u.ChannelID,
+		Payout:    u.Payout})
+
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(bz)
 }
-type Payouts []Payout
+
+type UpdateSignature struct {
+	PubKey          crypto.PubKey
+	CryptoSignature crypto.Signature
+}
+
+type Payout []sdk.Coins // a list of coins to be paid to each of Channel.Participants
+func (p Payout) IsNotNegative() bool {
+	result := true
+	for _, coins := range p {
+		result = result && coins.IsNotNegative()
+	}
+	return result
+}
+func (p Payout) Sum() sdk.Coins {
+	var total sdk.Coins
+	for _, coins := range p {
+		total = total.Plus(coins.Sort())
+		total = total.Sort()
+	}
+	return total
+}
 
 // Get the coins associated with payout address. TODO constrain payouts to only have one entry per address
-func (payouts Payouts) Get(addr sdk.AccAddress) (sdk.Coins, bool) {
+/*func (payouts Payouts) Get(addr sdk.AccAddress) (sdk.Coins, bool) {
 	for _, p := range payouts {
 		if reflect.DeepEqual(p.Address, addr) {
 			return p.Coins, true
 		}
 	}
 	return nil, false
-}
+}*/
 
 const ChannelDisputeTime = int64(2000) // measured in blocks TODO pick reasonable time
 
