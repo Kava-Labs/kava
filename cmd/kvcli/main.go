@@ -141,6 +141,7 @@ func main() {
 	paychanCmd.AddCommand(
 		client.PostCommands(
 			paychancmd.CreateChannelCmd(cdc),
+			paychancmd.GetChannelCmd(cdc, "paychan"), // pass in storeKey
 			paychancmd.GeneratePaymentCmd(cdc),
 			paychancmd.VerifyPaymentCmd(cdc, "paychan"), // pass in storeKey
 			paychancmd.SubmitPaymentCmd(cdc),
