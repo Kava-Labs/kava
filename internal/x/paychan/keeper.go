@@ -11,12 +11,13 @@ import (
 // Keeper of the paychan store
 // Handles validation internally. Does not rely on calling code to do validation.
 // Aim to keep public methods safe, private ones not necessaily.
+// Keepers contain main business logic of the module.
 type Keeper struct {
 	storeKey   sdk.StoreKey
 	cdc        *wire.Codec // needed to serialize objects before putting them in the store
 	coinKeeper bank.Keeper
 
-	//codespace sdk.CodespaceType
+	//codespace sdk.CodespaceType TODO custom errors
 }
 
 // Called when creating new app.
@@ -30,12 +31,10 @@ func NewKeeper(cdc *wire.Codec, key sdk.StoreKey, ck bank.Keeper) Keeper {
 	return keeper
 }
 
-// ============================================== Main Business Logic
-
 // Create a new payment channel and lock up sender funds.
 func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.AccAddress, receiver sdk.AccAddress, coins sdk.Coins) (sdk.Tags, sdk.Error) {
 
-	// Check addresses valid (Technicaly don't need to check sender address is valid as SubtractCoins does that)
+	// Check addresses valid (Technicaly don't need to check sender address is valid as SubtractCoins checks)
 	if len(sender) == 0 {
 		return nil, sdk.ErrInvalidAddress(sender.String())
 	}
@@ -71,6 +70,7 @@ func (k Keeper) CreateChannel(ctx sdk.Context, sender sdk.AccAddress, receiver s
 	return tags, err
 }
 
+// Initiate the close of a payment channel, subject to dispute period.
 func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	// This is roughly the default path for non unidirectional channels
 
@@ -87,6 +87,7 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 	q := k.getSubmittedUpdatesQueue(ctx)
 	if q.Contains(update.ChannelID) {
 		// Someone has previously tried to update channel
+
 		// In bidirectional channels the new update is compared against existing and replaces it if it has a higher sequence number.
 
 		// existingSUpdate, found := k.getSubmittedUpdate(ctx, update.ChannelID)
@@ -97,7 +98,7 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 
 		// However in unidirectional case, only the sender can close a channel this way. No clear need for them to be able to submit an update replacing a previous one they sent, so don't allow it.
 		// TODO tags
-		// TODO custom errors return sdk.EmptyTags(), sdk.NewError("Sender can't submit an update for channel if one has already been submitted.")
+		// TODO custom errors
 		sdk.ErrInternal("Sender can't submit an update for channel if one has already been submitted.")
 	} else {
 		// No one has tried to update channel
@@ -113,6 +114,7 @@ func (k Keeper) InitCloseChannelBySender(ctx sdk.Context, update Update) (sdk.Ta
 	return tags, nil
 }
 
+// Immediately close a channel.
 func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 
 	// get the channel
@@ -138,8 +140,7 @@ func (k Keeper) CloseChannelByReceiver(ctx sdk.Context, update Update) (sdk.Tags
 }
 
 // Main function that compare updates against each other.
-// Pure function
-// Not needed in unidirectional case.
+// Pure function, Not needed in unidirectional case.
 // func (k Keeper) applyNewUpdate(existingSUpdate SubmittedUpdate, proposedUpdate Update) SubmittedUpdate {
 // 	var returnUpdate SubmittedUpdate
 
@@ -183,7 +184,8 @@ func VerifyUpdate(channel Channel, update Update) sdk.Error {
 	return nil
 }
 
-// unsafe close channel - doesn't check if update matches existing channel TODO make safer?
+// unsafe close channel - doesn't check if update matches existing channel
+// TODO make safer?
 func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Error) {
 	var err sdk.Error
 	var tags sdk.Tags
@@ -194,7 +196,6 @@ func (k Keeper) closeChannel(ctx sdk.Context, update Update) (sdk.Tags, sdk.Erro
 	// Add coins to sender and receiver
 	// TODO check for possible errors first to avoid coins being half paid out?
 	for i, coins := range update.Payout {
-		// TODO check somewhere if coins are not negative?
 		_, tags, err = k.coinKeeper.AddCoins(ctx, channel.Participants[i], coins)
 		if err != nil {
 			panic(err)
@@ -223,7 +224,7 @@ func verifySignatures(channel Channel, update Update) bool {
 
 }
 
-// =========================================== QUEUE
+// =========================================== SUBMITTED UPDATES QUEUE
 
 func (k Keeper) addToSubmittedUpdatesQueue(ctx sdk.Context, sUpdate SubmittedUpdate) {
 	// always overwrite prexisting values - leave paychan logic to higher levels

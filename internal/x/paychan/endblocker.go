@@ -10,7 +10,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) sdk.Tags {
 	tags := sdk.EmptyTags()
 
 	// Iterate through submittedUpdatesQueue
-	// TODO optimise so it doesn't pull every update from DB every block
+	// TODO optimise so it doesn't pull every channel update from DB every block
 	q := k.getSubmittedUpdatesQueue(ctx)
 	var sUpdate SubmittedUpdate
 	var found bool
@@ -31,6 +31,5 @@ func EndBlocker(ctx sdk.Context, k Keeper) sdk.Tags {
 			tags.AppendTags(channelTags)
 		}
 	}
-
 	return tags
 }

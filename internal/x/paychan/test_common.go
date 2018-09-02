@@ -21,10 +21,10 @@ func createMockApp(accountSeeds []string) (sdk.Context, bank.Keeper, Keeper, []s
 	// create channel keeper
 	keyChannel := sdk.NewKVStoreKey("channel")
 	channelKeeper := NewKeeper(mApp.Cdc, keyChannel, coinKeeper)
-	// add router?
+	// could add router for msg tests
 	//mapp.Router().AddRoute("channel", NewHandler(channelKeeper))
 
-	mApp.CompleteSetup([]*sdk.KVStoreKey{keyChannel}) // needs to be called I think to finish setup
+	mApp.CompleteSetup([]*sdk.KVStoreKey{keyChannel})
 
 	// create some accounts
 	genAccFunding := sdk.Coins{sdk.NewCoin("KVA", 1000)}
@@ -57,6 +57,5 @@ func createTestGenAccounts(accountSeeds []string, genCoins sdk.Coins) (genAccs [
 		pubKeys = append(pubKeys, pubKey)
 		addrs = append(addrs, addr)
 	}
-
 	return
 }

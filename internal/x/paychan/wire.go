@@ -9,7 +9,7 @@ func RegisterWire(cdc *wire.Codec) {
 	cdc.RegisterConcrete(MsgSubmitUpdate{}, "paychan/MsgSubmitUpdate", nil)
 }
 
-// TODO move this to near the msg definitions
+// TODO move this to near the msg definitions?
 var msgCdc = wire.NewCodec()
 
 func init() {

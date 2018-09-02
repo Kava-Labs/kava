@@ -16,12 +16,14 @@ type Channel struct {
 	Coins        sdk.Coins
 }
 
-type ChannelID int64 // TODO should this be positive only
+const ChannelDisputeTime = int64(2000) // measured in blocks TODO pick reasonable time
+
+type ChannelID int64 // TODO should this be positive only?
 
 // The data that is passed between participants as payments, and submitted to the blockchain to close a channel.
 type Update struct {
 	ChannelID ChannelID
-	Payout    Payout //map[string]sdk.Coins // map of bech32 addresses to coins
+	Payout    Payout
 	//Sequence  int64 Not needed for unidirectional channels
 	Sigs [1]UpdateSignature // only sender needs to sign in unidirectional
 }
@@ -38,11 +40,6 @@ func (u Update) GetSignBytes() []byte {
 		panic(err)
 	}
 	return sdk.MustSortJSON(bz)
-}
-
-type UpdateSignature struct {
-	PubKey          crypto.PubKey
-	CryptoSignature crypto.Signature
 }
 
 type Payout [2]sdk.Coins // a list of coins to be paid to each of Channel.Participants
@@ -62,17 +59,10 @@ func (p Payout) Sum() sdk.Coins {
 	return total
 }
 
-// Get the coins associated with payout address. TODO constrain payouts to only have one entry per address
-/*func (payouts Payouts) Get(addr sdk.AccAddress) (sdk.Coins, bool) {
-	for _, p := range payouts {
-		if reflect.DeepEqual(p.Address, addr) {
-			return p.Coins, true
-		}
-	}
-	return nil, false
-}*/
-
-const ChannelDisputeTime = int64(2000) // measured in blocks TODO pick reasonable time
+type UpdateSignature struct {
+	PubKey          crypto.PubKey
+	CryptoSignature crypto.Signature
+}
 
 // An update that has been submitted to the blockchain, but not yet acted on.
 type SubmittedUpdate struct {
@@ -135,19 +125,6 @@ type MsgCreate struct {
 	Coins        sdk.Coins
 }
 
-//Create a new message.
-/*
-Called in client code when constructing transaction from cli args to send to the network.
-maybe just a placeholder for more advanced future functionality?
-func (msg CreatMsg) NewMsgCreate(sender sdk.Address, receiver sdk.Address, amount sdk.Coins) MsgCreate {
-	return MsgCreate{
-		sender
-		receiver
-		amount
-	}
-}
-*/
-
 func (msg MsgCreate) Type() string { return "paychan" }
 
 func (msg MsgCreate) GetSignBytes() []byte {
@@ -164,25 +141,25 @@ func (msg MsgCreate) ValidateBasic() sdk.Error {
 
 	//TODO implement
 
-	/*
-		// check if all fields present / not 0 valued
-		if len(msg.Sender) == 0 {
-			return sdk.ErrInvalidAddress(msg.Sender.String())
-		}
-		if len(msg.Receiver) == 0 {
-			return sdk.ErrInvalidAddress(msg.Receiver.String())
-		}
-		if len(msg.Amount) == 0 {
-			return sdk.ErrInvalidCoins(msg.Amount.String())
-		}
-		// Check if coins are sorted, non zero, non negative
-		if !msg.Amount.IsValid() {
-			return sdk.ErrInvalidCoins(msg.Amount.String())
-		}
-		if !msg.Amount.IsPositive() {
-			return sdk.ErrInvalidCoins(msg.Amount.String())
-		}
-		// TODO check if Address valid?
+	/* old logic
+	// check if all fields present / not 0 valued
+	if len(msg.Sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.Sender.String())
+	}
+	if len(msg.Receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.Receiver.String())
+	}
+	if len(msg.Amount) == 0 {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+	// Check if coins are sorted, non zero, non negative
+	if !msg.Amount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+	if !msg.Amount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+	// TODO check if Address valid?
 	*/
 	return nil
 }
@@ -198,12 +175,6 @@ type MsgSubmitUpdate struct {
 	Submitter sdk.AccAddress
 }
 
-// func (msg MsgSubmitUpdate) NewMsgSubmitUpdate(update Update) MsgSubmitUpdate {
-// 	return MsgSubmitUpdate{
-// 		update
-// 	}
-// }
-
 func (msg MsgSubmitUpdate) Type() string { return "paychan" }
 
 func (msg MsgSubmitUpdate) GetSignBytes() []byte {
@@ -217,35 +188,33 @@ func (msg MsgSubmitUpdate) GetSignBytes() []byte {
 func (msg MsgSubmitUpdate) ValidateBasic() sdk.Error {
 
 	// TODO implement
-	/*
-		// check if all fields present / not 0 valued
-		if len(msg.Sender) == 0 {
-			return sdk.ErrInvalidAddress(msg.Sender.String())
-		}
-		if len(msg.Receiver) == 0 {
-			return sdk.ErrInvalidAddress(msg.Receiver.String())
-		}
-		if len(msg.ReceiverAmount) == 0 {
-			return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
-		}
-		// check id ≥ 0
-		if msg.Id < 0 {
-			return sdk.ErrInvalidAddress(strconv.Itoa(int(msg.Id))) // TODO implement custom errors
-		}
-		// Check if coins are sorted, non zero, non negative
-		if !msg.ReceiverAmount.IsValid() {
-			return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
-		}
-		if !msg.ReceiverAmount.IsPositive() {
-			return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
-		}
-		// TODO check if Address valid?
+	/* old logic
+	// check if all fields present / not 0 valued
+	if len(msg.Sender) == 0 {
+		return sdk.ErrInvalidAddress(msg.Sender.String())
+	}
+	if len(msg.Receiver) == 0 {
+		return sdk.ErrInvalidAddress(msg.Receiver.String())
+	}
+	if len(msg.ReceiverAmount) == 0 {
+		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
+	}
+	// check id ≥ 0
+	if msg.Id < 0 {
+		return sdk.ErrInvalidAddress(strconv.Itoa(int(msg.Id))) // TODO implement custom errors
+	}
+	// Check if coins are sorted, non zero, non negative
+	if !msg.ReceiverAmount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
+	}
+	if !msg.ReceiverAmount.IsPositive() {
+		return sdk.ErrInvalidCoins(msg.ReceiverAmount.String())
+	}
+	// TODO check if Address valid?
 	*/
 	return nil
 }
 
 func (msg MsgSubmitUpdate) GetSigners() []sdk.AccAddress {
-	// Signing not strictly necessary as signatures contained within the channel update.
-	// TODO add signature by submitting address
 	return []sdk.AccAddress{msg.Submitter}
 }
