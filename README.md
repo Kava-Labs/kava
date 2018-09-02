@@ -17,6 +17,23 @@ Try it out - run a full node to sync to the testnet, or set up as a validator.
 
 Requirements: go installed and set up (version 1.10+).
 
+ 0. If installing from a new Ubuntu server (16.04 or 18.04), here's how to setup go:
+		
+		sudo apt update
+		sudo apt upgrade -y
+		sudo apt install git gcc make wget -y
+		wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz
+		sudo tar -xvf go1.10.3.linux-amd64.tar.gz
+		sudo mv go /usr/local
+
+		cat >> ~/.profile <<EOF
+		export GOROOT=/usr/local/go
+		export GOPATH=\$HOME/go
+		export PATH=\$GOPATH/bin:\$GOROOT/bin:\$PATH
+		EOF
+
+		source ~/.profile
+
  1. Get the code.
  
 		mkdir -p $GOPATH/src/github.com/kava-labs
