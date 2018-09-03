@@ -16,7 +16,7 @@ type Channel struct {
 	Coins        sdk.Coins
 }
 
-const ChannelDisputeTime = int64(2000) // measured in blocks TODO pick reasonable time
+const ChannelDisputeTime = int64(6) // measured in blocks TODO pick reasonable time, add to channel or genesis
 
 type ChannelID int64 // TODO should this be positive only?
 

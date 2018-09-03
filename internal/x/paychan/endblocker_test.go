@@ -7,6 +7,8 @@ import (
 )
 
 func TestEndBlocker(t *testing.T) {
+	// TODO test that endBlocker doesn't close channels before the execution time
+
 	// SETUP
 	accountSeeds := []string{"senderSeed", "receiverSeed"}
 	ctx, _, channelKeeper, addrs, _, _, _ := createMockApp(accountSeeds)

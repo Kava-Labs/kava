@@ -2,7 +2,7 @@
 
 This module implements simple but feature complete unidirectional payment channels. Channels can be opened by a sender and closed immediately by the receiver, or by the sender subject to a dispute period. There are no top-ups or partial withdrawals (yet). Channels support multiple currencies.
 
->Note: This is a work in progress. More feature planned. More test cases needed.
+>Note: This module is still a bit rough around the edges. More feature planned. More test cases needed.
 
 # Usage
 
@@ -15,7 +15,7 @@ Send a payment for 10 KVA.
 
 	kvcli paychan pay --from <your account name> --sen-amt 90KVA --rec-amt 10KVA --chan-id <ID of channel> --filename payment.json --chain-id <your chain ID>
 
-Send the file payment.json to your receiver. Then they run the following to verify.
+Send the file `payment.json` to your receiver. Then they run the following to verify.
 
 	kvcli paychan verify --filename payment.json
 
@@ -24,14 +24,17 @@ The receiver can close immediately at any time.
 
 	kvcli paychan submit --from <receiver's account name> --payment payment.json --chain-id <your chain ID>
 
-The sender can close subject to a dispute period during which the receiver can overrule them.
+The sender can submit a close request, causing the channel will close automatically after a dispute period. During this period a receiver can still close immediately.
 
 	kvcli paychan submit --from <receiver's account name> --payment payment.json --chain-id <your chain ID>
+
+>Note: The dispute period on the testnet is 30 seconds for ease of testing.
 
 ## Get info on a channel
 
 	kvcli get --chan-id <ID of channel>
 
+This will print out a channel, if it exists, and any submitted close requests.
 
 # TODOs
 

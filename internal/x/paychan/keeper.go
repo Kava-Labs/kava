@@ -283,7 +283,7 @@ func (k Keeper) getSubmittedUpdate(ctx sdk.Context, channelID ChannelID) (Submit
 
 	// load from DB
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(k.getSubmittedUpdateKey(channelID))
+	bz := store.Get(GetSubmittedUpdateKey(channelID))
 
 	var sUpdate SubmittedUpdate
 	if bz == nil {
@@ -301,16 +301,16 @@ func (k Keeper) setSubmittedUpdate(ctx sdk.Context, sUpdate SubmittedUpdate) {
 	// marshal
 	bz := k.cdc.MustMarshalBinary(sUpdate) // panics if something goes wrong
 	// write to db
-	key := k.getSubmittedUpdateKey(sUpdate.ChannelID)
+	key := GetSubmittedUpdateKey(sUpdate.ChannelID)
 	store.Set(key, bz) // panics if something goes wrong
 }
 
 func (k Keeper) deleteSubmittedUpdate(ctx sdk.Context, channelID ChannelID) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(k.getSubmittedUpdateKey(channelID))
+	store.Delete(GetSubmittedUpdateKey(channelID))
 	// TODO does this have return values? What happens when key doesn't exist?
 }
-func (k Keeper) getSubmittedUpdateKey(channelID ChannelID) []byte {
+func GetSubmittedUpdateKey(channelID ChannelID) []byte {
 	return []byte(fmt.Sprintf("submittedUpdate:%d", channelID))
 }
 

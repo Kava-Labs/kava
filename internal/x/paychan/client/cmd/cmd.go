@@ -264,7 +264,7 @@ func GetChannelCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Get info on a channel.",
-		Long:  "Get information on a non closed channel.",
+		Long:  "Get the details of a non closed channel plus any submitted update waiting to be executed.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -287,9 +287,27 @@ func GetChannelCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			// print out json channel
 			fmt.Println(string(jsonChannel))
+
+			// Get any submitted updates from the node
+			res, err = ctx.QueryStore(paychan.GetSubmittedUpdateKey(id), paychanStoreName)
+			if err != nil {
+				return err
+			}
+			// Print out the submited update if it exsits
+			if len(res) != 0 {
+				var submittedUpdate paychan.SubmittedUpdate
+				cdc.MustUnmarshalBinary(res, &submittedUpdate)
+
+				// Convert the submitted update to a json object for pretty printing
+				jsonSU, err := wire.MarshalJSONIndent(cdc, submittedUpdate)
+				if err != nil {
+					return err
+				}
+				// print out json submitted update
+				fmt.Println(string(jsonSU))
+			}
 			return nil
 		},
 	}
