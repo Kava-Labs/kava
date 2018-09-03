@@ -17,6 +17,7 @@ import (
 	//ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
 	slashingcmd "github.com/cosmos/cosmos-sdk/x/slashing/client/cli"
 	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
+	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cmd"
 
 	"github.com/kava-labs/kava/internal/app"
 	//"github.com/kava-labs/kava/internal/lcd"
@@ -38,7 +39,7 @@ func main() {
 	// add standard rpc commands
 	rpc.AddCommands(rootCmd)
 
-	//Add state commands
+	// Add state commands
 	tendermintCmd := &cobra.Command{
 		Use:   "tendermint",
 		Short: "Tendermint state querying subcommands",
@@ -49,7 +50,7 @@ func main() {
 	)
 	tx.AddCommands(tendermintCmd, cdc)
 
-	//Add IBC commands
+	// Add IBC commands
 	// ibcCmd := &cobra.Command{
 	// 	Use:   "ibc",
 	// 	Short: "Inter-Blockchain Communication subcommands",
@@ -75,7 +76,7 @@ func main() {
 		client.LineBreak,
 	)
 
-	//Add stake commands
+	// Add stake commands
 	stakeCmd := &cobra.Command{
 		Use:   "stake",
 		Short: "Stake and validation subcommands",
@@ -101,7 +102,7 @@ func main() {
 		stakeCmd,
 	)
 
-	//Add stake commands
+	// Add gov commands
 	// govCmd := &cobra.Command{
 	// 	Use:   "gov",
 	// 	Short: "Governance and voting subcommands",
@@ -122,15 +123,32 @@ func main() {
 	// 	govCmd,
 	// )
 
-	//Add auth and bank commands
+	// Add auth and bank commands
 	rootCmd.AddCommand(
 		client.GetCommands(
 			authcmd.GetAccountCmd("acc", cdc, authcmd.GetAccountDecoder(cdc)),
 		)...)
 	rootCmd.AddCommand(
-		client.PostCommands(
+		client.PostCommands( // this just wraps the input cmds with common flags
 			bankcmd.SendTxCmd(cdc),
 		)...)
+
+	// Add paychan commands
+	paychanCmd := &cobra.Command{
+		Use:   "paychan",
+		Short: "Payment channel subcommand",
+	}
+	paychanCmd.AddCommand(
+		client.PostCommands(
+			paychancmd.CreateChannelCmd(cdc),
+			paychancmd.GetChannelCmd(cdc, "paychan"), // pass in storeKey
+			paychancmd.GeneratePaymentCmd(cdc),
+			paychancmd.VerifyPaymentCmd(cdc, "paychan"), // pass in storeKey
+			paychancmd.SubmitPaymentCmd(cdc),
+		)...)
+	rootCmd.AddCommand(
+		paychanCmd,
+	)
 
 	// add proxy, version and key info
 	rootCmd.AddCommand(
