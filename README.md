@@ -7,8 +7,7 @@ Building on the work of Tendermint and Interledger.
 
 Project status: We're currently in a very early public testnet. With future features being implemented.
 
-Try it out - run a full node to sync to the testnet, or set up as a validator.
-
+Try it out - run a full node to sync to the testnet, [send some off chain payments](internal/x/paychan/README.md), or set up as a validator.
 
 
 ## Install
