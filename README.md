@@ -39,6 +39,7 @@ Requirements: go installed and set up (version 1.10+).
 		cd $GOPATH/src/github.com/kava-labs
 		git clone https://github.com/kava-labs/kava
 		cd kava
+		git checkout 8c9406c
 	
  2. Install the dependencies.
  
