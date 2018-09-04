@@ -3,7 +3,7 @@
 </h1>
 
 A decentralized fast-finality blockchain for interoperable payment channel networks.
-Building on the work of Tendermint and Interledger.
+Proudly building on the work of [Cosmos](https://github.com/cosmos/cosmos-sdk) and [Interledger](https://github.com/interledger).
 
 Project status: We're currently in a very early public testnet. With future features being implemented.
 
