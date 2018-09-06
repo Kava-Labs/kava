@@ -20,6 +20,7 @@ import (
 	//"github.com/cosmos/cosmos-sdk/x/ibc"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/stake"
+	"github.com/kava-labs/kava/internal/x/paychan"
 )
 
 const (
@@ -39,16 +40,19 @@ type KavaApp struct {
 	// keys to access the substores
 	keyMain    *sdk.KVStoreKey
 	keyAccount *sdk.KVStoreKey
+
 	//keyIBC           *sdk.KVStoreKey
 	keyStake    *sdk.KVStoreKey
 	keySlashing *sdk.KVStoreKey
 	//keyGov           *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
+	keyPaychan       *sdk.KVStoreKey
 
 	// keepers
 	accountMapper       auth.AccountMapper
 	feeCollectionKeeper auth.FeeCollectionKeeper
 	coinKeeper          bank.Keeper
+	paychanKeeper       paychan.Keeper
 	//ibcMapper           ibc.Mapper
 	stakeKeeper    stake.Keeper
 	slashingKeeper slashing.Keeper
@@ -71,6 +75,7 @@ func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptio
 		cdc:        cdc,
 		keyMain:    sdk.NewKVStoreKey("main"),
 		keyAccount: sdk.NewKVStoreKey("acc"),
+		keyPaychan: sdk.NewKVStoreKey("paychan"),
 		//keyIBC:      sdk.NewKVStoreKey("ibc"),
 		keyStake:    sdk.NewKVStoreKey("stake"),
 		keySlashing: sdk.NewKVStoreKey("slashing"),
@@ -87,6 +92,7 @@ func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptio
 
 	// Create the keepers
 	app.coinKeeper = bank.NewKeeper(app.accountMapper)
+	app.paychanKeeper = paychan.NewKeeper(app.cdc, app.keyPaychan, app.coinKeeper)
 	//app.ibcMapper = ibc.NewMapper(app.cdc, app.keyIBC, app.RegisterCodespace(ibc.DefaultCodespace))
 	app.stakeKeeper = stake.NewKeeper(app.cdc, app.keyStake, app.coinKeeper, app.RegisterCodespace(stake.DefaultCodespace))
 	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, app.stakeKeeper, app.RegisterCodespace(slashing.DefaultCodespace))
@@ -98,7 +104,8 @@ func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptio
 		AddRoute("bank", bank.NewHandler(app.coinKeeper)).
 		//AddRoute("ibc", ibc.NewHandler(app.ibcMapper, app.coinKeeper)).
 		AddRoute("stake", stake.NewHandler(app.stakeKeeper)).
-		AddRoute("slashing", slashing.NewHandler(app.slashingKeeper))
+		AddRoute("slashing", slashing.NewHandler(app.slashingKeeper)).
+		AddRoute("paychan", paychan.NewHandler(app.paychanKeeper))
 		//AddRoute("gov", gov.NewHandler(app.govKeeper))
 
 	// Set func to initialze the chain from appState in genesis file
@@ -110,7 +117,7 @@ func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptio
 	app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper))
 
 	// Mount stores
-	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyStake, app.keySlashing, app.keyFeeCollection)
+	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyStake, app.keySlashing, app.keyFeeCollection, app.keyPaychan)
 	err := app.LoadLatestVersion(app.keyMain)
 	if err != nil {
 		cmn.Exit(err.Error())
@@ -121,6 +128,7 @@ func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptio
 // Creates a codec for use across the whole app.
 func CreateKavaAppCodec() *wire.Codec {
 	cdc := wire.NewCodec()
+	paychan.RegisterWire(cdc)
 	//ibc.RegisterWire(cdc)
 	bank.RegisterWire(cdc)
 	stake.RegisterWire(cdc)
@@ -143,6 +151,7 @@ func (app *KavaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) ab
 
 // The function baseapp runs on receipt of a EndBlock ABCI message
 func (app *KavaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	paychan.EndBlocker(ctx, app.paychanKeeper)
 	validatorUpdates := stake.EndBlocker(ctx, app.stakeKeeper)
 
 	//tags, _ := gov.EndBlocker(ctx, app.govKeeper)

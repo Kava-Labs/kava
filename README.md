@@ -7,8 +7,7 @@ Building on the work of Tendermint and Interledger.
 
 Project status: We're currently in a very early public testnet. With future features being implemented.
 
-Try it out - run a full node to sync to the testnet, or set up as a validator.
-
+Try it out - run a full node to sync to the testnet, [send some off chain payments](internal/x/paychan/README.md), or set up as a validator.
 
 
 ## Install
@@ -40,6 +39,7 @@ Requirements: go installed and set up (version 1.10+).
 		cd $GOPATH/src/github.com/kava-labs
 		git clone https://github.com/kava-labs/kava
 		cd kava
+		git checkout 8c9406c
 	
  2. Install the dependencies.
  
@@ -79,15 +79,15 @@ TODO users need to set up keys first?
 
 ## Run a Full Node
 
-	kvd init --name <your-name> --chain-id kava-test-1
+	kvd init --name <your-name> --chain-id kava-test-2
 
 This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`. The default password is 'password'.
 
 > Note: Make sure `GOBIN` is set and added to your path if you want to be able to run installed go programs from any folder.
 
-Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-1/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
+Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-2/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
 
-Add the kava node address, `0dfd43e440e34fc193ddee4ae99547184f3cb5d1@validator.connector.kava.io:26656`, to `seeds` in `$HOME/.kvd/config/config.toml`
+Add the kava node address, `5c2bc5a95b014e4b2897791565398ee6bfd0a04a@validator.connector.kava.io:26656`, to `seeds` in `$HOME/.kvd/config/config.toml`
 
 Start your full node
 
@@ -119,7 +119,7 @@ Then, your full running in the background or separate window, run:
             --pubkey <you validator pubkey from above> \
             --address-validator <your address from above> \
             --moniker "<your name>" \
-            --chain-id kava-test-1 \
+            --chain-id kava-test-2 \
             --from <your name>
 > Note You'll need to type in the default password "password"
 
@@ -131,6 +131,6 @@ In order to stop validating, first remove yourself as validator, then you can st
 	kvcli stake unbond begin \
 		--address-delegator <your address> \
 		--address-validator <your address> \
-		--chain-id kava-test-1 \
+		--chain-id kava-test-2 \
 		--shares-percent 1 \
 		--from <your name>
