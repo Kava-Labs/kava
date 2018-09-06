@@ -92,7 +92,14 @@ Add the kava node address, `0dfd43e440e34fc193ddee4ae99547184f3cb5d1@validator.c
 Start your full node
 
 	kvd start
-	
+
+Or, to start in background and send to log:
+
+	kvd start &> kvd.log &
+
+To see the output of the log:
+
+	tail -f kvd.log
 > Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:26657/abci_info).
 
 
