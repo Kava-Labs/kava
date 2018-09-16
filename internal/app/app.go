@@ -1,3 +1,6 @@
+// Copyright 2016 All in Bits, inc
+// Modifications copyright 2018 Kava Labs
+
 package app
 
 import (

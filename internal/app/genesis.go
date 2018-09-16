@@ -1,3 +1,6 @@
+// Copyright 2016 All in Bits, inc
+// Modifications copyright 2018 Kava Labs
+
 package app
 
 import (
@@ -215,92 +218,3 @@ func KavaAppGenStateJSON(cdc *wire.Codec, appGenTxs []json.RawMessage) (appState
 	appState, err = wire.MarshalJSONIndent(cdc, genesisState)
 	return
 }
-
-/*
-
-// A file, genesis.json, is created with the initial state of the kava network.
-// This is done by creating an AppInit object to be handed to the server when it creates commands.
-// When `kvd init` is run, a genesis tx is created. Then, from that, an initial app state.
-
-func CreateAppInit() server.AppInit {
-	return server.AppInit{
-		AppGenTx:    KavaAppGenTx,
-		AppGenState: KavaAppGenState,
-	}
-}
-
-func KavaAppGenTx(cdc *wire.Codec, pk crypto.PubKey, genTxConfig config.GenTx) (
-	appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
-
-	// Generate address and secret key for the validator
-	var addr sdk.AccAddress
-	var secret string
-	addr, secret, err = server.GenerateCoinKey()
-	if err != nil {
-		return
-	}
-
-	// Generate appGenTx -------------
-	var bz []byte
-	genTx := types.GenTx{
-		Address: addr,
-		PubKey:  pk,
-	}
-	bz, err = wire.MarshalJSONIndent(cdc, genTx)
-	if err != nil {
-		return
-	}
-	appGenTx = json.RawMessage(bz)
-
-	// cliPrint -------------
-	mm := map[string]string{"secret": secret}
-	bz, err = cdc.MarshalJSON(mm)
-	if err != nil {
-		return
-	}
-	cliPrint = json.RawMessage(bz)
-
-	// validator -----------
-	validator = tmtypes.GenesisValidator{
-		PubKey: pk,
-		Power:  10,
-	}
-
-	return
-}
-
-func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (appState json.RawMessage, err error) {
-
-	if len(appGenTxs) == 0 {
-		err = errors.New("must provide at least 1 genesis transaction")
-		return
-	}
-
-	genaccs := make([]types.GenesisAccount, len(appGenTxs))
-	for i, appGenTx := range appGenTxs {
-
-		var genTx types.GenTx
-		err = cdc.UnmarshalJSON(appGenTx, &genTx)
-		if err != nil {
-			return
-		}
-
-		// create the genesis account
-		accAuth := auth.NewBaseAccountWithAddress(genTx.Address)
-		accAuth.Coins = sdk.Coins{
-			{"KVA", 10000000000},
-		}
-		acc := types.NewGenesisAccount(&accAuth)
-		genaccs[i] = acc
-	}
-
-	// create the final app state
-	genesisState := types.GenesisState{
-		Accounts: genaccs,
-	}
-	appState, err = wire.MarshalJSONIndent(cdc, genesisState)
-
-	return
-}
-
-*/
