@@ -2,13 +2,13 @@
 # Installation and Setup
 
 #### Who this guide is for
-The blockchain code currently consists of a full node daemon (`kvd`) and it's command line interface (`kvcli`).
+The code currently consists of a full node daemon (`kvd`) and it's command line interface (`kvcli`).
 
 Full nodes are fairly resource intensive and are designed to be run continuously on servers, primarily by people validating the network. While it is possible to run locally it is not recommended unless for development purposes. In the future light clients will enable secure transactions for clients.
 
 A **full node** syncs with the blockchain and processes transactions. A **validator** is a full node that has declared itself to be a "validator" on chain. This obligates it to participate in consensus by proposing and signing blocks and maintaining uptime. By not following the protocol, the validator's stake will be slashed.
 
-Use the following instructions to set up a full node, and to optionally declare yourself as a validator.
+Use these instructions to set up a full node, and to optionally declare yourself as a validator.
 
 ## Install
 
@@ -66,7 +66,7 @@ Start your full node
 
     kvd start
 
-Or, to start in background and capture output in a log file:
+Or, to start in the background and capture output to a log file:
 
     kvd start &> kvd.log &
 
