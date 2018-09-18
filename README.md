@@ -135,4 +135,5 @@ In order to stop validating, first remove yourself as validator, then you can st
 		--address-validator <your address> \
 		--chain-id kava-test-2 \
 		--shares-percent 1 \
-		--from <your name>
+		--from <your name> \
+                --gas 1000000
