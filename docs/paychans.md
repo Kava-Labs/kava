@@ -1,10 +1,12 @@
-# Unidrectional Payment Channels
+# Payment Channels
 
-This module implements simple but feature complete unidirectional payment channels. Channels can be opened by a sender and closed immediately by the receiver, or by the sender subject to a dispute period. There are no top-ups or partial withdrawals (yet). Channels support multiple currencies.
+Payment channels are designed to enable high speed and throughput for transactions while requiring no counter-party risk.
 
->Note: This module is still a bit rough around the edges. More feature planned. More test cases needed.
+This initial implementation is for unidirectional channels. Channels can be opened by a sender and closed immediately by the receiver, or by the sender subject to a dispute period. There are no top-ups or partial withdrawals (yet).
+
 
 # Usage
+>The following commands require communication with a full node. By default they expect one to be running locally (accessible on localhost), but a remote can be provided with the `--node` flag.
 
 ## Create a channel
 
@@ -24,7 +26,7 @@ The receiver can close immediately at any time.
 
 	kvcli paychan submit --from <receiver's account name> --payment payment.json --chain-id <your chain ID>
 
-The sender can submit a close request, causing the channel will close automatically after a dispute period. During this period a receiver can still close immediately.
+The sender can submit a close request, causing the channel will close automatically after a dispute period. During this period a receiver can still close immediately, overruling the sender's request.
 
 	kvcli paychan submit --from <receiver's account name> --payment payment.json --chain-id <your chain ID>
 
@@ -35,23 +37,3 @@ The sender can submit a close request, causing the channel will close automatica
 	kvcli get --chan-id <ID of channel>
 
 This will print out a channel, if it exists, and any submitted close requests.
-
-# TODOs
-
- - in code TODOs
- - Tidy up - method descriptions, heading comments, remove uneccessary comments, README/docs
- - Find a better name for Queue - clarify distinction between int slice and abstract queue concept
- - write some sort of integration test
- 	- possible bug in submitting same update repeatedly
- - find nicer name for payout
- - add Gas usage
- - add tags (return channel id on creation)
- - refactor cmds to be able to test them, then test them
- 	- verify doesn’t throw json parsing error on invalid json
- 	- can’t submit an update from an unitialised account
- 	- pay without a --from returns confusing error
- - use custom errors instead of using sdk.ErrInternal
- - split off signatures from update as with txs/msgs - testing easier, code easier to use, doesn't store sigs unecessarily on chain
- - consider removing pubKey from UpdateSignature - instead let channel module access accountMapper
- - refactor queue into one object
- - remove printout during tests caused by mock app initialisation

@@ -1,4 +1,15 @@
 
+# Installation and Setup
+
+#### Who this guide is for
+The blockchain code currently consists of a full node daemon (`kvd`) and it's command line interface (`kvcli`).
+
+Full nodes are fairly resource intensive and are designed to be run continuously on servers, primarily by people validating the network. While it is possible to run locally it is not recommended unless for development purposes. In the future light clients will enable secure transactions for clients.
+
+A **full node** syncs with the blockchain and processes transactions. A **validator** is a full node that has declared itself to be a "validator" on chain. This obligates it to participate in consensus by proposing and signing blocks and maintaining uptime. By not following the protocol, the validator's stake will be slashed.
+
+Use the following instructions to set up a full node, and to optionally declare yourself as a validator.
+
 ## Install
 
 Requirements: go installed and set up (version 1.10+).
@@ -32,37 +43,12 @@ Requirements: go installed and set up (version 1.10+).
  
         mkdir $GOPATH/bin
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-        dep ensure
+        dep ensure -vendor-only
 
 3. Install the code
 
         go install ./cmd/kvd
         go install ./cmd/kvcli
-
-<!--### Docker
-
-Requirements: docker installed.
-
-No installation necessary, just prepend commands with `docker run kava/kava`.  TODO name necessary to avoid new contianer being created each time?
-
-This will use our docker container `kava/kava` and store all blockchain data and keys within the container. -->
-
-<!-- To store this data outisde the conatiner, attach volumes to the container:
-
-    docker run --rm -v $HOME/.kvd:/root/.kvd -v $HOME/.kvcli:/root/.kvcli kava/kava <further commands>
-
-Now blockchain data will be stored in `$HOME/.kvd` and keys in `$HOME/.kvcli`. Also the `--rm` flag removes the contianer after each run.
-
- -->
-<!-- ## Send Transactions
-
-You can send transactions on the testnet using our node without yncing a local node.
-Requirements
-
-TODO users need to set up keys first?
-
-    kvcli <args> --node validator.connector.kava.io:26657 --chain-id kava-test-<current version>
- -->
 
 ## Run a Full Node
 
@@ -80,7 +66,7 @@ Start your full node
 
     kvd start
 
-Or, to start in background and send to log:
+Or, to start in background and capture output in a log file:
 
     kvd start &> kvd.log &
 
@@ -90,10 +76,10 @@ To see the output of the log:
 > Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:26657/abci_info).
 
 
-## Run a Validator
+## Become a Validator
 Join the [validator chat](https://riot.im/app/#/room/#kava-validators:matrix.org). Follow setup for a full node above.
 
-Get you address with `kvcli keys list`. Should look something like `cosmosaccaddr10jpp289accvkhsvrpz4tlj9zhqdaey2tl9m4rg`.
+Get you address with `kvcli keys list`.
 
 Ask @rhuairahrighairidh in the chat to give you some coins.
 
