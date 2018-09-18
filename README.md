@@ -11,7 +11,7 @@ Proudly building on the work of [Cosmos](https://github.com/cosmos/cosmos-sdk) a
 # Project Status
 [![Testnet](https://img.shields.io/badge/testnet-live-brightgreen.svg)](http://validator.connector.kava.io:26657/abci_info)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kava-labs/kava)](https://goreportcard.com/report/github.com/kava-labs/kava)
-![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)
+[![GitHub](https://img.shields.io/github/license/kava-labs/kava.svg)](https://github.com/Kava-Labs/kava/blob/master/LICENSE.md)
 
 We're currently in a very early public testnet, with future features being implemented.
 
