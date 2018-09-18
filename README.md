@@ -120,7 +120,9 @@ Then, your full running in the background or separate window, run:
             --address-validator <your address from above> \
             --moniker "<your name>" \
             --chain-id kava-test-2 \
-            --from <your name>
+            --from <your name> \
+            --gas 1000000
+
 > Note You'll need to type in the default password "password"
 
 Now your full node should be participating in consensus and validating blocks!
