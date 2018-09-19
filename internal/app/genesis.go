@@ -6,7 +6,9 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
+	"github.com/kava-labs/cosmos-sdk/client"
 	"github.com/spf13/pflag"
 	"github.com/tendermint/tendermint/crypto"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -19,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/stake"
 )
 
+const defaultPassword = "password"
 var (
 	// Tokens given to genesis validators and accounts
 	numStartingTokensValidators = int64(1000)
@@ -61,7 +64,7 @@ func (ga *GenesisAccount) ToAccount() (acc *auth.BaseAccount) {
 	}
 }
 
-// Create the appInit stuct for server init command
+// Create the appInit struct for server init command
 func KavaAppInit() server.AppInit {
 	fsAppGenState := pflag.NewFlagSet("", pflag.ContinueOnError)
 	fsAppGenTx := pflag.NewFlagSet("", pflag.ContinueOnError)
@@ -86,22 +89,41 @@ type KavaGenTx struct {
 	PubKey  string         `json:"pub_key"`
 }
 
-// Generate a genesis transsction
+// Generate a genesis transaction
 func KavaAppGenTx(cdc *wire.Codec, pk crypto.PubKey, genTxConfig config.GenTx) (
 	appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
 
-	// Generate address and secret key for the validator
+	// check a name for the new validator has been specified
 	if genTxConfig.Name == "" {
 		return nil, nil, tmtypes.GenesisValidator{}, errors.New("Must specify --name (validator moniker)")
 	}
-	var addr sdk.AccAddress
-	var secret string
-	addr, secret, err = server.GenerateSaveCoinKey(genTxConfig.CliRoot, genTxConfig.Name, "password", genTxConfig.Overwrite)
+
+	// get a new password for the new account
+	buf := client.BufferStdin()
+	prompt := fmt.Sprintf("Password for account '%s' (default %s):", genTxConfig.Name, defaultPassword)
+	keyPass, err := client.GetPassword(prompt, buf)
+	if err != nil && keyPass != "" {
+		// An error was returned that either failed to read the password from
+		// STDIN or the given password is not empty but failed to meet minimum
+		// length requirements.
+		return appGenTx, cliPrint, validator, err
+	}
+	if keyPass == "" {
+		keyPass = defaultPassword
+	}
+
+	// generate a new address and secret key
+	addr, secret, err := server.GenerateSaveCoinKey(
+		genTxConfig.CliRoot,
+		genTxConfig.Name,
+		defaultPassword,
+		genTxConfig.Overwrite,
+	)
 	if err != nil {
 		return
 	}
 
-	// Create string to print out
+	// Create message string to print out
 	mm := map[string]string{"secret": secret}
 	var bz []byte
 	bz, err = cdc.MarshalJSON(mm)
