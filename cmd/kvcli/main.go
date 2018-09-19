@@ -19,7 +19,7 @@ import (
 
 	slashingcmd "github.com/cosmos/cosmos-sdk/x/slashing/client/cli"
 	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
-	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cmd"
+	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cli"
 
 	"github.com/kava-labs/kava/internal/app"
 	//"github.com/kava-labs/kava/internal/lcd"
