@@ -27,7 +27,7 @@ func createMockApp(accountSeeds []string) (sdk.Context, bank.Keeper, Keeper, []s
 	mApp.CompleteSetup([]*sdk.KVStoreKey{keyChannel})
 
 	// create some accounts
-	genAccFunding := sdk.Coins{sdk.NewCoin("KVA", 1000)}
+	genAccFunding := sdk.Coins{sdk.NewInt64Coin("KVA", 1000)}
 	genAccs, addrs, pubKeys, privKeys := createTestGenAccounts(accountSeeds, genAccFunding)
 
 	// initialize the app with these accounts

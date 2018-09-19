@@ -61,7 +61,7 @@ func (p Payout) Sum() sdk.Coins {
 
 type UpdateSignature struct {
 	PubKey          crypto.PubKey
-	CryptoSignature crypto.Signature
+	CryptoSignature []byte
 }
 
 // An update that has been submitted to the blockchain, but not yet acted on.
