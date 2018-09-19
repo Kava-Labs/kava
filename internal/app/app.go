@@ -40,10 +40,10 @@ type KavaApp struct {
 	cdc *wire.Codec
 
 	// keys to access the substores
-	keyMain    *sdk.KVStoreKey
-	keyAccount *sdk.KVStoreKey
-	keyStake    *sdk.KVStoreKey
-	keySlashing *sdk.KVStoreKey
+	keyMain          *sdk.KVStoreKey
+	keyAccount       *sdk.KVStoreKey
+	keyStake         *sdk.KVStoreKey
+	keySlashing      *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
 	keyParams        *sdk.KVStoreKey
 	tkeyParams       *sdk.TransientStoreKey
@@ -53,8 +53,8 @@ type KavaApp struct {
 	accountMapper       auth.AccountMapper
 	feeCollectionKeeper auth.FeeCollectionKeeper
 	coinKeeper          bank.Keeper
-	stakeKeeper    stake.Keeper
-	slashingKeeper slashing.Keeper
+	stakeKeeper         stake.Keeper
+	slashingKeeper      slashing.Keeper
 	paramsKeeper        params.Keeper
 	paychanKeeper       paychan.Keeper
 }
@@ -66,21 +66,21 @@ func NewKavaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptio
 	cdc := CreateKavaAppCodec()
 
 	// Create a new base app
-	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc) baseAppOptions...)
+	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 
 	// Create the kava app, extending baseApp
 	var app = &KavaApp{
-		BaseApp:    bApp,
-		cdc:        cdc,
-		keyMain:    sdk.NewKVStoreKey("main"),
-		keyAccount: sdk.NewKVStoreKey("acc"),
-		keyStake:    sdk.NewKVStoreKey("stake"),
-		keySlashing: sdk.NewKVStoreKey("slashing"),
+		BaseApp:          bApp,
+		cdc:              cdc,
+		keyMain:          sdk.NewKVStoreKey("main"),
+		keyAccount:       sdk.NewKVStoreKey("acc"),
+		keyStake:         sdk.NewKVStoreKey("stake"),
+		keySlashing:      sdk.NewKVStoreKey("slashing"),
 		keyFeeCollection: sdk.NewKVStoreKey("fee"),
 		keyParams:        sdk.NewKVStoreKey("params"),
 		tkeyParams:       sdk.NewTransientStoreKey("transient_params"),
-		keyPaychan: sdk.NewKVStoreKey("paychan"),
+		keyPaychan:       sdk.NewKVStoreKey("paychan"),
 	}
 
 	// Define the accountMapper and base account
