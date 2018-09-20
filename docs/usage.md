@@ -13,7 +13,6 @@ List locally stored account addresses and their names. The name is used in other
 
     kvcli send --from <your key name> \
                --to <address> \
-               --amount 100KVA \
-               --chain-id kava-test-<current testnet #>
+               --amount 100KVA
 
 

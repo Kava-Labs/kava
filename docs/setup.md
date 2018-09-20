@@ -54,13 +54,17 @@ Requirements: go installed and set up (version 1.10+).
 
     kvd init --name <your-name> --chain-id kava-test-2
 
-This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`. The default password is 'password'.
+Enter a new password for your validator key. This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`.
 
 > Note: Make sure `GOBIN` is set and added to your path if you want to be able to run installed go programs from any folder.
 
-Copy the testnet genesis file (from https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-2/genesis.json) into `$HOME/.kvd/config/`, replacing the existing one.
+Copy the testnet genesis file into `$HOME/.kvd/config/` and `$HOME/.kvcli/config/`, replacing the existing one:
 
-Add the kava node address, `5c2bc5a95b014e4b2897791565398ee6bfd0a04a@validator.connector.kava.io:26656`, to `seeds` in `$HOME/.kvd/config/config.toml`
+    curl https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-2/genesis.json > tee $HOME/.kvd/config/ $HOME/.kvcli/config/ 
+
+Add the kava node to the list of seed nodes in the config:
+
+    sed -i '' 's/seeds = ""/seeds = "5c2bc5a95b014e4b2897791565398ee6bfd0a04a@validator.connector.kava.io:26656"/g' $HOME/.kvd/config/config.toml
 
 Start your full node
 
@@ -92,7 +96,6 @@ Then, your full running in the background or separate window, run:
             --pubkey <you validator pubkey from above> \
             --address-validator <your address from above> \
             --moniker "<your name>" \
-            --chain-id kava-test-2 \
             --from <your name> \
             --gas 1000000
 
@@ -106,7 +109,6 @@ In order to stop validating, first remove yourself as validator, then you can st
     kvcli stake unbond begin \
         --address-delegator <your address> \
         --address-validator <your address> \
-        --chain-id kava-test-2 \
         --shares-percent 1 \
         --from <your name> \
         --gas 1000000
