@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 )
 
-type TxBody struct {
+type txBody struct {
 	TxBase64 string `json:"txbase64"`
 }
 
@@ -18,7 +18,7 @@ type TxBody struct {
 func DecodeTxRequestHandlerFn(cliCtx context.CLIContext, cdc *wire.Codec) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get the input base64 string
-		var m TxBody
+		var m txBody
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&m)
 		if err != nil {
