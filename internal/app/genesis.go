@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/kava-labs/cosmos-sdk/client"
 	"github.com/spf13/pflag"
@@ -22,6 +23,7 @@ import (
 )
 
 const defaultPassword = "password"
+
 var (
 	// Tokens given to genesis validators and accounts
 	numStartingTokensValidators = int64(1000)
@@ -176,6 +178,8 @@ func KavaAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisState
 	stakeData := stake.DefaultGenesisState()
 	// change denom of staking coin
 	stakeData.Params.BondDenom = "KVA"
+	// drastically shorten unbonding time for test purposes
+	stakeData.Params.UnbondingTime = time.Second * 60 * 5 // 5 minutes
 
 	// get genesis flag account information
 	genaccs := make([]GenesisAccount, len(appGenTxs))
