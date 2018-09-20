@@ -254,7 +254,7 @@ func TestCoinSend(t *testing.T) {
 	coins := acc.GetCoins()
 	mycoins := coins[0]
 
-	require.Equal(t, "steak", mycoins.Denom)
+	require.Equal(t, "KVA", mycoins.Denom)
 	require.Equal(t, initialBalance[0].Amount.SubRaw(1), mycoins.Amount)
 
 	// query receiver
@@ -262,7 +262,7 @@ func TestCoinSend(t *testing.T) {
 	coins = acc.GetCoins()
 	mycoins = coins[0]
 
-	require.Equal(t, "steak", mycoins.Denom)
+	require.Equal(t, "KVA", mycoins.Denom)
 	require.Equal(t, int64(1), mycoins.Amount.Int64())
 }
 
@@ -356,7 +356,7 @@ func TestValidatorQuery(t *testing.T) {
 }
 
 func TestBonding(t *testing.T) {
-	name, password, denom := "test", "1234567890", "steak"
+	name, password, denom := "test", "1234567890", "KVA"
 	addr, seed := CreateAddr(t, "test", password, GetKeyBase(t))
 	cleanup, pks, port := InitializeTestLCD(t, 1, []sdk.AccAddress{addr})
 	defer cleanup()
@@ -400,7 +400,7 @@ func TestBonding(t *testing.T) {
 	// query sender
 	acc = getAccount(t, port, addr)
 	coins = acc.GetCoins()
-	require.Equal(t, int64(40), coins.AmountOf("steak").Int64())
+	require.Equal(t, int64(40), coins.AmountOf("KVA").Int64())
 
 	// query unbonding delegation
 	validatorAddr := sdk.AccAddress(pks[0].Address())
@@ -471,7 +471,7 @@ func doSend(t *testing.T, port, seed, name, password string, addr sdk.AccAddress
 	sequence := acc.GetSequence()
 	chainID := viper.GetString(client.FlagChainID)
 	// send
-	coinbz, err := cdc.MarshalJSON(sdk.NewInt64Coin("steak", 1))
+	coinbz, err := cdc.MarshalJSON(sdk.NewInt64Coin("KVA", 1))
 	if err != nil {
 		panic(err)
 	}
@@ -582,7 +582,7 @@ func doDelegate(t *testing.T, port, seed, name, password string, delegatorAddr, 
 		"complete_unbondings": [],
 		"begin_redelegates": [],
 		"complete_redelegates": []
-	}`, name, password, accnum, sequence, chainID, delegatorAddr, validatorAddr, "steak"))
+	}`, name, password, accnum, sequence, chainID, delegatorAddr, validatorAddr, "KVA"))
 	res, body := Request(t, port, "POST", fmt.Sprintf("/stake/delegators/%s/delegations", delegatorAddr), jsonStr)
 	require.Equal(t, http.StatusOK, res.StatusCode, body)
 

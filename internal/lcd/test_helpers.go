@@ -17,13 +17,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	keys "github.com/cosmos/cosmos-sdk/client/keys"
-	gapp "github.com/cosmos/cosmos-sdk/cmd/gaia/app"
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/tests"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	kapp "github.com/kava-labs/kava/internal/app"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -115,7 +115,7 @@ func CreateAddr(t *testing.T, name, password string, kb crkeys.Keybase) (sdk.Acc
 
 // InitializeTestLCD starts Tendermint and the LCD in process, listening on
 // their respective sockets where nValidators is the total number of validators
-// and initAddrs are the accounts to initialize with some steak tokens. It
+// and initAddrs are the accounts to initialize with some KVA tokens. It
 // returns a cleanup function, a set of validator public keys, and a port.
 func InitializeTestLCD(t *testing.T, nValidators int, initAddrs []sdk.AccAddress) (func(), []crypto.PubKey, string) {
 	config := GetConfig()
@@ -131,8 +131,8 @@ func InitializeTestLCD(t *testing.T, nValidators int, initAddrs []sdk.AccAddress
 	privVal.Reset()
 
 	db := dbm.NewMemDB()
-	app := gapp.NewGaiaApp(logger, db, nil)
-	cdc = gapp.MakeCodec()
+	app := kapp.NewKavaApp(logger, db, nil)
+	cdc = kapp.CreateKavaAppCodec()
 
 	genesisFile := config.GenesisFile()
 	genDoc, err := tmtypes.GenesisDocFromFile(genesisFile)
@@ -161,20 +161,20 @@ func InitializeTestLCD(t *testing.T, nValidators int, initAddrs []sdk.AccAddress
 		pk := gdValidator.PubKey
 		validatorsPKs = append(validatorsPKs, pk)
 
-		appGenTx, _, _, err := gapp.GaiaAppGenTxNF(cdc, pk, sdk.AccAddress(pk.Address()), "test_val1")
+		appGenTx, _, _, err := kapp.KavaAppGenTxNF(cdc, pk, sdk.AccAddress(pk.Address()), "test_val1")
 		require.NoError(t, err)
 
 		appGenTxs = append(appGenTxs, appGenTx)
 	}
 
-	genesisState, err := gapp.GaiaAppGenState(cdc, appGenTxs[:])
+	genesisState, err := kapp.KavaAppGenState(cdc, appGenTxs[:])
 	require.NoError(t, err)
 
 	// add some tokens to init accounts
 	for _, addr := range initAddrs {
 		accAuth := auth.NewBaseAccountWithAddress(addr)
-		accAuth.Coins = sdk.Coins{sdk.NewInt64Coin("steak", 100)}
-		acc := gapp.NewGenesisAccount(&accAuth)
+		accAuth.Coins = sdk.Coins{sdk.NewInt64Coin("KVA", 100)}
+		acc := kapp.NewGenesisAccount(&accAuth)
 		genesisState.Accounts = append(genesisState.Accounts, acc)
 		genesisState.StakeData.Pool.LooseTokens = genesisState.StakeData.Pool.LooseTokens.Add(sdk.NewRat(100))
 	}
