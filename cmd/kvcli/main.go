@@ -22,7 +22,7 @@ import (
 	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cli"
 
 	"github.com/kava-labs/kava/internal/app"
-	//"github.com/kava-labs/kava/internal/lcd"
+	"github.com/kava-labs/kava/internal/lcd"
 )
 
 var (
@@ -59,8 +59,7 @@ func main() {
 
 	advancedCmd.AddCommand(
 		tendermintCmd,
-		//ibcCmd,
-		//lcd.ServeCommand(cdc),
+		lcd.ServeCommand(cdc),
 	)
 	rootCmd.AddCommand(
 		advancedCmd,

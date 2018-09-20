@@ -1,24 +1,21 @@
 package lcd
 
-/*
 import (
-	"net/http"
-	//"encoding/hex"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 )
-*/
 
 type TxBody struct {
 	TxBase64 string `json:"txbase64"`
 }
 
 // Decode a tx from base64 into json
-func DecodeTxRequestHandlerFn(ctx context.CoreContext, cdc *wire.Codec) http.HandlerFunc {
+func DecodeTxRequestHandlerFn(cliCtx context.CLIContext, cdc *wire.Codec) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get the input base64 string
 		var m TxBody
