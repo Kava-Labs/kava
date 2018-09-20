@@ -16,11 +16,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	//govcmd "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	//ibccmd "github.com/cosmos/cosmos-sdk/x/ibc/client/cli"
+
 	slashingcmd "github.com/cosmos/cosmos-sdk/x/slashing/client/cli"
 	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
-	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cmd"
+	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cli"
 
 	"github.com/kava-labs/kava/internal/app"
 	//"github.com/kava-labs/kava/internal/lcd"
@@ -53,17 +52,6 @@ func main() {
 	)
 	tx.AddCommands(tendermintCmd, cdc)
 
-	// Add IBC commands
-	// ibcCmd := &cobra.Command{
-	// 	Use:   "ibc",
-	// 	Short: "Inter-Blockchain Communication subcommands",
-	// }
-	// ibcCmd.AddCommand(
-	// 	client.PostCommands(
-	// 		ibccmd.IBCTransferCmd(cdc),
-	// 		ibccmd.IBCRelayCmd(cdc),
-	// 	)...)
-
 	advancedCmd := &cobra.Command{
 		Use:   "advanced",
 		Short: "Advanced subcommands",
@@ -90,6 +78,10 @@ func main() {
 			stakecmd.GetCmdQueryValidators("stake", cdc),
 			stakecmd.GetCmdQueryDelegation("stake", cdc),
 			stakecmd.GetCmdQueryDelegations("stake", cdc),
+			stakecmd.GetCmdQueryUnbondingDelegation("stake", cdc),
+			stakecmd.GetCmdQueryUnbondingDelegations("stake", cdc),
+			stakecmd.GetCmdQueryRedelegation("stake", cdc),
+			stakecmd.GetCmdQueryRedelegations("stake", cdc),
 			slashingcmd.GetCmdQuerySigningInfo("slashing", cdc),
 		)...)
 	stakeCmd.AddCommand(
@@ -104,27 +96,6 @@ func main() {
 	rootCmd.AddCommand(
 		stakeCmd,
 	)
-
-	// Add gov commands
-	// govCmd := &cobra.Command{
-	// 	Use:   "gov",
-	// 	Short: "Governance and voting subcommands",
-	// }
-	// govCmd.AddCommand(
-	// 	client.GetCommands(
-	// 		govcmd.GetCmdQueryProposal("gov", cdc),
-	// 		govcmd.GetCmdQueryVote("gov", cdc),
-	// 		govcmd.GetCmdQueryVotes("gov", cdc),
-	// 	)...)
-	// govCmd.AddCommand(
-	// 	client.PostCommands(
-	// 		govcmd.GetCmdSubmitProposal(cdc),
-	// 		govcmd.GetCmdDeposit(cdc),
-	// 		govcmd.GetCmdVote(cdc),
-	// 	)...)
-	// rootCmd.AddCommand(
-	// 	govCmd,
-	// )
 
 	// Add auth and bank commands
 	rootCmd.AddCommand(

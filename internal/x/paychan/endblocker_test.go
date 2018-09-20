@@ -1,9 +1,10 @@
 package paychan
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestEndBlocker(t *testing.T) {
@@ -14,7 +15,7 @@ func TestEndBlocker(t *testing.T) {
 	ctx, _, channelKeeper, addrs, _, _, _ := createMockApp(accountSeeds)
 	sender := addrs[0]
 	receiver := addrs[1]
-	coins := sdk.Coins{sdk.NewCoin("KVA", 10)}
+	coins := sdk.Coins{sdk.NewInt64Coin("KVA", 10)}
 
 	// create new channel
 	channelID := ChannelID(0) // should be 0 as first channel
@@ -26,11 +27,10 @@ func TestEndBlocker(t *testing.T) {
 	channelKeeper.setChannel(ctx, channel)
 
 	// create closing update and submittedUpdate
-	payout := Payout{sdk.Coins{sdk.NewCoin("KVA", 3)}, sdk.Coins{sdk.NewCoin("KVA", 7)}}
+	payout := Payout{sdk.Coins{sdk.NewInt64Coin("KVA", 3)}, sdk.Coins{sdk.NewInt64Coin("KVA", 7)}}
 	update := Update{
 		ChannelID: channelID,
 		Payout:    payout,
-		//Sigs:      [1]crypto.Signature{},
 	}
 	sUpdate := SubmittedUpdate{
 		Update:        update,

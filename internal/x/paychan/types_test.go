@@ -28,18 +28,18 @@ func TestSubmittedUpdatesQueue(t *testing.T) {
 
 func TestPayout(t *testing.T) {
 	t.Run("IsNotNegative", func(t *testing.T) {
-		p := Payout{sdk.Coins{sdk.NewCoin("USD", 4), sdk.NewCoin("GBP", 0)}, sdk.Coins{sdk.NewCoin("USD", 129879234), sdk.NewCoin("GBP", 1)}}
+		p := Payout{sdk.Coins{sdk.NewInt64Coin("USD", 4), sdk.NewInt64Coin("GBP", 0)}, sdk.Coins{sdk.NewInt64Coin("USD", 129879234), sdk.NewInt64Coin("GBP", 1)}}
 		assert.True(t, p.IsNotNegative())
 
-		p = Payout{sdk.Coins{sdk.NewCoin("USD", -4), sdk.NewCoin("GBP", 0)}, sdk.Coins{sdk.NewCoin("USD", 129879234), sdk.NewCoin("GBP", 1)}}
+		p = Payout{sdk.Coins{sdk.NewInt64Coin("USD", -4), sdk.NewInt64Coin("GBP", 0)}, sdk.Coins{sdk.NewInt64Coin("USD", 129879234), sdk.NewInt64Coin("GBP", 1)}}
 		assert.False(t, p.IsNotNegative())
 	})
 	t.Run("Sum", func(t *testing.T) {
 		p := Payout{
-			sdk.Coins{sdk.NewCoin("EUR", 1), sdk.NewCoin("USD", -5)},
-			sdk.Coins{sdk.NewCoin("EUR", 1), sdk.NewCoin("USD", 100), sdk.NewCoin("GBP", 1)},
+			sdk.Coins{sdk.NewInt64Coin("EUR", 1), sdk.NewInt64Coin("USD", -5)},
+			sdk.Coins{sdk.NewInt64Coin("EUR", 1), sdk.NewInt64Coin("USD", 100), sdk.NewInt64Coin("GBP", 1)},
 		}
-		expected := sdk.Coins{sdk.NewCoin("EUR", 2), sdk.NewCoin("GBP", 1), sdk.NewCoin("USD", 95)}
+		expected := sdk.Coins{sdk.NewInt64Coin("EUR", 2), sdk.NewInt64Coin("GBP", 1), sdk.NewInt64Coin("USD", 95)}
 		assert.Equal(t, expected, p.Sum())
 	})
 }
