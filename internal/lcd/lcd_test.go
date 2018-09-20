@@ -205,8 +205,8 @@ func TestValidators(t *testing.T) {
 
 	require.NotEqual(t, rpc.ResultValidatorsOutput{}, resultVals)
 
-	require.Contains(t, resultVals.Validators[0].Address.String(), "cosmosvaladdr")
-	require.Contains(t, resultVals.Validators[0].PubKey, "cosmosvalpub")
+	require.Contains(t, resultVals.Validators[0].Address.String(), "kvaladdr")
+	require.Contains(t, resultVals.Validators[0].PubKey, "kvalpub")
 
 	// --
 
@@ -277,7 +277,7 @@ func TestTxs(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, res.StatusCode, body)
 
 	// query empty
-	res, body = Request(t, port, "GET", fmt.Sprintf("/txs?tag=sender_bech32='%s'", "cosmosaccaddr1jawd35d9aq4u76sr3fjalmcqc8hqygs9gtnmv3"), nil)
+	res, body = Request(t, port, "GET", fmt.Sprintf("/txs?tag=sender_bech32='%s'", "kaccaddr1z2my792ekdthxfkwyks0pwl69jucf9wjq3txwj"), nil)
 	require.Equal(t, http.StatusOK, res.StatusCode, body)
 	require.Equal(t, "[]", body)
 

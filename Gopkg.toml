@@ -1,6 +1,7 @@
 [[constraint]]
   name = "github.com/cosmos/cosmos-sdk"
-  version="=0.24.2"
+  branch="master"
+  source="github.com/kava-labs/cosmos-sdk"
 
 
 # Copied from cosmos-sdk, constraints switched to overrides

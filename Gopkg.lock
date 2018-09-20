@@ -48,7 +48,8 @@
   revision = "d4cc87b860166d00d6b5b9e0d3b3d71d6088d4d4"
 
 [[projects]]
-  digest = "1:485c3fd6d387a850672e86b89eabf32d0363890652c1b499898c925a5e8a02ce"
+  branch = "master"
+  digest = "1:7622ce3b0650fb5d6c8769e3229232d8604c4526aff828e6b749f3b1f4188478"
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
     "baseapp",
@@ -91,8 +92,8 @@
     "x/stake/types",
   ]
   pruneopts = "UT"
-  revision = "1c38c70468ec721e3a555ba2f3bf5f9da31f0cc9"
-  version = "v0.24.2"
+  revision = "0d5f3f95664a5ef1565ec3bd67e5b6aaf46d6aeb"
+  source = "github.com/kava-labs/cosmos-sdk"
 
 [[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
