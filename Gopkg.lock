@@ -234,14 +234,6 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
-  branch = "master"
-  digest = "1:2dbfffce77b67ce945b23c3a24396c19f346cd68e9e6a3b84ab2c1f599804110"
-  name = "github.com/howeyc/crc16"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2b2a61e366a66d3efb279e46176e7291001e0354"
-
-[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
@@ -256,14 +248,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "c42d9e0ca023e2198120196f842701bb4c55d7b9"
-
-[[projects]]
-  digest = "1:1846bcae1759ffcd35d50a2a63950df5c5d7cb27f475e7624e2c4f2c8926d4e9"
-  name = "github.com/kava-labs/cosmos-sdk"
-  packages = ["client"]
-  pruneopts = "UT"
-  revision = "187be1a5df81de1fd71da9053102d3a4868ec979"
-  version = "v0.17.2"
 
 [[projects]]
   branch = "master"
@@ -483,20 +467,6 @@
   version = "v0.12.0-rc0"
 
 [[projects]]
-  digest = "1:541edf51e3081be6d1b4799b7ff69531462feddd86be0270d8e7e821476ffaea"
-  name = "github.com/tendermint/go-crypto"
-  packages = [
-    ".",
-    "keys",
-    "keys/bcrypt",
-    "keys/words",
-    "keys/words/wordlist",
-  ]
-  pruneopts = "UT"
-  revision = "915416979bf70efa4bcbf1c6cd5d64c5fff9fc19"
-  version = "v0.6.2"
-
-[[projects]]
   digest = "1:d4a15d404afbf591e8be16fcda7f5ac87948d5c7531f9d909fd84cc730ab16e2"
   name = "github.com/tendermint/iavl"
   packages = ["."]
@@ -570,18 +540,6 @@
   pruneopts = "UT"
   revision = "81df19e68ab1519399fccf0cab81cb75bf9d782e"
   version = "v0.23.1-rc0"
-
-[[projects]]
-  digest = "1:68921ddf468c0db04496dc49cc67948f1727a74520b1f1f06100bce5c65fa08b"
-  name = "github.com/tendermint/tmlibs"
-  packages = [
-    "common",
-    "db",
-    "log",
-  ]
-  pruneopts = "UT"
-  revision = "692f1d86a6e2c0efa698fd1e4541b68c74ffaf38"
-  version = "v0.8.4"
 
 [[projects]]
   digest = "1:4dcb0dd65feecb068ce23a234d1a07c7868a1e39f52a6defcae0bb371d03abf6"
@@ -739,7 +697,6 @@
     "github.com/cosmos/cosmos-sdk/x/bank",
     "github.com/cosmos/cosmos-sdk/x/bank/client/cli",
     "github.com/cosmos/cosmos-sdk/x/bank/client/rest",
-    "github.com/cosmos/cosmos-sdk/x/gov",
     "github.com/cosmos/cosmos-sdk/x/mock",
     "github.com/cosmos/cosmos-sdk/x/params",
     "github.com/cosmos/cosmos-sdk/x/slashing",
@@ -749,7 +706,6 @@
     "github.com/cosmos/cosmos-sdk/x/stake/client/cli",
     "github.com/cosmos/cosmos-sdk/x/stake/client/rest",
     "github.com/gorilla/mux",
-    "github.com/kava-labs/cosmos-sdk/client",
     "github.com/pkg/errors",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
