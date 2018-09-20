@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kava-labs/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/pflag"
 	"github.com/tendermint/tendermint/crypto"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -22,6 +22,7 @@ import (
 )
 
 const defaultPassword = "password"
+
 var (
 	// Tokens given to genesis validators and accounts
 	numStartingTokensValidators = int64(1000)
