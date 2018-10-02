@@ -4,7 +4,7 @@ services:
     image: kava/kava
     command: ["kvd", "start"]
     ports:
-      - 26657:26657
+      - 17127:17127
     volumes:
       - ~/.kvd:/root/.kvd
       - ~/.kvcli:/root/.kvcli

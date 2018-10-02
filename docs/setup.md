@@ -73,7 +73,7 @@ Or, to start in the background and capture output to a log file:
 To see the output of the log:
 
     tail -f kvd.log
-> Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:26657/abci_info).
+> Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:17127/abci_info).
 
 
 ## Become a Validator
