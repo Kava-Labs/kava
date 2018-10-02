@@ -1,0 +1,99 @@
+{
+  "genesis_time": "2018-10-02T22:07:14.081536126Z",
+  "chain_id": "kava-test-3",
+  "consensus_params": {
+    "block_size_params": {
+      "max_bytes": "22020096",
+      "max_txs": "10000",
+      "max_gas": "-1"
+    },
+    "tx_size_params": {
+      "max_bytes": "10240",
+      "max_gas": "-1"
+    },
+    "block_gossip_params": {
+      "block_part_size_bytes": "65536"
+    },
+    "evidence_params": {
+      "max_age": "100000"
+    }
+  },
+  "validators": [
+    {
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "tvYvH9rTsYcu8Yu/D1xa/4hCC+iMu3hPmaQzjXY4ooo="
+      },
+      "power": "1000",
+      "name": ""
+    }
+  ],
+  "app_hash": "",
+  "app_state": {
+    "accounts": [
+      {
+        "address": "kaccaddr1hearejlx77u0uhqc2xnznnnzvyf0yctep4zq3t",
+        "coins": [
+          {
+            "denom": "KVA",
+            "amount": "99000"
+          }
+        ]
+      }
+    ],
+    "stake": {
+      "pool": {
+        "loose_tokens": "100000",
+        "bonded_tokens": "0",
+        "inflation_last_time": "1970-01-01T00:00:00Z",
+        "inflation": "7/100",
+        "date_last_commission_reset": "0",
+        "prev_bonded_shares": "0"
+      },
+      "params": {
+        "inflation_rate_change": "13/100",
+        "inflation_max": "1/5",
+        "inflation_min": "7/100",
+        "goal_bonded": "67/100",
+        "unbonding_time": "300000000000",
+        "max_validators": 100,
+        "bond_denom": "KVA"
+      },
+      "validators": [
+        {
+          "owner": "kaccaddr1hearejlx77u0uhqc2xnznnnzvyf0yctep4zq3t",
+          "pub_key": {
+            "type": "tendermint/PubKeyEd25519",
+            "value": "tvYvH9rTsYcu8Yu/D1xa/4hCC+iMu3hPmaQzjXY4ooo="
+          },
+          "revoked": false,
+          "status": 0,
+          "tokens": "1000",
+          "delegator_shares": "1000",
+          "description": {
+            "moniker": "validator",
+            "identity": "",
+            "website": "",
+            "details": ""
+          },
+          "bond_height": "0",
+          "bond_intra_tx_counter": 0,
+          "proposer_reward_pool": [],
+          "commission": "0",
+          "commission_max": "0",
+          "commission_change_rate": "0",
+          "commission_change_today": "0",
+          "prev_bonded_tokens": "0"
+        }
+      ],
+      "bonds": [
+        {
+          "delegator_addr": "kaccaddr1hearejlx77u0uhqc2xnznnnzvyf0yctep4zq3t",
+          "validator_addr": "kaccaddr1hearejlx77u0uhqc2xnznnnzvyf0yctep4zq3t",
+          "shares": "1000",
+          "height": "0"
+        }
+      ]
+    }
+  }
+}
