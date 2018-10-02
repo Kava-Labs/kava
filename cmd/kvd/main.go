@@ -6,6 +6,8 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -44,6 +46,9 @@ func main() {
 
 	server.AddCommands(ctx, cdc, rootCmd, appInit, appCreator, appExporter)
 
+	// Add custom init command
+	rootCmd.AddCommand(initTestnetCmd())
+
 	// handle envs and add some flags and stuff
 	executor := cli.PrepareBaseCmd(rootCmd, "KV", app.DefaultNodeHome)
 
@@ -61,4 +66,80 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB, traceStore io.Writer) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 	tempApp := app.NewKavaApp(logger, db, traceStore)
 	return tempApp.ExportAppStateAndValidators()
+}
+
+func initTestnetCmd() *cobra.Command {
+	flagChainID := "chain-id"
+	cmd := &cobra.Command{
+		Use:   "init-testnet-helper",
+		Short: "Setup genesis and config to join testnet.",
+		Long:  "Copy the genesis.json and config.toml files from the testnets folder into the default config directories.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			testnetVersion := viper.GetString(flagChainID)
+			genesisFileName := "genesis.json"
+			configFileName := "config.toml"
+			configPath := "config"
+			testnetsPath := os.ExpandEnv("$GOPATH/src/github.com/kava-labs/kava/testnets/")
+
+			// Copy genesis file from testnet folder to config directories
+			// Copied to .kvcli to enable automatic reading of chain-id
+			genesis := filepath.Join(testnetsPath, testnetVersion, genesisFileName)
+			err := copyFile(genesis, filepath.Join(app.DefaultNodeHome, configPath, genesisFileName))
+			if err != nil {
+				return err
+			}
+			err = copyFile(genesis, filepath.Join(app.DefaultCLIHome, configPath, genesisFileName))
+			if err != nil {
+				return err
+			}
+			// Copy config file from testnet folder to config directories
+			// Custom config file specifies seeds and altered ports
+			config := filepath.Join(testnetsPath, testnetVersion, configFileName)
+			err = copyFile(config, filepath.Join(app.DefaultNodeHome, configPath, configFileName))
+			if err != nil {
+				return err
+			}
+			err = copyFile(config, filepath.Join(app.DefaultCLIHome, configPath, configFileName))
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+	cmd.Flags().String(flagChainID, "", "testnet chain-id, cannot be left blank")
+	return cmd
+}
+
+func copyFile(src string, dst string) error {
+	// read in source file
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	// create destination file (and any necessary directories)(overwriting if it exists already)
+	path := filepath.Dir(dst)
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// copy file contents
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	// write to disk
+	err = out.Sync()
+	return err
 }

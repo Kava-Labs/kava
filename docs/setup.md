@@ -52,19 +52,15 @@ Requirements: go installed and set up (version 1.10+).
 
 ## Run a Full Node
 
-    kvd init --name <your-name> --chain-id kava-test-2
+    kvd init --name <your-name>
 
-Enter a new password for your validator key. This will generate config and keys in `$HOME/.kvd` and `$HOME/.kvcli`.
+Enter a new password for your validator key. This will generate generic config and private keys in `$HOME/.kvd` and `$HOME/.kvcli`.
 
 > Note: Make sure `GOBIN` is set and added to your path if you want to be able to run installed go programs from any folder.
 
-Copy the testnet genesis file into `$HOME/.kvd/config/` and `$HOME/.kvcli/config/`, replacing the existing one:
+Setup the correct config for the current testnet
 
-    curl https://raw.githubusercontent.com/Kava-Labs/kava/master/testnets/kava-test-2/genesis.json > tee $HOME/.kvd/config/ $HOME/.kvcli/config/ 
-
-Add the kava node to the list of seed nodes in the config:
-
-    sed -i '' 's/seeds = ""/seeds = "5c2bc5a95b014e4b2897791565398ee6bfd0a04a@validator.connector.kava.io:26656"/g' $HOME/.kvd/config/config.toml
+    kvd init-testnet-helper --chain-id kava-test-3
 
 Start your full node
 
