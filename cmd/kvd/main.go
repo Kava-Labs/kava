@@ -5,9 +5,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -69,12 +72,14 @@ func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB, traceStore io.W
 }
 
 func initTestnetCmd() *cobra.Command {
-	flagChainID := "chain-id"
+	flagChainID := server.FlagChainID
+	flagName := server.FlagName
 	cmd := &cobra.Command{
-		Use:   "init-testnet-helper",
+		Use:   "init-testnet",
 		Short: "Setup genesis and config to join testnet.",
-		Long:  "Copy the genesis.json and config.toml files from the testnets folder into the default config directories.",
+		Long:  "Copy the genesis.json and config.toml files from the testnets folder into the default config directories. Also set the validator moniker.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// This only works with default config locations
 			testnetVersion := viper.GetString(flagChainID)
 			genesisFileName := "genesis.json"
 			configFileName := "config.toml"
@@ -94,19 +99,43 @@ func initTestnetCmd() *cobra.Command {
 			}
 			// Copy config file from testnet folder to config directories
 			// Custom config file specifies seeds and altered ports
+			// Also add back validator moniker to config file
 			config := filepath.Join(testnetsPath, testnetVersion, configFileName)
+			monikerPattern, err := &regexp.Compile("name = \"[^\n]*\"") // anything that's not a new line
+			if err != nil {
+				return err
+			}
+			monikerReplaceString := fmt.Sprintf("name = \"%v\"", viper.GetString(flagName))
+
 			err = copyFile(config, filepath.Join(app.DefaultNodeHome, configPath, configFileName))
 			if err != nil {
 				return err
 			}
+			err = replaceStringInFile(
+				filepath.Join(app.DefaultNodeHome, configPath, configFileName),
+				monikerPattern,
+				monikerReplaceString)
+			if err != nil {
+				return err
+			}
+
 			err = copyFile(config, filepath.Join(app.DefaultCLIHome, configPath, configFileName))
 			if err != nil {
 				return err
 			}
+			err = replaceStringInFile(
+				filepath.Join(app.DefaultCLIHome, configPath, configFileName),
+				monikerPattern,
+				monikerReplaceString)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
-	cmd.Flags().String(flagChainID, "", "testnet chain-id, cannot be left blank")
+	cmd.Flags().String(flagChainID, "", "testnet chain-id, required")
+	cmd.Flags().String(flagName, "", "validator moniker, required")
 	return cmd
 }
 
@@ -142,4 +171,29 @@ func copyFile(src string, dst string) error {
 	// write to disk
 	err = out.Sync()
 	return err
+}
+
+// replaceStringInFile finds strings matching a regexp in a file and replaces them with a new string, before saving file.
+func replaceStringInFile(filePath string, re *regexp.Regexp, replace string) error {
+	// get permissions of file
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	// read in file contents
+	in, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	// replace string
+	newContents := re.ReplaceAll(in, []byte(replace))
+
+	// write file
+	err = ioutil.WriteFile(filePath, newContents, fileInfo.Mode())
+	if err != nil {
+		return err
+	}
+	return nil
 }
