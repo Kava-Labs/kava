@@ -92,7 +92,6 @@ Then, with your full node running in the background or separate window, run:
     kvcli stake create-validator \
             --amount 900KVA \
             --pubkey <you validator pubkey from above> \
-            --address-validator <your address from above> \
             --moniker "<your name>" \
             --from <your name> \
             --gas 1000000
@@ -105,7 +104,6 @@ Running a validator requires that you keep validating blocks. If you stop, your 
 In order to stop validating, first remove yourself as validator, then you can stop your node.
 
     kvcli stake unbond begin \
-        --address-delegator <your address> \
         --address-validator <your address> \
         --shares-percent 1 \
         --from <your name> \

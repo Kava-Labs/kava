@@ -3,6 +3,8 @@
 
 These are some guidelines to upgrade to a new testnet if you where validating on a previous one.
 
+ 1. Stop the current validator.
+
  1. Get the latest code.
  
         cd $GOPATH/src/github.com/kava-labs/kava
