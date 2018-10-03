@@ -49,7 +49,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7622ce3b0650fb5d6c8769e3229232d8604c4526aff828e6b749f3b1f4188478"
+  digest = "1:64eb47e3881f808c83f0a3015f626d21ccc4a4eafbc530a6454e97296ededbef"
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
     "baseapp",
@@ -92,7 +92,7 @@
     "x/stake/types",
   ]
   pruneopts = "UT"
-  revision = "0d5f3f95664a5ef1565ec3bd67e5b6aaf46d6aeb"
+  revision = "4a54b3ddbde412bea07250680a09fa6cbf1c3824"
   source = "github.com/kava-labs/cosmos-sdk"
 
 [[projects]]
@@ -713,6 +713,7 @@
     "github.com/tendermint/tendermint/config",
     "github.com/tendermint/tendermint/crypto",
     "github.com/tendermint/tendermint/crypto/ed25519",
+    "github.com/tendermint/tendermint/libs/bech32",
     "github.com/tendermint/tendermint/libs/cli",
     "github.com/tendermint/tendermint/libs/common",
     "github.com/tendermint/tendermint/libs/db",

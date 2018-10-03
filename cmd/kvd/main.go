@@ -101,11 +101,11 @@ func initTestnetCmd() *cobra.Command {
 			// Custom config file specifies seeds and altered ports
 			// Also add back validator moniker to config file
 			config := filepath.Join(testnetsPath, testnetVersion, configFileName)
-			monikerPattern, err := &regexp.Compile("name = \"[^\n]*\"") // anything that's not a new line
+			monikerPattern, err := regexp.Compile("moniker = \"[^\n]*\"") // anything that's not a new line
 			if err != nil {
 				return err
 			}
-			monikerReplaceString := fmt.Sprintf("name = \"%v\"", viper.GetString(flagName))
+			monikerReplaceString := fmt.Sprintf("moniker = \"%v\"", viper.GetString(flagName))
 
 			err = copyFile(config, filepath.Join(app.DefaultNodeHome, configPath, configFileName))
 			if err != nil {

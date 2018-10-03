@@ -60,7 +60,7 @@ Enter a new password for your validator key. This will generate generic config a
 
 Setup the correct config for the current testnet
 
-    kvd init-testnet-helper --chain-id kava-test-3
+    kvd init-testnet --name <your-name> --chain-id kava-test-3
 
 Start your full node
 

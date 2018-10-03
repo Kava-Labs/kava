@@ -8,7 +8,7 @@
 proxy_app = "tcp://127.0.0.1:17128"
 
 # A custom human readable name for this node
-moniker = "validator"
+moniker = ""
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -87,7 +87,7 @@ laddr = "tcp://0.0.0.0:17126"
 external_address = ""
 
 # Comma separated list of seed nodes to connect to
-seeds = ""
+seeds = "6b1f509f5152ca08606c299c01ae284389671d8d@kava-test-3.node.connector.kava.io:17126"
 
 # Comma separated list of nodes to keep persistent connections to
 persistent_peers = ""
