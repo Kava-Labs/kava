@@ -4,7 +4,7 @@
 #### Who this guide is for
 The code currently consists of a full node daemon (`kvd`) and it's command line interface (`kvcli`).
 
-Full nodes are fairly resource intensive and are designed to be run continuously on servers, primarily by people validating the network. While it is possible to run locally it is not recommended unless for development purposes. In the future light clients will enable secure transactions for clients.
+Full nodes are fairly resource intensive and are designed to be run continuously on servers, primarily by people validating the network. While it is possible to run locally it is not recommended except for development purposes. In the future light clients will enable secure transactions for clients.
 
 A **full node** syncs with the blockchain and processes transactions. A **validator** is a full node that has declared itself to be a "validator" on chain. This obligates it to participate in consensus by proposing and signing blocks and maintaining uptime. By not following the protocol, the validator's stake will be slashed.
 
@@ -14,22 +14,22 @@ Use these instructions to set up a full node, and to optionally declare yourself
 
 Requirements: go installed and set up (version 1.10+).
 
- 0. If installing from a new Ubuntu server (16.04 or 18.04), here's how to setup go:
-        
-        sudo apt update
-        sudo apt upgrade -y
-        sudo apt install git gcc make wget -y
-        wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz
-        sudo tar -xvf go1.10.3.linux-amd64.tar.gz
-        sudo mv go /usr/local
-
-        cat >> ~/.profile <<EOF
-        export GOROOT=/usr/local/go
-        export GOPATH=\$HOME/go
-        export PATH=\$GOPATH/bin:\$GOROOT/bin:\$PATH
-        EOF
-
-        source ~/.profile
+>If installing from a new Ubuntu server (16.04 or 18.04), here's how to setup go.
+>
+>       sudo apt update
+>       sudo apt upgrade -y
+>       sudo apt install git gcc make wget -y
+>       wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz
+>       sudo tar -xvf go1.10.3.linux-amd64.tar.gz
+>       sudo mv go /usr/local
+>
+>       cat >> ~/.profile <<EOF
+>       export GOROOT=/usr/local/go
+>       export GOPATH=\$HOME/go
+>       export PATH=\$GOPATH/bin:\$GOROOT/bin:\$PATH
+>       EOF
+>
+>       source ~/.profile
 
  1. Get the code.
  
@@ -37,7 +37,6 @@ Requirements: go installed and set up (version 1.10+).
         cd $GOPATH/src/github.com/kava-labs
         git clone https://github.com/kava-labs/kava
         cd kava
-        git checkout 8c9406c
     
  2. Install the dependencies.
  
@@ -45,7 +44,7 @@ Requirements: go installed and set up (version 1.10+).
         curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         dep ensure -vendor-only
 
-3. Install the code
+ 3. Install the code.
 
         go install ./cmd/kvd
         go install ./cmd/kvcli
@@ -66,26 +65,29 @@ Start your full node
 
     kvd start
 
-Or, to start in the background and capture output to a log file:
+> Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:17127/abci_info).
+
+### Running in the Background
+It's often more convenient to start `kvd` in the background and capture output to a log file.
 
     kvd start &> kvd.log &
 
-To see the output of the log:
+To see the output of the log.
 
     tail -f kvd.log
-> Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:17127/abci_info).
+
 
 
 ## Become a Validator
-Join the [validator chat](https://riot.im/app/#/room/#kava-validators:matrix.org). Follow setup for a full node above.
+Join the [validator chat](https://riot.im/app/#/room/#kava-validators:matrix.org).
 
-Get you address with `kvcli keys list`.
+Follow the setup for a full node above.
 
-Ask @rhuairahrighairidh in the chat to give you some coins.
+Get your address with `kvcli keys list` and your validator pubkey with `kvd tendermint show_validator`.
 
-Get your validator pubkey with `kvd tendermint show_validator`
+Get some testnet coins from [the faucet](http://kava-test-3.faucet.connector.kava.io).
 
-Then, your full running in the background or separate window, run:
+Then, with your full node running in the background or separate window, run:
 
     kvcli stake create-validator \
             --amount 900KVA \
@@ -95,7 +97,7 @@ Then, your full running in the background or separate window, run:
             --from <your name> \
             --gas 1000000
 
-> Note You'll need to type in the default password "password"
+> Note You'll need to type in your password you set earlier.
 
 Now your full node should be participating in consensus and validating blocks!
 
