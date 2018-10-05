@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -10,9 +11,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/client/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	authctx "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 
 	"github.com/kava-labs/kava/internal/x/paychan"
 )
@@ -31,13 +34,15 @@ func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
-			// TODO is this needed for channelID
-			// ctx.PrintResponse = true
+			// Create a tx and cli "contexts": structs populated with info from common flags.
+			txCtx := authctx.NewTxContextFromCLI().WithCodec(cdc)
+			cliCtx := context.NewCLIContext().
+				WithCodec(cdc).
+				WithLogger(os.Stdout).
+				WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
 
-			// Get sender adress
-			sender, err := ctx.GetFromAddress()
+			// Get sender address
+			sender, err := cliCtx.GetFromAddress()
 			if err != nil {
 				return err
 			}
@@ -67,11 +72,7 @@ func CreateChannelCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// Build and sign the transaction, then broadcast to the blockchain
-			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
-			if err != nil {
-				return err
-			}
-			return nil
+			return utils.SendTx(txCtx, cliCtx, []sdk.Msg{msg})
 		},
 	}
 	cmd.Flags().String(flagTo, "", "Recipient address of the payment channel.")
@@ -92,8 +93,11 @@ func GeneratePaymentCmd(cdc *wire.Codec) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			// Create a cli "context": struct populated with info from common flags.
+			cliCtx := context.NewCLIContext().
+				WithCodec(cdc).
+				WithLogger(os.Stdout).
+				WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
 
 			// Get the paychan id
 			id := paychan.ChannelID(viper.GetInt64(flagId)) // TODO make this default to pulling id from chain
@@ -121,8 +125,8 @@ func GeneratePaymentCmd(cdc *wire.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			name := ctx.FromAddressName
-			passphrase, err := ctx.GetPassphraseFromStdin(name)
+			name := cliCtx.FromAddressName
+			passphrase, err := keys.GetPassphrase(cliCtx.FromAddressName)
 			if err != nil {
 				return err
 			}
@@ -169,8 +173,11 @@ func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper()
+			// Create a cli "context": struct populated with info from common flags.
+			cliCtx := context.NewCLIContext().
+				WithCodec(cdc).
+				WithLogger(os.Stdout).
+				WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
 
 			// read in update
 			bz, err := ioutil.ReadFile(viper.GetString(flagPaymentFile))
@@ -183,7 +190,7 @@ func VerifyPaymentCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 			cdc.UnmarshalJSON(bz, &update)
 
 			// get the channel from the node
-			res, err := ctx.QueryStore(paychan.GetChannelKey(update.ChannelID), paychanStoreName)
+			res, err := cliCtx.QueryStore(paychan.GetChannelKey(update.ChannelID), paychanStoreName)
 			if len(res) == 0 || err != nil {
 				return errors.Errorf("channel with ID '%d' does not exist", update.ChannelID)
 			}
@@ -218,12 +225,15 @@ func SubmitPaymentCmd(cdc *wire.Codec) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
-			// ctx.PrintResponse = true TODO is this needed for channelID
+			// Create a tx and cli "contexts": structs populated with info from common flags.
+			txCtx := authctx.NewTxContextFromCLI().WithCodec(cdc)
+			cliCtx := context.NewCLIContext().
+				WithCodec(cdc).
+				WithLogger(os.Stdout).
+				WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
 
-			// Get sender adress
-			submitter, err := ctx.GetFromAddress()
+			// Get sender address
+			submitter, err := cliCtx.GetFromAddress()
 			if err != nil {
 				return err
 			}
@@ -248,11 +258,7 @@ func SubmitPaymentCmd(cdc *wire.Codec) *cobra.Command {
 			}
 
 			// Build and sign the transaction, then broadcast to the blockchain
-			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
-			if err != nil {
-				return err
-			}
-			return nil
+			return utils.SendTx(txCtx, cliCtx, []sdk.Msg{msg})
 		},
 	}
 	cmd.Flags().String(flagPaymentFile, "payment.json", "File to read the payment from.")
@@ -268,14 +274,17 @@ func GetChannelCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// Create a "client context" stuct populated with info from common flags
-			ctx := context.NewCoreContextFromViper()
+			// Create a cli "context": struct populated with info from common flags.
+			cliCtx := context.NewCLIContext().
+				WithCodec(cdc).
+				WithLogger(os.Stdout).
+				WithAccountDecoder(authcmd.GetAccountDecoder(cdc))
 
 			// Get channel ID
 			id := paychan.ChannelID(viper.GetInt64(flagId))
 
 			// Get the channel from the node
-			res, err := ctx.QueryStore(paychan.GetChannelKey(id), paychanStoreName)
+			res, err := cliCtx.QueryStore(paychan.GetChannelKey(id), paychanStoreName)
 			if len(res) == 0 || err != nil {
 				return errors.Errorf("channel with ID '%d' does not exist", id)
 			}
@@ -291,11 +300,11 @@ func GetChannelCmd(cdc *wire.Codec, paychanStoreName string) *cobra.Command {
 			fmt.Println(string(jsonChannel))
 
 			// Get any submitted updates from the node
-			res, err = ctx.QueryStore(paychan.GetSubmittedUpdateKey(id), paychanStoreName)
+			res, err = cliCtx.QueryStore(paychan.GetSubmittedUpdateKey(id), paychanStoreName)
 			if err != nil {
 				return err
 			}
-			// Print out the submited update if it exsits
+			// Print out the submitted update if it exists
 			if len(res) != 0 {
 				var submittedUpdate paychan.SubmittedUpdate
 				cdc.MustUnmarshalBinary(res, &submittedUpdate)

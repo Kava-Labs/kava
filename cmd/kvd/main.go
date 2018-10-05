@@ -5,7 +5,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"regexp"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -44,6 +49,9 @@ func main() {
 
 	server.AddCommands(ctx, cdc, rootCmd, appInit, appCreator, appExporter)
 
+	// Add custom init command
+	rootCmd.AddCommand(initTestnetCmd())
+
 	// handle envs and add some flags and stuff
 	executor := cli.PrepareBaseCmd(rootCmd, "KV", app.DefaultNodeHome)
 
@@ -61,4 +69,131 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB, traceStore io.Writer) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 	tempApp := app.NewKavaApp(logger, db, traceStore)
 	return tempApp.ExportAppStateAndValidators()
+}
+
+func initTestnetCmd() *cobra.Command {
+	flagChainID := server.FlagChainID
+	flagName := server.FlagName
+	cmd := &cobra.Command{
+		Use:   "init-testnet",
+		Short: "Setup genesis and config to join testnet.",
+		Long:  "Copy the genesis.json and config.toml files from the testnets folder into the default config directories. Also set the validator moniker.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// This only works with default config locations
+			testnetVersion := viper.GetString(flagChainID)
+			genesisFileName := "genesis.json"
+			configFileName := "config.toml"
+			configPath := "config"
+			testnetsPath := os.ExpandEnv("$GOPATH/src/github.com/kava-labs/kava/testnets/")
+
+			// Copy genesis file from testnet folder to config directories
+			// Copied to .kvcli to enable automatic reading of chain-id
+			genesis := filepath.Join(testnetsPath, testnetVersion, genesisFileName)
+			err := copyFile(genesis, filepath.Join(app.DefaultNodeHome, configPath, genesisFileName))
+			if err != nil {
+				return err
+			}
+			err = copyFile(genesis, filepath.Join(app.DefaultCLIHome, configPath, genesisFileName))
+			if err != nil {
+				return err
+			}
+			// Copy config file from testnet folder to config directories
+			// Custom config file specifies seeds and altered ports
+			// Also add back validator moniker to config file
+			config := filepath.Join(testnetsPath, testnetVersion, configFileName)
+			monikerPattern, err := regexp.Compile("moniker = \"[^\n]*\"") // anything that's not a new line
+			if err != nil {
+				return err
+			}
+			monikerReplaceString := fmt.Sprintf("moniker = \"%v\"", viper.GetString(flagName))
+
+			err = copyFile(config, filepath.Join(app.DefaultNodeHome, configPath, configFileName))
+			if err != nil {
+				return err
+			}
+			err = replaceStringInFile(
+				filepath.Join(app.DefaultNodeHome, configPath, configFileName),
+				monikerPattern,
+				monikerReplaceString)
+			if err != nil {
+				return err
+			}
+
+			err = copyFile(config, filepath.Join(app.DefaultCLIHome, configPath, configFileName))
+			if err != nil {
+				return err
+			}
+			err = replaceStringInFile(
+				filepath.Join(app.DefaultCLIHome, configPath, configFileName),
+				monikerPattern,
+				monikerReplaceString)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+	cmd.Flags().String(flagChainID, "", "testnet chain-id, required")
+	cmd.Flags().String(flagName, "", "validator moniker, required")
+	return cmd
+}
+
+func copyFile(src string, dst string) error {
+	// read in source file
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	// create destination file (and any necessary directories)(overwriting if it exists already)
+	path := filepath.Dir(dst)
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// copy file contents
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	// write to disk
+	err = out.Sync()
+	return err
+}
+
+// replaceStringInFile finds strings matching a regexp in a file and replaces them with a new string, before saving file.
+func replaceStringInFile(filePath string, re *regexp.Regexp, replace string) error {
+	// get permissions of file
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	// read in file contents
+	in, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	// replace string
+	newContents := re.ReplaceAll(in, []byte(replace))
+
+	// write file
+	err = ioutil.WriteFile(filePath, newContents, fileInfo.Mode())
+	if err != nil {
+		return err
+	}
+	return nil
 }

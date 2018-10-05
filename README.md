@@ -9,7 +9,7 @@ Providing a base layer currency to settle interoperable payments at high through
 Proudly building on the work of [Cosmos](https://github.com/cosmos/cosmos-sdk) and [Interledger](https://github.com/interledger/rfcs).
 
 # Project Status
-[![Testnet](https://img.shields.io/badge/testnet-live-brightgreen.svg)](http://validator.connector.kava.io:26657/abci_info)
+[![Testnet](https://img.shields.io/badge/testnet-live-brightgreen.svg)](http://kava-test-3.node.connector.kava.io:17127/abci_info)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kava-labs/kava)](https://goreportcard.com/report/github.com/kava-labs/kava)
 [![GitHub](https://img.shields.io/github/license/kava-labs/kava.svg)](https://github.com/Kava-Labs/kava/blob/master/LICENSE.md)
 
@@ -27,5 +27,7 @@ If you're interested in being a validator join the chat and checkout the setup i
 # Find Out More
 
  - [Installation and Setup](docs/setup.md)
+ - [Upgrading to a New Testnet](docs/upgrade.md)
  - [Basic Usage](docs/usage.md)
  - [Payment Channels](docs/paychans.md)
+ 
