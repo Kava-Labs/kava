@@ -65,7 +65,7 @@ Start your full node
 
     kvd start
 
-> Note: It might take a while to fully sync. Check the latest block height [here](http://validator.connector.kava.io:17127/abci_info).
+> Note: It might take a while to fully sync. Check the latest block height [here](http://kava-test-3.node.connector.kava.io:17127/abci_info).
 
 ### Running in the Background
 It's often more convenient to start `kvd` in the background and capture output to a log file.
