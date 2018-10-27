@@ -24,14 +24,17 @@ The correct operation of the network requires overcoming several challenges. The
 
 #### Chain Halting
 Tendermint will halt if enough validators go offline (by malicious or accidental means). Therefore a validator's stake will be slashed if they do not sign blocks.
+
 Validators should maintain a high availability compute setup (ie with redundant failover, located on high availability infrastructure). They should also be resilient to DoS attacks. The recommended pattern is to use a [sentry node architecture](https://forum.cosmos.network/t/sentry-node-architecture-overview/454), where the real validator (and its IP address) is shielded from the open internet.
 
 #### Double Signing
 A validator should never sign more than one block for a given height. This is indicative of byzantine behavior and will be slashed harshly.
+
 Using a key management system is suggested to make sure that failover nodes don't result in accidental signatures. A KMS is being developed for tendermint [here](https://github.com/tendermint/kms).
 
 #### Private Key Storage
 A validator's private key is used to sign blocks and must not be compromised. Signatures from two thirds of validators defines truth in the blockchain. The network must be secure against hostile take over of validators.
+
 The industry recommendation for secure private key storage is to use a hardware security module; a dedicated hardware device for both storing keys and signing data. Dedicated server hardware is also recommended for running a validator, along with controlled physical access. A secure collocation facility is recommended.
 
 #### Further Reading
@@ -39,7 +42,7 @@ For a security analysis, see the work kindly provided to the community by [Bubow
  - [Risk Assessment](https://bubowerks.io/blog/2018/08/03/risk-assessment-of-cosmos-tendermint-validators/)
  - [Risk Treatment](https://bubowerks.io/blog/2018/08/27/risk-treatments-for-cosmos-hub-tendermint-validator-risks/)
 
-Validators can also checkout the [cosmos documentation](https://cosmos.network/docs/validators/overview.html#introduction) and [cosmos forum]() for additional details.
+Validators can also checkout the [cosmos documentation](https://cosmos.network/docs/validators/overview.html#introduction) and [cosmos forum](https://forum.cosmos.network) for additional details.
 
  ## Current Kava Testnet
 
