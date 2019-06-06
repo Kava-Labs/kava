@@ -27,7 +27,8 @@ If you're interested in being a validator join the chat and checkout the setup i
 # Find Out More
 
  - [Installation and Setup](docs/setup.md)
- - [Upgrading to a New Testnet](docs/upgrade.md)
  - [Basic Usage](docs/usage.md)
  - [Payment Channels](docs/paychans.md)
+ - [Running a Validator](docs/validators.md)
+ - [Upgrading to a New Testnet](docs/upgrade.md)
  
