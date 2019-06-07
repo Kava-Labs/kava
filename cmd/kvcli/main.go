@@ -1,139 +1,170 @@
 // Copyright 2016 All in Bits, inc
-// Modifications copyright 2018 Kava Labs
+// Modifications copyright 2019 Kava Labs
 
 package main
 
 import (
-	"github.com/spf13/cobra"
-
-	"github.com/tendermint/tendermint/libs/cli"
+	"fmt"
+	"os"
+	"path"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
-	slashingcmd "github.com/cosmos/cosmos-sdk/x/slashing/client/cli"
-	stakecmd "github.com/cosmos/cosmos-sdk/x/stake/client/cli"
-	paychancmd "github.com/kava-labs/kava/internal/x/paychan/client/cli"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
-	"github.com/kava-labs/kava/internal/app"
-	"github.com/kava-labs/kava/internal/lcd"
-)
+	"github.com/tendermint/go-amino"
+	"github.com/tendermint/tendermint/libs/cli"
 
-var (
-	rootCmd = &cobra.Command{
-		Use:   "kvcli",
-		Short: "Kava Light-Client",
-	}
+	"github.com/kava-labs/_/app"
 )
 
 func main() {
+	// Configure cobra to sort commands
 	cobra.EnableCommandSorting = false
 
-	// get the codec
-	cdc := app.CreateKavaAppCodec()
+	// Instantiate the codec for the command line application
+	cdc := app.MakeCodec()
 
-	// add standard rpc commands
-	rpc.AddCommands(rootCmd)
+	// Read in the configuration file for the sdk
+	config := sdk.GetConfig()
+	app.SetAddressPrefixes(config)
+	config.Seal()
 
-	// Add state commands
-	tendermintCmd := &cobra.Command{
-		Use:   "tendermint",
-		Short: "Tendermint state querying subcommands",
-	}
-	tendermintCmd.AddCommand(
-		rpc.BlockCommand(),
-		rpc.ValidatorCommand(),
-	)
-	tx.AddCommands(tendermintCmd, cdc)
+	// TODO: setup keybase, viper object, etc. to be passed into
+	// the below functions and eliminate global vars, like we do
+	// with the cdc
 
-	advancedCmd := &cobra.Command{
-		Use:   "advanced",
-		Short: "Advanced subcommands",
+	rootCmd := &cobra.Command{
+		Use:   "kvcli",
+		Short: "Command line interface for interacting with kvd",
 	}
 
-	advancedCmd.AddCommand(
-		tendermintCmd,
-		lcd.ServeCommand(cdc),
-	)
+	// Add --chain-id to persistent flags and mark it required
+	rootCmd.PersistentFlags().String(client.FlagChainID, "", "Chain ID of tendermint node")
+	rootCmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
+		return initConfig(rootCmd)
+	}
+
+	// Construct Root Command
 	rootCmd.AddCommand(
-		advancedCmd,
+		rpc.StatusCommand(),
+		client.ConfigCmd(app.DefaultCLIHome),
+		queryCmd(cdc),
+		txCmd(cdc),
 		client.LineBreak,
-	)
-
-	// Add stake commands
-	stakeCmd := &cobra.Command{
-		Use:   "stake",
-		Short: "Stake and validation subcommands",
-	}
-	stakeCmd.AddCommand(
-		client.GetCommands(
-			stakecmd.GetCmdQueryValidator("stake", cdc),
-			stakecmd.GetCmdQueryValidators("stake", cdc),
-			stakecmd.GetCmdQueryDelegation("stake", cdc),
-			stakecmd.GetCmdQueryDelegations("stake", cdc),
-			stakecmd.GetCmdQueryUnbondingDelegation("stake", cdc),
-			stakecmd.GetCmdQueryUnbondingDelegations("stake", cdc),
-			stakecmd.GetCmdQueryRedelegation("stake", cdc),
-			stakecmd.GetCmdQueryRedelegations("stake", cdc),
-			slashingcmd.GetCmdQuerySigningInfo("slashing", cdc),
-		)...)
-	stakeCmd.AddCommand(
-		client.PostCommands(
-			stakecmd.GetCmdCreateValidator(cdc),
-			stakecmd.GetCmdEditValidator(cdc),
-			stakecmd.GetCmdDelegate(cdc),
-			stakecmd.GetCmdUnbond("stake", cdc),
-			stakecmd.GetCmdRedelegate("stake", cdc),
-			slashingcmd.GetCmdUnrevoke(cdc),
-		)...)
-	rootCmd.AddCommand(
-		stakeCmd,
-	)
-
-	// Add auth and bank commands
-	rootCmd.AddCommand(
-		client.GetCommands(
-			authcmd.GetAccountCmd("acc", cdc, authcmd.GetAccountDecoder(cdc)),
-		)...)
-	rootCmd.AddCommand(
-		client.PostCommands( // this just wraps the input cmds with common flags
-			bankcmd.SendTxCmd(cdc),
-		)...)
-
-	// Add paychan commands
-	paychanCmd := &cobra.Command{
-		Use:   "paychan",
-		Short: "Payment channel subcommand",
-	}
-	paychanCmd.AddCommand(
-		client.PostCommands(
-			paychancmd.CreateChannelCmd(cdc),
-			paychancmd.GetChannelCmd(cdc, "paychan"), // pass in storeKey
-			paychancmd.GeneratePaymentCmd(cdc),
-			paychancmd.VerifyPaymentCmd(cdc, "paychan"), // pass in storeKey
-			paychancmd.SubmitPaymentCmd(cdc),
-		)...)
-	rootCmd.AddCommand(
-		paychanCmd,
-	)
-
-	// add proxy, version and key info
-	rootCmd.AddCommand(
+		lcd.ServeCommand(cdc, registerRoutes),
+		client.LineBreak,
 		keys.Commands(),
 		client.LineBreak,
-		version.VersionCmd,
+		version.Cmd,
+		client.NewCompletionCmd(rootCmd, true),
 	)
 
-	// prepare and add flags
-	executor := cli.PrepareMainCmd(rootCmd, "KV", app.DefaultCLIHome)
+	// Add flags and prefix all env exposed with GA
+	executor := cli.PrepareMainCmd(rootCmd, "GA", app.DefaultCLIHome)
+
 	err := executor.Execute()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Failed executing CLI command: %s, exiting...\n", err)
+		os.Exit(1)
 	}
+}
+
+func queryCmd(cdc *amino.Codec) *cobra.Command {
+	queryCmd := &cobra.Command{
+		Use:     "query",
+		Aliases: []string{"q"},
+		Short:   "Querying subcommands",
+	}
+
+	queryCmd.AddCommand(
+		authcmd.GetAccountCmd(cdc),
+		client.LineBreak,
+		rpc.ValidatorCommand(cdc),
+		rpc.BlockCommand(),
+		tx.SearchTxCmd(cdc),
+		tx.QueryTxCmd(cdc),
+		client.LineBreak,
+	)
+
+	// add modules' query commands
+	app.ModuleBasics.AddQueryCommands(queryCmd, cdc)
+
+	return queryCmd
+}
+
+func txCmd(cdc *amino.Codec) *cobra.Command {
+	txCmd := &cobra.Command{
+		Use:   "tx",
+		Short: "Transactions subcommands",
+	}
+
+	txCmd.AddCommand(
+		bankcmd.SendTxCmd(cdc),
+		client.LineBreak,
+		authcmd.GetSignCommand(cdc),
+		authcmd.GetMultiSignCommand(cdc),
+		client.LineBreak,
+		tx.GetBroadcastCommand(cdc),
+		tx.GetEncodeCommand(cdc),
+		client.LineBreak,
+	)
+
+	// add modules' tx commands
+	app.ModuleBasics.AddTxCommands(txCmd, cdc)
+
+	// remove auth and bank commands as they're mounted under the root tx command
+	var cmdsToRemove []*cobra.Command
+
+	for _, cmd := range txCmd.Commands() {
+		if cmd.Use == auth.ModuleName || cmd.Use == bank.ModuleName {
+			cmdsToRemove = append(cmdsToRemove, cmd)
+		}
+	}
+
+	txCmd.RemoveCommand(cmdsToRemove...)
+
+	return txCmd
+}
+
+// registerRoutes registers the routes from the different modules for the LCD.
+// NOTE: details on the routes added for each module are in the module documentation
+// NOTE: If making updates here you also need to update the test helper in client/lcd/test_helper.go
+func registerRoutes(rs *lcd.RestServer) {
+	client.RegisterRoutes(rs.CliCtx, rs.Mux)
+	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
+}
+
+func initConfig(cmd *cobra.Command) error {
+	home, err := cmd.PersistentFlags().GetString(cli.HomeFlag)
+	if err != nil {
+		return err
+	}
+
+	cfgFile := path.Join(home, "config", "config.toml")
+	if _, err := os.Stat(cfgFile); err == nil {
+		viper.SetConfigFile(cfgFile)
+
+		if err := viper.ReadInConfig(); err != nil {
+			return err
+		}
+	}
+	if err := viper.BindPFlag(client.FlagChainID, cmd.PersistentFlags().Lookup(client.FlagChainID)); err != nil {
+		return err
+	}
+	if err := viper.BindPFlag(cli.EncodingFlag, cmd.PersistentFlags().Lookup(cli.EncodingFlag)); err != nil {
+		return err
+	}
+	return viper.BindPFlag(cli.OutputFlag, cmd.PersistentFlags().Lookup(cli.OutputFlag))
 }
