@@ -109,23 +109,23 @@ func makeMsg(name string, pk crypto.PubKey) auth.StdTx {
 	return auth.NewStdTx([]sdk.Msg{msg}, auth.StdFee{}, nil, "")
 }
 
-func TestGaiaGenesisValidation(t *testing.T) {
+func TestGenesisValidation(t *testing.T) {
 	genTxs := []auth.StdTx{makeMsg("test-0", pk1), makeMsg("test-1", pk2)}
 	dupGenTxs := []auth.StdTx{makeMsg("test-0", pk1), makeMsg("test-1", pk1)}
 
 	// require duplicate accounts fails validation
 	genesisState := makeGenesisState(t, dupGenTxs)
-	err := GaiaValidateGenesisState(genesisState)
+	err := ValidateGenesisState(genesisState)
 	require.Error(t, err)
 
 	// require invalid vesting account fails validation (invalid end time)
 	genesisState = makeGenesisState(t, genTxs)
 	genesisState.Accounts[0].OriginalVesting = genesisState.Accounts[0].Coins
-	err = GaiaValidateGenesisState(genesisState)
+	err = ValidateGenesisState(genesisState)
 	require.Error(t, err)
 	genesisState.Accounts[0].StartTime = 1548888000
 	genesisState.Accounts[0].EndTime = 1548775410
-	err = GaiaValidateGenesisState(genesisState)
+	err = ValidateGenesisState(genesisState)
 	require.Error(t, err)
 
 	// require bonded + jailed validator fails validation
@@ -134,7 +134,7 @@ func TestGaiaGenesisValidation(t *testing.T) {
 	val1.Jailed = true
 	val1.Status = sdk.Bonded
 	genesisState.StakingData.Validators = append(genesisState.StakingData.Validators, val1)
-	err = GaiaValidateGenesisState(genesisState)
+	err = ValidateGenesisState(genesisState)
 	require.Error(t, err)
 
 	// require duplicate validator fails validation
@@ -143,7 +143,7 @@ func TestGaiaGenesisValidation(t *testing.T) {
 	val2 := staking.NewValidator(addr1, pk1, staking.NewDescription("test #3", "", "", ""))
 	genesisState.StakingData.Validators = append(genesisState.StakingData.Validators, val1)
 	genesisState.StakingData.Validators = append(genesisState.StakingData.Validators, val2)
-	err = GaiaValidateGenesisState(genesisState)
+	err = ValidateGenesisState(genesisState)
 	require.Error(t, err)
 }
 
@@ -156,7 +156,7 @@ func TestNewDefaultGenesisAccount(t *testing.T) {
 
 func TestGenesisStateSanitize(t *testing.T) {
 	genesisState := makeGenesisState(t, nil)
-	require.Nil(t, GaiaValidateGenesisState(genesisState))
+	require.Nil(t, ValidateGenesisState(genesisState))
 
 	addr1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 	authAcc1 := auth.NewBaseAccountWithAddress(addr1)

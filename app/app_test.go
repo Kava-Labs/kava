@@ -22,7 +22,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-func setGenesis(gapp *App, accs ...*auth.BaseAccount) error {
+func setGenesis(app *App, accs ...*auth.BaseAccount) error {
 	genaccs := make([]GenesisAccount, len(accs))
 	for i, acc := range accs {
 		genaccs[i] = NewGenesisAccount(acc)
@@ -40,26 +40,26 @@ func setGenesis(gapp *App, accs ...*auth.BaseAccount) error {
 		slashing.DefaultGenesisState(),
 	)
 
-	stateBytes, err := codec.MarshalJSONIndent(gapp.cdc, genesisState)
+	stateBytes, err := codec.MarshalJSONIndent(app.cdc, genesisState)
 	if err != nil {
 		return err
 	}
 
 	// Initialize the chain
 	vals := []abci.ValidatorUpdate{}
-	gapp.InitChain(abci.RequestInitChain{Validators: vals, AppStateBytes: stateBytes})
-	gapp.Commit()
+	app.InitChain(abci.RequestInitChain{Validators: vals, AppStateBytes: stateBytes})
+	app.Commit()
 
 	return nil
 }
 
 func TestExport(t *testing.T) {
 	db := db.NewMemDB()
-	gapp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
-	setGenesis(gapp)
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	setGenesis(app)
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newGapp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
-	_, _, err := newGapp.ExportAppStateAndValidators(false, []string{})
+	newApp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	_, _, err := newApp.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }

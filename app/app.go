@@ -285,7 +285,7 @@ func (app *App) initFromGenesisState(ctx sdk.Context, genesisState GenesisState)
 	mint.InitGenesis(ctx, app.mintKeeper, genesisState.MintData)
 
 	// validate genesis state
-	if err := GaiaValidateGenesisState(genesisState); err != nil {
+	if err := ValidateGenesisState(genesisState); err != nil {
 		panic(err) // TODO find a way to do this w/o panics
 	}
 
@@ -308,7 +308,7 @@ func (app *App) initFromGenesisState(ctx sdk.Context, genesisState GenesisState)
 	return validators
 }
 
-// custom logic for gaia initialization
+// custom logic for app initialization
 func (app *App) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
 	// TODO is this now the whole genesis file?

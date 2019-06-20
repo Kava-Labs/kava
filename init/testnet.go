@@ -106,8 +106,8 @@ func initTestnet(config *tmconfig.Config, cdc *codec.Codec) error {
 	nodeIDs := make([]string, numValidators)
 	valPubKeys := make([]crypto.PubKey, numValidators)
 
-	gaiaConfig := srvconfig.DefaultConfig()
-	gaiaConfig.MinGasPrices = viper.GetString(server.FlagMinGasPrices)
+	appConfig := srvconfig.DefaultConfig()
+	appConfig.MinGasPrices = viper.GetString(server.FlagMinGasPrices)
 
 	var (
 		accs     []app.GenesisAccount
@@ -236,8 +236,8 @@ func initTestnet(config *tmconfig.Config, cdc *codec.Codec) error {
 			return err
 		}
 
-		gaiaConfigFilePath := filepath.Join(nodeDir, "config/kvd.toml")
-		srvconfig.WriteConfigFile(gaiaConfigFilePath, gaiaConfig)
+		appConfigFilePath := filepath.Join(nodeDir, "config/kvd.toml")
+		srvconfig.WriteConfigFile(appConfigFilePath, appConfig)
 	}
 
 	if err := initGenFiles(cdc, chainID, accs, genFiles, numValidators); err != nil {

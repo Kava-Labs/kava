@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 )
 
-// export the state of gaia for a genesis file
+// export the state of the app for a genesis file
 func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (
 	appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 

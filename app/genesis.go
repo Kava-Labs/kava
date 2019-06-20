@@ -218,11 +218,11 @@ func NewDefaultGenesisState() GenesisState {
 	}
 }
 
-// GaiaValidateGenesisState ensures that the genesis state obeys the expected invariants
+// ValidateGenesisState ensures that the genesis state obeys the expected invariants
 // TODO: No validators are both bonded and jailed (#2088)
 // TODO: Error if there is a duplicate validator (#1708)
 // TODO: Ensure all state machine parameters are in genesis (#1704)
-func GaiaValidateGenesisState(genesisState GenesisState) error {
+func ValidateGenesisState(genesisState GenesisState) error {
 	if err := validateGenesisStateAccounts(genesisState.Accounts); err != nil {
 		return err
 	}

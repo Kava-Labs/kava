@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
-	gaiaInit "github.com/kava-labs/kava/init"
+	initPkg "github.com/kava-labs/kava/init"
 )
 
 // kvd custom flags
@@ -40,16 +40,16 @@ func main() {
 	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
 		Use:               "kvd",
-		Short:             "Gaia Daemon (server)",
+		Short:             "Kava Daemon (server)",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
-	rootCmd.AddCommand(gaiaInit.InitCmd(ctx, cdc))
-	rootCmd.AddCommand(gaiaInit.CollectGenTxsCmd(ctx, cdc))
-	rootCmd.AddCommand(gaiaInit.TestnetFilesCmd(ctx, cdc))
-	rootCmd.AddCommand(gaiaInit.GenTxCmd(ctx, cdc))
-	rootCmd.AddCommand(gaiaInit.AddGenesisAccountCmd(ctx, cdc))
-	rootCmd.AddCommand(gaiaInit.ValidateGenesisCmd(ctx, cdc))
+	rootCmd.AddCommand(initPkg.InitCmd(ctx, cdc))
+	rootCmd.AddCommand(initPkg.CollectGenTxsCmd(ctx, cdc))
+	rootCmd.AddCommand(initPkg.TestnetFilesCmd(ctx, cdc))
+	rootCmd.AddCommand(initPkg.GenTxCmd(ctx, cdc))
+	rootCmd.AddCommand(initPkg.AddGenesisAccountCmd(ctx, cdc))
+	rootCmd.AddCommand(initPkg.ValidateGenesisCmd(ctx, cdc))
 	rootCmd.AddCommand(client.NewCompletionCmd(rootCmd, true))
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
