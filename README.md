@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./kava-logo.svg" width="220">
+  <img src="./kava-logo.svg" width="300">
 </p>
 <h3 align="center">DeFi for Crypto.</h3>
 
