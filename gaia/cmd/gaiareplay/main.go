@@ -1,6 +1,3 @@
-// Copyright 2016 All in Bits, inc
-// Modifications copyright 2019 Kava Labs
-
 package main
 
 import (
@@ -10,13 +7,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/store"
+
 	cpm "github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	bcm "github.com/tendermint/tendermint/blockchain"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -24,32 +19,49 @@ import (
 	tmsm "github.com/tendermint/tendermint/state"
 	tm "github.com/tendermint/tendermint/types"
 
-	"github.com/kava-labs/_/app"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/cmd/gaia/app"
+	"github.com/cosmos/cosmos-sdk/server"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func replayCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "replay <root-dir>",
-		Short: "Replay transactions",
-		RunE: func(_ *cobra.Command, args []string) error {
-			return replayTxs(args[0])
-		},
-		Args: cobra.ExactArgs(1),
+var (
+	rootDir string
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "gaiareplay",
+	Short: "Replay gaia transactions",
+	Run: func(cmd *cobra.Command, args []string) {
+		run(rootDir)
+	},
+}
+
+func init() {
+	// cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(&rootDir, "root", "r", "root dir")
+}
+
+func main() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 
-func replayTxs(rootDir string) error {
+func run(rootDir string) {
 
 	if false {
 		// Copy the rootDir to a new directory, to preserve the old one.
-		fmt.Fprintln(os.Stderr, "Copying rootdir over")
+		fmt.Println("Copying rootdir over")
 		oldRootDir := rootDir
 		rootDir = oldRootDir + "_replay"
 		if cmn.FileExists(rootDir) {
 			cmn.Exit(fmt.Sprintf("temporary copy dir %v already exists", rootDir))
 		}
-		if err := cpm.Copy(oldRootDir, rootDir); err != nil {
-			return err
+		err := cpm.Copy(oldRootDir, rootDir)
+		if err != nil {
+			panic(err)
 		}
 	}
 
@@ -59,25 +71,25 @@ func replayTxs(rootDir string) error {
 
 	// App DB
 	// appDB := dbm.NewMemDB()
-	fmt.Fprintln(os.Stderr, "Opening app database")
+	fmt.Println("Opening app database")
 	appDB, err := sdk.NewLevelDB("application", dataDir)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	// TM DB
 	// tmDB := dbm.NewMemDB()
-	fmt.Fprintln(os.Stderr, "Opening tendermint state database")
+	fmt.Println("Opening tendermint state database")
 	tmDB, err := sdk.NewLevelDB("state", dataDir)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	// Blockchain DB
-	fmt.Fprintln(os.Stderr, "Opening blockstore database")
+	fmt.Println("Opening blockstore database")
 	bcDB, err := sdk.NewLevelDB("blockstore", dataDir)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	// TraceStore
@@ -89,12 +101,12 @@ func replayTxs(rootDir string) error {
 		0666,
 	)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	// Application
-	fmt.Fprintln(os.Stderr, "Creating application")
-	myapp := app.NewApp(
+	fmt.Println("Creating application")
+	myapp := app.NewGaiaApp(
 		ctx.Logger, appDB, traceStoreWriter, true, uint(1),
 		baseapp.SetPruning(store.PruneEverything), // nothing
 	)
@@ -103,11 +115,11 @@ func replayTxs(rootDir string) error {
 	var genDocPath = filepath.Join(configDir, "genesis.json")
 	genDoc, err := tm.GenesisDocFromFile(genDocPath)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	genState, err := tmsm.MakeGenesisState(genDoc)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	// tmsm.SaveState(tmDB, genState)
 
@@ -115,7 +127,7 @@ func replayTxs(rootDir string) error {
 	proxyApp := proxy.NewAppConns(cc)
 	err = proxyApp.Start()
 	if err != nil {
-		return err
+		panic(err)
 	}
 	defer func() {
 		_ = proxyApp.Stop()
@@ -124,7 +136,7 @@ func replayTxs(rootDir string) error {
 	state := tmsm.LoadState(tmDB)
 	if state.LastBlockHeight == 0 {
 		// Send InitChain msg
-		fmt.Fprintln(os.Stderr, "Sending InitChain msg")
+		fmt.Println("Sending InitChain msg")
 		validators := tm.TM2PB.ValidatorUpdates(genState.Validators)
 		csParams := tm.TM2PB.ConsensusParams(genDoc.ConsensusParams)
 		req := abci.RequestInitChain{
@@ -136,11 +148,11 @@ func replayTxs(rootDir string) error {
 		}
 		res, err := proxyApp.Consensus().InitChainSync(req)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		newValidatorz, err := tm.PB2TM.ValidatorUpdates(res.Validators)
 		if err != nil {
-			return err
+			panic(err)
 		}
 		newValidators := tm.NewValidatorSet(newValidatorz)
 
@@ -151,17 +163,17 @@ func replayTxs(rootDir string) error {
 	}
 
 	// Create executor
-	fmt.Fprintln(os.Stderr, "Creating block executor")
+	fmt.Println("Creating block executor")
 	blockExec := tmsm.NewBlockExecutor(tmDB, ctx.Logger, proxyApp.Consensus(),
 		tmsm.MockMempool{}, tmsm.MockEvidencePool{})
 
 	// Create block store
-	fmt.Fprintln(os.Stderr, "Creating block store")
+	fmt.Println("Creating block store")
 	blockStore := bcm.NewBlockStore(bcDB)
 
 	tz := []time.Duration{0, 0, 0}
 	for i := int(state.LastBlockHeight) + 1; ; i++ {
-		fmt.Fprintln(os.Stderr, "Running block ", i)
+		fmt.Println("Running block ", i)
 		t1 := time.Now()
 
 		// Apply block
@@ -169,25 +181,26 @@ func replayTxs(rootDir string) error {
 		blockmeta := blockStore.LoadBlockMeta(int64(i))
 		if blockmeta == nil {
 			fmt.Printf("Couldn't find block meta %d... done?\n", i)
-			return nil
+			return
 		}
 		block := blockStore.LoadBlock(int64(i))
 		if block == nil {
-			return fmt.Errorf("couldn't find block %d", i)
+			panic(fmt.Sprintf("couldn't find block %d", i))
 		}
 
 		t2 := time.Now()
 
 		state, err = blockExec.ApplyBlock(state, blockmeta.BlockID, block)
 		if err != nil {
-			return err
+			panic(err)
 		}
 
 		t3 := time.Now()
 		tz[0] += t2.Sub(t1)
 		tz[1] += t3.Sub(t2)
 
-		fmt.Fprintf(os.Stderr, "new app hash: %X\n", state.AppHash)
-		fmt.Fprintln(os.Stderr, tz)
+		fmt.Printf("new app hash: %X\n", state.AppHash)
+		fmt.Println(tz)
 	}
+
 }
