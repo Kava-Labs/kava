@@ -20,7 +20,7 @@ import (
 )
 
 // export the state of gaia for a genesis file
-func (app *GaiaApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (
+func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (
 	appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 
 	// as if they could withdraw from the start of the next block
@@ -59,7 +59,7 @@ func (app *GaiaApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteLis
 }
 
 // prepare for fresh start at zero height
-func (app *GaiaApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
+func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
 	applyWhiteList := false
 
 	//Check if there is a whitelist

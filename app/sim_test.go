@@ -61,7 +61,7 @@ func init() {
 }
 
 // helper function for populating input for SimulateFromSeed
-func getSimulateFromSeedInput(tb testing.TB, app *GaiaApp) (
+func getSimulateFromSeedInput(tb testing.TB, app *App) (
 	testing.TB, *baseapp.BaseApp, simulation.AppStateFn, int64,
 	simulation.WeightedOperations, sdk.Invariants, int, int, bool, bool) {
 
@@ -273,7 +273,7 @@ func appStateFn(r *rand.Rand, accs []simulation.Account, genesisTimestamp time.T
 	return appStateRandomizedFn(r, accs, genesisTimestamp)
 }
 
-func testAndRunTxs(app *GaiaApp) []simulation.WeightedOperation {
+func testAndRunTxs(app *App) []simulation.WeightedOperation {
 	return []simulation.WeightedOperation{
 		{5, authsim.SimulateDeductFee(app.accountKeeper, app.feeCollectionKeeper)},
 		{100, banksim.SimulateMsgSend(app.accountKeeper, app.bankKeeper)},
@@ -292,7 +292,7 @@ func testAndRunTxs(app *GaiaApp) []simulation.WeightedOperation {
 	}
 }
 
-func invariants(app *GaiaApp) []sdk.Invariant {
+func invariants(app *App) []sdk.Invariant {
 	return []sdk.Invariant{
 		simulation.PeriodicInvariant(bank.NonnegativeBalanceInvariant(app.accountKeeper), period, 0),
 		simulation.PeriodicInvariant(distr.AllInvariants(app.distrKeeper, app.stakingKeeper), period, 0),
@@ -319,7 +319,7 @@ func BenchmarkFullGaiaSimulation(b *testing.B) {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
-	app := NewGaiaApp(logger, db, nil, true, 0)
+	app := NewApp(logger, db, nil, true, 0)
 
 	// Run randomized simulation
 	// TODO parameterize numbers, save for a later PR
@@ -354,7 +354,7 @@ func TestFullGaiaSimulation(t *testing.T) {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
-	app := NewGaiaApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
+	app := NewApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "GaiaApp", app.Name())
 
 	// Run randomized simulation
@@ -388,7 +388,7 @@ func TestGaiaImportExport(t *testing.T) {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
-	app := NewGaiaApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
+	app := NewApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "GaiaApp", app.Name())
 
 	// Run randomized simulation
@@ -415,7 +415,7 @@ func TestGaiaImportExport(t *testing.T) {
 		newDB.Close()
 		os.RemoveAll(newDir)
 	}()
-	newApp := NewGaiaApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
+	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "GaiaApp", newApp.Name())
 	var genesisState GenesisState
 	err = app.cdc.UnmarshalJSON(appState, &genesisState)
@@ -478,7 +478,7 @@ func TestGaiaSimulationAfterImport(t *testing.T) {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
-	app := NewGaiaApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
+	app := NewApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "GaiaApp", app.Name())
 
 	// Run randomized simulation
@@ -514,7 +514,7 @@ func TestGaiaSimulationAfterImport(t *testing.T) {
 		newDB.Close()
 		os.RemoveAll(newDir)
 	}()
-	newApp := NewGaiaApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
+	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "GaiaApp", newApp.Name())
 	newApp.InitChain(abci.RequestInitChain{
 		AppStateBytes: appState,
@@ -542,7 +542,7 @@ func TestAppStateDeterminism(t *testing.T) {
 		for j := 0; j < numTimesToRunPerSeed; j++ {
 			logger := log.NewNopLogger()
 			db := dbm.NewMemDB()
-			app := NewGaiaApp(logger, db, nil, true, 0)
+			app := NewApp(logger, db, nil, true, 0)
 
 			// Run randomized simulation
 			simulation.SimulateFromSeed(

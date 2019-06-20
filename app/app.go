@@ -38,7 +38,7 @@ var (
 )
 
 // Extended ABCI application
-type GaiaApp struct {
+type App struct {
 	*bam.BaseApp
 	cdc *codec.Codec
 
@@ -71,17 +71,17 @@ type GaiaApp struct {
 	paramsKeeper        params.Keeper
 }
 
-// NewGaiaApp returns a reference to an initialized GaiaApp.
-func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
+// NewApp returns a reference to an initialized App.
+func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	invCheckPeriod uint,
-	baseAppOptions ...func(*bam.BaseApp)) *GaiaApp {
+	baseAppOptions ...func(*bam.BaseApp)) *App {
 
 	cdc := MakeCodec()
 
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 
-	var app = &GaiaApp{
+	var app = &App{
 		BaseApp:          bApp,
 		cdc:              cdc,
 		invCheckPeriod:   invCheckPeriod,
@@ -220,7 +220,7 @@ func MakeCodec() *codec.Codec {
 }
 
 // application updates every end block
-func (app *GaiaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	// mint new tokens for the previous block
 	mint.BeginBlocker(ctx, app.mintKeeper)
 
@@ -241,7 +241,7 @@ func (app *GaiaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) ab
 
 // application updates every end block
 // nolint: unparam
-func (app *GaiaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	tags := gov.EndBlocker(ctx, app.govKeeper)
 	validatorUpdates, endBlockerTags := staking.EndBlocker(ctx, app.stakingKeeper)
 	tags = append(tags, endBlockerTags...)
@@ -257,7 +257,7 @@ func (app *GaiaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.R
 }
 
 // initialize store from a genesis state
-func (app *GaiaApp) initFromGenesisState(ctx sdk.Context, genesisState GenesisState) []abci.ValidatorUpdate {
+func (app *App) initFromGenesisState(ctx sdk.Context, genesisState GenesisState) []abci.ValidatorUpdate {
 	genesisState.Sanitize()
 
 	// load the accounts
@@ -309,7 +309,7 @@ func (app *GaiaApp) initFromGenesisState(ctx sdk.Context, genesisState GenesisSt
 }
 
 // custom logic for gaia initialization
-func (app *GaiaApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *App) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	stateJSON := req.AppStateBytes
 	// TODO is this now the whole genesis file?
 
@@ -346,7 +346,7 @@ func (app *GaiaApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 }
 
 // load a particular height
-func (app *GaiaApp) LoadHeight(height int64) error {
+func (app *App) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keyMain)
 }
 

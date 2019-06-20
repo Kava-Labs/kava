@@ -70,7 +70,7 @@ func TestToAccount(t *testing.T) {
 	require.Equal(t, vacc, acc.(*auth.ContinuousVestingAccount))
 }
 
-func TestGaiaAppGenTx(t *testing.T) {
+func TestAppGenTx(t *testing.T) {
 	cdc := MakeCodec()
 	_ = cdc
 
@@ -79,13 +79,13 @@ func TestGaiaAppGenTx(t *testing.T) {
 	//TODO test the account created has the correct pubkey
 }
 
-func TestGaiaAppGenState(t *testing.T) {
+func TestAppGenState(t *testing.T) {
 	cdc := MakeCodec()
 	_ = cdc
 	var genDoc tmtypes.GenesisDoc
 
 	// test unmarshalling error
-	_, err := GaiaAppGenState(cdc, genDoc, []json.RawMessage{})
+	_, err := AppGenState(cdc, genDoc, []json.RawMessage{})
 	require.Error(t, err)
 
 	appState := makeGenesisState(t, []auth.StdTx{})
@@ -93,7 +93,7 @@ func TestGaiaAppGenState(t *testing.T) {
 	require.NoError(t, err)
 
 	// test validation error
-	_, err = GaiaAppGenState(cdc, genDoc, []json.RawMessage{})
+	_, err = AppGenState(cdc, genDoc, []json.RawMessage{})
 	require.Error(t, err)
 
 	// TODO test must provide at least genesis transaction

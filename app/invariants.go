@@ -9,12 +9,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (app *GaiaApp) assertRuntimeInvariants() {
+func (app *App) assertRuntimeInvariants() {
 	ctx := app.NewContext(false, abci.Header{Height: app.LastBlockHeight() + 1})
 	app.assertRuntimeInvariantsOnContext(ctx)
 }
 
-func (app *GaiaApp) assertRuntimeInvariantsOnContext(ctx sdk.Context) {
+func (app *App) assertRuntimeInvariantsOnContext(ctx sdk.Context) {
 	start := time.Now()
 	invarRoutes := app.crisisKeeper.Routes()
 	for _, ir := range invarRoutes {

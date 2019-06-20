@@ -156,7 +156,7 @@ func (ga *GenesisAccount) ToAccount() auth.Account {
 
 // Create the core parameters for genesis initialization for gaia
 // note that the pubkey input is this machines pubkey
-func GaiaAppGenState(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, appGenTxs []json.RawMessage) (
+func AppGenState(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, appGenTxs []json.RawMessage) (
 	genesisState GenesisState, err error) {
 
 	if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
@@ -292,11 +292,11 @@ func validateGenesisStateAccounts(accs []GenesisAccount) error {
 	return nil
 }
 
-// GaiaAppGenState but with JSON
-func GaiaAppGenStateJSON(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, appGenTxs []json.RawMessage) (
+// AppGenState but with JSON
+func AppGenStateJSON(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, appGenTxs []json.RawMessage) (
 	appState json.RawMessage, err error) {
 	// create the final app state
-	genesisState, err := GaiaAppGenState(cdc, genDoc, appGenTxs)
+	genesisState, err := AppGenState(cdc, genDoc, appGenTxs)
 	if err != nil {
 		return nil, err
 	}
