@@ -9,11 +9,11 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/kava-labs/kava/app"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/kava-labs/kava/app"
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
@@ -55,7 +55,7 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command 
 
 			genFile := config.GenesisFile()
 			if !common.FileExists(genFile) {
-				return fmt.Errorf("%s does not exist, run `gaiad init` first", genFile)
+				return fmt.Errorf("%s does not exist, run `kvd init` first", genFile)
 			}
 
 			genDoc, err := LoadGenesisDoc(cdc, genFile)

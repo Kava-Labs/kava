@@ -12,13 +12,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/kava-labs/kava/app"
 	"github.com/cosmos/cosmos-sdk/codec"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/client/txbuilder"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/kava-labs/kava/app"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -47,14 +47,14 @@ func TestnetFilesCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "testnet",
-		Short: "Initialize files for a Gaiad testnet",
+		Short: "Initialize files for a testnet",
 		Long: `testnet will create "v" number of directories and populate each with
 necessary files (private validator, genesis, config, etc.).
 
 Note, strict routability for addresses is turned off in the config file.
 
 Example:
-	gaiad testnet --v 4 --output-dir ./output --starting-ip-address 192.168.10.2
+	kvd testnet --v 4 --output-dir ./output --starting-ip-address 192.168.10.2
 	`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			config := ctx.Config
@@ -71,10 +71,10 @@ Example:
 	cmd.Flags().String(flagNodeDirPrefix, "node",
 		"Prefix the directory name for each node with (node results in node0, node1, ...)",
 	)
-	cmd.Flags().String(flagNodeDaemonHome, "gaiad",
+	cmd.Flags().String(flagNodeDaemonHome, "kvd",
 		"Home directory of the node's daemon configuration",
 	)
-	cmd.Flags().String(flagNodeCliHome, "gaiacli",
+	cmd.Flags().String(flagNodeCliHome, "kvcli",
 		"Home directory of the node's cli configuration",
 	)
 	cmd.Flags().String(flagStartingIPAddress, "192.168.0.1",
@@ -236,7 +236,7 @@ func initTestnet(config *tmconfig.Config, cdc *codec.Codec) error {
 			return err
 		}
 
-		gaiaConfigFilePath := filepath.Join(nodeDir, "config/gaiad.toml")
+		gaiaConfigFilePath := filepath.Join(nodeDir, "config/kvd.toml")
 		srvconfig.WriteConfigFile(gaiaConfigFilePath, gaiaConfig)
 	}
 

@@ -15,14 +15,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/kava-labs/kava/app"
-	gaiaInit "github.com/kava-labs/kava/init"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/app"
+	gaiaInit "github.com/kava-labs/kava/init"
 )
 
-// gaiad custom flags
+// kvd custom flags
 const flagInvCheckPeriod = "inv-check-period"
 
 var invCheckPeriod uint
@@ -39,7 +39,7 @@ func main() {
 	ctx := server.NewDefaultContext()
 	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
-		Use:               "gaiad",
+		Use:               "kvd",
 		Short:             "Gaia Daemon (server)",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}

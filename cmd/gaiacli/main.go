@@ -79,8 +79,8 @@ func main() {
 	}
 
 	rootCmd := &cobra.Command{
-		Use:   "gaiacli",
-		Short: "Command line interface for interacting with gaiad",
+		Use:   "kvcli",
+		Short: "Command line interface for interacting with kvd",
 	}
 
 	// Add --chain-id to persistent flags and mark it required

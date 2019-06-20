@@ -53,7 +53,7 @@ func setGenesis(gapp *App, accs ...*auth.BaseAccount) error {
 	return nil
 }
 
-func TestGaiadExport(t *testing.T) {
+func TestExport(t *testing.T) {
 	db := db.NewMemDB()
 	gapp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
 	setGenesis(gapp)

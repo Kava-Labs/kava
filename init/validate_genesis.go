@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kava-labs/kava/app"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/types"
 )
@@ -44,7 +44,7 @@ func ValidateGenesisCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("Error validating genesis file %s: %s", genesis, err.Error())
 			}
 
-			fmt.Printf("File at %s is a valid genesis file for gaiad\n", genesis)
+			fmt.Printf("File at %s is a valid genesis file for kvd\n", genesis)
 			return nil
 		},
 	}
