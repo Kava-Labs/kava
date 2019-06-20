@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	appName = "GaiaApp"
+	appName = "kava"
 	// DefaultKeyPass contains the default key password for genesis transactions
 	DefaultKeyPass = "12345678"
 )
