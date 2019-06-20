@@ -1,4 +1,4 @@
-module github.com/Kava-Labs/kava
+module github.com/kava-labs/kava
 
 go 1.12
 

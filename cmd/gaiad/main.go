@@ -15,8 +15,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/cmd/gaia/app"
-	gaiaInit "github.com/cosmos/cosmos-sdk/cmd/gaia/init"
+	"github.com/kava-labs/kava/app"
+	gaiaInit "github.com/kava-labs/kava/init"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
