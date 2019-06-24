@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2019-06-21T20:35:03.278225912Z",
+  "genesis_time": "2019-06-24T20:07:37.463050775Z",
   "chain_id": "kava-testnet-1",
   "consensus_params": {
     "block": {
@@ -44,10 +44,26 @@
           },
           {
             "denom": "kva",
-            "amount": "1000000"
+            "amount": "200000"
           },
           {
             "denom": "xrp",
+            "amount": "10000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1rh9upcx8k6dce2yg7g5x3jujm0r523598l3k43",
+        "coins": [
+          {
+            "denom": "kva",
             "amount": "1000000"
           }
         ],
@@ -75,7 +91,7 @@
     },
     "staking": {
       "pool": {
-        "not_bonded_tokens": "0",
+        "not_bonded_tokens": "2200000",
         "bonded_tokens": "0"
       },
       "params": {
@@ -164,6 +180,97 @@
       "signing_infos": {},
       "missed_blocks": {}
     },
-    "gentxs": null
+    "gentxs": [
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "kava-validator",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1m3x9yfrpme5uc92helku4hlr7zml93wp4h5cun",
+                "validator_address": "kvaloper1m3x9yfrpme5uc92helku4hlr7zml93wp0y3agc",
+                "pubkey": "kvalconspub1zcjduepq2qjahhk6yry9y70jmnl7r2mu6gkrct9yvja3u0kc4n4wgn2mgqqsa8vwj9",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AklC/R6+aDp9Gd+SV9ZdUgjYAI/ZJrUHMMUOIbk4c/9c"
+              },
+              "signature": "zaLYgSxB6IXvClVdPSbmcpkFsdxq+7OS7vKgFq4IfSJOTolqLMpeg6ZNhIDmTmLrGp+zWrMOJCR81Ib/FjN2Xg=="
+            }
+          ],
+          "memo": "781dddfbb7190a8347b93e4e5fed98a05f0e1b72@172.31.92.80:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "no-name-staking",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1rh9upcx8k6dce2yg7g5x3jujm0r523598l3k43",
+                "validator_address": "kvaloper1rh9upcx8k6dce2yg7g5x3jujm0r52359av5np6",
+                "pubkey": "kvalconspub1zcjduepqm842ynhvf4fvqntlusfrlhmpapv6palcdg8e0c5exd4uy0j2tncs8wsxuj",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AowoN2tJj5cdFsiA29gvNw3peIl92NXLVIUxCOhbuyja"
+              },
+              "signature": "gsBcNlODZXhnkpKX1s+/zQvromqSMXCZWq0/OvFwosVcScNQAU2d+3+nT3guBRmrRHdkaLNLqQJM9np57PqLYw=="
+            }
+          ],
+          "memo": "94d4851b7c29e905ba462a726325b7a401d8e0b8@172.31.21.185:26656"
+        }
+      }
+    ]
   }
 }
