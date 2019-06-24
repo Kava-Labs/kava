@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2019-06-24T21:08:51.421043529Z",
+  "genesis_time": "2019-06-24T21:21:11.942207817Z",
   "chain_id": "kava-testnet-1",
   "consensus_params": {
     "block": {
@@ -202,7 +202,7 @@
                 "min_self_delegation": "1",
                 "delegator_address": "k1m3x9yfrpme5uc92helku4hlr7zml93wp4h5cun",
                 "validator_address": "kvaloper1m3x9yfrpme5uc92helku4hlr7zml93wp0y3agc",
-                "pubkey": "kvalconspub1zcjduepq92clyjwk79v8yempq37p5dazdq5qrft6q5ge5hq5mhr96gn3d85s0ztp8n",
+                "pubkey": "kvalconspub1zcjduepq64s2v82mc8h2u43xduf9sxweuywymw073qwjnxq0e97jwk7rxk3q8q7wc8",
                 "value": {
                   "denom": "kva",
                   "amount": "1000000"
@@ -220,10 +220,10 @@
                 "type": "tendermint/PubKeySecp256k1",
                 "value": "AklC/R6+aDp9Gd+SV9ZdUgjYAI/ZJrUHMMUOIbk4c/9c"
               },
-              "signature": "LaoG2E88aKoZxKVWtevCsRh+xmZ3gsqL4i2aD8HICHEh+0FJhIARvB5+BLgXe4KtCXbJq0dQLR2QDnObBrv9Cw=="
+              "signature": "imhHwBXJIGIJi+QFiNFeNXdrUoA4XNw50Qvu9TlUXbREwVGlBnbQ4yidjnfY8S/uvrA8m9C2hu71Zi7JoPq1aQ=="
             }
           ],
-          "memo": "928a4ed89ee829a61dd93e4212b73ce8b0e266d7@3.214.251.95:26656"
+          "memo": "17d6dcd7a1ecd69ea4d267916d2e8c09e1e871cb@3.214.251.95:26656"
         }
       },
       {
