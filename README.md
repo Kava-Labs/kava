@@ -43,8 +43,8 @@ kvcli keys add <your_wallet_name>
 
 #### Create a Genesis Transaction
 ```
-kvd add-genesis-account $(kvcli keys show <your_wallet_name> -a) 1000000kava
-kvd gentx --name <your_wallet_name> --amount 1000000kava
+kvd add-genesis-account $(kvcli keys show <your_wallet_name> -a) 1000000kva
+kvd gentx --name <your_wallet_name> --amount 1000000kva
 ```
 
 A genesis transaction should be written to `$HOME/.kvd/config/gentx/gentx-<gen_tx_hash>.json`
