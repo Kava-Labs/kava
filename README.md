@@ -50,7 +50,7 @@ kvd gentx --name <your_wallet_name> --amount 1000000kva --ip <your-public-ip>
 A genesis transaction should be written to `$HOME/.kvd/config/gentx/gentx-<gen_tx_hash>.json`
 
 #### Submit Genesis Transaction
-To be included in the genesis file for testnet one, post your genesis transaction as a PR on this repo [here](https://github.com/Kava-Labs/kava/pulls)
+To be included in the genesis file for testnet one, fork this repo and copy your genesis transaction to the `testnet-1/gentx` directory. Submit your fork including your genesis transaction as a PR on this repo [here](https://github.com/Kava-Labs/kava/pulls)
 
 ## License
 
