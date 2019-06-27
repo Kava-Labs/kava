@@ -15,9 +15,9 @@
 
 <div align="center">
 
-[Telegram](https://t.me/kavalabs) |
-[Medium](https://medium.com/kava-labs) |
-[Validator Chat](https://riot.im/app/#/room/#kava-validators:matrix.org)
+### [Telegram](https://t.me/kavalabs) | [Medium](https://medium.com/kava-labs) | [Validator Chat](https://riot.im/app/#/room/#kava-validators:matrix.org)
+
+### Participate in the Kava testnet and [snag a founder badge](./docs/REWARDS.md)!
 
 </div>
 
@@ -34,6 +34,7 @@ go install ./cmd/kvd ./cmd/kvcli
 ```
 
 #### Create a Wallet
+
 ```
 kvd init --chain-id=kava-testnet-1 <your-moniker>
 kvcli keys add <your_wallet_name>
@@ -42,6 +43,7 @@ kvcli keys add <your_wallet_name>
 **Be sure to back up your mnemonic!**
 
 #### Create a Genesis Transaction
+
 ```
 kvd add-genesis-account $(kvcli keys show <your_wallet_name> -a) 1000000kva
 kvd gentx --name <your_wallet_name> --amount 1000000kva --ip <your-public-ip>
@@ -50,6 +52,7 @@ kvd gentx --name <your_wallet_name> --amount 1000000kva --ip <your-public-ip>
 A genesis transaction should be written to `$HOME/.kvd/config/gentx/gentx-<gen_tx_hash>.json`
 
 #### Submit Genesis Transaction
+
 To be included in the genesis file for testnet one, fork this repo and copy your genesis transaction to the `testnet-1/gentx` directory. Submit your fork including your genesis transaction as a PR on this repo [here](https://github.com/Kava-Labs/kava/pulls)
 
 ## License
