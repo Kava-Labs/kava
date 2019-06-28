@@ -32,7 +32,7 @@ git clone https://github.com/Kava-Labs/kava.git
 cd kava
 # Ensure GO Modules are enabled
 export GO111MODULE=on
-go install ./cmd/kvd ./cmd/kvcli
+go install -tags "ledger" ./cmd/kvd ./cmd/kvcli
 ```
 
 #### Create a Wallet
