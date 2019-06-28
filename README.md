@@ -30,7 +30,9 @@ This guide assumes you have worked with `cosmos-sdk` blockchains previously. If 
 ```
 git clone https://github.com/Kava-Labs/kava.git
 cd kava
-go install ./cmd/kvd ./cmd/kvcli
+# Ensure GO Modules are enabled
+export GO111MODULE=on
+go install -tags "ledger" ./cmd/kvd ./cmd/kvcli
 ```
 
 #### Create a Wallet
