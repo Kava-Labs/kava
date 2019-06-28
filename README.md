@@ -30,6 +30,8 @@ This guide assumes you have worked with `cosmos-sdk` blockchains previously. If 
 ```
 git clone https://github.com/Kava-Labs/kava.git
 cd kava
+# Ensure GO Modules are enabled
+export GO111MODULE=on
 go install ./cmd/kvd ./cmd/kvcli
 ```
 
