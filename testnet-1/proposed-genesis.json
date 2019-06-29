@@ -196,22 +196,6 @@
         "end_time": "0"
       },
       {
-        "address": "k1n4tl0g2jf37jtlkxhd3sg470upqxgmdsvtutn0",
-        "coins": [
-          {
-            "denom": "kva",
-            "amount": "1000000"
-          }
-        ],
-        "sequence_number": "0",
-        "account_number": "0",
-        "original_vesting": null,
-        "delegated_free": null,
-        "delegated_vesting": null,
-        "start_time": "0",
-        "end_time": "0"
-      },
-      {
         "address": "k10tpyfe03nufsax5g038n287yzn9ldyqc9pknv7",
         "coins": [
           {
@@ -1139,7 +1123,7 @@
     },
     "staking": {
       "pool": {
-        "not_bonded_tokens": "71400000",
+        "not_bonded_tokens": "70400000",
         "bonded_tokens": "0"
       },
       "params": {
@@ -3252,51 +3236,6 @@
             }
           ],
           "memo": "905c0acd23f6578ad0817e6a0f93030580396540@0.0.0.0:26656"
-        }
-      },
-      {
-        "type": "auth/StdTx",
-        "value": {
-          "msg": [
-            {
-              "type": "cosmos-sdk/MsgCreateValidator",
-              "value": {
-                "description": {
-                  "moniker": "WeStaking",
-                  "identity": "DA9C5AD3E308E426",
-                  "website": "https://westaking.io",
-                  "details": "Delegate your kva to us for the staking rewards. We will do our best as secure and stable validator."
-                },
-                "commission": {
-                  "rate": "1.000000000000000000",
-                  "max_rate": "1.000000000000000000",
-                  "max_change_rate": "1.000000000000000000"
-                },
-                "min_self_delegation": "1",
-                "delegator_address": "k1n4tl0g2jf37jtlkxhd3sg470upqxgmdsvtutn0",
-                "validator_address": "kvaloper1n4tl0g2jf37jtlkxhd3sg470upqxgmdskcew8y",
-                "pubkey": "kvalconspub1zcjduepqrmtaqyjaaea64k2rys3mtxd2mfhc5zeppzfe7ly7k38tjda4x5fqytkwj8",
-                "value": {
-                  "denom": "kva",
-                  "amount": "1000000"
-                }
-              }
-            }
-          ],
-          "fee": {
-            "amount": null,
-            "gas": "200000"
-          },
-          "signatures": [
-            {
-              "pub_key": {
-                "type": "tendermint/PubKeySecp256k1",
-                "value": "A8Ip/WIGO8lNhZ5IZqEOEFQgEr+pMve8pPmiZ/J9FBte"
-              },
-              "signature": "6JEvYrT598k/46wTB37cFWasa8mFtNl1/Y/W3Fq8J9xXhzWGrete0VpV6+oJ2dQiTEdPDtaiCsAGPEFRS3wewg=="
-            }
-          ],
-          "memo": "a200500173b0bdd69f920e9ccdef7d14f6432929@121.78.247.246:46656"
         }
       },
       {
