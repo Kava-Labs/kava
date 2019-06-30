@@ -196,6 +196,22 @@
         "end_time": "0"
       },
       {
+        "address": "k1g5w2qklnru6avx2huq9danghseleumuxv75hjz",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
         "address": "k10tpyfe03nufsax5g038n287yzn9ldyqc9pknv7",
         "coins": [
           {
@@ -1123,7 +1139,7 @@
     },
     "staking": {
       "pool": {
-        "not_bonded_tokens": "70400000",
+        "not_bonded_tokens": "71400000",
         "bonded_tokens": "0"
       },
       "params": {
@@ -3191,6 +3207,51 @@
             }
           ],
           "memo": "905c0acd23f6578ad0817e6a0f93030580396540@0.0.0.0:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "WeStaking",
+                  "identity": "DA9C5AD3E308E426",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "1.000000000000000000",
+                  "max_rate": "1.000000000000000000",
+                  "max_change_rate": "1.000000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1g5w2qklnru6avx2huq9danghseleumuxv75hjz",
+                "validator_address": "kvaloper1g5w2qklnru6avx2huq9danghseleumuxkd3jxf",
+                "pubkey": "kvalconspub1zcjduepquaek5xn2zdp5khm2xa2enr3jq0a8wlrjg48hxh9gf3367r9rss2qtch3uv",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A96xqh1MajVjLL6ywy21sS6wY6bUcye1odhLN/8i+7Dy"
+              },
+              "signature": "i0rzuGTkzkg54XN5yN2JEvMn5iKxexEecktL9diji0wFNyEbeS7EXkAdQbkM7O2FTCHOQfV+fRbjcaKeZkbMOQ=="
+            }
+          ],
+          "memo": "3ce1fba652291b148c986297092d434f433cf29f@121.78.247.246:26656"
         }
       },
       {
