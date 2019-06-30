@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2019-06-21T20:35:03.278225912Z",
+  "genesis_time": "2019-06-30T18:00:00Z",
   "chain_id": "kava-testnet-1",
   "consensus_params": {
     "block": {
@@ -20,6 +20,1078 @@
   "app_state": {
     "accounts": [
       {
+        "address": "k1lsxy9kx9r3xavke4n4wcv4sny4t99xnt7rvzrd",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1deqh2w9pr456sufkejedlank02860ytjuyw7je",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k17235063ljt09namgg59gd7ra9drs36placxvrr",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k17k2h28j080rwckm6mwj5uz7rffmhd4hpxfq2qq",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1z39l577asm8cf3gwremlljysd3qc6wxadnmx09",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1792pmguhhd6y3h2nu3dvph0z4tkehyn3sh4fpc",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k18xrms328dl03uasfmpasst8g55z5eyz6edls5e",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k12uruj3crh4prsmw7p0emuyja89rvf4qfrdp5w9",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1kv0fwmvlqu3kcxv8kz9jau5ut72h48txde5h2a",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1nl54jkz957elm8mg6cjft6p9n35u9ljsyhndqz",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1wxuk0km4nyhdq7rxv5e290g6rj497pdt3tme4w",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1g5w2qklnru6avx2huq9danghseleumuxv75hjz",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k10tpyfe03nufsax5g038n287yzn9ldyqc9pknv7",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k168g9nn9vnamhsnjkm7uqqee9f3v07flgr5d5g7",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1655ew2kxsrjm4hm223rgsx8t6utlzfvvu9w7n4",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k16nla2s39fmtw2z878vg33tckx98mntfdrm74cn",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k19skwzu3dazetk2u952lnuv98qpmavsjaukr500",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1srmz282g7748yj0rvywcejhc9ae3ujfx3rcerh",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1a6ksrrm00nj5vkseyjw2gtrsasrwtf669hwf9c",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k17z7sazdqmgyzln6736nxnxa9jthj7gdxen3vwv",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1857g2vyh9wun06l8phc0rd7fs97za59jw34t4n",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1tc5wrswyu4x7vgc6afpaj48fq4dw6adhlkj34a",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1yn8hwjx3jlwyhgwvzvtdkqq4pkgtzqp4q56twu",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k188acnwvruemc5zs6r0uf67t4tqdl4de0vzl0mh",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1uhdunqq3y3vv4dpg8xt2h7w72pf92nunrc00jj",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k145f6hemvz7r7lmarz0cu05gzu673ycuxa3nzp7",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1p7qlu59yhy83dve3u9qk2v0llpmtw6862jsz5t",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1n9r3pjrvmjpll8zf6zxugezngg9m43r8qemdt7",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1uj4gkfn5fmwhn528a9j38mn2vtm2aeyru54cxd",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k12gfdw3xssram3z5m2c5skf0v9vc5r99ddwfh8g",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1rke9vt4hrhdgyz5hwrv3dg33v7a2fkj3hthgx0",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1hruf6kwlr4tvtg9hfm3sf47tjq7j0v06uzdcs2",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1fszrlf47864y03vqjw7gpuvufnhkzw50e9ddud",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1g4jssrg0f2407engt44wx4rdzknx7jkrzz466a",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1hlh83x0pdvcvujeyu6372wfjdf8p28xf03qwc2",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1m9y0c7j7wxyu3nqtmeevyfzzpga8jhdyd54n0a",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1ywg6j4kz8tuk2tcrdc67u9lkefsum5vk3pp20u",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1ut0s7vuuskyaj2qg823ns82d25l20vm4r8hzmt",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1zqdp5vpszwpdn4hsrflwgkk82jgkywm075xg04",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv64ajvm",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1n474p78yywrsunus6l47x8pzvsff5fjrvy3ayh",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1swx9062u2sa46xkc6xg447lucwhuc5r3j5uylc",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k19eaplq3rd62nt3f9d30lwg49vuwv2uhl34xgqz",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k17j7x9p46wpnct78vxlyvn3juwach8m6rewm735",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1gf3yy4psn4hp6lcdglg0k648y97prs4wl6qkg3",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1mrdydcnzrd6le8qvjrpu7960cyjnlusy9ka4pe",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k138mhsxsgg6sza856phes988yua8el8jmn8m2zk",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1pqfn8syj2mnnf4guzm9hqz0chy9m5uwa8cpj53",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1eh9adtd7lehdq2xamv00kuu4dx7enr0a0sam78",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k14m0st7r3p2gjzdn9tsqk7qpgxa5xtmc0h2lx59",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1cmwjvwpuxftdxr7865eex7rt4vhfzmvw2z5gle",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1rgcgqmnkeffks7enrv6hk5u4wg3nzfkmd9ztpk",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1a2emu85jnntg5an0u2fx3cd9qslj2q7tpy820d",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1fxjuhtuxadvxrwhzu762gf5fnv6tx2dc6j026c",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1y6w5len8tm6a4xfy6m4kk8ng4fd3u28gyrtlff",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1ktx6hfy704ylapk9zl205e04gjv98sukfk739k",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k159l0v6x8jutsfr554strzx09dgathsksft7g00",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1wru5ztzhxgdr8cg3whcsej00yrdfcd6twxsf75",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1aj9r9ll8m72xr5pmxr9fmum88k864tqguln0g8",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k16yv59tj3f882uha73kt0y37vyuzgsdz064k074",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1mu78xhlr705mzgwqykcafp4xy3kgatvw0ewhxe",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1hfj6n07rt7qh7gsh75eerhh5mwccdfqau7ld32",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k15qcwv36lh28xl3s3az98kn22ncenskgpwyck0l",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1upgv649l97sw0fg62j0jcpevwkxqtr78kzt9mu",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1ur4d7x8d5rwcle9aqwzchq739v2nstkur88h9r",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k1tnkxm7c9ewngje2ufqafjt99dzdsnu9qljlfgr",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
+        "address": "k13ue4h02q4fwfaq5rxt5ylfxrte6hhhue0evxxw",
+        "coins": [
+          {
+            "denom": "kva",
+            "amount": "1000000"
+          }
+        ],
+        "sequence_number": "0",
+        "account_number": "0",
+        "original_vesting": null,
+        "delegated_free": null,
+        "delegated_vesting": null,
+        "start_time": "0",
+        "end_time": "0"
+      },
+      {
         "address": "k1m3x9yfrpme5uc92helku4hlr7zml93wp4h5cun",
         "coins": [
           {
@@ -39,16 +1111,8 @@
         "address": "k1s85ez2kjw37mfna2w2859zymxvrwzxprknw39n",
         "coins": [
           {
-            "denom": "btc",
-            "amount": "1000"
-          },
-          {
             "denom": "kva",
-            "amount": "1000000"
-          },
-          {
-            "denom": "xrp",
-            "amount": "1000000"
+            "amount": "3400000"
           }
         ],
         "sequence_number": "0",
@@ -75,7 +1139,7 @@
     },
     "staking": {
       "pool": {
-        "not_bonded_tokens": "0",
+        "not_bonded_tokens": "71400000",
         "bonded_tokens": "0"
       },
       "params": {
@@ -132,7 +1196,7 @@
         "min_deposit": [
           {
             "denom": "kva",
-            "amount": "10000000"
+            "amount": "10000"
           }
         ],
         "max_deposit_period": "172800000000000"
@@ -164,6 +1228,3067 @@
       "signing_infos": {},
       "missed_blocks": {}
     },
-    "gentxs": null
+    "gentxs": [
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "01node",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1nl54jkz957elm8mg6cjft6p9n35u9ljsyhndqz",
+                "validator_address": "kvaloper1nl54jkz957elm8mg6cjft6p9n35u9ljs7ykg5f",
+                "pubkey": "kvalconspub1zcjduepqwf05tj86hm83n55lha6zgeyf9jyyz053cwq957nhhv933v9z9sgqrcfutl",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A5/nT7msfOItmJtpptjaLVxq1Xbd7ej2C1Li8eNqTToW"
+              },
+              "signature": "Z43PLNWYMKx8genKvkTz7GRroHHRP5nRtzwSjpkScmkiCP119P5/p2iVCtkA74CPeibs/1OmGWBeZ+D3T5VsJw=="
+            }
+          ],
+          "memo": "b1bcd6969f03940032f7f9c315ff3bbc1ee8cd20@185.181.103.135:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "chorusone",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1y6w5len8tm6a4xfy6m4kk8ng4fd3u28gyrtlff",
+                "validator_address": "kvaloper1y6w5len8tm6a4xfy6m4kk8ng4fd3u28g7sw6az",
+                "pubkey": "kvalconspub1zcjduepqr5dwcpd0ulmwur6sgwrgtm3l6ygeslgrzlcrau8fnsesy7lscchqmyn6ql",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A7X2FS9h1P0wGwY/RnatHPNWLoWJjWPJdbJX2D8vHMew"
+              },
+              "signature": "rD3nSnDTHvBX91l+vELUHOXv+agk5osxbDpfa7mJ9DAMjORcurSMh4hbHcBJFt/OtiEqKtT1sfyJbWM5DTrCJA=="
+            }
+          ],
+          "memo": "e795d314c02c9d1ad24759cc1a647a8364ab74e7@52.53.244.224:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "Forbole",
+                  "identity": "4A5D9C100A76D9A8",
+                  "website": "https://www.forbole.com",
+                  "details": "We are a named winner in Game of Stakes and HackAtom3 by Cosmos proving us as a validator with high uptime and never jailed."
+                },
+                "commission": {
+                  "rate": "1.000000000000000000",
+                  "max_rate": "1.000000000000000000",
+                  "max_change_rate": "1.000000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k10tpyfe03nufsax5g038n287yzn9ldyqc9pknv7",
+                "validator_address": "kvaloper10tpyfe03nufsax5g038n287yzn9ldyqcljnkc4",
+                "pubkey": "kvalconspub1zcjduepqleprwnx98am8vhxpr82gr5g4u994vv0mmt9hztgc4l7qtlklrdzsg23gvv",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A01EMwBEMW9Xg2Ly25OQ3fO3LYkGpaGG4i/EoUUPU3vJ"
+              },
+              "signature": "r9zEGVY8FA9XxLsGMxbQ0MPZsUhA+3e+uH3o1YyED3VoxPv41vgVcYgONQFaSjiG8/7/b4tfTvRQeAS3ctE8UQ=="
+            }
+          ],
+          "memo": "16f536806ac0f2558e80e4e331635e03f03d42c7@34.80.184.114:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "joesatri",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1mu78xhlr705mzgwqykcafp4xy3kgatvw0ewhxe",
+                "validator_address": "kvaloper1mu78xhlr705mzgwqykcafp4xy3kgatvw42tjjj",
+                "pubkey": "kvalconspub1zcjduepqwr79s94g0zu9jnrpsywvr34kfy9kuy87q6l544sjaa95vmvlfm0sfs9xrx",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Au3SdR0yQOerikoDi6Fygg7hUUayrfr4vqiDpKhdPnPx"
+              },
+              "signature": "GhyV9sUj3MbeWa9gmE+zTYfNFiA6j/nmefkXnbvjPQwLZj7ljCKfPsVSoQYL9hlzi9ka37qfAX8uHm0pxcJPUw=="
+            }
+          ],
+          "memo": "06d7a447f90f699317ad98ddd588bacc339d328f@116.202.100.157:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "BasBlock",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1deqh2w9pr456sufkejedlank02860ytjuyw7je",
+                "validator_address": "kvaloper1deqh2w9pr456sufkejedlank02860ytjxhtmxj",
+                "pubkey": "kvalconspub1zcjduepqc7rqglkxhjxkv7j2errpkherjts35m0akt5fkwh6dkfx67ew67vqrjvel3",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AqAWqLHwTpRbjKGY5WWlq49p00khFkgFaOsUIwCm2xG5"
+              },
+              "signature": "bDKJBNVogX2RnNnWR/c/l2EWZ3BvDYVNtDlO4rD3BiM1bxJQOl28ebNRfnSDblKszkP7RODydZis4CzRrWRP/w=="
+            }
+          ],
+          "memo": "08e160c293dfdcd77d9eeb41864f93ed58d7ccd3@116.203.94.34:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "jjuncong",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1fszrlf47864y03vqjw7gpuvufnhkzw50e9ddud",
+                "validator_address": "kvaloper1fszrlf47864y03vqjw7gpuvufnhkzw50rkgggx",
+                "pubkey": "kvalconspub1zcjduepq3xwkqtu7tm0sslr98pjm9azk6wmpsjjaaeqxagfnnryrkf8chzxqenwtt4",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A6ANlbcPLR0ntXq1f3H0FG2bGvGbdsjY7C13gVvi/Tfk"
+              },
+              "signature": "YKjuX1xOKZY8P+YjW/xVTg1UwH9eM7PCje2TBbgQFThLntkKYfmaP4bIAKvF91NA8unhv5AR701A3doW1e0uEw=="
+            }
+          ],
+          "memo": "0904a1e6d35516ea0718816ad7a4f110be12fb8f@68.183.224.42:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "Cosmostation",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1ywg6j4kz8tuk2tcrdc67u9lkefsum5vk3pp20u",
+                "validator_address": "kvaloper1ywg6j4kz8tuk2tcrdc67u9lkefsum5vktjy0mh",
+                "pubkey": "kvalconspub1zcjduepqvwmwzwf0wqxkvsd9l9f2qe9juunlqy5yshj5sk5pqx7d6gf5f77s7yhyh8",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AlCBQgAAICmsYnwJL1spNtQQrYiea4cuNBrjx9SvKkZv"
+              },
+              "signature": "7go/JzfQQQQq/iqx+idG+SMZAsxiJpyvA+Oe3y8J8497lmn9bLJQBjjKmeAOooqnMhyTKBnSV3Bc0o5nJtYyoA=="
+            }
+          ],
+          "memo": "0a47e347aacee74d4818090a0a94acf30cd8044e@13.124.101.116:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "UbikCapital",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1a6ksrrm00nj5vkseyjw2gtrsasrwtf669hwf9c",
+                "validator_address": "kvaloper1a6ksrrm00nj5vkseyjw2gtrsasrwtf66lytv3n",
+                "pubkey": "kvalconspub1zcjduepq3jfxysry56y6jrlf44q2s2smqe5rhy378qmza6950chaed0tp9sqh4qfl4",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A9VDwuOSvl1QjPcwClGxqzuvIZJfrFXxwOM4SfVtjKmS"
+              },
+              "signature": "6S1ozXR5uGH/rhm567iMKZk90dKaWAsmtWcovfkb60MUB8NcMvlGDzbDpyffZOssUmIkL+drQ9YrhDrmZTlbQw=="
+            }
+          ],
+          "memo": "0edb5f9e90ce18ab90e8c17b32c73be8faf0b430@167.86.115.5:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "sikka",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1ur4d7x8d5rwcle9aqwzchq739v2nstkur88h9r",
+                "validator_address": "kvaloper1ur4d7x8d5rwcle9aqwzchq739v2nstkue5zj3g",
+                "pubkey": "kvalconspub1zcjduepqp8gn8eu9wr5du5n8pw058uajx6ucqetx3js4c4ghqza8jfpxmdvs07z44j",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A2XRB7LCORnxh7V090myzt/TcwDMwo8IYCSp5CqR48fZ"
+              },
+              "signature": "mkMOvGH+LdwDgNussDBjh1Gf5WUPExYCSmozI+rAGRwwuB56hQ52RivUVaqEyR4c4foDVKCPFX4D1YiU+sKmVg=="
+            }
+          ],
+          "memo": "11d39a8f394162916610a72ea4b1329128d253d3@1.1.1.1:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "easy 2 stake",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k19skwzu3dazetk2u952lnuv98qpmavsjaukr500",
+                "validator_address": "kvaloper19skwzu3dazetk2u952lnuv98qpmavsjax9x3my",
+                "pubkey": "kvalconspub1zcjduepqw359fmx5j7tfft9mtpcwrqvna80gzsjtef9tvgqfm7jgfasr6j3s2r43a5",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Avb9P+DWrI/2to3a12R0/m16iulbov2Wq1iGVK5+xSLn"
+              },
+              "signature": "dGFwC4aWruHycLoZ4OgVUsk18lSBR+BPlrT3Shm0FeQDO9wZNALvezEjrn9o7uehxYgobsvA85P+ea0NjRaoLg=="
+            }
+          ],
+          "memo": "12b36526756af358fbe80498fb71b841971d9b34@207.180.217.33:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "mymoniker",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k12uruj3crh4prsmw7p0emuyja89rvf4qfrdp5w9",
+                "validator_address": "kvaloper12uruj3crh4prsmw7p0emuyja89rvf4qfe7y36w",
+                "pubkey": "kvalconspub1zcjduepqnd24vhkcxpsc65j59e0jdhwuwnseuyf3jflyjf26ehsa6me4u8ss07wee3",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AtNGjyo2qmswQSj2bry5nqu8nNoJApv0Aj7WcH6W77+T"
+              },
+              "signature": "PLftf/sTdO1rItoAeymZp/ElhfJuttvLI9PvoTBqffc2EhFU7ByF8dmEZ92QdI0NAriw8OE0zazYXgFLcP6Nwg=="
+            }
+          ],
+          "memo": "159a3e51a1269fc6987819a3a63bba5cadbb62d2@54.178.229.207:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "AlienStake",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1pqfn8syj2mnnf4guzm9hqz0chy9m5uwa8cpj53",
+                "validator_address": "kvaloper1pqfn8syj2mnnf4guzm9hqz0chy9m5uwaatyhq6",
+                "pubkey": "kvalconspub1zcjduepqt6ds85ax8yrj3q5g8kc9c4sqps27898adgya04gds2u69ws7rl7q6ctp6u",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A7aaJk546p4JqxtnbX/bkE/x9Z5nTlKRUusfai7GWgbM"
+              },
+              "signature": "VvfBezWqUGF8ccKc26NzHox8ewfvRwlOaflSDWCGWIpVEBVZ1hvCFlR7FC37sLumTwkskgqTACh3f7jGar4I7A=="
+            }
+          ],
+          "memo": "180d74f6477a9402b1c20193981d8906eb09b3e2@172.26.9.177:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "indigosky",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1hruf6kwlr4tvtg9hfm3sf47tjq7j0v06uzdcs2",
+                "validator_address": "kvaloper1hruf6kwlr4tvtg9hfm3sf47tjq7j0v06x3gayp",
+                "pubkey": "kvalconspub1zcjduepqxa8z6c453n3c8tkqf2pwmp02gczsndhsas9qxq3me7pjtnx2xljsu9dr3k",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AvotLNTBpLpXaS7/sp+KHY1mhQMKcLfhn/cpvIUTdFVy"
+              },
+              "signature": "IQgc4/Q1TIGW0J6QWShK9n5FTqWVktt1E6aiYzzfBTENb1CB6nlfem6naXtKaL9uFY5ZxMhCLDfYKVUpROzFVA=="
+            }
+          ],
+          "memo": "1b3c8a26dcad9f25e5ed3dce0ec2b6008955a7db@165.22.146.119:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "lunamint",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k145f6hemvz7r7lmarz0cu05gzu673ycuxa3nzp7",
+                "validator_address": "kvaloper145f6hemvz7r7lmarz0cu05gzu673ycux8zk844",
+                "pubkey": "kvalconspub1zcjduepquq25qfgk0pge929w97qhkj07ktfnkm8kg8zqags723g3xlajfh8qndckjq",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AuPAs6mN3Y4yHo3B/rOkb3zMIutCaToBAswtRb5tyxXw"
+              },
+              "signature": "gBcfx5oba+TuN1hOpUbq9QJdXkVRY+gNGZoyvfZvG5RcI0smwrveSE5ByqvnxvdQyftsDQvmfDyqiiY/QjdJRQ=="
+            }
+          ],
+          "memo": "273bc1610c63f6ba553ebf8873f0c795ff3e7b18@34.66.94.218:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "DokiaCapital-ION",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1z39l577asm8cf3gwremlljysd3qc6wxadnmx09",
+                "validator_address": "kvaloper1z39l577asm8cf3gwremlljysd3qc6wxahq7rmw",
+                "pubkey": "kvalconspub1zcjduepq8qmtjjwtwapx7pn3zttjfj8sv5njzstqj8ax54t6d2ylsmk28wnqdayytv",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Ai+AJhs+0Fkd0DJGhKETW9W8ipQ22rc8V3ce46hUGEaK"
+              },
+              "signature": "c6mJ37PeYZjgzLRT5dLSEFSXs132W8OOPLy2W5FsSZEbz6TQoDe7A7Tw8xZrJkiQzCkWbVlnx6b/BT2RLIbjMw=="
+            }
+          ],
+          "memo": "323e556dfb83147939d412527fc6286660438532@40.113.98.105:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "junscapital",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k17z7sazdqmgyzln6736nxnxa9jthj7gdxen3vwv",
+                "validator_address": "kvaloper17z7sazdqmgyzln6736nxnxa9jthj7gdxrq5f68",
+                "pubkey": "kvalconspub1zcjduepqqq7te5ak4465ygq56sdtrau3qwzehc5axr989m4fkemdtwzsrkfskaek98",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "An/4HBFt+YeIUt+uGcUqb+ZDTIRhqhEFSNJjTA9/lRXX"
+              },
+              "signature": "epY/QsQL2KfQnYt3U0FVckt+prvo9qT2PmZXLZnTEjRqGmdwOVYy+dshu9lMXLb4k7s+hwoobMKdlDvPA/gApQ=="
+            }
+          ],
+          "memo": "3256ac8b0c021a751e986740e96b4ebc409c2345@3.15.141.81:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "NovaSecurity",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1tnkxm7c9ewngje2ufqafjt99dzdsnu9qljlfgr",
+                "validator_address": "kvaloper1tnkxm7c9ewngje2ufqafjt99dzdsnu9q9p6vug",
+                "pubkey": "kvalconspub1zcjduepqdzx4l0tcgx4qudzru8kgffvjhf4m863cmgqjyn85z3nu88z5u50qxwtj7w",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A1vy3kvbpxFnTR9Aq9A42xpxxBgH/ot247V+rBSXlrVk"
+              },
+              "signature": "mtRvQsyQ0j4tMREPmQcq1S70uK/BGeGcO+oRpiiz0Wl8Q6NdBovqdRIbA0DdFiEY3on4P0JaKKUdESPSfocCVg=="
+            }
+          ],
+          "memo": "32db3fa755728c6f772cd901cc251539458f6922@159.203.64.155:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "vaka",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k17j7x9p46wpnct78vxlyvn3juwach8m6rewm735",
+                "validator_address": "kvaloper17j7x9p46wpnct78vxlyvn3juwach8m6rra7m9l",
+                "pubkey": "kvalconspub1zcjduepqjml8576nfwqe66k839nrfkmcdgxs5arhlaszzm2p0mp28dxmvqzqg8tjpw",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AwxkmA73daHnxfzR8wxpwaRxdApabcSYzZ9AV/JZjr3h"
+              },
+              "signature": "XZNMUWe1HB9S6XoWI76R2rTxXbNr/xn4sort9dlcQLxsHuU6NDQS9E6XvhbmWq2JwzJNCpnm1LtBhjmMk4f5OA=="
+            }
+          ],
+          "memo": "383603b8e4b459c079663123fe7c7f767f4c8408@15.188.6.52:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "yxiuz",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k188acnwvruemc5zs6r0uf67t4tqdl4de0vzl0mh",
+                "validator_address": "kvaloper188acnwvruemc5zs6r0uf67t4tqdl4de0k3620u",
+                "pubkey": "kvalconspub1zcjduepqk6e0armul2pwpwq7tfufppr7yy3kq4rm6hn9lv6z994mfcxndmcs9hejfp",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AloAiX2cm3BhGP+euaTo1Bj7MN9VpcPbPE3bl7tFLqQK"
+              },
+              "signature": "nzDYkLsn3pEk/R58lXJlErUnpXcBsaRxmPeDN2l7piVYItBI6tpaKjIeKyhGpnLYEcRBEzhpc0QDHsW4d9eF3g=="
+            }
+          ],
+          "memo": "38c63f9ec3cd02eeffb119bd47d8c85880351abc@18.216.37.131:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "figment",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k17235063ljt09namgg59gd7ra9drs36placxvrr",
+                "validator_address": "kvaloper17235063ljt09namgg59gd7ra9drs36pl8trfhg",
+                "pubkey": "kvalconspub1zcjduepqh9kx569ev3gceawq3v2yw2jd9axhmzacqsvltlcwq7j4kvc33edqsect4s",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AvCexUSZUc+huNu/OH7sP/A8rkH4whl/ScpLGk9CPE3C"
+              },
+              "signature": "TkQzwTg/EFL94VffppHW9qpIjEaEvmJfgWDH8yf6MWkItNqXThH7fhxrLD7tOcAoHZIYqPokk1t2XcvpyonvBw=="
+            }
+          ],
+          "memo": "3c30ea1e2cdc422594e3b3d7ea73439730db8657@54.39.186.65:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "solstice",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k16yv59tj3f882uha73kt0y37vyuzgsdz064k074",
+                "validator_address": "kvaloper16yv59tj3f882uha73kt0y37vyuzgsdz0qxn227",
+                "pubkey": "kvalconspub1zcjduepq58jvgc03f08y4nrskx6eemc4e2frrlw5lgh6yqh4yrcpeay6zczq5a7fk0",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A1CNB4UU5wt2MYsGrhwEp9C+ygMnrUseMi/akKUKxeN2"
+              },
+              "signature": "0XNkHE+1diY+j6UZAhDZadhOEN1kiN/yCVtBiTimWClOWeREOAw+wT/8D3g3XHnkZSBzWvt06yn2kdnQUcPWJA=="
+            }
+          ],
+          "memo": "3f501fac15d432b21add4448de736bdb67033f0a@136.33.83.56:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "zbx001",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1ut0s7vuuskyaj2qg823ns82d25l20vm4r8hzmt",
+                "validator_address": "kvaloper1ut0s7vuuskyaj2qg823ns82d25l20vm4e5j80q",
+                "pubkey": "kvalconspub1zcjduepqjhh4fjeakm07ck2qxcr534kexkhvzuaftv20udffzkamj2cva8wqyun2k4",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A7YctR9ER7fu1sJ/w/vNnGdwiXs6NtccCE5Gj2Q4XJvK"
+              },
+              "signature": "+svqtVG6N/crKCUrDYSxlkQ9QMaLAmEeNv1Si7tHL0g0Pni3L5DH7YkOdehhRR8bNFcFn/3Fpczcab74AZBKlw=="
+            }
+          ],
+          "memo": "454c5b4bb63b1bd20822164a9d7674c7c58b797a@18.224.212.136:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "sudobash",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1a2emu85jnntg5an0u2fx3cd9qslj2q7tpy820d",
+                "validator_address": "kvaloper1a2emu85jnntg5an0u2fx3cd9qslj2q7tmhz0mx",
+                "pubkey": "kvalconspub1zcjduepqqql6phxc5z8vjd09h2saew2lecyyjdnsld64mlthjcm7mx7ehqkq3qyxzr",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Ajr255/QOg1GM/9ZC5Owk/Y4XLqEiVo6cmg/7gL1pBNY"
+              },
+              "signature": "OACuxn/dZZEhu15rdBMM8agDk4XIQHoxA8XQP9iXNwp2TexDwcTZQXPZiwP0+WP0npTDvy0tNr9xghZRB2jAwQ=="
+            }
+          ],
+          "memo": "4a68c546a77e6ac9c5efc250ea35fad60b608a5f@34.85.66.131:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "richhazel",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1hlh83x0pdvcvujeyu6372wfjdf8p28xf03qwc2",
+                "validator_address": "kvaloper1hlh83x0pdvcvujeyu6372wfjdf8p28xf4z9tvp",
+                "pubkey": "kvalconspub1zcjduepqs95xh28s65ggss3u07ptjmzx6f4jg3shxyaaakhux5lxq4zsxr0saplust",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Ahwwg4bk68czaYcpmI/bUQyqrtAjBPk5IVoTGACtQzK2"
+              },
+              "signature": "EhKeBavyid9mSddeTxxh6jZCWis7TGDwIZ/HDIlJwSwPSUw8V+4hG7ZVpKWcItGUuegO0h00OuEokwernbvqRw=="
+            }
+          ],
+          "memo": "500e94405fb297e8eda91ffea593f3062f5865b4@165.22.158.0:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "vo",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1eh9adtd7lehdq2xamv00kuu4dx7enr0a0sam78",
+                "validator_address": "kvaloper1eh9adtd7lehdq2xamv00kuu4dx7enr0a4rc72v",
+                "pubkey": "kvalconspub1zcjduepqszzjkdluc6xpdrlsjnd8ds6p7ah9hv4x8kxa8gkxyymqpv300y8sztm5gl",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AkhoOnAQxrHcxRyWjfo0Z5MymmfxTnrfNGdsCnfkaHGs"
+              },
+              "signature": "LUK67qix4u7l49mi6YqRSrVlB83/6N5wexBTdJIzBlYjHIShISTHNFmXBn/0oWNh6n2HHlIVcBYLTicWSAbrzQ=="
+            }
+          ],
+          "memo": "57aed3f2342ced500b68f917a38beefd15d1957e@45.77.130.247:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "cxj666",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k13ue4h02q4fwfaq5rxt5ylfxrte6hhhue0evxxw",
+                "validator_address": "kvaloper13ue4h02q4fwfaq5rxt5ylfxrte6hhhue42frj9",
+                "pubkey": "kvalconspub1zcjduepqksq3vjyc8upugs8lmgvhu30ca3y25ezdlsqcdrsmrwsqc3pmeu7svjsf82",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AtlDBVjfeuTqmQwZVNKqTReLyMnQGuZozl0LfkgGRqoe"
+              },
+              "signature": "W7pFT5Ptn4i8Tut++RUtSZc3sW238nTAfmG8prIVHakJRVjZNrPTVzi1q8O2dou/zv3/bMLvOGBnIiycxrrh0Q=="
+            }
+          ],
+          "memo": "584c17d748114c7d6894b927f5a9f6fcc688ae08@13.59.63.136:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "StakeWith.Us",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv64ajvm",
+                "validator_address": "kvaloper1c9ye54e3pzwm3e0zpdlel6pnavrj9qqvqxchcs",
+                "pubkey": "kvalconspub1zcjduepqnrlsmqesrw9urgejyuk8trxnhwnlhww0dgpreulx2fqel3hgfp9sgxsfuv",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AvRbF677Kei9tPt9vn3EZXmDxr8XvZtqIZpaM+U4BVoI"
+              },
+              "signature": "x98QfYpfuZfPZp7N1/4qG72t/Hvmi3IycPwqNUXi5jEVeXIWVrZDGhlLDAoUYgmrvfBFgnU9gxmBCT8BnYMkBw=="
+            }
+          ],
+          "memo": "58f43a74f73901538382684b2215d22b3345a1a0@148.251.18.178:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "SNZ Holding",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1lsxy9kx9r3xavke4n4wcv4sny4t99xnt7rvzrd",
+                "validator_address": "kvaloper1lsxy9kx9r3xavke4n4wcv4sny4t99xntysf8hx",
+                "pubkey": "kvalconspub1zcjduepqfltmthj3jwsn28s4hnl37x32us0ay5k775mk592t7xzfs4kgp88q9eegr3",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AuiGtASYkYhPXc9qEqAbPOBZa18Bp91xotC9jQw80e03"
+              },
+              "signature": "QNdbk0iPsiBUuO/094BXFtMo0WoeGG7gOvbFTqUVnAAy+DjM10TPi6Ybz1FEC4kSLSOHUZCxLunXIa7EVGfhEQ=="
+            }
+          ],
+          "memo": "5c882994f310dca2cbeb8f5d66b53062e0b5651f@13.251.238.47:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "bitcat",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1kv0fwmvlqu3kcxv8kz9jau5ut72h48txde5h2a",
+                "validator_address": "kvaloper1kv0fwmvlqu3kcxv8kz9jau5ut72h48txh23j7k",
+                "pubkey": "kvalconspub1zcjduepqa5ghgqduj83ar6gvnw6sj3ulz2k9vv8ejv9760xnnusakxnql0as5gxssq",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Api9g94/LnTaGFjXGRLpYp2dKYPjNEYV7cZ3CCT7H2kx"
+              },
+              "signature": "8Tg5/HYxccOTFQwD6BpZu0uqQb8pb+XwRyStdQuCtjtMj2g7HBD0rwXKU1OKxjScMv+BDyOhya+cRv5tXVmx9g=="
+            }
+          ],
+          "memo": "60205125c3e445b89ad85e2f6eaad1ea462ab15e@206.189.173.3:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "DAF",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1zqdp5vpszwpdn4hsrflwgkk82jgkywm075xg04",
+                "validator_address": "kvaloper1zqdp5vpszwpdn4hsrflwgkk82jgkywm0y8rdm7",
+                "pubkey": "kvalconspub1zcjduepq8cet0yyvltzvgwyld9cf92wkccr000x9cduns8s5zjl08th5ld9qjm43cj",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Apr3TqMCa+QrRa9bzQiqPzE0GYNbRBAQnLzQJ3Q6Mlkw"
+              },
+              "signature": "fAblOuTjTtq21FQZjwEIT/O6SuNHEiduuvv+bCAhufEkSjtYGEXdlzHGLbYPRWytc043DxLm9lpLjbLAIZIjHg=="
+            }
+          ],
+          "memo": "628de9cf9c88effc08a2c5b487f2e050109a0933@67.207.69.100:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "sebytza05",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k168g9nn9vnamhsnjkm7uqqee9f3v07flgr5d5g7",
+                "validator_address": "kvaloper168g9nn9vnamhsnjkm7uqqee9f3v07flge8g3u4",
+                "pubkey": "kvalconspub1zcjduepq6dh9dsl6tjumrhx99cmd2l6paws3xgka0c5t42ld6kc54p80qprqevrsx7",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A9yXSGNhiddfS1AhYUMQAdTL7sKYcmIVelNhGpaVjiKf"
+              },
+              "signature": "MnhKEO7mUjLM2RVmBdXeqLEksnjax95TT+rlUVGJxukAcoEP7HQITTDxwnNjDErGUzvVZBuQJhLqvdTe3uUvng=="
+            }
+          ],
+          "memo": "64206aa35a697c919162c31ed27fa045a7cf3a3f@35.246.211.143:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "stake5labs",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k12gfdw3xssram3z5m2c5skf0v9vc5r99ddwfh8g",
+                "validator_address": "kvaloper12gfdw3xssram3z5m2c5skf0v9vc5r99dhavjnr",
+                "pubkey": "kvalconspub1zcjduepq65zjacvt6sw44f943umhxq6cd6kxe07u06da3c2cv0le2tsfddfswlnz7m",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Akm2/AuR0PVy+z0BKAWE9nk+PvDeK/nGeSD0whKhmcEs"
+              },
+              "signature": "sk98WoKhV6Wx7tl2r0yqXnJoZby8/ypVYyFtQ9yiyf4Oy4aiwUs7YlcnUs8pfd8fSQ16DY9WNrNyKeXKbkfhow=="
+            }
+          ],
+          "memo": "6594e4a0a0e20f89f65b48850bc30e7a84ef7c56@66.175.216.219:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "gotogo",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1n474p78yywrsunus6l47x8pzvsff5fjrvy3ayh",
+                "validator_address": "kvaloper1n474p78yywrsunus6l47x8pzvsff5fjrkh5csu",
+                "pubkey": "kvalconspub1zcjduepqwm6htva6lw388tf9u704slfvm36car3hz83drkxxt5ja6043qarqkmzvmq",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Am3QpVtmosC/hAbfs8z9tHZrmFYT/imgwSjrLdSyWDhc"
+              },
+              "signature": "vnJ1xyF5ZPLGLAdDjJtnwYzLqY6v6/rqVh+oaT7CP4Q84MloVQqN5vAbLVMOcLMrfHZbifJ2fEHG6gSstkqZuQ=="
+            }
+          ],
+          "memo": "6c87dabd3e576b506a6813a68f5953b3ca07d376@35.181.116.230:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "kaval",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1ktx6hfy704ylapk9zl205e04gjv98sukfk739k",
+                "validator_address": "kvaloper1ktx6hfy704ylapk9zl205e04gjv98sukn9m53a",
+                "pubkey": "kvalconspub1zcjduepq06wcemxhw7847ep0jwhx56z77n4gw4sg7pvp4lrpc27wlfr70p6qmvf8ls",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A7aYf8i45rosgd/AS1duRLBiFjZlhUY539EV4fKtPL24"
+              },
+              "signature": "JMP0ZBy7rIcFIUNtMqJICOZfIATuIB2wlSRWetSmR4hdHLZgYf7JA7OycBKsXSeg/Gs6hAourTDAv0L1rUXwxQ=="
+            }
+          ],
+          "memo": "6ec0432b98b255f5672202f1724a8ac6689388dc@136.244.114.116:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "pipermethysticum",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k15qcwv36lh28xl3s3az98kn22ncenskgpwyck0l",
+                "validator_address": "kvaloper15qcwv36lh28xl3s3az98kn22ncenskgp5hanm5",
+                "pubkey": "kvalconspub1zcjduepqqs50w9m9y6uh8zer4383ezgz6fgygapl70jwwyceh5yk3rvyhfrsfxfeng",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "At1HLMH7+uH2ISY2O+t0Mpnuh3VDVJtSE6B3sWYz36Hr"
+              },
+              "signature": "NyB0pcWSRkHMglx2NyQghkenYkCk8QCioMck8mHxIc0pLBo9635QOm92OpOIpRQealb5lKLRe2AwwPb3wyzREg=="
+            }
+          ],
+          "memo": "7a8ae35cd8296b1b920597b5a2da4c3a2c93cf86@46.101.231.124:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "meleatrust",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1792pmguhhd6y3h2nu3dvph0z4tkehyn3sh4fpc",
+                "validator_address": "kvaloper1792pmguhhd6y3h2nu3dvph0z4tkehyn32ysv4n",
+                "pubkey": "kvalconspub1zcjduepq3lfnnuv0qtjesqdmcq8jkxxtxgdsmv67tl5ly5m4ct7n0l4824ssehmr9v",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A5iaUP9iQ8TzUUwh4TjhOmV7wtkH2/WnCng55vwjgq+w"
+              },
+              "signature": "cmg/3CNb982T6cMLtJROYe6R8oHFAikI9AjO74teIcYd/PBp+bDMcF+mSJqYBzBJ1pYqDgHv21Lc+X+ExcycjQ=="
+            }
+          ],
+          "memo": "7e4bb7904b5dc4802e2c5472bbb112b19e389f16@51.254.143.228:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "ercwang",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1uj4gkfn5fmwhn528a9j38mn2vtm2aeyru54cxd",
+                "validator_address": "kvaloper1uj4gkfn5fmwhn528a9j38mn2vtm2aeyrx8sajx",
+                "pubkey": "kvalconspub1zcjduepq66h5s6g2zll9umtrf66skux36296qt6nxgdwvg53grtmeaysh5gqengmhu",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AkzRi1GLpEUVAS1t4VtRk+VzLo7N8KnuaTuz9EPVJzmf"
+              },
+              "signature": "H/ntk5ZAnvRAugLHeFCvmzFwVLCvei17dVhWuEx5iX5CISA0uabN0TEh7Ey6TKZJv1O0DSCtKMW98QRPP3H3gA=="
+            }
+          ],
+          "memo": "7ec8650d97d5581643839c17e9d5afb6879f213e@3.15.6.141:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "ATEAM",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k18xrms328dl03uasfmpasst8g55z5eyz6edls5e",
+                "validator_address": "kvaloper18xrms328dl03uasfmpasst8g55z5eyz6r764qj",
+                "pubkey": "kvalconspub1zcjduepqpjcr3z6uw8eelhp34rt3j5d3vudp8wwf5n56wm02q76932wkqu2q683vvk",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A/gibTicdQvnr7RfkZckAya1Vs4kS4+kO37tbQ8vIlSh"
+              },
+              "signature": "NbVXW6PlgOgsTnxvrZCLGdXqOVuTo0n71aaKJj5cK1UZXqqjPbU/UljtOdL8m1fIYPY1dUZEzKA+SyO7tIgO1g=="
+            }
+          ],
+          "memo": "7ee37015a3d1bba29b2d022678b1457b864a2733@49.247.215.185:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "alan",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1upgv649l97sw0fg62j0jcpevwkxqtr78kzt9mu",
+                "validator_address": "kvaloper1upgv649l97sw0fg62j0jcpevwkxqtr78v3wq0h",
+                "pubkey": "kvalconspub1zcjduepq988rtt5yn636vaxrw7dyj9d0nupdegrarm5l0fj9c3zygdtwyxhqdqm0yn",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A2K0TjWapZEsVTdsI1rCKumPb0meVUrXFYeztPjWeRvX"
+              },
+              "signature": "li9NLZp+eMM9nstYcxD3RaoXnkSUVefQ+T3D/IgXfNcg7WRf5P0AvBCAFTy6lLi0/0Ls8engkoPQz6nBS0Mvmw=="
+            }
+          ],
+          "memo": "8aa7b24eaaf58ae173eee627b04b9b353fc0d8c9@18.223.211.249:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "cgouh",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k159l0v6x8jutsfr554strzx09dgathsksft7g00",
+                "validator_address": "kvaloper159l0v6x8jutsfr554strzx09dgathsksncmdmy",
+                "pubkey": "kvalconspub1zcjduepqnm8rz4v7jp60yzac882wg8egfxjjfrqpu8yud22y6u3xklkz3xxqc4ec8t",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AxJ3imy9hGIj30A87U83V38e0swXiRr/vE8z91sB9gN8"
+              },
+              "signature": "oMQUEXwmIoqXohiTa0nhlB1IImmHOlS+nmZ10AHeSZZgofHn6mhTHWM4fJaVdQwPd3yQsO/O6RnQcpsdHSVR6Q=="
+            }
+          ],
+          "memo": "908f2ccb2a71ee731f275f53a7f7927bf7ca12de@3.16.79.70:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "Kava Validator 1",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1fxjuhtuxadvxrwhzu762gf5fnv6tx2dc6j026c",
+                "validator_address": "kvaloper1fxjuhtuxadvxrwhzu762gf5fnv6tx2dcqp20wn",
+                "pubkey": "kvalconspub1zcjduepqygdvd4j4pmxl5l4k0zvtac3ce4tjd60u7dgz2yx4f5lnkuf6c0zq76ta54",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Ap7dp70sRAUMQpzuka1OhXPYYuSdrqldGN7pw2M59MWK"
+              },
+              "signature": "BkPY5rvBskrFA0SBFEBWMh1YLW7Llkgw/ITgVqwwVY5zFkrBd1J6V8ec8Sf9dY4bARKKdYzG4MFxkhGUnWhpmg=="
+            }
+          ],
+          "memo": "92f1b81d7c21b7d9e7ec01f920ae077be27f4a6a@35.246.133.246:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "androidmoto",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1g4jssrg0f2407engt44wx4rdzknx7jkrzz466a",
+                "validator_address": "kvaloper1g4jssrg0f2407engt44wx4rdzknx7jkrc3slwk",
+                "pubkey": "kvalconspub1zcjduepqcet9r24j4hj6zrdfdrpxfsuffc49du6drtmv8rngdr0gxe4wpr9q2exjy5",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AqJg6/sKRhXEvyQmx9OjYXhtn3nc1oBE5GCBwhfapSbZ"
+              },
+              "signature": "Chnil25sA4YKtK/8UxgFPzJduGnOuCTBx+njPINpGGFv6XcFzqXAVUI4WmTXTO3l7bxb1k48l4Y/WhGDVMNmZQ=="
+            }
+          ],
+          "memo": "93930ac9e55db574f9e2f145fe745b6b3270f111@159.203.64.72:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "kytzu",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1aj9r9ll8m72xr5pmxr9fmum88k864tqguln0g8",
+                "validator_address": "kvaloper1aj9r9ll8m72xr5pmxr9fmum88k864tqgxvk2uv",
+                "pubkey": "kvalconspub1zcjduepqmj8t7k78gpy7fnhyun7ecntp7usz7j89qdegspxpujxq4k8x4elsjfz8q0",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A//Q2q1aUYpXVHYlAn4B96Xb+EyXgbV+KYBUEs+0/6CZ"
+              },
+              "signature": "RUx+L8FLyjRpkZ9RUmRIGOclr6vv8VHC5sB72/fDSelvwGfK6Fy3yZnn1xLFcePyCmVcz3qv6wH2jQZCx7LRng=="
+            }
+          ],
+          "memo": "95331db90fa0f32b8c20f6d05896b7df3e51220c@116.203.123.175:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "B-Harvest",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1m9y0c7j7wxyu3nqtmeevyfzzpga8jhdyd54n0a",
+                "validator_address": "kvaloper1m9y0c7j7wxyu3nqtmeevyfzzpga8jhdyh8skmk",
+                "pubkey": "kvalconspub1zcjduepqdplf99q7sqqzzs24mmr3xgm7fxef2exvwynx0fgygnw53a5j2k5sw8q4mw",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AkO96IrSoKuwZxm5fA1Vb4027FAaaJsCIEjIRHOw9Rwb"
+              },
+              "signature": "rF9JvrfCEix97zGLF2N96G3RgwZfuHcMeVs/MDOcEcBh48QNfcjV3bnJ/fVrkKulMnKRrDAVeM2102qLCk8PTA=="
+            }
+          ],
+          "memo": "905c0acd23f6578ad0817e6a0f93030580396540@0.0.0.0:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "WeStaking",
+                  "identity": "DA9C5AD3E308E426",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "1.000000000000000000",
+                  "max_rate": "1.000000000000000000",
+                  "max_change_rate": "1.000000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1g5w2qklnru6avx2huq9danghseleumuxv75hjz",
+                "validator_address": "kvaloper1g5w2qklnru6avx2huq9danghseleumuxkd3jxf",
+                "pubkey": "kvalconspub1zcjduepquaek5xn2zdp5khm2xa2enr3jq0a8wlrjg48hxh9gf3367r9rss2qtch3uv",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A96xqh1MajVjLL6ywy21sS6wY6bUcye1odhLN/8i+7Dy"
+              },
+              "signature": "i0rzuGTkzkg54XN5yN2JEvMn5iKxexEecktL9diji0wFNyEbeS7EXkAdQbkM7O2FTCHOQfV+fRbjcaKeZkbMOQ=="
+            }
+          ],
+          "memo": "3ce1fba652291b148c986297092d434f433cf29f@121.78.247.246:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "yn-alex",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k19eaplq3rd62nt3f9d30lwg49vuwv2uhl34xgqz",
+                "validator_address": "kvaloper19eaplq3rd62nt3f9d30lwg49vuwv2uhltxrd5f",
+                "pubkey": "kvalconspub1zcjduepqyxzp4wquycsvsftw6dt9wxxw5vdmpway8df78ttz5yjurlwemt5sw88ud9",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AqrtBBdDyosp//iaAr2uq9RcFay/19QJ5ZoYd/2I631N"
+              },
+              "signature": "wv1Lrk9TwOw5lrhHdnEeCnszr/94aR1E+FzTBIhf+l9UrrBff9Ly2LGhqXk42KH/WpsaY7xl25DNLlyIEHX+qQ=="
+            }
+          ],
+          "memo": "a37bd2c2d8cc92b093dbdb6b4deb07b43b542587@167.86.106.41:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "genesislab",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1uhdunqq3y3vv4dpg8xt2h7w72pf92nunrc00jj",
+                "validator_address": "kvaloper1uhdunqq3y3vv4dpg8xt2h7w72pf92nunet22xe",
+                "pubkey": "kvalconspub1zcjduepqwn9tx2hq5vtpc67j90kgjyka7dxzzzuhldm273xxml6wxzpsfqrqkadugp",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A7PEDMVdvJcOktj/bDrELHwaQ16FMDc2cNjrPB5Xeut+"
+              },
+              "signature": "gZ4Pe4ekr3LseajenBJ9sSoBH7Bn28OmuqGadnp9GJYFhgk0/EjAtnP2Ad7iBxnG4iRXz893Va0xzxz5q5bncQ=="
+            }
+          ],
+          "memo": "a58d0176e7fdf363a01cf2ea97f2dc83606b049b@94.237.41.90:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "koori",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1857g2vyh9wun06l8phc0rd7fs97za59jw34t4n",
+                "validator_address": "kvaloper1857g2vyh9wun06l8phc0rd7fs97za59j5zswpc",
+                "pubkey": "kvalconspub1zcjduepquxswswd6jyh05eng8y5sxrmgjmntjstdq7fh4k6v6wxwmn3ujwkspzkagg",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A/h+sG41oKMTxbhJGMueynWPwPViFP5qLzNlCq8ApdSD"
+              },
+              "signature": "1Uy3/rrCwUG8hrXHzQKdCt+sfyidlw7g6elvDU7ZfOpAU5Ru+pvPNMUwu6TWDVFijwTEeS3JLGvHoYhJx6vlFQ=="
+            }
+          ],
+          "memo": "a6069f2f6e6a10e1c0af1979e7fbca057f8d01b6@54.166.13.209:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "Stake Capital",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1hfj6n07rt7qh7gsh75eerhh5mwccdfqau7ld32",
+                "validator_address": "kvaloper1hfj6n07rt7qh7gsh75eerhh5mwccdfqaxd6g9p",
+                "pubkey": "kvalconspub1zcjduepqyj4j29k7hn58g7n6ert7mm4m7d0kllrx6h5rzzgpvjdt69r80zsqlasae0",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AuaebpaR+xGQxyy+ltQz522jM7ih6ezq1qQkGUdC0T1D"
+              },
+              "signature": "d38++C1AZ7yPf/Rbfto2gKtwE4AYaGiTe0QyOk0PH6dALwCxeNRTPwljQiCqM+278wYbNepfYyT8UyxxsX4ykQ=="
+            }
+          ],
+          "memo": "aafd0790e2abdffa44852eb33f9864904affbaa5@18.196.186.121:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "hash-ninja",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1rke9vt4hrhdgyz5hwrv3dg33v7a2fkj3hthgx0",
+                "validator_address": "kvaloper1rke9vt4hrhdgyz5hwrv3dg33v7a2fkj3dcjdjy",
+                "pubkey": "kvalconspub1zcjduepqgy5mle6pecw7lklkfnkeq0xa85nug4pkzd3l39v2qdkzsjy8atgqrhxnck",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AxEEKK2MjK9nLn9faShV/GaJuiOBIwTrPG5r84Rho08e"
+              },
+              "signature": "ekWBtus+Jo5mWlDp9y/d7zpZrH7y7jC6m1JwGNbPnOUXpE3Jks4BBtIa1GheilrrML66KAiQxdNZPxHzOA+acA=="
+            }
+          ],
+          "memo": "ac8f518f5f801714c5128847501f5d39bb33aa9a@46.101.146.82:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "nyzo",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1n9r3pjrvmjpll8zf6zxugezngg9m43r8qemdt7",
+                "validator_address": "kvaloper1n9r3pjrvmjpll8zf6zxugezngg9m43r8627gl4",
+                "pubkey": "kvalconspub1zcjduepqhm5zyqtkl42nmjuazhs0hhpv7jzr25uhs6wv7ctnss5rtzzqp4msnwy4gx",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A34xtacw7ADOvkGnI4nd2sLBFT4ayn9/A9v/e1ywh676"
+              },
+              "signature": "lAkGfSof9F7sD2ehyeR72J8H5R32rur+DDIKzPluOXI8XcncUsG8GMLZunoo83nQRPmP/rUXc0H1q3kBPCy0Jg=="
+            }
+          ],
+          "memo": "c35658b1e49a71cc833c350dc9dbd77fe76b61e7@18.224.31.9:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "kanaiyathacker",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k138mhsxsgg6sza856phes988yua8el8jmn8m2zk",
+                "validator_address": "kvaloper138mhsxsgg6sza856phes988yua8el8jmf570ka",
+                "pubkey": "kvalconspub1zcjduepqmn2eep8hm3msu3uc5m2q5y05d2w28947j8dsjnxvatfwlr2yk03qm8mqkm",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A7AUYV0EZFTtT0ptcGOBEtlEs5OBYABwRMm6YdSDbT7B"
+              },
+              "signature": "WjblbWuINSWBRzM77KwsH4nXJijkrfC1jEwjTM9RRaJCvgWYYi9zf06JLodF6iSOhC+wYo6MZNOOJcT4ERsULw=="
+            }
+          ],
+          "memo": "cfa707e4e5326bc63355c5722f0fb1c9e2051397@kpub1addwnpepqwcpgc2aq3j9fm20ffkhqcupztv5fvuns9sqquzyexaxr4yrd5lvzwwx4wv:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "chainflow",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1gf3yy4psn4hp6lcdglg0k648y97prs4wl6qkg3",
+                "validator_address": "kvaloper1gf3yy4psn4hp6lcdglg0k648y97prs4w9f9nu6",
+                "pubkey": "kvalconspub1zcjduepqr2fm9vlyx6qwcwnu9kfkhx5pgadwfz0zps6y6cfdwd3yervj5cfqz582tx",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "ArmX/XMtPXWT8hZr+aJmEOdepXRygClnttP1E7Ev0OfF"
+              },
+              "signature": "j3l75M+LOTEiUidNU3GVwwMRxEFZuwBPVJ0mdJiKmJZk67zSFWXrTRbB/4dwK1nh844m3WSbKtqEugrQ+iZ9Fg=="
+            }
+          ],
+          "memo": "21fc49e67fbe386b8271d30154fef414f639a3fc@51.158.122.124:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "ChainLayer",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k17k2h28j080rwckm6mwj5uz7rffmhd4hpxfq2qq",
+                "validator_address": "kvaloper17k2h28j080rwckm6mwj5uz7rffmhd4hpu6905t",
+                "pubkey": "kvalconspub1zcjduepqlev9ah5zeu6f329p3ev0a2mm08n06cal884c9dc4l0zd3zvsfvjsqu6qv4",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AlnIa+DwAHLKyzGdnRIptHXr0Pj4SXY2FtXAvoF6Q9Ds"
+              },
+              "signature": "a4gXUSKF0OOpbKV8VxQIvqSYzJRqBcElXwOdBEyUEulA8fSSWMUTUZ34CfNX+wb0n8eym4FLM6V+xaMwfK3X1g=="
+            }
+          ],
+          "memo": "d28c3c0353f437a83b3a188af55c72992c3a365d@188.166.132.93:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "wlongq",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1yn8hwjx3jlwyhgwvzvtdkqq4pkgtzqp4q56twu",
+                "validator_address": "kvaloper1yn8hwjx3jlwyhgwvzvtdkqq4pkgtzqp468lw6h",
+                "pubkey": "kvalconspub1zcjduepq7m2svz7hrnggzmj0u64qw26ssrpw4s5yltph8xpw9uqej2cexqfqvjhmkw",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A3qOPwNe2lX4qvD3K3F5K7PW//tZOEE3UHFu567aVgqk"
+              },
+              "signature": "gOWEs33HrpQj4URbVN1AN+qgJFT0RVdFBvdOd5zVgz4gKcCIFDorQ0gstdytQzW/R/MlvXUUodw5V9xNqG7iug=="
+            }
+          ],
+          "memo": "d4d16742fed280eba994f404cdba09abf37d3189@18.218.126.22:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "Appeal2Heaven",
+                  "identity": "FED7C177A2303737",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1655ew2kxsrjm4hm223rgsx8t6utlzfvvu9w7n4",
+                "validator_address": "kvaloper1655ew2kxsrjm4hm223rgsx8t6utlzfvvxktm87",
+                "pubkey": "kvalconspub1zcjduepqqeptputgvw9cz85x6u6wggjvr24pm5whvlv0sqx3xeqc3ep74xwsfz08mj",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AqCFxDQcVmQvJnjPXe3GVb083TIpn4e8BJRFuorkSovI"
+              },
+              "signature": "dMuoS60DMvKI/u11ecmfVZRri+ZZwiEUdEcdDyS9G2Z5NYntxRTNGl4sTuRJjXjf4IS6jjMrJDC+sGFYSRx2SA=="
+            }
+          ],
+          "memo": "d8e256d2cd7d067d356424cf0776d8c5d7156c4d@138.197.60.248:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "inchainworks",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1mrdydcnzrd6le8qvjrpu7960cyjnlusy9ka4pe",
+                "validator_address": "kvaloper1mrdydcnzrd6le8qvjrpu7960cyjnlusyl9cs4j",
+                "pubkey": "kvalconspub1zcjduepqg6hmat8fc3m0rxnqz7u35l0qen2yv2gc5lgqpedee64rx2dw2ads0xm6xm",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AqI330aIQyEwaaVaxF7ePwtKLyg5x+bPleZHCK0TdxW0"
+              },
+              "signature": "xadu4GWx5mmu5LX20bAs2cii3e67dLN4Q18bGtoXbVM93Q/HaKPPC3HIeCh3mX8FPhgHsiA8whC5o80UlPXqNw=="
+            }
+          ],
+          "memo": "db5984d6689e946a44edc00879eb5684fa656d04@66.42.78.17:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "nuevax",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k14m0st7r3p2gjzdn9tsqk7qpgxa5xtmc0h2lx59",
+                "validator_address": "kvaloper14m0st7r3p2gjzdn9tsqk7qpgxa5xtmc0de6rqw",
+                "pubkey": "kvalconspub1zcjduepq92ffrag7qtcervvrmrf3kxlfrldz4asek8r54j4wtnzc0zt7lprq306pes",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AjWAqmSYEB6sz82pzQ7OARuUZkeK4sXDxBA1bLQvZH6i"
+              },
+              "signature": "H6y9hBq2jCR3i0ysKu9ZP67KUeadBdodFWBhLitrXVRNcycNp/IujHnFmOSlX4Sli3KOHfAYffIX5usM81Z0ug=="
+            }
+          ],
+          "memo": "dc5fc73296723814b0b2a7d3c9e30c1845c66ffa@45.124.64.54:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "Jeff",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1swx9062u2sa46xkc6xg447lucwhuc5r3j5uylc",
+                "validator_address": "kvaloper1swx9062u2sa46xkc6xg447lucwhuc5r3g8eptn",
+                "pubkey": "kvalconspub1zcjduepqq20rz0qtp07fxy0ct7cfupmhuhsslncf3hkcauaegkvhg8zt6nasfmjfhg",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AgqE8tWcm4/4L5PmGYdlQFAFYzFRHpeXXQvn8z0vYKYT"
+              },
+              "signature": "9ari/UyKtu8lefHWRcqMrh2pN+junRis/wNJI8IBzi4ZQbObnZCZRW84b8RuoM8ak8ra70OQI0bom4DDrD5Qog=="
+            }
+          ],
+          "memo": "e7219309fa280d8822f5cc22922e84e7d4f02638@67.207.69.55:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "alexdcrypto",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k16nla2s39fmtw2z878vg33tckx98mntfdrm74cn",
+                "validator_address": "kvaloper16nla2s39fmtw2z878vg33tckx98mntfdegmsvc",
+                "pubkey": "kvalconspub1zcjduepq88xvepda92zscv65k8s4fy3tqghza8fq4a3sut6j8ye7e38yj8nsqsfq7u",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Arxvb8ddVXASUtSilcSI0C1PpSkySkKqmdqUHCry4h4N"
+              },
+              "signature": "DFqZyp4XDvKQqxxR/eJonSoj+Qmk9apU1UKdPqQemZQ0LXUX9W5oAUv1Y3YKCv8JA5VBs2LzLKEqmFS8jvq2FA=="
+            }
+          ],
+          "memo": "e8efc18b71aec3ef869be5cd28f710c24c086bcc@35.234.71.80:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "ccaoy",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1wru5ztzhxgdr8cg3whcsej00yrdfcd6twxsf75",
+                "validator_address": "kvaloper1wru5ztzhxgdr8cg3whcsej00yrdfcd6t544v2l",
+                "pubkey": "kvalconspub1zcjduepqt9z9lu0c2skthr95mty3gcp6vd8rqhljzvgz9djlj7el0q8nvyuqpvjqvp",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "At4L5GsBp+yiROcPnGXaJD/jm86pbaQMl/wegyCFhoU1"
+              },
+              "signature": "yd/3SvYbsTSwJF+XeZgSxw8zYMOjDJbIpiGwusWt6AFQK9nLsQXkcOyeI++cvZ7HijwtrMXCP9JVkzZHaFp+aw=="
+            }
+          ],
+          "memo": "ea50770a3319677989842082e56451275fde82cf@3.15.146.29:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "kava-validator",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1m3x9yfrpme5uc92helku4hlr7zml93wp4h5cun",
+                "validator_address": "kvaloper1m3x9yfrpme5uc92helku4hlr7zml93wp0y3agc",
+                "pubkey": "kvalconspub1zcjduepqymjzxc7v0dctyty0p4c225c7v9q0gukq52u8nent0pxpwnwchzpstu982p",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AklC/R6+aDp9Gd+SV9ZdUgjYAI/ZJrUHMMUOIbk4c/9c"
+              },
+              "signature": "WRNUMBOFrfVBBdC1umAN7ZQRouE/h0O1kDqRGRdbkZdSm0m7TAPJOKV5bGdtDvloD2XScpTQc0et88xL+8kuzA=="
+            }
+          ],
+          "memo": "ea5666058fe67189b46a2027076b768143c35e2f@54.156.87.97:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "HexchainCapital",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1wxuk0km4nyhdq7rxv5e290g6rj497pdt3tme4w",
+                "validator_address": "kvaloper1wxuk0km4nyhdq7rxv5e290g6rj497pdttc7up9",
+                "pubkey": "kvalconspub1zcjduepqx3f92f50hmy56t5qtzpdv4qq5ez6dc5awt2mqnel7hxlk5ktt3tqf6kjdc",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A/00YtF6KjgMqa9PIcKAnwtw5RyuJ6FI3HmjCfNZ9y+W"
+              },
+              "signature": "Cj2YWxdCmpybf4CZXW2r2Gzz7gv83jRMol+E6Z4ZJaUFsAP/qMWIOk4emd+EdtT5iem76aGtAdt0a+99upp19w=="
+            }
+          ],
+          "memo": "edac32f1a1bfdded0e0d88dfe2f7e4958beb5f36@69.61.77.240:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "iqlusion",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1tc5wrswyu4x7vgc6afpaj48fq4dw6adhlkj34a",
+                "validator_address": "kvaloper1tc5wrswyu4x7vgc6afpaj48fq4dw6adh99h5pk",
+                "pubkey": "kvalconspub1zcjduepqvcvy740hayy6tmau9mwu34xnlunfxz0t8e5y4ey0thgwqtvpqdyspxu0v3",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "ArKs+J2EDK+skon4QOmaqqlxYagQuzZXR1IbctMruHSA"
+              },
+              "signature": "iRfI/diSHjtCQy9oDD3KokFjUXD4BCGO+Swm/MTO4AMNMDC287IZL50kobc7aF+Ce9uGzdw/WRvdGKi6U7nvcQ=="
+            }
+          ],
+          "memo": "f2af20428f791f6ec4ebcb7fec63951092553566@35.222.230.86:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "jackzampolin",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1srmz282g7748yj0rvywcejhc9ae3ujfx3rcerh",
+                "validator_address": "kvaloper1srmz282g7748yj0rvywcejhc9ae3ujfxtsauhu",
+                "pubkey": "kvalconspub1zcjduepqt8h08jnav872u52wqe2sw4zs43mek7pn6l4fqjwwjeajxz9cy30q6u8vxg",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "Az2xPqQdYpuufJcNRE4rFDRTtSNI7odbrpCPXXLGiqeL"
+              },
+              "signature": "w5mut5Ix0vJUDkBvtBgc11o6CjmyjWMcp7Hij+G2a1sVCczSz1C4DnI1bN8MK3w3KHE4TPp2OgzS4m4aydQ+Tw=="
+            }
+          ],
+          "memo": "f8825d1e8ffe1340bd92b9e94bef664c86bec7fb@34.94.239.114:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "louis",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1cmwjvwpuxftdxr7865eex7rt4vhfzmvw2z5gle",
+                "validator_address": "kvaloper1cmwjvwpuxftdxr7865eex7rt4vhfzmvws33dtj",
+                "pubkey": "kvalconspub1zcjduepqczcsc7t2uvpx9xfh30h0m0hfcn2eghah32hj637aarvshwlcyhwqm48xe6",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AweM8VneB7YRUsGhgQ8S2IL2FHH0oiQAfTvQGVXGr/7S"
+              },
+              "signature": "4VPpTaMQxn2GeQtHyoaGXysvpO0T7sHg6QO7/847DGctOyTAv+Ecxz6C1DOZGjJ1BppOcTYt1EJSveOnc9Xe0w=="
+            }
+          ],
+          "memo": "7d98690758445c9a004654ae15b2aadc75ba28ee@45.32.7.141:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "PING",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1p7qlu59yhy83dve3u9qk2v0llpmtw6862jsz5t",
+                "validator_address": "kvaloper1p7qlu59yhy83dve3u9qk2v0llpmtw686sp48qq",
+                "pubkey": "kvalconspub1zcjduepqt6mrfuug6u35ty54rh3rwyhnpq0d2atl50fugjdh8apjw77zun3setgp2q",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "A3QaOM/UocK72atpoB5PmmNM7TWJ0qOOlnyw0H+J81+F"
+              },
+              "signature": "xOepdBbn8MyFbaQ04Z5Y12oFDOokSyc1yHlOc2Kh1UwSROzLVM/BZegXWdtnpoxYF6S6sioK6f/tDcGgPRSwTw=="
+            }
+          ],
+          "memo": "3964d2f8c6c9a0ab6441134d2d423e8fc8af6899@172.24.253.74:26656"
+        }
+      },
+      {
+        "type": "auth/StdTx",
+        "value": {
+          "msg": [
+            {
+              "type": "cosmos-sdk/MsgCreateValidator",
+              "value": {
+                "description": {
+                  "moniker": "syncnode",
+                  "identity": "",
+                  "website": "",
+                  "details": ""
+                },
+                "commission": {
+                  "rate": "0.100000000000000000",
+                  "max_rate": "0.200000000000000000",
+                  "max_change_rate": "0.010000000000000000"
+                },
+                "min_self_delegation": "1",
+                "delegator_address": "k1rgcgqmnkeffks7enrv6hk5u4wg3nzfkmd9ztpk",
+                "validator_address": "kvaloper1rgcgqmnkeffks7enrv6hk5u4wg3nzfkmhk8w4a",
+                "pubkey": "kvalconspub1zcjduepqhtmtcntfdu7uzeek02mezr9emjwv67zxxl9jh8xrf4yfqj4txvks9g0dcj",
+                "value": {
+                  "denom": "kva",
+                  "amount": "1000000"
+                }
+              }
+            }
+          ],
+          "fee": {
+            "amount": null,
+            "gas": "200000"
+          },
+          "signatures": [
+            {
+              "pub_key": {
+                "type": "tendermint/PubKeySecp256k1",
+                "value": "AuEfO1Bz518KXtkHZkrQKJi4gLEgPPq3cikSKbDL7Lqh"
+              },
+              "signature": "HzTtzTgwqlLP72wisBjC8iC+hpl9vlDowLQyRCUmYdhiigoQ8EfBHpObYo34surzL74Mw4YgYBc4+WPThD0s/Q=="
+            }
+          ],
+          "memo": "2d95a06fb8a68e3f7d56e96a7cbe9dd928dc341c@116.203.94.216:26656"
+        }
+      }
+    ]
   }
 }
