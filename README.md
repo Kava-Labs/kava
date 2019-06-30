@@ -55,6 +55,19 @@ A genesis transaction should be written to `$HOME/.kvd/config/gentx/gentx-<gen_t
 
 To be included in the genesis file for testnet one, fork this repo and copy your genesis transaction to the `testnet-1/gentx` directory. Submit your fork including your genesis transaction as a PR on this repo [here](https://github.com/Kava-Labs/kava/pulls)
 
+#### Seed Nodes
+
+We request known community members who wish to run public p2p seed nodes make pull requests to add community run seed nodes below.
+
+```
+Cosmostation - 0a47e347aacee74d4818090a0a94acf30cd8044e@13.124.101.116:26656
+Forbole - c72c25d0b5e321b3f225b9be9f8aed0a7ca463db@34.66.3.247:26656
+Ping - 3964d2f8c6c9a0ab6441134d2d423e8fc8af6899@kava-test.ping.pub:26656
+Figment Network - 3c30ea1e2cdc422594e3b3d7ea73439730db8657@54.39.186.65:26656
+Dokia Capital - 323e556dfb83147939d412527fc6286660438532@kava01.dokia.cloud:26656
+01node - b1bcd6969f03940032f7f9c315ff3bbc1ee8cd20@185.181.103.135:26656
+```
+
 ## License
 
 Copyright © Kava Labs, Inc. All rights reserved.
