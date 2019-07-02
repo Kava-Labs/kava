@@ -29,7 +29,7 @@ const (
 	appName = "kava"
 	// DefaultKeyPass contains the default key password for genesis transactions
 	DefaultKeyPass   = "12345678"
-	Bech32MainPrefix = "k"
+	Bech32MainPrefix = "kava"
 )
 
 // default home directories for expected binaries
