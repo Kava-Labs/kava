@@ -14,13 +14,7 @@ Every project begins with those brave few who have vision and grit. Fortune favo
 
 - “Founder” badges restricted to first 100 Kava validators, measured by timestamp of first precommit.
 - Only available to residents outside the United States, Canada, China, and OFAC sanctioned countries. Kava badge rewards are not available to entities that participated in the Kava fundraiser.
-- Subject to registration and completion of KYC requirements. We will update participants on KYC proceedures at the end of testnet #1. 
-
-### Timeline
-
-- Testnet #1: June 30th, 18:00 UTC
-- Testnet #2: July 31st, 18:00 UTC
-- Mainnet: August 31st, TBD
+- Subject to registration and completion of KYC requirements. We will update participants on KYC proceedures at the end of testnet #1.
 
 ### Get Started
 
