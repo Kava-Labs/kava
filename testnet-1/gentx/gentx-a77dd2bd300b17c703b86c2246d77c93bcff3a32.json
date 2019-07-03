@@ -1,0 +1,45 @@
+{
+  "type": "auth/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "cosmos-sdk/MsgCreateValidator",
+        "value": {
+          "description": {
+            "moniker": "kytzu",
+            "identity": "",
+            "website": "",
+            "details": ""
+          },
+          "commission": {
+            "rate": "0.100000000000000000",
+            "max_rate": "0.200000000000000000",
+            "max_change_rate": "0.010000000000000000"
+          },
+          "min_self_delegation": "1",
+          "delegator_address": "kava1aj9r9ll8m72xr5pmxr9fmum88k864tqgunf73t",
+          "validator_address": "kavavaloper1aj9r9ll8m72xr5pmxr9fmum88k864tqg39nkfu",
+          "pubkey": "kavavalconspub1zcjduepqmj8t7k78gpy7fnhyun7ecntp7usz7j89qdegspxpujxq4k8x4elsufsslq",
+          "value": {
+            "denom": "ukva",
+            "amount": "1000000000000"
+          }
+        }
+      }
+    ],
+    "fee": {
+      "amount": null,
+      "gas": "200000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "A//Q2q1aUYpXVHYlAn4B96Xb+EyXgbV+KYBUEs+0/6CZ"
+        },
+        "signature": "KQXdd/JJ6LKnPjRlaaHWzN1/A0nA0cyt7INeeq4jRkR0ucgcDrBbcuPz2zqYnabV0tgXKn3lJRspe+DmmjKNUQ=="
+      }
+    ],
+    "memo": "a77dd2bd300b17c703b86c2246d77c93bcff3a32@164.68.100.191:26656"
+  }
+}
