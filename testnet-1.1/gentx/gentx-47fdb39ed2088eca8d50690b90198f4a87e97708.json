@@ -1,0 +1,45 @@
+{
+  "type": "auth/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "cosmos-sdk/MsgCreateValidator",
+        "value": {
+          "description": {
+            "moniker": "stefansky",
+            "identity": "",
+            "website": "",
+            "details": ""
+          },
+          "commission": {
+            "rate": "0.100000000000000000",
+            "max_rate": "0.200000000000000000",
+            "max_change_rate": "0.010000000000000000"
+          },
+          "min_self_delegation": "1",
+          "delegator_address": "kava1f5y3vx0gml4rg8qkzaf0k2emn0utppaeyhx870",
+          "validator_address": "kavavaloper1f5y3vx0gml4rg8qkzaf0k2emn0utppaefpu0xc",
+          "pubkey": "kavavalconspub1zcjduepqqjcncjhm2d27wwe25pr47p35exavdcmn6ntlwnfenwmlrrzars6qdxjyf5",
+          "value": {
+            "denom": "ukva",
+            "amount": "1000000000000"
+          }
+        }
+      }
+    ],
+    "fee": {
+      "amount": null,
+      "gas": "200000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "Az75jhwwG305YvoxsB2L3eauLcYad0d+aN6GbqvraYFu"
+        },
+        "signature": "GFajdf7IAwDoffwoN+QV2rm8Nh0qEdSGKCY+gqcQ0Mtvi75ydcxpdwj/JUZtWHH0rsph4e1jfjAlBq90b5opnA=="
+      }
+    ],
+    "memo": "47fdb39ed2088eca8d50690b90198f4a87e97708@5.189.154.139:26656"
+  }
+}
