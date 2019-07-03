@@ -1,0 +1,45 @@
+{
+  "type": "auth/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "cosmos-sdk/MsgCreateValidator",
+        "value": {
+          "description": {
+            "moniker": "01node",
+            "identity": "552A83BA62F9B1F8",
+            "website": "https://01node.com",
+            "details": "01node Staking Services"
+          },
+          "commission": {
+            "rate": "0.100000000000000000",
+            "max_rate": "0.200000000000000000",
+            "max_change_rate": "0.010000000000000000"
+          },
+          "min_self_delegation": "1",
+          "delegator_address": "kava1nl54jkz957elm8mg6cjft6p9n35u9ljsymfuew",
+          "validator_address": "kavavaloper1nl54jkz957elm8mg6cjft6p9n35u9ljsfdn5pe",
+          "pubkey": "kavavalconspub1zcjduepqwf05tj86hm83n55lha6zgeyf9jyyz053cwq957nhhv933v9z9sgqdcmt5s",
+          "value": {
+            "denom": "ukva",
+            "amount": "1000000000000"
+          }
+        }
+      }
+    ],
+    "fee": {
+      "amount": null,
+      "gas": "200000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "A5/nT7msfOItmJtpptjaLVxq1Xbd7ej2C1Li8eNqTToW"
+        },
+        "signature": "10JQt2lZNVitSyUt+L58u5A+EX/SGyzKJN6JJAmmm05xjDSi0AzpiJbkE9yUgqrKzXt9jghiGif97GiSAjOheA=="
+      }
+    ],
+    "memo": "b1bcd6969f03940032f7f9c315ff3bbc1ee8cd20@185.181.103.135:26656"
+  }
+}
