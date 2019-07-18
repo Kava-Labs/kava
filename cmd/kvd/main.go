@@ -18,8 +18,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/genaccounts"
+	genaccscli "github.com/cosmos/cosmos-sdk/x/genaccounts/client/cli"
+	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+
+
 	"github.com/kava-labs/kava/app"
-	initPkg "github.com/kava-labs/kava/init"
 )
 
 // kvd custom flags
@@ -42,23 +47,23 @@ func main() {
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
-	rootCmd.AddCommand(initPkg.InitCmd(ctx, cdc))
-	rootCmd.AddCommand(initPkg.CollectGenTxsCmd(ctx, cdc))
-	rootCmd.AddCommand(initPkg.TestnetFilesCmd(ctx, cdc))
-	rootCmd.AddCommand(initPkg.GenTxCmd(ctx, cdc))
-	rootCmd.AddCommand(initPkg.AddGenesisAccountCmd(ctx, cdc))
-	rootCmd.AddCommand(initPkg.ValidateGenesisCmd(ctx, cdc))
+	rootCmd.AddCommand(genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome))
+	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome))
+	rootCmd.AddCommand(genutilcli.MigrateGenesisCmd(ctx, cdc))
+	rootCmd.AddCommand(genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{},
+		genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome))
+	rootCmd.AddCommand(genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics))
+	rootCmd.AddCommand(genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome))
 	rootCmd.AddCommand(client.NewCompletionCmd(rootCmd, true))
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
 
 	// prepare and add flags
-	executor := cli.PrepareBaseCmd(rootCmd, "GA", app.DefaultNodeHome)
+	executor := cli.PrepareBaseCmd(rootCmd, "KA", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
 	err := executor.Execute()
 	if err != nil {
-		// handle with #870
 		panic(err)
 	}
 }
@@ -68,6 +73,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 		logger, db, traceStore, true, invCheckPeriod,
 		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
+		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
 	)
 }
 
@@ -76,13 +82,13 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		gApp := app.NewApp(logger, db, traceStore, false, uint(1))
-		err := gApp.LoadHeight(height)
+		tempApp := app.NewApp(logger, db, traceStore, false, uint(1))
+		err := tempApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
-		return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+		return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	gApp := app.NewApp(logger, db, traceStore, true, uint(1))
-	return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+	tempApp := app.NewApp(logger, db, traceStore, true, uint(1))
+	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
