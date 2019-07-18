@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -13,43 +14,63 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/simapp" // TODO replace with types from app/genesis.go ?
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authsim "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	banksim "github.com/cosmos/cosmos-sdk/x/bank/simulation"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	distrsim "github.com/cosmos/cosmos-sdk/x/distribution/simulation"
-	"github.com/cosmos/cosmos-sdk/x/gov"
 	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
-	"github.com/cosmos/cosmos-sdk/x/mint"
+	paramsim "github.com/cosmos/cosmos-sdk/x/params/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingsim "github.com/cosmos/cosmos-sdk/x/slashing/simulation"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingsim "github.com/cosmos/cosmos-sdk/x/staking/simulation"
 )
 
+// Simulation parameter constants
+const (
+	StakePerAccount                                    = "stake_per_account"
+	InitiallyBondedValidators                          = "initially_bonded_validators"
+	OpWeightDeductFee                                  = "op_weight_deduct_fee"
+	OpWeightMsgSend                                    = "op_weight_msg_send"
+	OpWeightSingleInputMsgMultiSend                    = "op_weight_single_input_msg_multisend"
+	OpWeightMsgSetWithdrawAddress                      = "op_weight_msg_set_withdraw_address"
+	OpWeightMsgWithdrawDelegationReward                = "op_weight_msg_withdraw_delegation_reward"
+	OpWeightMsgWithdrawValidatorCommission             = "op_weight_msg_withdraw_validator_commission"
+	OpWeightSubmitVotingSlashingTextProposal           = "op_weight_submit_voting_slashing_text_proposal"
+	OpWeightSubmitVotingSlashingCommunitySpendProposal = "op_weight_submit_voting_slashing_community_spend_proposal"
+	OpWeightSubmitVotingSlashingParamChangeProposal    = "op_weight_submit_voting_slashing_param_change_proposal"
+	OpWeightMsgDeposit                                 = "op_weight_msg_deposit"
+	OpWeightMsgCreateValidator                         = "op_weight_msg_create_validator"
+	OpWeightMsgEditValidator                           = "op_weight_msg_edit_validator"
+	OpWeightMsgDelegate                                = "op_weight_msg_delegate"
+	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
+	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
+	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
+)
+
 var (
-	genesisFile string
-	seed        int64
-	numBlocks   int
-	blockSize   int
-	enabled     bool
-	verbose     bool
-	lean        bool
-	commit      bool
-	period      int
+	genesisFile   string
+	paramsFile    string
+	seed          int64
+	numBlocks     int
+	blockSize     int
+	enabled       bool
+	verbose       bool
+	lean          bool
+	commit        bool
+	period        int
+	onOperation   bool // TODO Remove in favor of binary search for invariant violation
+	allInvariants bool
 )
 
 func init() {
-	flag.StringVar(&genesisFile, "SimulationGenesis", "", "custom simulation genesis file")
+	flag.StringVar(&genesisFile, "SimulationGenesis", "", "custom simulation genesis file; cannot be used with params file")
+	flag.StringVar(&paramsFile, "SimulationParams", "", "custom simulation params file which overrides any random params; cannot be used with genesis")
 	flag.Int64Var(&seed, "SimulationSeed", 42, "simulation random seed")
 	flag.IntVar(&numBlocks, "SimulationNumBlocks", 500, "number of blocks")
 	flag.IntVar(&blockSize, "SimulationBlockSize", 200, "operations per block")
@@ -58,207 +79,95 @@ func init() {
 	flag.BoolVar(&lean, "SimulationLean", false, "lean simulation log output")
 	flag.BoolVar(&commit, "SimulationCommit", false, "have the simulation commit")
 	flag.IntVar(&period, "SimulationPeriod", 1, "run slow invariants only once every period assertions")
+	flag.BoolVar(&onOperation, "SimulateEveryOperation", false, "run slow invariants every operation")
+	flag.BoolVar(&allInvariants, "PrintAllInvariants", false, "print all invariants if a broken invariant is found")
 }
 
 // helper function for populating input for SimulateFromSeed
-func getSimulateFromSeedInput(tb testing.TB, app *App) (
-	testing.TB, *baseapp.BaseApp, simulation.AppStateFn, int64,
-	simulation.WeightedOperations, sdk.Invariants, int, int, bool, bool) {
+func getSimulateFromSeedInput(tb testing.TB, w io.Writer, app *App) (
+	testing.TB, io.Writer, *baseapp.BaseApp, simulation.AppStateFn, int64,
+	simulation.WeightedOperations, sdk.Invariants, int, int, bool, bool, bool, bool, map[string]bool,
+) {
 
-	return tb, app.BaseApp, appStateFn, seed,
-		testAndRunTxs(app), invariants(app), numBlocks, blockSize, commit, lean
+	return tb, w, app.BaseApp, appStateFn, seed,
+		testAndRunTxs(app), invariants(app), numBlocks, blockSize, commit,
+		lean, onOperation, allInvariants, app.ModuleAccountAddrs()
 }
 
-func appStateFromGenesisFileFn(r *rand.Rand, accs []simulation.Account, genesisTimestamp time.Time) (json.RawMessage, []simulation.Account, string) {
-	var genesis tmtypes.GenesisDoc
+func appStateFn(
+	r *rand.Rand, accs []simulation.Account, genesisTimestamp time.Time,
+) (appState json.RawMessage, simAccs []simulation.Account, chainID string) {
+
 	cdc := MakeCodec()
-	bytes, err := ioutil.ReadFile(genesisFile)
-	if err != nil {
-		panic(err)
+
+	switch {
+	case paramsFile != "" && genesisFile != "":
+		panic("cannot provide both a genesis file and a params file")
+
+	case genesisFile != "":
+		appState, simAccs, chainID = simapp.AppStateFromGenesisFileFn(r, accs, genesisTimestamp)
+
+	case paramsFile != "":
+		appParams := make(simulation.AppParams)
+		bz, err := ioutil.ReadFile(paramsFile)
+		if err != nil {
+			panic(err)
+		}
+
+		cdc.MustUnmarshalJSON(bz, &appParams)
+		appState, simAccs, chainID = appStateRandomizedFn(r, accs, genesisTimestamp, appParams)
+
+	default:
+		appParams := make(simulation.AppParams)
+		appState, simAccs, chainID = appStateRandomizedFn(r, accs, genesisTimestamp, appParams)
 	}
-	cdc.MustUnmarshalJSON(bytes, &genesis)
-	var appState GenesisState
-	cdc.MustUnmarshalJSON(genesis.AppState, &appState)
-	var newAccs []simulation.Account
-	for _, acc := range appState.Accounts {
-		// Pick a random private key, since we don't know the actual key
-		// This should be fine as it's only used for mock Tendermint validators
-		// and these keys are never actually used to sign by mock Tendermint.
-		privkeySeed := make([]byte, 15)
-		r.Read(privkeySeed)
-		privKey := secp256k1.GenPrivKeySecp256k1(privkeySeed)
-		newAccs = append(newAccs, simulation.Account{privKey, privKey.PubKey(), acc.Address})
-	}
-	return genesis.AppState, newAccs, genesis.ChainID
+
+	return appState, simAccs, chainID
 }
 
-func appStateRandomizedFn(r *rand.Rand, accs []simulation.Account, genesisTimestamp time.Time) (json.RawMessage, []simulation.Account, string) {
+// TODO refactor out random initialization code to the modules
+func appStateRandomizedFn(
+	r *rand.Rand, accs []simulation.Account, genesisTimestamp time.Time, appParams simulation.AppParams,
+) (json.RawMessage, []simulation.Account, string) {
 
-	var genesisAccounts []GenesisAccount
+	cdc := MakeCodec()
+	genesisState := simapp.NewDefaultGenesisState()
 
-	amount := int64(r.Intn(1e12))
-	numInitiallyBonded := int64(r.Intn(250))
+	var (
+		amount             int64
+		numInitiallyBonded int64
+	)
+
+	appParams.GetOrGenerate(cdc, StakePerAccount, &amount, r,
+		func(r *rand.Rand) { amount = int64(r.Intn(1e12)) })
+	appParams.GetOrGenerate(cdc, InitiallyBondedValidators, &amount, r,
+		func(r *rand.Rand) { numInitiallyBonded = int64(r.Intn(250)) })
+
 	numAccs := int64(len(accs))
 	if numInitiallyBonded > numAccs {
 		numInitiallyBonded = numAccs
 	}
-	fmt.Printf("Selected randomly generated parameters for simulated genesis:\n"+
-		"\t{amount of stake per account: %v, initially bonded validators: %v}\n",
-		amount, numInitiallyBonded)
 
-	// randomly generate some genesis accounts
-	for i, acc := range accs {
-		coins := sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(amount))}
-		bacc := auth.NewBaseAccountWithAddress(acc.Address)
-		bacc.SetCoins(coins)
+	fmt.Printf(
+		`Selected randomly generated parameters for simulated genesis:
+{
+  stake_per_account: "%v",
+  initially_bonded_validators: "%v"
+}
+`, amount, numInitiallyBonded,
+	)
 
-		var gacc GenesisAccount
+	simapp.GenGenesisAccounts(cdc, r, accs, genesisTimestamp, amount, numInitiallyBonded, genesisState)
+	simapp.GenAuthGenesisState(cdc, r, appParams, genesisState)
+	simapp.GenBankGenesisState(cdc, r, appParams, genesisState)
+	simapp.GenSupplyGenesisState(cdc, amount, numInitiallyBonded, int64(len(accs)), genesisState)
+	simapp.GenGovGenesisState(cdc, r, appParams, genesisState)
+	simapp.GenMintGenesisState(cdc, r, appParams, genesisState)
+	simapp.GenDistrGenesisState(cdc, r, appParams, genesisState)
+	stakingGen := simapp.GenStakingGenesisState(cdc, r, accs, amount, numAccs, numInitiallyBonded, appParams, genesisState)
+	simapp.GenSlashingGenesisState(cdc, r, stakingGen, appParams, genesisState)
 
-		// Only consider making a vesting account once the initial bonded validator
-		// set is exhausted due to needing to track DelegatedVesting.
-		if int64(i) > numInitiallyBonded && r.Intn(100) < 50 {
-			var (
-				vacc    auth.VestingAccount
-				endTime int64
-			)
-
-			startTime := genesisTimestamp.Unix()
-
-			// Allow for some vesting accounts to vest very quickly while others very
-			// slowly.
-			if r.Intn(100) < 50 {
-				endTime = int64(simulation.RandIntBetween(r, int(startTime), int(startTime+(60*60*24*30))))
-			} else {
-				endTime = int64(simulation.RandIntBetween(r, int(startTime), int(startTime+(60*60*12))))
-			}
-
-			if startTime == endTime {
-				endTime += 1
-			}
-
-			if r.Intn(100) < 50 {
-				vacc = auth.NewContinuousVestingAccount(&bacc, startTime, endTime)
-			} else {
-				vacc = auth.NewDelayedVestingAccount(&bacc, endTime)
-			}
-
-			gacc = NewGenesisAccountI(vacc)
-		} else {
-			gacc = NewGenesisAccount(&bacc)
-		}
-
-		genesisAccounts = append(genesisAccounts, gacc)
-	}
-
-	authGenesis := auth.GenesisState{
-		Params: auth.Params{
-			MaxMemoCharacters:      uint64(simulation.RandIntBetween(r, 100, 200)),
-			TxSigLimit:             uint64(r.Intn(7) + 1),
-			TxSizeCostPerByte:      uint64(simulation.RandIntBetween(r, 5, 15)),
-			SigVerifyCostED25519:   uint64(simulation.RandIntBetween(r, 500, 1000)),
-			SigVerifyCostSecp256k1: uint64(simulation.RandIntBetween(r, 500, 1000)),
-		},
-	}
-	fmt.Printf("Selected randomly generated auth parameters:\n\t%+v\n", authGenesis)
-
-	bankGenesis := bank.NewGenesisState(r.Int63n(2) == 0)
-	fmt.Printf("Selected randomly generated bank parameters:\n\t%+v\n", bankGenesis)
-
-	// Random genesis states
-	vp := time.Duration(r.Intn(2*172800)) * time.Second
-	govGenesis := gov.GenesisState{
-		StartingProposalID: uint64(r.Intn(100)),
-		DepositParams: gov.DepositParams{
-			MinDeposit:       sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(r.Intn(1e3)))},
-			MaxDepositPeriod: vp,
-		},
-		VotingParams: gov.VotingParams{
-			VotingPeriod: vp,
-		},
-		TallyParams: gov.TallyParams{
-			Quorum:    sdk.NewDecWithPrec(334, 3),
-			Threshold: sdk.NewDecWithPrec(5, 1),
-			Veto:      sdk.NewDecWithPrec(334, 3),
-		},
-	}
-	fmt.Printf("Selected randomly generated governance parameters:\n\t%+v\n", govGenesis)
-
-	stakingGenesis := staking.GenesisState{
-		Pool: staking.InitialPool(),
-		Params: staking.Params{
-			UnbondingTime: time.Duration(simulation.RandIntBetween(r, 60, 60*60*24*3*2)) * time.Second,
-			MaxValidators: uint16(r.Intn(250) + 1),
-			BondDenom:     sdk.DefaultBondDenom,
-		},
-	}
-	fmt.Printf("Selected randomly generated staking parameters:\n\t%+v\n", stakingGenesis)
-
-	slashingGenesis := slashing.GenesisState{
-		Params: slashing.Params{
-			MaxEvidenceAge:          stakingGenesis.Params.UnbondingTime,
-			SignedBlocksWindow:      int64(simulation.RandIntBetween(r, 10, 1000)),
-			MinSignedPerWindow:      sdk.NewDecWithPrec(int64(r.Intn(10)), 1),
-			DowntimeJailDuration:    time.Duration(simulation.RandIntBetween(r, 60, 60*60*24)) * time.Second,
-			SlashFractionDoubleSign: sdk.NewDec(1).Quo(sdk.NewDec(int64(r.Intn(50) + 1))),
-			SlashFractionDowntime:   sdk.NewDec(1).Quo(sdk.NewDec(int64(r.Intn(200) + 1))),
-		},
-	}
-	fmt.Printf("Selected randomly generated slashing parameters:\n\t%+v\n", slashingGenesis)
-
-	mintGenesis := mint.GenesisState{
-		Minter: mint.InitialMinter(
-			sdk.NewDecWithPrec(int64(r.Intn(99)), 2)),
-		Params: mint.NewParams(
-			sdk.DefaultBondDenom,
-			sdk.NewDecWithPrec(int64(r.Intn(99)), 2),
-			sdk.NewDecWithPrec(20, 2),
-			sdk.NewDecWithPrec(7, 2),
-			sdk.NewDecWithPrec(67, 2),
-			uint64(60*60*8766/5)),
-	}
-	fmt.Printf("Selected randomly generated minting parameters:\n\t%+v\n", mintGenesis)
-
-	var validators []staking.Validator
-	var delegations []staking.Delegation
-
-	valAddrs := make([]sdk.ValAddress, numInitiallyBonded)
-	for i := 0; i < int(numInitiallyBonded); i++ {
-		valAddr := sdk.ValAddress(accs[i].Address)
-		valAddrs[i] = valAddr
-
-		validator := staking.NewValidator(valAddr, accs[i].PubKey, staking.Description{})
-		validator.Tokens = sdk.NewInt(amount)
-		validator.DelegatorShares = sdk.NewDec(amount)
-		delegation := staking.Delegation{accs[i].Address, valAddr, sdk.NewDec(amount)}
-		validators = append(validators, validator)
-		delegations = append(delegations, delegation)
-	}
-
-	stakingGenesis.Pool.NotBondedTokens = sdk.NewInt((amount * numAccs) + (numInitiallyBonded * amount))
-	stakingGenesis.Validators = validators
-	stakingGenesis.Delegations = delegations
-
-	distrGenesis := distr.GenesisState{
-		FeePool:             distr.InitialFeePool(),
-		CommunityTax:        sdk.NewDecWithPrec(1, 2).Add(sdk.NewDecWithPrec(int64(r.Intn(30)), 2)),
-		BaseProposerReward:  sdk.NewDecWithPrec(1, 2).Add(sdk.NewDecWithPrec(int64(r.Intn(30)), 2)),
-		BonusProposerReward: sdk.NewDecWithPrec(1, 2).Add(sdk.NewDecWithPrec(int64(r.Intn(30)), 2)),
-	}
-	fmt.Printf("Selected randomly generated distribution parameters:\n\t%+v\n", distrGenesis)
-
-	genesis := GenesisState{
-		Accounts:     genesisAccounts,
-		AuthData:     authGenesis,
-		BankData:     bankGenesis,
-		StakingData:  stakingGenesis,
-		MintData:     mintGenesis,
-		DistrData:    distrGenesis,
-		SlashingData: slashingGenesis,
-		GovData:      govGenesis,
-	}
-
-	// Marshal genesis
-	appState, err := MakeCodec().MarshalJSON(genesis)
+	appState, err := MakeCodec().MarshalJSON(genesisState)
 	if err != nil {
 		panic(err)
 	}
@@ -266,39 +175,206 @@ func appStateRandomizedFn(r *rand.Rand, accs []simulation.Account, genesisTimest
 	return appState, accs, "simulation"
 }
 
-func appStateFn(r *rand.Rand, accs []simulation.Account, genesisTimestamp time.Time) (json.RawMessage, []simulation.Account, string) {
-	if genesisFile != "" {
-		return appStateFromGenesisFileFn(r, accs, genesisTimestamp)
-	}
-	return appStateRandomizedFn(r, accs, genesisTimestamp)
-}
-
 func testAndRunTxs(app *App) []simulation.WeightedOperation {
+	cdc := MakeCodec()
+	ap := make(simulation.AppParams)
+
+	if paramsFile != "" {
+		bz, err := ioutil.ReadFile(paramsFile)
+		if err != nil {
+			panic(err)
+		}
+
+		cdc.MustUnmarshalJSON(bz, &ap)
+	}
+
 	return []simulation.WeightedOperation{
-		{5, authsim.SimulateDeductFee(app.accountKeeper, app.feeCollectionKeeper)},
-		{100, banksim.SimulateMsgSend(app.accountKeeper, app.bankKeeper)},
-		{10, banksim.SimulateSingleInputMsgMultiSend(app.accountKeeper, app.bankKeeper)},
-		{50, distrsim.SimulateMsgSetWithdrawAddress(app.accountKeeper, app.distrKeeper)},
-		{50, distrsim.SimulateMsgWithdrawDelegatorReward(app.accountKeeper, app.distrKeeper)},
-		{50, distrsim.SimulateMsgWithdrawValidatorCommission(app.accountKeeper, app.distrKeeper)},
-		{5, govsim.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper)},
-		{100, govsim.SimulateMsgDeposit(app.govKeeper)},
-		{100, stakingsim.SimulateMsgCreateValidator(app.accountKeeper, app.stakingKeeper)},
-		{5, stakingsim.SimulateMsgEditValidator(app.stakingKeeper)},
-		{100, stakingsim.SimulateMsgDelegate(app.accountKeeper, app.stakingKeeper)},
-		{100, stakingsim.SimulateMsgUndelegate(app.accountKeeper, app.stakingKeeper)},
-		{100, stakingsim.SimulateMsgBeginRedelegate(app.accountKeeper, app.stakingKeeper)},
-		{100, slashingsim.SimulateMsgUnjail(app.slashingKeeper)},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightDeductFee, &v, nil,
+					func(_ *rand.Rand) {
+						v = 5
+					})
+				return v
+			}(nil),
+			authsim.SimulateDeductFee(app.accountKeeper, app.supplyKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgSend, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			bank.SimulateMsgSend(app.accountKeeper, app.bankKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightSingleInputMsgMultiSend, &v, nil,
+					func(_ *rand.Rand) {
+						v = 10
+					})
+				return v
+			}(nil),
+			bank.SimulateSingleInputMsgMultiSend(app.accountKeeper, app.bankKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgSetWithdrawAddress, &v, nil,
+					func(_ *rand.Rand) {
+						v = 50
+					})
+				return v
+			}(nil),
+			distrsim.SimulateMsgSetWithdrawAddress(app.accountKeeper, app.distrKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgWithdrawDelegationReward, &v, nil,
+					func(_ *rand.Rand) {
+						v = 50
+					})
+				return v
+			}(nil),
+			distrsim.SimulateMsgWithdrawDelegatorReward(app.accountKeeper, app.distrKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgWithdrawValidatorCommission, &v, nil,
+					func(_ *rand.Rand) {
+						v = 50
+					})
+				return v
+			}(nil),
+			distrsim.SimulateMsgWithdrawValidatorCommission(app.accountKeeper, app.distrKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightSubmitVotingSlashingTextProposal, &v, nil,
+					func(_ *rand.Rand) {
+						v = 5
+					})
+				return v
+			}(nil),
+			govsim.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, govsim.SimulateTextProposalContent),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightSubmitVotingSlashingCommunitySpendProposal, &v, nil,
+					func(_ *rand.Rand) {
+						v = 5
+					})
+				return v
+			}(nil),
+			govsim.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, distrsim.SimulateCommunityPoolSpendProposalContent(app.distrKeeper)),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightSubmitVotingSlashingParamChangeProposal, &v, nil,
+					func(_ *rand.Rand) {
+						v = 5
+					})
+				return v
+			}(nil),
+			govsim.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, paramsim.SimulateParamChangeProposalContent),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgDeposit, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			govsim.SimulateMsgDeposit(app.govKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgCreateValidator, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			stakingsim.SimulateMsgCreateValidator(app.accountKeeper, app.stakingKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgEditValidator, &v, nil,
+					func(_ *rand.Rand) {
+						v = 5
+					})
+				return v
+			}(nil),
+			stakingsim.SimulateMsgEditValidator(app.stakingKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgDelegate, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			stakingsim.SimulateMsgDelegate(app.accountKeeper, app.stakingKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgUndelegate, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			stakingsim.SimulateMsgUndelegate(app.accountKeeper, app.stakingKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgBeginRedelegate, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			stakingsim.SimulateMsgBeginRedelegate(app.accountKeeper, app.stakingKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(cdc, OpWeightMsgUnjail, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			slashingsim.SimulateMsgUnjail(app.slashingKeeper),
+		},
 	}
 }
 
 func invariants(app *App) []sdk.Invariant {
-	return []sdk.Invariant{
-		simulation.PeriodicInvariant(bank.NonnegativeBalanceInvariant(app.accountKeeper), period, 0),
-		simulation.PeriodicInvariant(distr.AllInvariants(app.distrKeeper, app.stakingKeeper), period, 0),
-		simulation.PeriodicInvariant(staking.AllInvariants(app.stakingKeeper, app.feeCollectionKeeper,
-			app.distrKeeper, app.accountKeeper), period, 0),
+	// TODO: fix PeriodicInvariants, it doesn't seem to call individual invariants for a period of 1
+	// Ref: https://github.com/cosmos/cosmos-sdk/issues/4631
+	if period == 1 {
+		return app.crisisKeeper.Invariants()
 	}
+	return simulation.PeriodicInvariants(app.crisisKeeper.Invariants(), period, 0)
 }
 
 // Pass this in as an option to use a dbStoreAdapter instead of an IAVLStore for simulation speed.
@@ -307,13 +383,13 @@ func fauxMerkleModeOpt(bapp *baseapp.BaseApp) {
 }
 
 // Profile with:
-// /usr/local/go/bin/go test -benchmem -run=^$ github.com/cosmos/cosmos-sdk/cmd/gaia/app -bench ^BenchmarkFullGaiaSimulation$ -SimulationCommit=true -cpuprofile cpu.out
-func BenchmarkFullGaiaSimulation(b *testing.B) {
-	// Setup Gaia application
+// /usr/local/go/bin/go test -benchmem -run=^$ github.com/cosmos/cosmos-sdk/GaiaApp -bench ^BenchmarkFullAppSimulation$ -SimulationCommit=true -cpuprofile cpu.out
+// TODO does this work
+func BenchmarkFullAppSimulation(b *testing.B) {
 	logger := log.NewNopLogger()
 
 	var db dbm.DB
-	dir, _ := ioutil.TempDir("", "goleveldb-gaia-sim")
+	dir, _ := ioutil.TempDir("", "goleveldb-app-sim")
 	db, _ = sdk.NewLevelDB("Simulation", dir)
 	defer func() {
 		db.Close()
@@ -323,7 +399,7 @@ func BenchmarkFullGaiaSimulation(b *testing.B) {
 
 	// Run randomized simulation
 	// TODO parameterize numbers, save for a later PR
-	_, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(b, app))
+	_, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(b, os.Stdout, app))
 	if err != nil {
 		fmt.Println(err)
 		b.Fail()
@@ -335,30 +411,33 @@ func BenchmarkFullGaiaSimulation(b *testing.B) {
 	}
 }
 
-func TestFullGaiaSimulation(t *testing.T) {
+func TestFullAppSimulation(t *testing.T) {
 	if !enabled {
-		t.Skip("Skipping Gaia simulation")
+		t.Skip("Skipping application simulation")
 	}
 
-	// Setup Gaia application
 	var logger log.Logger
+
 	if verbose {
 		logger = log.TestingLogger()
 	} else {
 		logger = log.NewNopLogger()
 	}
+
 	var db dbm.DB
-	dir, _ := ioutil.TempDir("", "goleveldb-gaia-sim")
+	dir, _ := ioutil.TempDir("", "goleveldb-app-sim")
 	db, _ = sdk.NewLevelDB("Simulation", dir)
+
 	defer func() {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
+
 	app := NewApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "kava", app.Name())
 
 	// Run randomized simulation
-	_, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(t, app))
+	_, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(t, os.Stdout, app))
 	if commit {
 		// for memdb:
 		// fmt.Println("Database Size", db.Stats()["database.size"])
@@ -366,33 +445,36 @@ func TestFullGaiaSimulation(t *testing.T) {
 		fmt.Println(db.Stats()["leveldb.stats"])
 		fmt.Println("GoLevelDB cached block size", db.Stats()["leveldb.cachedblock"])
 	}
+
 	require.Nil(t, err)
 }
 
-func TestGaiaImportExport(t *testing.T) {
+func TestAppImportExport(t *testing.T) {
 	if !enabled {
-		t.Skip("Skipping Gaia import/export simulation")
+		t.Skip("Skipping application import/export simulation")
 	}
 
-	// Setup Gaia application
 	var logger log.Logger
 	if verbose {
 		logger = log.TestingLogger()
 	} else {
 		logger = log.NewNopLogger()
 	}
+
 	var db dbm.DB
-	dir, _ := ioutil.TempDir("", "goleveldb-gaia-sim")
+	dir, _ := ioutil.TempDir("", "goleveldb-app-sim")
 	db, _ = sdk.NewLevelDB("Simulation", dir)
+
 	defer func() {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
+
 	app := NewApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "kava", app.Name())
 
 	// Run randomized simulation
-	_, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(t, app))
+	_, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(t, os.Stdout, app))
 
 	if commit {
 		// for memdb:
@@ -401,37 +483,43 @@ func TestGaiaImportExport(t *testing.T) {
 		fmt.Println(db.Stats()["leveldb.stats"])
 		fmt.Println("GoLevelDB cached block size", db.Stats()["leveldb.cachedblock"])
 	}
-	require.Nil(t, err)
 
+	require.Nil(t, err)
 	fmt.Printf("Exporting genesis...\n")
 
 	appState, _, err := app.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err)
 	fmt.Printf("Importing genesis...\n")
 
-	newDir, _ := ioutil.TempDir("", "goleveldb-gaia-sim-2")
+	newDir, _ := ioutil.TempDir("", "goleveldb-app-sim-2")
 	newDB, _ := sdk.NewLevelDB("Simulation-2", dir)
+
 	defer func() {
 		newDB.Close()
 		os.RemoveAll(newDir)
 	}()
+
 	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "kava", newApp.Name())
-	var genesisState GenesisState
+
+	var genesisState simapp.GenesisState
 	err = app.cdc.UnmarshalJSON(appState, &genesisState)
 	if err != nil {
 		panic(err)
 	}
+
 	ctxB := newApp.NewContext(true, abci.Header{})
-	newApp.initFromGenesisState(ctxB, genesisState)
+	newApp.mm.InitGenesis(ctxB, genesisState)
 
 	fmt.Printf("Comparing stores...\n")
 	ctxA := app.NewContext(true, abci.Header{})
+
 	type StoreKeysPrefixes struct {
 		A        sdk.StoreKey
 		B        sdk.StoreKey
 		Prefixes [][]byte
 	}
+
 	storeKeysPrefixes := []StoreKeysPrefixes{
 		{app.keyMain, newApp.keyMain, [][]byte{}},
 		{app.keyAccount, newApp.keyAccount, [][]byte{}},
@@ -440,10 +528,11 @@ func TestGaiaImportExport(t *testing.T) {
 		{app.keySlashing, newApp.keySlashing, [][]byte{}},
 		{app.keyMint, newApp.keyMint, [][]byte{}},
 		{app.keyDistr, newApp.keyDistr, [][]byte{}},
-		{app.keyFeeCollection, newApp.keyFeeCollection, [][]byte{}},
+		{app.keySupply, newApp.keySupply, [][]byte{}},
 		{app.keyParams, newApp.keyParams, [][]byte{}},
 		{app.keyGov, newApp.keyGov, [][]byte{}},
 	}
+
 	for _, storeKeysPrefix := range storeKeysPrefixes {
 		storeKeyA := storeKeysPrefix.A
 		storeKeyB := storeKeysPrefix.B
@@ -452,37 +541,36 @@ func TestGaiaImportExport(t *testing.T) {
 		storeB := ctxB.KVStore(storeKeyB)
 		kvA, kvB, count, equal := sdk.DiffKVStores(storeA, storeB, prefixes)
 		fmt.Printf("Compared %d key/value pairs between %s and %s\n", count, storeKeyA, storeKeyB)
-		require.True(t, equal,
-			"unequal stores: %s / %s:\nstore A %X => %X\nstore B %X => %X",
-			storeKeyA, storeKeyB, kvA.Key, kvA.Value, kvB.Key, kvB.Value,
-		)
+		require.True(t, equal, simapp.GetSimulationLog(storeKeyA.Name(), app.cdc, newApp.cdc, kvA, kvB))
 	}
 
 }
 
-func TestGaiaSimulationAfterImport(t *testing.T) {
+func TestAppSimulationAfterImport(t *testing.T) {
 	if !enabled {
-		t.Skip("Skipping Gaia simulation after import")
+		t.Skip("Skipping application simulation after import")
 	}
 
-	// Setup Gaia application
 	var logger log.Logger
 	if verbose {
 		logger = log.TestingLogger()
 	} else {
 		logger = log.NewNopLogger()
 	}
-	dir, _ := ioutil.TempDir("", "goleveldb-gaia-sim")
+
+	dir, _ := ioutil.TempDir("", "goleveldb-app-sim")
 	db, _ := sdk.NewLevelDB("Simulation", dir)
+
 	defer func() {
 		db.Close()
 		os.RemoveAll(dir)
 	}()
+
 	app := NewApp(logger, db, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "kava", app.Name())
 
 	// Run randomized simulation
-	stopEarly, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(t, app))
+	stopEarly, err := simulation.SimulateFromSeed(getSimulateFromSeedInput(t, os.Stdout, app))
 
 	if commit {
 		// for memdb:
@@ -491,6 +579,7 @@ func TestGaiaSimulationAfterImport(t *testing.T) {
 		fmt.Println(db.Stats()["leveldb.stats"])
 		fmt.Println("GoLevelDB cached block size", db.Stats()["leveldb.cachedblock"])
 	}
+
 	require.Nil(t, err)
 
 	if stopEarly {
@@ -508,12 +597,14 @@ func TestGaiaSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("Importing genesis...\n")
 
-	newDir, _ := ioutil.TempDir("", "goleveldb-gaia-sim-2")
+	newDir, _ := ioutil.TempDir("", "goleveldb-app-sim-2")
 	newDB, _ := sdk.NewLevelDB("Simulation-2", dir)
+
 	defer func() {
 		newDB.Close()
 		os.RemoveAll(newDir)
 	}()
+
 	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
 	require.Equal(t, "kava", newApp.Name())
 	newApp.InitChain(abci.RequestInitChain{
@@ -521,16 +612,15 @@ func TestGaiaSimulationAfterImport(t *testing.T) {
 	})
 
 	// Run randomized simulation on imported app
-	_, err = simulation.SimulateFromSeed(getSimulateFromSeedInput(t, newApp))
+	_, err = simulation.SimulateFromSeed(getSimulateFromSeedInput(t, os.Stdout, newApp))
 	require.Nil(t, err)
-
 }
 
 // TODO: Make another test for the fuzzer itself, which just has noOp txs
-// and doesn't depend on gaia
+// and doesn't depend on the application.
 func TestAppStateDeterminism(t *testing.T) {
 	if !enabled {
-		t.Skip("Skipping Gaia simulation")
+		t.Skip("Skipping application simulation")
 	}
 
 	numSeeds := 3
@@ -544,21 +634,65 @@ func TestAppStateDeterminism(t *testing.T) {
 			db := dbm.NewMemDB()
 			app := NewApp(logger, db, nil, true, 0)
 
-			// Run randomized simulation
+			// run randomized simulation
 			simulation.SimulateFromSeed(
-				t, app.BaseApp, appStateFn, seed,
+				t, os.Stdout, app.BaseApp, appStateFn, seed,
 				testAndRunTxs(app),
 				[]sdk.Invariant{},
 				50,
 				100,
 				true,
 				false,
+				false,
+				false,
+				app.ModuleAccountAddrs(),
 			)
+
 			appHash := app.LastCommitID().Hash
 			appHashList[j] = appHash
 		}
+
 		for k := 1; k < numTimesToRunPerSeed; k++ {
 			require.Equal(t, appHashList[0], appHashList[k], "appHash list: %v", appHashList)
 		}
+	}
+}
+
+func BenchmarkInvariants(b *testing.B) {
+	logger := log.NewNopLogger()
+	dir, _ := ioutil.TempDir("", "goleveldb-app-invariant-bench")
+	db, _ := sdk.NewLevelDB("simulation", dir)
+
+	defer func() {
+		db.Close()
+		os.RemoveAll(dir)
+	}()
+
+	app := NewApp(logger, db, nil, true, 0)
+
+	// 2. Run parameterized simulation (w/o invariants)
+	_, err := simulation.SimulateFromSeed(
+		b, ioutil.Discard, app.BaseApp, appStateFn, seed, testAndRunTxs(app),
+		[]sdk.Invariant{}, numBlocks, blockSize, commit, lean, onOperation, false,
+		app.ModuleAccountAddrs(),
+	)
+	if err != nil {
+		fmt.Println(err)
+		b.FailNow()
+	}
+
+	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight() + 1})
+
+	// 3. Benchmark each invariant separately
+	//
+	// NOTE: We use the crisis keeper as it has all the invariants registered with
+	// their respective metadata which makes it useful for testing/benchmarking.
+	for _, cr := range app.crisisKeeper.Routes() {
+		b.Run(fmt.Sprintf("%s/%s", cr.ModuleName, cr.Route), func(b *testing.B) {
+			if res, stop := cr.Invar(ctx); stop {
+				fmt.Printf("broken invariant at block %d of %d\n%s", ctx.BlockHeight()-1, numBlocks, res)
+				b.FailNow()
+			}
+		})
 	}
 }
