@@ -30,8 +30,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-// TODO investigate monkey patch import
-
 const (
 	appName          = "kava"
 	Bech32MainPrefix = "kava"
