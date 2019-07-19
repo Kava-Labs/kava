@@ -40,8 +40,8 @@ var (
 	DefaultCLIHome  = os.ExpandEnv("$HOME/.kvcli")
 	DefaultNodeHome = os.ExpandEnv("$HOME/.kvd")
 
-	// _ manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification
-	ModuleBasics module.BasicManager // TODO rename
+	// ModuleBasics manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification.
+	ModuleBasics module.BasicManager
 
 	// module account permissions
 	mAccPerms = map[string][]string{
@@ -306,7 +306,6 @@ func (app *App) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keyMain)
 }
 
-// TODO only used in sim test, needed?
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *App) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)

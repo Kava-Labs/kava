@@ -68,7 +68,7 @@ func main() {
 		client.NewCompletionCmd(rootCmd, true),
 	)
 
-	// Add flags and prefix all env exposed with GA
+	// Add flags and prefix all env exposed with KA
 	executor := cli.PrepareMainCmd(rootCmd, "KA", app.DefaultCLIHome)
 
 	err := executor.Execute()
@@ -134,21 +134,20 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 }
 
 // registerRoutes registers the routes from the different modules for the LCD.
-// NOTE: details on the routes added for each module are in the module documentation
-// NOTE: If making updates here you also need to update the test helper in client/lcd/test_helper.go
 func registerRoutes(rs *lcd.RestServer) {
 	client.RegisterRoutes(rs.CliCtx, rs.Mux)
 	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
 	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
 }
 
+// initConfig reads in and sets options from a config file (if one exists)
 func initConfig(cmd *cobra.Command) error {
 	home, err := cmd.PersistentFlags().GetString(cli.HomeFlag)
 	if err != nil {
 		return err
 	}
-
 	cfgFile := path.Join(home, "config", "config.toml")
+
 	if _, err := os.Stat(cfgFile); err == nil {
 		viper.SetConfigFile(cfgFile)
 
