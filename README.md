@@ -38,7 +38,7 @@ make install
 #### Create a Wallet
 
 ```
-kvd init --chain-id=kava-testnet-1.1 <your-moniker>
+kvd init --chain-id=kava-testnet-2000 <your-moniker>
 kvcli keys add <your_wallet_name>
 ```
 
