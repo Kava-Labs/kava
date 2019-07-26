@@ -1,10 +1,8 @@
 #!/usr/bin/make -f
 
-PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
-VERSION := 0.34.7
+VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
-SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 
 export GO111MODULE = on
 
@@ -63,7 +61,7 @@ ldflags := $(strip $(ldflags))
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
 
-all: install lint check
+all: install
 
 build: go.sum
 ifeq ($(OS),Windows_NT)
@@ -77,29 +75,18 @@ endif
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
-install: go.sum check-ledger
+install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
 
 ########################################
 ### Tools & dependencies
 
-go-mod-cache: go.sum
-	@echo "--> Download go modules to local cache"
-	@go mod download
-
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
 	@go mod verify
 
-draw-deps:
-	@# requires brew install graphviz or apt-get install graphviz
-	go get github.com/RobotsAndPencils/goviz
-	@goviz -i ./cmd/gaiad -d 2 | dot -Tpng -o dependency-graph.png
-
 clean:
 	rm -rf build/
 
-.PHONY: all build-linux install \
-	go-mod-cache draw-deps clean build \
-	check-ledger
+.PHONY: all build-linux install clean build
