@@ -92,7 +92,7 @@ type App struct {
 	keyParams   *sdk.KVStoreKey
 	tkeyParams  *sdk.TransientStoreKey
 
-	// Manage getting and setting accounts
+	// keepers from all the modules
 	accountKeeper  auth.AccountKeeper
 	bankKeeper     bank.Keeper
 	supplyKeeper   supply.Keeper
