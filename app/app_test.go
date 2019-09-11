@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
+	db "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -22,6 +22,16 @@ func TestExport(t *testing.T) {
 	newApp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
 	_, _, err := newApp.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
+}
+
+// ensure that black listed addresses are properly set in bank keeper
+func TestBlackListedAddrs(t *testing.T) {
+	db := db.NewMemDB()
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+
+	for acc := range mAccPerms {
+		require.True(t, app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))
+	}
 }
 
 func setGenesis(app *App) error {
