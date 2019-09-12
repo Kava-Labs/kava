@@ -1,6 +1,6 @@
 module github.com/kava-labs/kava
 
-go 1.12
+go 1.13
 
 require (
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20190910181238-84627faf79eb
