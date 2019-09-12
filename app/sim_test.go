@@ -343,7 +343,7 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, fauxMerkleModeOpt)
-	require.Equal(t, "GaiaApp", app.Name())
+	require.Equal(t, "kava", app.Name())
 
 	// Run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
@@ -397,7 +397,7 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, fauxMerkleModeOpt)
-	require.Equal(t, "SimApp", app.Name())
+	require.Equal(t, "kava", app.Name())
 
 	// Run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
@@ -441,7 +441,7 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, simapp.FlagPeriodValue, fauxMerkleModeOpt)
-	require.Equal(t, "SimApp", newApp.Name())
+	require.Equal(t, "kava", newApp.Name())
 
 	var genesisState simapp.GenesisState
 	err = app.cdc.UnmarshalJSON(appState, &genesisState)
@@ -513,7 +513,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, fauxMerkleModeOpt)
-	require.Equal(t, "GaiaApp", app.Name())
+	require.Equal(t, "kava", app.Name())
 
 	// Run randomized simulation
 	// Run randomized simulation
@@ -567,7 +567,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, 0, fauxMerkleModeOpt)
-	require.Equal(t, "GaiaApp", newApp.Name())
+	require.Equal(t, "kava", newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
 		AppStateBytes: appState,

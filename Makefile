@@ -83,10 +83,16 @@ install: go.sum
 ### Tools & dependencies
 
 go.sum: go.mod
-	@echo "--> Ensure dependencies have not been modified"
+	@echo "--> Ensuring dependencies have not been modified"
 	@go mod verify
 
 clean:
 	rm -rf build/
 
-.PHONY: all build-linux install clean build
+########################################
+### Testing
+
+sim:
+	@go test -mod=readonly ./app -run TestFullAppSimulation -Enabled=true -NumBlocks=100 -BlockSize=200 -Commit=true -Seed=99 -Period=5 -v -timeout 24h
+
+.PHONY: all build-linux install clean build sim
