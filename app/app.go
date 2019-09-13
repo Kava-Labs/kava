@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -41,7 +40,6 @@ var (
 
 	// ModuleBasics manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification.
 	ModuleBasics = module.NewBasicManager(
-		genaccounts.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -206,7 +204,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
-		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
@@ -228,7 +225,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 
 	// genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.
-	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, distr.ModuleName,
+	app.mm.SetOrderInitGenesis(auth.ModuleName, distr.ModuleName,
 		staking.ModuleName, auth.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName)
 
@@ -240,7 +237,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// NOTE: This is not required for apps that don't use the simulator for fuzz testing
 	// transactions.
 	app.sm = module.NewSimulationManager(
-		genaccounts.NewAppModule(app.accountKeeper),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
