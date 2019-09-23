@@ -14,7 +14,7 @@ import (
 )
 
 // Assert ValidatorVestingAccount implements the vestexported.VestingAccount interface
-// Assert
+// Assert ValidatorVestingAccount implements the authexported.GenesisAccount interface
 var _ vestexported.VestingAccount = (*ValidatorVestingAccount)(nil)
 var _ authexported.GenesisAccount = (*ValidatorVestingAccount)(nil)
 
@@ -25,8 +25,10 @@ func init() {
 
 // ValidatorVestingAccount implements the VestingAccount interface. It
 // conditionally vests by unlocking coins during each specified period, provided
-// that the validator address has validated at least **threshold** blocks during
-// the previous vesting period. If the validator has not vested at least the threshold,
+// that the validator address has validated at least **SigningThreshold** blocks during
+// the previous vesting period. The signing threshold takes values 0 to 100 are represents the
+// percentage of blocks that must be signed each period for the vesting to complete successfully.
+// If the validator has not signed at least the threshold percentage of blocks during a period,
 // the coins are returned to the return address, or burned if the return address is null.
 type ValidatorVestingAccount struct {
 	*vesting.PeriodicVestingAccount
@@ -35,7 +37,7 @@ type ValidatorVestingAccount struct {
 	SigningThreshold       int64           `json:"signing_threshold" yaml:"signing_threshold"`
 	MissingSignCount       []int64         `json:"missing_sign_count" yaml:"missing_sign_count"`
 	VestingPeriodProgress  []int           `json:"vesting_period_progress" yaml:"vesting_period_progress"`
-	DebtAfterFailedVesting sdk.Coins
+	DebtAfterFailedVesting sdk.Coins       `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
 }
 
 // NewValidatorVestingAccountRaw creates a new ValidatorVestingAccount object from BaseVestingAccount

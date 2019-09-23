@@ -1,15 +1,8 @@
-package validatorvesting
+# Begin Block
 
-import (
-	"bytes"
-	"time"
+At each `BeginBlock`, all validator vesting accounts are iterated over to update the status of the current vesting period. Note that the address of each account is retreived by iterating over the keys in the `validator-vesting` store, while the account objects are stored and accessed using the `auth` module's `AccountKeeper`. For each account, the block count is incremented, the missed sign count is incremented if the validator did not sign the block or was not found in the validator set. By comparing the blocktime of the current `BeginBlock`, with the value of `previousBlockTime` stored in the `validator-vesting` store, it is determined if the end of the current period has been reached. If the current period has ended, the `VestingPeriodProgress` field is updated to reflect if the coins for the ending period successfully vested or not. After updates are made regarding the status of the current vesting period, any outstanding debt on the account is attempted to be collected. If there is enough `SpendableBalance` on the account to cover the debt, coins are sent to the `ReturnAdress` or burned. If there is not enough `SpendableBalance` to cover the debt, all delegations of the account are `Unbonded`. Once those unbonding events reach maturity, the coins freed from the undonding will be used to cover the debt.
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/keeper"
-	abci "github.com/tendermint/tendermint/abci/types"
-)
-
-// BeginBlocker updates the vote signing information for each validator vesting account, updates account when period changes, and updates the previousBlockTime value in the store.
+```go
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
 	previousBlockTime := time.Time{}
 	if ctx.BlockHeight() > 1 {
@@ -47,28 +40,5 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	}
 	k.SetPreviousBlockTime(ctx, currentBlockTime)
 }
+```
 
-// VoteInfos an array of abci.VoteInfo
-type VoteInfos []abci.VoteInfo
-
-// ContainsValidatorAddress returns true if the input validator address is found in the VoteInfos array
-func (vis VoteInfos) ContainsValidatorAddress(consAddress sdk.ConsAddress) bool {
-	for _, vi := range vis {
-		votingAddress := sdk.ConsAddress(vi.Validator.Address)
-		if bytes.Equal(consAddress, votingAddress) {
-			return true
-		}
-	}
-	return false
-}
-
-// MustFilterByValidatorAddress returns the VoteInfo that has a validator address matching the input validator address
-func (vis VoteInfos) MustFilterByValidatorAddress(consAddress sdk.ConsAddress) abci.VoteInfo {
-	for i, vi := range vis {
-		votingAddress := sdk.ConsAddress(vi.Validator.Address)
-		if bytes.Equal(consAddress, votingAddress) {
-			return vis[i]
-		}
-	}
-	panic("validator address not found")
-}
