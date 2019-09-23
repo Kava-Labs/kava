@@ -12,7 +12,14 @@ const (
 )
 
 var (
-	NewGenesisState = types.NewGenesisState
+	NewValidatorVestingAccountRaw = types.NewValidatorVestingAccountRaw
+	NewValidatorVestingAccount    = types.NewValidatorVestingAccount
+	NewGenesisState               = types.NewGenesisState
+	DefaultGenesisState           = types.DefaultGenesisState
+	RegisterCodec                 = types.RegisterCodec
+	ValidatorVestingAccountPrefix = types.ValidatorVestingAccountPrefix
+	ValidatorVestingAccountKey    = types.ValidatorVestingAccountKey
+	NewKeeper                     = keeper.NewKeeper
 )
 
 type (
