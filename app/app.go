@@ -110,7 +110,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
 	var app = &App{
 		BaseApp:        bApp,
@@ -151,7 +151,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
 		keys[staking.StoreKey],
-		tkeys[staking.TStoreKey],
 		app.supplyKeeper,
 		stakingSubspace,
 		staking.DefaultCodespace)
