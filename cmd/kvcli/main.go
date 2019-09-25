@@ -34,6 +34,7 @@ func main() {
 	cdc := app.MakeCodec()
 
 	// Read in the configuration file for the sdk
+	// TODO check there is no issue with `kvcli keys parse`
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	config.Seal()
@@ -115,6 +116,7 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		client.LineBreak,
 		authcmd.GetBroadcastCommand(cdc),
 		authcmd.GetEncodeCommand(cdc),
+		authcmd.GetDecodeCommand(cdc),
 		client.LineBreak,
 	)
 

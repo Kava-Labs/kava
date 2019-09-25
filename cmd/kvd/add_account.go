@@ -104,24 +104,15 @@ func AddGenesisAccountCmd(
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
 
-			// authGenState := auth.GetGenesisStateFromAppState(cdc, appState)
-			// TODO replace 2 following lines with above once sdk updated
-			var authGenState auth.GenesisState
-			cdc.MustUnmarshalJSON(appState[auth.ModuleName], &authGenState)
-
-			// if authGenState.Accounts.Contains(addr) {
-			// TODO replace loop below with above once sdk is updated
-			for _, acc := range authGenState.Accounts {
-				if acc.GetAddress().Equals(addr) {
-					return fmt.Errorf("cannot add account at existing address %s", addr)
-				}
+			authGenState := auth.GetGenesisStateFromAppState(cdc, appState)
+			if authGenState.Accounts.Contains(addr) {
+				return fmt.Errorf("cannot add account at existing address %s", addr)
 			}
 
 			// Add the new account to the set of genesis accounts and sanitize the
 			// accounts afterwards.
 			authGenState.Accounts = append(authGenState.Accounts, genAccount)
-			// TODO uncomment following line once merged into master
-			// authGenState.Accounts = auth.SanitizeGenesisAccounts(authGenState.Accounts)
+			authGenState.Accounts = auth.SanitizeGenesisAccounts(authGenState.Accounts)
 
 			authGenStateBz, err := cdc.MarshalJSON(authGenState)
 			if err != nil {
