@@ -12,7 +12,7 @@ In AWS batch you define:
 
 Then to run stuff you create "jobs" and submit them to a job queue.
 
-The number of machine running auto-scales to match the number of jobs. When there are no jobs there are no machines, so you don't pay for anything.
+The number of machines running auto-scales to match the number of jobs. When there are no jobs there are no machines, so you don't pay for anything.
 
 Jobs are defined as a docker image (assumed hosted on dockerhub) and a command string.  
 >e.g. `kava/kava-sim:version1`, `go test ./app`
