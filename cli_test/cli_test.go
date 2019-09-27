@@ -281,7 +281,7 @@ func TestGaiaCLISend(t *testing.T) {
 	f.Cleanup()
 }
 
-// TODO needed? not in gaia tests
+// Note: this was removed from gaia due to update in sdk PR#4062 but is now working
 func TestGaiaCLIConfirmTx(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
@@ -1307,9 +1307,7 @@ func TestGaiadAddGenesisAccount(t *testing.T) {
 
 	cdc := app.MakeCodec()
 
-	// TODO maybe replace once sdk updated
-	var authGenState auth.GenesisState
-	cdc.MustUnmarshalJSON(genesisState[auth.ModuleName], &authGenState)
+	authGenState := auth.GetGenesisStateFromAppState(cdc, genesisState)
 	accounts := authGenState.Accounts
 
 	require.Equal(t, accounts[0].GetAddress(), f.KeyAddress(keyFoo))

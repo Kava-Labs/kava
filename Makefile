@@ -92,7 +92,21 @@ clean:
 ########################################
 ### Testing
 
-sim:
-	@go test -mod=readonly ./app -run TestFullAppSimulation -Enabled=true -NumBlocks=100 -BlockSize=200 -Commit=true -Seed=99 -Period=5 -v -timeout 24h
+# TODO tidy up cli tests to use same -Enable flag as simulations, or the other way round
+# TODO -mod=readonly ?
+# build dependency needed for cli tests
+test-all: build
+	# basic app tests
+	@go test ./app -v
+	# cli tests
+	@go test ./cli_test -tags cli_test -v -p 4
+	# basic simulation (seed "2" happens to not unbond all validators before reaching 100 blocks)
+	@go test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
+	# other sim tests
+	@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
+	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
+	@# AppStateDeterminism does use Seed flag
+	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -v -timeout 24h
 
-.PHONY: all build-linux install clean build sim
+
+.PHONY: all build-linux install clean build test-all
