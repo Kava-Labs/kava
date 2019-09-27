@@ -222,9 +222,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
-	// genutils must occur after staking so that pools are properly
+	// Note: genutils must occur after staking so that pools are properly
 	// initialized with tokens from genesis accounts.
-	// TODO should auth be first?
+	//
+	// Note: Changing the order of the auth module and modules that use module accounts
+	// results in subtle changes to the way accounts are loaded from genesis.
 	app.mm.SetOrderInitGenesis(
 		auth.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
