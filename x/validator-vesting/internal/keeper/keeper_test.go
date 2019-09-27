@@ -1,14 +1,7 @@
 package keeper
 
-// TODO
-// 1. Test that a signed block by the ValidatorAddress increases the blocks counter, but not the missed blocks counter
-// 2. Test that an unsigned block increass both the blocks counter and the missed blocks counter
-// 3. Test that the previous block time gets updated at the end of each begin block
-// 4. Test that the block before a pivital block doesn't reset the period
-// 5. Test that a pivotal block results in coins being vested successfully if the treshold is met
-// 6. Test that a pivotal block results in HandleVestingDebt
-
 import (
+	"bytes"
 	"testing"
 	"time"
 
@@ -42,6 +35,28 @@ func TestGetSetValidatorVestingAccounts(t *testing.T) {
 	// require that GetAllAccountKeys returns one account
 	keys := keeper.GetAllAccountKeys(ctx)
 	require.Equal(t, 1, len(keys))
+	for _, k := range keys {
+		require.NotPanics(t, func() { keeper.GetAccountFromAuthKeeper(ctx, k[1:]) })
+	}
+
+	vvAccounts := ValidatorVestingTestAccounts(10)
+	for _, a := range vvAccounts {
+		ak.SetAccount(ctx, a)
+		keeper.SetValidatorVestingAccountKey(ctx, a.Address)
+	}
+
+	keys = keeper.GetAllAccountKeys(ctx)
+	require.Equal(t, 10, len(keys))
+
+	var ikeys [][]byte
+	keeper.IterateAccountKeys(ctx, func(accountKey []byte) bool {
+		if bytes.Equal(accountKey, keys[0]) {
+			ikeys = append(ikeys, accountKey)
+			return true
+		}
+		return false
+	})
+	require.Equal(t, 1, len(ikeys))
 }
 
 func TestGetSetPreviousBlock(t *testing.T) {
@@ -58,6 +73,26 @@ func TestGetSetPreviousBlock(t *testing.T) {
 	bpt := keeper.GetPreviousBlockTime(ctx)
 	require.Equal(t, now, bpt)
 
+}
+
+func TestGetEndTImes(t *testing.T) {
+	ctx, ak, _, _, _, keeper := CreateTestInput(t, false, 1000)
+
+	now := tmtime.Now()
+
+	vva := ValidatorVestingDelegatorTestAccount(now)
+	ak.SetAccount(ctx, vva)
+	keeper.SetValidatorVestingAccountKey(ctx, vva.Address)
+
+	expectedEndTimes := []int64{
+		now.Add(12 * time.Hour).Unix(),
+		now.Add(18 * time.Hour).Unix(),
+		now.Add(24 * time.Hour).Unix(),
+	}
+
+	endTimes := keeper.GetPeriodEndTimes(ctx, vva.Address)
+
+	require.Equal(t, expectedEndTimes, endTimes)
 }
 
 func TestSetMissingSignCount(t *testing.T) {
@@ -91,7 +126,7 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	ak.SetAccount(ctx, vva)
 
 	// require all vesting period tracking variables to be zero after validator vesting account is initialized
-	require.Equal(t, []int{0, 0, 0}, vva.VestingPeriodProgress)
+	require.Equal(t, [][]int{{0, 0}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
 
 	// period 0 passes with all blocks signed
 	vva.MissingSignCount[0] = 0
@@ -103,13 +138,31 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	// require that debt is zero
 	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
 	// require that the first vesting progress variable is 1
-	require.Equal(t, []int{1, 0, 0}, vva.VestingPeriodProgress)
+	require.Equal(t, [][]int{{1, 1}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
 
 	// require that the missing block counter has reset
 	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
 
 	vva = ValidatorVestingTestAccount()
-	// Add the validator vesting account to the auth store
+	ak.SetAccount(ctx, vva)
+	// period 0 passes with no blocks signed
+	// this is an edge case that shouldn't happen,
+	// the vest is considered successful in this case.
+	vva.MissingSignCount[0] = 0
+	vva.MissingSignCount[1] = 0
+	ak.SetAccount(ctx, vva)
+	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
+	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
+	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
+	// require that debt is zero
+	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
+	// require that the first vesting progress variable is 1
+	require.Equal(t, [][]int{{1, 1}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
+
+	// require that the missing block counter has reset
+	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
+
+	vva = ValidatorVestingTestAccount()
 	ak.SetAccount(ctx, vva)
 	// period 0 passes with 50% of blocks signed (below threshold)
 	vva.MissingSignCount[0] = 50
@@ -119,14 +172,16 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// require that period 1 coins have become debt
 	require.Equal(t, sdk.NewCoins(sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)), vva.DebtAfterFailedVesting)
-	// require that the first vesting progress variable is 0
-	require.Equal(t, []int{0, 0, 0}, vva.VestingPeriodProgress)
+	// require that the first vesting progress variable is {1,0}
+	require.Equal(t, [][]int{{1, 0}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
 	// require that the missing block counter has reset
 	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
 }
 
-func TestHandleVestingDebtForcedUnbond(t *testing.T) {
-	ctx, ak, _, stakingKeeper, _, keeper := CreateTestInput(t, false, 1000)
+func TestHandleVestingDebtNoDebt(t *testing.T) {
+	// ctx, ak, bk, stakingKeeper, supplyKeeper, keeper := CreateTestInput(t, false, 1000)
+
+	ctx, ak, _, _, _, keeper := CreateTestInput(t, false, 1000)
 
 	vva := ValidatorVestingTestAccount()
 	// Delegate all coins
@@ -144,19 +199,31 @@ func TestHandleVestingDebtForcedUnbond(t *testing.T) {
 	require.Nil(t, vva.DelegatedFree)
 	require.Nil(t, vva.GetCoins())
 
+}
+
+func TestHandleVestingDebtForcedUnbond(t *testing.T) {
+	// ctx, ak, bk, stakingKeeper, supplyKeeper, keeper := CreateTestInput(t, false, 1000)
+
+	ctx, ak, _, stakingKeeper, _, keeper := CreateTestInput(t, false, 1000)
+	now := tmtime.Now()
+
 	// Create validators and a delegation from the validator vesting account
 	CreateValidators(ctx, stakingKeeper, []int64{5, 5, 5})
 
-	vva = ValidatorVestingDelegatorTestAccount(now)
+	vva := ValidatorVestingDelegatorTestAccount(now)
 	ak.SetAccount(ctx, vva)
-	delTokens := sdk.TokensFromConsensusPower(30)
-	val1, found := stakingKeeper.GetValidator(ctx, valOpAddr1)
+	delTokens := sdk.TokensFromConsensusPower(60)
+	val1, found := stakingKeeper.GetValidator(ctx, ValOpAddr1)
 	require.True(t, found)
 
 	_, err := stakingKeeper.Delegate(ctx, vva.Address, delTokens, sdk.Unbonded, val1, true)
 	require.NoError(t, err)
 
 	_ = staking.EndBlocker(ctx, stakingKeeper)
+
+	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
+	// t.Log(vva.GetDelegatedFree())
+	t.Log(vva.GetDelegatedVesting())
 
 	// require that there exists one delegation
 	var delegations int
@@ -173,12 +240,13 @@ func TestHandleVestingDebtForcedUnbond(t *testing.T) {
 	ak.SetAccount(ctx, vva)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
+
 	// require that period 0 coins have become debt
 	require.Equal(t, sdk.NewCoins(sdk.NewInt64Coin(stakeDenom, 30000000)), vva.DebtAfterFailedVesting)
 
 	// when there are no additional liquid coins in the account, require that there are no delegations after HandleVestingDebt (ie the account has been force unbonded)
 	keeper.HandleVestingDebt(ctx, vva.Address, now.Add(12*time.Hour))
-	// _ = staking.EndBlocker(ctx, stakingKeeper)
+
 	delegations = 0
 	stakingKeeper.IterateDelegations(ctx, vva.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
 		delegations++
@@ -195,16 +263,13 @@ func TestHandleVestingDebtBurn(t *testing.T) {
 	vva := ValidatorVestingDelegatorTestAccount(now)
 	ak.SetAccount(ctx, vva)
 	delTokens := sdk.TokensFromConsensusPower(30)
-	val1, found := stakingKeeper.GetValidator(ctx, valOpAddr1)
+	val1, found := stakingKeeper.GetValidator(ctx, ValOpAddr1)
 	require.True(t, found)
+	// delegate half the tokens, which will make the period 1 coins that fail to vest immediately cover the debt.
 	_, err := stakingKeeper.Delegate(ctx, vva.Address, delTokens, sdk.Unbonded, val1, true)
 	require.NoError(t, err)
 
 	_ = staking.EndBlocker(ctx, stakingKeeper)
-
-	// receive some coins so that the debt will be covered by liquid balance
-	recvAmt := sdk.Coins{sdk.NewInt64Coin(stakeDenom, 30000000)}
-	vva.SetCoins(vva.GetCoins().Add(recvAmt))
 
 	// period 0 passes and the threshold is not met
 	vva.MissingSignCount[0] = 50
@@ -242,16 +307,12 @@ func TestHandleVestingDebtReturn(t *testing.T) {
 	vva.ReturnAddress = TestAddrs[2]
 	ak.SetAccount(ctx, vva)
 	delTokens := sdk.TokensFromConsensusPower(30)
-	val1, found := stakingKeeper.GetValidator(ctx, valOpAddr1)
+	val1, found := stakingKeeper.GetValidator(ctx, ValOpAddr1)
 	require.True(t, found)
 	_, err := stakingKeeper.Delegate(ctx, vva.Address, delTokens, sdk.Unbonded, val1, true)
 	require.NoError(t, err)
 
 	_ = staking.EndBlocker(ctx, stakingKeeper)
-
-	// receive some coins so that the debt will be covered by liquid balance
-	recvAmt := sdk.Coins{sdk.NewInt64Coin(stakeDenom, 30000000)}
-	vva.SetCoins(vva.GetCoins().Add(recvAmt))
 
 	// period 0 passes and the threshold is not met
 	vva.MissingSignCount[0] = 50

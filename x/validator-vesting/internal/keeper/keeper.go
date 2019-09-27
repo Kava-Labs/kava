@@ -11,11 +11,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-var (
-	// BlocktimeKey key for the time of the previous block
-	BlocktimeKey = []byte{0x00}
-)
-
 // Keeper of the validatorvesting store
 type Keeper struct {
 	storeKey      sdk.StoreKey
@@ -47,7 +42,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // GetPreviousBlockTime get the blocktime for the previous block
 func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(BlocktimeKey)
+	b := store.Get(types.BlocktimeKey)
 	if b == nil {
 		panic("Previous block time not set")
 	}
@@ -59,78 +54,7 @@ func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time) {
 func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(blockTime)
-	store.Set(BlocktimeKey, b)
-}
-
-// UpdateMissingSignCount increments the count of blocks missed during the current period
-func (k Keeper) UpdateMissingSignCount(ctx sdk.Context, addr sdk.AccAddress, missedBlock bool) {
-	vv := k.GetAccountFromAuthKeeper(ctx, addr)
-	if missedBlock {
-		vv.MissingSignCount[0]++
-	}
-	vv.MissingSignCount[1]++
-	k.ak.SetAccount(ctx, vv)
-}
-
-// UpdateVestedCoinsProgress sets the VestingPeriodProgress variable (0 = coins did not vest for the period, 1 = coins did vest for the period) for the given address and period. If coins did not vest, those coins are added to DebtAfterFailedVesting. Finally, MissingSignCount is reset to [0,0], representing that the next period has started and no blocks have been missed.
-func (k Keeper) UpdateVestedCoinsProgress(ctx sdk.Context, addr sdk.AccAddress, period int) {
-	vv := k.GetAccountFromAuthKeeper(ctx, addr)
-
-	threshold := sdk.NewDec(vv.SigningThreshold)
-	blocksMissed := sdk.NewDec(vv.MissingSignCount[0])
-	blockCount := sdk.NewDec(vv.MissingSignCount[1])
-	blocksSigned := blockCount.Sub(blocksMissed)
-	percentageBlocksSigned := blocksSigned.Quo(blockCount).Mul(sdk.NewDec(100))
-	successfulVest := percentageBlocksSigned.GTE(threshold)
-	if successfulVest {
-		vv.VestingPeriodProgress[period] = 1
-	} else {
-		vv.VestingPeriodProgress[period] = 0
-		notVestedTokens := vv.VestingPeriods[period].VestingAmount
-		// add the tokens that did not vest to DebtAfterFailedVesting
-		vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(notVestedTokens)
-	}
-	// reset the number of missed blocks and total number of blocks in the period to zero
-	vv.MissingSignCount = []int64{0, 0}
-	k.ak.SetAccount(ctx, vv)
-}
-
-// HandleVestingDebt removes coins after a vesting period in which the vesting
-// threshold was not met. Sends/Burns tokens if there is enough spendable tokens,
-// otherwise unbonds all existing tokens.
-func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTime time.Time) {
-	vv := k.GetAccountFromAuthKeeper(ctx, addr)
-	remainingDebt := !vv.DebtAfterFailedVesting.IsZero()
-	if remainingDebt {
-		spendableCoins := vv.SpendableCoins(blockTime)
-		if spendableCoins.IsAllGTE(vv.DebtAfterFailedVesting) {
-			if vv.ReturnAddress != nil {
-				err := k.bk.SendCoins(ctx, addr, vv.ReturnAddress, vv.DebtAfterFailedVesting)
-				if err != nil {
-					panic(err)
-				}
-			} else {
-				err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, vv.DebtAfterFailedVesting)
-				if err != nil {
-					panic(err)
-				}
-				err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, vv.DebtAfterFailedVesting)
-				if err != nil {
-					panic(err)
-				}
-			}
-			vv.DebtAfterFailedVesting = sdk.NewCoins()
-			k.ak.SetAccount(ctx, vv)
-		} else {
-			// iterate over all delegations made from the validator vesting account and undelegate
-			// note that we cannot safely undelegate only an amount of shares that covers the debt,
-			// because the value of those shares could change if a validator gets slashed
-			k.stakingKeeper.IterateDelegations(ctx, vv.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
-				k.stakingKeeper.Undelegate(ctx, d.GetDelegatorAddr(), d.GetValidatorAddr(), d.GetShares())
-				return false
-			})
-		}
-	}
+	store.Set(types.BlocktimeKey, b)
 }
 
 // SetValidatorVestingAccountKey stores the account key in the store. This is useful for when we want to iterate over all ValidatorVestingAcounts, so we can avoid iterating over any other accounts stored in the auth keeper.
@@ -173,6 +97,84 @@ func (k Keeper) GetAccountFromAuthKeeper(ctx sdk.Context, addr sdk.AccAddress) *
 		return vv
 	}
 	panic("validator vesting account not found")
+}
+
+// UpdateMissingSignCount increments the count of blocks missed during the current period
+func (k Keeper) UpdateMissingSignCount(ctx sdk.Context, addr sdk.AccAddress, missedBlock bool) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	if missedBlock {
+		vv.MissingSignCount[0]++
+	}
+	vv.MissingSignCount[1]++
+	k.ak.SetAccount(ctx, vv)
+}
+
+// UpdateVestedCoinsProgress sets the VestingPeriodProgress variable (0 = coins did not vest for the period, 1 = coins did vest for the period) for the given address and period. If coins did not vest, those coins are added to DebtAfterFailedVesting. Finally, MissingSignCount is reset to [0,0], representing that the next period has started and no blocks have been missed.
+func (k Keeper) UpdateVestedCoinsProgress(ctx sdk.Context, addr sdk.AccAddress, period int) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+
+	threshold := sdk.NewDec(vv.SigningThreshold)
+	blocksMissed := sdk.NewDec(vv.MissingSignCount[0])
+	blockCount := sdk.NewDec(vv.MissingSignCount[1])
+	var successfulVest bool
+	if blockCount.IsZero() {
+		successfulVest = true
+	} else {
+		blocksSigned := blockCount.Sub(blocksMissed)
+		percentageBlocksSigned := blocksSigned.Quo(blockCount).Mul(sdk.NewDec(100))
+		successfulVest = percentageBlocksSigned.GTE(threshold)
+	}
+
+	if successfulVest {
+		vv.VestingPeriodProgress[period][1] = 1
+	} else {
+		vv.VestingPeriodProgress[period][1] = 0
+		notVestedTokens := vv.VestingPeriods[period].VestingAmount
+		// add the tokens that did not vest to DebtAfterFailedVesting
+		vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(notVestedTokens)
+	}
+	vv.VestingPeriodProgress[period][0] = 1
+	// reset the number of missed blocks and total number of blocks in the period to zero
+	vv.MissingSignCount = []int64{0, 0}
+	k.ak.SetAccount(ctx, vv)
+}
+
+// HandleVestingDebt removes coins after a vesting period in which the vesting
+// threshold was not met. Sends/Burns tokens if there is enough spendable tokens,
+// otherwise unbonds all existing tokens.
+func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTime time.Time) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	remainingDebt := !vv.DebtAfterFailedVesting.IsZero()
+	if remainingDebt {
+		spendableCoins := vv.SpendableCoins(blockTime)
+		if spendableCoins.IsAllGTE(vv.DebtAfterFailedVesting) {
+			if vv.ReturnAddress != nil {
+				err := k.bk.SendCoins(ctx, addr, vv.ReturnAddress, vv.DebtAfterFailedVesting)
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, vv.DebtAfterFailedVesting)
+				if err != nil {
+					panic(err)
+				}
+				err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, vv.DebtAfterFailedVesting)
+				if err != nil {
+					panic(err)
+				}
+			}
+			vv.DebtAfterFailedVesting = sdk.NewCoins()
+			k.ak.SetAccount(ctx, vv)
+		} else {
+			// iterate over all delegations made from the validator vesting account and undelegate
+			// note that we cannot safely undelegate only an amount of shares that covers the debt,
+			// because the value of those shares could change if a validator gets slashed.
+			k.stakingKeeper.IterateDelegations(ctx, vv.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
+				k.stakingKeeper.Undelegate(ctx, d.GetDelegatorAddr(), d.GetValidatorAddr(), d.GetShares())
+				return false
+			})
+		}
+	}
 }
 
 // GetPeriodEndTimes returns an array of the times when each period ends

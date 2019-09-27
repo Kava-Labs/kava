@@ -36,7 +36,7 @@ type ValidatorVestingAccount struct {
 	ReturnAddress          sdk.AccAddress  `json:"return_address" yaml:"return_address"`
 	SigningThreshold       int64           `json:"signing_threshold" yaml:"signing_threshold"`
 	MissingSignCount       []int64         `json:"missing_sign_count" yaml:"missing_sign_count"`
-	VestingPeriodProgress  []int           `json:"vesting_period_progress" yaml:"vesting_period_progress"`
+	VestingPeriodProgress  [][]int         `json:"vesting_period_progress" yaml:"vesting_period_progress"`
 	DebtAfterFailedVesting sdk.Coins       `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
 }
 
@@ -51,7 +51,10 @@ func NewValidatorVestingAccountRaw(bva *vesting.BaseVestingAccount,
 		ContinuousVestingAccount: cva,
 		VestingPeriods:           periods,
 	}
-	var vestingPeriodProgress = make([]int, len(periods))
+	var vestingPeriodProgress = make([][]int, len(periods))
+	for i := range vestingPeriodProgress {
+		vestingPeriodProgress[i] = make([]int, 2)
+	}
 
 	return &ValidatorVestingAccount{
 		PeriodicVestingAccount: pva,
@@ -84,7 +87,10 @@ func NewValidatorVestingAccount(baseAcc *auth.BaseAccount, startTime int64, peri
 		ContinuousVestingAccount: cva,
 		VestingPeriods:           periods,
 	}
-	var vestingPeriodProgress = make([]int, len(periods))
+	var vestingPeriodProgress = make([][]int, len(periods))
+	for i := range vestingPeriodProgress {
+		vestingPeriodProgress[i] = make([]int, 2)
+	}
 
 	debt := sdk.NewCoins()
 
@@ -110,8 +116,8 @@ func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins
 	for i := 0; i < numberPeriods; i++ {
 		x := blockTime.Unix() - currentPeriodStartTime
 		if x >= vva.VestingPeriods[i].PeriodLength {
-			vestedSuccess := vva.VestingPeriodProgress[i] > 0
-			if vestedSuccess {
+			vestingComplete := vva.VestingPeriodProgress[i][0] == 1
+			if vestingComplete {
 				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].VestingAmount)
 			}
 			currentPeriodStartTime += vva.VestingPeriods[i].PeriodLength
@@ -124,21 +130,15 @@ func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins
 }
 
 // GetFailedVestedCoins returns the total number of coins for which the vesting period has passed but the vesting threshold was not met.
-func (vva ValidatorVestingAccount) GetFailedVestedCoins(blockTime time.Time) sdk.Coins {
+func (vva ValidatorVestingAccount) GetFailedVestedCoins() sdk.Coins {
 	var failedVestedCoins sdk.Coins
-	if blockTime.Unix() <= vva.StartTime {
-		return failedVestedCoins
-	}
-	currentPeriodStartTime := vva.StartTime
 	numberPeriods := len(vva.VestingPeriods)
 	for i := 0; i < numberPeriods; i++ {
-		x := blockTime.Unix() - currentPeriodStartTime
-		if x >= vva.VestingPeriods[i].PeriodLength {
-			vestedFailure := vva.VestingPeriodProgress[i] == 0
+		if vva.VestingPeriodProgress[i][0] == 1 {
+			vestedFailure := vva.VestingPeriodProgress[i][1] == 0
 			if vestedFailure {
 				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].VestingAmount)
 			}
-			currentPeriodStartTime += vva.VestingPeriods[i].PeriodLength
 		} else {
 			break
 		}
@@ -148,13 +148,13 @@ func (vva ValidatorVestingAccount) GetFailedVestedCoins(blockTime time.Time) sdk
 
 // GetVestingCoins returns the total number of vesting coins. For validator vesting accounts, this excludes coins for which the vesting period has passed, but the vesting threshold was not met.
 func (vva ValidatorVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coins {
-	return vva.OriginalVesting.Sub(vva.GetVestedCoins(blockTime)).Sub(vva.GetFailedVestedCoins(blockTime))
+	return vva.OriginalVesting.Sub(vva.GetVestedCoins(blockTime))
 }
 
 // SpendableCoins returns the total number of spendable coins per denom for a
 // periodic vesting account.
 func (vva ValidatorVestingAccount) SpendableCoins(blockTime time.Time) sdk.Coins {
-	return vva.BaseVestingAccount.SpendableCoinsFromVestingCoins(vva.GetVestingCoins(blockTime)).Sub(vva.DebtAfterFailedVesting)
+	return vva.BaseVestingAccount.SpendableCoinsFromVestingCoins(vva.GetVestingCoins(blockTime))
 }
 
 // TrackDelegation tracks a desired delegation amount by setting the appropriate
@@ -204,7 +204,7 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 		ReturnAddress          sdk.AccAddress
 		SigningThreshold       int64
 		MissingSignCount       []int64
-		VestingPeriodProgress  []int
+		VestingPeriodProgress  [][]int
 		DebtAfterFailedVesting sdk.Coins
 	}{
 		Address:                vva.Address,

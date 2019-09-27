@@ -1,6 +1,7 @@
-// nolint
 package validatorvesting
 
+// nolint
+// DONTCOVER
 import (
 	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/keeper"
 	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/types"
@@ -18,6 +19,7 @@ var (
 	DefaultGenesisState           = types.DefaultGenesisState
 	RegisterCodec                 = types.RegisterCodec
 	ValidatorVestingAccountPrefix = types.ValidatorVestingAccountPrefix
+	BlocktimeKey                  = types.BlocktimeKey
 	ValidatorVestingAccountKey    = types.ValidatorVestingAccountKey
 	NewKeeper                     = keeper.NewKeeper
 )

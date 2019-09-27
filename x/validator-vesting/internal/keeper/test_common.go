@@ -37,22 +37,22 @@ var (
 	delAddr2 = sdk.AccAddress(delPk2.Address())
 	delAddr3 = sdk.AccAddress(delPk3.Address())
 
-	valOpPk1    = ed25519.GenPrivKey().PubKey()
-	valOpPk2    = ed25519.GenPrivKey().PubKey()
-	valOpPk3    = ed25519.GenPrivKey().PubKey()
-	valOpAddr1  = sdk.ValAddress(valOpPk1.Address())
-	valOpAddr2  = sdk.ValAddress(valOpPk2.Address())
-	valOpAddr3  = sdk.ValAddress(valOpPk3.Address())
-	valAccAddr1 = sdk.AccAddress(valOpPk1.Address()) // generate acc addresses for these validator keys too
-	valAccAddr2 = sdk.AccAddress(valOpPk2.Address())
-	valAccAddr3 = sdk.AccAddress(valOpPk3.Address())
+	ValOpPk1    = ed25519.GenPrivKey().PubKey()
+	ValOpPk2    = ed25519.GenPrivKey().PubKey()
+	ValOpPk3    = ed25519.GenPrivKey().PubKey()
+	ValOpAddr1  = sdk.ValAddress(ValOpPk1.Address())
+	ValOpAddr2  = sdk.ValAddress(ValOpPk2.Address())
+	ValOpAddr3  = sdk.ValAddress(ValOpPk3.Address())
+	valAccAddr1 = sdk.AccAddress(ValOpPk1.Address()) // generate acc addresses for these validator keys too
+	valAccAddr2 = sdk.AccAddress(ValOpPk2.Address())
+	valAccAddr3 = sdk.AccAddress(ValOpPk3.Address())
 
-	valConsPk1   = ed25519.GenPrivKey().PubKey()
-	valConsPk2   = ed25519.GenPrivKey().PubKey()
-	valConsPk3   = ed25519.GenPrivKey().PubKey()
-	valConsAddr1 = sdk.ConsAddress(valConsPk1.Address())
-	valConsAddr2 = sdk.ConsAddress(valConsPk2.Address())
-	valConsAddr3 = sdk.ConsAddress(valConsPk3.Address())
+	ValConsPk11  = ed25519.GenPrivKey().PubKey()
+	ValConsPk12  = ed25519.GenPrivKey().PubKey()
+	ValConsPk13  = ed25519.GenPrivKey().PubKey()
+	ValConsAddr1 = sdk.ConsAddress(ValConsPk11.Address())
+	ValConsAddr2 = sdk.ConsAddress(ValConsPk12.Address())
+	ValConsAddr3 = sdk.ConsAddress(ValConsPk13.Address())
 
 	// TODO move to common testing package for all modules
 	// test addresses
@@ -177,6 +177,32 @@ func ValidatorVestingTestAccount() *types.ValidatorVestingAccount {
 	return vva
 }
 
+func ValidatorVestingTestAccounts(numAccounts int) []*types.ValidatorVestingAccount {
+	now := tmtime.Now()
+	periods := vesting.VestingPeriods{
+		vesting.VestingPeriod{PeriodLength: int64(12 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
+		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+	}
+	testAddr := types.CreateTestAddrs(numAccounts)
+	testPk := types.CreateTestPubKeys(numAccounts)
+	var vvas []*types.ValidatorVestingAccount
+	for i := 0; i < numAccounts; i++ {
+
+		testConsAddr := sdk.ConsAddress(testPk[i].Address())
+		origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+		bacc := auth.NewBaseAccountWithAddress(testAddr[i])
+		bacc.SetCoins(origCoins)
+		vva := types.NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
+		err := vva.Validate()
+		if err != nil {
+			panic(err)
+		}
+		vvas = append(vvas, vva)
+	}
+	return vvas
+}
+
 func ValidatorVestingDelegatorTestAccount(startTime time.Time) *types.ValidatorVestingAccount {
 	periods := vesting.VestingPeriods{
 		vesting.VestingPeriod{PeriodLength: int64(12 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 30000000)}},
@@ -198,9 +224,9 @@ func ValidatorVestingDelegatorTestAccount(startTime time.Time) *types.ValidatorV
 }
 
 func CreateValidators(ctx sdk.Context, sk staking.Keeper, powers []int64) {
-	val1 := staking.NewValidator(valOpAddr1, valOpPk1, staking.Description{})
-	val2 := staking.NewValidator(valOpAddr2, valOpPk2, staking.Description{})
-	val3 := staking.NewValidator(valOpAddr3, valOpPk3, staking.Description{})
+	val1 := staking.NewValidator(ValOpAddr1, ValOpPk1, staking.Description{})
+	val2 := staking.NewValidator(ValOpAddr2, ValOpPk2, staking.Description{})
+	val3 := staking.NewValidator(ValOpAddr3, ValOpPk3, staking.Description{})
 
 	sk.SetValidator(ctx, val1)
 	sk.SetValidator(ctx, val2)

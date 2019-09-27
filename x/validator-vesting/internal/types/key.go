@@ -13,8 +13,10 @@ const (
 )
 
 var (
+	// BlocktimeKey key for the time of the previous block
+	BlocktimeKey = []byte{0x00}
 	// ValidatorVestingAccountPrefix store prefix for validator vesting accounts
-	ValidatorVestingAccountPrefix   = []byte{0x01}
+	ValidatorVestingAccountPrefix = []byte{0x01}
 )
 
 // ValidatorVestingAccountKey returns the account address bytes prefixed by ValidatorVestingAccountPrefix

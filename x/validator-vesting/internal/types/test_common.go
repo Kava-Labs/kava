@@ -1,4 +1,8 @@
-package types // noalias
+package types
+
+// nolint:deadcode unused
+// DONTCOVER
+// noalias
 
 import (
 	"bytes"
