@@ -157,10 +157,10 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 func ValidatorVestingTestAccount() *types.ValidatorVestingAccount {
 	now := tmtime.Now()
-	periods := vesting.VestingPeriods{
-		vesting.VestingPeriod{PeriodLength: int64(12 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+	periods := vesting.Periods{
+		vesting.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
+		vesting.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vesting.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
 	}
 
 	testAddr := types.CreateTestAddrs(1)[0]
@@ -179,10 +179,10 @@ func ValidatorVestingTestAccount() *types.ValidatorVestingAccount {
 
 func ValidatorVestingTestAccounts(numAccounts int) []*types.ValidatorVestingAccount {
 	now := tmtime.Now()
-	periods := vesting.VestingPeriods{
-		vesting.VestingPeriod{PeriodLength: int64(12 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+	periods := vesting.Periods{
+		vesting.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
+		vesting.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vesting.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
 	}
 	testAddr := types.CreateTestAddrs(numAccounts)
 	testPk := types.CreateTestPubKeys(numAccounts)
@@ -204,10 +204,10 @@ func ValidatorVestingTestAccounts(numAccounts int) []*types.ValidatorVestingAcco
 }
 
 func ValidatorVestingDelegatorTestAccount(startTime time.Time) *types.ValidatorVestingAccount {
-	periods := vesting.VestingPeriods{
-		vesting.VestingPeriod{PeriodLength: int64(12 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 30000000)}},
-		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 15000000)}},
-		vesting.VestingPeriod{PeriodLength: int64(6 * 60 * 60), VestingAmount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 15000000)}},
+	periods := vesting.Periods{
+		vesting.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 30000000)}},
+		vesting.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 15000000)}},
+		vesting.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(stakeDenom, 15000000)}},
 	}
 	testAddr := types.CreateTestAddrs(1)[0]
 	testPk := types.CreateTestPubKeys(1)[0]

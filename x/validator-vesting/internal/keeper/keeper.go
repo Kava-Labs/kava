@@ -129,7 +129,7 @@ func (k Keeper) UpdateVestedCoinsProgress(ctx sdk.Context, addr sdk.AccAddress, 
 		vv.VestingPeriodProgress[period][1] = 1
 	} else {
 		vv.VestingPeriodProgress[period][1] = 0
-		notVestedTokens := vv.VestingPeriods[period].VestingAmount
+		notVestedTokens := vv.VestingPeriods[period].Amount
 		// add the tokens that did not vest to DebtAfterFailedVesting
 		vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(notVestedTokens)
 	}
@@ -183,7 +183,7 @@ func (k Keeper) GetPeriodEndTimes(ctx sdk.Context, addr sdk.AccAddress) []int64 
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
 	currentEndTime := vv.StartTime
 	for _, p := range vv.VestingPeriods {
-		currentEndTime += p.PeriodLength
+		currentEndTime += p.Length
 		endTimes = append(endTimes, currentEndTime)
 	}
 	return endTimes

@@ -7,10 +7,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 )
 
 // Assert ValidatorVestingAccount implements the vestexported.VestingAccount interface
@@ -20,7 +20,7 @@ var _ authexported.GenesisAccount = (*ValidatorVestingAccount)(nil)
 
 // Register the ValidatorVestingAccount type on the auth module codec
 func init() {
-	auth.RegisterAccountTypeCodec(&ValidatorVestingAccount{}, "cosmos-sdk/ValidatorVestingAccount")
+	authtypes.RegisterAccountTypeCodec(&ValidatorVestingAccount{}, "cosmos-sdk/ValidatorVestingAccount")
 }
 
 // ValidatorVestingAccount implements the VestingAccount interface. It
@@ -31,7 +31,7 @@ func init() {
 // If the validator has not signed at least the threshold percentage of blocks during a period,
 // the coins are returned to the return address, or burned if the return address is null.
 type ValidatorVestingAccount struct {
-	*vesting.PeriodicVestingAccount
+	*vestingtypes.PeriodicVestingAccount
 	ValidatorAddress       sdk.ConsAddress `json:"validator_address" yaml:"validator_address"`
 	ReturnAddress          sdk.AccAddress  `json:"return_address" yaml:"return_address"`
 	SigningThreshold       int64           `json:"signing_threshold" yaml:"signing_threshold"`
@@ -41,13 +41,13 @@ type ValidatorVestingAccount struct {
 }
 
 // NewValidatorVestingAccountRaw creates a new ValidatorVestingAccount object from BaseVestingAccount
-func NewValidatorVestingAccountRaw(bva *vesting.BaseVestingAccount,
-	startTime int64, periods vesting.VestingPeriods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
-	cva := &vesting.ContinuousVestingAccount{
+func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
+	startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
+	cva := &vestingtypes.ContinuousVestingAccount{
 		StartTime:          startTime,
 		BaseVestingAccount: bva,
 	}
-	pva := &vesting.PeriodicVestingAccount{
+	pva := &vestingtypes.PeriodicVestingAccount{
 		ContinuousVestingAccount: cva,
 		VestingPeriods:           periods,
 	}
@@ -68,22 +68,22 @@ func NewValidatorVestingAccountRaw(bva *vesting.BaseVestingAccount,
 }
 
 // NewValidatorVestingAccount creates a ValidatorVestingAccount object from a BaseAccount
-func NewValidatorVestingAccount(baseAcc *auth.BaseAccount, startTime int64, periods vesting.VestingPeriods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
+func NewValidatorVestingAccount(baseAcc *authtypes.BaseAccount, startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
 
 	endTime := startTime
 	for _, p := range periods {
-		endTime += p.PeriodLength
+		endTime += p.Length
 	}
-	baseVestingAcc := &vesting.BaseVestingAccount{
+	baseVestingAcc := &vestingtypes.BaseVestingAccount{
 		BaseAccount:     baseAcc,
 		OriginalVesting: baseAcc.Coins,
 		EndTime:         endTime,
 	}
-	cva := &vesting.ContinuousVestingAccount{
+	cva := &vestingtypes.ContinuousVestingAccount{
 		StartTime:          startTime,
 		BaseVestingAccount: baseVestingAcc,
 	}
-	pva := &vesting.PeriodicVestingAccount{
+	pva := &vestingtypes.PeriodicVestingAccount{
 		ContinuousVestingAccount: cva,
 		VestingPeriods:           periods,
 	}
@@ -115,12 +115,12 @@ func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins
 	numberPeriods := len(vva.VestingPeriods)
 	for i := 0; i < numberPeriods; i++ {
 		x := blockTime.Unix() - currentPeriodStartTime
-		if x >= vva.VestingPeriods[i].PeriodLength {
+		if x >= vva.VestingPeriods[i].Length {
 			vestingComplete := vva.VestingPeriodProgress[i][0] == 1
 			if vestingComplete {
-				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].VestingAmount)
+				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].Amount)
 			}
-			currentPeriodStartTime += vva.VestingPeriods[i].PeriodLength
+			currentPeriodStartTime += vva.VestingPeriods[i].Length
 		} else {
 			break
 		}
@@ -137,7 +137,7 @@ func (vva ValidatorVestingAccount) GetFailedVestedCoins() sdk.Coins {
 		if vva.VestingPeriodProgress[i][0] == 1 {
 			vestedFailure := vva.VestingPeriodProgress[i][1] == 0
 			if vestedFailure {
-				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].VestingAmount)
+				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].Amount)
 			}
 		} else {
 			break
@@ -199,7 +199,7 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 		DelegatedVesting       sdk.Coins
 		EndTime                int64
 		StartTime              int64
-		VestingPeriods         vesting.VestingPeriods
+		VestingPeriods         vestingtypes.Periods
 		ValidatorAddress       sdk.ConsAddress
 		ReturnAddress          sdk.AccAddress
 		SigningThreshold       int64
