@@ -34,3 +34,8 @@ func (data GenesisState) Equal(data2 GenesisState) bool {
 func (data GenesisState) IsEmpty() bool {
 	return data.Equal(GenesisState{})
 }
+
+// ValidateGenesis returns nil because accounts are validated by auth
+func ValidateGenesis(data GenesisState) error {
+	return nil
+}

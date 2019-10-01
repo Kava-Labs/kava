@@ -122,9 +122,9 @@ func getInitChainer(mapp *mock.App, keeper Keeper, stakingKeeper staking.Keeper,
 
 		validators := staking.InitGenesis(ctx, stakingKeeper, mapp.AccountKeeper, supplyKeeper, stakingGenesis)
 		if genState.IsEmpty() {
-			InitGenesis(ctx, keeper, mapp.AccountKeeper, types.DefaultGenesisState())
+			InitGenesis(ctx, keeper, types.DefaultGenesisState())
 		} else {
-			InitGenesis(ctx, keeper, mapp.AccountKeeper, genState)
+			InitGenesis(ctx, keeper, genState)
 		}
 		return abci.ResponseInitChain{
 			Validators: validators,

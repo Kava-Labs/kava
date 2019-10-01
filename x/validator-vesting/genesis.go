@@ -8,7 +8,7 @@ import (
 
 // InitGenesis stores the account address of each ValidatorVestingAccount in the validator vesting keeper, for faster lookup.
 // CONTRACT: Accounts created by the account keeper must have already been initialized/created by AccountKeeper
-func InitGenesis(ctx sdk.Context, keeper Keeper, accountKeeper types.AccountKeeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 	data.Accounts = auth.SanitizeGenesisAccounts(data.Accounts)
 	for _, a := range data.Accounts {
 		vv, ok := a.(ValidatorVestingAccount)
@@ -16,4 +16,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, accountKeeper types.AccountKeep
 			keeper.SetValidatorVestingAccountKey(ctx, vv.Address)
 		}
 	}
+}
+
+// ExportGenesis returns empty genesis state because auth exports all the genesis state we need.
+func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
+	return types.DefaultGenesisState()
 }
