@@ -73,6 +73,12 @@ func TestGetSetPreviousBlock(t *testing.T) {
 	bpt := keeper.GetPreviousBlockTime(ctx)
 	require.Equal(t, now, bpt)
 
+	// require that the zero value is safe
+	require.NotPanics(t, func() { keeper.SetPreviousBlockTime(ctx, tmtime.Canonical(time.Unix(0, 0))) })
+
+	bpt = keeper.GetPreviousBlockTime(ctx)
+	require.Equal(t, tmtime.Canonical(time.Unix(0, 0)), bpt)
+
 }
 
 func TestGetEndTImes(t *testing.T) {

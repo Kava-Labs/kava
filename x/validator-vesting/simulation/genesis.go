@@ -11,7 +11,7 @@ import (
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
 // RandomizedGenState generates a random GenesisState for validator-vesting

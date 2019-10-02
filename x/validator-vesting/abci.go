@@ -4,14 +4,16 @@ import (
 	"bytes"
 	"time"
 
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // BeginBlocker updates the vote signing information for each validator vesting account, updates account when period changes, and updates the previousBlockTime value in the store.
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
-	previousBlockTime := time.Time{}
+	previousBlockTime := tmtime.Canonical(time.Unix(0, 0))
 	if ctx.BlockHeight() > 1 {
 		previousBlockTime = k.GetPreviousBlockTime(ctx)
 	}

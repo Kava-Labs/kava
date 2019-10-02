@@ -2,25 +2,27 @@ package types
 
 import (
 	"bytes"
+	"fmt"
+	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // GenesisState - all auth state that must be provided at genesis
 type GenesisState struct {
-	Accounts exported.GenesisAccounts `json:"accounts" yaml:"accounts"`
+	PreviousBlockTime time.Time
 }
 
 // NewGenesisState - Create a new genesis state
-func NewGenesisState(accounts exported.GenesisAccounts) GenesisState {
+func NewGenesisState(prevBlockTime time.Time) GenesisState {
 	return GenesisState{
-		Accounts: accounts,
+		PreviousBlockTime: prevBlockTime,
 	}
 }
 
 // DefaultGenesisState - Return a default genesis state
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(exported.GenesisAccounts{})
+	return NewGenesisState(tmtime.Canonical(time.Unix(0, 0)))
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent
@@ -37,5 +39,8 @@ func (data GenesisState) IsEmpty() bool {
 
 // ValidateGenesis returns nil because accounts are validated by auth
 func ValidateGenesis(data GenesisState) error {
+	if data.PreviousBlockTime.Unix() < 0 {
+		return fmt.Errorf("Previous block time should be positive, is set to %v", data.PreviousBlockTime.Unix())
+	}
 	return nil
 }

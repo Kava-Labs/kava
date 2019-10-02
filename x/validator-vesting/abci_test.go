@@ -11,7 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
 )
 
 func TestBeginBlockerSignedBlock(t *testing.T) {

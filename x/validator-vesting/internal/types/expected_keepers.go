@@ -4,15 +4,16 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)
 type AccountKeeper interface {
-	GetAccount(sdk.Context, sdk.AccAddress) exported.Account
-	SetAccount(sdk.Context, exported.Account)
+	GetAccount(sdk.Context, sdk.AccAddress) authexported.Account
+	SetAccount(sdk.Context, authexported.Account)
+	GetAllAccounts(ctx sdk.Context) (accounts []authexported.Account)
 }
 
 // BankKeeper defines the expected bank keeper (noalias)
@@ -27,7 +28,6 @@ type StakingKeeper interface {
 	Undelegate(
 		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec,
 	) (time.Time, sdk.Error)
-
 }
 
 // SupplyKeeper defines the expected supply keeper for module accounts (noalias)

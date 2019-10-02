@@ -25,7 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
 //nolint: deadcode unused

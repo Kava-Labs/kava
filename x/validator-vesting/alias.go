@@ -3,8 +3,8 @@ package validatorvesting
 // nolint
 // DONTCOVER
 import (
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/keeper"
-	"github.com/cosmos/cosmos-sdk/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
 const (
