@@ -163,6 +163,7 @@ func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTim
 					panic(err)
 				}
 			}
+			vv = k.GetAccountFromAuthKeeper(ctx, addr)
 			vv.DebtAfterFailedVesting = sdk.NewCoins()
 			k.ak.SetAccount(ctx, vv)
 		} else {

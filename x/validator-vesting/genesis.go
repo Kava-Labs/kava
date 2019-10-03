@@ -11,7 +11,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, accountKeeper types.AccountKeep
 
 	accounts := accountKeeper.GetAllAccounts(ctx)
 	for _, a := range accounts {
-		vv, ok := a.(ValidatorVestingAccount)
+		vv, ok := a.(*ValidatorVestingAccount)
 		if ok {
 			keeper.SetValidatorVestingAccountKey(ctx, vv.Address)
 		}

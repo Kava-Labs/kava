@@ -43,13 +43,11 @@ type ValidatorVestingAccount struct {
 // NewValidatorVestingAccountRaw creates a new ValidatorVestingAccount object from BaseVestingAccount
 func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 	startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
-	cva := &vestingtypes.ContinuousVestingAccount{
-		StartTime:          startTime,
-		BaseVestingAccount: bva,
-	}
+
 	pva := &vestingtypes.PeriodicVestingAccount{
-		ContinuousVestingAccount: cva,
-		VestingPeriods:           periods,
+		BaseVestingAccount: bva,
+		StartTime:          startTime,
+		VestingPeriods:     periods,
 	}
 	var vestingPeriodProgress = make([][]int, len(periods))
 	for i := range vestingPeriodProgress {
@@ -79,13 +77,10 @@ func NewValidatorVestingAccount(baseAcc *authtypes.BaseAccount, startTime int64,
 		OriginalVesting: baseAcc.Coins,
 		EndTime:         endTime,
 	}
-	cva := &vestingtypes.ContinuousVestingAccount{
-		StartTime:          startTime,
-		BaseVestingAccount: baseVestingAcc,
-	}
 	pva := &vestingtypes.PeriodicVestingAccount{
-		ContinuousVestingAccount: cva,
-		VestingPeriods:           periods,
+		BaseVestingAccount: baseVestingAcc,
+		StartTime:          startTime,
+		VestingPeriods:     periods,
 	}
 	var vestingPeriodProgress = make([][]int, len(periods))
 	for i := range vestingPeriodProgress {

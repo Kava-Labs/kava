@@ -203,7 +203,6 @@ func TestHandleVestingDebtNoDebt(t *testing.T) {
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	require.Equal(t, origCoins, vva.DelegatedVesting)
 	require.Nil(t, vva.DelegatedFree)
-	require.Nil(t, vva.GetCoins())
 
 }
 
