@@ -58,8 +58,18 @@ const (
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
 )
 
-func init() {
-	simapp.GetSimulatorFlags()
+// TestMain runs setup and teardown code before all tests.
+func TestMain(m *testing.M) {
+    // set prefixes
+    config := sdk.GetConfig()
+    SetBech32AddressPrefixes(config)
+    config.Seal()
+    // load the values from simulation specific flags
+    simapp.GetSimulatorFlags()
+
+    // run tests
+    exitCode := m.Run()
+    os.Exit(exitCode)
 }
 
 func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOperation {
