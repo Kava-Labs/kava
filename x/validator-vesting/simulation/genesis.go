@@ -45,7 +45,13 @@ func RandomizedGenState(simState *module.SimulationState) {
 						panic(err)
 					}
 				} else {
-					consAdd := getRandomValidatorConsAddr(simState, simulation.RandIntBetween(simState.Rand, 0, int(simState.NumBonded)-1))
+					var val int
+					if simState.NumBonded <= 1 {
+						val = 0
+					} else {
+						val = simulation.RandIntBetween(simState.Rand, 0, int(simState.NumBonded)-1)
+					}
+					consAdd := getRandomValidatorConsAddr(simState, val)
 					// convert to validator vesting account 50%
 					// set signing threshold to be anywhere between 1 and 100
 					gacc = types.NewValidatorVestingAccountRaw(
