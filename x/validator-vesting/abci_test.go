@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
 func TestBeginBlockerSignedBlock(t *testing.T) {
@@ -72,7 +73,7 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	height++
 	blockTime = addHour(blockTime)
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, []int64{0, 1}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{0, 1}, vva.CurrentPeriodProgress)
 
 	header = abci.Header{Height: height, Time: addHour(blockTime)}
 
@@ -91,7 +92,7 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	height++
 	blockTime = addHour(blockTime)
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, []int64{1, 2}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{1, 2}, vva.CurrentPeriodProgress)
 
 	// mark the validator as being absent
 	req = abci.RequestBeginBlock{
@@ -108,7 +109,7 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	height++
 	blockTime = addHour(blockTime)
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, []int64{2, 3}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{2, 3}, vva.CurrentPeriodProgress)
 }
 
 func TestBeginBlockerSuccessfulPeriod(t *testing.T) {
@@ -158,14 +159,14 @@ func TestBeginBlockerSuccessfulPeriod(t *testing.T) {
 		if height == 11 {
 			vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
 			// require that missing sign count is set back to zero after the period increments.
-			require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
+			require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
 		}
 
 	}
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// t.Log(vva.MarshalYAML())
-	require.Equal(t, [][]int{[]int{1, 1}, []int{0, 0}, []int{0, 0}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
 }
 
 func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
@@ -175,12 +176,15 @@ func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
 	numBlocks := int64(12)
 	addHour := func(t time.Time) time.Time { return t.Add(1 * time.Hour) }
 
-	ctx, ak, _, stakingKeeper, _, vvk := keeper.CreateTestInput(t, false, 1000)
+	ctx, ak, _, stakingKeeper, supplyKeeper, vvk := keeper.CreateTestInput(t, false, 1000)
+
+	initialSupply := supplyKeeper.GetSupply(ctx).GetTotal()
 	keeper.CreateValidators(ctx, stakingKeeper, []int64{5, 5, 5})
 
 	vva := keeper.ValidatorVestingDelegatorTestAccount(now)
 
 	ak.SetAccount(ctx, vva)
+	// delegate all coins
 	delTokens := sdk.TokensFromConsensusPower(60)
 	vvk.SetValidatorVestingAccountKey(ctx, vva.Address)
 
@@ -223,7 +227,7 @@ func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// check that the period was unsucessful
-	require.Equal(t, [][]int{[]int{1, 0}, []int{0, 0}, []int{0, 0}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, false}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
 	// check that there is debt after the period.
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin("stake", 30000000)}, vva.DebtAfterFailedVesting)
 
@@ -234,4 +238,38 @@ func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
 	})
 	// require that all delegations were unbonded
 	require.Equal(t, 0, delegations)
+
+	// complete the unbonding period
+	header := abci.Header{Height: height, Time: blockTime.Add(time.Hour * 2)}
+	req := abci.RequestBeginBlock{
+		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       val,
+				SignedLastBlock: false,
+			}},
+		},
+	}
+	ctx = ctx.WithBlockHeader(header)
+	BeginBlocker(ctx, req, vvk)
+	_ = staking.EndBlocker(ctx, stakingKeeper)
+
+	header = abci.Header{Height: height, Time: blockTime.Add(time.Hour * 2)}
+	req = abci.RequestBeginBlock{
+		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       val,
+				SignedLastBlock: false,
+			}},
+		},
+	}
+	ctx = ctx.WithBlockHeader(header)
+	BeginBlocker(ctx, req, vvk)
+	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
+	// require that debt has reset to zero and coins balance is reduced by period 1 amount.
+	require.Equal(t, vva.GetCoins(), sdk.Coins{sdk.NewInt64Coin("stake", 30000000)})
+	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
+	// require that the supply has decreased by period 1 amount
+	require.Equal(t, initialSupply.Sub(vva.VestingPeriods[0].Amount), supplyKeeper.GetSupply(ctx).GetTotal())
 }

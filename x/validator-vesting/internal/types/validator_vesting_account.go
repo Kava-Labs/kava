@@ -23,6 +23,30 @@ func init() {
 	authtypes.RegisterAccountTypeCodec(&ValidatorVestingAccount{}, "cosmos-sdk/ValidatorVestingAccount")
 }
 
+type VestingProgress struct {
+	PeriodComplete    bool `json:"period_complete" yaml:"period_complete"`
+	VestingSuccessful bool `json:"vesting_successful" yaml:"vesting_successful"`
+}
+
+type CurrentPeriodProgress struct {
+	MissedBlocks int64 `json:"missed_blocks" yaml:"missed_blocks"`
+	TotalBlocks  int64 `json:"total_blocks" yaml:"total_blocks`
+}
+
+func (cpp CurrentPeriodProgress) GetSignedPercentage() sdk.Dec {
+	blocksSigned := cpp.TotalBlocks - cpp.MissedBlocks
+	// signed_percentage = blocksSigned/TotalBlocks * 100
+	signedPercentage := sdk.NewDec(blocksSigned).Quo(
+		sdk.NewDec(cpp.TotalBlocks)).Mul(
+		sdk.NewDec(100))
+	return signedPercentage
+}
+
+func (cpp CurrentPeriodProgress) SignedPercetageIsOverThreshold(threshold int64) bool {
+	signedPercentage := cpp.GetSignedPercentage()
+	return signedPercentage.GTE(sdk.NewDec(threshold))
+}
+
 // ValidatorVestingAccount implements the VestingAccount interface. It
 // conditionally vests by unlocking coins during each specified period, provided
 // that the validator address has validated at least **SigningThreshold** blocks during
@@ -32,12 +56,12 @@ func init() {
 // the coins are returned to the return address, or burned if the return address is null.
 type ValidatorVestingAccount struct {
 	*vestingtypes.PeriodicVestingAccount
-	ValidatorAddress       sdk.ConsAddress `json:"validator_address" yaml:"validator_address"`
-	ReturnAddress          sdk.AccAddress  `json:"return_address" yaml:"return_address"`
-	SigningThreshold       int64           `json:"signing_threshold" yaml:"signing_threshold"`
-	MissingSignCount       []int64         `json:"missing_sign_count" yaml:"missing_sign_count"`
-	VestingPeriodProgress  [][]int         `json:"vesting_period_progress" yaml:"vesting_period_progress"`
-	DebtAfterFailedVesting sdk.Coins       `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
+	ValidatorAddress       sdk.ConsAddress       `json:"validator_address" yaml:"validator_address"`
+	ReturnAddress          sdk.AccAddress        `json:"return_address" yaml:"return_address"`
+	SigningThreshold       int64                 `json:"signing_threshold" yaml:"signing_threshold"`
+	CurrentPeriodProgress  CurrentPeriodProgress `json:"missing_sign_count" yaml:"missing_sign_count"`
+	VestingPeriodProgress  []VestingProgress     `json:"vesting_period_progress" yaml:"vesting_period_progress"`
+	DebtAfterFailedVesting sdk.Coins             `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
 }
 
 // NewValidatorVestingAccountRaw creates a new ValidatorVestingAccount object from BaseVestingAccount
@@ -49,9 +73,9 @@ func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 		StartTime:          startTime,
 		VestingPeriods:     periods,
 	}
-	var vestingPeriodProgress = make([][]int, len(periods))
-	for i := range vestingPeriodProgress {
-		vestingPeriodProgress[i] = make([]int, 2)
+	var vestingPeriodProgress []VestingProgress
+	for i := 0; i < len(periods); i++ {
+		vestingPeriodProgress = append(vestingPeriodProgress, VestingProgress{false, false})
 	}
 
 	return &ValidatorVestingAccount{
@@ -59,7 +83,7 @@ func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 		ValidatorAddress:       validatorAddress,
 		ReturnAddress:          returnAddress,
 		SigningThreshold:       signingThreshold,
-		MissingSignCount:       []int64{0, 0},
+		CurrentPeriodProgress:  CurrentPeriodProgress{0, 0},
 		VestingPeriodProgress:  vestingPeriodProgress,
 		DebtAfterFailedVesting: sdk.NewCoins(),
 	}
@@ -82,21 +106,19 @@ func NewValidatorVestingAccount(baseAcc *authtypes.BaseAccount, startTime int64,
 		StartTime:          startTime,
 		VestingPeriods:     periods,
 	}
-	var vestingPeriodProgress = make([][]int, len(periods))
-	for i := range vestingPeriodProgress {
-		vestingPeriodProgress[i] = make([]int, 2)
+	var vestingPeriodProgress []VestingProgress
+	for i := 0; i < len(periods); i++ {
+		vestingPeriodProgress = append(vestingPeriodProgress, VestingProgress{false, false})
 	}
-
-	debt := sdk.NewCoins()
 
 	return &ValidatorVestingAccount{
 		PeriodicVestingAccount: pva,
 		ValidatorAddress:       validatorAddress,
 		ReturnAddress:          returnAddress,
 		SigningThreshold:       signingThreshold,
-		MissingSignCount:       []int64{0, 0},
+		CurrentPeriodProgress:  CurrentPeriodProgress{0, 0},
 		VestingPeriodProgress:  vestingPeriodProgress,
-		DebtAfterFailedVesting: debt,
+		DebtAfterFailedVesting: sdk.NewCoins(),
 	}
 }
 
@@ -111,8 +133,7 @@ func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins
 	for i := 0; i < numberPeriods; i++ {
 		x := blockTime.Unix() - currentPeriodStartTime
 		if x >= vva.VestingPeriods[i].Length {
-			vestingComplete := vva.VestingPeriodProgress[i][0] == 1
-			if vestingComplete {
+			if vva.VestingPeriodProgress[i].PeriodComplete {
 				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].Amount)
 			}
 			currentPeriodStartTime += vva.VestingPeriods[i].Length
@@ -129,9 +150,8 @@ func (vva ValidatorVestingAccount) GetFailedVestedCoins() sdk.Coins {
 	var failedVestedCoins sdk.Coins
 	numberPeriods := len(vva.VestingPeriods)
 	for i := 0; i < numberPeriods; i++ {
-		if vva.VestingPeriodProgress[i][0] == 1 {
-			vestedFailure := vva.VestingPeriodProgress[i][1] == 0
-			if vestedFailure {
+		if vva.VestingPeriodProgress[i].PeriodComplete {
+			if !vva.VestingPeriodProgress[i].VestingSuccessful {
 				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].Amount)
 			}
 		} else {
@@ -198,8 +218,8 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 		ValidatorAddress       sdk.ConsAddress
 		ReturnAddress          sdk.AccAddress
 		SigningThreshold       int64
-		MissingSignCount       []int64
-		VestingPeriodProgress  [][]int
+		CurrentPeriodProgress  CurrentPeriodProgress
+		VestingPeriodProgress  []VestingProgress
 		DebtAfterFailedVesting sdk.Coins
 	}{
 		Address:                vva.Address,
@@ -216,7 +236,7 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 		ValidatorAddress:       vva.ValidatorAddress,
 		ReturnAddress:          vva.ReturnAddress,
 		SigningThreshold:       vva.SigningThreshold,
-		MissingSignCount:       vva.MissingSignCount,
+		CurrentPeriodProgress:  vva.CurrentPeriodProgress,
 		VestingPeriodProgress:  vva.VestingPeriodProgress,
 		DebtAfterFailedVesting: vva.DebtAfterFailedVesting,
 	})

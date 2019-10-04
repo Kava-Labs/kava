@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
 func TestGetSetValidatorVestingAccounts(t *testing.T) {
@@ -36,7 +37,7 @@ func TestGetSetValidatorVestingAccounts(t *testing.T) {
 	keys := keeper.GetAllAccountKeys(ctx)
 	require.Equal(t, 1, len(keys))
 	for _, k := range keys {
-		require.NotPanics(t, func() { keeper.GetAccountFromAuthKeeper(ctx, k[1:]) })
+		require.NotPanics(t, func() { keeper.GetAccountFromAuthKeeper(ctx, k) })
 	}
 
 	vvAccounts := ValidatorVestingTestAccounts(10)
@@ -50,7 +51,7 @@ func TestGetSetValidatorVestingAccounts(t *testing.T) {
 
 	var ikeys [][]byte
 	keeper.IterateAccountKeys(ctx, func(accountKey []byte) bool {
-		if bytes.Equal(accountKey, keys[0]) {
+		if bytes.Equal(accountKey[1:], keys[0]) {
 			ikeys = append(ikeys, accountKey)
 			return true
 		}
@@ -109,17 +110,17 @@ func TestSetMissingSignCount(t *testing.T) {
 	ak.SetAccount(ctx, vva)
 
 	// require empty array after ValidatorVestingAccount is initialized
-	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
 
 	// validator signs a block
 	keeper.UpdateMissingSignCount(ctx, vva.Address, false)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, []int64{0, 1}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{0, 1}, vva.CurrentPeriodProgress)
 
 	// validator misses a block
 	keeper.UpdateMissingSignCount(ctx, vva.Address, true)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, []int64{1, 2}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{1, 2}, vva.CurrentPeriodProgress)
 
 }
 
@@ -132,56 +133,56 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	ak.SetAccount(ctx, vva)
 
 	// require all vesting period tracking variables to be zero after validator vesting account is initialized
-	require.Equal(t, [][]int{{0, 0}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{types.VestingProgress{false, false}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
 
 	// period 0 passes with all blocks signed
-	vva.MissingSignCount[0] = 0
-	vva.MissingSignCount[1] = 100
+	vva.CurrentPeriodProgress.MissedBlocks = 0
+	vva.CurrentPeriodProgress.TotalBlocks = 100
 	ak.SetAccount(ctx, vva)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// require that debt is zero
 	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
-	// require that the first vesting progress variable is 1
-	require.Equal(t, [][]int{{1, 1}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
+	// require that the first vesting progress variable is successful
+	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
 
 	// require that the missing block counter has reset
-	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
 
 	vva = ValidatorVestingTestAccount()
 	ak.SetAccount(ctx, vva)
 	// period 0 passes with no blocks signed
 	// this is an edge case that shouldn't happen,
 	// the vest is considered successful in this case.
-	vva.MissingSignCount[0] = 0
-	vva.MissingSignCount[1] = 0
+	vva.CurrentPeriodProgress.MissedBlocks = 0
+	vva.CurrentPeriodProgress.TotalBlocks = 0
 	ak.SetAccount(ctx, vva)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// require that debt is zero
 	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
-	// require that the first vesting progress variable is 1
-	require.Equal(t, [][]int{{1, 1}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
+	// require that the first vesting progress variable is successful
+	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
 
 	// require that the missing block counter has reset
-	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
 
 	vva = ValidatorVestingTestAccount()
 	ak.SetAccount(ctx, vva)
 	// period 0 passes with 50% of blocks signed (below threshold)
-	vva.MissingSignCount[0] = 50
-	vva.MissingSignCount[1] = 100
+	vva.CurrentPeriodProgress.MissedBlocks = 50
+	vva.CurrentPeriodProgress.TotalBlocks = 100
 	ak.SetAccount(ctx, vva)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// require that period 1 coins have become debt
 	require.Equal(t, sdk.NewCoins(sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)), vva.DebtAfterFailedVesting)
-	// require that the first vesting progress variable is {1,0}
-	require.Equal(t, [][]int{{1, 0}, {0, 0}, {0, 0}}, vva.VestingPeriodProgress)
+	// require that the first vesting progress variable is {true, false}
+	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, false}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
 	// require that the missing block counter has reset
-	require.Equal(t, []int64{0, 0}, vva.MissingSignCount)
+	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
 }
 
 func TestHandleVestingDebtNoDebt(t *testing.T) {
@@ -240,8 +241,8 @@ func TestHandleVestingDebtForcedUnbond(t *testing.T) {
 	require.Equal(t, 1, delegations)
 
 	// period 0 passes and the threshold is not met
-	vva.MissingSignCount[0] = 50
-	vva.MissingSignCount[1] = 100
+	vva.CurrentPeriodProgress.MissedBlocks = 50
+	vva.CurrentPeriodProgress.TotalBlocks = 100
 	ak.SetAccount(ctx, vva)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
@@ -277,8 +278,8 @@ func TestHandleVestingDebtBurn(t *testing.T) {
 	_ = staking.EndBlocker(ctx, stakingKeeper)
 
 	// period 0 passes and the threshold is not met
-	vva.MissingSignCount[0] = 50
-	vva.MissingSignCount[1] = 100
+	vva.CurrentPeriodProgress.MissedBlocks = 50
+	vva.CurrentPeriodProgress.TotalBlocks = 100
 	ak.SetAccount(ctx, vva)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
@@ -320,8 +321,8 @@ func TestHandleVestingDebtReturn(t *testing.T) {
 	_ = staking.EndBlocker(ctx, stakingKeeper)
 
 	// period 0 passes and the threshold is not met
-	vva.MissingSignCount[0] = 50
-	vva.MissingSignCount[1] = 100
+	vva.CurrentPeriodProgress.MissedBlocks = 50
+	vva.CurrentPeriodProgress.TotalBlocks = 100
 	ak.SetAccount(ctx, vva)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)

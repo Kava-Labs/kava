@@ -83,7 +83,7 @@ func (k Keeper) IterateAccountKeys(ctx sdk.Context, cb func(accountKey []byte) (
 func (k Keeper) GetAllAccountKeys(ctx sdk.Context) (keys [][]byte) {
 	k.IterateAccountKeys(ctx,
 		func(key []byte) (stop bool) {
-			keys = append(keys, key)
+			keys = append(keys, key[1:])
 			return false
 		})
 	return keys
@@ -103,39 +103,33 @@ func (k Keeper) GetAccountFromAuthKeeper(ctx sdk.Context, addr sdk.AccAddress) *
 func (k Keeper) UpdateMissingSignCount(ctx sdk.Context, addr sdk.AccAddress, missedBlock bool) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
 	if missedBlock {
-		vv.MissingSignCount[0]++
+		vv.CurrentPeriodProgress.MissedBlocks++
 	}
-	vv.MissingSignCount[1]++
+	vv.CurrentPeriodProgress.TotalBlocks++
 	k.ak.SetAccount(ctx, vv)
 }
 
 // UpdateVestedCoinsProgress sets the VestingPeriodProgress variable (0 = coins did not vest for the period, 1 = coins did vest for the period) for the given address and period. If coins did not vest, those coins are added to DebtAfterFailedVesting. Finally, MissingSignCount is reset to [0,0], representing that the next period has started and no blocks have been missed.
 func (k Keeper) UpdateVestedCoinsProgress(ctx sdk.Context, addr sdk.AccAddress, period int) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
-
-	threshold := sdk.NewDec(vv.SigningThreshold)
-	blocksMissed := sdk.NewDec(vv.MissingSignCount[0])
-	blockCount := sdk.NewDec(vv.MissingSignCount[1])
 	var successfulVest bool
-	if blockCount.IsZero() {
+	if sdk.NewDec(vv.CurrentPeriodProgress.TotalBlocks).IsZero() {
 		successfulVest = true
 	} else {
-		blocksSigned := blockCount.Sub(blocksMissed)
-		percentageBlocksSigned := blocksSigned.Quo(blockCount).Mul(sdk.NewDec(100))
-		successfulVest = percentageBlocksSigned.GTE(threshold)
+		successfulVest = vv.CurrentPeriodProgress.SignedPercetageIsOverThreshold(vv.SigningThreshold)
 	}
 
 	if successfulVest {
-		vv.VestingPeriodProgress[period][1] = 1
+		vv.VestingPeriodProgress[period].VestingSuccessful = true
 	} else {
-		vv.VestingPeriodProgress[period][1] = 0
+		vv.VestingPeriodProgress[period].VestingSuccessful = false
 		notVestedTokens := vv.VestingPeriods[period].Amount
 		// add the tokens that did not vest to DebtAfterFailedVesting
 		vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(notVestedTokens)
 	}
-	vv.VestingPeriodProgress[period][0] = 1
+	vv.VestingPeriodProgress[period].PeriodComplete = true
 	// reset the number of missed blocks and total number of blocks in the period to zero
-	vv.MissingSignCount = []int64{0, 0}
+	vv.CurrentPeriodProgress = types.CurrentPeriodProgress{0, 0}
 	k.ak.SetAccount(ctx, vv)
 }
 

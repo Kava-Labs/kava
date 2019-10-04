@@ -68,51 +68,51 @@ func TestGetVestedCoinsValidatorVestingAcc(t *testing.T) {
 	require.Nil(t, vestedCoins)
 
 	// require 50% of coins vested after successful period 1 vesting
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vestedCoins = vva.GetVestedCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestedCoins)
 
 	// require 50% of coins vested after unsuccessful period 1 vesting
 	// NOTE: There is a fairly important semantic distinction here. It seems tempting to say that a failed vesting period should mean that 'GetVestedCoins' should not return those coins. While the point of a validator vesting account is to 'seize' or 'burn' unsuccessfully vested coins, they do in fact vest and become spendable. The intuition is that they have to be spendable in order for the bank keeper to allow us to send/burn them. If they were not vested, then a validator vesting account that failed all of it's vesting periods would never return/burn the coins because it would never have a spendable balance by which to do so. They way we prevent them from being spent in a way other than return/burn is by sending them in the BeginBlock and thus beating any other transfers that would otherwise occur.
-	vva.VestingPeriodProgress[0] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	vestedCoins = vva.GetVestedCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestedCoins)
 
 	// require period 2 coins don't vest until period is over
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	// even if the vesting period was somehow successful, should still only return 50% of coins as vested, since the second vesting period hasn't completed.
-	vva.VestingPeriodProgress[1] = []int{1, 1}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestedCoins = vva.GetVestedCoins(now.Add(15 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestedCoins)
 
 	// require 75% of coins vested after successful period 2
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestedCoins = vva.GetVestedCoins(now.Add(18 * time.Hour))
 	require.Equal(t,
 		sdk.Coins{
 			sdk.NewInt64Coin(feeDenom, 750), sdk.NewInt64Coin(stakeDenom, 75)}, vestedCoins)
 
 	// require 75% of coins vested after successful period 1 and unsuccessful period 2.
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, false}
 	vestedCoins = vva.GetVestedCoins(now.Add(18 * time.Hour))
 	require.Equal(t,
 		sdk.Coins{
 			sdk.NewInt64Coin(feeDenom, 750), sdk.NewInt64Coin(stakeDenom, 75)}, vestedCoins)
 
 	// require 100% of coins vested after all periods complete successfully
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
-	vva.VestingPeriodProgress[2] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[2] = VestingProgress{true, true}
 
 	vestedCoins = vva.GetVestedCoins(now.Add(48 * time.Hour))
 	require.Equal(t, origCoins, vestedCoins)
 
 	// require 100% of coins vested after all periods complete unsuccessfully
-	vva.VestingPeriodProgress[0] = []int{1, 0}
-	vva.VestingPeriodProgress[1] = []int{1, 0}
-	vva.VestingPeriodProgress[2] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, false}
+	vva.VestingPeriodProgress[2] = VestingProgress{true, false}
 
 	vestedCoins = vva.GetVestedCoins(now.Add(48 * time.Hour))
 	require.Equal(t, origCoins, vestedCoins)
@@ -143,48 +143,48 @@ func TestGetVestingCoinsValidatorVestingAcc(t *testing.T) {
 	require.Equal(t, origCoins, vestingCoins)
 
 	// require 50% of coins vesting after successful period 1 vesting
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vestingCoins = vva.GetVestingCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestingCoins)
 
 	// require 50% of coins vesting after unsuccessful period 1 vesting
-	vva.VestingPeriodProgress[0] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	vestingCoins = vva.GetVestingCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestingCoins)
 
 	// require period 2 coins still vesting until period is over
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	// should never happen, but still won't affect vesting balance
-	vva.VestingPeriodProgress[1] = []int{1, 1}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestingCoins = vva.GetVestingCoins(now.Add(15 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestingCoins)
 
 	// require 25% of coins vesting after successful period 2
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestingCoins = vva.GetVestingCoins(now.Add(18 * time.Hour))
 	require.Equal(t,
 		sdk.Coins{
 			sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}, vestingCoins)
 
 	// require 25% of coins vesting after successful period 1 and unsuccessful period 2
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, false}
 	vestingCoins = vva.GetVestingCoins(now.Add(18 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}, vestingCoins)
 
 	// require no coins vesting after all periods complete successfully
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
-	vva.VestingPeriodProgress[2] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[2] = VestingProgress{true, true}
 
 	vestingCoins = vva.GetVestingCoins(now.Add(48 * time.Hour))
 	require.Nil(t, vestingCoins)
 
 	// require no coins vesting after all periods complete unsuccessfully
-	vva.VestingPeriodProgress[0] = []int{1, 0}
-	vva.VestingPeriodProgress[1] = []int{1, 0}
-	vva.VestingPeriodProgress[2] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, false}
+	vva.VestingPeriodProgress[2] = VestingProgress{true, false}
 
 	vestingCoins = vva.GetVestingCoins(now.Add(48 * time.Hour))
 	require.Nil(t, vestingCoins)
@@ -211,12 +211,12 @@ func TestSpendableCoinsValidatorVestingAccount(t *testing.T) {
 	require.Nil(t, spendableCoins)
 
 	// require that all vested coins (50%) are spendable when period 1 completes successfully
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	spendableCoins = vva.SpendableCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, spendableCoins)
 
 	// require that 50% of coins are spendable after period 1 completes unsuccessfully. See note above. The reason the coins are still 'spendable' is that we need to be able to transfer the coins to the return address/burn them. Making them not spendable means that it would be impossible to recover the debt for a validator vesting account for which all periods failed.
-	vva.VestingPeriodProgress[0] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	spendableCoins = vva.SpendableCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, spendableCoins)
 
@@ -225,7 +225,7 @@ func TestSpendableCoinsValidatorVestingAccount(t *testing.T) {
 	vva.SetCoins(vva.GetCoins().Add(recvAmt))
 
 	// require that all vested coins (50%) are spendable plus any received after period 1 completes successfully
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	spendableCoins = vva.SpendableCoins(now.Add(12 * time.Hour))
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 100)}, spendableCoins)
 
@@ -253,14 +253,14 @@ func TestGetFailedVestedCoins(t *testing.T) {
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
 
-	vva.VestingPeriodProgress[0] = []int{1, 0}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	// require that period 1 coins are failed if the period completed unsucessfully.
 	require.Equal(t,
 		sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)},
 		vva.GetFailedVestedCoins(),
 	)
 
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	require.Equal(t,
 		sdk.Coins(nil),
 		vva.GetFailedVestedCoins(),
@@ -290,9 +290,9 @@ func TestTrackDelegationValidatorVestingAcc(t *testing.T) {
 	// all periods pass successfully
 	bacc.SetCoins(origCoins)
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
-	vva.VestingPeriodProgress[2] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[2] = VestingProgress{true, true}
 	vva.TrackDelegation(now.Add(48*time.Hour), origCoins)
 	// require all delegated coins are free
 	require.Equal(t, origCoins, vva.DelegatedFree)
@@ -305,7 +305,7 @@ func TestTrackDelegationValidatorVestingAcc(t *testing.T) {
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedVesting)
 	require.Nil(t, vva.DelegatedFree)
 
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedVesting)
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedFree)
@@ -345,9 +345,9 @@ func TestTrackUndelegationPeriodicVestingAcc(t *testing.T) {
 	// require the ability to delegate all coins after they have successfully vested
 	bacc.SetCoins(origCoins)
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
-	vva.VestingPeriodProgress[0] = []int{1, 1}
-	vva.VestingPeriodProgress[1] = []int{1, 1}
-	vva.VestingPeriodProgress[2] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
+	vva.VestingPeriodProgress[2] = VestingProgress{true, true}
 	vva.TrackDelegation(now.Add(24*time.Hour), origCoins)
 	vva.TrackUndelegation(origCoins)
 	require.Nil(t, vva.DelegatedFree)
@@ -364,7 +364,7 @@ func TestTrackUndelegationPeriodicVestingAcc(t *testing.T) {
 
 	// successfuly vest period 1 and delegate to two validators
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
-	vva.VestingPeriodProgress[0] = []int{1, 1}
+	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
 	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
 

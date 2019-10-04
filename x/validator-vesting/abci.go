@@ -23,30 +23,25 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	voteInfos = req.LastCommitInfo.GetVotes()
 	validatorVestingKeys := k.GetAllAccountKeys(ctx)
 	for _, key := range validatorVestingKeys {
-		acc := k.GetAccountFromAuthKeeper(ctx, key[1:])
-		if voteInfos.ContainsValidatorAddress(acc.ValidatorAddress) {
-			vote := voteInfos.MustFilterByValidatorAddress(acc.ValidatorAddress)
-			if !vote.SignedLastBlock {
-				// if the validator explicitly missed signing the block, increment the missing sign count
-				k.UpdateMissingSignCount(ctx, acc.GetAddress(), true)
-			} else {
-				k.UpdateMissingSignCount(ctx, acc.GetAddress(), false)
-			}
-		} else {
-			// if the validator was not a voting member of the validator set, increment the missing sign count
+		acc := k.GetAccountFromAuthKeeper(ctx, key)
+		vote, found := voteInfos.FilterByValidatorAddress(acc.ValidatorAddress)
+		if !found || !vote.SignedLastBlock {
+			// if the validator was not found or explicitly didn't sign, increment the missing sign count
 			k.UpdateMissingSignCount(ctx, acc.GetAddress(), true)
+		} else {
+			k.UpdateMissingSignCount(ctx, acc.GetAddress(), false)
 		}
 
 		// check if a period ended in the last block
-		endTimes := k.GetPeriodEndTimes(ctx, key[1:])
+		endTimes := k.GetPeriodEndTimes(ctx, key)
 
 		for i, t := range endTimes {
 			if currentBlockTime.Unix() >= t && previousBlockTime.Unix() < t {
-				k.UpdateVestedCoinsProgress(ctx, key[1:], i)
+				k.UpdateVestedCoinsProgress(ctx, key, i)
 			}
 		}
 		// handle any new/remaining debt on the account
-		k.HandleVestingDebt(ctx, key[1:], currentBlockTime)
+		k.HandleVestingDebt(ctx, key, currentBlockTime)
 	}
 	k.SetPreviousBlockTime(ctx, currentBlockTime)
 }
@@ -54,24 +49,14 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 // VoteInfos an array of abci.VoteInfo
 type VoteInfos []abci.VoteInfo
 
-// ContainsValidatorAddress returns true if the input validator address is found in the VoteInfos array
-func (vis VoteInfos) ContainsValidatorAddress(consAddress sdk.ConsAddress) bool {
-	for _, vi := range vis {
-		votingAddress := sdk.ConsAddress(vi.Validator.Address)
-		if bytes.Equal(consAddress, votingAddress) {
-			return true
-		}
-	}
-	return false
-}
-
-// MustFilterByValidatorAddress returns the VoteInfo that has a validator address matching the input validator address
-func (vis VoteInfos) MustFilterByValidatorAddress(consAddress sdk.ConsAddress) abci.VoteInfo {
+// FilterByValidatorAddress returns the VoteInfo of the validator address matching the input validator address
+// and a boolean for if the address was found.
+func (vis VoteInfos) FilterByValidatorAddress(consAddress sdk.ConsAddress) (abci.VoteInfo, bool) {
 	for i, vi := range vis {
 		votingAddress := sdk.ConsAddress(vi.Validator.Address)
 		if bytes.Equal(consAddress, votingAddress) {
-			return vis[i]
+			return vis[i], true
 		}
 	}
-	panic("validator address not found")
+	return abci.VoteInfo{}, false
 }

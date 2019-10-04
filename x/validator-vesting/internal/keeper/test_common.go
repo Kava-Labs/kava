@@ -122,6 +122,8 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 
 	pk := params.NewKeeper(cdc, keyParams, tkeyParams, params.DefaultCodespace)
 
+	stakingParams := staking.NewParams(time.Hour, 100, uint16(7), sdk.DefaultBondDenom)
+
 	accountKeeper := auth.NewAccountKeeper(cdc, keyAcc, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
 	bankKeeper := bank.NewBaseKeeper(accountKeeper, pk.Subspace(bank.DefaultParamspace), bank.DefaultCodespace, blacklistedAddrs)
 	maccPerms := map[string][]string{
@@ -133,7 +135,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool, initPower int64) (sdk.Context
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, maccPerms)
 
 	stakingKeeper := staking.NewKeeper(cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace), staking.DefaultCodespace)
-	stakingKeeper.SetParams(ctx, staking.DefaultParams())
+	stakingKeeper.SetParams(ctx, stakingParams)
 
 	keeper := NewKeeper(cdc, keyValidatorVesting, accountKeeper, bankKeeper, supplyKeeper, stakingKeeper)
 

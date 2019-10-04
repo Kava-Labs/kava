@@ -14,7 +14,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	voteInfos = req.LastCommitInfo.GetVotes()
 	validatorVestingKeys := k.GetAllAccountKeys(ctx)
 	for _, key := range validatorVestingKeys {
-		acc := k.GetAccountFromAuthKeeper(ctx, key[1:])
+		acc := k.GetAccountFromAuthKeeper(ctx, key)
 		if voteInfos.ContainsValidatorAddress(acc.ValidatorAddress) {
 			vote := voteInfos.MustFilterByValidatorAddress(acc.ValidatorAddress)
 			if !vote.SignedLastBlock {
@@ -29,15 +29,15 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		}
 
 		// check if a period ended in the last block
-		endTimes := k.GetPeriodEndTimes(ctx, key[1:])
+		endTimes := k.GetPeriodEndTimes(ctx, key)
 
 		for i, t := range endTimes {
 			if currentBlockTime.Unix() >= t && previousBlockTime.Unix() < t {
-				k.UpdateVestedCoinsProgress(ctx, key[1:], i)
+				k.UpdateVestedCoinsProgress(ctx, key, i)
 			}
 		}
 		// handle any new/remaining debt on the account
-		k.HandleVestingDebt(ctx, key[1:], currentBlockTime)
+		k.HandleVestingDebt(ctx, key, currentBlockTime)
 	}
 	k.SetPreviousBlockTime(ctx, currentBlockTime)
 }
