@@ -120,16 +120,30 @@ func (k Keeper) UpdateVestedCoinsProgress(ctx sdk.Context, addr sdk.AccAddress, 
 	}
 
 	if successfulVest {
-		vv.VestingPeriodProgress[period].VestingSuccessful = true
+		k.SetVestingProgress(ctx, addr, period, true)
 	} else {
-		vv.VestingPeriodProgress[period].VestingSuccessful = false
-		notVestedTokens := vv.VestingPeriods[period].Amount
-		// add the tokens that did not vest to DebtAfterFailedVesting
-		vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(notVestedTokens)
+		k.SetVestingProgress(ctx, addr, period, false)
+		k.AddDebt(ctx, addr, vv.VestingPeriods[period].Amount)
 	}
-	vv.VestingPeriodProgress[period].PeriodComplete = true
-	// reset the number of missed blocks and total number of blocks in the period to zero
-	vv.CurrentPeriodProgress = types.CurrentPeriodProgress{0, 0}
+	k.ResetCurrentPeriodProgress(ctx, addr)
+}
+
+// SetVestingProgress sets VestingPeriodProgress for the input period
+func (k Keeper) SetVestingProgress(ctx sdk.Context, addr sdk.AccAddress, period int, success bool) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	vv.VestingPeriodProgress[period] = types.VestingProgress{PeriodComplete: true, VestingSuccessful: success}
+	k.ak.SetAccount(ctx, vv)
+}
+
+func (k Keeper) AddDebt(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(amount)
+	k.ak.SetAccount(ctx, vv)
+}
+
+func (k Keeper) ResetCurrentPeriodProgress(ctx sdk.Context, addr sdk.AccAddress) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	vv.CurrentPeriodProgress = types.CurrentPeriodProgress{TotalBlocks: 0, MissedBlocks: 0}
 	k.ak.SetAccount(ctx, vv)
 }
 
@@ -138,8 +152,8 @@ func (k Keeper) UpdateVestedCoinsProgress(ctx sdk.Context, addr sdk.AccAddress, 
 // otherwise unbonds all existing tokens.
 func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTime time.Time) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
-	remainingDebt := !vv.DebtAfterFailedVesting.IsZero()
-	if remainingDebt {
+
+	if !vv.DebtAfterFailedVesting.IsZero() {
 		spendableCoins := vv.SpendableCoins(blockTime)
 		if spendableCoins.IsAllGTE(vv.DebtAfterFailedVesting) {
 			if vv.ReturnAddress != nil {
@@ -157,9 +171,7 @@ func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTim
 					panic(err)
 				}
 			}
-			vv = k.GetAccountFromAuthKeeper(ctx, addr)
-			vv.DebtAfterFailedVesting = sdk.NewCoins()
-			k.ak.SetAccount(ctx, vv)
+			k.ResetDebt(ctx, addr)
 		} else {
 			// iterate over all delegations made from the validator vesting account and undelegate
 			// note that we cannot safely undelegate only an amount of shares that covers the debt,
@@ -170,6 +182,13 @@ func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTim
 			})
 		}
 	}
+}
+
+// ResetDebt sets DebtAfterFailedVesting to zero
+func (k Keeper) ResetDebt(ctx sdk.Context, addr sdk.AccAddress) {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	vv.DebtAfterFailedVesting = sdk.NewCoins()
+	k.ak.SetAccount(ctx, vv)
 }
 
 // GetPeriodEndTimes returns an array of the times when each period ends

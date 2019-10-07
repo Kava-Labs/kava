@@ -23,16 +23,19 @@ func init() {
 	authtypes.RegisterAccountTypeCodec(&ValidatorVestingAccount{}, "cosmos-sdk/ValidatorVestingAccount")
 }
 
+// VestingProgress tracks the status of each vesting period
 type VestingProgress struct {
 	PeriodComplete    bool `json:"period_complete" yaml:"period_complete"`
 	VestingSuccessful bool `json:"vesting_successful" yaml:"vesting_successful"`
 }
 
+// CurrentPeriodProgress tracks the progress of the current vesting period
 type CurrentPeriodProgress struct {
 	MissedBlocks int64 `json:"missed_blocks" yaml:"missed_blocks"`
 	TotalBlocks  int64 `json:"total_blocks" yaml:"total_blocks`
 }
 
+// GetSignedPercentage returns the percentage of blocks signed for the current vesting period
 func (cpp CurrentPeriodProgress) GetSignedPercentage() sdk.Dec {
 	blocksSigned := cpp.TotalBlocks - cpp.MissedBlocks
 	// signed_percentage = blocksSigned/TotalBlocks * 100
@@ -42,6 +45,7 @@ func (cpp CurrentPeriodProgress) GetSignedPercentage() sdk.Dec {
 	return signedPercentage
 }
 
+// SignedPercetageIsOverThreshold checks if the signed percentage exceeded the threshold
 func (cpp CurrentPeriodProgress) SignedPercetageIsOverThreshold(threshold int64) bool {
 	signedPercentage := cpp.GetSignedPercentage()
 	return signedPercentage.GTE(sdk.NewDec(threshold))
@@ -169,7 +173,7 @@ func (vva ValidatorVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coin
 // SpendableCoins returns the total number of spendable coins per denom for a
 // periodic vesting account.
 func (vva ValidatorVestingAccount) SpendableCoins(blockTime time.Time) sdk.Coins {
-	return vva.BaseVestingAccount.SpendableCoinsFromVestingCoins(vva.GetVestingCoins(blockTime))
+	return vva.BaseVestingAccount.SpendableCoinsVestingAccount(vva.GetVestingCoins(blockTime))
 }
 
 // TrackDelegation tracks a desired delegation amount by setting the appropriate
