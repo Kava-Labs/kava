@@ -43,4 +43,5 @@ jobID=$(echo $jobID | sed 's/\(.*\):\d*/\1/')
 
 # create the filename from the array job index (which won't be set if this is a normal job)
 fileName=$(printf "out%05d.log" $AWS_BATCH_JOB_ARRAY_INDEX)
-aws s3 cp out.log s3://simulations-1/$jobID/$simResult/$fileName
+
+aws s3 cp out.log s3://simulations-1/$SIM_NAME$jobID/$simResult/$fileName
