@@ -13,3 +13,4 @@
 
 # Exclude build files
 vendor
+build

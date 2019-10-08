@@ -3,6 +3,7 @@
 Run the full suite:
 
 ```bash
+make build
 go test -v -p 4 ./cli_test -tags cli_test
 ```
 
@@ -10,4 +11,4 @@ go test -v -p 4 ./cli_test -tags cli_test
 
 > NOTE: While the full suite runs in parallel, some of the tests can take up to a minute to complete
 
-> NOTE: The tests will use the `kvd` or `kvcli` binaries in your `$GOPATH/bin`. Or in `$BUILDDIR` if that env var is set.
+> NOTE: The tests will use the `kvd` or `kvcli` binaries in the build dir. Or in `$BUILDDIR` if that env var is set.
