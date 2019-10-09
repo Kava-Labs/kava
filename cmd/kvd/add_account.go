@@ -94,9 +94,12 @@ func AddGenesisAccountCmd(
 
 			baseAccount := auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0)
 			if !vestingAmt.IsZero() {
-				baseVestingAccount := vesting.NewBaseVestingAccount(
+				baseVestingAccount, err := vesting.NewBaseVestingAccount(
 					baseAccount, vestingAmt.Sort(), vestingEnd,
 				)
+				if err != nil {
+					return fmt.Errorf("Failed to create base vesting account: %w", err)
+				}
 
 				switch {
 				case vestingPeriodsFile != "":

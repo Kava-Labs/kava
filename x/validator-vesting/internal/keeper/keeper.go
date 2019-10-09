@@ -135,12 +135,14 @@ func (k Keeper) SetVestingProgress(ctx sdk.Context, addr sdk.AccAddress, period 
 	k.ak.SetAccount(ctx, vv)
 }
 
+// AddDebt adds the input amount to DebtAfterFailedVesting field
 func (k Keeper) AddDebt(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
 	vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(amount)
 	k.ak.SetAccount(ctx, vv)
 }
 
+// ResetCurrentPeriodProgress resets CurrentPeriodProgress to zero values
 func (k Keeper) ResetCurrentPeriodProgress(ctx sdk.Context, addr sdk.AccAddress) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
 	vv.CurrentPeriodProgress = types.CurrentPeriodProgress{TotalBlocks: 0, MissedBlocks: 0}
@@ -201,4 +203,18 @@ func (k Keeper) GetPeriodEndTimes(ctx sdk.Context, addr sdk.AccAddress) []int64 
 		endTimes = append(endTimes, currentEndTime)
 	}
 	return endTimes
+}
+
+// AccountIsVesting returns true if all vesting periods is complete and there is no debt
+func (k Keeper) AccountIsVesting(ctx sdk.Context, addr sdk.AccAddress) bool {
+	vv := k.GetAccountFromAuthKeeper(ctx, addr)
+	if !vv.DebtAfterFailedVesting.IsZero() {
+		return false
+	}
+	for _, p := range vv.VestingPeriodProgress {
+		if !p.PeriodComplete {
+			return false
+		}
+	}
+	return true
 }

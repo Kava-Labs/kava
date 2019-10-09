@@ -32,7 +32,7 @@ type VestingProgress struct {
 // CurrentPeriodProgress tracks the progress of the current vesting period
 type CurrentPeriodProgress struct {
 	MissedBlocks int64 `json:"missed_blocks" yaml:"missed_blocks"`
-	TotalBlocks  int64 `json:"total_blocks" yaml:"total_blocks`
+	TotalBlocks  int64 `json:"total_blocks" yaml:"total_blocks"`
 }
 
 // GetSignedPercentage returns the percentage of blocks signed for the current vesting period
@@ -63,7 +63,7 @@ type ValidatorVestingAccount struct {
 	ValidatorAddress       sdk.ConsAddress       `json:"validator_address" yaml:"validator_address"`
 	ReturnAddress          sdk.AccAddress        `json:"return_address" yaml:"return_address"`
 	SigningThreshold       int64                 `json:"signing_threshold" yaml:"signing_threshold"`
-	CurrentPeriodProgress  CurrentPeriodProgress `json:"missing_sign_count" yaml:"missing_sign_count"`
+	CurrentPeriodProgress  CurrentPeriodProgress `json:"current_period_progress" yaml:"current_period_progress"`
 	VestingPeriodProgress  []VestingProgress     `json:"vesting_period_progress" yaml:"vesting_period_progress"`
 	DebtAfterFailedVesting sdk.Coins             `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
 }

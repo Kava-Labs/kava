@@ -15,6 +15,81 @@ import (
 	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
+func TestBeginBlockerZeroHeight(t *testing.T) {
+	ctx, ak, _, stakingKeeper, _, vvk := keeper.CreateTestInput(t, false, 1000)
+	now := tmtime.Now()
+	vva := keeper.ValidatorVestingDelegatorTestAccount(now)
+	ak.SetAccount(ctx, vva)
+	delTokens := sdk.TokensFromConsensusPower(30)
+	vvk.SetValidatorVestingAccountKey(ctx, vva.Address)
+
+	keeper.CreateValidators(ctx, stakingKeeper, []int64{5, 5, 5})
+
+	val1, found := stakingKeeper.GetValidator(ctx, keeper.ValOpAddr1)
+	require.True(t, found)
+	_, err := stakingKeeper.Delegate(ctx, vva.Address, delTokens, sdk.Unbonded, val1, true)
+	require.NoError(t, err)
+
+	_ = staking.EndBlocker(ctx, stakingKeeper)
+
+	// require that there exists one delegation
+	var delegations int
+	stakingKeeper.IterateDelegations(ctx, vva.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
+		delegations++
+		return false
+	})
+
+	require.Equal(t, 1, delegations)
+
+	val := abci.Validator{
+		Address: val1.ConsPubKey.Address(),
+		Power:   val1.ConsensusPower(),
+	}
+
+	vva.ValidatorAddress = val1.ConsAddress()
+	ak.SetAccount(ctx, vva)
+
+	height := int64(1)
+	blockTime := now
+	addHour := func(t time.Time) time.Time { return t.Add(1 * time.Hour) }
+
+	header := abci.Header{Height: height, Time: addHour(blockTime)}
+	ctx = ctx.WithBlockHeader(header)
+
+	// mark the validator as absent
+	req := abci.RequestBeginBlock{
+		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       abci.Validator{},
+				SignedLastBlock: false,
+			}},
+		},
+	}
+
+	BeginBlocker(ctx, req, vvk)
+
+	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
+	// require missed block counter doesn't increment because there's no voting history
+	require.Equal(t, types.CurrentPeriodProgress{0, 1}, vva.CurrentPeriodProgress)
+
+	// mark the validator as having missed
+	req = abci.RequestBeginBlock{
+		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       val,
+				SignedLastBlock: false,
+			}},
+		},
+	}
+
+	BeginBlocker(ctx, req, vvk)
+
+	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
+	require.Equal(t, types.CurrentPeriodProgress{0, 2}, vva.CurrentPeriodProgress)
+}
+
 func TestBeginBlockerSignedBlock(t *testing.T) {
 	ctx, ak, _, stakingKeeper, _, vvk := keeper.CreateTestInput(t, false, 1000)
 	now := tmtime.Now()
@@ -51,13 +126,13 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	vva.ValidatorAddress = val1.ConsAddress()
 	ak.SetAccount(ctx, vva)
 
-	height := int64(0)
+	height := int64(1)
 	blockTime := now
 
 	addHour := func(t time.Time) time.Time { return t.Add(1 * time.Hour) }
 
 	header := abci.Header{Height: height, Time: addHour(blockTime)}
-
+	ctx = ctx.WithBlockHeader(header)
 	// mark the validator as having signed
 	req := abci.RequestBeginBlock{
 		Header: header,
@@ -76,7 +151,26 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	require.Equal(t, types.CurrentPeriodProgress{0, 1}, vva.CurrentPeriodProgress)
 
 	header = abci.Header{Height: height, Time: addHour(blockTime)}
+	// mark the validator as having signed
+	ctx = ctx.WithBlockHeader(header)
+	req = abci.RequestBeginBlock{
+		Header: header,
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       val,
+				SignedLastBlock: true,
+			}},
+		},
+	}
 
+	BeginBlocker(ctx, req, vvk)
+	height++
+	blockTime = addHour(blockTime)
+	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
+	require.Equal(t, types.CurrentPeriodProgress{0, 2}, vva.CurrentPeriodProgress)
+
+	header = abci.Header{Height: height, Time: addHour(blockTime)}
+	ctx = ctx.WithBlockHeader(header)
 	// mark the validator as having missed
 	req = abci.RequestBeginBlock{
 		Header: header,
@@ -92,8 +186,10 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	height++
 	blockTime = addHour(blockTime)
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, types.CurrentPeriodProgress{1, 2}, vva.CurrentPeriodProgress)
+	require.Equal(t, types.CurrentPeriodProgress{1, 3}, vva.CurrentPeriodProgress)
 
+	header = abci.Header{Height: height, Time: addHour(blockTime)}
+	ctx = ctx.WithBlockHeader(header)
 	// mark the validator as being absent
 	req = abci.RequestBeginBlock{
 		Header: header,
@@ -106,14 +202,12 @@ func TestBeginBlockerSignedBlock(t *testing.T) {
 	}
 
 	BeginBlocker(ctx, req, vvk)
-	height++
-	blockTime = addHour(blockTime)
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, types.CurrentPeriodProgress{2, 3}, vva.CurrentPeriodProgress)
+	require.Equal(t, types.CurrentPeriodProgress{2, 4}, vva.CurrentPeriodProgress)
 }
 
 func TestBeginBlockerSuccessfulPeriod(t *testing.T) {
-	height := int64(0)
+	height := int64(1)
 	now := tmtime.Now()
 	blockTime := now
 	numBlocks := int64(14)
@@ -156,7 +250,7 @@ func TestBeginBlockerSuccessfulPeriod(t *testing.T) {
 		BeginBlocker(ctx, req, vvk)
 		blockTime = addHour(blockTime)
 
-		if height == 11 {
+		if height == 12 {
 			vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
 			// require that missing sign count is set back to zero after the period increments.
 			require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
@@ -170,10 +264,10 @@ func TestBeginBlockerSuccessfulPeriod(t *testing.T) {
 }
 
 func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
-	height := int64(0)
+	height := int64(1)
 	now := tmtime.Now()
 	blockTime := now
-	numBlocks := int64(12)
+	numBlocks := int64(13)
 	addHour := func(t time.Time) time.Time { return t.Add(1 * time.Hour) }
 
 	ctx, ak, _, stakingKeeper, supplyKeeper, vvk := keeper.CreateTestInput(t, false, 1000)

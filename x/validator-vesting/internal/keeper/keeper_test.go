@@ -102,6 +102,25 @@ func TestGetEndTImes(t *testing.T) {
 	require.Equal(t, expectedEndTimes, endTimes)
 }
 
+func TestAccountIsVesting(t *testing.T) {
+	ctx, ak, _, _, _, keeper := CreateTestInput(t, false, 1000)
+
+	now := tmtime.Now()
+
+	vva := ValidatorVestingDelegatorTestAccount(now)
+	ak.SetAccount(ctx, vva)
+	keeper.SetValidatorVestingAccountKey(ctx, vva.Address)
+
+	require.Equal(t, false, keeper.AccountIsVesting(ctx, vva.Address))
+
+	for i := range vva.VestingPeriodProgress {
+		vva.VestingPeriodProgress[i] = types.VestingProgress{true, true}
+		ak.SetAccount(ctx, vva)
+	}
+	require.Equal(t, true, keeper.AccountIsVesting(ctx, vva.Address))
+
+}
+
 func TestSetMissingSignCount(t *testing.T) {
 	ctx, ak, _, _, _, keeper := CreateTestInput(t, false, 1000)
 
@@ -142,7 +161,7 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
 	keeper.UpdateVestedCoinsProgress(ctx, vva.Address, 0)
 	vva = keeper.GetAccountFromAuthKeeper(ctx, vva.Address)
-	// require that debt is zero
+	// require that debt is zerox
 	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
 	// require that the first vesting progress variable is successful
 	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)

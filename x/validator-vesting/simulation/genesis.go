@@ -35,7 +35,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 				duration := va.GetEndTime() - va.GetStartTime()
 				vestingPeriods := getRandomVestingPeriods(duration, simState.Rand, va.GetCoins())
 				vestingCoins := getVestingCoins(vestingPeriods)
-				bva := vestingtypes.NewBaseVestingAccount(&bacc, vestingCoins, va.GetEndTime())
+				bva, _ := vestingtypes.NewBaseVestingAccount(&bacc, vestingCoins, va.GetEndTime())
 				var gacc authexported.GenesisAccount
 				if simState.Rand.Intn(100) < 50 {
 					// convert to periodic vesting account 50%

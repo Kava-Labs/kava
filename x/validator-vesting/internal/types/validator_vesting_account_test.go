@@ -35,7 +35,7 @@ func TestNewAccount(t *testing.T) {
 	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
-	bva := vesting.NewBaseVestingAccount(&bacc, origCoins, endTime)
+	bva, _ := vesting.NewBaseVestingAccount(&bacc, origCoins, endTime)
 	require.NotPanics(t, func() { NewValidatorVestingAccountRaw(bva, now.Unix(), periods, testConsAddr, nil, 90) })
 	vva := NewValidatorVestingAccountRaw(bva, now.Unix(), periods, testConsAddr, nil, 90)
 	vva.PubKey = testPk

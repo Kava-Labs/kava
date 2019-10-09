@@ -3,7 +3,6 @@ package validatorvesting
 import (
 	"encoding/json"
 	"math/rand"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -40,7 +39,6 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 // DefaultGenesis returns default genesis state as raw bytes for the validator-vesting
 // module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	types.ModuleCdc.PrintTypes(os.Stdout)
 	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
