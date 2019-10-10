@@ -209,12 +209,12 @@ func (k Keeper) GetPeriodEndTimes(ctx sdk.Context, addr sdk.AccAddress) []int64 
 func (k Keeper) AccountIsVesting(ctx sdk.Context, addr sdk.AccAddress) bool {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
 	if !vv.DebtAfterFailedVesting.IsZero() {
-		return false
+		return true
 	}
 	for _, p := range vv.VestingPeriodProgress {
 		if !p.PeriodComplete {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }

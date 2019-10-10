@@ -111,13 +111,13 @@ func TestAccountIsVesting(t *testing.T) {
 	ak.SetAccount(ctx, vva)
 	keeper.SetValidatorVestingAccountKey(ctx, vva.Address)
 
-	require.Equal(t, false, keeper.AccountIsVesting(ctx, vva.Address))
+	require.Equal(t, true, keeper.AccountIsVesting(ctx, vva.Address))
 
 	for i := range vva.VestingPeriodProgress {
 		vva.VestingPeriodProgress[i] = types.VestingProgress{true, true}
 		ak.SetAccount(ctx, vva)
 	}
-	require.Equal(t, true, keeper.AccountIsVesting(ctx, vva.Address))
+	require.Equal(t, false, keeper.AccountIsVesting(ctx, vva.Address))
 
 }
 
