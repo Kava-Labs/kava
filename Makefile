@@ -105,8 +105,8 @@ test-all: build
 	# other sim tests
 	@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
 	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
-	@# AppStateDeterminism does use Seed flag
-	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -v -timeout 24h
+	@# AppStateDeterminism does not use Seed flag
+	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200         -v -timeout 24h
 
 
 .PHONY: all build-linux install clean build test-all
