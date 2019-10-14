@@ -108,5 +108,6 @@ test-all: build
 	@# AppStateDeterminism does use Seed flag
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -v -timeout 24h
 
-
-.PHONY: all build-linux install clean build test-all
+test:
+	@go test ./...
+.PHONY: all build-linux install clean build test-all test
