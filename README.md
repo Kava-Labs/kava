@@ -19,48 +19,22 @@
 
 ### [Telegram](https://t.me/kavalabs) | [Medium](https://medium.com/kava-labs) | [Validator Chat](https://riot.im/app/#/room/#kava-validators:matrix.org)
 
-### Participate in the Kava testnet and [snag a founder badge](./docs/REWARDS.md)!
+### Participate in Kava testnets and [snag a founder badge](./docs/REWARDS.md)!
 
 </div>
 
-## Installing
+Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using the [comsos-sdk](https://github.com/cosmos/cosmos-sdk).
 
-This guide assumes you have worked with `cosmos-sdk` blockchains previously. If you are just getting started, great! See the complete guide [here](https://medium.com/kava-labs).
+## Quick Start
 
-#### Installing KVD
-
-```
-git clone https://github.com/Kava-Labs/kava.git
-cd kava
-# Ensure GO Modules are enabled
-export GO111MODULE=on
+```sh
 make install
 ```
 
-#### Create a Wallet
-
-```
-kvd init --chain-id=kava-testnet-2000 <your-moniker>
-kvcli keys add <your_wallet_name>
-```
-
-**Be sure to back up your mnemonic!**
-
-#### Create a Genesis Transaction
-
-```
-kvd add-genesis-account $(kvcli keys show <your_wallet_name> -a) 1000000000000ukava
-kvd gentx --name <your_wallet_name> --amount 1000000000000ukava --ip <your-public-ip>
-```
-
-A genesis transaction should be written to `$HOME/.kvd/config/gentx/gentx-<gen_tx_hash>.json`
-
-#### Submit Genesis Transaction
-
-To be included in the genesis file for testnet two, fork the [testnets repo](https://github.com/Kava-Labs/kava-testnets) and copy your genesis transaction to the `2000` directory. Submit your fork including your genesis transaction as a PR.
+To join the latest testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
 
 ## License
 
 Copyright © Kava Labs, Inc. All rights reserved.
 
-Licensed under the [Apache v2 License](LICENSE).
+Licensed under the [Apache v2 License](LICENSE.md).
