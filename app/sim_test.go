@@ -58,8 +58,18 @@ const (
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
 )
 
-func init() {
+// TestMain runs setup and teardown code before all tests.
+func TestMain(m *testing.M) {
+	// set prefixes
+	config := sdk.GetConfig()
+	SetBech32AddressPrefixes(config)
+	config.Seal()
+	// load the values from simulation specific flags
 	simapp.GetSimulatorFlags()
+
+	// run tests
+	exitCode := m.Run()
+	os.Exit(exitCode)
 }
 
 func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOperation {
@@ -319,6 +329,7 @@ func BenchmarkFullAppSimulation(b *testing.B) {
 	}
 }
 
+// TestFullAppSimulation runs a standard simulation of the app, modified by cmd line flag values.
 func TestFullAppSimulation(t *testing.T) {
 	if !simapp.FlagEnabledValue {
 		t.Skip("skipping application simulation")
@@ -373,6 +384,7 @@ func TestFullAppSimulation(t *testing.T) {
 	}
 }
 
+// TestAppImportExport runs a simulation, exports the state, imports it, then checks the db state is same after import as it was before export.
 func TestAppImportExport(t *testing.T) {
 	if !simapp.FlagEnabledValue {
 		t.Skip("skipping application import/export simulation")
@@ -490,6 +502,7 @@ func TestAppImportExport(t *testing.T) {
 	}
 }
 
+// TestAppSimulationAfterImport runs a simulation, exports it, imports it and runs another simulation.
 func TestAppSimulationAfterImport(t *testing.T) {
 	if !simapp.FlagEnabledValue {
 		t.Skip("skipping application simulation after import")
@@ -584,6 +597,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 // TODO: Make another test for the fuzzer itself, which just has noOp txs
 // and doesn't depend on the application.
+// TestAppStateDeterminism runs several sims with the same seed and checks the states are equal.
 func TestAppStateDeterminism(t *testing.T) {
 	if !simapp.FlagEnabledValue {
 		t.Skip("skipping application simulation")
