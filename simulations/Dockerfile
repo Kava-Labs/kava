@@ -25,6 +25,7 @@ COPY app app
 COPY cli_test cli_test
 COPY cmd cmd
 COPY app app
+COPY x x
 COPY Makefile .
 
 # Install kvd, kvcli

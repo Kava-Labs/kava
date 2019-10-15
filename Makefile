@@ -105,9 +105,25 @@ test-all: build
 	# other sim tests
 	@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
 	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
-	@# AppStateDeterminism does use Seed flag
-	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -v -timeout 24h
+	@# AppStateDeterminism does not use Seed flag
+	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200         -v -timeout 24h
 
 test:
 	@go test ./...
-.PHONY: all build-linux install clean build test-all test
+
+# Kick start lots of sims on an AWS cluster.
+# This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
+start-remote-sims:
+	# build the image used for running sims in, and tag it
+	docker build -f simulations/Dockerfile -t kava/kava-sim:master .
+	# push that image to the hub
+	docker push kava/kava-sim:master
+	# submit an array job on AWS Batch, using 1000 seeds, spot instances
+	aws batch submit-job \
+		-—job-name "master-$(VERSION)" \
+		-—job-queue “simulation-1-queue-spot" \
+		-—array-properties size=1000 \
+		-—job-definition kava-sim-master \
+		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
+
+.PHONY: all build-linux install clean build test test-all start-remote-sims
