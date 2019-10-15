@@ -146,6 +146,14 @@ workflows:
       - test-cover:
           requires:
             - setup-dependencies
+      - setup-dependencies-tags:
+          # This filter enables the job for tags
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /^v.*/
       - test-all:
           requires:
             - setup-dependencies
