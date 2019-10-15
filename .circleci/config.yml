@@ -34,15 +34,15 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Checkout with tags
-        command: |
-          git fetch --force origin "refs/tags/${CIRCLE_TAG}:refs/tags/${CIRCLE_TAG}"
-          if [ -n "$CIRCLE_BRANCH" ]
-          then
-          git reset --hard $CIRCLE_SHA1
-          git checkout -q -B $CIRCLE_BRANCH
-          fi
-          git reset --hard $CIRCLE_SHA1
+          name: Checkout with tags
+          command: |
+            git fetch --force origin "refs/tags/${CIRCLE_TAG}:refs/tags/${CIRCLE_TAG}"
+            if [ -n "$CIRCLE_BRANCH" ]
+            then
+            git reset --hard $CIRCLE_SHA1
+            git checkout -q -B $CIRCLE_BRANCH
+            fi
+            git reset --hard $CIRCLE_SHA1
       - restore_cache:
           name: "Restore go modules cache"
           keys:
