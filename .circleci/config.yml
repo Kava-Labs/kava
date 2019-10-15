@@ -33,6 +33,33 @@ jobs:
     executor: golang
     steps:
       - checkout
+      - restore_cache:
+          name: "Restore go modules cache"
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Cache go modules
+          command: make go-mod-cache
+      - run:
+          name: Build
+          command: make build
+      - run:
+          name: Git garbage collection
+          command: git gc
+      - save_cache:
+          name: "Save go modules cache"
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - save_cache:
+          name: "Save source code cache"
+          key: go-src-v1-{{ .Revision }}
+          paths:
+            - ".git"
+  setup-dependencies-tags:
+    executor: golang
+    steps:
+      - checkout
       - run:
           name: Checkout with tags
           command: |
