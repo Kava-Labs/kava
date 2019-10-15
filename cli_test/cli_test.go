@@ -317,6 +317,8 @@ func TestGaiaCLIConfirmTx(t *testing.T) {
 }
 
 func TestGaiaCLIGasAuto(t *testing.T) {
+	// https://github.com/cosmos/cosmos-sdk/pull/5179
+	t.Skip()
 	t.Parallel()
 	f := InitFixtures(t)
 

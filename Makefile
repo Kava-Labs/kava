@@ -108,6 +108,9 @@ test-all: build
 	@# AppStateDeterminism does not use Seed flag
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200         -v -timeout 24h
 
+test:
+	@go test ./...
+
 # Kick start lots of sims on an AWS cluster.
 # This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
 start-remote-sims:
@@ -123,4 +126,4 @@ start-remote-sims:
 		-—job-definition kava-sim-master \
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
-.PHONY: all build-linux install clean build test-all start-remote-sims
+.PHONY: all build-linux install clean build test test-all start-remote-sims

@@ -10,7 +10,7 @@ import (
 
 // GenesisState - all auth state that must be provided at genesis
 type GenesisState struct {
-	PreviousBlockTime time.Time
+	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
 // NewGenesisState - Create a new genesis state

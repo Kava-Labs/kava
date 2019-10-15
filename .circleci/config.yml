@@ -1,0 +1,122 @@
+version 2.1
+
+executors:
+  golang:
+    docker:
+      - image: circleci/golang:1.13
+
+commands:
+  make:
+    parameters:
+      description:
+        type: string
+      target:
+        type: string
+    steps:
+      - attach_workspace:
+        at: /tmp/workspace
+      - restore_cache:
+        name: "Restore source code cache"
+        keys:
+          - go-src-v1-{{ .Revision }}
+      - checkout
+      - restore_cache:
+        name: "Restore go modules cache"
+        keys:
+          - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+        name: << parameters.description >>
+        cammnd: |
+          make << parameters.target >>
+
+jobs:
+  setup-dependencies:
+    executor: golang
+    steps:
+      - checkout
+      - restore_cache:
+        name: "Restore go modules cache"
+        keys:
+          - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+        name: Cache go modules
+        command: make go-mod-cache
+      - run:
+          name: Build
+          command: make build
+      - run:
+          name: Git garbage collection
+          command: git gc
+      - save_cache:
+          name: "Save go modules cache"
+          key: go-mod-v2-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - save_cache:
+          name: "Save source code cache"
+          key: go-src-v1-{{ .Revision }}
+          paths:
+            - ".git"
+  test-cover:
+    executor: golang
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
+      - run:
+          name: Run tests
+          command: |
+            export VERSION="$(git describe --tags --long | sed 's/v\(.*\)/\1/')"
+            export GO111MODULE=on
+            mkdir -p /tmp/logs /tmp/workspace/profiles
+            for pkg in $(go list ./... | grep -v '/simulation' | circleci tests split); do
+              id=$(echo "$pkg" | sed 's|[/.]|_|g')
+              go test -mod=readonly -timeout 8m -race -coverprofile=/tmp/workspace/profiles/$id.out -covermode=atomic -tags='ledger test_ledger_mock' "$pkg" | tee "/tmp/logs/$id-$RANDOM.log"
+            done
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - "profiles/*"
+      - store_artifacts:
+          path: /tmp/logs
+
+  test-all:
+    executor: golang
+    steps:
+      - make:
+          target: test-all
+          description: "Run all tests and simulations"
+
+  start-remote-sims:
+    executor: golang
+    steps:
+      - make:
+          target: start-remote-sims
+          description: "Test multi-seed simulation (long)"
+
+
+workflows:
+  version: 2
+  test-suite:
+    jobs:
+      - setup-dependencies:
+          # This filter enables the job for tags
+          filters:
+            tags:
+              only:
+                - /^v.*/
+      - test-cover:
+          requires:
+            - setup-dependencies
+      - test-all:
+          requires:
+            - setup-dependencies
+          # These filters ensure that the long sim only runs during release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only:
+                - /^v.*/
