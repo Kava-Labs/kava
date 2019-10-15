@@ -10,6 +10,12 @@ Every project begins with those brave few who have vision and grit. Fortune favo
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="./founder-badge.png" width="280"> | <h3>The “Founder” Badge</h3><p>Kava founders helped secure the network before it was the cool thing to do. Participate in the transition from Testnet #1 to Testnet #2 and stay live through Mainnet launch.</p><h4>Reward</h4><ul><li>3,000 KAVA</li></ul><h4>Qualification</h4><ul><li>Validate at least one (1) precommit of Testnet #1</li><li>Validate at least 90% of precommits for Testnet #2</li></ul> |
 
+## Keep Going!
+
+|                                             |                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="./founder-plus.png" width="280"> | <h3>The “Founder PLUS” Badge</h3><p>Success doesn’t follow from time and place alone, it requires persistence. Secure Kava as it goes live to the world and remain highly available as it upgrades in Mainnet environment.</p><h4>Reward</h4><ul><li>3,000 KAVA</li></ul><h4>Qualification</h4><ul><li>Validate at least 90% of precommits for the first six (6) consecutive thirty (30) day periods.</li><li>Obtain “Founder” badge</li></ul> |
+
 ### General Qualifications
 
 - “Founder” badges restricted to first 100 Kava validators, measured by timestamp of first precommit.
