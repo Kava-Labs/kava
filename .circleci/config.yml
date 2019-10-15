@@ -1,5 +1,4 @@
-version 2.1
-
+version: 2.1
 executors:
   golang:
     docker:
@@ -14,20 +13,20 @@ commands:
         type: string
     steps:
       - attach_workspace:
-        at: /tmp/workspace
+          at: /tmp/workspace
       - restore_cache:
-        name: "Restore source code cache"
-        keys:
-          - go-src-v1-{{ .Revision }}
+          name: "Restore source code cache"
+          keys:
+            - go-src-v1-{{ .Revision }}
       - checkout
       - restore_cache:
-        name: "Restore go modules cache"
-        keys:
-          - go-mod-v2-{{ checksum "go.sum" }}
+          name: "Restore go modules cache"
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
       - run:
-        name: << parameters.description >>
-        cammnd: |
-          make << parameters.target >>
+          name: << parameters.description >>
+          command: |
+            make << parameters.target >>
 
 jobs:
   setup-dependencies:
@@ -35,12 +34,12 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        name: "Restore go modules cache"
-        keys:
-          - go-mod-v2-{{ checksum "go.sum" }}
+          name: "Restore go modules cache"
+          keys:
+            - go-mod-v2-{{ checksum "go.sum" }}
       - run:
-        name: Cache go modules
-        command: make go-mod-cache
+          name: Cache go modules
+          command: make go-mod-cache
       - run:
           name: Build
           command: make build
