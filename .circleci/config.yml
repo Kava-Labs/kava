@@ -34,6 +34,7 @@ commands:
           name: << parameters.description >>
           command: |
             make << parameters.target >>
+          no_output_timeout: 60m
 
 jobs:
   setup-dependencies:
