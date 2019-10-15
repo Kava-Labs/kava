@@ -37,4 +37,4 @@ To join the latest testnet, head over to the [testnet repo](https://github.com/K
 
 Copyright © Kava Labs, Inc. All rights reserved.
 
-Licensed under the [Apache v2 License](LICENSE).
+Licensed under the [Apache v2 License](LICENSE.md).
