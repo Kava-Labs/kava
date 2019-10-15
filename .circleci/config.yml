@@ -18,17 +18,14 @@ commands:
           name: "Restore source code cache"
           keys:
             - go-src-v1-{{ .Revision }}
-      - checkout
       - run:
           name: Checkout with tags
           command: |
-            git fetch --force origin "refs/tags/${CIRCLE_TAG}:refs/tags/${CIRCLE_TAG}"
-            if [ -n "$CIRCLE_BRANCH" ]
+            if [ -n "$CIRCLE_TAG" ]
             then
-            git reset --hard $CIRCLE_SHA1
-            git checkout -q -B $CIRCLE_BRANCH
+            git fetch --force origin "refs/tags/${CIRCLE_TAG}:refs/tags/${CIRCLE_TAG}"
             fi
-            git reset --hard $CIRCLE_SHA1
+      - checkout
       - restore_cache:
           name: "Restore go modules cache"
           keys:
