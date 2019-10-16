@@ -19,7 +19,9 @@ Every project begins with those brave few who have vision and grit. Fortune favo
 ### General Qualifications
 
 - “Founder” badges restricted to first 100 Kava validators, measured by timestamp of first precommit.
-- Only available to residents outside the United States, Canada, China, and OFAC sanctioned countries. Kava badge rewards are not available to entities that participated in the Kava fundraiser.
+- Only available to residents outside the following countries:
+  - Afghanistan, Balkans, Belarus, Burma (Myanmar), Burundi, Cambodia, the Cayman Islands, Central African Republic, the People’s Republic of China, Cote D'Ivoire (Ivory Coast), Cuba, the Democratic Republic of Congo, Egypt, Guinea, Guinea-Bissau, Haiti, Iran, Iraq, Lebanon, Liberia, Libya, Maldives, Mali, Nicaragua, North Korea, Serbia, Somalia, Sudan and Darfur, South Sudan, Syria, Thailand, Tunisia, Turkey, the Crimea region of Ukraine, Ukraine/Russia, United States, Venezuela, Yemen, Zimbabwe
+- Kava badge rewards are not available to entities that participated in the Kava fundraiser.
 - Subject to registration and completion of KYC requirements. We will update participants on KYC proceedures at the end of testnet #1.
 
 ### Get Started
