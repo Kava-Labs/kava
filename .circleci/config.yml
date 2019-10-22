@@ -116,7 +116,4 @@ workflows:
           # These filters ensure that the long sim only runs during release
           filters:
             branches:
-              ignore: /.*/
-            tags:
-              only:
-                - /^v.*/
+              only: "master"
