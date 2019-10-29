@@ -36,11 +36,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.3.1]
+
+[\#266] Bump tendermint version to 0.32.7 to address cosmos security advisory [Periwinkle](https://forum.cosmos.network/t/cosmos-mainnet-security-advisory-periwinkle/2911)
+
 ## [v0.3.0]
 
 ### Features
 
 [\#253] Add a new validator vesting account type, which releases coins on a periodic vesting schedule based on if a specific validator signed sufficient pre-commits. If the validator didn't sign enough pre-commits, the vesting coins are burned or sent to a return address.
+
 [\#260] Pin to cosmos-sdk commit #18de630 (tendermint 0.32.6)
 
 ### Improvements
