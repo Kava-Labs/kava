@@ -1,0 +1,15 @@
+[Unit]
+Description=Kava daemon
+After=network-online.target
+
+[Service]
+
+# Run as kava:kava
+User=kava
+ExecStart=/home/kava/go/bin/kvd start
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
