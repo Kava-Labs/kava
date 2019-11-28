@@ -13,6 +13,7 @@ var (
 	KeyGlobalDebtLimit      = []byte("GlobalDebtLimit")
 	KeyCollateralParams     = []byte("CollateralParams")
 	KeyDebtParams           = []byte("DebtParams")
+	KeyCircuitBreaker       = []byte("CircuitBreaker")
 	DefaultGlobalDebt       = sdk.Coins{}
 	DefaultCircuitBreaker   = false
 	DefaultCollateralParams = CollateralParams{}
@@ -117,9 +118,10 @@ func ParamKeyTable() params.KeyTable {
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{KeyGlobalDebtLimit, &p.GlobalDebtLimit},
-		{KeyCollateralParams, &p.CollateralParams},
-		{KeyDebtParams, &p.DebtParams},
+		{Key: KeyGlobalDebtLimit, Value: &p.GlobalDebtLimit},
+		{Key: KeyCollateralParams, Value: &p.CollateralParams},
+		{Key: KeyDebtParams, Value: &p.DebtParams},
+		{Key: KeyCircuitBreaker, Value: &p.CircuitBreaker},
 	}
 }
 
@@ -139,7 +141,7 @@ func (p Params) Validate() error {
 		debtParamsDebtLimit = debtParamsDebtLimit.Add(dp.DebtLimit)
 	}
 	if debtParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
-		fmt.Errorf("debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
+		return fmt.Errorf("debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
 			p.GlobalDebtLimit, debtParamsDebtLimit)
 	}
 
@@ -158,7 +160,7 @@ func (p Params) Validate() error {
 		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit)
 	}
 	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
-		fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
+		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
 			p.GlobalDebtLimit, collateralParamsDebtLimit)
 	}
 
