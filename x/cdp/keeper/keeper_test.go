@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -12,6 +13,7 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // How could one reduce the number of params in the test cases. Create a table driven test for each of the 4 add/withdraw collateral/debt?
@@ -103,27 +105,29 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			}
 			mock.SetGenesis(mapp, []authexported.Account{&genAcc})
 			// create a new context
-			header := abci.Header{Height: mapp.LastBlockHeight() + 1}
+			header := abci.Header{Height: mapp.LastBlockHeight() + 1, Time: tmtime.Now()}
 			mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
 			ctx := mapp.BaseApp.NewContext(false, header)
 			keeper.SetParams(ctx, defaultParamsSingle())
 			// setup store state
-			ap := pricefeed.AssetParams{
+			ap := pricefeed.Params{
 				Assets: []pricefeed.Asset{
-					pricefeed.Asset{AssetCode: "xrp", Description: ""},
+					pricefeed.Asset{
+						AssetCode: "xrp", BaseAsset: "xrp",
+						QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 				},
 			}
-			keeper.pricefeedKeeper.SetAssetParams(ctx, ap)
+			keeper.pricefeedKeeper.SetParams(ctx, ap)
 			_, err := keeper.pricefeedKeeper.SetPrice(
 				ctx, ownerAddr, "xrp",
 				sdk.MustNewDecFromStr(tc.price),
-				sdk.NewInt(ctx.BlockHeight()+10))
+				header.Time.Add(time.Hour*1))
 			if err != nil {
 				t.Log("test context height", ctx.BlockHeight())
 				t.Log(err)
 				t.Log(tc.name)
 			}
-			err = keeper.pricefeedKeeper.SetCurrentPrices(ctx)
+			err = keeper.pricefeedKeeper.SetCurrentPrices(ctx, "xrp")
 			if err != nil {
 				t.Log("test context height", ctx.BlockHeight())
 				t.Log(err)
@@ -144,9 +148,6 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 
 			// get new state for verification
 			actualCDP, found := keeper.GetCDP(ctx, tc.args.owner, tc.args.collateralDenom)
-			if tc.name == "removeTooMuchCollateral" {
-				t.Log(actualCDP.String())
-			}
 
 			// check for err
 			if tc.expectPass {
@@ -180,21 +181,23 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	testAddr := addrs[0]
 	mock.SetGenesis(mapp, genAccs)
 	// setup pricefeed
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
+	header := abci.Header{Height: mapp.LastBlockHeight() + 1, Time: tmtime.Now()}
 	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := mapp.BaseApp.NewContext(false, header)
 	keeper.SetParams(ctx, defaultParamsSingle())
-	ap := pricefeed.AssetParams{
+	ap := pricefeed.Params{
 		Assets: []pricefeed.Asset{
-			pricefeed.Asset{AssetCode: "xrp", Description: ""},
+			pricefeed.Asset{
+				AssetCode: "xrp", BaseAsset: "xrp",
+				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 		},
 	}
-	keeper.pricefeedKeeper.SetAssetParams(ctx, ap)
+	keeper.pricefeedKeeper.SetParams(ctx, ap)
 	keeper.pricefeedKeeper.SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
 		sdk.MustNewDecFromStr("1.00"),
-		i(10))
-	keeper.pricefeedKeeper.SetCurrentPrices(ctx)
+		header.Time.Add(time.Hour*1))
+	keeper.pricefeedKeeper.SetCurrentPrices(ctx, collateral)
 	// Create CDP
 	keeper.SetGlobalDebt(ctx, i(0))
 	err := keeper.ModifyCDP(ctx, testAddr, collateral, i(10), i(5))
@@ -203,8 +206,8 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	keeper.pricefeedKeeper.SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
 		sdk.MustNewDecFromStr("0.90"),
-		i(10))
-	keeper.pricefeedKeeper.SetCurrentPrices(ctx)
+		header.Time.Add(time.Hour*1))
+	keeper.pricefeedKeeper.SetCurrentPrices(ctx, collateral)
 
 	// Seize entire CDP
 	err = keeper.PartialSeizeCDP(ctx, testAddr, collateral, i(10), i(5))
