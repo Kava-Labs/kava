@@ -4,13 +4,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-
 // InitGenesis sets distribution information for genesis.
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 
 	// Set the assets and oracles from params
 	keeper.SetAssetParams(ctx, data.AssetParams)
-	keeper.SetOracleParams(ctx ,data.OracleParams)
+	keeper.SetOracleParams(ctx, data.OracleParams)
 
 	// Iterate through the posted prices and set them in the store
 	for _, pp := range data.PostedPrices {
