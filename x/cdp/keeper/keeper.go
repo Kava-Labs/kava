@@ -126,13 +126,13 @@ func (k Keeper) ModifyCDP(ctx sdk.Context, owner sdk.AccAddress, collateralDenom
 	}
 	// Set CDP
 	if cdp.CollateralAmount.IsZero() && cdp.Debt.IsZero() { // TODO maybe abstract this logic into SetCDP
-		k.deleteCDP(ctx, cdp)
+		k.DeleteCDP(ctx, cdp)
 	} else {
 		k.SetCDP(ctx, cdp)
 	}
 	// set total debts
 	k.SetGlobalDebt(ctx, gDebt)
-	k.setCollateralState(ctx, collateralState)
+	k.SetCollateralState(ctx, collateralState)
 
 	return nil
 }
@@ -195,11 +195,11 @@ func (k Keeper) PartialSeizeCDP(ctx sdk.Context, owner sdk.AccAddress, collatera
 
 	// Store updated state
 	if cdp.CollateralAmount.IsZero() && cdp.Debt.IsZero() { // TODO maybe abstract this logic into SetCDP
-		k.deleteCDP(ctx, cdp)
+		k.DeleteCDP(ctx, cdp)
 	} else {
 		k.SetCDP(ctx, cdp)
 	}
-	k.setCollateralState(ctx, collateralState)
+	k.SetCollateralState(ctx, collateralState)
 	return nil
 }
 
@@ -264,7 +264,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) {
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(k.getCDPKey(cdp.Owner, cdp.CollateralDenom), bz)
 }
-func (k Keeper) deleteCDP(ctx sdk.Context, cdp types.CDP) { // TODO should this id the cdp by passing in owner,collateralDenom pair?
+func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) { // TODO should this id the cdp by passing in owner,collateralDenom pair?
 	// get store
 	store := ctx.KVStore(k.key)
 	// delete key
@@ -354,7 +354,7 @@ func (k Keeper) GetCollateralState(ctx sdk.Context, collateralDenom string) (typ
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &collateralState)
 	return collateralState, true
 }
-func (k Keeper) setCollateralState(ctx sdk.Context, collateralstate types.CollateralState) {
+func (k Keeper) SetCollateralState(ctx sdk.Context, collateralstate types.CollateralState) {
 	// get store
 	store := ctx.KVStore(k.key)
 	// marshal and set
@@ -422,7 +422,7 @@ func (k Keeper) AddCoins(ctx sdk.Context, address sdk.AccAddress, amount sdk.Coi
 			return amount, sdk.ErrInsufficientCoins(fmt.Sprintf("insufficient account funds; %s < %s", lma.Coins, amount))
 		}
 		lma.Coins = updatedCoins
-		k.setLiquidatorModuleAccount(ctx, lma)
+		k.SetLiquidatorModuleAccount(ctx, lma)
 		return updatedCoins, nil
 	} else {
 		return k.bankKeeper.AddCoins(ctx, address, amount)
@@ -445,7 +445,7 @@ func (k Keeper) SubtractCoins(ctx sdk.Context, address sdk.AccAddress, amount sd
 			return amount, sdk.ErrInsufficientCoins(fmt.Sprintf("insufficient account funds; %s < %s", lma.Coins, amount))
 		}
 		lma.Coins = updatedCoins
-		k.setLiquidatorModuleAccount(ctx, lma)
+		k.SetLiquidatorModuleAccount(ctx, lma)
 		return updatedCoins, nil
 	} else {
 		return k.bankKeeper.SubtractCoins(ctx, address, amount)
@@ -483,7 +483,7 @@ func (k Keeper) getLiquidatorModuleAccount(ctx sdk.Context) LiquidatorModuleAcco
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &lma)
 	return lma
 }
-func (k Keeper) setLiquidatorModuleAccount(ctx sdk.Context, lma LiquidatorModuleAccount) {
+func (k Keeper) SetLiquidatorModuleAccount(ctx sdk.Context, lma LiquidatorModuleAccount) {
 	store := ctx.KVStore(k.key)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(lma)
 	store.Set(liquidatorAccountKey, bz)

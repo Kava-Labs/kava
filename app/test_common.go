@@ -34,13 +34,14 @@ import (
 // TestApp is a simple wrapper around an App. It exposes internal keepers for use in integration tests.
 // This file also contains test helpers. Ideally they would be in separate package.
 // Basic Usage:
-// Create a test app with NewTestApp, then all keepers and their methods can be accessed for test setup and execution.
+// 	Create a test app with NewTestApp, then all keepers and their methods can be accessed for test setup and execution.
 // Advanced Usage:
-// Some tests call for an app to be initialized with some state. This can be achieved through keeper method calls (ie keeper.SetParams(...)).
-// However this leads to a lot of duplicated logic similar to InitGenesis methods.
-// So TestApp.InitializeFromGenesisStates() will call InitGenesis with the default genesis state.
-//and TestApp.InitializeFromGenesisStates(authState, cdpState) will do the same but overwrite the auth and cdp sections of the default genesis state
-// Creating the genesis states can be combersome, but helper methods can make it easier such as NewAuthGenStateFromAccounts below.
+// 	Some tests call for an app to be initialized with some state. This can be achieved through keeper method calls (ie keeper.SetParams(...)).
+// 	However this leads to a lot of duplicated logic similar to InitGenesis methods.
+// 	So TestApp.InitializeFromGenesisStates() will call InitGenesis with the default genesis state.
+//	and TestApp.InitializeFromGenesisStates(authState, cdpState) will do the same but overwrite the auth and cdp sections of the default genesis state
+// 	Creating the genesis states can be combersome, but helper methods can make it easier such as NewAuthGenStateFromAccounts below.
+//
 type TestApp struct {
 	App
 }
