@@ -44,7 +44,7 @@ type Keeper struct {
 // - adding oracles
 // - adding/removing assets from the pricefeed
 func NewKeeper(
-	storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace ParamSubspace, codespace sdk.CodespaceType,
+	cdc *codec.Codec, storeKey sdk.StoreKey, paramSpace ParamSubspace, codespace sdk.CodespaceType,
 ) Keeper {
 	return Keeper{
 		paramSpace: paramSpace,

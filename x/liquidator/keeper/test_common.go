@@ -75,7 +75,7 @@ func setupTestKeepers() (sdk.Context, keepers) {
 		bank.DefaultCodespace,
 		blacklistedAddrs,
 	)
-	pricefeedKeeper := pricefeed.NewKeeper(keyPriceFeed, cdc, paramsKeeper.Subspace(pricefeed.DefaultParamspace).WithKeyTable(pricefeed.ParamKeyTable()), pricefeed.DefaultCodespace)
+	pricefeedKeeper := pricefeed.NewKeeper(cdc, keyPriceFeed, paramsKeeper.Subspace(pricefeed.DefaultParamspace).WithKeyTable(pricefeed.ParamKeyTable()), pricefeed.DefaultCodespace)
 	cdpKeeper := cdp.NewKeeper(
 		cdc,
 		keyCDP,
