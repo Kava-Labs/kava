@@ -1,30 +1,37 @@
-package cdp
+package cdp_test
 
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/mock"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	// Setup
-	mapp, keeper, pfKeeper := setUpMockAppWithoutGenesis()
-	genAccs, addrs, _, privKeys := mock.CreateGenAccounts(1, cs(c("xrp", 100)))
+	tApp := app.NewTestApp()
+	privKeys, addrs := app.GeneratePrivKeyAddressPairs(1)
 	testAddr := addrs[0]
 	testPrivKey := privKeys[0]
-	mock.SetGenesis(mapp, genAccs)
-	mock.CheckBalance(t, mapp, testAddr, cs(c("xrp", 100)))
-	// setup pricefeed, TODO can this be shortened a bit?
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
-	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx := mapp.BaseApp.NewContext(false, header)
-	params := CdpParams{
+	tApp.InitializeFromGenesisStates(
+		tApp.NewAuthGenStateFromAccounts(addrs, []sdk.Coins{cs(c("xrp", 100))}),
+	)
+	// check balance
+	ctx := tApp.NewContext(false, abci.Header{})
+	require.Equal(t, cs(c("xrp", 100)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
+
+	// setup cdp keeper
+	keeper := tApp.GetCDPKeeper()
+	params := cdp.CdpParams{
 		GlobalDebtLimit: sdk.NewInt(100000),
-		CollateralParams: []CollateralParams{
+		CollateralParams: []cdp.CollateralParams{
 			{
 				Denom:            "xrp",
 				LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
@@ -35,6 +42,8 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	}
 	keeper.SetParams(ctx, params)
 	keeper.SetGlobalDebt(ctx, sdk.NewInt(0))
+	// setup pricefeed
+	pfKeeper := tApp.GetPriceFeedKeeper()
 	ap := pricefeed.AssetParams{
 		Assets: []pricefeed.Asset{pricefeed.Asset{AssetCode: "xrp", Description: ""}},
 	}
@@ -44,24 +53,30 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 		sdk.MustNewDecFromStr("1.00"),
 		sdk.NewInt(10))
 	pfKeeper.SetCurrentPrices(ctx)
-	mapp.EndBlock(abci.RequestEndBlock{})
-	mapp.Commit()
+	tApp.EndBlock(abci.RequestEndBlock{})
+	tApp.Commit()
 
 	// Create CDP
-	msgs := []sdk.Msg{NewMsgCreateOrModifyCDP(testAddr, "xrp", i(10), i(5))}
-	mock.SignCheckDeliver(t, mapp.Cdc, mapp.BaseApp, abci.Header{Height: mapp.LastBlockHeight() + 1}, msgs, []uint64{0}, []uint64{0}, true, true, testPrivKey)
+	msgs := []sdk.Msg{cdp.NewMsgCreateOrModifyCDP(testAddr, "xrp", i(10), i(5))}
+	simapp.SignCheckDeliver(t, tApp.Codec(), tApp.BaseApp, abci.Header{Height: tApp.LastBlockHeight() + 1}, msgs, []uint64{0}, []uint64{0}, true, true, testPrivKey)
 
-	mock.CheckBalance(t, mapp, testAddr, cs(c("usdx", 5), c("xrp", 90)))
+	// check balance
+	ctx = tApp.NewContext(true, abci.Header{})
+	require.Equal(t, cs(c("usdx", 5), c("xrp", 90)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
 
 	// Modify CDP
-	msgs = []sdk.Msg{NewMsgCreateOrModifyCDP(testAddr, "xrp", i(40), i(5))}
-	mock.SignCheckDeliver(t, mapp.Cdc, mapp.BaseApp, abci.Header{Height: mapp.LastBlockHeight() + 1}, msgs, []uint64{0}, []uint64{1}, true, true, testPrivKey)
+	msgs = []sdk.Msg{cdp.NewMsgCreateOrModifyCDP(testAddr, "xrp", i(40), i(5))}
+	simapp.SignCheckDeliver(t, tApp.Codec(), tApp.BaseApp, abci.Header{Height: tApp.LastBlockHeight() + 1}, msgs, []uint64{0}, []uint64{1}, true, true, testPrivKey)
 
-	mock.CheckBalance(t, mapp, testAddr, cs(c("usdx", 10), c("xrp", 50)))
+	// check balance
+	ctx = tApp.NewContext(true, abci.Header{})
+	require.Equal(t, cs(c("usdx", 10), c("xrp", 50)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
 
 	// Delete CDP
-	msgs = []sdk.Msg{NewMsgCreateOrModifyCDP(testAddr, "xrp", i(-50), i(-10))}
-	mock.SignCheckDeliver(t, mapp.Cdc, mapp.BaseApp, abci.Header{Height: mapp.LastBlockHeight() + 1}, msgs, []uint64{0}, []uint64{2}, true, true, testPrivKey)
+	msgs = []sdk.Msg{cdp.NewMsgCreateOrModifyCDP(testAddr, "xrp", i(-50), i(-10))}
+	simapp.SignCheckDeliver(t, tApp.Codec(), tApp.BaseApp, abci.Header{Height: tApp.LastBlockHeight() + 1}, msgs, []uint64{0}, []uint64{2}, true, true, testPrivKey)
 
-	mock.CheckBalance(t, mapp, testAddr, cs(c("xrp", 100)))
+	// check balance
+	ctx = tApp.NewContext(true, abci.Header{})
+	require.Equal(t, cs(c("xrp", 100)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
 }
