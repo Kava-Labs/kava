@@ -38,9 +38,9 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	keeper.SetParams(ctx, params)
 	keeper.SetGlobalDebt(ctx, sdk.NewInt(0))
 	ap := pricefeed.Params{
-		Assets: []pricefeed.Asset{
-			pricefeed.Asset{
-				AssetCode: "xrp", BaseAsset: "xrp",
+		Markets: []pricefeed.Market{
+			pricefeed.Market{
+				MarketID: "xrp", BaseAsset: "xrp",
 				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 		},
 	}

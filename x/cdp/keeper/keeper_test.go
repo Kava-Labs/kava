@@ -111,9 +111,9 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			keeper.SetParams(ctx, defaultParamsSingle())
 			// setup store state
 			ap := pricefeed.Params{
-				Assets: []pricefeed.Asset{
-					pricefeed.Asset{
-						AssetCode: "xrp", BaseAsset: "xrp",
+				Markets: []pricefeed.Market{
+					pricefeed.Market{
+						MarketID: "xrp", BaseAsset: "xrp",
 						QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 				},
 			}
@@ -186,9 +186,9 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	ctx := mapp.BaseApp.NewContext(false, header)
 	keeper.SetParams(ctx, defaultParamsSingle())
 	ap := pricefeed.Params{
-		Assets: []pricefeed.Asset{
-			pricefeed.Asset{
-				AssetCode: "xrp", BaseAsset: "xrp",
+		Markets: []pricefeed.Market{
+			pricefeed.Market{
+				MarketID: "xrp", BaseAsset: "xrp",
 				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 		},
 	}

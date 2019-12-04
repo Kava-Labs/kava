@@ -10,8 +10,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, data GenesisStat
 	// validate denoms - check that any collaterals in the CdpParams are in the pricefeed, pricefeed needs to initgenesis before cdp
 	collateralMap := make(map[string]int)
 	ap := pk.GetParams(ctx)
-	for _, a := range ap.Assets {
-		collateralMap[a.AssetCode] = 1
+	for _, m := range ap.Markets {
+		collateralMap[m.MarketID] = 1
 	}
 
 	for _, col := range data.Params.CollateralParams {
