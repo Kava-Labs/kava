@@ -34,9 +34,16 @@ type CollateralParams struct {
 // Parameter keys
 var (
 	// ParamStoreKeyAuctionParams Param store key for auction params
-	KeyGlobalDebtLimit  = []byte("GlobalDebtLimit")
-	KeyCollateralParams = []byte("CollateralParams")
-	KeyStableDenoms     = []byte("StableDenoms")
+	KeyGlobalDebtLimit      = []byte("GlobalDebtLimit")
+	KeyCollateralParams     = []byte("CollateralParams")
+	KeyDebtParams           = []byte("DebtParams")
+	KeyCircuitBreaker       = []byte("CircuitBreaker")
+	DefaultGlobalDebt       = sdk.Coins{}
+	DefaultCircuitBreaker   = false
+	DefaultCollateralParams = CollateralParams{}
+	DefaultDebtParams       = DebtParams{}
+	minCollateralPrefix     = 32
+	maxCollateralPrefix     = 255
 )
 
 // ParamKeyTable Key declaration for parameters
@@ -53,6 +60,20 @@ func (p *CdpParams) ParamSetPairs() subspace.ParamSetPairs {
 		{KeyCollateralParams, &p.CollateralParams},
 		{KeyStableDenoms, &p.StableDenoms},
 	}
+}
+
+// DefaultParams returns default params for cdp module
+func DefaultParams() Params {
+	return NewParams(DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParams, DefaultCircuitBreaker)
+}
+
+// CollateralParam governance parameters for each collateral type within the cdp module
+type CollateralParam struct {
+	Denom            string    `json:"denom" yaml:"denom"`                         // Coin name of collateral type
+	LiquidationRatio sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"` // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
+	DebtLimit        sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
+	Prefix           []byte    `json:"prefix" yaml:"prefix"`
+	//DebtFloor        sdk.Int // used to prevent dust
 }
 
 // String implements fmt.Stringer
@@ -119,8 +140,25 @@ func (p CdpParams) Validate() error {
 		return fmt.Errorf("global debt limit should be positive, is %s", p.GlobalDebtLimit)
 	}
 
-	for _, denom := range p.StableDenoms {
-		_, found := denomDupMap[denom]
+	collateralDupMap := make(map[string]int)
+	prefixDupMap := make(map[int]int)
+	collateralParamsDebtLimit := sdk.Coins{}
+	for _, cp := range p.CollateralParams {
+		if len(cp.Prefix) != 1 {
+			return fmt.Errorf("invalid prefix for collateral denom %s: %s", cp.Denom, cp.Prefix)
+		}
+		prefix := int(cp.Prefix[0])
+		if prefix < minCollateralPrefix || prefix > maxCollateralPrefix {
+			return fmt.Errorf("invalid prefix for collateral denom %s: %s", cp.Denom, cp.Prefix)
+		}
+		_, found := prefixDupMap[prefix]
+		if found {
+			return fmt.Errorf("duplicate prefix for collateral denom %s: %s", cp.Denom, cp.Prefix)
+		}
+
+		prefixDupMap[prefix] = 1
+		_, found = collateralDupMap[cp.Denom]
+
 		if found {
 			return fmt.Errorf("duplicate stable denom: %s", denom)
 		}

@@ -17,31 +17,62 @@ type Keeper struct {
 	cdc             *codec.Codec
 	paramSubspace   subspace.Subspace
 	pricefeedKeeper types.PricefeedKeeper
-	bankKeeper      types.BankKeeper
+	supplyKeeper      types.SupplyKeeper
+	codespace	sdk.CodespaceType
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, bk types.BankKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
 	return Keeper{
 		key:             key,
 		cdc:             cdc,
 		paramSubspace:   paramstore.WithKeyTable(types.ParamKeyTable()),
 		pricefeedKeeper: pfk,
-		bankKeeper:      bk,
+		supplyKeeper:      sk,
+		codespace:    codespace,
 	}
 }
+
+func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coins, debt sdk.Coins) sdk.Error {
+	_, ok := k.GetCdpID(ctx, owner, collateral[0].Denom)
+	if ok {
+		return types.ErrCdpExists(k.codespace, owner, collateral[0].Denom)
+	}
+	err := k.ValidateCollateral(ctx, collateral)
+	if err != nil {
+		return err
+	}
+	err = k.ValidateDebt(ctx, debt)
+	if err != nil {
+		return err
+	}
+	err = k.ValidateCollateralRatio(ctx, collateral, debt)
+	if err != nil {
+		return err
+	}
+	id := k.GetNextCdpID(ctx)
+	cdp := types.NewCDP(id, owner, collateral, debt, ctx.BlockHeader().Time)
+	k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, collateral)
+	k.MintStablecoins(ctx, types.ModuleName, debt)
+	k.MintDebtcoins(ctx, types.ModuleName, debt)
+	k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, debt)
+	k.SetCDP(ctx, cdp)
+	k.IndexCdbByOwner(ctx, cdp)
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp)
+	k.IndexCdpByCollateralRatio(ctx, cdp, collateralToDebtRatio)
+
+	return nil
+}
+
+
 
 // ModifyCDP creates, changes, or deletes a CDP
 // TODO can/should this function be split up?
 func (k Keeper) ModifyCDP(ctx sdk.Context, owner sdk.AccAddress, collateralDenom string, changeInCollateral sdk.Int, changeInDebt sdk.Int) sdk.Error {
 
 	// Phase 1: Get state, make changes in memory and check if they're ok.
+	ok := k.validateDenom(ctx, collateralDenom)
 
-	// Check collateral type ok
-	p := k.GetParams(ctx)
-	if !p.IsCollateralPresent(collateralDenom) { // maybe abstract this logic into GetCDP
-		return sdk.ErrInternal("collateral type not enabled to create CDPs")
-	}
 
 	// Check the owner has enough collateral and stable coins
 	if changeInCollateral.IsPositive() { // adding collateral to CDP
