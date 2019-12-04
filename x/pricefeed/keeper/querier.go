@@ -27,12 +27,12 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	assetCode := path[0]
-	_, found := keeper.GetAsset(ctx, assetCode)
+	marketID := path[0]
+	_, found := keeper.GetMarket(ctx, marketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
 	}
-	currentPrice := keeper.GetCurrentPrice(ctx, assetCode)
+	currentPrice := keeper.GetCurrentPrice(ctx, marketID)
 
 	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, currentPrice)
 	if err2 != nil {
@@ -44,12 +44,12 @@ func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 
 func queryRawPrices(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
 	var priceList types.QueryRawPricesResp
-	assetCode := path[0]
-	_, found := keeper.GetAsset(ctx, assetCode)
+	marketID := path[0]
+	_, found := keeper.GetMarket(ctx, marketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
 	}
-	rawPrices := keeper.GetRawPrices(ctx, assetCode)
+	rawPrices := keeper.GetRawPrices(ctx, marketID)
 	for _, price := range rawPrices {
 		priceList = append(priceList, price.String())
 	}
@@ -63,7 +63,7 @@ func queryRawPrices(ctx sdk.Context, path []string, req abci.RequestQuery, keepe
 
 func queryAssets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
 	var assetList types.QueryAssetsResp
-	assets := keeper.GetAssetParams(ctx)
+	assets := keeper.GetMarketParams(ctx)
 	for _, asset := range assets {
 		assetList = append(assetList, asset.String())
 	}

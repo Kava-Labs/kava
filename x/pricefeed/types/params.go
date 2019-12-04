@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	// KeyAssets store key for assets
-	KeyAssets = []byte("assets")
+	// KeyMarkets store key for markets
+	KeyMarkets = []byte("Markets")
 )
 
 // ParamKeyTable Key declaration for parameters
@@ -20,33 +20,33 @@ func ParamKeyTable() params.KeyTable {
 
 // Params params for pricefeed. Can be altered via governance
 type Params struct {
-	Assets []Asset `json:"assets" yaml:"assets"` //  Array containing the assets supported by the pricefeed
+	Markets Markets `json:"markets" yaml:"markets"` //  Array containing the markets supported by the pricefeed
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of pricefeed module's parameters.
 func (p Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyAssets, Value: &p.Assets},
+		{Key: KeyMarkets, Value: &p.Markets},
 	}
 }
 
 // NewParams creates a new AssetParams object
-func NewParams(assets []Asset) Params {
+func NewParams(markets Markets) Params {
 	return Params{
-		Assets: assets,
+		Markets: markets,
 	}
 }
 
 // DefaultParams default params for pricefeed
 func DefaultParams() Params {
-	return NewParams(Assets{})
+	return NewParams(Markets{})
 }
 
 // String implements fmt.stringer
 func (p Params) String() string {
 	out := "Params:\n"
-	for _, a := range p.Assets {
+	for _, a := range p.Markets {
 		out += a.String()
 	}
 	return strings.TrimSpace(out)
@@ -61,9 +61,9 @@ type ParamSubspace interface {
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
 	// iterate over assets and verify them
-	for _, asset := range p.Assets {
-		if asset.AssetCode == "" {
-			return fmt.Errorf("invalid asset: %s. missing asset code", asset.String())
+	for _, asset := range p.Markets {
+		if asset.MarketID == "" {
+			return fmt.Errorf("invalid market: %s. missing market ID", asset.String())
 		}
 	}
 	return nil

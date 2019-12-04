@@ -11,25 +11,27 @@ import (
 )
 
 const (
-	DefaultCodespace   = types.DefaultCodespace
-	CodeEmptyInput     = types.CodeEmptyInput
-	CodeExpired        = types.CodeExpired
-	CodeInvalidPrice   = types.CodeInvalidPrice
-	CodeInvalidAsset   = types.CodeInvalidAsset
-	CodeInvalidOracle  = types.CodeInvalidOracle
-	ModuleName         = types.ModuleName
-	StoreKey           = types.StoreKey
-	RouterKey          = types.RouterKey
-	QuerierRoute       = types.QuerierRoute
-	DefaultParamspace  = types.DefaultParamspace
-	RawPriceFeedPrefix = types.RawPriceFeedPrefix
-	CurrentPricePrefix = types.CurrentPricePrefix
-	AssetPrefix        = types.AssetPrefix
-	OraclePrefix       = types.OraclePrefix
-	TypeMsgPostPrice   = types.TypeMsgPostPrice
-	QueryCurrentPrice  = types.QueryCurrentPrice
-	QueryRawPrices     = types.QueryRawPrices
-	QueryAssets        = types.QueryAssets
+	DefaultCodespace              = types.DefaultCodespace
+	CodeEmptyInput                = types.CodeEmptyInput
+	CodeExpired                   = types.CodeExpired
+	CodeInvalidPrice              = types.CodeInvalidPrice
+	CodeInvalidAsset              = types.CodeInvalidAsset
+	CodeInvalidOracle             = types.CodeInvalidOracle
+	EventTypeNoValidPrices        = types.EventTypeNoValidPrices
+	AttributeKeyPriceUpdateFailed = types.AttributeKeyPriceUpdateFailed
+	ModuleName                    = types.ModuleName
+	StoreKey                      = types.StoreKey
+	RouterKey                     = types.RouterKey
+	QuerierRoute                  = types.QuerierRoute
+	DefaultParamspace             = types.DefaultParamspace
+	RawPriceFeedPrefix            = types.RawPriceFeedPrefix
+	CurrentPricePrefix            = types.CurrentPricePrefix
+	AssetPrefix                   = types.AssetPrefix
+	OraclePrefix                  = types.OraclePrefix
+	TypeMsgPostPrice              = types.TypeMsgPostPrice
+	QueryCurrentPrice             = types.QueryCurrentPrice
+	QueryRawPrices                = types.QueryRawPrices
+	QueryAssets                   = types.QueryAssets
 )
 
 var (
@@ -51,23 +53,23 @@ var (
 	NewQuerier          = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
-	KeyAssets = types.KeyAssets
+	ModuleCdc  = types.ModuleCdc
+	KeyMarkets = types.KeyMarkets
 )
 
 type (
+	Market             = types.Market
+	Markets            = types.Markets
+	Oracle             = types.Oracle
+	Oracles            = types.Oracles
+	CurrentPrice       = types.CurrentPrice
+	PostedPrice        = types.PostedPrice
+	SortDecs           = types.SortDecs
 	GenesisState       = types.GenesisState
 	MsgPostPrice       = types.MsgPostPrice
 	Params             = types.Params
 	ParamSubspace      = types.ParamSubspace
 	QueryRawPricesResp = types.QueryRawPricesResp
 	QueryAssetsResp    = types.QueryAssetsResp
-	Asset              = types.Asset
-	Assets             = types.Assets
-	Oracle             = types.Oracle
-	Oracles            = types.Oracles
-	CurrentPrice       = types.CurrentPrice
-	PostedPrice        = types.PostedPrice
-	SortDecs           = types.SortDecs
 	Keeper             = keeper.Keeper
 )

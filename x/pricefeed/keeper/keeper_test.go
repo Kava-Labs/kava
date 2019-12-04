@@ -12,8 +12,8 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-// TestKeeper_SetGetAsset tests adding assets to the pricefeed, getting assets from the store
-func TestKeeper_SetGetAsset(t *testing.T) {
+// TestKeeper_SetGetMarket tests adding markets to the pricefeed, getting markets from the store
+func TestKeeper_SetGetMarket(t *testing.T) {
 	helper := getMockApp(t, 0, types.GenesisState{}, nil)
 	header := abci.Header{
 		Height: helper.mApp.LastBlockHeight() + 1,
@@ -21,32 +21,32 @@ func TestKeeper_SetGetAsset(t *testing.T) {
 	helper.mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := helper.mApp.BaseApp.NewContext(false, header)
 
-	ap := types.Params{
-		Assets: []types.Asset{
-			types.Asset{AssetCode: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+	mp := types.Params{
+		Markets: types.Markets{
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
 		},
 	}
-	helper.keeper.SetParams(ctx, ap)
-	assets := helper.keeper.GetAssetParams(ctx)
-	require.Equal(t, len(assets), 1)
-	require.Equal(t, assets[0].AssetCode, "tstusd")
+	helper.keeper.SetParams(ctx, mp)
+	markets := helper.keeper.GetMarketParams(ctx)
+	require.Equal(t, len(markets), 1)
+	require.Equal(t, markets[0].MarketID, "tstusd")
 
-	_, found := helper.keeper.GetAsset(ctx, "tstusd")
+	_, found := helper.keeper.GetMarket(ctx, "tstusd")
 	require.Equal(t, found, true)
 
-	ap = types.Params{
-		Assets: []types.Asset{
-			types.Asset{AssetCode: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
-			types.Asset{AssetCode: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+	mp = types.Params{
+		Markets: types.Markets{
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+			types.Market{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
 		},
 	}
-	helper.keeper.SetParams(ctx, ap)
-	assets = helper.keeper.GetAssetParams(ctx)
-	require.Equal(t, len(assets), 2)
-	require.Equal(t, assets[0].AssetCode, "tstusd")
-	require.Equal(t, assets[1].AssetCode, "tst2usd")
+	helper.keeper.SetParams(ctx, mp)
+	markets = helper.keeper.GetMarketParams(ctx)
+	require.Equal(t, len(markets), 2)
+	require.Equal(t, markets[0].MarketID, "tstusd")
+	require.Equal(t, markets[1].MarketID, "tst2usd")
 
-	_, found = helper.keeper.GetAsset(ctx, "nan")
+	_, found = helper.keeper.GetMarket(ctx, "nan")
 	require.Equal(t, found, false)
 }
 
@@ -58,12 +58,12 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		Time:   tmtime.Now()}
 	helper.mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := helper.mApp.BaseApp.NewContext(false, header)
-	ap := types.Params{
-		Assets: []types.Asset{
-			types.Asset{AssetCode: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+	mp := types.Params{
+		Markets: types.Markets{
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
 		},
 	}
-	helper.keeper.SetParams(ctx, ap)
+	helper.keeper.SetParams(ctx, mp)
 	// Set price by oracle 1
 	_, err := helper.keeper.SetPrice(
 		ctx, helper.addrs[0], "tstusd",
@@ -103,12 +103,12 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 		Time:   tmtime.Now()}
 	helper.mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := helper.mApp.BaseApp.NewContext(false, header)
-	ap := types.Params{
-		Assets: []types.Asset{
-			types.Asset{AssetCode: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+	mp := types.Params{
+		Markets: types.Markets{
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
 		},
 	}
-	helper.keeper.SetParams(ctx, ap)
+	helper.keeper.SetParams(ctx, mp)
 	helper.keeper.SetPrice(
 		ctx, helper.addrs[0], "tstusd",
 		sdk.MustNewDecFromStr("0.33"),

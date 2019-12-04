@@ -8,34 +8,34 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Asset struct that represents an asset in the pricefeed
-type Asset struct {
-	AssetCode  string  `json:"asset_code" yaml:"asset_code"`
+// Market struct that represents an asset in the pricefeed
+type Market struct {
+	MarketID   string  `json:"market_id" yaml:"market_id"`
 	BaseAsset  string  `json:"base_asset" yaml:"base_asset"`
 	QuoteAsset string  `json:"quote_asset" yaml:"quote_asset"`
 	Oracles    Oracles `json:"oracles" yaml:"oracles"`
 	Active     bool    `json:"active" yaml:"active"`
 }
 
-// implement fmt.Stringer
-func (a Asset) String() string {
+// String implement fmt.Stringer
+func (a Market) String() string {
 	return fmt.Sprintf(`Asset:
-	Asset Code: %s
+	Market ID: %s
 	Base Asset: %s
 	Quote Asset: %s
 	Oracles: %s
 	Active: %t`,
-		a.AssetCode, a.BaseAsset, a.QuoteAsset, a.Oracles, a.Active)
+		a.MarketID, a.BaseAsset, a.QuoteAsset, a.Oracles, a.Active)
 }
 
-// Assets array type for oracle
-type Assets []Asset
+// Markets array type for oracle
+type Markets []Market
 
 // String implements fmt.Stringer
-func (as Assets) String() string {
-	out := "Assets:\n"
-	for _, a := range as {
-		out += fmt.Sprintf("%s\n", a.String())
+func (ms Markets) String() string {
+	out := "Markets:\n"
+	for _, m := range ms {
+		out += fmt.Sprintf("%s\n", m.String())
 	}
 	return strings.TrimSpace(out)
 }
@@ -64,13 +64,13 @@ func (os Oracles) String() string {
 
 // CurrentPrice struct that contains the metadata of a current price for a particular asset in the pricefeed module.
 type CurrentPrice struct {
-	AssetCode string  `json:"asset_code" yaml:"asset_code"`
-	Price     sdk.Dec `json:"price" yaml:"price"`
+	MarketID string  `json:"market_id" yaml:"market_id"`
+	Price    sdk.Dec `json:"price" yaml:"price"`
 }
 
 // PostedPrice struct represented a price for an asset posted by a specific oracle
 type PostedPrice struct {
-	AssetCode     string         `json:"asset_code" yaml:"asset_code"`
+	MarketID      string         `json:"market_id" yaml:"market_id"`
 	OracleAddress sdk.AccAddress `json:"oracle_address" yaml:"oracle_address"`
 	Price         sdk.Dec        `json:"price" yaml:"price"`
 	Expiry        time.Time      `json:"expiry" yaml:"expiry"`
@@ -78,16 +78,16 @@ type PostedPrice struct {
 
 // implement fmt.Stringer
 func (cp CurrentPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`AssetCode: %s
-Price: %s`, cp.AssetCode, cp.Price))
+	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
+Price: %s`, cp.MarketID, cp.Price))
 }
 
 // implement fmt.Stringer
 func (pp PostedPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`AssetCode: %s
-OracleAddress: %s
+	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
+Oracle Address: %s
 Price: %s
-Expiry: %s`, pp.AssetCode, pp.OracleAddress, pp.Price, pp.Expiry))
+Expiry: %s`, pp.MarketID, pp.OracleAddress, pp.Price, pp.Expiry))
 }
 
 // SortDecs provides the interface needed to sort sdk.Dec slices

@@ -12,16 +12,16 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 
 	// Iterate through the posted prices and set them in the store
 	for _, pp := range data.PostedPrices {
-		_, err := keeper.SetPrice(ctx, pp.OracleAddress, pp.AssetCode, pp.Price, pp.Expiry)
+		_, err := keeper.SetPrice(ctx, pp.OracleAddress, pp.MarketID, pp.Price, pp.Expiry)
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	// Set the current price (if any) based on what's now in the store
-	for _, a := range data.Params.Assets {
+	for _, a := range data.Params.Markets {
 		if a.Active {
-			_ = keeper.SetCurrentPrices(ctx, a.AssetCode)
+			_ = keeper.SetCurrentPrices(ctx, a.MarketID)
 		}
 	}
 }
@@ -33,8 +33,8 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 	params := keeper.GetParams(ctx)
 
 	var postedPrices []PostedPrice
-	for _, asset := range keeper.GetAssetParams(ctx) {
-		pp := keeper.GetRawPrices(ctx, asset.AssetCode)
+	for _, asset := range keeper.GetMarketParams(ctx) {
+		pp := keeper.GetRawPrices(ctx, asset.MarketID)
 		postedPrices = append(postedPrices, pp...)
 	}
 

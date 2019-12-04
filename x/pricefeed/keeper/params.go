@@ -10,7 +10,7 @@ import (
 
 // GetParams gets params from the store
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.GetAssetParams(ctx))
+	return types.NewParams(k.GetMarketParams(ctx))
 }
 
 // SetParams updates params in the store
@@ -18,47 +18,47 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramstore.SetParamSet(ctx, &params)
 }
 
-// GetAssetParams get asset params from store
-func (k Keeper) GetAssetParams(ctx sdk.Context) types.Assets {
-	var assets types.Assets
-	k.paramstore.Get(ctx, types.KeyAssets, &assets)
-	return assets
+// GetMarketParams get asset params from store
+func (k Keeper) GetMarketParams(ctx sdk.Context) types.Markets {
+	var markets types.Markets
+	k.paramstore.Get(ctx, types.KeyMarkets, &markets)
+	return markets
 }
 
 // GetOracles returns the oracles in the pricefeed store
-func (k Keeper) GetOracles(ctx sdk.Context, assetCode string) (types.Oracles, error) {
+func (k Keeper) GetOracles(ctx sdk.Context, marketID string) (types.Oracles, error) {
 
-	for _, a := range k.GetAssetParams(ctx) {
-		if assetCode == a.AssetCode {
-			return a.Oracles, nil
+	for _, m := range k.GetMarketParams(ctx) {
+		if marketID == m.MarketID {
+			return m.Oracles, nil
 		}
 	}
-	return types.Oracles{}, fmt.Errorf("asset %s not found", assetCode)
+	return types.Oracles{}, fmt.Errorf("asset %s not found", marketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
-func (k Keeper) GetOracle(ctx sdk.Context, assetCode string, address sdk.AccAddress) (types.Oracle, error) {
-	oracles, err := k.GetOracles(ctx, assetCode)
+func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (types.Oracle, error) {
+	oracles, err := k.GetOracles(ctx, marketID)
 	if err != nil {
-		return types.Oracle{}, fmt.Errorf("asset %s not found", assetCode)
+		return types.Oracle{}, fmt.Errorf("asset %s not found", marketID)
 	}
 	for _, o := range oracles {
 		if address.Equals(o.Address) {
 			return o, nil
 		}
 	}
-	return types.Oracle{}, fmt.Errorf("oracle %s not found for asset %s", address, assetCode)
+	return types.Oracle{}, fmt.Errorf("oracle %s not found for asset %s", address, marketID)
 }
 
-// GetAsset returns the asset if it is in the pricefeed system
-func (k Keeper) GetAsset(ctx sdk.Context, assetCode string) (types.Asset, bool) {
-	assets := k.GetAssetParams(ctx)
+// GetMarket returns the market if it is in the pricefeed system
+func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool) {
+	markets := k.GetMarketParams(ctx)
 
-	for i := range assets {
-		if assets[i].AssetCode == assetCode {
-			return assets[i], true
+	for i := range markets {
+		if markets[i].MarketID == marketID {
+			return markets[i], true
 		}
 	}
-	return types.Asset{}, false
+	return types.Market{}, false
 
 }
