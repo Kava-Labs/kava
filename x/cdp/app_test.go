@@ -2,10 +2,12 @@ package cdp
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/x/pricefeed"
 )
@@ -19,7 +21,7 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	mock.SetGenesis(mapp, genAccs)
 	mock.CheckBalance(t, mapp, testAddr, cs(c("xrp", 100)))
 	// setup pricefeed, TODO can this be shortened a bit?
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
+	header := abci.Header{Height: mapp.LastBlockHeight() + 1, Time: tmtime.Now()}
 	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := mapp.BaseApp.NewContext(false, header)
 	params := CdpParams{
@@ -35,15 +37,19 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	}
 	keeper.SetParams(ctx, params)
 	keeper.SetGlobalDebt(ctx, sdk.NewInt(0))
-	ap := pricefeed.AssetParams{
-		Assets: []pricefeed.Asset{pricefeed.Asset{AssetCode: "xrp", Description: ""}},
+	ap := pricefeed.Params{
+		Markets: []pricefeed.Market{
+			pricefeed.Market{
+				MarketID: "xrp", BaseAsset: "xrp",
+				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+		},
 	}
-	pfKeeper.SetAssetParams(ctx, ap)
+	pfKeeper.SetParams(ctx, ap)
 	pfKeeper.SetPrice(
 		ctx, sdk.AccAddress{}, "xrp",
 		sdk.MustNewDecFromStr("1.00"),
-		sdk.NewInt(10))
-	pfKeeper.SetCurrentPrices(ctx)
+		header.Time.Add(time.Hour*1))
+	pfKeeper.SetCurrentPrices(ctx, "xrp")
 	mapp.EndBlock(abci.RequestEndBlock{})
 	mapp.Commit()
 

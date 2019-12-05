@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -14,9 +16,9 @@ type BankKeeper interface {
 
 type PricefeedKeeper interface {
 	GetCurrentPrice(sdk.Context, string) pftypes.CurrentPrice
-	GetAssetParams(sdk.Context) pftypes.AssetParams
+	GetParams(sdk.Context) pftypes.Params
 	// These are used for testing TODO replace mockApp with keeper in tests to remove these
-	SetAssetParams(sdk.Context, pftypes.AssetParams)
-	SetPrice(sdk.Context, sdk.AccAddress, string, sdk.Dec, sdk.Int) (pftypes.PostedPrice, sdk.Error)
-	SetCurrentPrices(sdk.Context) sdk.Error
+	SetParams(sdk.Context, pftypes.Params)
+	SetPrice(sdk.Context, sdk.AccAddress, string, sdk.Dec, time.Time) (pftypes.PostedPrice, sdk.Error)
+	SetCurrentPrices(sdk.Context, string) sdk.Error
 }

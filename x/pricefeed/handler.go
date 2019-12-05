@@ -29,22 +29,10 @@ func HandleMsgPostPrice(
 	msg MsgPostPrice) sdk.Result {
 
 	// TODO cleanup message validation and errors
-	err := k.ValidatePostPrice(ctx, msg)
+	_, err := k.GetOracle(ctx, msg.AssetCode, msg.From)
 	if err != nil {
-		return err.Result()
+		return ErrInvalidOracle(k.Codespace()).Result()
 	}
 	k.SetPrice(ctx, msg.From, msg.AssetCode, msg.Price, msg.Expiry)
 	return sdk.Result{}
-}
-
-// EndBlocker updates the current pricefeed
-func EndBlocker(ctx sdk.Context, k Keeper) {
-	// TODO val_state_change.go is relevant if we want to rotate the oracle set
-
-	// Running in the end blocker ensures that prices will update at most once per block,
-	// which seems preferable to having state storage values change in response to multiple transactions
-	// which occur during a block
-	//TODO use an iterator and update the prices for all assets in the store
-	k.SetCurrentPrices(ctx)
-	return
 }

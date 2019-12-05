@@ -28,7 +28,7 @@ func setUpMockAppWithoutGenesis() (*mock.App, Keeper, PricefeedKeeper) {
 	keyCDP := sdk.NewKVStoreKey("cdp")
 	keyPriceFeed := sdk.NewKVStoreKey(pricefeed.StoreKey)
 	pk := mapp.ParamsKeeper
-	priceFeedKeeper := pricefeed.NewKeeper(keyPriceFeed, mapp.Cdc, pk.Subspace(pricefeed.DefaultParamspace).WithKeyTable(pricefeed.ParamKeyTable()), pricefeed.DefaultCodespace)
+	priceFeedKeeper := pricefeed.NewKeeper(keyPriceFeed, mapp.Cdc, pk.Subspace(pricefeed.DefaultParamspace), pricefeed.DefaultCodespace)
 	blacklistedAddrs := make(map[string]bool)
 	bankKeeper := bank.NewBaseKeeper(mapp.AccountKeeper, pk.Subspace(bank.DefaultParamspace), bank.DefaultCodespace, blacklistedAddrs)
 	cdpKeeper := NewKeeper(mapp.Cdc, keyCDP, pk.Subspace(DefaultParamspace), priceFeedKeeper, bankKeeper)

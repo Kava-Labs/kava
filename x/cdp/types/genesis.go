@@ -1,8 +1,6 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+import sdk "github.com/cosmos/cosmos-sdk/types"
 
 // GenesisState is the state that must be provided at genesis.
 // TODO What is globaldebt and is is separate from the global debt limit in CdpParams
@@ -18,9 +16,8 @@ type GenesisState struct {
 // TODO make this empty, load test values independent
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:     DefaultParams(),
-		GlobalDebt: sdk.ZeroInt(),
-		CDPs:       CDPs{},
+		Params: DefaultParams(),
+		CDPs:   CDPs{},
 	}
 }
 

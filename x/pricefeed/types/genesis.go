@@ -2,21 +2,18 @@ package types
 
 import (
 	"bytes"
-	"fmt"
 )
 
 // GenesisState - pricefeed state that must be provided at genesis
 type GenesisState struct {
-	AssetParams  AssetParams   `json:"asset_params" yaml:"asset_params"`
-	OracleParams OracleParams  `json:"oracle_params" yaml:"oracle_params"`
+	Params       Params        `json:"asset_params" yaml:"asset_params"`
 	PostedPrices []PostedPrice `json:"posted_prices" yaml:"posted_prices"`
 }
 
 // NewGenesisState creates a new genesis state for the pricefeed module
-func NewGenesisState(ap AssetParams, op OracleParams, pp []PostedPrice) GenesisState {
+func NewGenesisState(p Params, pp []PostedPrice) GenesisState {
 	return GenesisState{
-		AssetParams:  ap,
-		OracleParams: op,
+		Params:       p,
 		PostedPrices: pp,
 	}
 }
@@ -24,8 +21,7 @@ func NewGenesisState(ap AssetParams, op OracleParams, pp []PostedPrice) GenesisS
 // DefaultGenesisState defines default GenesisState for pricefeed
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
-		DefaultAssetParams(),
-		DefaultOracleParams(),
+		DefaultParams(),
 		[]PostedPrice{},
 	)
 }
@@ -45,19 +41,9 @@ func (data GenesisState) IsEmpty() bool {
 // ValidateGenesis performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func ValidateGenesis(data GenesisState) error {
-	// iterate over assets and verify them
-	for _, asset := range data.AssetParams.Assets {
-		if asset.AssetCode == "" {
-			return fmt.Errorf("invalid asset: %s. missing asset code", asset.String())
-		}
-	}
 
-	// iterate over oracles and verify them
-	for _, oracle := range data.OracleParams.Oracles {
-		if oracle.OracleAddress == "" {
-			return fmt.Errorf("invalid oracle: %s. missing oracle address", oracle.String())
-		}
+	if err := data.Params.Validate(); err != nil {
+		return err
 	}
-
 	return nil
 }
