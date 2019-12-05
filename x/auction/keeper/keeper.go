@@ -144,8 +144,8 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 		return err
 	}
 
-	// delete auction from store (and queue)
-	k.deleteAuction(ctx, auctionID)
+	// Delete auction from store (and queue)
+	k.DeleteAuction(ctx, auctionID)
 
 	return nil
 }
@@ -204,7 +204,7 @@ func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	store.Set(k.getAuctionKey(auction.GetID()), bz)
 
 	// add to the queue
-	k.insertIntoQueue(ctx, auction.GetEndTime(), auction.GetID())
+	k.InsertIntoQueue(ctx, auction.GetEndTime(), auction.GetID())
 }
 
 // getAuction gets an auction from the store by auctionID
@@ -221,8 +221,8 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID types.ID) (types.Auction, 
 	return auction, true
 }
 
-// deleteAuction removes an auction from the store without any validation
-func (k Keeper) deleteAuction(ctx sdk.Context, auctionID types.ID) {
+// DeleteAuction removes an auction from the store without any validation
+func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID types.ID) {
 	// remove from queue
 	auction, found := k.GetAuction(ctx, auctionID)
 	if found {
@@ -245,7 +245,7 @@ func (k Keeper) getAuctionKey(auctionID types.ID) []byte {
 }
 
 // Inserts a AuctionID into the queue at endTime
-func (k Keeper) insertIntoQueue(ctx sdk.Context, endTime types.EndTime, auctionID types.ID) {
+func (k Keeper) InsertIntoQueue(ctx sdk.Context, endTime types.EndTime, auctionID types.ID) {
 	// get the store
 	store := ctx.KVStore(k.storeKey)
 	// marshal thing to be inserted
