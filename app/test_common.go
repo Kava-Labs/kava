@@ -2,6 +2,9 @@ package app
 
 import (
 	"math/rand"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -105,6 +108,11 @@ func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) T
 	tApp.Commit()
 	tApp.BeginBlock(abci.RequestBeginBlock{Header: abci.Header{Height: tApp.LastBlockHeight() + 1}})
 	return tApp
+}
+
+func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAddress, expectedCoins sdk.Coins) {
+	actualCoins := tApp.GetAccountKeeper().GetAccount(ctx, owner).GetCoins()
+	require.Equal(t, expectedCoins, actualCoins)
 }
 
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
