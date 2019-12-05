@@ -42,6 +42,7 @@ var (
 	DefaultCircuitBreaker   = false
 	DefaultCollateralParams = CollateralParams{}
 	DefaultDebtParams       = DebtParams{}
+	DefaultCdpStartingID    = 1
 	minCollateralPrefix     = 32
 	maxCollateralPrefix     = 255
 )

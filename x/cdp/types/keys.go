@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -41,6 +43,9 @@ var (
 	DepositsKeyPrefix          = []byte{0x04}
 )
 
+var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))
+var lenNegativeDec = len(SortableDecBytes(sdk.OneDec().Neg()))
+
 // GetCdpIDBytes returns the byte representation of the cdpID
 func GetCdpIDBytes(cdpID uint64) (cdpIDBz []byte) {
 	cdpIDBz = make([]byte, 8)
@@ -51,4 +56,33 @@ func GetCdpIDBytes(cdpID uint64) (cdpIDBz []byte) {
 // GetCdpIDFromBytes returns cdpID in uint64 format from a byte array
 func GetCdpIDFromBytes(bz []byte) (cdpID uint64) {
 	return binary.BigEndian.Uint64(bz)
+}
+
+// LiquidationRatioKey returns the key for a querying for cdps by liquidation ratio
+func LiquidationRatioKey(ratio sdk.Dec) []byte {
+	ok := ValidSortableDec(ratio)
+	if !ok {
+		ratio = sdk.OneDec().Quo(sdk.SmallestDec())
+	}
+	return SortableDecBytes(ratio)
+}
+
+// SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
+func SplitCollateralRatioKey(key []byte) (denom string, ratio sdk.Dec, cdpID uint64) {
+	return splitKeyWithDec(key)
+}
+
+func splitKeyWithDec(key []byte) (denom string, ratio sdk.Dec, cdpID uint64) {
+	denomByte := key[0]
+	ratioBytes := key[1 : len(key)-8]
+	idBytes := key[len(key)-8:]
+
+	ratio, err := ParseDecBytes(ratioBytes)
+	if err != nil {
+		panic(err)
+	}
+	denom = ParseDenomBytes(denomBytes)
+	cdpID = GetCdpIDFromBytes(idBytes)
+	return
+
 }

@@ -10,15 +10,24 @@ import (
 
 // CDP is the state of a single Collateralized Debt Position.
 type CDP struct {
-	ID               uint64         `json:"id" yaml:"id"`                               // unique id for cdp
-	Owner            sdk.AccAddress `json:"owner" yaml:"owner"`                         // Account that authorizes changes to the CDP
-	CollateralAmount sdk.Coins      `json:"collateral_amount" yaml:"collateral_amount"` // Amount of collateral stored in this CDP
-	Debt             sdk.Coins      `json:"debt" yaml:"debt"`
-	AccumulatedFees  sdk.Coins      `json:"accumulated_fees" yaml:"accumulated_fees"`
-	FeesUpdated      time.Time      `json:"fees_updated" yaml:"fees_updated"` // Amount of stable coin drawn from this CDP
+	ID              uint64         `json:"id" yaml:"id"`                 // unique id for cdp
+	Owner           sdk.AccAddress `json:"owner" yaml:"owner"`           // Account that authorizes changes to the CDP
+	Collateral      sdk.Coins      `json:"collateral" yaml:"collateral"` // Amount of collateral stored in this CDP
+	Principal       sdk.Coins      `json:"principal" yaml:"principal"`
+	AccumulatedFees sdk.Coins      `json:"accumulated_fees" yaml:"accumulated_fees"`
+	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"` // Amount of stable coin drawn from this CDP
 }
 
-func NewCDP(ID uint64)
+func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins, time time.Time) CDP {
+	return CDP{
+		ID:              id,
+		Owner:           owner,
+		Collateral:      collateral,
+		Principal:       principal,
+		AccumulatedFees: sdk.NewCoins(),
+		FeesUpdated:     time,
+	}
+}
 
 // String implements fmt.stringer
 func (cdp CDP) String() string {
@@ -27,14 +36,14 @@ func (cdp CDP) String() string {
 	ID: %d
 	Collateral Type: %s
 	Collateral: %s
-	Debt: %s
+	Principal: %s
 	Fees: %s
 	Fees Last Updated: %s`,
 		cdp.Owner,
 		cdp.ID,
-		cdp.CollateralAmount[0].Denom,
-		cdp.CollateralAmount,
-		cdp.Debt,
+		cdp.Collateral[0].Denom,
+		cdp.Collateral,
+		cdp.Principal,
 		cdp.AccumulatedFees,
 		cdp.FeesUpdated,
 	))
