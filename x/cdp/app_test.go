@@ -2,6 +2,7 @@ package cdp_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,8 +22,8 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	tApp.InitializeFromGenesisStates(
 		tApp.NewAuthGenStateFromAccounts(addrs, []sdk.Coins{cs(c("xrp", 100))}),
 	)
-	// check balance
 	ctx := tApp.NewContext(false, abci.Header{})
+	// check balance
 	tApp.CheckBalance(t, ctx, testAddr, cs(c("xrp", 100)))
 
 	// setup cdp keeper
@@ -40,17 +41,20 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	}
 	keeper.SetParams(ctx, params)
 	keeper.SetGlobalDebt(ctx, sdk.NewInt(0))
-	// setup pricefeed
-	pfKeeper := tApp.GetPriceFeedKeeper()
-	ap := pricefeed.AssetParams{
-		Assets: []pricefeed.Asset{pricefeed.Asset{AssetCode: "xrp", Description: ""}},
+	pricefeedKeeper := tApp.GetPriceFeedKeeper()
+	ap := pricefeed.Params{
+		Markets: []pricefeed.Market{
+			pricefeed.Market{
+				MarketID: "xrp", BaseAsset: "xrp",
+				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+		},
 	}
-	pfKeeper.SetAssetParams(ctx, ap)
-	pfKeeper.SetPrice(
+	pricefeedKeeper.SetParams(ctx, ap)
+	pricefeedKeeper.SetPrice(
 		ctx, sdk.AccAddress{}, "xrp",
 		sdk.MustNewDecFromStr("1.00"),
-		sdk.NewInt(10))
-	pfKeeper.SetCurrentPrices(ctx)
+		time.Unix(9999999999, 0)) // some deterministic future date
+	pricefeedKeeper.SetCurrentPrices(ctx, "xrp")
 	tApp.EndBlock(abci.RequestEndBlock{})
 	tApp.Commit()
 

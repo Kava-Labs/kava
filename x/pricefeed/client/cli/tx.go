@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/kava-labs/kava/x/pricefeed/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -47,11 +49,13 @@ func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			expiry, ok := sdk.NewIntFromString(args[2])
+			expiryInt, ok := sdk.NewIntFromString(args[2])
 			if !ok {
 				fmt.Printf("invalid expiry - %s \n", args[2])
 				return nil
 			}
+			expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
+
 			msg := types.NewMsgPostPrice(cliCtx.GetFromAddress(), args[0], price, expiry)
 			err = msg.ValidateBasic()
 			if err != nil {

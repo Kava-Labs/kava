@@ -1,4 +1,4 @@
-package pricefeed
+package keeper
 
 import (
 	"testing"
@@ -7,8 +7,9 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type testHelper struct {
@@ -19,16 +20,12 @@ type testHelper struct {
 	privKeys []crypto.PrivKey
 }
 
-func getMockApp(t *testing.T, numGenAccs int, genState GenesisState, genAccs []authexported.Account) testHelper {
+func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAccs []authexported.Account) testHelper {
 	mApp := mock.NewApp()
-	RegisterCodec(mApp.Cdc)
-	keyPricefeed := sdk.NewKVStoreKey(StoreKey)
+	types.RegisterCodec(mApp.Cdc)
+	keyPricefeed := sdk.NewKVStoreKey(types.StoreKey)
 	pk := mApp.ParamsKeeper
-	keeper := NewKeeper(mApp.Cdc, keyPricefeed, pk.Subspace(DefaultParamspace).WithKeyTable(ParamKeyTable()), DefaultCodespace)
-
-	// Register routes
-	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
-	mApp.SetEndBlocker(getEndBlocker(keeper))
+	keeper := NewKeeper(mApp.Cdc, keyPricefeed, pk.Subspace(types.DefaultParamspace), types.DefaultCodespace)
 
 	require.NoError(t, mApp.CompleteSetup(keyPricefeed))
 
@@ -46,12 +43,4 @@ func getMockApp(t *testing.T, numGenAccs int, genState GenesisState, genAccs []a
 
 	mock.SetGenesis(mApp, genAccs)
 	return testHelper{mApp, keeper, addrs, pubKeys, privKeys}
-}
-
-// gov and staking endblocker
-func getEndBlocker(keeper Keeper) sdk.EndBlocker {
-	return func(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-		EndBlocker(ctx, keeper)
-		return abci.ResponseEndBlock{}
-	}
 }

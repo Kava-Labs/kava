@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -105,22 +106,24 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			keeper := tApp.GetCDPKeeper()
 			keeper.SetParams(ctx, defaultParamsSingle())
 			pricefeedKeeper := tApp.GetPriceFeedKeeper()
-			ap := pricefeed.AssetParams{
-				Assets: []pricefeed.Asset{
-					pricefeed.Asset{AssetCode: "xrp", Description: ""},
+			ap := pricefeed.Params{
+				Markets: []pricefeed.Market{
+					pricefeed.Market{
+						MarketID: "xrp", BaseAsset: "xrp",
+						QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 				},
 			}
-			pricefeedKeeper.SetAssetParams(ctx, ap)
+			pricefeedKeeper.SetParams(ctx, ap)
 			_, err := pricefeedKeeper.SetPrice(
 				ctx, ownerAddr, "xrp",
 				sdk.MustNewDecFromStr(tc.price),
-				sdk.NewInt(ctx.BlockHeight()+10))
+				time.Unix(9999999999, 0)) // some deterministic future date
 			if err != nil {
 				t.Log("test context height", ctx.BlockHeight())
 				t.Log(err)
 				t.Log(tc.name)
 			}
-			err = pricefeedKeeper.SetCurrentPrices(ctx)
+			err = pricefeedKeeper.SetCurrentPrices(ctx, "xrp")
 			if err != nil {
 				t.Log("test context height", ctx.BlockHeight())
 				t.Log(err)
@@ -139,9 +142,6 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 
 			// get new state for verification
 			actualCDP, found := keeper.GetCDP(ctx, tc.args.owner, tc.args.collateralDenom)
-			if tc.name == "removeTooMuchCollateral" {
-				t.Log(actualCDP.String())
-			}
 			// check for err
 			if tc.expectPass {
 				require.NoError(t, err, fmt.Sprint(err))
@@ -180,17 +180,19 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 
 	// setup pricefeed
 	pricefeedKeeper := tApp.GetPriceFeedKeeper()
-	ap := pricefeed.AssetParams{
-		Assets: []pricefeed.Asset{
-			pricefeed.Asset{AssetCode: collateral, Description: ""},
+	ap := pricefeed.Params{
+		Markets: []pricefeed.Market{
+			pricefeed.Market{
+				MarketID: "xrp", BaseAsset: collateral,
+				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
 		},
 	}
-	pricefeedKeeper.SetAssetParams(ctx, ap)
+	pricefeedKeeper.SetParams(ctx, ap)
 	pricefeedKeeper.SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
 		sdk.MustNewDecFromStr("1.00"),
-		i(10))
-	require.NoError(t, pricefeedKeeper.SetCurrentPrices(ctx))
+		time.Unix(9999999999, 0)) // some deterministic future date
+	pricefeedKeeper.SetCurrentPrices(ctx, collateral)
 
 	// Create CDP
 	keeper.SetParams(ctx, defaultParamsSingle())
@@ -200,8 +202,8 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	pricefeedKeeper.SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
 		sdk.MustNewDecFromStr("0.90"),
-		i(10))
-	require.NoError(t, pricefeedKeeper.SetCurrentPrices(ctx))
+		time.Unix(9999999999, 0)) // some deterministic future date
+	pricefeedKeeper.SetCurrentPrices(ctx, collateral)
 
 	// Seize entire CDP
 	err = keeper.PartialSeizeCDP(ctx, testAddr, collateral, i(10), i(5))

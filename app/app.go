@@ -152,7 +152,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
 	liquidatorSubspace := app.paramsKeeper.Subspace(liquidator.DefaultParamspace)
-	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace).WithKeyTable(pricefeed.ParamKeyTable()) // TODO why do other modules not need this?
+	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(

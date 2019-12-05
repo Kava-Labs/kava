@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
@@ -13,8 +14,7 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 	// 	OracleAddress: addr.String(),
 	// }}
 	price, _ := sdk.NewDecFromStr("0.3005")
-	expiry, _ := sdk.NewIntFromString("10")
-	negativeExpiry, _ := sdk.NewIntFromString("-3")
+	expiry := tmtime.Now()
 	negativePrice, _ := sdk.NewDecFromStr("-3.05")
 
 	tests := []struct {
@@ -26,7 +26,6 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 		{"emptyAddr", MsgPostPrice{sdk.AccAddress{}, "xrp", price, expiry}, false},
 		{"emptyAsset", MsgPostPrice{addr, "", price, expiry}, false},
 		{"negativePrice", MsgPostPrice{addr, "xrp", negativePrice, expiry}, false},
-		{"negativeExpiry", MsgPostPrice{addr, "xrp", price, negativeExpiry}, false},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

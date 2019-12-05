@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmtime "github.com/tendermint/tendermint/types/time"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/x/auction"
@@ -75,7 +78,7 @@ func setupTestKeepers() (sdk.Context, keepers) {
 		bank.DefaultCodespace,
 		blacklistedAddrs,
 	)
-	pricefeedKeeper := pricefeed.NewKeeper(cdc, keyPriceFeed, paramsKeeper.Subspace(pricefeed.DefaultParamspace).WithKeyTable(pricefeed.ParamKeyTable()), pricefeed.DefaultCodespace)
+	pricefeedKeeper := pricefeed.NewKeeper(cdc, keyPriceFeed, paramsKeeper.Subspace(pricefeed.DefaultParamspace), pricefeed.DefaultCodespace)
 	cdpKeeper := cdp.NewKeeper(
 		cdc,
 		keyCDP,
@@ -150,20 +153,18 @@ func cdpDefaultGenesis() cdp.GenesisState {
 }
 
 func pricefeedGenesis() pricefeed.GenesisState {
-	ap := pricefeed.AssetParams{
-		Assets: []pricefeed.Asset{
-			pricefeed.Asset{AssetCode: "btc", Description: "a description"},
-		},
+	ap := pricefeed.Params{
+		Markets: []pricefeed.Market{
+			pricefeed.Market{MarketID: "btc", BaseAsset: "btc", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true}},
 	}
 	return pricefeed.GenesisState{
-		AssetParams:  ap,
-		OracleParams: pricefeed.DefaultOracleParams(),
+		Params: ap,
 		PostedPrices: []pricefeed.PostedPrice{
 			pricefeed.PostedPrice{
-				AssetCode:     "btc",
-				OracleAddress: "",
+				MarketID:      "btc",
+				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
-				Expiry:        sdk.NewInt(999999999),
+				Expiry:        tmtime.Now().Add(1 * time.Hour),
 			},
 		},
 	}

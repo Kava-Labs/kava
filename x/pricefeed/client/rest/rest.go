@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	"github.com/kava-labs/kava/x/pricefeed/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 const (
@@ -57,11 +59,12 @@ func postPriceHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		expiry, ok := sdk.NewIntFromString(req.Expiry)
+		expiryInt, ok := sdk.NewIntFromString(req.Expiry)
 		if !ok {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid expiry")
 			return
 		}
+		expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
 
 		// create the message
 		msg := types.NewMsgPostPrice(addr, req.AssetCode, price, expiry)

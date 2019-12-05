@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/stretchr/testify/require"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/liquidator/types"
@@ -19,8 +21,8 @@ func TestKeeper_SeizeAndStartCollateralAuction(t *testing.T) {
 	_, addrs := mock.GeneratePrivKeyAddressPairs(1)
 
 	pricefeed.InitGenesis(ctx, k.pricefeedKeeper, pricefeedGenesis())
-	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("8000.00"), i(999999999))
-	k.pricefeedKeeper.SetCurrentPrices(ctx)
+	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("8000.00"), tmtime.Now().Add(time.Hour*1))
+	k.pricefeedKeeper.SetCurrentPrices(ctx, "btc")
 	cdp.InitGenesis(ctx, k.cdpKeeper, k.pricefeedKeeper, cdpDefaultGenesis())
 	dp := defaultParams()
 	k.liquidatorKeeper.SetParams(ctx, dp)
@@ -28,8 +30,8 @@ func TestKeeper_SeizeAndStartCollateralAuction(t *testing.T) {
 
 	k.cdpKeeper.ModifyCDP(ctx, addrs[0], "btc", i(3), i(16000))
 
-	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("7999.99"), i(999999999))
-	k.pricefeedKeeper.SetCurrentPrices(ctx)
+	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("7999.99"), tmtime.Now().Add(time.Hour*1))
+	k.pricefeedKeeper.SetCurrentPrices(ctx, "btc")
 
 	// Run test function
 	auctionID, err := k.liquidatorKeeper.SeizeAndStartCollateralAuction(ctx, addrs[0], "btc")
@@ -100,16 +102,16 @@ func TestKeeper_partialSeizeCDP(t *testing.T) {
 
 	pricefeed.InitGenesis(ctx, k.pricefeedKeeper, pricefeedGenesis())
 
-	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("8000.00"), i(999999999))
-	k.pricefeedKeeper.SetCurrentPrices(ctx)
+	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("8000.00"), tmtime.Now().Add(time.Hour*1))
+	k.pricefeedKeeper.SetCurrentPrices(ctx, "btc")
 	k.bankKeeper.AddCoins(ctx, addrs[0], cs(c("btc", 100)))
 	cdp.InitGenesis(ctx, k.cdpKeeper, k.pricefeedKeeper, cdpDefaultGenesis())
 	k.liquidatorKeeper.SetParams(ctx, defaultParams())
 
 	k.cdpKeeper.ModifyCDP(ctx, addrs[0], "btc", i(3), i(16000))
 
-	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("7999.99"), i(999999999))
-	k.pricefeedKeeper.SetCurrentPrices(ctx)
+	k.pricefeedKeeper.SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("7999.99"), tmtime.Now().Add(time.Hour*1))
+	k.pricefeedKeeper.SetCurrentPrices(ctx, "btc")
 
 	// Run test function
 	err := k.liquidatorKeeper.partialSeizeCDP(ctx, addrs[0], "btc", i(2), i(10000))
