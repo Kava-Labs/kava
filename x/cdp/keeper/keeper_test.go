@@ -160,7 +160,7 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			require.Equal(t, tc.expectedState.GlobalDebt, actualGDebt)
 			require.Equal(t, tc.expectedState.CollateralState, actualCstate)
 			// check owner balance
-			require.Equal(t, tc.expectedState.OwnerCoins, tApp.GetAccountKeeper().GetAccount(ctx, ownerAddr).GetCoins())
+			tApp.CheckBalance(t, ctx, ownerAddr, tc.expectedState.OwnerCoins)
 		})
 	}
 }

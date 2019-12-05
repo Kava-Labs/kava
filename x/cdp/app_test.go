@@ -3,8 +3,6 @@ package cdp_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -25,7 +23,7 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	)
 	// check balance
 	ctx := tApp.NewContext(false, abci.Header{})
-	require.Equal(t, cs(c("xrp", 100)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
+	tApp.CheckBalance(t, ctx, testAddr, cs(c("xrp", 100)))
 
 	// setup cdp keeper
 	keeper := tApp.GetCDPKeeper()
@@ -62,7 +60,7 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 
 	// check balance
 	ctx = tApp.NewContext(true, abci.Header{})
-	require.Equal(t, cs(c("usdx", 5), c("xrp", 90)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
+	tApp.CheckBalance(t, ctx, testAddr, cs(c("usdx", 5), c("xrp", 90)))
 
 	// Modify CDP
 	msgs = []sdk.Msg{cdp.NewMsgCreateOrModifyCDP(testAddr, "xrp", i(40), i(5))}
@@ -70,7 +68,7 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 
 	// check balance
 	ctx = tApp.NewContext(true, abci.Header{})
-	require.Equal(t, cs(c("usdx", 10), c("xrp", 50)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
+	tApp.CheckBalance(t, ctx, testAddr, cs(c("usdx", 10), c("xrp", 50)))
 
 	// Delete CDP
 	msgs = []sdk.Msg{cdp.NewMsgCreateOrModifyCDP(testAddr, "xrp", i(-50), i(-10))}
@@ -78,5 +76,5 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 
 	// check balance
 	ctx = tApp.NewContext(true, abci.Header{})
-	require.Equal(t, cs(c("xrp", 100)), tApp.GetAccountKeeper().GetAccount(ctx, testAddr).GetCoins())
+	tApp.CheckBalance(t, ctx, testAddr, cs(c("xrp", 100)))
 }
