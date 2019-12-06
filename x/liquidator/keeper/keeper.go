@@ -55,7 +55,7 @@ func (k Keeper) SeizeAndStartCollateralAuction(ctx sdk.Context, owner sdk.AccAdd
 	stableToRaise := sdk.NewDecFromInt(collateralToSell).Quo(sdk.NewDecFromInt(cdp.CollateralAmount)).Mul(sdk.NewDecFromInt(cdp.Debt)).RoundInt()
 
 	// Seize the collateral and debt from the CDP
-	err := k.partialSeizeCDP(ctx, owner, collateralDenom, collateralToSell, stableToRaise)
+	err := k.PartialSeizeCDP(ctx, owner, collateralDenom, collateralToSell, stableToRaise)
 	if err != nil {
 		return 0, err
 	}
@@ -99,7 +99,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context) (auction.ID, sdk.Error) {
 	}
 	// Record amount of debt sent for auction. Debt can only be reduced in lock step with reducing stable coin
 	seizedDebt.SentToAuction = seizedDebt.SentToAuction.Add(params.DebtAuctionSize)
-	k.setSeizedDebt(ctx, seizedDebt)
+	k.SetSeizedDebt(ctx, seizedDebt)
 	return auctionID, nil
 }
 
@@ -131,7 +131,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context) (auction.ID, sdk.Error) {
 // }
 
 // PartialSeizeCDP seizes some collateral and debt from an under-collateralized CDP.
-func (k Keeper) partialSeizeCDP(ctx sdk.Context, owner sdk.AccAddress, collateralDenom string, collateralToSeize sdk.Int, debtToSeize sdk.Int) sdk.Error { // aka Cat.bite
+func (k Keeper) PartialSeizeCDP(ctx sdk.Context, owner sdk.AccAddress, collateralDenom string, collateralToSeize sdk.Int, debtToSeize sdk.Int) sdk.Error { // aka Cat.bite
 	// Seize debt and collateral in the cdp module. This also validates the inputs.
 	err := k.cdpKeeper.PartialSeizeCDP(ctx, owner, collateralDenom, collateralToSeize, debtToSeize)
 	if err != nil {
@@ -141,7 +141,7 @@ func (k Keeper) partialSeizeCDP(ctx sdk.Context, owner sdk.AccAddress, collatera
 	// increment the total seized debt (Awe) by cdp.debt
 	seizedDebt := k.GetSeizedDebt(ctx)
 	seizedDebt.Total = seizedDebt.Total.Add(debtToSeize)
-	k.setSeizedDebt(ctx, seizedDebt)
+	k.SetSeizedDebt(ctx, seizedDebt)
 
 	// add cdp.collateral amount of coins to the moduleAccount (so they can be transferred to the auction later)
 	coins := sdk.NewCoins(sdk.NewCoin(collateralDenom, collateralToSeize))
@@ -172,7 +172,7 @@ func (k Keeper) SettleDebt(ctx sdk.Context) sdk.Error {
 	if err != nil {
 		return err // this should not error in this context
 	}
-	k.setSeizedDebt(ctx, updatedDebt)
+	k.SetSeizedDebt(ctx, updatedDebt)
 
 	// Subtract stable coin from moduleAccout
 	k.bankKeeper.SubtractCoins(ctx, k.cdpKeeper.GetLiquidatorAccountAddress(), sdk.Coins{sdk.NewCoin(k.cdpKeeper.GetStableDenom(), settleAmount)})
@@ -197,7 +197,7 @@ func (k Keeper) GetSeizedDebt(ctx sdk.Context) types.SeizedDebt {
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &seizedDebt)
 	return seizedDebt
 }
-func (k Keeper) setSeizedDebt(ctx sdk.Context, debt types.SeizedDebt) {
+func (k Keeper) SetSeizedDebt(ctx sdk.Context, debt types.SeizedDebt) {
 	store := ctx.KVStore(k.key)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(debt)
 	store.Set(k.getSeizedDebtKey(), bz)

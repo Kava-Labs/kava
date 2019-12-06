@@ -72,7 +72,7 @@ func (tApp TestApp) GetLiquidatorKeeper() liquidator.Keeper { return tApp.liquid
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper   { return tApp.pricefeedKeeper }
 
 // Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
-// TODO this is only a TestApp method because it needs access to the codec, could be another way to structure it
+// TODO make this not a TestApp method.
 func (tApp TestApp) NewAuthGenStateFromAccounts(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
 	// Create GenAccounts
 	accounts := authexported.GenesisAccounts{}
@@ -81,7 +81,7 @@ func (tApp TestApp) NewAuthGenStateFromAccounts(addresses []sdk.AccAddress, coin
 	}
 	// Create the auth genesis state
 	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
-	return GenesisState{auth.ModuleName: tApp.cdc.MustMarshalJSON(authGenesis)}
+	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
 }
 
 // This calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
