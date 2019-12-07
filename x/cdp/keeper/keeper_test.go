@@ -97,7 +97,7 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			// setup keeper
 			tApp := app.NewTestApp()
 			// initialize cdp owner account with coins
-			authGen := tApp.NewAuthGenStateFromAccounts([]sdk.AccAddress{ownerAddr}, []sdk.Coins{tc.priorState.OwnerCoins})
+			authGen := app.NewAuthGenState([]sdk.AccAddress{ownerAddr}, []sdk.Coins{tc.priorState.OwnerCoins})
 			tApp.InitializeFromGenesisStates(authGen)
 			// create a context for db access
 			ctx := tApp.NewContext(false, abci.Header{})
@@ -172,7 +172,7 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	testAddr := addrs[0]
 
 	tApp := app.NewTestApp()
-	authGenState := tApp.NewAuthGenStateFromAccounts(addrs, []sdk.Coins{cs(c(collateral, 100))})
+	authGenState := app.NewAuthGenState(addrs, []sdk.Coins{cs(c(collateral, 100))})
 	tApp.InitializeFromGenesisStates(authGenState)
 
 	ctx := tApp.NewContext(false, abci.Header{})

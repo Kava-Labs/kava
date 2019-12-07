@@ -20,7 +20,7 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	testAddr := addrs[0]
 	testPrivKey := privKeys[0]
 	tApp.InitializeFromGenesisStates(
-		tApp.NewAuthGenStateFromAccounts(addrs, []sdk.Coins{cs(c("xrp", 100))}),
+		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("xrp", 100))}),
 	)
 	ctx := tApp.NewContext(false, abci.Header{})
 	// check balance

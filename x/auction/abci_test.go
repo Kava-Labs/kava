@@ -17,7 +17,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	seller := addrs[0]
 
 	tApp := app.NewTestApp()
-	authGenState := tApp.NewAuthGenStateFromAccounts(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100))})
+	authGenState := app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100))})
 	tApp.InitializeFromGenesisStates(authGenState)
 
 	ctx := tApp.NewContext(true, abci.Header{})

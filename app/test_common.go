@@ -44,7 +44,6 @@ import (
 // 	So TestApp.InitializeFromGenesisStates() will call InitGenesis with the default genesis state.
 //	and TestApp.InitializeFromGenesisStates(authState, cdpState) will do the same but overwrite the auth and cdp sections of the default genesis state
 // 	Creating the genesis states can be combersome, but helper methods can make it easier such as NewAuthGenStateFromAccounts below.
-//
 type TestApp struct {
 	App
 }
@@ -70,19 +69,6 @@ func (tApp TestApp) GetAuctionKeeper() auction.Keeper       { return tApp.auctio
 func (tApp TestApp) GetCDPKeeper() cdp.Keeper               { return tApp.cdpKeeper }
 func (tApp TestApp) GetLiquidatorKeeper() liquidator.Keeper { return tApp.liquidatorKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper   { return tApp.pricefeedKeeper }
-
-// Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
-// TODO make this not a TestApp method.
-func (tApp TestApp) NewAuthGenStateFromAccounts(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
-	// Create GenAccounts
-	accounts := authexported.GenesisAccounts{}
-	for i := range addresses {
-		accounts = append(accounts, auth.NewBaseAccount(addresses[i], coins[i], nil, 0, 0))
-	}
-	// Create the auth genesis state
-	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
-	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
-}
 
 // This calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
@@ -113,6 +99,18 @@ func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) T
 func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAddress, expectedCoins sdk.Coins) {
 	actualCoins := tApp.GetAccountKeeper().GetAccount(ctx, owner).GetCoins()
 	require.Equal(t, expectedCoins, actualCoins)
+}
+
+// Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
+func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
+	// Create GenAccounts
+	accounts := authexported.GenesisAccounts{}
+	for i := range addresses {
+		accounts = append(accounts, auth.NewBaseAccount(addresses[i], coins[i], nil, 0, 0))
+	}
+	// Create the auth genesis state
+	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
+	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
 }
 
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
