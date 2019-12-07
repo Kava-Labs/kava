@@ -29,7 +29,7 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 				MarketID:      asset,
 				OracleAddress: sdk.AccAddress{},
 				Price:         price,
-				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
+				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 		},
 	}
@@ -67,13 +67,13 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 				MarketID:      "btc",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
-				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
+				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 			pricefeed.PostedPrice{
 				MarketID:      "xrp",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("0.25"),
-				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
+				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 		},
 	}

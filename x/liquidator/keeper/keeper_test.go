@@ -28,7 +28,7 @@ func TestKeeper_SeizeAndStartCollateralAuction(t *testing.T) {
 
 	require.NoError(t, tApp.GetCDPKeeper().ModifyCDP(ctx, addrs[0], "btc", i(3), i(16000)))
 
-	_, err := tApp.GetPriceFeedKeeper().SetPrice(ctx, addrs[0], "btc", d("7999.99"), time.Unix(9999999999, 0))
+	_, err := tApp.GetPriceFeedKeeper().SetPrice(ctx, addrs[0], "btc", d("7999.99"), time.Now().Add(1*time.Hour))
 	require.NoError(t, err)
 	require.NoError(t, tApp.GetPriceFeedKeeper().SetCurrentPrices(ctx, "btc"))
 

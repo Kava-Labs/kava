@@ -31,7 +31,7 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 				MarketID:      asset,
 				OracleAddress: sdk.AccAddress{},
 				Price:         price,
-				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
+				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 		},
 	}

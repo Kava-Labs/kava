@@ -164,7 +164,7 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	// Reduce price
 	tApp.GetPriceFeedKeeper().SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
-		d("0.90"), time.Unix(9999999999, 0)) // some deterministic future date
+		d("0.90"), time.Now().Add(1*time.Hour))
 	tApp.GetPriceFeedKeeper().SetCurrentPrices(ctx, collateral)
 
 	// Seize entire CDP
