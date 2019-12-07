@@ -17,15 +17,13 @@ func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
-func NewPFGenState(asset string, price sdk.Dec) app.GenesisState {
-	quote := "usd"
-	ap := pricefeed.Params{
-		Markets: []pricefeed.Market{
-			pricefeed.Market{MarketID: asset, BaseAsset: asset, QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true},
-		},
-	}
+func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
-		Params: ap,
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				pricefeed.Market{MarketID: asset, BaseAsset: asset, QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+			},
+		},
 		PostedPrices: []pricefeed.PostedPrice{
 			pricefeed.PostedPrice{
 				MarketID:      asset,
@@ -56,16 +54,14 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
 
-func NewPFGenStateMulti() app.GenesisState {
-	quote := "usd"
-	ap := pricefeed.Params{
-		Markets: []pricefeed.Market{
-			pricefeed.Market{MarketID: "btc", BaseAsset: "btc", QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true},
-			pricefeed.Market{MarketID: "xrp", BaseAsset: "xrp", QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true},
-		},
-	}
+func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
-		Params: ap,
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				pricefeed.Market{MarketID: "btc", BaseAsset: "btc", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+				pricefeed.Market{MarketID: "xrp", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+			},
+		},
 		PostedPrices: []pricefeed.PostedPrice{
 			pricefeed.PostedPrice{
 				MarketID:      "btc",

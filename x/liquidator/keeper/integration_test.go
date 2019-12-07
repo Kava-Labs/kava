@@ -18,16 +18,14 @@ func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
-// Default genesis states to initialize test apps
+// Genesis states to initialize test apps
 
-func NewPFGenState(asset string, price sdk.Dec) app.GenesisState {
-	quote := "usd"
-	ap := pricefeed.Params{
-		Markets: []pricefeed.Market{
-			pricefeed.Market{MarketID: asset, BaseAsset: asset, QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true}},
-	}
+func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
-		Params: ap,
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				pricefeed.Market{MarketID: asset, BaseAsset: asset, QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true}},
+		},
 		PostedPrices: []pricefeed.PostedPrice{
 			pricefeed.PostedPrice{
 				MarketID:      asset,

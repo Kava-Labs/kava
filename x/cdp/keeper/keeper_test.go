@@ -98,7 +98,7 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			// initialize cdp owner account with coins, and collateral with price and params
 			tApp.InitializeFromGenesisStates(
 				app.NewAuthGenState([]sdk.AccAddress{ownerAddr}, []sdk.Coins{tc.priorState.OwnerCoins}),
-				NewPFGenState("xrp", d(tc.price)),
+				NewPricefeedGenState("xrp", d(tc.price)),
 				NewCDPGenState("xrp", d("2.0")),
 			)
 			// create a context for db access
@@ -151,7 +151,7 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates(
 		app.NewAuthGenState(addrs, []sdk.Coins{cs(c(collateral, 100))}),
-		NewPFGenState(collateral, d("1.00")),
+		NewPricefeedGenState(collateral, d("1.00")),
 		NewCDPGenState(collateral, d("2.00")),
 	)
 
@@ -182,7 +182,7 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 func TestKeeper_GetCDPs(t *testing.T) {
 	// setup test app
 	tApp := app.NewTestApp().InitializeFromGenesisStates(
-		NewPFGenStateMulti(), // collateral needs to be in pricefeed for cdp InitGenesis to validate
+		NewPricefeedGenStateMulti(), // collateral needs to be in pricefeed for cdp InitGenesis to validate
 		NewCDPGenStateMulti(),
 	)
 	ctx := tApp.NewContext(true, abci.Header{})

@@ -20,7 +20,7 @@ func TestKeeper_SeizeAndStartCollateralAuction(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates(
 		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("btc", 100))}),
-		NewPFGenState("btc", d("8000.00")),
+		NewPricefeedGenState("btc", d("8000.00")),
 		NewCDPGenState(),
 		NewLiquidatorGenState(),
 	)
@@ -81,7 +81,7 @@ func TestKeeper_partialSeizeCDP(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates(
 		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("btc", 100))}),
-		NewPFGenState("btc", d("8000.00")),
+		NewPricefeedGenState("btc", d("8000.00")),
 		NewCDPGenState(),
 		NewLiquidatorGenState(),
 	)
