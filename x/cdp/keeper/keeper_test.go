@@ -11,7 +11,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp/types"
-	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 // How could one reduce the number of params in the test cases. Create a table driven test for each of the 4 add/withdraw collateral/debt?
@@ -94,41 +93,19 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// setup keeper
+			// setup test app
 			tApp := app.NewTestApp()
-			// initialize cdp owner account with coins
-			authGen := app.NewAuthGenState([]sdk.AccAddress{ownerAddr}, []sdk.Coins{tc.priorState.OwnerCoins})
-			tApp.InitializeFromGenesisStates(authGen)
+			// initialize cdp owner account with coins, and collateral with price and params
+			tApp.InitializeFromGenesisStates(
+				app.NewAuthGenState([]sdk.AccAddress{ownerAddr}, []sdk.Coins{tc.priorState.OwnerCoins}),
+				NewPFGenState("xrp", d(tc.price)),
+				NewCDPGenState("xrp", d("2.0")),
+			)
 			// create a context for db access
 			ctx := tApp.NewContext(false, abci.Header{})
 
 			// setup store state
 			keeper := tApp.GetCDPKeeper()
-			keeper.SetParams(ctx, defaultParamsSingle())
-			pricefeedKeeper := tApp.GetPriceFeedKeeper()
-			ap := pricefeed.Params{
-				Markets: []pricefeed.Market{
-					pricefeed.Market{
-						MarketID: "xrp", BaseAsset: "xrp",
-						QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-				},
-			}
-			pricefeedKeeper.SetParams(ctx, ap)
-			_, err := pricefeedKeeper.SetPrice(
-				ctx, ownerAddr, "xrp",
-				sdk.MustNewDecFromStr(tc.price),
-				time.Unix(9999999999, 0)) // some deterministic future date
-			if err != nil {
-				t.Log("test context height", ctx.BlockHeight())
-				t.Log(err)
-				t.Log(tc.name)
-			}
-			err = pricefeedKeeper.SetCurrentPrices(ctx, "xrp")
-			if err != nil {
-				t.Log("test context height", ctx.BlockHeight())
-				t.Log(err)
-				t.Log(tc.name)
-			}
 			if tc.priorState.CDP.CollateralDenom != "" { // check if the prior CDP should be created or not (see if an empty one was specified)
 				keeper.SetCDP(ctx, tc.priorState.CDP)
 			}
@@ -138,7 +115,7 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			}
 
 			// call func under test
-			err = keeper.ModifyCDP(ctx, tc.args.owner, tc.args.collateralDenom, tc.args.changeInCollateral, tc.args.changeInDebt)
+			err := keeper.ModifyCDP(ctx, tc.args.owner, tc.args.collateralDenom, tc.args.changeInCollateral, tc.args.changeInDebt)
 
 			// get new state for verification
 			actualCDP, found := keeper.GetCDP(ctx, tc.args.owner, tc.args.collateralDenom)
@@ -172,38 +149,23 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	testAddr := addrs[0]
 
 	tApp := app.NewTestApp()
-	authGenState := app.NewAuthGenState(addrs, []sdk.Coins{cs(c(collateral, 100))})
-	tApp.InitializeFromGenesisStates(authGenState)
+	tApp.InitializeFromGenesisStates(
+		app.NewAuthGenState(addrs, []sdk.Coins{cs(c(collateral, 100))}),
+		NewPFGenState(collateral, d("1.00")),
+		NewCDPGenState(collateral, d("2.00")),
+	)
 
 	ctx := tApp.NewContext(false, abci.Header{})
 	keeper := tApp.GetCDPKeeper()
 
-	// setup pricefeed
-	pricefeedKeeper := tApp.GetPriceFeedKeeper()
-	ap := pricefeed.Params{
-		Markets: []pricefeed.Market{
-			pricefeed.Market{
-				MarketID: "xrp", BaseAsset: collateral,
-				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-		},
-	}
-	pricefeedKeeper.SetParams(ctx, ap)
-	pricefeedKeeper.SetPrice(
-		ctx, sdk.AccAddress{}, collateral,
-		sdk.MustNewDecFromStr("1.00"),
-		time.Unix(9999999999, 0)) // some deterministic future date
-	pricefeedKeeper.SetCurrentPrices(ctx, collateral)
-
 	// Create CDP
-	keeper.SetParams(ctx, defaultParamsSingle())
 	err := keeper.ModifyCDP(ctx, testAddr, collateral, i(10), i(5))
 	require.NoError(t, err)
 	// Reduce price
-	pricefeedKeeper.SetPrice(
+	tApp.GetPriceFeedKeeper().SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
-		sdk.MustNewDecFromStr("0.90"),
-		time.Unix(9999999999, 0)) // some deterministic future date
-	pricefeedKeeper.SetCurrentPrices(ctx, collateral)
+		d("0.90"), time.Unix(9999999999, 0)) // some deterministic future date
+	tApp.GetPriceFeedKeeper().SetCurrentPrices(ctx, collateral)
 
 	// Seize entire CDP
 	err = keeper.PartialSeizeCDP(ctx, testAddr, collateral, i(10), i(5))
@@ -218,11 +180,14 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 }
 
 func TestKeeper_GetCDPs(t *testing.T) {
-	// setup keeper
-	tApp := app.NewTestApp()
+	// setup test app
+	tApp := app.NewTestApp().InitializeFromGenesisStates(
+		NewPFGenStateMulti(), // collateral needs to be in pricefeed for cdp InitGenesis to validate
+		NewCDPGenStateMulti(),
+	)
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetCDPKeeper()
-	keeper.SetParams(ctx, defaultParamsMulti())
+
 	// setup CDPs
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdps := types.CDPs{
@@ -299,7 +264,6 @@ func TestKeeper_GetSetDeleteCDP(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetCDPKeeper()
 
-	keeper.SetParams(ctx, defaultParamsSingle())
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.CDP{addrs[0], "xrp", i(412), i(56)}
 
@@ -323,7 +287,7 @@ func TestKeeper_GetSetGDebt(t *testing.T) {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetCDPKeeper()
-	keeper.SetParams(ctx, defaultParamsSingle())
+
 	gDebt := i(4120000)
 
 	// write and read from store
@@ -339,7 +303,7 @@ func TestKeeper_GetSetCollateralState(t *testing.T) {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetCDPKeeper()
-	keeper.SetParams(ctx, defaultParamsSingle())
+
 	collateralState := types.CollateralState{"xrp", i(15400)}
 
 	// write and read from store

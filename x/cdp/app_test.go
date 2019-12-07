@@ -2,7 +2,6 @@ package cdp_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 func TestApp_CreateModifyDeleteCDP(t *testing.T) {
@@ -21,40 +19,13 @@ func TestApp_CreateModifyDeleteCDP(t *testing.T) {
 	testPrivKey := privKeys[0]
 	tApp.InitializeFromGenesisStates(
 		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("xrp", 100))}),
+		NewPFGenState("xrp", d("1.00")),
+		NewCDPGenState("xrp", d("1.5")),
 	)
-	ctx := tApp.NewContext(false, abci.Header{})
 	// check balance
+	ctx := tApp.NewContext(false, abci.Header{})
 	tApp.CheckBalance(t, ctx, testAddr, cs(c("xrp", 100)))
 
-	// setup cdp keeper
-	keeper := tApp.GetCDPKeeper()
-	params := cdp.CdpParams{
-		GlobalDebtLimit: sdk.NewInt(100000),
-		CollateralParams: []cdp.CollateralParams{
-			{
-				Denom:            "xrp",
-				LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
-				DebtLimit:        sdk.NewInt(10000),
-			},
-		},
-		StableDenoms: []string{"usdx"},
-	}
-	keeper.SetParams(ctx, params)
-	keeper.SetGlobalDebt(ctx, sdk.NewInt(0))
-	pricefeedKeeper := tApp.GetPriceFeedKeeper()
-	ap := pricefeed.Params{
-		Markets: []pricefeed.Market{
-			pricefeed.Market{
-				MarketID: "xrp", BaseAsset: "xrp",
-				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-		},
-	}
-	pricefeedKeeper.SetParams(ctx, ap)
-	pricefeedKeeper.SetPrice(
-		ctx, sdk.AccAddress{}, "xrp",
-		sdk.MustNewDecFromStr("1.00"),
-		time.Unix(9999999999, 0)) // some deterministic future date
-	pricefeedKeeper.SetCurrentPrices(ctx, "xrp")
 	tApp.EndBlock(abci.RequestEndBlock{})
 	tApp.Commit()
 

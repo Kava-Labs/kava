@@ -1,9 +1,14 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 // Avoid cluttering test cases with long function name
@@ -12,35 +17,91 @@ func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
-func defaultParamsMulti() types.CdpParams {
-	return types.CdpParams{
-		GlobalDebtLimit: sdk.NewInt(1000000),
-		CollateralParams: []types.CollateralParams{
-			{
-				Denom:            "btc",
-				LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
-				DebtLimit:        sdk.NewInt(500000),
-			},
-			{
-				Denom:            "xrp",
-				LiquidationRatio: sdk.MustNewDecFromStr("2.0"),
-				DebtLimit:        sdk.NewInt(500000),
+func NewPFGenState(asset string, price sdk.Dec) app.GenesisState {
+	quote := "usd"
+	ap := pricefeed.Params{
+		Markets: []pricefeed.Market{
+			pricefeed.Market{MarketID: asset, BaseAsset: asset, QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true},
+		},
+	}
+	pfGenesis := pricefeed.GenesisState{
+		Params: ap,
+		PostedPrices: []pricefeed.PostedPrice{
+			pricefeed.PostedPrice{
+				MarketID:      asset,
+				OracleAddress: sdk.AccAddress{},
+				Price:         price,
+				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
 			},
 		},
-		StableDenoms: []string{"usdx"},
 	}
+	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
-func defaultParamsSingle() types.CdpParams {
-	return types.CdpParams{
-		GlobalDebtLimit: sdk.NewInt(1000000),
-		CollateralParams: []types.CollateralParams{
-			{
-				Denom:            "xrp",
-				LiquidationRatio: sdk.MustNewDecFromStr("2.0"),
-				DebtLimit:        sdk.NewInt(500000),
+func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
+	cdpGenesis := cdp.GenesisState{
+		Params: cdp.CdpParams{
+			GlobalDebtLimit: sdk.NewInt(1000000),
+			CollateralParams: []cdp.CollateralParams{
+				{
+					Denom:            asset,
+					LiquidationRatio: liquidationRatio,
+					DebtLimit:        sdk.NewInt(500000),
+				},
 			},
 		},
-		StableDenoms: []string{"usdx"},
+		GlobalDebt: sdk.ZeroInt(),
+		CDPs:       cdp.CDPs{},
 	}
+	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
+}
+
+func NewPFGenStateMulti() app.GenesisState {
+	quote := "usd"
+	ap := pricefeed.Params{
+		Markets: []pricefeed.Market{
+			pricefeed.Market{MarketID: "btc", BaseAsset: "btc", QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true},
+			pricefeed.Market{MarketID: "xrp", BaseAsset: "xrp", QuoteAsset: quote, Oracles: pricefeed.Oracles{}, Active: true},
+		},
+	}
+	pfGenesis := pricefeed.GenesisState{
+		Params: ap,
+		PostedPrices: []pricefeed.PostedPrice{
+			pricefeed.PostedPrice{
+				MarketID:      "btc",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("8000.00"),
+				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
+			},
+			pricefeed.PostedPrice{
+				MarketID:      "xrp",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("0.25"),
+				Expiry:        time.Unix(9999999999, 0), // some deterministic future date,
+			},
+		},
+	}
+	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
+}
+func NewCDPGenStateMulti() app.GenesisState {
+	cdpGenesis := cdp.GenesisState{
+		Params: cdp.CdpParams{
+			GlobalDebtLimit: sdk.NewInt(1000000),
+			CollateralParams: []types.CollateralParams{
+				{
+					Denom:            "btc",
+					LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:        sdk.NewInt(500000),
+				},
+				{
+					Denom:            "xrp",
+					LiquidationRatio: sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:        sdk.NewInt(500000),
+				},
+			},
+		},
+		GlobalDebt: sdk.ZeroInt(),
+		CDPs:       cdp.CDPs{},
+	}
+	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }

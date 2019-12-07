@@ -35,8 +35,9 @@ func TestKeeper_AddSubtractGetCoins(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// setup app with an account
 			tApp := app.NewTestApp()
-			authGenState := app.NewAuthGenState([]sdk.AccAddress{normalAddr}, []sdk.Coins{cs(c("usdx", 100), c("kava", 100))})
-			tApp.InitializeFromGenesisStates(authGenState)
+			tApp.InitializeFromGenesisStates(
+				app.NewAuthGenState([]sdk.AccAddress{normalAddr}, []sdk.Coins{cs(c("usdx", 100), c("kava", 100))}),
+			)
 
 			// create a new context and setup the liquidator account
 			ctx := tApp.NewContext(false, abci.Header{})
