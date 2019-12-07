@@ -19,8 +19,9 @@ func TestKeeper_ForwardAuction(t *testing.T) {
 	buyer := addrs[1]
 
 	tApp := app.NewTestApp()
-	authGenState := app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100))})
-	tApp.InitializeFromGenesisStates(authGenState)
+	tApp.InitializeFromGenesisStates(
+		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100))}),
+	)
 
 	ctx := tApp.NewContext(false, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
@@ -52,8 +53,9 @@ func TestKeeper_ReverseAuction(t *testing.T) {
 	buyer := addrs[1]
 
 	tApp := app.NewTestApp()
-	authGenState := app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100))})
-	tApp.InitializeFromGenesisStates(authGenState)
+	tApp.InitializeFromGenesisStates(
+		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100))}),
+	)
 
 	ctx := tApp.NewContext(false, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
@@ -86,8 +88,9 @@ func TestKeeper_ForwardReverseAuction(t *testing.T) {
 	recipient := addrs[2]
 
 	tApp := app.NewTestApp()
-	authGenState := app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100))})
-	tApp.InitializeFromGenesisStates(authGenState)
+	tApp.InitializeFromGenesisStates(
+		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100)), cs(c("token1", 100), c("token2", 100))}),
+	)
 
 	ctx := tApp.NewContext(false, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()

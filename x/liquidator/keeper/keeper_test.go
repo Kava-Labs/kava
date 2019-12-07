@@ -20,7 +20,7 @@ func TestKeeper_SeizeAndStartCollateralAuction(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates(
 		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("btc", 100))}),
-		NewPFGenState("btc", sdk.MustNewDecFromStr("8000.00")),
+		NewPFGenState("btc", d("8000.00")),
 		NewCDPGenState(),
 		NewLiquidatorGenState(),
 	)
@@ -28,7 +28,7 @@ func TestKeeper_SeizeAndStartCollateralAuction(t *testing.T) {
 
 	require.NoError(t, tApp.GetCDPKeeper().ModifyCDP(ctx, addrs[0], "btc", i(3), i(16000)))
 
-	_, err := tApp.GetPriceFeedKeeper().SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("7999.99"), time.Unix(9999999999, 0))
+	_, err := tApp.GetPriceFeedKeeper().SetPrice(ctx, addrs[0], "btc", d("7999.99"), time.Unix(9999999999, 0))
 	require.NoError(t, err)
 	require.NoError(t, tApp.GetPriceFeedKeeper().SetCurrentPrices(ctx, "btc"))
 
@@ -81,7 +81,7 @@ func TestKeeper_partialSeizeCDP(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates(
 		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("btc", 100))}),
-		NewPFGenState("btc", sdk.MustNewDecFromStr("8000.00")),
+		NewPFGenState("btc", d("8000.00")),
 		NewCDPGenState(),
 		NewLiquidatorGenState(),
 	)
@@ -89,7 +89,7 @@ func TestKeeper_partialSeizeCDP(t *testing.T) {
 
 	tApp.GetCDPKeeper().ModifyCDP(ctx, addrs[0], "btc", i(3), i(16000))
 
-	tApp.GetPriceFeedKeeper().SetPrice(ctx, addrs[0], "btc", sdk.MustNewDecFromStr("7999.99"), tmtime.Now().Add(time.Hour*1))
+	tApp.GetPriceFeedKeeper().SetPrice(ctx, addrs[0], "btc", d("7999.99"), tmtime.Now().Add(time.Hour*1))
 	tApp.GetPriceFeedKeeper().SetCurrentPrices(ctx, "btc")
 
 	// Run test function
