@@ -11,51 +11,107 @@ import (
 )
 
 const (
-	ModuleName                = types.ModuleName
-	StoreKey                  = types.StoreKey
-	RouterKey                 = types.RouterKey
-	DefaultParamspace         = types.DefaultParamspace
-	QueryGetCdps              = types.QueryGetCdps
-	QueryGetParams            = types.QueryGetParams
-	RestOwner                 = types.RestOwner
-	RestCollateralDenom       = types.RestCollateralDenom
-	RestUnderCollateralizedAt = types.RestUnderCollateralizedAt
-	GovDenom                  = types.GovDenom
+	CodeCdpAlreadyExists        = types.CodeCdpAlreadyExists
+	CodeCollateralLengthInvalid = types.CodeCollateralLengthInvalid
+	CodeCollateralNotSupported  = types.CodeCollateralNotSupported
+	CodeDebtNotSupported        = types.CodeDebtNotSupported
+	CodeExceedsDebtLimit        = types.CodeExceedsDebtLimit
+	CodeInvalidCollateralRatio  = types.CodeInvalidCollateralRatio
+	CodeCdpNotFound             = types.CodeCdpNotFound
+	CodeDepositNotFound         = types.CodeDepositNotFound
+	CodeInvalidDepositDenom     = types.CodeInvalidDepositDenom
+	CodeInvalidPaymentDenom     = types.CodeInvalidPaymentDenom
+	CodeDepositNotAvailable     = types.CodeDepositNotAvailable
+	EventTypeCreateCdp          = types.EventTypeCreateCdp
+	EventTypeCdpDeposit         = types.EventTypeCdpDeposit
+	EventTypeCdpDraw            = types.EventTypeCdpDraw
+	EventTypeCdpWithdrawal      = types.EventTypeCdpWithdrawal
+	AttributeKeyCdpID           = types.AttributeKeyCdpID
+	ModuleName                  = types.ModuleName
+	StoreKey                    = types.StoreKey
+	RouterKey                   = types.RouterKey
+	DefaultParamspace           = types.DefaultParamspace
+	QueryGetCdps                = types.QueryGetCdps
+	QueryGetParams              = types.QueryGetParams
+	RestOwner                   = types.RestOwner
+	RestCollateralDenom         = types.RestCollateralDenom
+	RestUnderCollateralizedAt   = types.RestUnderCollateralizedAt
 )
 
 var (
 	// functions aliases
-	RegisterCodec           = types.RegisterCodec
-	DefaultGenesisState     = types.DefaultGenesisState
-	ValidateGenesis         = types.ValidateGenesis
-	NewMsgCreateOrModifyCDP = types.NewMsgCreateOrModifyCDP
-	ParamKeyTable           = types.ParamKeyTable
-	DefaultParams           = types.DefaultParams
-	NewKeeper               = keeper.NewKeeper
-	NewQuerier              = keeper.NewQuerier
+	NewCDP                     = types.NewCDP
+	RegisterCodec              = types.RegisterCodec
+	NewDeposit                 = types.NewDeposit
+	ErrCdpAlreadyExists        = types.ErrCdpAlreadyExists
+	ErrInvalidCollateralLength = types.ErrInvalidCollateralLength
+	ErrCollateralNotSupported  = types.ErrCollateralNotSupported
+	ErrDebtNotSupported        = types.ErrDebtNotSupported
+	ErrExceedsDebtLimit        = types.ErrExceedsDebtLimit
+	ErrInvalidCollateralRatio  = types.ErrInvalidCollateralRatio
+	ErrCdpNotFound             = types.ErrCdpNotFound
+	ErrDepositNotFound         = types.ErrDepositNotFound
+	ErrInvalidDepositDenom     = types.ErrInvalidDepositDenom
+	ErrInvalidPaymentDenom     = types.ErrInvalidPaymentDenom
+	ErrDepositNotAvailable     = types.ErrDepositNotAvailable
+	DefaultGenesisState        = types.DefaultGenesisState
+	ValidateGenesis            = types.ValidateGenesis
+	GetCdpIDBytes              = types.GetCdpIDBytes
+	GetCdpIDFromBytes          = types.GetCdpIDFromBytes
+	CdpKey                     = types.CdpKey
+	DepositKey                 = types.DepositKey
+	LiquidationRatioBytes      = types.LiquidationRatioBytes
+	LiquidationRatioKey        = types.LiquidationRatioKey
+	SplitCollateralRatioKey    = types.SplitCollateralRatioKey
+	NewMsgCreateOrModifyCDP    = types.NewMsgCreateOrModifyCDP
+	NewParams                  = types.NewParams
+	DefaultParams              = types.DefaultParams
+	ParamKeyTable              = types.ParamKeyTable
+	ValidSortableDec           = types.ValidSortableDec
+	SortableDecBytes           = types.SortableDecBytes
+	ParseDecBytes              = types.ParseDecBytes
+	NewKeeper                  = keeper.NewKeeper
+	NewQuerier                 = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc                = types.ModuleCdc
-	KeyGlobalDebtLimit       = types.KeyGlobalDebtLimit
-	KeyCollateralParams      = types.KeyCollateralParams
-	KeyStableDenoms          = types.KeyStableDenoms
-	LiquidatorAccountAddress = keeper.LiquidatorAccountAddress
+	ModuleCdc                  = types.ModuleCdc
+	CdpIdKeyPrefix             = types.CdpIdKeyPrefix
+	CdpKeyPrefix               = types.CdpKeyPrefix
+	CollateralRatioIndexPrefix = types.CollateralRatioIndexPrefix
+	CdpIdKey                   = types.CdpIdKey
+	DebtDenomKey               = types.DebtDenomKey
+	DepositKeyPrefix           = types.DepositKeyPrefix
+	PrincipalKeyPrefix         = types.PrincipalKeyPrefix
+	AccumulatorKeyPrefix       = types.AccumulatorKeyPrefix
+	KeyGlobalDebtLimit         = types.KeyGlobalDebtLimit
+	KeyCollateralParams        = types.KeyCollateralParams
+	KeyDebtParams              = types.KeyDebtParams
+	KeyCircuitBreaker          = types.KeyCircuitBreaker
+	DefaultGlobalDebt          = types.DefaultGlobalDebt
+	DefaultCircuitBreaker      = types.DefaultCircuitBreaker
+	DefaultCollateralParams    = types.DefaultCollateralParams
+	DefaultDebtParams          = types.DefaultDebtParams
+	DefaultCdpStartingID       = types.DefaultCdpStartingID
+	DefaultDebtDenom           = types.DefaultDebtDenom
+	MaxSortableDec             = types.MaxSortableDec
 )
 
 type (
-	BankKeeper              = types.BankKeeper
-	PricefeedKeeper         = types.PricefeedKeeper
-	GenesisState            = types.GenesisState
-	MsgCreateOrModifyCDP    = types.MsgCreateOrModifyCDP
-	MsgTransferCDP          = types.MsgTransferCDP
-	CdpParams               = types.CdpParams
-	CollateralParams        = types.CollateralParams
-	QueryCdpsParams         = types.QueryCdpsParams
-	ModifyCdpRequestBody    = types.ModifyCdpRequestBody
-	CDP                     = types.CDP
-	CDPs                    = types.CDPs
-	ByCollateralRatio       = types.ByCollateralRatio
-	CollateralState         = types.CollateralState
-	Keeper                  = keeper.Keeper
-	LiquidatorModuleAccount = keeper.LiquidatorModuleAccount
+	CDP                  = types.CDP
+	CDPs                 = types.CDPs
+	CollateralState      = types.CollateralState
+	Deposit              = types.Deposit
+	Deposits             = types.Deposits
+	PricefeedKeeper      = types.PricefeedKeeper
+	GenesisState         = types.GenesisState
+	MsgCreateOrModifyCDP = types.MsgCreateOrModifyCDP
+	MsgTransferCDP       = types.MsgTransferCDP
+	Params               = types.Params
+	CollateralParam      = types.CollateralParam
+	CollateralParams     = types.CollateralParams
+	DebtParam            = types.DebtParam
+	DebtParams           = types.DebtParams
+	QueryCdpsParams      = types.QueryCdpsParams
+	ModifyCdpRequestBody = types.ModifyCdpRequestBody
+	Keeper               = keeper.Keeper
 )

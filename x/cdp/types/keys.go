@@ -28,11 +28,13 @@ const (
 // Items are stored with the following key: values
 // - 0x00<cdpOwner_Bytes>: []cdpID
 //    - One cdp owner can control one cdp per collateral type
-// - 0x01<collateralDenomPrefix><cdpID_Bytes>: CDP
+// - 0x01<collateralDenomPrefix>:<cdpID_Bytes>: CDP
 //    - cdps are prefix by denom prefix so we can iterate over cdps of one type
-// - 0x02<collateralDenomPrefix><collateralDebtRatio_Bytes><cdpID_Bytes>: cdpID:Denom
+//    - uses : as separator, otherwise the cdp with ID 11 would be selected when iterating over denom with prefix 1
+// - 0x02<collateralDenomPrefix>:<collateralDebtRatio_Bytes>:<cdpID_Bytes>: cdpID
 // - Ox03: nextCdpID
-// - 0x04<cdpID><depositorAddr_bytes>: Deposit
+// - 0x04: debtDenom
+// - 0x05<cdpID>:<depositorAddr_bytes>: Deposit
 // - 0x20 - 0xff are reserved for collaterals
 
 var (
@@ -40,7 +42,10 @@ var (
 	CdpKeyPrefix               = []byte{0x01}
 	CollateralRatioIndexPrefix = []byte{0x02}
 	CdpIdKey                   = []byte{0x03}
-	DepositsKeyPrefix          = []byte{0x04}
+	DebtDenomKey               = []byte{0x04}
+	DepositKeyPrefix           = []byte{0x05}
+	PrincipalKeyPrefix         = []byte{0x06}
+	AccumulatorKeyPrefix       = []byte{0x07}
 )
 
 var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))
@@ -58,8 +63,20 @@ func GetCdpIDFromBytes(bz []byte) (cdpID uint64) {
 	return binary.BigEndian.Uint64(bz)
 }
 
-// LiquidationRatioKey returns the key for a querying for cdps by liquidation ratio
-func LiquidationRatioKey(ratio sdk.Dec) []byte {
+// CdpKey key of a specific cdp in the store
+func CdpKey(denomByte byte, cdpID uint64) []byte {
+	prefix := append([]byte{denomByte}, []byte(":")...)
+	return append(prefix, GetCdpIDBytes(cdpID)...)
+}
+
+// DepositKey key of a specific deposit in the store
+func DepositKey(cdpID uint64, depositor sdk.AccAddress) []byte {
+	prefix := append(GetCdpIDBytes(cdpID), []byte(":")...)
+	return append(prefix, depositor...)
+}
+
+// LiquidationRatioBytes returns the liquidation ratio as sortable bytes
+func LiquidationRatioBytes(ratio sdk.Dec) []byte {
 	ok := ValidSortableDec(ratio)
 	if !ok {
 		ratio = sdk.OneDec().Quo(sdk.SmallestDec())
@@ -67,13 +84,21 @@ func LiquidationRatioKey(ratio sdk.Dec) []byte {
 	return SortableDecBytes(ratio)
 }
 
+// LiquidationRatioKey returns the key for querying a cdp by its liquidation ratio
+func LiquidationRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
+	ratioBytes := LiquidationRatioBytes(ratio)
+	prefix := append([]byte{denomByte}, ratioBytes...)
+	prefix = append(prefix, []byte(":")...)
+	return append(prefix, GetCdpIDBytes(cdpID)...)
+}
+
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
-func SplitCollateralRatioKey(key []byte) (denom string, ratio sdk.Dec, cdpID uint64) {
+func SplitCollateralRatioKey(key []byte) (denom byte, ratio sdk.Dec, cdpID uint64) {
 	return splitKeyWithDec(key)
 }
 
-func splitKeyWithDec(key []byte) (denom string, ratio sdk.Dec, cdpID uint64) {
-	denomByte := key[0]
+func splitKeyWithDec(key []byte) (denom byte, ratio sdk.Dec, cdpID uint64) {
+	denom = key[0]
 	ratioBytes := key[1 : len(key)-8]
 	idBytes := key[len(key)-8:]
 
@@ -81,8 +106,6 @@ func splitKeyWithDec(key []byte) (denom string, ratio sdk.Dec, cdpID uint64) {
 	if err != nil {
 		panic(err)
 	}
-	denom = ParseDenomBytes(denomBytes)
 	cdpID = GetCdpIDFromBytes(idBytes)
 	return
-
 }

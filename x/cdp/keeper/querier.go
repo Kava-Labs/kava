@@ -10,8 +10,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-
-
+// NewQuerier returns a new querier function
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
@@ -24,7 +23,6 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		}
 	}
 }
-
 
 // queryGetCdps fetches CDPs, optionally filtering by any of the query params (in QueryCdpsParams).
 // While CDPs do not have an ID, this method can be used to get one CDP by specifying the collateral and owner.
@@ -41,9 +39,13 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	if len(requestParams.Owner) != 0 {
 		if len(requestParams.CollateralDenom) != 0 {
 			// owner and collateral specified - get a single CDP
-			cdp, found := keeper.GetCDP(ctx, requestParams.Owner, requestParams.CollateralDenom)
-			if !found {
-				cdp = types.CDP{Owner: requestParams.Owner, CollateralDenom: requestParams.CollateralDenom, CollateralAmount: sdk.ZeroInt(), Debt: sdk.ZeroInt()}
+			cdp := types.CDP{}
+			cdpID, found := keeper.GetCdpID(ctx, requestParams.Owner, requestParams.CollateralDenom)
+			if found {
+				cdp, found = keeper.GetCDP(ctx, requestParams.CollateralDenom, cdpID)
+				if !found {
+					cdp = types.CDP{}
+				}
 			}
 			cdps = types.CDPs{cdp}
 		} else {
@@ -52,12 +54,11 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 		}
 	} else {
 		// owner not specified -- get all CDPs or all CDPs of one collateral type, optionally filtered by price
-		var errSdk sdk.Error // := doesn't work here
-		cdps, errSdk = keeper.GetCDPs(ctx, requestParams.CollateralDenom, requestParams.UnderCollateralizedAt)
-		if errSdk != nil {
-			return nil, errSdk
+		if len(requestParams.CollateralDenom) == 0 {
+			cdps = keeper.GetAllCdps(ctx)
+		} else {
+			cdps = keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
 		}
-
 	}
 
 	// Encode results

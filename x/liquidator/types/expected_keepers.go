@@ -4,16 +4,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/cdp"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 // CdpKeeper expected interface for the cdp keeper
 type CdpKeeper interface {
-	GetCDP(sdk.Context, sdk.AccAddress, string) (cdp.CDP, bool)
+	GetCDP(sdk.Context, sdk.AccAddress, string) (cdptypes.CDP, bool)
 	PartialSeizeCDP(sdk.Context, sdk.AccAddress, string, sdk.Int, sdk.Int) sdk.Error
 	ReduceGlobalDebt(sdk.Context, sdk.Int) sdk.Error
-	GetStableDenom() string // TODO can this be removed somehow?
-	GetGovDenom() string
+	GetGovDenom(sdk.Context) string
 	GetLiquidatorAccountAddress() sdk.AccAddress // This won't need to exist once the module account is defined in this module (instead of in the cdp module)
 }
 

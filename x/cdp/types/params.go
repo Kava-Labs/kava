@@ -42,7 +42,8 @@ var (
 	DefaultCircuitBreaker   = false
 	DefaultCollateralParams = CollateralParams{}
 	DefaultDebtParams       = DebtParams{}
-	DefaultCdpStartingID    = 1
+	DefaultCdpStartingID    = uint64(1)
+	DefaultDebtDenom        = "debt"
 	minCollateralPrefix     = 32
 	maxCollateralPrefix     = 255
 )
@@ -73,26 +74,32 @@ type CollateralParam struct {
 	Denom            string    `json:"denom" yaml:"denom"`                         // Coin name of collateral type
 	LiquidationRatio sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"` // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
 	DebtLimit        sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
-	Prefix           []byte    `json:"prefix" yaml:"prefix"`
+	StabilityFee     sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`
+	Prefix           byte      `json:"prefix" yaml:"prefix"`
+	MarketID         string    `json:"market_id" yaml:"market_id"`
 	//DebtFloor        sdk.Int // used to prevent dust
 }
 
 // String implements fmt.Stringer
-func (p CdpParams) String() string {
-	out := fmt.Sprintf(`Params:
-	Global Debt Limit: %s
-	Collateral Params:`,
-		p.GlobalDebtLimit,
-	)
-	for _, cp := range p.CollateralParams {
-		out += fmt.Sprintf(`
-		%s
-			Liquidation Ratio: %s
-			Debt Limit:        %s`,
-			cp.Denom,
-			cp.LiquidationRatio,
-			cp.DebtLimit,
-		)
+func (cp CollateralParam) String() string {
+	return fmt.Sprintf(`Collateral:
+	Denom: %s
+	Liquidation Ratio: %s
+	Stability Fee: %s
+	Debt Limit: %s
+	Prefix: %b
+	Market ID: %s`,
+		cp.Denom, cp.LiquidationRatio, cp.StabilityFee, cp.DebtLimit, cp.Prefix, cp.MarketID)
+}
+
+// CollateralParams array of CollateralParam
+type CollateralParams []CollateralParam
+
+// String implements fmt.Stringer
+func (cps CollateralParams) String() string {
+	out := "Collateral Params\n"
+	for _, cp := range cps {
+		out += fmt.Sprintf("%s\n", cp)
 	}
 	return out
 }
@@ -145,16 +152,13 @@ func (p CdpParams) Validate() error {
 	prefixDupMap := make(map[int]int)
 	collateralParamsDebtLimit := sdk.Coins{}
 	for _, cp := range p.CollateralParams {
-		if len(cp.Prefix) != 1 {
-			return fmt.Errorf("invalid prefix for collateral denom %s: %s", cp.Denom, cp.Prefix)
-		}
-		prefix := int(cp.Prefix[0])
+		prefix := int(cp.Prefix)
 		if prefix < minCollateralPrefix || prefix > maxCollateralPrefix {
-			return fmt.Errorf("invalid prefix for collateral denom %s: %s", cp.Denom, cp.Prefix)
+			return fmt.Errorf("invalid prefix for collateral denom %s: %b", cp.Denom, cp.Prefix)
 		}
 		_, found := prefixDupMap[prefix]
 		if found {
-			return fmt.Errorf("duplicate prefix for collateral denom %s: %s", cp.Denom, cp.Prefix)
+			return fmt.Errorf("duplicate prefix for collateral denom %s: %b", cp.Denom, cp.Prefix)
 		}
 
 		prefixDupMap[prefix] = 1

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -15,4 +17,70 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 // SetParams sets params on the store
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
+}
+
+// GetCollateral returns the collateral param with corresponding denom
+func (k Keeper) GetCollateral(ctx sdk.Context, denom string) (types.CollateralParam, bool) {
+	params := k.GetParams(ctx)
+	for _, cp := range params.CollateralParams {
+		if cp.Denom == denom {
+			return cp, true
+		}
+	}
+	return types.CollateralParam{}, false
+}
+
+// GetDebt returns the debt param with matching denom
+func (k Keeper) GetDebt(ctx sdk.Context, denom string) (types.DebtParam, bool) {
+	params := k.GetParams(ctx)
+	for _, dp := range params.DebtParams {
+		if dp.Denom == denom {
+			return dp, true
+		}
+	}
+	return types.DebtParam{}, false
+}
+
+func (k Keeper) getStabilityFee(ctx sdk.Context, denom string) sdk.Dec {
+	cp, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("no collateral found for %s", denom))
+	}
+	return cp.StabilityFee
+}
+
+func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
+	params := k.GetParams(ctx)
+	for _, cp := range params.CollateralParams {
+		if cp.Prefix == db {
+			return cp.Denom
+		}
+	}
+	panic(fmt.Sprintf("no collateral denom with prefix %b", db))
+}
+
+func (k Keeper) getDenomPrefix(ctx sdk.Context, denom string) byte {
+	params := k.GetParams(ctx)
+	for _, cp := range params.CollateralParams {
+		if cp.Denom == denom {
+			return cp.Prefix
+		}
+	}
+	panic(fmt.Sprintf("collateral denom not found :%s", denom))
+}
+
+func (k Keeper) getMarketID(ctx sdk.Context, denom string) string {
+	cp, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", denom))
+	}
+	return cp.MarketID
+}
+
+func (k Keeper) getLiquidationRatio(ctx sdk.Context, denom string) sdk.Dec {
+	cp, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", denom))
+	}
+	return cp.LiquidationRatio
 }

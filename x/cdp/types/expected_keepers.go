@@ -18,13 +18,14 @@ type SupplyKeeper interface {
 
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) sdk.Error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) sdk.Error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) sdk.Error
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
 }
 
 // PricefeedKeeper defines the expected interface for the pricefeed
 type PricefeedKeeper interface {
-	GetCurrentPrice(sdk.Context, string) pftypes.CurrentPrice
+	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, sdk.Error)
 	GetParams(sdk.Context) pftypes.Params
 	// These are used for testing TODO replace mockApp with keeper in tests to remove these
 	SetParams(sdk.Context, pftypes.Params)
