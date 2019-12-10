@@ -27,7 +27,7 @@ type Keeper struct {
 // - adding oracles
 // - adding/removing assets from the pricefeed
 func NewKeeper(
-	storeKey sdk.StoreKey, cdc *codec.Codec, paramstore params.Subspace, codespace sdk.CodespaceType,
+	cdc *codec.Codec, storeKey sdk.StoreKey, paramstore params.Subspace, codespace sdk.CodespaceType,
 ) Keeper {
 	return Keeper{
 		paramstore: paramstore.WithKeyTable(types.ParamKeyTable()),

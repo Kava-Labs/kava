@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"fmt"
@@ -6,24 +6,21 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/mock"
-	"github.com/kava-labs/kava/x/cdp/types"
-	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // How could one reduce the number of params in the test cases. Create a table driven test for each of the 4 add/withdraw collateral/debt?
 
 // These are more like app level tests - I think this is a symptom of having 'ModifyCDP' do a lot. Could be easier for testing purposes to break it down.
 func TestKeeper_ModifyCDP(t *testing.T) {
-	_, addrs := mock.GeneratePrivKeyAddressPairs(1)
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	ownerAddr := addrs[0]
 
-	type state struct { // TODO this allows invalid state to be set up, should it?
+	type state struct {
 		CDP             types.CDP
 		OwnerCoins      sdk.Coins
 		GlobalDebt      sdk.Int
@@ -96,59 +93,32 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// setup keeper
-			mapp, keeper, _, _ := setUpMockAppWithoutGenesis()
-			// initialize cdp owner account with coins
-			genAcc := auth.BaseAccount{
-				Address: ownerAddr,
-				Coins:   tc.priorState.OwnerCoins,
-			}
-			mock.SetGenesis(mapp, []authexported.Account{&genAcc})
-			// create a new context
-			header := abci.Header{Height: mapp.LastBlockHeight() + 1, Time: tmtime.Now()}
-			mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-			ctx := mapp.BaseApp.NewContext(false, header)
-			keeper.SetParams(ctx, defaultParamsSingle())
+			// setup test app
+			tApp := app.NewTestApp()
+			// initialize cdp owner account with coins, and collateral with price and params
+			tApp.InitializeFromGenesisStates(
+				app.NewAuthGenState([]sdk.AccAddress{ownerAddr}, []sdk.Coins{tc.priorState.OwnerCoins}),
+				NewPricefeedGenState("xrp", d(tc.price)),
+				NewCDPGenState("xrp", d("2.0")),
+			)
+			// create a context for db access
+			ctx := tApp.NewContext(false, abci.Header{})
+
 			// setup store state
-			ap := pricefeed.Params{
-				Markets: []pricefeed.Market{
-					pricefeed.Market{
-						MarketID: "xrp", BaseAsset: "xrp",
-						QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-				},
-			}
-			keeper.pricefeedKeeper.SetParams(ctx, ap)
-			_, err := keeper.pricefeedKeeper.SetPrice(
-				ctx, ownerAddr, "xrp",
-				sdk.MustNewDecFromStr(tc.price),
-				header.Time.Add(time.Hour*1))
-			if err != nil {
-				t.Log("test context height", ctx.BlockHeight())
-				t.Log(err)
-				t.Log(tc.name)
-			}
-			err = keeper.pricefeedKeeper.SetCurrentPrices(ctx, "xrp")
-			if err != nil {
-				t.Log("test context height", ctx.BlockHeight())
-				t.Log(err)
-				t.Log(tc.name)
-			}
+			keeper := tApp.GetCDPKeeper()
 			if tc.priorState.CDP.CollateralDenom != "" { // check if the prior CDP should be created or not (see if an empty one was specified)
 				keeper.SetCDP(ctx, tc.priorState.CDP)
 			}
 			keeper.SetGlobalDebt(ctx, tc.priorState.GlobalDebt)
 			if tc.priorState.CollateralState.Denom != "" {
-				keeper.setCollateralState(ctx, tc.priorState.CollateralState)
+				keeper.SetCollateralState(ctx, tc.priorState.CollateralState)
 			}
 
 			// call func under test
-			err = keeper.ModifyCDP(ctx, tc.args.owner, tc.args.collateralDenom, tc.args.changeInCollateral, tc.args.changeInDebt)
-			mapp.EndBlock(abci.RequestEndBlock{})
-			mapp.Commit()
+			err := keeper.ModifyCDP(ctx, tc.args.owner, tc.args.collateralDenom, tc.args.changeInCollateral, tc.args.changeInDebt)
 
 			// get new state for verification
 			actualCDP, found := keeper.GetCDP(ctx, tc.args.owner, tc.args.collateralDenom)
-
 			// check for err
 			if tc.expectPass {
 				require.NoError(t, err, fmt.Sprint(err))
@@ -167,47 +137,35 @@ func TestKeeper_ModifyCDP(t *testing.T) {
 			require.Equal(t, tc.expectedState.GlobalDebt, actualGDebt)
 			require.Equal(t, tc.expectedState.CollateralState, actualCstate)
 			// check owner balance
-			mock.CheckBalance(t, mapp, ownerAddr, tc.expectedState.OwnerCoins)
+			tApp.CheckBalance(t, ctx, ownerAddr, tc.expectedState.OwnerCoins)
 		})
 	}
 }
 
-// TODO change to table driven test to test more test cases
 func TestKeeper_PartialSeizeCDP(t *testing.T) {
 	// Setup
 	const collateral = "xrp"
-	mapp, keeper, _, _ := setUpMockAppWithoutGenesis()
-	genAccs, addrs, _, _ := mock.CreateGenAccounts(1, cs(c(collateral, 100)))
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	testAddr := addrs[0]
-	mock.SetGenesis(mapp, genAccs)
-	// setup pricefeed
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1, Time: tmtime.Now()}
-	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx := mapp.BaseApp.NewContext(false, header)
-	keeper.SetParams(ctx, defaultParamsSingle())
-	ap := pricefeed.Params{
-		Markets: []pricefeed.Market{
-			pricefeed.Market{
-				MarketID: "xrp", BaseAsset: "xrp",
-				QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-		},
-	}
-	keeper.pricefeedKeeper.SetParams(ctx, ap)
-	keeper.pricefeedKeeper.SetPrice(
-		ctx, sdk.AccAddress{}, collateral,
-		sdk.MustNewDecFromStr("1.00"),
-		header.Time.Add(time.Hour*1))
-	keeper.pricefeedKeeper.SetCurrentPrices(ctx, collateral)
+
+	tApp := app.NewTestApp()
+	tApp.InitializeFromGenesisStates(
+		app.NewAuthGenState(addrs, []sdk.Coins{cs(c(collateral, 100))}),
+		NewPricefeedGenState(collateral, d("1.00")),
+		NewCDPGenState(collateral, d("2.00")),
+	)
+
+	ctx := tApp.NewContext(false, abci.Header{})
+	keeper := tApp.GetCDPKeeper()
+
 	// Create CDP
-	keeper.SetGlobalDebt(ctx, i(0))
 	err := keeper.ModifyCDP(ctx, testAddr, collateral, i(10), i(5))
 	require.NoError(t, err)
 	// Reduce price
-	keeper.pricefeedKeeper.SetPrice(
+	tApp.GetPriceFeedKeeper().SetPrice(
 		ctx, sdk.AccAddress{}, collateral,
-		sdk.MustNewDecFromStr("0.90"),
-		header.Time.Add(time.Hour*1))
-	keeper.pricefeedKeeper.SetCurrentPrices(ctx, collateral)
+		d("0.90"), time.Now().Add(1*time.Hour))
+	tApp.GetPriceFeedKeeper().SetCurrentPrices(ctx, collateral)
 
 	// Seize entire CDP
 	err = keeper.PartialSeizeCDP(ctx, testAddr, collateral, i(10), i(5))
@@ -222,15 +180,16 @@ func TestKeeper_PartialSeizeCDP(t *testing.T) {
 }
 
 func TestKeeper_GetCDPs(t *testing.T) {
-	// setup keeper
-	mapp, keeper, _, _ := setUpMockAppWithoutGenesis()
-	mock.SetGenesis(mapp, []authexported.Account(nil))
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
-	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx := mapp.BaseApp.NewContext(false, header)
-	keeper.SetParams(ctx, defaultParamsMulti())
+	// setup test app
+	tApp := app.NewTestApp().InitializeFromGenesisStates(
+		NewPricefeedGenStateMulti(), // collateral needs to be in pricefeed for cdp InitGenesis to validate
+		NewCDPGenStateMulti(),
+	)
+	ctx := tApp.NewContext(true, abci.Header{})
+	keeper := tApp.GetCDPKeeper()
+
 	// setup CDPs
-	_, addrs := mock.GeneratePrivKeyAddressPairs(2)
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdps := types.CDPs{
 		{addrs[0], "xrp", i(4000), i(5)},
 		{addrs[1], "xrp", i(4000), i(2000)},
@@ -288,7 +247,7 @@ func TestKeeper_GetCDPs(t *testing.T) {
 	_, err = keeper.GetCDPs(ctx, "", d("0.34023"))
 	require.Error(t, err)
 	// Check deleting a CDP removes it
-	keeper.deleteCDP(ctx, cdps[0])
+	keeper.DeleteCDP(ctx, cdps[0])
 	returnedCdps, err = keeper.GetCDPs(ctx, "", sdk.Dec{})
 	require.NoError(t, err)
 	require.Equal(t,
@@ -298,14 +257,14 @@ func TestKeeper_GetCDPs(t *testing.T) {
 		returnedCdps,
 	)
 }
+
 func TestKeeper_GetSetDeleteCDP(t *testing.T) {
 	// setup keeper, create CDP
-	mapp, keeper, _, _ := setUpMockAppWithoutGenesis()
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
-	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx := mapp.BaseApp.NewContext(false, header)
-	keeper.SetParams(ctx, defaultParamsSingle())
-	_, addrs := mock.GeneratePrivKeyAddressPairs(1)
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{})
+	keeper := tApp.GetCDPKeeper()
+
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.CDP{addrs[0], "xrp", i(412), i(56)}
 
 	// write and read from store
@@ -317,7 +276,7 @@ func TestKeeper_GetSetDeleteCDP(t *testing.T) {
 	require.Equal(t, cdp, readCDP)
 
 	// delete auction
-	keeper.deleteCDP(ctx, cdp)
+	keeper.DeleteCDP(ctx, cdp)
 
 	// check auction does not exist
 	_, found = keeper.GetCDP(ctx, cdp.Owner, cdp.CollateralDenom)
@@ -325,11 +284,10 @@ func TestKeeper_GetSetDeleteCDP(t *testing.T) {
 }
 func TestKeeper_GetSetGDebt(t *testing.T) {
 	// setup keeper, create GDebt
-	mapp, keeper, _, _ := setUpMockAppWithoutGenesis()
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
-	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx := mapp.BaseApp.NewContext(false, header)
-	keeper.SetParams(ctx, defaultParamsSingle())
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{})
+	keeper := tApp.GetCDPKeeper()
+
 	gDebt := i(4120000)
 
 	// write and read from store
@@ -342,15 +300,14 @@ func TestKeeper_GetSetGDebt(t *testing.T) {
 
 func TestKeeper_GetSetCollateralState(t *testing.T) {
 	// setup keeper, create CState
-	mapp, keeper, _, _ := setUpMockAppWithoutGenesis()
-	header := abci.Header{Height: mapp.LastBlockHeight() + 1}
-	mapp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx := mapp.BaseApp.NewContext(false, header)
-	keeper.SetParams(ctx, defaultParamsSingle())
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{})
+	keeper := tApp.GetCDPKeeper()
+
 	collateralState := types.CollateralState{"xrp", i(15400)}
 
 	// write and read from store
-	keeper.setCollateralState(ctx, collateralState)
+	keeper.SetCollateralState(ctx, collateralState)
 	readCState, found := keeper.GetCollateralState(ctx, collateralState.Denom)
 
 	// check before and after match
