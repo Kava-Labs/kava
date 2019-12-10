@@ -95,11 +95,25 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if err != nil {
 		return err
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCdpRepay,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, payment.String()),
+			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
+		),
+	)
+
 	if cdp.Collateral.IsZero() && cdp.AccumulatedFees.IsZero() {
 		k.ReturnCollateral(ctx, cdp)
 		k.DeleteCDP(ctx, cdp)
 		k.RemoveCdpOwnerIndex(ctx, cdp)
 		k.RemoveCdpLiquidationRatioIndex(ctx, cdp)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeCdpClose,
+				sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
+			),
+		)
 		return nil
 	}
 	k.SetCDP(ctx, cdp)

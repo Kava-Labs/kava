@@ -25,8 +25,11 @@ const (
 	EventTypeCreateCdp          = types.EventTypeCreateCdp
 	EventTypeCdpDeposit         = types.EventTypeCdpDeposit
 	EventTypeCdpDraw            = types.EventTypeCdpDraw
+	EventTypeCdpRepay           = types.EventTypeCdpRepay
+	EventTypeCdpClose           = types.EventTypeCdpClose
 	EventTypeCdpWithdrawal      = types.EventTypeCdpWithdrawal
 	AttributeKeyCdpID           = types.AttributeKeyCdpID
+	AttributeValueCategory      = types.AttributeValueCategory
 	ModuleName                  = types.ModuleName
 	StoreKey                    = types.StoreKey
 	RouterKey                   = types.RouterKey
@@ -63,7 +66,11 @@ var (
 	LiquidationRatioBytes      = types.LiquidationRatioBytes
 	LiquidationRatioKey        = types.LiquidationRatioKey
 	SplitCollateralRatioKey    = types.SplitCollateralRatioKey
-	NewMsgCreateOrModifyCDP    = types.NewMsgCreateOrModifyCDP
+	NewMsgCreateCDP            = types.NewMsgCreateCDP
+	NewMsgDeposit              = types.NewMsgDeposit
+	NewMsgWithdraw             = types.NewMsgWithdraw
+	NewMsgDrawDebt             = types.NewMsgDrawDebt
+	NewMsgRepayDebt            = types.NewMsgRepayDebt
 	NewParams                  = types.NewParams
 	DefaultParams              = types.DefaultParams
 	ParamKeyTable              = types.ParamKeyTable
@@ -104,7 +111,11 @@ type (
 	Deposits             = types.Deposits
 	PricefeedKeeper      = types.PricefeedKeeper
 	GenesisState         = types.GenesisState
-	MsgCreateOrModifyCDP = types.MsgCreateOrModifyCDP
+	MsgCreateCDP         = types.MsgCreateCDP
+	MsgDeposit           = types.MsgDeposit
+	MsgWithdraw          = types.MsgWithdraw
+	MsgDrawDebt          = types.MsgDrawDebt
+	MsgRepayDebt         = types.MsgRepayDebt
 	MsgTransferCDP       = types.MsgTransferCDP
 	Params               = types.Params
 	CollateralParam      = types.CollateralParam
