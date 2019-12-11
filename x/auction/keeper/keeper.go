@@ -7,11 +7,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
 type Keeper struct {
-	bankKeeper    types.BankKeeper
+	supplyKeeper  types.SupplyKeeper
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
@@ -19,23 +21,27 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new auction keeper.
-func NewKeeper(cdc *codec.Codec, bankKeeper types.BankKeeper, storeKey sdk.StoreKey, paramstore subspace.Subspace) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, bankKeeper types.BankKeeper, supplyKeeper types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
 	return Keeper{
-		bankKeeper:    bankKeeper,
+		supplyKeeper:  supplyKeeper,
 		storeKey:      storeKey,
 		cdc:           cdc,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
-// TODO these 3 start functions be combined or abstracted away?
-
 // StartForwardAuction starts a normal auction. Known as flap in maker.
-func (k Keeper) StartForwardAuction(ctx sdk.Context, seller sdk.AccAddress, lot sdk.Coin, initialBid sdk.Coin) (types.ID, sdk.Error) {
+func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (types.ID, sdk.Error) {
 	// create auction
-	auction, initiatorOutput := types.NewForwardAuction(seller, lot, initialBid, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration)
-	// start the auction
-	auctionID, err := k.startAuction(ctx, &auction, initiatorOutput)
+	auction := types.NewForwardAuction(seller, lot, bidDenom, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration)
+
+	// take coins from module account
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
+	if err != nil {
+		return 0, err
+	}
+	// store the auction
+	auctionID, err := k.storeNewAuction(ctx, auction) // TODO does this need to be a pointer to satisfy the interface
 	if err != nil {
 		return 0, err
 	}
@@ -43,11 +49,17 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller sdk.AccAddress, lot 
 }
 
 // StartReverseAuction starts an auction where sellers compete by offering decreasing prices. Known as flop in maker.
-func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer sdk.AccAddress, bid sdk.Coin, initialLot sdk.Coin) (types.ID, sdk.Error) {
+func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (types.ID, sdk.Error) {
 	// create auction
-	auction, initiatorOutput := types.NewReverseAuction(buyer, bid, initialLot, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration)
-	// start the auction
-	auctionID, err := k.startAuction(ctx, &auction, initiatorOutput)
+	auction := types.NewReverseAuction(buyer, bid, initialLot, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration)
+
+	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
+	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
+	if !macc.HasPermission(supply.Minter) { // TODO ideally don't want to import supply
+		return 0, sdk.ErrInternal("module does not have minting permissions")
+	}
+	// store the auction
+	auctionID, err := k.storeNewAuction(ctx, &auction)
 	if err != nil {
 		return 0, err
 	}
@@ -55,19 +67,25 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer sdk.AccAddress, bid s
 }
 
 // StartForwardReverseAuction starts an auction where bidders bid up to a maxBid, then switch to bidding down on price. Known as flip in maker.
-func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller sdk.AccAddress, lot sdk.Coin, maxBid sdk.Coin, otherPerson sdk.AccAddress) (types.ID, sdk.Error) {
+func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, otherPerson sdk.AccAddress) (types.ID, sdk.Error) {
 	// create auction
-	initialBid := sdk.NewInt64Coin(maxBid.Denom, 0) // set the bidding coin denomination from the specified max bid
-	auction, initiatorOutput := types.NewForwardReverseAuction(seller, lot, initialBid, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration, maxBid, otherPerson)
-	// start the auction
-	auctionID, err := k.startAuction(ctx, &auction, initiatorOutput)
+	auction := types.NewForwardReverseAuction(seller, lot, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration, maxBid, otherPerson)
+
+	// take coins from module account
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.Coins{lot})
+	if err != nil {
+		return 0, err
+	}
+	// store the auction
+	auctionID, err := k.storeNewAuction(ctx, &auction)
 	if err != nil {
 		return 0, err
 	}
 	return auctionID, nil
 }
 
-func (k Keeper) startAuction(ctx sdk.Context, auction types.Auction, initiatorOutput types.BankOutput) (types.ID, sdk.Error) {
+// set an auction in the store, adding a new ID, and setting indexes
+func (k Keeper) storeNewAuction(ctx sdk.Context, auction types.Auction) (types.ID, sdk.Error) {
 	// get ID
 	newAuctionID, err := k.getNextAuctionID(ctx)
 	if err != nil {
@@ -76,17 +94,13 @@ func (k Keeper) startAuction(ctx sdk.Context, auction types.Auction, initiatorOu
 	// set ID
 	auction.SetID(newAuctionID)
 
-	// subtract coins from initiator
-	_, err = k.bankKeeper.SubtractCoins(ctx, initiatorOutput.Address, sdk.NewCoins(initiatorOutput.Coin))
-	if err != nil {
-		return 0, err
-	}
-
 	// store auction
 	k.SetAuction(ctx, auction)
 	k.incrementNextAuctionID(ctx)
 	return newAuctionID, nil
 }
+
+// ==============================================================================================================================
 
 // PlaceBid places a bid on any auction.
 func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) sdk.Error {
@@ -97,35 +111,179 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 		return sdk.ErrInternal("auction doesn't exist")
 	}
 
-	// place bid
-	coinOutputs, coinInputs, err := auction.PlaceBid(types.EndTime(ctx.BlockHeight()), bidder, lot, bid) // update auction according to what type of auction it is // TODO should this return updated Auction to be more immutable?
-	if err != nil {
-		return err
+	// check end time
+	if ctx.BlockHeight() > auction.GetEndTime() {
+		return sdk.ErrInternal("auction has closed")
 	}
-	// TODO this will fail if someone tries to update their bid without the full bid amount sitting in their account
-	// sub outputs
-	for _, output := range coinOutputs {
-		_, err = k.bankKeeper.SubtractCoins(ctx, output.Address, sdk.NewCoins(output.Coin)) // TODO handle errors properly here. All coin transfers should be atomic. InputOutputCoins may work
+
+	var err sdk.Error
+	var a types.Auction
+	switch auc := auction.(type) {
+	case types.ForwardAuction:
+		a, err = k.PlaceBidForward(ctx, auc, bidder, bid)
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
-	// add inputs
-	for _, input := range coinInputs {
-		_, err = k.bankKeeper.AddCoins(ctx, input.Address, sdk.NewCoins(input.Coin)) // TODO errors
+	case types.ReverseAuction:
+		a, err = k.PlaceBidReverse(ctx, auc, bidder, lot)
 		if err != nil {
-			panic(err)
+			return err
 		}
+	case types.ForwardReverseAuction:
+		a, err = k.PlaceBidForwardReverse(ctx, auc, bidder, bid, lot)
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unrecognized auction type")
 	}
 
 	// store updated auction
-	k.SetAuction(ctx, auction)
+	k.SetAuction(ctx, a) // maybe move into above funcs
 
 	return nil
 }
 
-// CloseAuction closes an auction and distributes funds to the seller and highest bidder.
-// TODO because this is called by the end blocker, it has to be valid for the duration of the EndTime block. Should maybe move this to a begin blocker?
+func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.ForwardAuction, sdk.Error) {
+	// Valid New Bid
+	if bid.Denom != a.Bid.Denom {
+		return a, sdk.ErrInternal("bid denom doesn't match auction")
+	}
+	if !a.Bid.IsLT(bid) { // TODO add minimum bid size
+		return a, sdk.ErrInternal("bid not greater than last bid")
+	}
+
+	// Move Coins
+	increment := bid.Sub(a.Bid)
+	bidAmtToReturn := a.Bid
+	if bidder.Equals(a.Bidder) { // catch edge case of someone updating their bid with a low balance
+		bidAmtToReturn = sdk.NewInt64Coin(a.Bid.Denom, 0)
+	}
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(bidAmtToReturn.Add(increment)))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.NewCoins(bidAmtToReturn))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(increment)) // increase in bid size is burned
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.BurnCoins(ctx, a.Initiator, sdk.NewCoins(increment))
+	if err != nil {
+		return a, err
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Bid = bid
+	// increment timeout
+	a.EndTime = EndTime(min(int64(ctx.BlockHeight()+types.DefaultMaxBidDuration), int64(a.MaxEndTime)))
+
+	return a, nil
+}
+func (k Keeper) PlaceBidForwardReverse(ctx sdk.Context, a types.ForwardReverseAuction, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) (types.ForwardReverseAuction, sdk.Error) {
+	// Validate New Bid // TODO min bid increments, make validation code less confusing
+	if !a.Bid.IsEqual(a.MaxBid) {
+		// Auction is in forward phase, a bid here can put the auction into forward or reverse phases
+		if !a.Bid.IsLT(bid) {
+			return a, sdk.ErrInternal("auction in forward phase, new bid not higher than last bid")
+		}
+		if a.MaxBid.IsLT(bid) {
+			return a, sdk.ErrInternal("bid higher than max bid")
+		}
+		if lot.IsNegative() || a.Lot.IsLT(lot) {
+			return a, sdk.ErrInternal("lot out of bounds")
+		}
+		if lot.IsLT(a.Lot) && !bid.IsEqual(a.MaxBid) {
+			return a, sdk.ErrInternal("auction cannot enter reverse phase without bidding max bid")
+		}
+	} else {
+		// Auction is in reverse phase, it can never leave reverse phase
+		if !bid.IsEqual(a.MaxBid) {
+			return a, sdk.ErrInternal("") // not necessary
+		}
+		if lot.IsNegative() {
+			return a, sdk.ErrInternal("can't bid negative amount")
+		}
+		if !lot.IsLT(a.Lot) {
+			return a, sdk.ErrInternal("auction in reverse phase, new bid not less than previous amount")
+		}
+	}
+
+	// Move Coins
+	bidIncrement := bid.Sub(a.Bid)
+	bidAmtToReturn := a.Bid
+	lotDecrement := a.Lot.Sub(lot)
+	if bidder.Equals(a.Bidder) { // catch edge case of someone updating their bid with a low balance
+		bidAmtToReturn = sdk.NewInt64Coin(a.Bid.Denom, 0)
+	}
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(bidAmtToReturn.Add(bidIncrement)))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.NewCoins(bidAmtToReturn))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(bidIncrement))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.OtherPerson, sdk.NewCoins(lotDecrement))
+	if err != nil {
+		return a, err
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Lot = lot
+	a.Bid = bid
+	// increment timeout
+	a.EndTime = EndTime(min(int64(currentBlockHeight+DefaultMaxBidDuration), int64(a.MaxEndTime)))
+
+	return types.ForwardReverseAuction{}, nil
+}
+func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.ReverseAuction, sdk.Error) {
+	// Validate New Bid
+	if lot.Denom != a.Lot.Denom {
+		return a, sdk.ErrInternal("lot denom doesn't match auction")
+	}
+	if lot.IsNegative() {
+		return a, sdk.ErrInternal("lot less than 0")
+	}
+	if !lot.IsLT(a.Lot) { // TODO add min bid decrements
+		return a, sdk.ErrInternal("lot not smaller than last lot")
+	}
+
+	// Move Coins
+	bidAmtToReturn := a.Bid
+	if bidder.Equals(a.Bidder) { // catch edge case of someone updating their bid with a low balance
+		bidAmtToReturn = sdk.NewInt64Coin(a.Bid.Denom, 0)
+	}
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(bidAmtToReturn))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.NewCoins(bidAmtToReturn))
+	if err != nil {
+		return a, err
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Lot = lot
+	// increment timeout
+	a.EndTime = EndTime(min(int64(ctx.BlockHeight()+types.DefaultMaxBidDuration), int64(a.MaxEndTime)))
+
+	return a, nil
+}
+
+// ==========================================================================================================
+
+// CloseAuction closes an auction and distributes funds to the highest bidder.
 func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 
 	// get the auction from the store
@@ -134,14 +292,25 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 		return sdk.ErrInternal("auction doesn't exist")
 	}
 	// error if auction has not reached the end time
-	if ctx.BlockHeight() < int64(auction.GetEndTime()) { // auctions close at the end of the block with blockheight == EndTime
+	if ctx.BlockHeight() < int64(auction.GetEndTime()) {
 		return sdk.ErrInternal(fmt.Sprintf("auction can't be closed as curent block height (%v) is under auction end time (%v)", ctx.BlockHeight(), auction.GetEndTime()))
 	}
+
 	// payout to the last bidder
-	coinInput := auction.GetPayout()
-	_, err := k.bankKeeper.AddCoins(ctx, coinInput.Address, sdk.NewCoins(coinInput.Coin))
-	if err != nil {
-		return err
+	var err sdk.Error
+	switch auc := auction.(type) {
+	case types.ForwardAuction, types.ForwardReverseAuction:
+		err = k.PayoutAuctionLot(ctx, auc)
+		if err != nil {
+			return err
+		}
+	case types.ReverseAuction:
+		err = k.MintAndPayoutAuctionLot(ctx, auc)
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unrecognized auction type")
 	}
 
 	// Delete auction from store (and queue)
@@ -149,7 +318,26 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 
 	return nil
 }
+func (k Keeper) MintAndPayoutAuctionLot(ctx sdk.Context, a types.ReverseAuction) sdk.Error {
+	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, a.Initiator, a.Bidder, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (k Keeper) PayoutAuctionLot(ctx sdk.Context, a types.Auction) sdk.Error {
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.GetBid(), sdk.NewCoins(a.GetLot()))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
+// =====================================================================================================================
 // ---------- Store methods ----------
 // Use these to add and remove auction from the store.
 
@@ -162,7 +350,7 @@ func (k Keeper) getNextAuctionID(ctx sdk.Context) (types.ID, sdk.Error) { // TOD
 		// if not found, set the id at 0
 		bz = k.cdc.MustMarshalBinaryLengthPrefixed(types.ID(0))
 		store.Set(k.getNextAuctionIDKey(), bz)
-		// TODO Why does the gov module set the id in genesis? :
+		// TODO Set auction ID in genesis
 		//return 0, ErrInvalidGenesis(keeper.codespace, "InitialProposalID never set")
 	}
 	var auctionID types.ID
@@ -177,7 +365,7 @@ func (k Keeper) incrementNextAuctionID(ctx sdk.Context) sdk.Error {
 	bz := store.Get(k.getNextAuctionIDKey())
 	if bz == nil {
 		panic("initial auctionID never set in genesis")
-		//return 0, ErrInvalidGenesis(keeper.codespace, "InitialProposalID never set") // TODO is this needed? Why not just set it zero here?
+		//return 0, ErrInvalidGenesis(keeper.codespace, "InitialProposalID never set") // TODO
 	}
 	var auctionID types.ID
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &auctionID)
@@ -214,7 +402,7 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID types.ID) (types.Auction, 
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getAuctionKey(auctionID))
 	if bz == nil {
-		return auction, false // TODO what is the correct behavior when an auction is not found? gov module follows this pattern of returning a bool
+		return auction, false
 	}
 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &auction)

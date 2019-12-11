@@ -24,7 +24,6 @@ const (
 var (
 	// functions aliases
 	NewIDFromString          = types.NewIDFromString
-	NewBaseAuction           = types.NewBaseAuction
 	NewForwardAuction        = types.NewForwardAuction
 	NewReverseAuction        = types.NewReverseAuction
 	NewForwardReverseAuction = types.NewForwardReverseAuction
