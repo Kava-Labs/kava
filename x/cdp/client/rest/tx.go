@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,13 +14,18 @@ import (
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/cdps", modifyCdpHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp", postCdpHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp/{owner}/{denom}/deposits", postDepositHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp/{owner}/{denom}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp/{owner}/{denom}/draw", postDrawHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp/{owner}/{denom}/wipe", postRepayHandlerFn(cliCtx)).Methods("PUT")
+
 }
 
-func modifyCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Decode PUT request body
-		var requestBody types.ModifyCdpRequestBody
+		var requestBody PostCdpReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
@@ -30,39 +34,99 @@ func modifyCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		// Get the stored CDP
-		querierParams := types.QueryCdpsParams{
-			Owner:           requestBody.Cdp.Owner,
-			CollateralDenom: requestBody.Cdp.CollateralDenom,
-		}
-		querierParamsBz, err := cliCtx.Codec.MarshalJSON(querierParams)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetCdps), querierParamsBz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		cliCtx = cliCtx.WithHeight(height)
-		var cdps types.CDPs
-		err = cliCtx.Codec.UnmarshalJSON(res, &cdps)
-		if len(cdps) != 1 || err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+		// Create and return msg
+		msg := types.NewMsgCreateCDP(
+			requestBody.Owner,
+			requestBody.Collateral,
+			requestBody.Principal,
+		)
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
 
-		// Calculate CDP updates
-		collateralDelta := requestBody.Cdp.CollateralAmount.Sub(cdps[0].CollateralAmount)
-		debtDelta := requestBody.Cdp.Debt.Sub(cdps[0].Debt)
+func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode PUT request body
+		var requestBody PostDepositReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
 
 		// Create and return msg
-		msg := types.NewMsgCreateOrModifyCDP(
-			requestBody.Cdp.Owner,
-			requestBody.Cdp.CollateralDenom,
-			collateralDelta,
-			debtDelta,
+		msg := types.NewMsgDeposit(
+			requestBody.Owner,
+			requestBody.Depositor,
+			requestBody.Collateral,
+		)
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode PUT request body
+		var requestBody PostWithdrawalReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		// Create and return msg
+		msg := types.NewMsgWithdraw(
+			requestBody.Owner,
+			requestBody.Depositor,
+			requestBody.Collateral,
+		)
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postDrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode PUT request body
+		var requestBody PostDrawReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		// Create and return msg
+		msg := types.NewMsgDrawDebt(
+			requestBody.Owner,
+			requestBody.Denom,
+			requestBody.Principal,
+		)
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode PUT request body
+		var requestBody PostRepayReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		// Create and return msg
+		msg := types.NewMsgRepayDebt(
+			requestBody.Owner,
+			requestBody.Denom,
+			requestBody.Payment,
 		)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}

@@ -87,9 +87,18 @@ func LiquidationRatioBytes(ratio sdk.Dec) []byte {
 // LiquidationRatioKey returns the key for querying a cdp by its liquidation ratio
 func LiquidationRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
 	ratioBytes := LiquidationRatioBytes(ratio)
-	prefix := append([]byte{denomByte}, ratioBytes...)
+	prefix := append([]byte{denomByte}, []byte(":")...)
+	prefix = append(prefix, ratioBytes...)
 	prefix = append(prefix, []byte(":")...)
 	return append(prefix, GetCdpIDBytes(cdpID)...)
+}
+
+// LiquidationRatioIterKey returns the key for iterating over cdps by denom and liquidation ratio
+func LiquidationRatioIterKey(denomByte byte, ratio sdk.Dec) []byte {
+	ratioBytes := LiquidationRatioBytes(ratio)
+	prefix := append([]byte{denomByte}, []byte(":")...)
+	return append(prefix, ratioBytes...)
+
 }
 
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio

@@ -53,7 +53,7 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) sdk.Result 
 }
 
 func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) sdk.Result {
-	err := k.DepositCollateral(ctx, msg.Owner, msg.Sender, msg.Collateral)
+	err := k.DepositCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral)
 	if err != nil {
 		return err.Result()
 	}
@@ -62,14 +62,14 @@ func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) sdk.Result {
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) sdk.Result {
-	err := k.WithdrawCollateral(ctx, msg.Owner, msg.Sender, msg.Collateral)
+	err := k.WithdrawCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral)
 	if err != nil {
 		return err.Result()
 	}
@@ -78,7 +78,7 @@ func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) sdk.Result {
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
 	return sdk.Result{Events: ctx.EventManager().Events()}

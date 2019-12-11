@@ -70,16 +70,16 @@ func (msg MsgCreateCDP) String() string {
 
 // MsgDeposit deposit collateral to an existing cdp.
 type MsgDeposit struct {
-	Sender     sdk.AccAddress
 	Owner      sdk.AccAddress
+	Depositor  sdk.AccAddress
 	Collateral sdk.Coins
 }
 
 // NewMsgDeposit returns a new MsgDeposit
-func NewMsgDeposit(sender sdk.AccAddress, owner sdk.AccAddress, collateral sdk.Coins) MsgDeposit {
+func NewMsgDeposit(owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coins) MsgDeposit {
 	return MsgDeposit{
-		Sender:     sender,
 		Owner:      owner,
+		Depositor:  depositor,
 		Collateral: collateral,
 	}
 }
@@ -92,10 +92,10 @@ func (msg MsgDeposit) Type() string { return "deposit_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() sdk.Error {
-	if msg.Sender.Empty() {
+	if msg.Owner.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
-	if msg.Owner.Empty() {
+	if msg.Depositor.Empty() {
 		return sdk.ErrInternal("invalid (empty) owner address")
 	}
 	if !msg.Collateral.IsValid() {
@@ -115,7 +115,7 @@ func (msg MsgDeposit) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	return []sdk.AccAddress{msg.Owner}
 }
 
 // String implements the Stringer interface
@@ -124,21 +124,21 @@ func (msg MsgDeposit) String() string {
 	Sender:         %s
 	Owner: %s
 	Collateral: %s
-`, msg.Sender, msg.Owner, msg.Collateral)
+`, msg.Owner, msg.Owner, msg.Collateral)
 }
 
 // MsgWithdraw withdraw collateral from an existing cdp.
 type MsgWithdraw struct {
-	Sender     sdk.AccAddress
 	Owner      sdk.AccAddress
+	Depositor  sdk.AccAddress
 	Collateral sdk.Coins
 }
 
 // NewMsgWithdraw returns a new MsgDeposit
-func NewMsgWithdraw(sender sdk.AccAddress, owner sdk.AccAddress, collateral sdk.Coins) MsgDeposit {
-	return MsgDeposit{
-		Sender:     sender,
+func NewMsgWithdraw(owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coins) MsgWithdraw {
+	return MsgWithdraw{
 		Owner:      owner,
+		Depositor:  depositor,
 		Collateral: collateral,
 	}
 }
@@ -151,10 +151,10 @@ func (msg MsgWithdraw) Type() string { return "withdraw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() sdk.Error {
-	if msg.Sender.Empty() {
+	if msg.Owner.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
-	if msg.Owner.Empty() {
+	if msg.Depositor.Empty() {
 		return sdk.ErrInternal("invalid (empty) owner address")
 	}
 	if !msg.Collateral.IsValid() {
@@ -174,16 +174,16 @@ func (msg MsgWithdraw) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Sender}
+	return []sdk.AccAddress{msg.Owner}
 }
 
 // String implements the Stringer interface
 func (msg MsgWithdraw) String() string {
 	return fmt.Sprintf(`Withdraw from CDP Message:
-	Sender:         %s
-	Owner: %s
+	Owner:         %s
+	Depositor: %s
 	Collateral: %s
-`, msg.Sender, msg.Owner, msg.Collateral)
+`, msg.Owner, msg.Depositor, msg.Collateral)
 }
 
 // MsgDrawDebt draw coins off of collateral in cdp

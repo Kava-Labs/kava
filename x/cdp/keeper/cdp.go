@@ -14,7 +14,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if err != nil {
 		return err
 	}
-	_, found := k.GetCdpID(ctx, owner, collateral[0].Denom)
+	_, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if found {
 		return types.ErrCdpAlreadyExists(k.codespace, owner, collateral[0].Denom)
 	}
@@ -137,11 +137,26 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 	return cdpIDs, true
 }
 
+// GetCdpByOwnerAndDenom queries cdps owned by owner and returns the cdp with matching denom
+func (k Keeper) GetCdpByOwnerAndDenom(ctx sdk.Context, owner sdk.AccAddress, denom string) (types.CDP, bool) {
+	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
+	if !found {
+		return types.CDP{}, false
+	}
+	for _, id := range cdpIDs {
+		cdp, found := k.GetCDP(ctx, denom, id)
+		if found {
+			return cdp, true
+		}
+	}
+	return types.CDP{}, false
+}
+
 // GetCDP returns the cdp associated with a particular collateral denom and id
 func (k Keeper) GetCDP(ctx sdk.Context, collateralDenom string, cdpID uint64) (types.CDP, bool) {
 	// get store
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db := k.getDenomPrefix(ctx, collateralDenom)
+	db, _ := k.GetDenomPrefix(ctx, collateralDenom)
 	// get CDP
 	bz := store.Get(types.CdpKey(db, cdpID))
 	// unmarshal
@@ -156,7 +171,7 @@ func (k Keeper) GetCDP(ctx sdk.Context, collateralDenom string, cdpID uint64) (t
 // SetCDP sets a cdp in the store
 func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db := k.getDenomPrefix(ctx, cdp.Collateral[0].Denom)
+	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(types.CdpKey(db, cdp.ID), bz)
 	return
@@ -165,7 +180,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) {
 // DeleteCDP deletes a cdp from the store
 func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db := k.getDenomPrefix(ctx, cdp.Collateral[0].Denom)
+	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
 	store.Delete(types.CdpKey(db, cdp.ID))
 
 }
@@ -182,6 +197,15 @@ func (k Keeper) GetAllCdps(ctx sdk.Context) (cdps types.CDPs) {
 // GetAllCdpsByDenom returns all cdps of a particular collateral type from the store
 func (k Keeper) GetAllCdpsByDenom(ctx sdk.Context, denom string) (cdps types.CDPs) {
 	k.IterateCdpsByDenom(ctx, denom, func(cdp types.CDP) bool {
+		cdps = append(cdps, cdp)
+		return false
+	})
+	return
+}
+
+// GetAllCdpsByDenomAndRatio returns all cdps of a particular collateral type and below a certain collateralization ratio
+func (k Keeper) GetAllCdpsByDenomAndRatio(ctx sdk.Context, denom string, targetRatio sdk.Dec) (cdps types.CDPs) {
+	k.IterateCdpsByLiquidationRatio(ctx, denom, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		return false
 	})
@@ -247,14 +271,14 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
 func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, cdp types.CDP, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db := k.getDenomPrefix(ctx, cdp.Collateral[0].Denom)
+	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
 	store.Set(types.LiquidationRatioKey(db, cdp.ID, collateralRatio), types.GetCdpIDBytes(cdp.ID))
 }
 
 // RemoveCdpLiquidationRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
 func (k Keeper) RemoveCdpLiquidationRatioIndex(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db := k.getDenomPrefix(ctx, cdp.Collateral[0].Denom)
+	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
 	iterKey := append([]byte{db}, []byte(":")...)
 	iterKey = append(iterKey, cdp.Owner...)
 	iterator := sdk.KVStorePrefixIterator(store, iterKey)

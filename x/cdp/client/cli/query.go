@@ -24,7 +24,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cdpQueryCmd.AddCommand(client.GetCommands(
 		GetCmdGetCdp(queryRoute, cdc),
 		GetCmdGetCdps(queryRoute, cdc),
-		GetCmdGetUnderCollateralizedCdps(queryRoute, cdc),
+		GetCmdGetCdpsByCollateralizationRatio(queryRoute, cdc),
 		GetCmdGetParams(queryRoute, cdc),
 	)...)
 
@@ -47,7 +47,6 @@ func GetCmdGetCdp(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 			collateralType := args[1] // TODO validation?
 			bz, err := cdc.MarshalJSON(types.QueryCdpsParams{
-				Owner:           ownerAddress,
 				CollateralDenom: collateralType,
 			})
 			if err != nil {
@@ -55,7 +54,7 @@ func GetCmdGetCdp(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdps)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdp)
 			res, _, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				fmt.Printf("error when getting cdp info - %s", err)
@@ -64,12 +63,9 @@ func GetCmdGetCdp(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Decode and print results
-			var cdps types.CDPs
-			cdc.MustUnmarshalJSON(res, &cdps)
-			if len(cdps) != 1 {
-				panic("Unexpected number of CDPs returned from querier. This shouldn't happen.")
-			}
-			return cliCtx.PrintOutput(cdps[0])
+			var cdp types.CDP
+			cdc.MustUnmarshalJSON(res, &cdp)
+			return cliCtx.PrintOutput(cdp)
 		},
 	}
 }
@@ -105,7 +101,7 @@ func GetCmdGetCdps(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-func GetCmdGetUnderCollateralizedCdps(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdGetCdpsByCollateralizationRatio(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "bad-cdps [collateralType] [price]",
 		Short: "get under collateralized CDPs",
@@ -119,9 +115,9 @@ func GetCmdGetUnderCollateralizedCdps(queryRoute string, cdc *codec.Codec) *cobr
 			if errSdk != nil {
 				return fmt.Errorf(errSdk.Error()) // TODO check this returns useful output
 			}
-			bz, err := cdc.MarshalJSON(types.QueryCdpsParams{
-				CollateralDenom:       args[0],
-				UnderCollateralizedAt: price,
+			bz, err := cdc.MarshalJSON(types.QueryCdpsByRatioParams{
+				CollateralDenom: args[0],
+				Ratio:           price,
 			})
 			if err != nil {
 				return err
@@ -159,7 +155,7 @@ func GetCmdGetParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Decode and print results
-			var out types.CdpParams
+			var out types.QueryCdpParams
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},

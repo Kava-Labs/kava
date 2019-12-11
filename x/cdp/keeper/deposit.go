@@ -14,24 +14,20 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 	if err != nil {
 		return err
 	}
-	cdpID, found := k.GetCdpID(ctx, owner, collateral[0].Denom)
-	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
-	}
-	cdp, found := k.GetCDP(ctx, collateral[0].Denom, cdpID)
+	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
 	if cdp.Collateral[0].Denom != collateral[0].Denom {
-		return types.ErrInvalidDepositDenom(k.codespace, cdpID, cdp.Collateral[0].Denom, collateral[0].Denom)
+		return types.ErrInvalidDepositDenom(k.codespace, cdp.ID, cdp.Collateral[0].Denom, collateral[0].Denom)
 	}
-	deposit, found := k.GetDeposit(ctx, cdpID, depositor)
+	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if found {
 		deposit.Amount = deposit.Amount.Add(collateral)
-		k.SetDeposit(ctx, deposit, cdpID)
+		k.SetDeposit(ctx, deposit, cdp.ID)
 	} else {
-		deposit = types.NewDeposit(cdpID, depositor, collateral)
-		k.SetDeposit(ctx, deposit, cdpID)
+		deposit = types.NewDeposit(cdp.ID, depositor, collateral)
+		k.SetDeposit(ctx, deposit, cdp.ID)
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -55,18 +51,14 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	if err != nil {
 		return err
 	}
-	cdpID, found := k.GetCdpID(ctx, owner, collateral[0].Denom)
-	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
-	}
-	cdp, found := k.GetCDP(ctx, collateral[0].Denom, cdpID)
+	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
 	if cdp.Collateral[0].Denom != collateral[0].Denom {
-		return types.ErrInvalidDepositDenom(k.codespace, cdpID, cdp.Collateral[0].Denom, collateral[0].Denom)
+		return types.ErrInvalidDepositDenom(k.codespace, cdp.ID, cdp.Collateral[0].Denom, collateral[0].Denom)
 	}
-	deposit, found := k.GetDeposit(ctx, cdpID, depositor)
+	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if !found {
 		return types.ErrDepositNotFound(k.codespace, depositor, cdp.ID)
 	}

@@ -9,11 +9,10 @@ import (
 
 // AddPrincipal adds debt to a cdp if the additional debt does not put the cdp below the liquidation ratio
 func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, principal sdk.Coins) sdk.Error {
-	cdpID, found := k.GetCdpID(ctx, owner, denom)
+	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	cdp, found := k.GetCDP(ctx, denom, cdpID)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
@@ -64,11 +63,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 // RepayPrincipal removes debt from the cdp
 // If all debt is repaid, the collateral is returned to depositors and the cdp is removed from the store
 func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, payment sdk.Coins) sdk.Error {
-	cdpID, found := k.GetCdpID(ctx, owner, denom)
-	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, denom)
-	}
-	cdp, found := k.GetCDP(ctx, denom, cdpID)
+	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
