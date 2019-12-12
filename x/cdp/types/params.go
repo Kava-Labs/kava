@@ -4,32 +4,8 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/cosmos/cosmos-sdk/x/params"
 )
-
-/*
-How this uses the sdk params module:
- - Put all the params for this module in one struct `CDPModuleParams`
- - Store this in the keeper's paramSubspace under one key
- - Provide a function to load the param struct all at once `keeper.GetParams(ctx)`
-It's possible to set individual key value pairs within a paramSubspace, but reading and setting them is awkward (an empty variable needs to be created, then Get writes the value into it)
-This approach will be awkward if we ever need to write individual parameters (because they're stored all together). If this happens do as the sdk modules do - store parameters separately with custom get/set func for each.
-*/
-
-// CdpParams governance parameters for cdp module
-type CdpParams struct {
-	GlobalDebtLimit  sdk.Int
-	CollateralParams []CollateralParams
-	StableDenoms     []string
-}
-
-// CollateralParams governance parameters for each collateral type within the cdp module
-type CollateralParams struct {
-	Denom            string  // Coin name of collateral type
-	LiquidationRatio sdk.Dec // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
-	DebtLimit        sdk.Int // Maximum amount of debt allowed to be drawn from this collateral type
-	//DebtFloor        sdk.Int // used to prevent dust
-}
 
 // Parameter keys
 var (
@@ -48,19 +24,32 @@ var (
 	maxCollateralPrefix     = 255
 )
 
-// ParamKeyTable Key declaration for parameters
-func ParamKeyTable() subspace.KeyTable {
-	return subspace.NewKeyTable().RegisterParamSet(&CdpParams{})
+// Params governance parameters for cdp module
+type Params struct {
+	CollateralParams CollateralParams `json:"collateral_params" yaml:"collateral_params"`
+	DebtParams       DebtParams       `json:"debt_params" yaml:"debt_params"`
+	GlobalDebtLimit  sdk.Coins        `json:"global_debt_limit" yaml:"global_debt_limit"`
+	CircuitBreaker   bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
 }
 
-// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-// pairs of auth module's parameters.
-// nolint
-func (p *CdpParams) ParamSetPairs() subspace.ParamSetPairs {
-	return subspace.ParamSetPairs{
-		{KeyGlobalDebtLimit, &p.GlobalDebtLimit},
-		{KeyCollateralParams, &p.CollateralParams},
-		{KeyStableDenoms, &p.StableDenoms},
+// String implements fmt.Stringer
+func (p Params) String() string {
+	return fmt.Sprintf(`Params:
+	Global Debt Limit: %s
+	Collateral Params: %s
+	Debt Params: %s
+	Circuit Breaker: %t`,
+		p.GlobalDebtLimit, p.CollateralParams, p.DebtParams, p.CircuitBreaker,
+	)
+}
+
+// NewParams returns a new params object
+func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, breaker bool) Params {
+	return Params{
+		GlobalDebtLimit:  debtLimit,
+		CollateralParams: collateralParams,
+		DebtParams:       debtParams,
+		CircuitBreaker:   breaker,
 	}
 }
 
@@ -104,48 +93,67 @@ func (cps CollateralParams) String() string {
 	return out
 }
 
-// GetCollateralParams returns params for a specific collateral denom
-func (p CdpParams) GetCollateralParams(collateralDenom string) CollateralParams {
-	// search for matching denom, return
-	for _, cp := range p.CollateralParams {
-		if cp.Denom == collateralDenom {
-			return cp
-		}
-	}
-	// panic if not found, to be safe
-	panic("collateral params not found in module params")
+// DebtParam governance params for debt assets
+type DebtParam struct {
+	Denom          string    `json:"denom" yaml:"denom"`
+	ReferenceAsset string    `json:"reference_asset" yaml:"reference_asset"`
+	DebtLimit      sdk.Coins `json:"debt_limit" yaml:"debt_limit"`
 }
 
-// IsCollateralPresent returns true if the denom is among the collaterals in cdp module
-func (p CdpParams) IsCollateralPresent(collateralDenom string) bool {
-	// search for matching denom, return
-	for _, cp := range p.CollateralParams {
-		if cp.Denom == collateralDenom {
-			return true
-		}
+func (dp DebtParam) String() string {
+	return fmt.Sprintf(`Debt:
+	Denom: %s
+	ReferenceAsset: %s
+	DebtLimit: %s`, dp.Denom, dp.ReferenceAsset, dp.DebtLimit)
+}
+
+// DebtParams array of DebtParam
+type DebtParams []DebtParam
+
+// String implements fmt.Stringer
+func (dps DebtParams) String() string {
+	out := "Debt Params\n"
+	for _, dp := range dps {
+		out += fmt.Sprintf("%s\n", dp)
 	}
-	return false
+	return out
+}
+
+// ParamKeyTable Key declaration for parameters
+func ParamKeyTable() params.KeyTable {
+	return params.NewKeyTable().RegisterParamSet(&Params{})
+}
+
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
+// pairs of auth module's parameters.
+// nolint
+func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	return params.ParamSetPairs{
+		{Key: KeyGlobalDebtLimit, Value: &p.GlobalDebtLimit},
+		{Key: KeyCollateralParams, Value: &p.CollateralParams},
+		{Key: KeyDebtParams, Value: &p.DebtParams},
+		{Key: KeyCircuitBreaker, Value: &p.CircuitBreaker},
+	}
 }
 
 // Validate checks that the parameters have valid values.
-func (p CdpParams) Validate() error {
-	collateralDupMap := make(map[string]int)
-	denomDupMap := make(map[string]int)
-	for _, collateral := range p.CollateralParams {
-		_, found := collateralDupMap[collateral.Denom]
+func (p Params) Validate() error {
+	debtDenoms := make(map[string]int)
+	debtParamsDebtLimit := sdk.Coins{}
+	for _, dp := range p.DebtParams {
+		_, found := debtDenoms[dp.Denom]
 		if found {
-			return fmt.Errorf("duplicate denom: %s", collateral.Denom)
+			return fmt.Errorf("duplicate debt denom: %s", dp.Denom)
 		}
-		collateralDupMap[collateral.Denom] = 1
-
-		if collateral.DebtLimit.IsNegative() {
-			return fmt.Errorf("debt limit should be positive, is %s for %s", collateral.DebtLimit, collateral.Denom)
+		debtDenoms[dp.Denom] = 1
+		if dp.DebtLimit.IsAnyNegative() {
+			return fmt.Errorf("debt limit for all debt tokens should be positive, is %s for %s", dp.DebtLimit, dp.Denom)
 		}
-
-		// TODO do we want to enforce overcollateralization at this level? -- probably not, as it's technically a governance thing (kevin)
+		debtParamsDebtLimit = debtParamsDebtLimit.Add(dp.DebtLimit)
 	}
-	if p.GlobalDebtLimit.IsNegative() {
-		return fmt.Errorf("global debt limit should be positive, is %s", p.GlobalDebtLimit)
+	if debtParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
+		return fmt.Errorf("debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
+			p.GlobalDebtLimit, debtParamsDebtLimit)
 	}
 
 	collateralDupMap := make(map[string]int)
@@ -165,17 +173,22 @@ func (p CdpParams) Validate() error {
 		_, found = collateralDupMap[cp.Denom]
 
 		if found {
-			return fmt.Errorf("duplicate stable denom: %s", denom)
+			return fmt.Errorf("duplicate collateral denom: %s", cp.Denom)
 		}
-		denomDupMap[denom] = 1
+		collateralDupMap[cp.Denom] = 1
+
+		if cp.DebtLimit.IsAnyNegative() {
+			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)
+		}
+		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit)
+	}
+	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
+		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
+			p.GlobalDebtLimit, collateralParamsDebtLimit)
+	}
+
+	if p.GlobalDebtLimit.IsAnyNegative() {
+		return fmt.Errorf("global debt limit should be positive for all debt tokens, is %s", p.GlobalDebtLimit)
 	}
 	return nil
-}
-
-func DefaultParams() CdpParams {
-	return CdpParams{
-		GlobalDebtLimit:  sdk.NewInt(0),
-		CollateralParams: []CollateralParams{},
-		StableDenoms:     []string{"usdx"},
-	}
 }
