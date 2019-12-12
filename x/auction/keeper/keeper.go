@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +22,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new auction keeper.
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, bankKeeper types.BankKeeper, supplyKeeper types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
 	return Keeper{
 		supplyKeeper:  supplyKeeper,
 		storeKey:      storeKey,
@@ -33,7 +34,7 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, bankKeeper types.BankKee
 // StartForwardAuction starts a normal auction. Known as flap in maker.
 func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (types.ID, sdk.Error) {
 	// create auction
-	auction := types.NewForwardAuction(seller, lot, bidDenom, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration)
+	auction := types.NewForwardAuction(seller, lot, bidDenom, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
 
 	// take coins from module account
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
@@ -41,7 +42,7 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin
 		return 0, err
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, auction) // TODO does this need to be a pointer to satisfy the interface
+	auctionID, err := k.storeNewAuction(ctx, auction) // TODO does this need to be a pointer to satisfy the interface?
 	if err != nil {
 		return 0, err
 	}
@@ -51,7 +52,7 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin
 // StartReverseAuction starts an auction where sellers compete by offering decreasing prices. Known as flop in maker.
 func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (types.ID, sdk.Error) {
 	// create auction
-	auction := types.NewReverseAuction(buyer, bid, initialLot, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration)
+	auction := types.NewReverseAuction(buyer, bid, initialLot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
 
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
@@ -69,7 +70,7 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin,
 // StartForwardReverseAuction starts an auction where bidders bid up to a maxBid, then switch to bidding down on price. Known as flip in maker.
 func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, otherPerson sdk.AccAddress) (types.ID, sdk.Error) {
 	// create auction
-	auction := types.NewForwardReverseAuction(seller, lot, types.EndTime(ctx.BlockHeight())+types.DefaultMaxAuctionDuration, maxBid, otherPerson)
+	auction := types.NewForwardReverseAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, otherPerson)
 
 	// take coins from module account
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.Coins{lot})
@@ -100,8 +101,6 @@ func (k Keeper) storeNewAuction(ctx sdk.Context, auction types.Auction) (types.I
 	return newAuctionID, nil
 }
 
-// ==============================================================================================================================
-
 // PlaceBid places a bid on any auction.
 func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) sdk.Error {
 
@@ -112,7 +111,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 	}
 
 	// check end time
-	if ctx.BlockHeight() > auction.GetEndTime() {
+	if ctx.BlockTime().After(auction.GetEndTime()) {
 		return sdk.ErrInternal("auction has closed")
 	}
 
@@ -139,7 +138,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 	}
 
 	// store updated auction
-	k.SetAuction(ctx, a) // maybe move into above funcs
+	k.SetAuction(ctx, a) // TODO maybe move into above funcs
 
 	return nil
 }
@@ -180,7 +179,7 @@ func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder 
 	a.Bidder = bidder
 	a.Bid = bid
 	// increment timeout
-	a.EndTime = EndTime(min(int64(ctx.BlockHeight()+types.DefaultMaxBidDuration), int64(a.MaxEndTime)))
+	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime) // TODO write a min func for time types
 
 	return a, nil
 }
@@ -242,7 +241,7 @@ func (k Keeper) PlaceBidForwardReverse(ctx sdk.Context, a types.ForwardReverseAu
 	a.Lot = lot
 	a.Bid = bid
 	// increment timeout
-	a.EndTime = EndTime(min(int64(currentBlockHeight+DefaultMaxBidDuration), int64(a.MaxEndTime)))
+	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime)
 
 	return types.ForwardReverseAuction{}, nil
 }
@@ -276,12 +275,10 @@ func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder 
 	a.Bidder = bidder
 	a.Lot = lot
 	// increment timeout
-	a.EndTime = EndTime(min(int64(ctx.BlockHeight()+types.DefaultMaxBidDuration), int64(a.MaxEndTime)))
+	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime)
 
 	return a, nil
 }
-
-// ==========================================================================================================
 
 // CloseAuction closes an auction and distributes funds to the highest bidder.
 func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
@@ -292,8 +289,8 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 		return sdk.ErrInternal("auction doesn't exist")
 	}
 	// error if auction has not reached the end time
-	if ctx.BlockHeight() < int64(auction.GetEndTime()) {
-		return sdk.ErrInternal(fmt.Sprintf("auction can't be closed as curent block height (%v) is under auction end time (%v)", ctx.BlockHeight(), auction.GetEndTime()))
+	if ctx.BlockTime().Before(auction.GetEndTime()) {
+		return sdk.ErrInternal(fmt.Sprintf("auction can't be closed as curent block time (%v) is under auction end time (%v)", ctx.BlockTime(), auction.GetEndTime()))
 	}
 
 	// payout to the last bidder
@@ -330,19 +327,18 @@ func (k Keeper) MintAndPayoutAuctionLot(ctx sdk.Context, a types.ReverseAuction)
 	return nil
 }
 func (k Keeper) PayoutAuctionLot(ctx sdk.Context, a types.Auction) sdk.Error {
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.GetBid(), sdk.NewCoins(a.GetLot()))
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.GetBidder(), sdk.NewCoins(a.GetLot()))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// =====================================================================================================================
 // ---------- Store methods ----------
 // Use these to add and remove auction from the store.
 
 // getNextAuctionID gets the next available global AuctionID
-func (k Keeper) getNextAuctionID(ctx sdk.Context) (types.ID, sdk.Error) { // TODO don't need error return here
+func (k Keeper) getNextAuctionID(ctx sdk.Context) (types.ID, sdk.Error) {
 	// get next ID from store
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(k.getNextAuctionIDKey())
@@ -433,7 +429,7 @@ func (k Keeper) getAuctionKey(auctionID types.ID) []byte {
 }
 
 // Inserts a AuctionID into the queue at endTime
-func (k Keeper) InsertIntoQueue(ctx sdk.Context, endTime types.EndTime, auctionID types.ID) {
+func (k Keeper) InsertIntoQueue(ctx sdk.Context, endTime time.Time, auctionID types.ID) {
 	// get the store
 	store := ctx.KVStore(k.storeKey)
 	// marshal thing to be inserted
@@ -446,13 +442,13 @@ func (k Keeper) InsertIntoQueue(ctx sdk.Context, endTime types.EndTime, auctionI
 }
 
 // removes an auctionID from the queue
-func (k Keeper) removeFromQueue(ctx sdk.Context, endTime types.EndTime, auctionID types.ID) {
+func (k Keeper) removeFromQueue(ctx sdk.Context, endTime time.Time, auctionID types.ID) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(getQueueElementKey(endTime, auctionID))
 }
 
 // Returns an iterator for all the auctions in the queue that expire by endTime
-func (k Keeper) GetQueueIterator(ctx sdk.Context, endTime types.EndTime) sdk.Iterator { // TODO rename to "getAuctionsByExpiry" ?
+func (k Keeper) GetQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator { // TODO rename to "getAuctionsByExpiry" ?
 	// get store
 	store := ctx.KVStore(k.storeKey)
 	// get an interator
@@ -472,7 +468,7 @@ var queueKeyPrefix = []byte("queue")
 var keyDelimiter = []byte(":")
 
 // Returns half a key for an auctionID in the queue, it missed the id off the end
-func getQueueElementKeyPrefix(endTime types.EndTime) []byte {
+func getQueueElementKeyPrefix(endTime time.Time) []byte {
 	return bytes.Join([][]byte{
 		queueKeyPrefix,
 		sdk.Uint64ToBigEndian(uint64(endTime)), // TODO check this gives correct ordering
@@ -480,7 +476,7 @@ func getQueueElementKeyPrefix(endTime types.EndTime) []byte {
 }
 
 // Returns the key for an auctionID in the queue
-func getQueueElementKey(endTime types.EndTime, auctionID types.ID) []byte {
+func getQueueElementKey(endTime time.Time, auctionID types.ID) []byte {
 	return bytes.Join([][]byte{
 		queueKeyPrefix,
 		sdk.Uint64ToBigEndian(uint64(endTime)), // TODO check this gives correct ordering

@@ -3,16 +3,17 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 )
 
 // Defaults for auction params
 const (
-	// DefaultMaxAuctionDuration max length of auction, roughly 2 days in blocks
-	DefaultMaxAuctionDuration EndTime = 2 * 24 * 3600 / 5
+	// DefaultMaxAuctionDuration max length of auction
+	DefaultMaxAuctionDuration time.Duration = 2 * 24 * time.Hour
 	// DefaultBidDuration how long an auction gets extended when someone bids, roughly 3 hours in blocks
-	DefaultMaxBidDuration EndTime = 3 * 3600 / 5
+	DefaultMaxBidDuration time.Duration = 3 * time.Hour
 	// DefaultStartingAuctionID what the id of the first auction will be
 	DefaultStartingAuctionID ID = ID(0)
 )
@@ -21,24 +22,24 @@ const (
 var (
 	// ParamStoreKeyAuctionParams Param store key for auction params
 	KeyAuctionBidDuration = []byte("MaxBidDuration")
-	KeyAuctionDuration = []byte("MaxAuctionDuration")
-	KeyAuctionStartingID = []byte("StartingAuctionID")
+	KeyAuctionDuration    = []byte("MaxAuctionDuration")
+	KeyAuctionStartingID  = []byte("StartingAuctionID")
 )
 
 var _ subspace.ParamSet = &AuctionParams{}
 
 // AuctionParams governance parameters for auction module
 type AuctionParams struct {
-	MaxAuctionDuration EndTime `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction, in blocks
-	MaxBidDuration        EndTime `json:"max_bid_duration" yaml:"max_bid_duration"`
-	StartingAuctionID  ID      `json:"starting_auction_id" yaml:"starting_auction_id"`
+	MaxAuctionDuration time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction, in blocks
+	MaxBidDuration     time.Duration `json:"max_bid_duration" yaml:"max_bid_duration"`
+	StartingAuctionID  ID            `json:"starting_auction_id" yaml:"starting_auction_id"`
 }
 
 // NewAuctionParams creates a new AuctionParams object
-func NewAuctionParams(maxAuctionDuration EndTime, bidDuration EndTime, startingID ID) AuctionParams {
+func NewAuctionParams(maxAuctionDuration time.Duration, bidDuration time.Duration, startingID ID) AuctionParams {
 	return AuctionParams{
 		MaxAuctionDuration: maxAuctionDuration,
-		MaxBidDuration:        bidDuration,
+		MaxBidDuration:     bidDuration,
 		StartingAuctionID:  startingID,
 	}
 }
@@ -85,12 +86,6 @@ func (ap AuctionParams) String() string {
 
 // Validate checks that the parameters have valid values.
 func (ap AuctionParams) Validate() error {
-	if ap.MaxAuctionDuration <= EndTime(0) {
-		return fmt.Errorf("max auction duration should be positive, is %s", ap.MaxAuctionDuration)
-	}
-	if ap.MaxBidDuration <= EndTime(0) {
-		return fmt.Errorf("bid duration should be positive, is %s", ap.MaxBidDuration)
-	}
 	if ap.StartingAuctionID <= ID(0) {
 		return fmt.Errorf("starting auction ID should be positive, is %v", ap.StartingAuctionID)
 	}
