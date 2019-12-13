@@ -1,6 +1,5 @@
-package types
-
 // DONTCOVER
+package types
 
 import (
 	"fmt"

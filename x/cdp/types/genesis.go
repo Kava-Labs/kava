@@ -1,5 +1,9 @@
 package types
 
+import (
+	"bytes"
+)
+
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
 	Params        Params `json:"params" yaml:"params"`
@@ -9,7 +13,6 @@ type GenesisState struct {
 }
 
 // DefaultGenesisState returns a default genesis state
-// TODO make this empty, load test values independent
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Params:        DefaultParams(),
@@ -26,6 +29,17 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	// check global debt is zero - force the chain to always start with zero stable coin, otherwise collateralStatus's will need to be set up as well. - what? This seems indefensible.
 	return nil
+}
+
+// Equal checks whether two gov GenesisState structs are equivalent
+func (data GenesisState) Equal(data2 GenesisState) bool {
+	b1 := ModuleCdc.MustMarshalBinaryBare(data)
+	b2 := ModuleCdc.MustMarshalBinaryBare(data2)
+	return bytes.Equal(b1, b2)
+}
+
+// IsEmpty returns true if a GenesisState is empty
+func (data GenesisState) IsEmpty() bool {
+	return data.Equal(GenesisState{})
 }

@@ -272,7 +272,7 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, cdp types.CDP, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
-	store.Set(types.LiquidationRatioKey(db, cdp.ID, collateralRatio), types.GetCdpIDBytes(cdp.ID))
+	store.Set(types.CollateralRatioKey(db, cdp.ID, collateralRatio), types.GetCdpIDBytes(cdp.ID))
 }
 
 // RemoveCdpLiquidationRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio

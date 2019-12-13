@@ -42,7 +42,7 @@ func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, denom string) sdk.Iterato
 func (k Keeper) CdpLiquidationRatioIndexIterator(ctx sdk.Context, denom string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	db, _ := k.GetDenomPrefix(ctx, denom)
-	return store.Iterator(types.LiquidationRatioIterKey(db, sdk.ZeroDec()), types.LiquidationRatioIterKey(db, targetRatio))
+	return store.Iterator(types.CollateralRatioIterKey(db, sdk.ZeroDec()), types.CollateralRatioIterKey(db, targetRatio))
 }
 
 // IterateAllCdps iterates over all cdps and performs a callback function

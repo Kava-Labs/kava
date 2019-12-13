@@ -33,17 +33,20 @@ func (msg MsgCreateCDP) ValidateBasic() sdk.Error {
 	if msg.Sender.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
+	if len(msg.Collateral) != 1 {
+		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
+	}
 	if !msg.Collateral.IsValid() {
+		return sdk.ErrInvalidCoins(msg.Collateral.String())
+	}
+	if !msg.Collateral.IsAllPositive() {
 		return sdk.ErrInvalidCoins(msg.Collateral.String())
 	}
 	if !msg.Principal.IsValid() {
 		return sdk.ErrInvalidCoins(msg.Principal.String())
 	}
-	if msg.Collateral.IsAnyNegative() {
+	if !msg.Principal.IsAllPositive() {
 		return sdk.ErrInvalidCoins(msg.Collateral.String())
-	}
-	if msg.Principal.IsAnyNegative() {
-		return sdk.ErrInvalidCoins(msg.Principal.String())
 	}
 	return nil
 }
@@ -98,10 +101,13 @@ func (msg MsgDeposit) ValidateBasic() sdk.Error {
 	if msg.Depositor.Empty() {
 		return sdk.ErrInternal("invalid (empty) owner address")
 	}
+	if len(msg.Collateral) != 1 {
+		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
+	}
 	if !msg.Collateral.IsValid() {
 		return sdk.ErrInvalidCoins(msg.Collateral.String())
 	}
-	if msg.Collateral.IsAnyNegative() {
+	if !msg.Collateral.IsAllPositive() {
 		return sdk.ErrInvalidCoins(msg.Collateral.String())
 	}
 	return nil
@@ -157,10 +163,13 @@ func (msg MsgWithdraw) ValidateBasic() sdk.Error {
 	if msg.Depositor.Empty() {
 		return sdk.ErrInternal("invalid (empty) owner address")
 	}
+	if len(msg.Collateral) != 1 {
+		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
+	}
 	if !msg.Collateral.IsValid() {
 		return sdk.ErrInvalidCoins(msg.Collateral.String())
 	}
-	if msg.Collateral.IsAnyNegative() {
+	if !msg.Collateral.IsAllPositive() {
 		return sdk.ErrInvalidCoins(msg.Collateral.String())
 	}
 	return nil
@@ -219,7 +228,7 @@ func (msg MsgDrawDebt) ValidateBasic() sdk.Error {
 	if !msg.Principal.IsValid() {
 		return sdk.ErrInvalidCoins(msg.Principal.String())
 	}
-	if msg.Principal.IsAnyNegative() {
+	if !msg.Principal.IsAllPositive() {
 		return sdk.ErrInvalidCoins(msg.Principal.String())
 	}
 	return nil
@@ -278,7 +287,7 @@ func (msg MsgRepayDebt) ValidateBasic() sdk.Error {
 	if !msg.Payment.IsValid() {
 		return sdk.ErrInvalidCoins(msg.Payment.String())
 	}
-	if msg.Payment.IsAnyNegative() {
+	if !msg.Payment.IsAllPositive() {
 		return sdk.ErrInvalidCoins(msg.Payment.String())
 	}
 	return nil

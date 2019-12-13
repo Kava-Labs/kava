@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/binary"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,6 +20,8 @@ const (
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
 )
+
+var sep = []byte(":")
 
 // 1. CDPs are only stored if they have >0 debt
 // 2. When a CDPs debt is fully repaid, it is removed from the store
@@ -65,56 +68,75 @@ func GetCdpIDFromBytes(bz []byte) (cdpID uint64) {
 
 // CdpKey key of a specific cdp in the store
 func CdpKey(denomByte byte, cdpID uint64) []byte {
-	prefix := append([]byte{denomByte}, []byte(":")...)
+	prefix := append([]byte{denomByte}, sep...)
 	return append(prefix, GetCdpIDBytes(cdpID)...)
+}
+
+// SplitCdpKey returns the component parts of a cdp key
+func SplitCdpKey(key []byte) (byte, uint64) {
+	split := bytes.Split(key, sep)
+	return split[0][0], GetCdpIDFromBytes(split[1])
 }
 
 // DepositKey key of a specific deposit in the store
 func DepositKey(cdpID uint64, depositor sdk.AccAddress) []byte {
-	prefix := append(GetCdpIDBytes(cdpID), []byte(":")...)
+	prefix := append(GetCdpIDBytes(cdpID), sep...)
 	return append(prefix, depositor...)
 }
 
-// LiquidationRatioBytes returns the liquidation ratio as sortable bytes
-func LiquidationRatioBytes(ratio sdk.Dec) []byte {
+// SplitDepositKey returns the component parts of a cdp key
+func SplitDepositKey(key []byte) (uint64, sdk.AccAddress) {
+	split := bytes.Split(key, sep)
+	return GetCdpIDFromBytes(split[0]), split[1]
+}
+
+// CollateralRatioBytes returns the liquidation ratio as sortable bytes
+func CollateralRatioBytes(ratio sdk.Dec) []byte {
 	ok := ValidSortableDec(ratio)
 	if !ok {
+		// set to max sortable if input is too large.
 		ratio = sdk.OneDec().Quo(sdk.SmallestDec())
 	}
 	return SortableDecBytes(ratio)
 }
 
-// LiquidationRatioKey returns the key for querying a cdp by its liquidation ratio
-func LiquidationRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
-	ratioBytes := LiquidationRatioBytes(ratio)
-	prefix := append([]byte{denomByte}, []byte(":")...)
+// CollateralRatioKey returns the key for querying a cdp by its liquidation ratio
+func CollateralRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
+	ratioBytes := CollateralRatioBytes(ratio)
+	prefix := append([]byte{denomByte}, sep...)
 	prefix = append(prefix, ratioBytes...)
-	prefix = append(prefix, []byte(":")...)
+	prefix = append(prefix, sep...)
 	return append(prefix, GetCdpIDBytes(cdpID)...)
 }
 
-// LiquidationRatioIterKey returns the key for iterating over cdps by denom and liquidation ratio
-func LiquidationRatioIterKey(denomByte byte, ratio sdk.Dec) []byte {
-	ratioBytes := LiquidationRatioBytes(ratio)
-	prefix := append([]byte{denomByte}, []byte(":")...)
-	return append(prefix, ratioBytes...)
-
-}
-
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
-func SplitCollateralRatioKey(key []byte) (denom byte, ratio sdk.Dec, cdpID uint64) {
-	return splitKeyWithDec(key)
-}
+func SplitCollateralRatioKey(key []byte) (denom byte, cdpID uint64, ratio sdk.Dec) {
+	split := bytes.Split(key, sep)
+	denom = split[0][0]
 
-func splitKeyWithDec(key []byte) (denom byte, ratio sdk.Dec, cdpID uint64) {
-	denom = key[0]
-	ratioBytes := key[1 : len(key)-8]
-	idBytes := key[len(key)-8:]
-
-	ratio, err := ParseDecBytes(ratioBytes)
+	ratio, err := ParseDecBytes(split[1])
 	if err != nil {
 		panic(err)
 	}
-	cdpID = GetCdpIDFromBytes(idBytes)
+	cdpID = GetCdpIDFromBytes(split[2])
+	return
+}
+
+// CollateralRatioIterKey returns the key for iterating over cdps by denom and liquidation ratio
+func CollateralRatioIterKey(denomByte byte, ratio sdk.Dec) []byte {
+	ratioBytes := CollateralRatioBytes(ratio)
+	prefix := append([]byte{denomByte}, sep...)
+	return append(prefix, ratioBytes...)
+}
+
+// SplitCollateralRatioIterKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
+func SplitCollateralRatioIterKey(key []byte) (denom byte, ratio sdk.Dec) {
+	split := bytes.Split(key, sep)
+	denom = split[0][0]
+
+	ratio, err := ParseDecBytes(split[1])
+	if err != nil {
+		panic(err)
+	}
 	return
 }
