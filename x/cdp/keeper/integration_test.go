@@ -59,6 +59,7 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 			},
 		},
 		StartingCdpID: cdp.DefaultCdpStartingID,
+		DebtDenom:     cdp.DefaultDebtDenom,
 		CDPs:          cdp.CDPs{},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
@@ -92,12 +93,12 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:            "xrp",
 					LiquidationRatio: sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000)),
+					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
 					StabilityFee:     sdk.MustNewDecFromStr("1.05"),
 					Prefix:           0x20,
 					MarketID:         "xrp:usd",
@@ -105,7 +106,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:            "btc",
 					LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000)),
+					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
 					StabilityFee:     sdk.MustNewDecFromStr("1.05"),
 					Prefix:           0x21,
 					MarketID:         "btc:usd",
@@ -117,9 +118,15 @@ func NewCDPGenStateMulti() app.GenesisState {
 					ReferenceAsset: "usd",
 					DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 				},
+				{
+					Denom:          "susd",
+					ReferenceAsset: "usd",
+					DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
+				},
 			},
 		},
 		StartingCdpID: cdp.DefaultCdpStartingID,
+		DebtDenom:     cdp.DefaultDebtDenom,
 		CDPs:          cdp.CDPs{},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}

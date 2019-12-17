@@ -41,7 +41,7 @@ func ErrCollateralNotSupported(codespace sdk.CodespaceType, denom string) sdk.Er
 
 // ErrDebtNotSupported error for unsupported collateral
 func ErrDebtNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeCollateralNotSupported, fmt.Sprintf("collateral %s not supported", denom))
+	return sdk.NewError(codespace, CodeDebtNotSupported, fmt.Sprintf("collateral %s not supported", denom))
 }
 
 // ErrExceedsDebtLimit error for attempted draws that exceed debt limit

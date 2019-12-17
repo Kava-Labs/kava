@@ -84,9 +84,9 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 
 // MintDebtCoins mints debt coins in the cdp module account
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coins) sdk.Error {
-	var coinsToMint sdk.Coins
+	coinsToMint := sdk.NewCoins()
 	for _, sc := range principalCoins {
-		coinsToMint.Add(sdk.NewCoins(sdk.NewCoin(denom, sc.Amount)))
+		coinsToMint = coinsToMint.Add(sdk.NewCoins(sdk.NewCoin(denom, sc.Amount)))
 	}
 	err := k.supplyKeeper.MintCoins(ctx, moduleAccount, coinsToMint)
 	if err != nil {
@@ -97,9 +97,9 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 
 // BurnDebtCoins burns debts coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coins) sdk.Error {
-	var coinsToBurn sdk.Coins
+	coinsToBurn := sdk.NewCoins()
 	for _, pc := range paymentCoins {
-		coinsToBurn.Add(sdk.NewCoins(sdk.NewCoin(denom, pc.Amount)))
+		coinsToBurn = coinsToBurn.Add(sdk.NewCoins(sdk.NewCoin(denom, pc.Amount)))
 	}
 	err := k.supplyKeeper.BurnCoins(ctx, moduleAccount, coinsToBurn)
 	if err != nil {
@@ -279,23 +279,25 @@ func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, cdp types.CDP, collat
 func (k Keeper) RemoveCdpLiquidationRatioIndex(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
-	iterKey := append([]byte{db}, []byte(":")...)
-	iterKey = append(iterKey, cdp.Owner...)
-	iterator := sdk.KVStorePrefixIterator(store, iterKey)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
-	}
+	ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal)
+	store.Delete(types.CollateralRatioKey(db, cdp.ID, ratio))
 }
 
 // GetDebtDenom returns the denom of debt in the system
 func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
 	bz := store.Get([]byte{})
-	if bz == nil {
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
+	return
+}
+
+// SetDebtDenom set the denom of debt in the system
+func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
+	if denom == "" {
 		panic("debt denom not set in genesis")
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
+	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
 	return
 }
 
@@ -318,7 +320,7 @@ func (k Keeper) ValidatePrincipal(ctx sdk.Context, principal sdk.Coins) sdk.Erro
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
-		if dp.DebtLimit.Add(sdk.NewCoins(dc)).IsAnyGT(dp.DebtLimit) {
+		if sdk.NewCoins(dc).IsAnyGT(dp.DebtLimit) {
 			return types.ErrExceedsDebtLimit(k.codespace, sdk.NewCoins(dc), dp.DebtLimit)
 		}
 	}
@@ -343,12 +345,12 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	}
 
 	collateralValue := sdk.NewDecFromInt(collateral[0].Amount).Mul(price.Price)
-	var principalTotal sdk.Int
+	principalTotal := sdk.ZeroInt()
 	for _, pc := range principal {
-		principalTotal.Add(pc.Amount)
+		principalTotal = principalTotal.Add(pc.Amount)
 	}
 	for _, fc := range fees {
-		principalTotal.Add(fc.Amount)
+		principalTotal = principalTotal.Add(fc.Amount)
 	}
 	collateralRatio := collateralValue.Quo(sdk.NewDecFromInt(principalTotal))
 	return collateralRatio, nil

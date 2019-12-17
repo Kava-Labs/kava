@@ -9,6 +9,7 @@ type GenesisState struct {
 	Params        Params `json:"params" yaml:"params"`
 	CDPs          CDPs   `json:"cdps" yaml:"cdps"`
 	StartingCdpID uint64 `json:"starting_cdp_id" yaml:"starting_cdp_id"`
+	DebtDenom     string `json:"debt_denom" yaml:"debt_denom"`
 	// don't need to setup CollateralStates as they are created as needed
 }
 
@@ -18,6 +19,7 @@ func DefaultGenesisState() GenesisState {
 		Params:        DefaultParams(),
 		CDPs:          CDPs{},
 		StartingCdpID: DefaultCdpStartingID,
+		DebtDenom:     DefaultDebtDenom,
 	}
 }
 

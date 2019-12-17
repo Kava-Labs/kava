@@ -46,7 +46,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, data GenesisStat
 	}
 
 	k.SetNextCdpID(ctx, data.StartingCdpID)
-
+	k.SetDebtDenom(ctx, data.DebtDenom)
 }
 
 // ExportGenesis export genesis state
