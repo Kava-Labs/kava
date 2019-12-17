@@ -214,7 +214,7 @@ func (k Keeper) GetAllCdpsByDenomAndRatio(ctx sdk.Context, denom string, targetR
 
 // SetNextCdpID sets the highest cdp id in the store
 func (k Keeper) SetNextCdpID(ctx sdk.Context, id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKey)
 	store.Set([]byte{}, types.GetCdpIDBytes(id))
 }
 
@@ -225,7 +225,7 @@ func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
 	if bz == nil {
 		panic("starting cdp id not set in genesis")
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &id)
+	id = types.GetCdpIDFromBytes(bz)
 	return
 }
 
@@ -327,9 +327,9 @@ func (k Keeper) ValidatePrincipal(ctx sdk.Context, principal sdk.Coins) sdk.Erro
 
 // CalculateCollateralToDebtRatio returns the collateral to debt ratio of the input collateral and debt amounts
 func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.Coins, debt sdk.Coins) sdk.Dec {
-	var debtTotal sdk.Int
+	debtTotal := sdk.ZeroInt()
 	for _, dc := range debt {
-		debtTotal.Add(dc.Amount)
+		debtTotal = debtTotal.Add(dc.Amount)
 	}
 	return sdk.NewDecFromInt(collateral[0].Amount).Quo(sdk.NewDecFromInt(debtTotal))
 }

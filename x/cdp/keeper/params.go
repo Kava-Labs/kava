@@ -49,7 +49,7 @@ func (k Keeper) GetDenomPrefix(ctx sdk.Context, denom string) (byte, bool) {
 			return cp.Prefix, true
 		}
 	}
-	return 0xff, false
+	return 0x00, false
 }
 
 func (k Keeper) getStabilityFee(ctx sdk.Context, denom string) sdk.Dec {

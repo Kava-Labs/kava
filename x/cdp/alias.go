@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	DefaultCodespace                = types.DefaultCodespace
 	CodeCdpAlreadyExists            = types.CodeCdpAlreadyExists
 	CodeCollateralLengthInvalid     = types.CodeCollateralLengthInvalid
 	CodeCollateralNotSupported      = types.CodeCollateralNotSupported
@@ -67,6 +68,8 @@ var (
 	GetCdpIDFromBytes           = types.GetCdpIDFromBytes
 	CdpKey                      = types.CdpKey
 	SplitCdpKey                 = types.SplitCdpKey
+	DenomIterKey                = types.DenomIterKey
+	SplitDenomIterKey           = types.SplitDenomIterKey
 	DepositKey                  = types.DepositKey
 	SplitDepositKey             = types.SplitDepositKey
 	CollateralRatioBytes        = types.CollateralRatioBytes

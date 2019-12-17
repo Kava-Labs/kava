@@ -9,18 +9,19 @@ import (
 
 // codes for cdp errors
 const (
-	CodeCdpAlreadyExists        sdk.CodeType = 1
-	CodeCollateralLengthInvalid sdk.CodeType = 2
-	CodeCollateralNotSupported  sdk.CodeType = 3
-	CodeDebtNotSupported        sdk.CodeType = 4
-	CodeExceedsDebtLimit        sdk.CodeType = 5
-	CodeInvalidCollateralRatio  sdk.CodeType = 6
-	CodeCdpNotFound             sdk.CodeType = 7
-	CodeDepositNotFound         sdk.CodeType = 8
-	CodeInvalidDepositDenom     sdk.CodeType = 9
-	CodeInvalidPaymentDenom     sdk.CodeType = 10
-	CodeDepositNotAvailable     sdk.CodeType = 11
-	CodeInvalidCollateralDenom  sdk.CodeType = 12
+	DefaultCodespace            sdk.CodespaceType = ModuleName
+	CodeCdpAlreadyExists        sdk.CodeType      = 1
+	CodeCollateralLengthInvalid sdk.CodeType      = 2
+	CodeCollateralNotSupported  sdk.CodeType      = 3
+	CodeDebtNotSupported        sdk.CodeType      = 4
+	CodeExceedsDebtLimit        sdk.CodeType      = 5
+	CodeInvalidCollateralRatio  sdk.CodeType      = 6
+	CodeCdpNotFound             sdk.CodeType      = 7
+	CodeDepositNotFound         sdk.CodeType      = 8
+	CodeInvalidDepositDenom     sdk.CodeType      = 9
+	CodeInvalidPaymentDenom     sdk.CodeType      = 10
+	CodeDepositNotAvailable     sdk.CodeType      = 11
+	CodeInvalidCollateralDenom  sdk.CodeType      = 12
 )
 
 // ErrCdpAlreadyExists error for duplicate cdps

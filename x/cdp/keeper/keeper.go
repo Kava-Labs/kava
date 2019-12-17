@@ -22,6 +22,12 @@ type Keeper struct {
 
 // NewKeeper creates a new keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
+
+	// ensure governance module account is set
+	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
 	return Keeper{
 		key:             key,
 		cdc:             cdc,
@@ -35,10 +41,11 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom
 func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, denom string) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	return sdk.KVStorePrefixIterator(store, []byte(denom))
+	db, _ := k.GetDenomPrefix(ctx, denom)
+	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(db))
 }
 
-// CdpLiquidationRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom matching denom and collateral:debt ratio less than or equal to targetRatio
+// CdpLiquidationRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom matching denom and collateral:debt ratio less than targetRatio
 func (k Keeper) CdpLiquidationRatioIndexIterator(ctx sdk.Context, denom string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	db, _ := k.GetDenomPrefix(ctx, denom)
@@ -80,7 +87,7 @@ func (k Keeper) IterateCdpsByLiquidationRatio(ctx sdk.Context, denom string, tar
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		db, _, id := types.SplitCollateralRatioKey(iterator.Key())
+		db, id, _ := types.SplitCollateralRatioKey(iterator.Key())
 		d := k.getDenomFromByte(ctx, db)
 		cdp, found := k.GetCDP(ctx, d, id)
 		if !found {

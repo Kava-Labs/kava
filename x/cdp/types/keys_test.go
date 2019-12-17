@@ -16,6 +16,10 @@ func TestKeys(t *testing.T) {
 	require.Equal(t, int(id), 2)
 	require.Equal(t, byte(0x01), db)
 
+	denomKey := DenomIterKey(0x01)
+	db = SplitDenomIterKey(denomKey)
+	require.Equal(t, byte(0x01), db)
+
 	depositKey := DepositKey(2, addr)
 	id, a := SplitDepositKey(depositKey)
 	require.Equal(t, int(id), 2)
@@ -43,15 +47,11 @@ func TestKeys(t *testing.T) {
 }
 
 func badRatioKey() []byte {
-	r := append([]byte{0x01}, sep...)
-	r = append(r, []byte("nonsense")...)
-	r = append(r, sep...)
-	r = append(r, []byte{0xff}...)
+	r := append(append(append(append([]byte{0x01}, sep...), []byte("nonsense")...), sep...), []byte{0xff}...)
 	return r
 }
 
 func badRatioIterKey() []byte {
-	r := append([]byte{0x01}, sep...)
-	r = append(r, []byte("nonsense")...)
+	r := append(append([]byte{0x01}, sep...), []byte("nonsense")...)
 	return r
 }

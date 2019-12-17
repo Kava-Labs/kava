@@ -24,7 +24,7 @@ func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coins, principal sdk
 		Owner:           owner,
 		Collateral:      collateral,
 		Principal:       principal,
-		AccumulatedFees: sdk.NewCoins(),
+		AccumulatedFees: sdk.Coins(nil),
 		FeesUpdated:     time,
 	}
 }

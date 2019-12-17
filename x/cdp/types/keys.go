@@ -78,6 +78,17 @@ func SplitCdpKey(key []byte) (byte, uint64) {
 	return split[0][0], GetCdpIDFromBytes(split[1])
 }
 
+// DenomIterKey returns the key for iterating over cdps of a certain denom in the store
+func DenomIterKey(denomByte byte) []byte {
+	return append([]byte{denomByte}, sep...)
+}
+
+// SplitDenomIterKey returns the component part of a key for iterating over cdps by denom
+func SplitDenomIterKey(key []byte) byte {
+	split := bytes.Split(key, sep)
+	return split[0][0]
+}
+
 // DepositKey key of a specific deposit in the store
 func DepositKey(cdpID uint64, depositor sdk.AccAddress) []byte {
 	prefix := append(GetCdpIDBytes(cdpID), sep...)

@@ -44,10 +44,13 @@ func ParseDecBytes(db []byte) (sdk.Dec, error) {
 	if string(strFromDecBytes[0]) == "." {
 		strFromDecBytes = "0" + strFromDecBytes
 	}
+	if string(strFromDecBytes[len(strFromDecBytes)-1]) == "." {
+		strFromDecBytes = strFromDecBytes + "0"
+	}
 	if bytes.Equal(db, []byte("max")) {
 		return MaxSortableDec, nil
 	}
-	if bytes.Equal(db, []byte("min")) {
+	if bytes.Equal(db, []byte("--")) {
 		return MaxSortableDec.Neg(), nil
 	}
 	dec, err := sdk.NewDecFromStr(strFromDecBytes)
