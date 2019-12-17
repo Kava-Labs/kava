@@ -34,7 +34,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, data GenesisStat
 			panic(err)
 		}
 		feePerSecond := math.Pow(feeFloat, (1 / 31536000.))
-		k.SetFeeRate(ctx, cp.Denom, sdk.MustNewDecFromStr(fmt.Sprintf("%.18f", feePerSecond)))
+		feeRate := sdk.MustNewDecFromStr(fmt.Sprintf("%.18f", feePerSecond))
+		k.SetFeeRate(ctx, cp.Denom, feeRate)
 	}
 
 	for _, cdp := range data.CDPs {

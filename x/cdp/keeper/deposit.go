@@ -18,11 +18,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
-	if cdp.Collateral[0].Denom != collateral[0].Denom {
-		return types.ErrInvalidDepositDenom(k.codespace, cdp.ID, cdp.Collateral[0].Denom, collateral[0].Denom)
-	}
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if found {
+		// TODO should deposits be allowed when the current deposit is InLiquidation?
 		deposit.Amount = deposit.Amount.Add(collateral)
 		k.SetDeposit(ctx, deposit, cdp.ID)
 	} else {
@@ -55,9 +53,6 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
-	if cdp.Collateral[0].Denom != collateral[0].Denom {
-		return types.ErrInvalidDepositDenom(k.codespace, cdp.ID, cdp.Collateral[0].Denom, collateral[0].Denom)
-	}
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if !found {
 		return types.ErrDepositNotFound(k.codespace, depositor, cdp.ID)
@@ -65,7 +60,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	if deposit.InLiquidation {
 		return types.ErrDepositNotAvailable(k.codespace, cdp.ID, depositor)
 	}
-	cdp.AccumulatedFees = k.CalculateFees(ctx, cdp)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(k.CalculateFees(ctx, cdp))
 	cdp.FeesUpdated = ctx.BlockTime()
 	collateralRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {
@@ -107,7 +102,7 @@ func (k Keeper) GetDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddre
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit, cdpID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(deposit)
-	store.Set(types.GetCdpIDBytes(cdpID), bz)
+	store.Set(types.DepositKey(cdpID, deposit.Depositor), bz)
 }
 
 // DeleteDeposit deletes a deposit from the store

@@ -24,7 +24,7 @@ var (
 	}
 )
 
-type KeeperTestSuite struct {
+type CdpTestSuite struct {
 	suite.Suite
 
 	keeper keeper.Keeper
@@ -32,7 +32,7 @@ type KeeperTestSuite struct {
 	ctx    sdk.Context
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (suite *CdpTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = ctx
 }
 
-func (suite *KeeperTestSuite) BeforeTest(suiteName, testName string) {
+func (suite *CdpTestSuite) BeforeTest(suiteName, testName string) {
 	for _, tn := range BeforeTestMulti {
 		if testName == tn {
 			tApp := app.NewTestApp()
@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) BeforeTest(suiteName, testName string) {
 	}
 }
 
-func (suite *KeeperTestSuite) TestAddCdp() {
+func (suite *CdpTestSuite) TestAddCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
@@ -78,6 +78,8 @@ func (suite *KeeperTestSuite) TestAddCdp() {
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100)), cs(c("usdx", 10)))
 	suite.NoError(err)
+	id := suite.keeper.GetNextCdpID(suite.ctx)
+	suite.Equal(uint64(2), id)
 	tp := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(i(10), tp)
 	sk := suite.app.GetSupplyKeeper()
@@ -91,6 +93,8 @@ func (suite *KeeperTestSuite) TestAddCdp() {
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("btc", 5)), cs(c("usdx", 100)))
 	suite.NoError(err)
+	id = suite.keeper.GetNextCdpID(suite.ctx)
+	suite.Equal(uint64(3), id)
 	tp = suite.keeper.GetTotalPrincipal(suite.ctx, "btc", "usdx")
 	suite.Equal(i(100), tp)
 	macc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -104,7 +108,7 @@ func (suite *KeeperTestSuite) TestAddCdp() {
 	suite.Equal(sdk.CodeType(1), err.Result().Code)
 }
 
-func (suite *KeeperTestSuite) TestGetSetDenomByte() {
+func (suite *CdpTestSuite) TestGetSetDenomByte() {
 	_, found := suite.keeper.GetDenomPrefix(suite.ctx, "xrp")
 	suite.False(found)
 	suite.keeper.SetParams(suite.ctx, params())
@@ -113,7 +117,7 @@ func (suite *KeeperTestSuite) TestGetSetDenomByte() {
 	suite.Equal(byte(0x20), db)
 }
 
-func (suite *KeeperTestSuite) TestGetDebtDenom() {
+func (suite *CdpTestSuite) TestGetDebtDenom() {
 	suite.Panics(func() { suite.keeper.SetDebtDenom(suite.ctx, "") })
 	t := suite.keeper.GetDebtDenom(suite.ctx)
 	suite.Equal("debt", t)
@@ -122,12 +126,12 @@ func (suite *KeeperTestSuite) TestGetDebtDenom() {
 	suite.Equal("lol", t)
 }
 
-func (suite *KeeperTestSuite) TestGetNextCdpID() {
+func (suite *CdpTestSuite) TestGetNextCdpID() {
 	id := suite.keeper.GetNextCdpID(suite.ctx)
 	suite.Equal(types.DefaultCdpStartingID, id)
 }
 
-func (suite *KeeperTestSuite) TestGetSetCdp() {
+func (suite *CdpTestSuite) TestGetSetCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), tmtime.Canonical(time.Now()))
 	suite.keeper.SetCDP(suite.ctx, cdp)
@@ -141,7 +145,7 @@ func (suite *KeeperTestSuite) TestGetSetCdp() {
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestGetSetCdpId() {
+func (suite *CdpTestSuite) TestGetSetCdpId() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), tmtime.Canonical(time.Now()))
 	suite.keeper.SetCDP(suite.ctx, cdp)
@@ -155,7 +159,7 @@ func (suite *KeeperTestSuite) TestGetSetCdpId() {
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestGetSetCdpByOwnerAndDenom() {
+func (suite *CdpTestSuite) TestGetSetCdpByOwnerAndDenom() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), tmtime.Canonical(time.Now()))
 	suite.keeper.SetCDP(suite.ctx, cdp)
@@ -170,7 +174,7 @@ func (suite *KeeperTestSuite) TestGetSetCdpByOwnerAndDenom() {
 	suite.NotPanics(func() { suite.keeper.IndexCdpByOwner(suite.ctx, cdp) })
 }
 
-func (suite *KeeperTestSuite) TestCalculateCollateralToDebtRatio() {
+func (suite *CdpTestSuite) TestCalculateCollateralToDebtRatio() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(3))), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), tmtime.Canonical(time.Now()))
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
@@ -183,14 +187,14 @@ func (suite *KeeperTestSuite) TestCalculateCollateralToDebtRatio() {
 	suite.Equal(sdk.MustNewDecFromStr("1"), cr)
 }
 
-func (suite *KeeperTestSuite) TestSetCdpByCollateralRatio() {
+func (suite *CdpTestSuite) TestSetCdpByCollateralRatio() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(3))), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), tmtime.Canonical(time.Now()))
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
 	suite.NotPanics(func() { suite.keeper.IndexCdpByCollateralRatio(suite.ctx, cdp, cr) })
 }
 
-func (suite *KeeperTestSuite) TestIterateCdps() {
+func (suite *CdpTestSuite) TestIterateCdps() {
 	cdps := cdps()
 	for _, c := range cdps {
 		suite.keeper.SetCDP(suite.ctx, c)
@@ -202,7 +206,7 @@ func (suite *KeeperTestSuite) TestIterateCdps() {
 	suite.Equal(4, len(t))
 }
 
-func (suite *KeeperTestSuite) TestIterateCdpsByDenom() {
+func (suite *CdpTestSuite) TestIterateCdpsByDenom() {
 	cdps := cdps()
 	for _, c := range cdps {
 		suite.keeper.SetCDP(suite.ctx, c)
@@ -226,7 +230,7 @@ func (suite *KeeperTestSuite) TestIterateCdpsByDenom() {
 	suite.Equal(uint64(3), ids[0])
 }
 
-func (suite *KeeperTestSuite) TestIterateCdpsByCollateralRatio() {
+func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	cdps := cdps()
 	for _, c := range cdps {
 		suite.keeper.SetCDP(suite.ctx, c)
@@ -249,7 +253,7 @@ func (suite *KeeperTestSuite) TestIterateCdpsByCollateralRatio() {
 	suite.Equal(1, len(xrpCdps))
 }
 
-func (suite *KeeperTestSuite) TestValidateCollateral() {
+func (suite *CdpTestSuite) TestValidateCollateral() {
 	c := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1)))
 	err := suite.keeper.ValidateCollateral(suite.ctx, c)
 	suite.NoError(err)
@@ -261,7 +265,7 @@ func (suite *KeeperTestSuite) TestValidateCollateral() {
 	suite.Error(err)
 }
 
-func (suite *KeeperTestSuite) TestValidatePrincipal() {
+func (suite *CdpTestSuite) TestValidatePrincipal() {
 	d := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1)))
 	err := suite.keeper.ValidatePrincipal(suite.ctx, d)
 	suite.NoError(err)
@@ -276,7 +280,7 @@ func (suite *KeeperTestSuite) TestValidatePrincipal() {
 	suite.Error(err)
 }
 
-func (suite *KeeperTestSuite) TestCalculateCollateralizationRatio() {
+func (suite *CdpTestSuite) TestCalculateCollateralizationRatio() {
 	c := cdps()[1]
 	suite.keeper.SetCDP(suite.ctx, c)
 	suite.keeper.IndexCdpByOwner(suite.ctx, c)
@@ -291,7 +295,7 @@ func (suite *KeeperTestSuite) TestCalculateCollateralizationRatio() {
 	suite.Equal(d("1.25"), cr)
 }
 
-func (suite *KeeperTestSuite) TestMintBurnDebtCoins() {
+func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 	cd := cdps()[1]
 	err := suite.keeper.MintDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
@@ -310,6 +314,6 @@ func (suite *KeeperTestSuite) TestMintBurnDebtCoins() {
 	suite.Equal(sdk.Coins(nil), acc.GetCoins())
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+func TestCdpTestSuite(t *testing.T) {
+	suite.Run(t, new(CdpTestSuite))
 }

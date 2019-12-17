@@ -13,10 +13,10 @@ func (k Keeper) CalculateFees(ctx sdk.Context, cdp types.CDP) sdk.Coins {
 	newFees := sdk.NewCoins()
 	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
 	for _, pc := range cdp.Principal {
-		feePerSecond := k.GetFeeRate(ctx, pc.Denom)
+		feePerSecond := k.GetFeeRate(ctx, cdp.Collateral[0].Denom)
 		feesDec := sdk.NewDecFromInt(pc.Amount).Mul(feePerSecond.Mul(sdk.NewDecFromInt(timeElapsed)))
 		// TODO this will always round down, causing precision loss between the sum of all fees in CDPs and surplus coins in liquidator account
-		newFees.Add(sdk.NewCoins(sdk.NewCoin(pc.Denom, feesDec.TruncateInt())))
+		newFees = newFees.Add(sdk.NewCoins(sdk.NewCoin(pc.Denom, feesDec.TruncateInt())))
 	}
 	return newFees
 }
