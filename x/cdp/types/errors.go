@@ -22,6 +22,7 @@ const (
 	CodeInvalidPaymentDenom     sdk.CodeType      = 10
 	CodeDepositNotAvailable     sdk.CodeType      = 11
 	CodeInvalidCollateralDenom  sdk.CodeType      = 12
+	CodeInvalidWithdrawAmount   sdk.CodeType      = 13
 )
 
 // ErrCdpAlreadyExists error for duplicate cdps
@@ -71,7 +72,7 @@ func ErrInvalidDepositDenom(codespace sdk.CodespaceType, cdpID uint64, expected 
 
 // ErrInvalidPaymentDenom error for invalid deposit denoms
 func ErrInvalidPaymentDenom(codespace sdk.CodespaceType, cdpID uint64, expected []string, actual []string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidDepositDenom, fmt.Sprintf("invalid payment for cdp %d, expects %s, got  %s", cdpID, expected, actual))
+	return sdk.NewError(codespace, CodeInvalidPaymentDenom, fmt.Sprintf("invalid payment for cdp %d, expects %s, got  %s", cdpID, expected, actual))
 }
 
 //ErrDepositNotAvailable error for withdrawing deposits in liquidation
@@ -82,4 +83,9 @@ func ErrDepositNotAvailable(codespace sdk.CodespaceType, cdpID uint64, depositor
 // ErrInvalidPaymentDenom error for invalid deposit denoms
 func ErrInvalidCollateralDenom(codespace sdk.CodespaceType, denom string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidDepositDenom, fmt.Sprintf("invalid denom:  %s", denom))
+}
+
+// ErrInvalidWithdrawAmount error for invalid withdrawal amount
+func ErrInvalidWithdrawAmount(codespace sdk.CodespaceType, withdraw sdk.Coins, deposit sdk.Coins) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidWithdrawAmount, fmt.Sprintf("withdrawal amount of %s exceeds deposit of %s", withdraw, deposit))
 }

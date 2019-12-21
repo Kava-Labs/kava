@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -39,16 +40,16 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	}
 	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, principal)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, principal)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), principal)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -77,7 +78,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	k.SetNextCdpID(ctx, id+1)
 	k.IndexCdpByOwner(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)
-	k.IndexCdpByCollateralRatio(ctx, cdp, collateralToDebtRatio)
+	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, collateralToDebtRatio)
 
 	return nil
 }
@@ -129,7 +130,8 @@ func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, denom string) (u
 func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint64, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKeyPrefix)
 	bz := store.Get(owner)
-	if bz == nil {
+	// TODO figure out why this is necessary
+	if bz == nil || bytes.Equal(bz, []byte{0}) {
 		return []uint64{}, false
 	}
 	var cdpIDs []uint64
@@ -205,7 +207,7 @@ func (k Keeper) GetAllCdpsByDenom(ctx sdk.Context, denom string) (cdps types.CDP
 
 // GetAllCdpsByDenomAndRatio returns all cdps of a particular collateral type and below a certain collateralization ratio
 func (k Keeper) GetAllCdpsByDenomAndRatio(ctx sdk.Context, denom string, targetRatio sdk.Dec) (cdps types.CDPs) {
-	k.IterateCdpsByLiquidationRatio(ctx, denom, targetRatio, func(cdp types.CDP) bool {
+	k.IterateCdpsByCollateralRatio(ctx, denom, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		return false
 	})
@@ -269,18 +271,17 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
-func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, cdp types.CDP, collateralRatio sdk.Dec) {
+func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, denom string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
-	store.Set(types.CollateralRatioKey(db, cdp.ID, collateralRatio), types.GetCdpIDBytes(cdp.ID))
+	db, _ := k.GetDenomPrefix(ctx, denom)
+	store.Set(types.CollateralRatioKey(db, id, collateralRatio), types.GetCdpIDBytes(id))
 }
 
-// RemoveCdpLiquidationRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
-func (k Keeper) RemoveCdpLiquidationRatioIndex(ctx sdk.Context, cdp types.CDP) {
+// RemoveCdpCollateralRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
+func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, denom string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral[0].Denom)
-	ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal)
-	store.Delete(types.CollateralRatioKey(db, cdp.ID, ratio))
+	db, _ := k.GetDenomPrefix(ctx, denom)
+	store.Delete(types.CollateralRatioKey(db, id, collateralRatio))
 }
 
 // GetDebtDenom returns the denom of debt in the system
@@ -332,6 +333,9 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	debtTotal := sdk.ZeroInt()
 	for _, dc := range debt {
 		debtTotal = debtTotal.Add(dc.Amount)
+	}
+	if debtTotal.IsZero() || sdk.NewDecFromInt(debtTotal).GTE(types.MaxSortableDec) {
+		return types.MaxSortableDec.Sub(sdk.SmallestDec())
 	}
 	return sdk.NewDecFromInt(collateral[0].Amount).Quo(sdk.NewDecFromInt(debtTotal))
 }

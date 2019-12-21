@@ -2,8 +2,6 @@ package cdp
 
 import (
 	"fmt"
-	"math"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -29,20 +27,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, data GenesisStat
 		for _, dp := range data.Params.DebtParams {
 			k.SetTotalPrincipal(ctx, cp.Denom, dp.Denom, sdk.ZeroInt())
 		}
-		feeFloat, err := strconv.ParseFloat(cp.StabilityFee.String(), 64)
-		if err != nil {
-			panic(err)
-		}
-		feePerSecond := math.Pow(feeFloat, (1 / 31536000.))
-		feeRate := sdk.MustNewDecFromStr(fmt.Sprintf("%.18f", feePerSecond))
-		k.SetFeeRate(ctx, cp.Denom, feeRate)
+		k.SetFeeRate(ctx, cp.Denom, cp.StabilityFee)
 	}
 
 	for _, cdp := range data.CDPs {
 		k.SetCDP(ctx, cdp)
 		k.IndexCdpByOwner(ctx, cdp)
 		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-		k.IndexCdpByCollateralRatio(ctx, cdp, ratio)
+		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, ratio)
 		k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, cdp.Principal)
 	}
 

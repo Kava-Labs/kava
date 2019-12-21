@@ -9,14 +9,17 @@ import (
 )
 
 // CalculateFees returns the fees accumulated since fees were last calculated
-func (k Keeper) CalculateFees(ctx sdk.Context, cdp types.CDP) sdk.Coins {
+func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.Int, denom string) sdk.Coins {
 	newFees := sdk.NewCoins()
-	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
-	for _, pc := range cdp.Principal {
-		feePerSecond := k.GetFeeRate(ctx, cdp.Collateral[0].Denom)
-		feesDec := sdk.NewDecFromInt(pc.Amount).Mul(feePerSecond.Mul(sdk.NewDecFromInt(timeElapsed)))
+	for _, pc := range principal {
+		// Decimal(rpow(feeRateInt, periods, 10**18)) * Decimal(10**-18)
+		feePerSecond := k.GetFeeRate(ctx, denom)
+		scalar := sdk.NewInt(1000000000000000000)
+		feeRateInt := feePerSecond.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
+		accumulator := sdk.NewDecFromInt(types.RelativePow(feeRateInt, periods, scalar)).Mul(sdk.SmallestDec())
+		feesAccumulated := (sdk.NewDecFromInt(pc.Amount).Mul(accumulator)).Sub(sdk.NewDecFromInt(pc.Amount))
 		// TODO this will always round down, causing precision loss between the sum of all fees in CDPs and surplus coins in liquidator account
-		newFees = newFees.Add(sdk.NewCoins(sdk.NewCoin(pc.Denom, feesDec.TruncateInt())))
+		newFees = newFees.Add(sdk.NewCoins(sdk.NewCoin(pc.Denom, feesAccumulated.TruncateInt())))
 	}
 	return newFees
 }
@@ -26,6 +29,15 @@ func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralDenom string,
 	for _, pc := range principal {
 		total := k.GetTotalPrincipal(ctx, collateralDenom, pc.Denom)
 		total = total.Add(pc.Amount)
+		k.SetTotalPrincipal(ctx, collateralDenom, pc.Denom, total)
+	}
+}
+
+// DecrementTotalPrincipal decrements the total amount of debt that has been drawn with that collateral type
+func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralDenom string, principal sdk.Coins) {
+	for _, pc := range principal {
+		total := k.GetTotalPrincipal(ctx, collateralDenom, pc.Denom)
+		total = total.Sub(pc.Amount)
 		k.SetTotalPrincipal(ctx, collateralDenom, pc.Denom, total)
 	}
 }

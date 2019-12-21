@@ -52,14 +52,6 @@ func (k Keeper) GetDenomPrefix(ctx sdk.Context, denom string) (byte, bool) {
 	return 0x00, false
 }
 
-func (k Keeper) getStabilityFee(ctx sdk.Context, denom string) sdk.Dec {
-	cp, found := k.GetCollateral(ctx, denom)
-	if !found {
-		panic(fmt.Sprintf("no collateral found for %s", denom))
-	}
-	return cp.StabilityFee
-}
-
 func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
 	params := k.GetParams(ctx)
 	for _, cp := range params.CollateralParams {

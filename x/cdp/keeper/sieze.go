@@ -19,9 +19,12 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 			}
 		}
 	}
-	var debtAmt sdk.Int
-	for _, cc := range cdp.Collateral {
-		debtAmt = debtAmt.Add(cc.Amount)
+	debtAmt := sdk.ZeroInt()
+	for _, dc := range cdp.Principal {
+		debtAmt = debtAmt.Add(dc.Amount)
+	}
+	for _, dc := range cdp.AccumulatedFees {
+		debtAmt = debtAmt.Add(dc.Amount)
 	}
 	debtCoins := sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), debtAmt))
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, liqtypes.ModuleName, debtCoins)

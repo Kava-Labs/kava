@@ -45,8 +45,8 @@ func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, denom string) sdk.Iterato
 	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(db))
 }
 
-// CdpLiquidationRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom matching denom and collateral:debt ratio less than targetRatio
-func (k Keeper) CdpLiquidationRatioIndexIterator(ctx sdk.Context, denom string, targetRatio sdk.Dec) sdk.Iterator {
+// CdpCollateralRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom matching denom and collateral:debt ratio less than targetRatio
+func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, denom string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	db, _ := k.GetDenomPrefix(ctx, denom)
 	return store.Iterator(types.CollateralRatioIterKey(db, sdk.ZeroDec()), types.CollateralRatioIterKey(db, targetRatio))
@@ -81,9 +81,9 @@ func (k Keeper) IterateCdpsByDenom(ctx sdk.Context, denom string, cb func(cdp ty
 	}
 }
 
-// IterateCdpsByLiquidationRatio iterate over cdps with collateral denom equal to denom and collateral:debt ratio below targetRatio and performs a callback function.
-func (k Keeper) IterateCdpsByLiquidationRatio(ctx sdk.Context, denom string, targetRatio sdk.Dec, cb func(cdp types.CDP) (stop bool)) {
-	iterator := k.CdpLiquidationRatioIndexIterator(ctx, denom, targetRatio)
+// IterateCdpsByCollateralRatio iterate over cdps with collateral denom equal to denom and collateral:debt ratio below targetRatio and performs a callback function.
+func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, denom string, targetRatio sdk.Dec, cb func(cdp types.CDP) (stop bool)) {
+	iterator := k.CdpCollateralRatioIndexIterator(ctx, denom, targetRatio)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

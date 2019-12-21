@@ -17,6 +17,9 @@ const (
 	// RouterKey Top level router key
 	RouterKey = ModuleName
 
+	// QuerierRoute Top level query string
+	QuerierRoute = ModuleName
+
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
 )
@@ -114,22 +117,22 @@ func CollateralRatioBytes(ratio sdk.Dec) []byte {
 // CollateralRatioKey returns the key for querying a cdp by its liquidation ratio
 func CollateralRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
 	ratioBytes := CollateralRatioBytes(ratio)
-	prefix := append([]byte{denomByte}, sep...)
-	prefix = append(prefix, ratioBytes...)
-	prefix = append(prefix, sep...)
-	return append(prefix, GetCdpIDBytes(cdpID)...)
+	idBytes := GetCdpIDBytes(cdpID)
+
+	return createKey([]byte{denomByte}, sep, ratioBytes, sep, idBytes)
 }
 
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
 func SplitCollateralRatioKey(key []byte) (denom byte, cdpID uint64, ratio sdk.Dec) {
-	split := bytes.Split(key, sep)
+
+	cdpID = GetCdpIDFromBytes(key[len(key)-8 : len(key)])
+	split := bytes.Split(key[:len(key)-8], sep)
 	denom = split[0][0]
 
 	ratio, err := ParseDecBytes(split[1])
 	if err != nil {
 		panic(err)
 	}
-	cdpID = GetCdpIDFromBytes(split[2])
 	return
 }
 
@@ -148,6 +151,13 @@ func SplitCollateralRatioIterKey(key []byte) (denom byte, ratio sdk.Dec) {
 	ratio, err := ParseDecBytes(split[1])
 	if err != nil {
 		panic(err)
+	}
+	return
+}
+
+func createKey(bytes ...[]byte) (r []byte) {
+	for _, b := range bytes {
+		r = append(r, b...)
 	}
 	return
 }

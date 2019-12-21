@@ -22,10 +22,12 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 	if found {
 		// TODO should deposits be allowed when the current deposit is InLiquidation?
 		deposit.Amount = deposit.Amount.Add(collateral)
-		k.SetDeposit(ctx, deposit, cdp.ID)
 	} else {
 		deposit = types.NewDeposit(cdp.ID, depositor, collateral)
-		k.SetDeposit(ctx, deposit, cdp.ID)
+	}
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleName, collateral)
+	if err != nil {
+		return err
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -34,12 +36,20 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
-	cdp.AccumulatedFees = k.CalculateFees(ctx, cdp)
+
+	k.SetDeposit(ctx, deposit, cdp.ID)
+
+	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
+
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
 	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.Collateral = cdp.Collateral.Add(collateral)
 	k.SetCDP(ctx, cdp)
-	collateralRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, cdp.Principal)
-	k.IndexCdpByCollateralRatio(ctx, cdp, collateralRatio)
+	collateralRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, cdp.Principal.Add(fees))
+	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, collateralRatio)
 	return nil
 }
 
@@ -60,15 +70,19 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	if deposit.InLiquidation {
 		return types.ErrDepositNotAvailable(k.codespace, cdp.ID, depositor)
 	}
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(k.CalculateFees(ctx, cdp))
-	cdp.FeesUpdated = ctx.BlockTime()
-	collateralRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees)
+	if collateral.IsAnyGT(deposit.Amount) {
+		return types.ErrInvalidWithdrawAmount(k.codespace, collateral, deposit.Amount)
+	}
+
+	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees.Add(fees))
 	if err != nil {
 		return err
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
-	if collateralRatio.LT(liquidationRatio) {
-		return types.ErrInvalidCollateralRatio(k.codespace, collateral[0].Denom, collateralRatio, liquidationRatio)
+	if collateralizationRatio.LT(liquidationRatio) {
+		return types.ErrInvalidCollateralRatio(k.codespace, collateral[0].Denom, collateralizationRatio, liquidationRatio)
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -77,12 +91,22 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
-	deposit.Amount = deposit.Amount.Sub(collateral)
+
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, collateral)
+	if err != nil {
+		panic(err)
+	}
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
+
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
+	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
 	k.SetCDP(ctx, cdp)
+	deposit.Amount = deposit.Amount.Sub(collateral)
 	k.SetDeposit(ctx, deposit, cdp.ID)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal)
-	k.IndexCdpByCollateralRatio(ctx, cdp, collateralToDebtRatio)
+	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, collateralToDebtRatio)
 	return nil
 }
 

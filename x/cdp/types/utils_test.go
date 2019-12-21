@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 )
 
 func TestSortableDecBytes(t *testing.T) {
@@ -58,5 +60,24 @@ func TestParseSortableDecBytes(t *testing.T) {
 		r, err := ParseDecBytes(b)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.d, r, "bad Dec(), index: %v", tcIndex)
+	}
+}
+
+func TestRelativePow(t *testing.T) {
+	tests := []struct {
+		args []sdk.Int
+		want sdk.Int
+	}{
+		{[]sdk.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdk.OneInt()}, sdk.OneInt()},
+		{[]sdk.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdk.NewInt(10)}, sdk.NewInt(10)},
+		{[]sdk.Int{sdk.ZeroInt(), sdk.OneInt(), sdk.NewInt(10)}, sdk.ZeroInt()},
+		{[]sdk.Int{sdk.NewInt(10), sdk.NewInt(2), sdk.OneInt()}, sdk.NewInt(100)},
+		{[]sdk.Int{sdk.NewInt(210), sdk.NewInt(2), sdk.NewInt(100)}, sdk.NewInt(441)},
+		{[]sdk.Int{sdk.NewInt(2100), sdk.NewInt(2), sdk.NewInt(1000)}, sdk.NewInt(4410)},
+		{[]sdk.Int{sdk.NewInt(1000000001547125958), sdk.NewInt(600), sdk.NewInt(1000000000000000000)}, sdk.NewInt(1000000928276004850)},
+	}
+	for i, tc := range tests {
+		res := RelativePow(tc.args[0], tc.args[1], tc.args[2])
+		require.Equal(t, tc.want, res, "unexpected result for test case %d, input: %v, got: %v", i, tc.args, res)
 	}
 }

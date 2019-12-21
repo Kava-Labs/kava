@@ -13,35 +13,32 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, denom)
-	}
 	err := k.ValidatePrincipal(ctx, principal)
 	if err != nil {
 		return err
 	}
-	cdp.AccumulatedFees = k.CalculateFees(ctx, cdp)
-	cdp.FeesUpdated = ctx.BlockTime()
-	collateralRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal), cdp.AccumulatedFees)
+	periods := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal), cdp.AccumulatedFees.Add(fees))
 	if err != nil {
 		return err
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, denom)
-	if collateralRatio.LT(liquidationRatio) {
-		return types.ErrInvalidCollateralRatio(k.codespace, denom, collateralRatio, liquidationRatio)
+	if collateralizationRatio.LT(liquidationRatio) {
+		return types.ErrInvalidCollateralRatio(k.codespace, denom, collateralizationRatio, liquidationRatio)
 	}
 	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, principal)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, principal)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), principal)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -50,12 +47,16 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
 
 	cdp.Principal = cdp.Principal.Add(principal)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
+	cdp.FeesUpdated = ctx.BlockTime()
 	k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, principal)
 	k.SetCDP(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	k.IndexCdpByCollateralRatio(ctx, cdp, collateralToDebtRatio)
+	k.IndexCdpByCollateralRatio(ctx, denom, cdp.ID, collateralToDebtRatio)
 
 	return nil
 }
@@ -71,25 +72,22 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if err != nil {
 		return err
 	}
-	cdp.AccumulatedFees = k.CalculateFees(ctx, cdp)
-	cdp.FeesUpdated = ctx.BlockTime()
-	feePayment, principalPayment := k.calculatePayment(ctx, cdp.AccumulatedFees, payment)
-	if !principalPayment.IsZero() {
-		cdp.Principal = cdp.Principal.Sub(principalPayment)
-	}
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Sub(feePayment)
+	periods := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	feePayment, principalPayment := k.calculatePayment(ctx, cdp.AccumulatedFees.Add(fees), payment)
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, payment)
 	if err != nil {
 		return err
 	}
 	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, payment)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	err = k.BurnDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), payment)
 	if err != nil {
-		return err
+		panic(err)
 	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpRepay,
@@ -98,11 +96,21 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		),
 	)
 
-	if cdp.Collateral.IsZero() && cdp.AccumulatedFees.IsZero() {
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
+
+	if !principalPayment.IsZero() {
+		cdp.Principal = cdp.Principal.Sub(principalPayment)
+	}
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees).Sub(feePayment)
+	cdp.FeesUpdated = ctx.BlockTime()
+
+	k.DecrementTotalPrincipal(ctx, denom, payment)
+
+	if cdp.Principal.IsZero() && cdp.AccumulatedFees.IsZero() {
 		k.ReturnCollateral(ctx, cdp)
 		k.DeleteCDP(ctx, cdp)
 		k.RemoveCdpOwnerIndex(ctx, cdp)
-		k.RemoveCdpLiquidationRatioIndex(ctx, cdp)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCdpClose,
@@ -113,8 +121,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	}
 	k.SetCDP(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	k.IndexCdpByCollateralRatio(ctx, cdp, collateralToDebtRatio)
-
+	k.IndexCdpByCollateralRatio(ctx, denom, cdp.ID, collateralToDebtRatio)
 	return nil
 }
 
@@ -150,6 +157,9 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 func (k Keeper) calculatePayment(ctx sdk.Context, fees sdk.Coins, payment sdk.Coins) (sdk.Coins, sdk.Coins) {
 	feePayment := sdk.NewCoins()
 	principalPayment := sdk.NewCoins()
+	if fees.IsZero() {
+		return sdk.NewCoins(), payment
+	}
 	for _, fc := range fees {
 		if payment.AmountOf(fc.Denom).IsPositive() {
 			if payment.AmountOf(fc.Denom).GT(fc.Amount) {

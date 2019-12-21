@@ -70,12 +70,18 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	acc.SetCoins(cs(c("xrp", 200), c("btc", 5)))
 	ak.SetAccount(suite.ctx, acc)
 	err := suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200)), cs(c("usdx", 26)))
-	suite.Equal(sdk.CodeType(6), err.Result().Code)
+	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 500)), cs(c("usdx", 26)))
-	suite.Equal(sdk.CodeType(10), err.Result().Code)
+	suite.Error(err)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200)), cs(c("xusd", 10)))
-	suite.Equal(sdk.CodeType(4), err.Result().Code)
+	suite.Equal(types.CodeDebtNotSupported, err.Result().Code)
+	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
+	pk := suite.app.GetPriceFeedKeeper()
+	_ = pk.SetCurrentPrices(ctx, "xrp:usd")
+	err = suite.keeper.AddCdp(ctx, addrs[0], cs(c("xrp", 100)), cs(c("usdx", 10)))
+	suite.Error(err)
 
+	_ = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100)), cs(c("usdx", 10)))
 	suite.NoError(err)
 	id := suite.keeper.GetNextCdpID(suite.ctx)
@@ -191,7 +197,7 @@ func (suite *CdpTestSuite) TestSetCdpByCollateralRatio() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(3))), sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))), tmtime.Canonical(time.Now()))
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
-	suite.NotPanics(func() { suite.keeper.IndexCdpByCollateralRatio(suite.ctx, cdp, cr) })
+	suite.NotPanics(func() { suite.keeper.IndexCdpByCollateralRatio(suite.ctx, cdp.Collateral[0].Denom, cdp.ID, cr) })
 }
 
 func (suite *CdpTestSuite) TestIterateCdps() {
@@ -200,7 +206,7 @@ func (suite *CdpTestSuite) TestIterateCdps() {
 		suite.keeper.SetCDP(suite.ctx, c)
 		suite.keeper.IndexCdpByOwner(suite.ctx, c)
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
-		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c, cr)
+		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral[0].Denom, c.ID, cr)
 	}
 	t := suite.keeper.GetAllCdps(suite.ctx)
 	suite.Equal(4, len(t))
@@ -212,7 +218,7 @@ func (suite *CdpTestSuite) TestIterateCdpsByDenom() {
 		suite.keeper.SetCDP(suite.ctx, c)
 		suite.keeper.IndexCdpByOwner(suite.ctx, c)
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
-		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c, cr)
+		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral[0].Denom, c.ID, cr)
 	}
 	xrpCdps := suite.keeper.GetAllCdpsByDenom(suite.ctx, "xrp")
 	suite.Equal(3, len(xrpCdps))
@@ -236,7 +242,7 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 		suite.keeper.SetCDP(suite.ctx, c)
 		suite.keeper.IndexCdpByOwner(suite.ctx, c)
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
-		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c, cr)
+		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral[0].Denom, c.ID, cr)
 	}
 	xrpCdps := suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("1.25"))
 	suite.Equal(0, len(xrpCdps))
@@ -248,7 +254,8 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	suite.Equal(3, len(xrpCdps))
 	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
-	suite.keeper.RemoveCdpLiquidationRatioIndex(suite.ctx, cdps[0])
+	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdps[0].Collateral, cdps[0].Principal)
+	suite.keeper.RemoveCdpCollateralRatioIndex(suite.ctx, cdps[0].Collateral[0].Denom, cdps[0].ID, cr)
 	xrpCdps = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("2.0").Add(sdk.SmallestDec()))
 	suite.Equal(1, len(xrpCdps))
 }
@@ -259,10 +266,10 @@ func (suite *CdpTestSuite) TestValidateCollateral() {
 	suite.NoError(err)
 	c = sdk.NewCoins(sdk.NewCoin("lol", sdk.NewInt(1)))
 	err = suite.keeper.ValidateCollateral(suite.ctx, c)
-	suite.Error(err)
+	suite.Equal(types.CodeCollateralNotSupported, err.Result().Code)
 	c = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1)), sdk.NewCoin("xrp", sdk.NewInt(1)))
 	err = suite.keeper.ValidateCollateral(suite.ctx, c)
-	suite.Error(err)
+	suite.Equal(types.CodeCollateralLengthInvalid, err.Result().Code)
 }
 
 func (suite *CdpTestSuite) TestValidatePrincipal() {
@@ -274,10 +281,10 @@ func (suite *CdpTestSuite) TestValidatePrincipal() {
 	suite.NoError(err)
 	d = sdk.NewCoins(sdk.NewCoin("xusd", sdk.NewInt(1)))
 	err = suite.keeper.ValidatePrincipal(suite.ctx, d)
-	suite.Error(err)
+	suite.Equal(types.CodeDebtNotSupported, err.Result().Code)
 	d = sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000000000001)))
 	err = suite.keeper.ValidatePrincipal(suite.ctx, d)
-	suite.Error(err)
+	suite.Equal(types.CodeExceedsDebtLimit, err.Result().Code)
 }
 
 func (suite *CdpTestSuite) TestCalculateCollateralizationRatio() {
@@ -285,7 +292,7 @@ func (suite *CdpTestSuite) TestCalculateCollateralizationRatio() {
 	suite.keeper.SetCDP(suite.ctx, c)
 	suite.keeper.IndexCdpByOwner(suite.ctx, c)
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
-	suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c, cr)
+	suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral[0].Denom, c.ID, cr)
 	cr, err := suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees)
 	suite.NoError(err)
 	suite.Equal(d("2.5"), cr)
