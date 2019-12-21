@@ -151,7 +151,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
-	liquidatorSubspace := app.paramsKeeper.Subspace(liquidator.DefaultParamspace)
+	//liquidatorSubspace := app.paramsKeeper.Subspace(liquidator.DefaultParamspace)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 
 	// add keepers
@@ -237,16 +237,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.bankKeeper)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
-		app.cdpKeeper, // CDP keeper standing in for bank
 		keys[auction.StoreKey],
+		app.supplyKeeper, // CDP keeper standing in for bank
 		auctionSubspace)
-	app.liquidatorKeeper = liquidator.NewKeeper(
-		app.cdc,
-		keys[liquidator.StoreKey],
-		liquidatorSubspace,
-		app.cdpKeeper,
-		app.auctionKeeper,
-		app.cdpKeeper) // CDP keeper standing in for bank
+	// app.liquidatorKeeper = liquidator.NewKeeper(
+	// 	app.cdc,
+	// 	keys[liquidator.StoreKey],
+	// 	liquidatorSubspace,
+	// 	app.cdpKeeper,
+	// 	app.auctionKeeper,
+	// 	app.cdpKeeper) // CDP keeper standing in for bank
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks

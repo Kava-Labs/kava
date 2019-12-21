@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -294,4 +295,9 @@ func (k Keeper) PayoutAuctionLot(ctx sdk.Context, a types.Auction) sdk.Error {
 		return err
 	}
 	return nil
+}
+
+// FIXME stand in func for compiler
+func earliestTime(t1, t2 time.Time) time.Time {
+	return t1
 }

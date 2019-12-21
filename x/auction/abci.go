@@ -7,17 +7,16 @@ import (
 // EndBlocker runs at the end of every block.
 func EndBlocker(ctx sdk.Context, k Keeper) {
 
-	// get an iterator of expired auctions
-	expiredAuctions := k.GetQueueIterator(ctx, EndTime(ctx.BlockHeight()))
-	defer expiredAuctions.Close()
-
-	// loop through and close them - distribute funds, delete from store (and queue)
-	for ; expiredAuctions.Valid(); expiredAuctions.Next() {
-
-		auctionID := k.DecodeAuctionID(ctx, expiredAuctions.Value())
-		err := k.CloseAuction(ctx, auctionID)
+	var expiredAuctions []ID
+	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id ID) bool {
+		expiredAuctions = append(expiredAuctions, id)
+		return false
+	})
+	// Note: iteration and auction closing are in separate loops as db should not be modified during iteration // TODO is this correct? gov modifies during iteration
+	for _, id := range expiredAuctions {
+		err := k.CloseAuction(ctx, id)
 		if err != nil {
-			panic(err) // TODO how should errors be handled here?
+			panic(err)
 		}
 	}
 }

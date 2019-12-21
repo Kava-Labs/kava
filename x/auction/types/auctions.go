@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"time"
@@ -8,6 +9,27 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
+
+// ID type for auction IDs
+type ID uint64
+
+// NewIDFromString generate new auction ID from a string
+func NewIDFromString(s string) (ID, error) {
+	n, err := strconv.ParseUint(s, 10, 64) // copied from how the gov module rest handler's parse proposal IDs
+	if err != nil {
+		return 0, err
+	}
+	return ID(n), nil
+}
+func NewIDFromBytes(bz []byte) ID {
+	return ID(binary.BigEndian.Uint64(bz))
+
+}
+func (id ID) Bytes() []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(id))
+	return bz
+}
 
 // Auction is an interface to several types of auction.
 type Auction interface {
@@ -29,23 +51,11 @@ type BaseAuction struct {
 	MaxEndTime time.Time      // Maximum closing time. Auctions can close before this but never after.
 }
 
-// ID type for auction IDs
-type ID uint64
-
-// NewIDFromString generate new auction ID from a string
-func NewIDFromString(s string) (ID, error) {
-	n, err := strconv.ParseUint(s, 10, 64) // copied from how the gov module rest handler's parse proposal IDs
-	if err != nil {
-		return 0, err
-	}
-	return ID(n), nil
-}
-
 // GetID getter for auction ID
 func (a *BaseAuction) GetID() ID { return a.ID }
 
 // SetID setter for auction ID
-func (a *BaseAuction) SetID(id ID) { a.ID = id }
+func (a *BaseAuction) SetID(id ID) { a.ID = id } // TODO if this returns a new auction with ID then no pointers are needed
 
 // GetBid getter for auction bid
 func (a *BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
@@ -76,15 +86,15 @@ type ForwardAuction struct {
 }
 
 // NewForwardAuction creates a new forward auction
-func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, EndTime time.Time) ForwardAuction {
+func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) ForwardAuction {
 	auction := ForwardAuction{&BaseAuction{
 		// no ID
 		Initiator:  seller,
 		Lot:        lot,
 		Bidder:     nil, // TODO on the first place bid, 0 coins will be sent to this address, check if this causes problems or can be avoided
 		Bid:        sdk.NewInt64Coin(bidDenom, 0),
-		EndTime:    EndTime,
-		MaxEndTime: EndTime,
+		EndTime:    endTime,
+		MaxEndTime: endTime,
 	}}
 	// output := BankOutput{seller, lot}
 	return auction

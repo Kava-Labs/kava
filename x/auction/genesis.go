@@ -18,13 +18,10 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 	params := keeper.GetParams(ctx)
 
 	var genAuctions GenesisAuctions
-	iterator := keeper.GetAuctionIterator(ctx)
+	keeper.IterateAuctions(ctx, func(a Auction) bool {
+		genAuctions = append(genAuctions, a)
+		return false
+	})
 
-	for ; iterator.Valid(); iterator.Next() {
-
-		auction := keeper.DecodeAuction(ctx, iterator.Value())
-		genAuctions = append(genAuctions, auction)
-
-	}
 	return NewGenesisState(params, genAuctions)
 }

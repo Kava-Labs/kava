@@ -49,13 +49,9 @@ type (
 	Auction               = types.Auction
 	BaseAuction           = types.BaseAuction
 	ID                    = types.ID
-	EndTime               = types.EndTime
-	BankInput             = types.BankInput
-	BankOutput            = types.BankOutput
 	ForwardAuction        = types.ForwardAuction
 	ReverseAuction        = types.ReverseAuction
 	ForwardReverseAuction = types.ForwardReverseAuction
-	BankKeeper            = types.BankKeeper
 	GenesisAuctions       = types.GenesisAuctions
 	GenesisState          = types.GenesisState
 	MsgPlaceBid           = types.MsgPlaceBid
