@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Deposit defines an amount deposited by an account address to a cdp
+// Deposit defines an amount of coins deposited by an account to a cdp
 type Deposit struct {
 	CdpID         uint64         `json:"cdp_id" yaml:"cdp_id"`       //  cdpID of the cdp
 	Depositor     sdk.AccAddress `json:"depositor" yaml:"depositor"` //  Address of the depositor
@@ -14,7 +14,7 @@ type Deposit struct {
 	InLiquidation bool           `json:"in_liquidation" yaml:"in_liquidation"`
 }
 
-// NewDeposit creates a new Deposit instance
+// NewDeposit creates a new Deposit object
 func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coins) Deposit {
 	return Deposit{cdpID, depositor, amount, false}
 }
@@ -28,7 +28,7 @@ func (d Deposit) String() string {
 		d.CdpID, d.Depositor, d.Amount, d.InLiquidation)
 }
 
-// Deposits is a collection of Deposit objects
+// Deposits a collection of Deposit objects
 type Deposits []Deposit
 
 // String implements fmt.Stringer

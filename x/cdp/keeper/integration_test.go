@@ -45,7 +45,7 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 					Denom:            asset,
 					LiquidationRatio: liquidationRatio,
 					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
-					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"),
+					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					Prefix:           0x20,
 					MarketID:         asset + ":usd",
 				},
@@ -58,9 +58,10 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				},
 			},
 		},
-		StartingCdpID: cdp.DefaultCdpStartingID,
-		DebtDenom:     cdp.DefaultDebtDenom,
-		CDPs:          cdp.CDPs{},
+		StartingCdpID:     cdp.DefaultCdpStartingID,
+		DebtDenom:         cdp.DefaultDebtDenom,
+		CDPs:              cdp.CDPs{},
+		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -99,7 +100,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					Denom:            "xrp",
 					LiquidationRatio: sdk.MustNewDecFromStr("2.0"),
 					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
-					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"),
+					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					Prefix:           0x20,
 					MarketID:         "xrp:usd",
 				},
@@ -107,7 +108,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					Denom:            "btc",
 					LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
 					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
-					StabilityFee:     sdk.MustNewDecFromStr("1.000000000782997609"),
+					StabilityFee:     sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					Prefix:           0x21,
 					MarketID:         "btc:usd",
 				},
@@ -125,9 +126,10 @@ func NewCDPGenStateMulti() app.GenesisState {
 				},
 			},
 		},
-		StartingCdpID: cdp.DefaultCdpStartingID,
-		DebtDenom:     cdp.DefaultDebtDenom,
-		CDPs:          cdp.CDPs{},
+		StartingCdpID:     cdp.DefaultCdpStartingID,
+		DebtDenom:         cdp.DefaultDebtDenom,
+		CDPs:              cdp.CDPs{},
+		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }

@@ -28,6 +28,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
+// query a specific cdp
 func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var requestParams types.QueryCdpParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
@@ -53,6 +54,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 }
 
+// query cdps with matching denom and ratio LESS THAN the input ratio
 func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var requestParams types.QueryCdpsByRatioParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
@@ -72,6 +74,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
+// query all cdps with matching collateral denom
 func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var requestParams types.QueryCdpsParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
@@ -91,6 +94,7 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
+// query params in the cdp store
 func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	// Get params
 	params := keeper.GetParams(ctx)

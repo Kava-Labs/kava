@@ -2,26 +2,29 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // Parameter keys
 var (
 	// ParamStoreKeyAuctionParams Param store key for auction params
-	KeyGlobalDebtLimit      = []byte("GlobalDebtLimit")
-	KeyCollateralParams     = []byte("CollateralParams")
-	KeyDebtParams           = []byte("DebtParams")
-	KeyCircuitBreaker       = []byte("CircuitBreaker")
-	DefaultGlobalDebt       = sdk.Coins{}
-	DefaultCircuitBreaker   = false
-	DefaultCollateralParams = CollateralParams{}
-	DefaultDebtParams       = DebtParams{}
-	DefaultCdpStartingID    = uint64(1)
-	DefaultDebtDenom        = "debt"
-	minCollateralPrefix     = 32
-	maxCollateralPrefix     = 255
+	KeyGlobalDebtLimit       = []byte("GlobalDebtLimit")
+	KeyCollateralParams      = []byte("CollateralParams")
+	KeyDebtParams            = []byte("DebtParams")
+	KeyCircuitBreaker        = []byte("CircuitBreaker")
+	DefaultGlobalDebt        = sdk.Coins{}
+	DefaultCircuitBreaker    = false
+	DefaultCollateralParams  = CollateralParams{}
+	DefaultDebtParams        = DebtParams{}
+	DefaultCdpStartingID     = uint64(1)
+	DefaultDebtDenom         = "debt"
+	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
+	minCollateralPrefix      = 32
+	maxCollateralPrefix      = 255
 )
 
 // Params governance parameters for cdp module
@@ -151,6 +154,10 @@ func (p Params) Validate() error {
 		}
 		debtParamsDebtLimit = debtParamsDebtLimit.Add(dp.DebtLimit)
 	}
+	if !debtParamsDebtLimit.DenomsSubsetOf(p.GlobalDebtLimit) {
+		return fmt.Errorf("debt denom not found in global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
+			p.GlobalDebtLimit, debtParamsDebtLimit)
+	}
 	if debtParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
 		return fmt.Errorf("debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
 			p.GlobalDebtLimit, debtParamsDebtLimit)
@@ -166,7 +173,7 @@ func (p Params) Validate() error {
 		}
 		_, found := prefixDupMap[prefix]
 		if found {
-			return fmt.Errorf("duplicate prefix for collateral denom %s: %b", cp.Denom, cp.Prefix)
+			return fmt.Errorf("duplicate prefix for collateral denom %s: %v", cp.Denom, []byte{cp.Prefix})
 		}
 
 		prefixDupMap[prefix] = 1
@@ -181,6 +188,17 @@ func (p Params) Validate() error {
 			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)
 		}
 		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit)
+
+		for _, dc := range cp.DebtLimit {
+			_, found := debtDenoms[dc.Denom]
+			if !found {
+				return fmt.Errorf("debt limit for collateral %s contains invalid debt denom %s", cp.Denom, dc.Denom)
+			}
+		}
+		if cp.DebtLimit.IsAnyGT(p.GlobalDebtLimit) {
+			return fmt.Errorf("collateral debt limit for %s exceeds global debt limit: \n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
+				cp.Denom, p.GlobalDebtLimit, cp.DebtLimit)
+		}
 	}
 	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
 		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",

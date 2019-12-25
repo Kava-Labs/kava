@@ -11,6 +11,7 @@ import (
 
 // AddCdp adds a cdp for a specific owner and collateral type
 func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins) sdk.Error {
+	// validation
 	err := k.ValidateCollateral(ctx, collateral)
 	if err != nil {
 		return err
@@ -31,6 +32,8 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if collateralRatio.LT(liquidationRatio) {
 		return types.ErrInvalidCollateralRatio(k.codespace, collateral[0].Denom, collateralRatio, liquidationRatio)
 	}
+
+	// send coins from the owners account to the cdp module
 	id := k.GetNextCdpID(ctx)
 	cdp := types.NewCDP(id, owner, collateral, principal, ctx.BlockHeader().Time)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
@@ -38,6 +41,8 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if err != nil {
 		return err
 	}
+
+	// mint the principal and send to the owners account
 	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, principal)
 	if err != nil {
 		panic(err)
@@ -47,11 +52,13 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 		panic(err)
 	}
 
+	// mint the corresponding amount of debt coins
 	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), principal)
 	if err != nil {
 		panic(err)
 	}
 
+	// emit events for cdp creation, deposit, and draw
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateCdp,
@@ -72,7 +79,11 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
+
+	// update total principal for input collateral type
 	k.IncrementTotalPrincipal(ctx, collateral[0].Denom, principal)
+
+	// create the cdp, deposit, and indexes in the store
 	k.SetCDP(ctx, cdp)
 	k.SetDeposit(ctx, deposit, id)
 	k.SetNextCdpID(ctx, id+1)

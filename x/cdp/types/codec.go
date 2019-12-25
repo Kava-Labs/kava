@@ -12,7 +12,7 @@ func init() {
 	ModuleCdc = cdc.Seal()
 }
 
-// RegisterCodec registers concrete types on the codec.
+// RegisterCodec registers the necessary types for cdp module
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateCDP{}, "cdp/MsgCreateCDP", nil)
 	cdc.RegisterConcrete(MsgDeposit{}, "cdp/MsgDeposit", nil)

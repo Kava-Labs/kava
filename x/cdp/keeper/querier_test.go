@@ -96,6 +96,17 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	suite.Error(err)
 
 	query = abci.RequestQuery{
+		Path: strings.Join([]string{custom, "nonsense"}, "/"),
+		Data: []byte("nonsense"),
+	}
+
+	_, err = suite.querier(ctx, []string{query.Path}, query)
+	suite.Error(err)
+
+	_, err = suite.querier(ctx, []string{types.QueryGetCdp}, query)
+	suite.Error(err)
+
+	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
 		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, "xrp")),
 	}
@@ -203,6 +214,11 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 
 	var p types.Params
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &p))
+
+	cdpGS := NewCDPGenStateMulti()
+	gs := types.GenesisState{}
+	types.ModuleCdc.UnmarshalJSON(cdpGS["cdp"], &gs)
+	suite.Equal(gs.Params, p)
 }
 
 func TestQuerierTestSuite(t *testing.T) {

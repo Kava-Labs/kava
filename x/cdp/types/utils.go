@@ -60,8 +60,8 @@ func ParseDecBytes(db []byte) (sdk.Dec, error) {
 	return dec, nil
 }
 
-// RelativePow raises x to the power of n, where x (and the result, z) are scaled by factor b
-// for example, RelativePow(210, 2, 100) = 441 (2.1^2 = 4.41)
+// RelativePow raises x to the power of n, where x (and the result, z) are scaled by factor b.
+// For example, RelativePow(210, 2, 100) = 441 (2.1^2 = 4.41)
 // Only defined for positive ints.
 func RelativePow(x sdk.Int, n sdk.Int, b sdk.Int) (z sdk.Int) {
 	if x.IsZero() {

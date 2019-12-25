@@ -18,6 +18,7 @@ type CDP struct {
 	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"` // Amount of stable coin drawn from this CDP
 }
 
+// NewCDP creates a new CDP object
 func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins, time time.Time) CDP {
 	return CDP{
 		ID:              id,
@@ -49,7 +50,7 @@ func (cdp CDP) String() string {
 	))
 }
 
-// CDPs array of CDP
+// CDPs a collection of CDP objects
 type CDPs []CDP
 
 // String implements stringer

@@ -9,6 +9,7 @@ import (
 
 // AddPrincipal adds debt to a cdp if the additional debt does not put the cdp below the liquidation ratio
 func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, principal sdk.Coins) sdk.Error {
+	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
@@ -17,8 +18,12 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if err != nil {
 		return err
 	}
+
+	// fee calculation
 	periods := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+
+	// validate that adding principal doesn't put the cdp below the liquidation ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal), cdp.AccumulatedFees.Add(fees))
 	if err != nil {
 		return err
@@ -27,6 +32,8 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if collateralizationRatio.LT(liquidationRatio) {
 		return types.ErrInvalidCollateralRatio(k.codespace, denom, collateralizationRatio, liquidationRatio)
 	}
+
+	// mint the principal and send it to the cdp owner
 	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, principal)
 	if err != nil {
 		panic(err)
@@ -36,10 +43,13 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 		panic(err)
 	}
 
+	// mint the corresponding amount of debt coins in the cdp module account
 	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), principal)
 	if err != nil {
 		panic(err)
 	}
+
+	// emit cdp draw event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpDraw,
@@ -47,13 +57,20 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
+
+	// remove old collateral:debt index
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
 
+	// update cdp state
 	cdp.Principal = cdp.Principal.Add(principal)
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
 	cdp.FeesUpdated = ctx.BlockTime()
+
+	// increment total principal for the input collateral type
 	k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, principal)
+
+	// set cdp state and indexes in the store
 	k.SetCDP(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 	k.IndexCdpByCollateralRatio(ctx, denom, cdp.ID, collateralToDebtRatio)
@@ -64,6 +81,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 // RepayPrincipal removes debt from the cdp
 // If all debt is repaid, the collateral is returned to depositors and the cdp is removed from the store
 func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, payment sdk.Coins) sdk.Error {
+	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
@@ -72,22 +90,33 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if err != nil {
 		return err
 	}
+
+	// calculate fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+
+	// calculate fee and principal payment
 	feePayment, principalPayment := k.calculatePayment(ctx, cdp.AccumulatedFees.Add(fees), payment)
+
+	// send the payment from the sender to the cpd module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, payment)
 	if err != nil {
 		return err
 	}
+
+	// burn the payment coins
 	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, payment)
 	if err != nil {
 		panic(err)
 	}
+
+	// burn the corresponding amount of debt coins
 	err = k.BurnDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), payment)
 	if err != nil {
 		panic(err)
 	}
 
+	// emit repayment event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpRepay,
@@ -96,21 +125,28 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		),
 	)
 
+	// remove the old collateral:debt ratio index
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
 
+	// update cdp state
 	if !principalPayment.IsZero() {
 		cdp.Principal = cdp.Principal.Sub(principalPayment)
 	}
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees).Sub(feePayment)
 	cdp.FeesUpdated = ctx.BlockTime()
 
+	// decrement the total principal for the input collateral type
 	k.DecrementTotalPrincipal(ctx, denom, payment)
 
+	// if the debt is fully paid, return collateral to depositors,
+	// and remove the cdp and indexes from the store
 	if cdp.Principal.IsZero() && cdp.AccumulatedFees.IsZero() {
 		k.ReturnCollateral(ctx, cdp)
 		k.DeleteCDP(ctx, cdp)
 		k.RemoveCdpOwnerIndex(ctx, cdp)
+
+		// emit cdp close event
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCdpClose,
@@ -119,6 +155,8 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		)
 		return nil
 	}
+
+	// set cdp state and update indexes
 	k.SetCDP(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 	k.IndexCdpByCollateralRatio(ctx, denom, cdp.ID, collateralToDebtRatio)
@@ -155,6 +193,7 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 }
 
 func (k Keeper) calculatePayment(ctx sdk.Context, fees sdk.Coins, payment sdk.Coins) (sdk.Coins, sdk.Coins) {
+	// divides repayment into principal and fee components, with fee payment applied first.
 	feePayment := sdk.NewCoins()
 	principalPayment := sdk.NewCoins()
 	if fees.IsZero() {

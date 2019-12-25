@@ -41,6 +41,9 @@ var sep = []byte(":")
 // - Ox03: nextCdpID
 // - 0x04: debtDenom
 // - 0x05<cdpID>:<depositorAddr_bytes>: Deposit
+// - 0x06<denom>:totalPrincipal
+// - 0x07<denom>:feeRate
+// - 0x08:previousBlockTime
 // - 0x20 - 0xff are reserved for collaterals
 
 var (
@@ -52,6 +55,7 @@ var (
 	DepositKeyPrefix           = []byte{0x05}
 	PrincipalKeyPrefix         = []byte{0x06}
 	AccumulatorKeyPrefix       = []byte{0x07}
+	PreviousBlockTimeKey       = []byte{0x08}
 )
 
 var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))

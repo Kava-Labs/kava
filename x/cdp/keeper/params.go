@@ -52,6 +52,8 @@ func (k Keeper) GetDenomPrefix(ctx sdk.Context, denom string) (byte, bool) {
 	return 0x00, false
 }
 
+// private methods panic if the input is invalid
+
 func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
 	params := k.GetParams(ctx)
 	for _, cp := range params.CollateralParams {

@@ -18,9 +18,16 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
+	// deposits blocked if cdp is in liquidation, have to check all deposits
+	deposits := k.GetDeposits(ctx, cdp.ID)
+	for _, d := range deposits {
+		if d.InLiquidation {
+			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
+		}
+	}
+
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if found {
-		// TODO should deposits be allowed when the current deposit is InLiquidation?
 		deposit.Amount = deposit.Amount.Add(collateral)
 	} else {
 		deposit = types.NewDeposit(cdp.ID, depositor, collateral)
