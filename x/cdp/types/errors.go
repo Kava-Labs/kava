@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// codes for cdp errors
+// Error codes specific to cdp module
 const (
 	DefaultCodespace            sdk.CodespaceType = ModuleName
 	CodeCdpAlreadyExists        sdk.CodeType      = 1
@@ -24,6 +24,7 @@ const (
 	CodeInvalidCollateralDenom  sdk.CodeType      = 12
 	CodeInvalidWithdrawAmount   sdk.CodeType      = 13
 	CodeCdpNotAvailable         sdk.CodeType      = 14
+	CodeBelowDebtFloor          sdk.CodeType      = 15
 )
 
 // ErrCdpAlreadyExists error for duplicate cdps
@@ -94,4 +95,9 @@ func ErrInvalidWithdrawAmount(codespace sdk.CodespaceType, withdraw sdk.Coins, d
 //ErrCdpNotAvailable error for depositing to a CDP in liquidation
 func ErrCdpNotAvailable(codespace sdk.CodespaceType, cdpID uint64) sdk.Error {
 	return sdk.NewError(codespace, CodeCdpNotAvailable, fmt.Sprintf("cannot deposit, cdp %d in liquidation", cdpID))
+}
+
+// ErrBelowDebtFloor error for creating a cdp with debt below the minimum
+func ErrBelowDebtFloor(codespace sdk.CodespaceType, debt sdk.Coins, floor sdk.Int) sdk.Error {
+	return sdk.NewError(codespace, CodeBelowDebtFloor, fmt.Sprintf("proposed cdp debt of %s is below the minimum of %s", debt, floor))
 }

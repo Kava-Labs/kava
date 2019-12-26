@@ -14,7 +14,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	err := k.ValidatePrincipal(ctx, principal)
+	err := k.ValidatePrincipalDraw(ctx, principal)
 	if err != nil {
 		return err
 	}

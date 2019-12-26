@@ -1,7 +1,6 @@
 package types
 
-// cdp module event types
-
+// Event types for cdp module
 const (
 	EventTypeCreateCdp      = "create_cdp"
 	EventTypeCdpDeposit     = "cdp_deposit"

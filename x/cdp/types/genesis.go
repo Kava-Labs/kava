@@ -47,13 +47,13 @@ func (gs GenesisState) Validate() error {
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent
-func (data GenesisState) Equal(data2 GenesisState) bool {
-	b1 := ModuleCdc.MustMarshalBinaryBare(data)
-	b2 := ModuleCdc.MustMarshalBinaryBare(data2)
+func (gs GenesisState) Equal(gs2 GenesisState) bool {
+	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
+	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
 	return bytes.Equal(b1, b2)
 }
 
 // IsEmpty returns true if a GenesisState is empty
-func (data GenesisState) IsEmpty() bool {
-	return data.Equal(GenesisState{})
+func (gs GenesisState) IsEmpty() bool {
+	return gs.Equal(GenesisState{})
 }

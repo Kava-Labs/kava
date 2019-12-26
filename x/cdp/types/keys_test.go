@@ -22,7 +22,7 @@ func TestKeys(t *testing.T) {
 
 	depositKey := DepositKey(2, addr)
 	id, a := SplitDepositKey(depositKey)
-	require.Equal(t, int(id), 2)
+	require.Equal(t, 2, int(id))
 	require.Equal(t, a, addr)
 
 	collateralKey := CollateralRatioKey(0x01, 2, sdk.MustNewDecFromStr("1.50"))

@@ -20,7 +20,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if found {
 		return types.ErrCdpAlreadyExists(k.codespace, owner, collateral[0].Denom)
 	}
-	err = k.ValidatePrincipal(ctx, principal)
+	err = k.ValidatePrincipalAdd(ctx, principal)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, denom string) (u
 
 // GetCdpIdsByOwner returns all the ids of cdps corresponding to a particular owner
 func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint64, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 	bz := store.Get(owner)
 	// TODO figure out why this is necessary
 	if bz == nil || bytes.Equal(bz, []byte{0}) {
@@ -227,13 +227,13 @@ func (k Keeper) GetAllCdpsByDenomAndRatio(ctx sdk.Context, denom string, targetR
 
 // SetNextCdpID sets the highest cdp id in the store
 func (k Keeper) SetNextCdpID(ctx sdk.Context, id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKey)
 	store.Set([]byte{}, types.GetCdpIDBytes(id))
 }
 
 // GetNextCdpID returns the highest cdp id from the store
 func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKey)
 	bz := store.Get([]byte{})
 	if bz == nil {
 		panic("starting cdp id not set in genesis")
@@ -244,7 +244,7 @@ func (k Keeper) GetNextCdpID(ctx sdk.Context) (id uint64) {
 
 // IndexCdpByOwner sets the cdp id in the store, indexed by the owner
 func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 
 	if !found {
@@ -263,7 +263,7 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 
 // RemoveCdpOwnerIndex deletes the cdp id from the store's index of cdps by owner
 func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIdKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, cdp.Owner)
 	if !found {
 		return
@@ -325,8 +325,25 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) sdk.Er
 	return nil
 }
 
-// ValidatePrincipal validates that an asset is valid for use as debt in cdps
-func (k Keeper) ValidatePrincipal(ctx sdk.Context, principal sdk.Coins) sdk.Error {
+// ValidatePrincipalAdd validates that an asset is valid for use as debt when creating a new cdp
+func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.Error {
+	for _, dc := range principal {
+		dp, found := k.GetDebt(ctx, dc.Denom)
+		if !found {
+			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
+		}
+		if sdk.NewCoins(dc).IsAnyGT(dp.DebtLimit) {
+			return types.ErrExceedsDebtLimit(k.codespace, sdk.NewCoins(dc), dp.DebtLimit)
+		}
+		if dc.Amount.LT(dp.DebtFloor) {
+			return types.ErrBelowDebtFloor(k.codespace, sdk.NewCoins(dc), dp.DebtFloor)
+		}
+	}
+	return nil
+}
+
+// ValidatePrincipalDraw validates that an asset is valid for use as debt when drawing debt off an existing cdp
+func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.Error {
 	for _, dc := range principal {
 		dp, found := k.GetDebt(ctx, dc.Denom)
 		if !found {

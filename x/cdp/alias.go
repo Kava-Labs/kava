@@ -26,6 +26,7 @@ const (
 	CodeInvalidCollateralDenom      = types.CodeInvalidCollateralDenom
 	CodeInvalidWithdrawAmount       = types.CodeInvalidWithdrawAmount
 	CodeCdpNotAvailable             = types.CodeCdpNotAvailable
+	CodeBelowDebtFloor              = types.CodeBelowDebtFloor
 	EventTypeCreateCdp              = types.EventTypeCreateCdp
 	EventTypeCdpDeposit             = types.EventTypeCdpDeposit
 	EventTypeCdpDraw                = types.EventTypeCdpDraw
@@ -69,6 +70,7 @@ var (
 	ErrInvalidCollateralDenom   = types.ErrInvalidCollateralDenom
 	ErrInvalidWithdrawAmount    = types.ErrInvalidWithdrawAmount
 	ErrCdpNotAvailable          = types.ErrCdpNotAvailable
+	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetCdpIDBytes               = types.GetCdpIDBytes
 	GetCdpIDFromBytes           = types.GetCdpIDFromBytes
@@ -103,10 +105,10 @@ var (
 
 	// variable aliases
 	ModuleCdc                  = types.ModuleCdc
-	CdpIdKeyPrefix             = types.CdpIdKeyPrefix
+	CdpIDKeyPrefix             = types.CdpIDKeyPrefix
 	CdpKeyPrefix               = types.CdpKeyPrefix
 	CollateralRatioIndexPrefix = types.CollateralRatioIndexPrefix
-	CdpIdKey                   = types.CdpIdKey
+	CdpIDKey                   = types.CdpIDKey
 	DebtDenomKey               = types.DebtDenomKey
 	DepositKeyPrefix           = types.DepositKeyPrefix
 	PrincipalKeyPrefix         = types.PrincipalKeyPrefix

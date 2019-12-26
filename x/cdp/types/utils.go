@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// MaxSortableDec largest sortable sdk.Dec
 var MaxSortableDec = sdk.OneDec().Quo(sdk.SmallestDec())
 
 // ValidSortableDec sdk.Dec can't have precision of less than 10^-18

@@ -26,10 +26,6 @@ const (
 
 var sep = []byte(":")
 
-// 1. CDPs are only stored if they have >0 debt
-// 2. When a CDPs debt is fully repaid, it is removed from the store
-//
-
 // Keys for cdp store
 // Items are stored with the following key: values
 // - 0x00<cdpOwner_Bytes>: []cdpID
@@ -46,11 +42,12 @@ var sep = []byte(":")
 // - 0x08:previousBlockTime
 // - 0x20 - 0xff are reserved for collaterals
 
+// KVStore key prefixes
 var (
-	CdpIdKeyPrefix             = []byte{0x00}
+	CdpIDKeyPrefix             = []byte{0x00}
 	CdpKeyPrefix               = []byte{0x01}
 	CollateralRatioIndexPrefix = []byte{0x02}
-	CdpIdKey                   = []byte{0x03}
+	CdpIDKey                   = []byte{0x03}
 	DebtDenomKey               = []byte{0x04}
 	DepositKeyPrefix           = []byte{0x05}
 	PrincipalKeyPrefix         = []byte{0x06}
@@ -104,8 +101,9 @@ func DepositKey(cdpID uint64, depositor sdk.AccAddress) []byte {
 
 // SplitDepositKey returns the component parts of a cdp key
 func SplitDepositKey(key []byte) (uint64, sdk.AccAddress) {
-	split := bytes.Split(key, sep)
-	return GetCdpIDFromBytes(split[0]), split[1]
+	cdpID := GetCdpIDFromBytes(key[:8])
+	addr := key[9:]
+	return cdpID, addr
 }
 
 // CollateralRatioBytes returns the liquidation ratio as sortable bytes

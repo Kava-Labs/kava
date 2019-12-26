@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Querier routes for the cdp module
 const (
 	QueryGetCdp                     = "cdp"
 	QueryGetCdps                    = "cdps"
@@ -40,10 +41,10 @@ type QueryCdpParams struct {
 	Owner           sdk.AccAddress // get CDPs belonging to this owner
 }
 
-// QueryCdpsByCollateralizationParams params for query /cdp/cdps/collateralization
+// QueryCdpsByRatioParams params for query /cdp/cdps/ratio
 type QueryCdpsByRatioParams struct {
 	CollateralDenom string  // get CDPs with this collateral denom
-	Ratio           sdk.Dec // get CDPs that will be below the liquidation ratio when the collateral is at this price.
+	Ratio           sdk.Dec // get CDPs below this collateral:debt ratio
 }
 
 // NewQueryCdpsByRatioParams returns QueryCdpsByRatioParams

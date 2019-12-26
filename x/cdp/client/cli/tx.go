@@ -31,7 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cdpTxCmd
 }
 
-// GetCmdCreateCdp cli command for creating a cdp.
+// GetCmdCreateCdp returns the command handler for creating a cdp
 func GetCmdCreateCdp(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create [ownerAddress] [collateralChange] [debtChange]",
