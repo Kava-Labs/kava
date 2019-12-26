@@ -66,10 +66,10 @@ type CollateralParam struct {
 	Denom            string    `json:"denom" yaml:"denom"`                         // Coin name of collateral type
 	LiquidationRatio sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"` // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
 	DebtLimit        sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
-	StabilityFee     sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`
+	StabilityFee     sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`         // per second stability fee for loans opened using this collateral
 	Prefix           byte      `json:"prefix" yaml:"prefix"`
-	MarketID         string    `json:"market_id" yaml:"market_id"`
-	//DebtFloor        sdk.Int // used to prevent dust
+	MarketID         string    `json:"market_id" yaml:"market_id"`                 // marketID for fetching price of the asset from the pricefeed
+	ConversionFactor sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"` // factor for converting internal units to one base unit of collateral
 }
 
 // String implements fmt.Stringer
@@ -80,8 +80,9 @@ func (cp CollateralParam) String() string {
 	Stability Fee: %s
 	Debt Limit: %s
 	Prefix: %b
-	Market ID: %s`,
-		cp.Denom, cp.LiquidationRatio, cp.StabilityFee, cp.DebtLimit, cp.Prefix, cp.MarketID)
+	Market ID: %s
+	Conversion Factor: %s`,
+		cp.Denom, cp.LiquidationRatio, cp.StabilityFee, cp.DebtLimit, cp.Prefix, cp.MarketID, cp.ConversionFactor)
 }
 
 // CollateralParams array of CollateralParam
@@ -98,16 +99,20 @@ func (cps CollateralParams) String() string {
 
 // DebtParam governance params for debt assets
 type DebtParam struct {
-	Denom          string    `json:"denom" yaml:"denom"`
-	ReferenceAsset string    `json:"reference_asset" yaml:"reference_asset"`
-	DebtLimit      sdk.Coins `json:"debt_limit" yaml:"debt_limit"`
+	Denom            string    `json:"denom" yaml:"denom"`
+	ReferenceAsset   string    `json:"reference_asset" yaml:"reference_asset"`
+	DebtLimit        sdk.Coins `json:"debt_limit" yaml:"debt_limit"`
+	ConversionFactor sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"`
+	DebtFloor        sdk.Int   `json:"debt_floor" yaml:"debt_floor"` // minimum active loan size, used to prevent dust
 }
 
 func (dp DebtParam) String() string {
 	return fmt.Sprintf(`Debt:
 	Denom: %s
-	ReferenceAsset: %s
-	DebtLimit: %s`, dp.Denom, dp.ReferenceAsset, dp.DebtLimit)
+	Reference Asset: %s
+	Debt Limit: %s
+	Conversion Factor: %s
+	Debt Floot %s`, dp.Denom, dp.ReferenceAsset, dp.DebtLimit, dp.ConversionFactor, dp.DebtFloor)
 }
 
 // DebtParams array of DebtParam

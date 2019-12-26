@@ -41,7 +41,7 @@ func (suite *SeizeTestSuite) SetupTest() {
 	tracker := liquidationTracker{}
 
 	for j := 0; j < 100; j++ {
-		coins = append(coins, cs(c("btc", 1), c("xrp", 10000)))
+		coins = append(coins, cs(c("btc", 100000000), c("xrp", 10000000000)))
 	}
 
 	authGS := app.NewAuthGenState(
@@ -58,23 +58,24 @@ func (suite *SeizeTestSuite) SetupTest() {
 
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
-		amount := 10000
-		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 750, 1249)
+		amount := 10000000000
+		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 750000000, 1249000000)
 		if j%2 == 0 {
 			collateral = "btc"
-			amount = 1
-			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700, 5332)
-			if debt >= 4000 {
+			amount = 100000000
+			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700000000, 5332000000)
+			if debt >= 4000000000 {
 				tracker.btc = append(tracker.btc, uint64(j+1))
 				tracker.debt += int64(debt)
 			}
 		} else {
-			if debt >= 1000 {
+			if debt >= 1000000000 {
 				tracker.xrp = append(tracker.xrp, uint64(j+1))
 				tracker.debt += int64(debt)
 			}
 		}
-		suite.Nil(suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt)))))
+		err := suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt))))
+		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
 		cdps[j] = c
@@ -124,7 +125,7 @@ func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
-	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000)).Int64())
+	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
 	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
 }
 

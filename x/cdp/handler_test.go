@@ -40,12 +40,12 @@ func (suite *HandlerTestSuite) TestMsgCreateCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
-	acc.SetCoins(cs(c("xrp", 200), c("btc", 5)))
+	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
 	ak.SetAccount(suite.ctx, acc)
 	msg := cdp.NewMsgCreateCDP(
 		addrs[0],
-		cs(c("xrp", 200)),
-		cs(c("usdx", 10)),
+		cs(c("xrp", 200000000)),
+		cs(c("usdx", 10000000)),
 	)
 	res := suite.handler(suite.ctx, msg)
 	suite.True(res.IsOK())

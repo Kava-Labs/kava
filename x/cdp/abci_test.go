@@ -40,7 +40,7 @@ func (suite *ModuleTestSuite) SetupTest() {
 	tracker := liquidationTracker{}
 
 	for j := 0; j < 100; j++ {
-		coins = append(coins, cs(c("btc", 1), c("xrp", 10000)))
+		coins = append(coins, cs(c("btc", 100000000), c("xrp", 10000000000)))
 	}
 
 	authGS := app.NewAuthGenState(
@@ -57,18 +57,18 @@ func (suite *ModuleTestSuite) SetupTest() {
 
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
-		amount := 10000
-		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 750, 1249)
+		amount := 10000000000
+		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 750000000, 1249000000)
 		if j%2 == 0 {
 			collateral = "btc"
-			amount = 1
-			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700, 5332)
-			if debt >= 4000 {
+			amount = 100000000
+			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700000000, 5332000000)
+			if debt >= 4000000000 {
 				tracker.btc = append(tracker.btc, uint64(j+1))
 				tracker.debt += int64(debt)
 			}
 		} else {
-			if debt >= 1000 {
+			if debt >= 1000000000 {
 				tracker.xrp = append(tracker.xrp, uint64(j+1))
 				tracker.debt += int64(debt)
 			}
@@ -103,7 +103,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
 	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
-	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000)).Int64())
+	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
 	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
 
 	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
@@ -113,34 +113,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
 	finalBtcCollateral := acc.GetCoins().AmountOf("btc")
 	seizedBtcCollateral := originalBtcCollateral.Sub(finalBtcCollateral)
-	btcLiquidations := int(seizedBtcCollateral.Int64())
-	suite.Equal(len(suite.liquidations.btc), btcLiquidations)
-
-	acc = sk.GetModuleAccount(suite.ctx, "liquidator")
-	suite.Equal(suite.liquidations.debt, acc.GetCoins().AmountOf("debt").Int64())
-
-}
-
-func (suite *ModuleTestSuite) TestBeginBlockFees() {
-	sk := suite.app.GetSupplyKeeper()
-	acc := sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
-	originalXrpCollateral := acc.GetCoins().AmountOf("xrp")
-	suite.setPrice(d("0.2"), "xrp:usd")
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
-	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
-	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")
-	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
-	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000)).Int64())
-	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
-
-	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
-	originalBtcCollateral := acc.GetCoins().AmountOf("btc")
-	suite.setPrice(d("6000"), "btc:usd")
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
-	acc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
-	finalBtcCollateral := acc.GetCoins().AmountOf("btc")
-	seizedBtcCollateral := originalBtcCollateral.Sub(finalBtcCollateral)
-	btcLiquidations := int(seizedBtcCollateral.Int64())
+	btcLiquidations := int(seizedBtcCollateral.Quo(i(100000000)).Int64())
 	suite.Equal(len(suite.liquidations.btc), btcLiquidations)
 
 	acc = sk.GetModuleAccount(suite.ctx, "liquidator")

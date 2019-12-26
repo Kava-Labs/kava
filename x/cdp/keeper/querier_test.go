@@ -39,7 +39,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	coins := []sdk.Coins{}
 
 	for j := 0; j < 100; j++ {
-		coins = append(coins, cs(c("btc", 100), c("xrp", 10000)))
+		coins = append(coins, cs(c("btc", 10000000000), c("xrp", 10000000000)))
 	}
 
 	authGS := app.NewAuthGenState(
@@ -56,12 +56,12 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
-		amount := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2500, 9000)
-		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 50, 250)
+		amount := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2500000000, 9000000000)
+		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 50000000, 250000000)
 		if j%2 == 0 {
 			collateral = "btc"
-			amount = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 5, 50)
-			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 1000, 25000)
+			amount = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 500000000, 5000000000)
+			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 1000000000, 25000000000)
 		}
 		suite.Nil(suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt)))))
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))

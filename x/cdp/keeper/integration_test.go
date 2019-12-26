@@ -47,14 +47,17 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					Prefix:           0x20,
+					ConversionFactor: i(6),
 					MarketID:         asset + ":usd",
 				},
 			},
 			DebtParams: cdp.DebtParams{
 				{
-					Denom:          "usdx",
-					ReferenceAsset: "usd",
-					DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					Denom:            "usdx",
+					ReferenceAsset:   "usd",
+					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					ConversionFactor: i(6),
+					DebtFloor:        i(10000000),
 				},
 			},
 		},
@@ -103,6 +106,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					Prefix:           0x20,
 					MarketID:         "xrp:usd",
+					ConversionFactor: i(6),
 				},
 				{
 					Denom:            "btc",
@@ -111,18 +115,23 @@ func NewCDPGenStateMulti() app.GenesisState {
 					StabilityFee:     sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					Prefix:           0x21,
 					MarketID:         "btc:usd",
+					ConversionFactor: i(8),
 				},
 			},
 			DebtParams: cdp.DebtParams{
 				{
-					Denom:          "usdx",
-					ReferenceAsset: "usd",
-					DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					Denom:            "usdx",
+					ReferenceAsset:   "usd",
+					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					ConversionFactor: i(6),
+					DebtFloor:        i(10000000),
 				},
 				{
-					Denom:          "susd",
-					ReferenceAsset: "usd",
-					DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
+					Denom:            "susd",
+					ReferenceAsset:   "usd",
+					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
+					ConversionFactor: i(6),
+					DebtFloor:        i(10000000),
 				},
 			},
 		},
@@ -136,33 +145,10 @@ func NewCDPGenStateMulti() app.GenesisState {
 
 func cdps() (cdps cdp.CDPs) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(10))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8))), tmtime.Canonical(time.Now()))
-	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(100))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10))), tmtime.Canonical(time.Now()))
-	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoins(sdk.NewCoin("btc", sdk.NewInt(10))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10))), tmtime.Canonical(time.Now()))
-	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(1000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(500))), tmtime.Canonical(time.Now()))
+	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(10000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8000000))), tmtime.Canonical(time.Now()))
+	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(100000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10000000))), tmtime.Canonical(time.Now()))
+	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoins(sdk.NewCoin("btc", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10000000))), tmtime.Canonical(time.Now()))
+	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(500000000))), tmtime.Canonical(time.Now()))
 	cdps = append(cdps, c1, c2, c3, c4)
 	return
-}
-
-func params() (params cdp.Params) {
-	return cdp.Params{
-		GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
-		CollateralParams: cdp.CollateralParams{
-			{
-				Denom:            "xrp",
-				LiquidationRatio: d("1.5"),
-				DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
-				StabilityFee:     sdk.MustNewDecFromStr("1.05"),
-				Prefix:           0x20,
-				MarketID:         "xrp:usd",
-			},
-		},
-		DebtParams: cdp.DebtParams{
-			{
-				Denom:          "usdx",
-				ReferenceAsset: "usd",
-				DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
-			},
-		},
-	}
 }

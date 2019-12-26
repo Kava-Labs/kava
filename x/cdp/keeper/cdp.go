@@ -341,14 +341,18 @@ func (k Keeper) ValidatePrincipal(ctx sdk.Context, principal sdk.Coins) sdk.Erro
 
 // CalculateCollateralToDebtRatio returns the collateral to debt ratio of the input collateral and debt amounts
 func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.Coins, debt sdk.Coins) sdk.Dec {
-	debtTotal := sdk.ZeroInt()
+	debtTotal := sdk.ZeroDec()
 	for _, dc := range debt {
-		debtTotal = debtTotal.Add(dc.Amount)
+		debtBaseUnits := k.convertDebtToBaseUnits(ctx, dc)
+		debtTotal = debtTotal.Add(debtBaseUnits)
 	}
-	if debtTotal.IsZero() || sdk.NewDecFromInt(debtTotal).GTE(types.MaxSortableDec) {
+
+	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
 		return types.MaxSortableDec.Sub(sdk.SmallestDec())
 	}
-	return sdk.NewDecFromInt(collateral[0].Amount).Quo(sdk.NewDecFromInt(debtTotal))
+
+	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral[0])
+	return collateralBaseUnits.Quo(debtTotal)
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
@@ -358,15 +362,29 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	if err != nil {
 		return sdk.Dec{}, err
 	}
-
-	collateralValue := sdk.NewDecFromInt(collateral[0].Amount).Mul(price.Price)
-	principalTotal := sdk.ZeroInt()
+	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral[0])
+	collateralValue := collateralBaseUnits.Mul(price.Price)
+	principalTotal := sdk.ZeroDec()
 	for _, pc := range principal {
-		principalTotal = principalTotal.Add(pc.Amount)
+		prinicpalBaseUnits := k.convertDebtToBaseUnits(ctx, pc)
+		principalTotal = principalTotal.Add(prinicpalBaseUnits)
 	}
 	for _, fc := range fees {
-		principalTotal = principalTotal.Add(fc.Amount)
+		feeBaseUnits := k.convertDebtToBaseUnits(ctx, fc)
+		principalTotal = principalTotal.Add(feeBaseUnits)
 	}
-	collateralRatio := collateralValue.Quo(sdk.NewDecFromInt(principalTotal))
+	collateralRatio := collateralValue.Quo(principalTotal)
 	return collateralRatio, nil
+}
+
+// converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
+func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin) (baseUnits sdk.Dec) {
+	cp, _ := k.GetCollateral(ctx, collateral.Denom)
+	return sdk.NewDecFromInt(collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), cp.ConversionFactor.Int64()))
+}
+
+// converts the input debt to base units (ie multiplies the input by 10^(-ConversionFactor))
+func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdk.Dec) {
+	dp, _ := k.GetDebt(ctx, debt.Denom)
+	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
 }
