@@ -38,7 +38,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 				),
 			)
 
-			k.SetDeposit(ctx, dep, cdp.ID)
+			k.SetDeposit(ctx, dep)
 			err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, liqtypes.ModuleName, dep.Amount)
 			if err != nil {
 				panic(err)

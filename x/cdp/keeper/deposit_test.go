@@ -100,14 +100,14 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 
 	d, _ := suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
 	d.InLiquidation = true
-	suite.keeper.SetDeposit(suite.ctx, d, uint64(1))
+	suite.keeper.SetDeposit(suite.ctx, d)
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 10000000)))
 	suite.Equal(types.CodeDepositNotAvailable, err.Result().Code)
 
 	d, _ = suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
 	d.InLiquidation = false
-	suite.keeper.SetDeposit(suite.ctx, d, uint64(1))
+	suite.keeper.SetDeposit(suite.ctx, d)
 	cd, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	cd.AccumulatedFees = cs(c("usdx", 1))
 	suite.keeper.SetCDP(suite.ctx, cd)

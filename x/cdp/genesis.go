@@ -52,6 +52,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState)
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 
+	for _, d := range gs.Deposits {
+		k.SetDeposit(ctx, d)
+	}
 	// only set the previous block time if it's different than default
 	if !gs.PreviousBlockTime.Equal(DefaultPreviousBlockTime) {
 		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)

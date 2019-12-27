@@ -44,7 +44,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 		),
 	)
 
-	k.SetDeposit(ctx, deposit, cdp.ID)
+	k.SetDeposit(ctx, deposit)
 
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
@@ -111,7 +111,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
 	k.SetCDP(ctx, cdp)
 	deposit.Amount = deposit.Amount.Sub(collateral)
-	k.SetDeposit(ctx, deposit, cdp.ID)
+	k.SetDeposit(ctx, deposit)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal)
 	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, collateralToDebtRatio)
 	return nil
@@ -130,10 +130,10 @@ func (k Keeper) GetDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddre
 }
 
 // SetDeposit sets the deposit in the store
-func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit, cdpID uint64) {
+func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(deposit)
-	store.Set(types.DepositKey(cdpID, deposit.Depositor), bz)
+	store.Set(types.DepositKey(deposit.CdpID, deposit.Depositor), bz)
 }
 
 // DeleteDeposit deletes a deposit from the store

@@ -85,7 +85,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 
 	// create the cdp, deposit, and indexes in the store
 	k.SetCDP(ctx, cdp)
-	k.SetDeposit(ctx, deposit, id)
+	k.SetDeposit(ctx, deposit)
 	k.SetNextCdpID(ctx, id+1)
 	k.IndexCdpByOwner(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)

@@ -50,7 +50,7 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 		total = total.Add(cs(sdk.NewCoin("usdx", ri)))
 	}
 
-	numBlocks := []int{100, 1000, 10000, 100000, 1000000}
+	numBlocks := []int{100, 1000, 10000, 100000}
 
 	for _, nb := range numBlocks {
 		bulkFees := sdk.NewCoins()
