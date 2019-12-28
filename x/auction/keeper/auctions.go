@@ -96,7 +96,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 			return err
 		}
 	default:
-		panic("unrecognized auction type")
+		panic(fmt.Sprintf("unrecognized auction type: %T", auction))
 	}
 
 	// store updated auction

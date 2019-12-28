@@ -13,6 +13,7 @@ import (
 // ID type for auction IDs
 type ID uint64
 
+// TODO can this be removed?
 // NewIDFromString generate new auction ID from a string
 func NewIDFromString(s string) (ID, error) {
 	n, err := strconv.ParseUint(s, 10, 64) // copied from how the gov module rest handler's parse proposal IDs
@@ -34,7 +35,7 @@ func (id ID) Bytes() []byte {
 // Auction is an interface to several types of auction.
 type Auction interface {
 	GetID() ID
-	SetID(ID)
+	WithID(ID) Auction
 	GetBidder() sdk.AccAddress
 	GetLot() sdk.Coin
 	GetEndTime() time.Time
@@ -52,21 +53,18 @@ type BaseAuction struct {
 }
 
 // GetID getter for auction ID
-func (a *BaseAuction) GetID() ID { return a.ID }
-
-// SetID setter for auction ID
-func (a *BaseAuction) SetID(id ID) { a.ID = id } // TODO if this returns a new auction with ID then no pointers are needed
+func (a BaseAuction) GetID() ID { return a.ID }
 
 // GetBid getter for auction bid
-func (a *BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
+func (a BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
 
 // GetLot getter for auction lot
-func (a *BaseAuction) GetLot() sdk.Coin { return a.Lot }
+func (a BaseAuction) GetLot() sdk.Coin { return a.Lot }
 
 // GetEndTime getter for auction end time
-func (a *BaseAuction) GetEndTime() time.Time { return a.EndTime }
+func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
-func (a *BaseAuction) String() string {
+func (a BaseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
   Initiator:              %s
   Lot:               			%s
@@ -82,12 +80,15 @@ func (a *BaseAuction) String() string {
 
 // ForwardAuction type for forward auctions
 type ForwardAuction struct {
-	*BaseAuction
+	BaseAuction
 }
+
+// WithID returns an auction wtih the ID set
+func (a ForwardAuction) WithID(id ID) Auction { a.ID = id; return a }
 
 // NewForwardAuction creates a new forward auction
 func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) ForwardAuction {
-	auction := ForwardAuction{&BaseAuction{
+	auction := ForwardAuction{BaseAuction{
 		// no ID
 		Initiator:  seller,
 		Lot:        lot,
@@ -102,8 +103,11 @@ func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 
 // ReverseAuction type for reverse auctions
 type ReverseAuction struct {
-	*BaseAuction
+	BaseAuction
 }
+
+// WithID returns an auction wtih the ID set
+func (a ReverseAuction) WithID(id ID) Auction { a.ID = id; return a }
 
 // NewReverseAuction creates a new reverse auction
 func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) ReverseAuction {
@@ -111,7 +115,7 @@ func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin
 	// Needs to be set so that when the first bid is placed, it is paid out to the initiator.
 	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToModule. Not a problem currently but if checks/logic regarding modules accounts where added to those methods they would be bypassed.
 	// Alternative: set address to nil, and catch it in an if statement in place bid
-	auction := ReverseAuction{&BaseAuction{
+	auction := ReverseAuction{BaseAuction{
 		// no ID
 		Initiator:  buyerModAccName,
 		Lot:        initialLot,
@@ -125,12 +129,15 @@ func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin
 
 // ForwardReverseAuction type for forward reverse auction
 type ForwardReverseAuction struct {
-	*BaseAuction
+	BaseAuction
 	MaxBid      sdk.Coin
 	OtherPerson sdk.AccAddress // TODO rename, this is normally the original CDP owner, will have to be updated to account for deposits
 }
 
-func (a *ForwardReverseAuction) String() string {
+// WithID returns an auction wtih the ID set
+func (a ForwardReverseAuction) WithID(id ID) Auction { a.ID = id; return a }
+
+func (a ForwardReverseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
   Initiator:              %s
   Lot:               			%s
@@ -149,7 +156,7 @@ func (a *ForwardReverseAuction) String() string {
 // NewForwardReverseAuction creates a new forward reverse auction
 func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, otherPerson sdk.AccAddress) ForwardReverseAuction {
 	auction := ForwardReverseAuction{
-		BaseAuction: &BaseAuction{
+		BaseAuction: BaseAuction{
 			// no ID
 			Initiator:  seller,
 			Lot:        lot,
