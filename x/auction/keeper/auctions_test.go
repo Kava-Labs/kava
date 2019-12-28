@@ -48,7 +48,7 @@ func TestForwardAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
 
 	// Close auction at just at auction expiry time
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultBidDuration))
 	require.NoError(t, keeper.CloseAuction(ctx, auctionID))
 	// Check buyer's coins increased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 120), c("token2", 90)))
@@ -86,7 +86,7 @@ func TestReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyerAddr, cs(c("token1", 20)))
 
 	// Close auction at just after auction expiry
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultBidDuration))
 	require.NoError(t, keeper.CloseAuction(ctx, auctionID))
 	// Check seller's coins increased
 	tApp.CheckBalance(t, ctx, seller, cs(c("token1", 80), c("token2", 110)))
@@ -138,7 +138,7 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, recipient, cs(c("token1", 105), c("token2", 100)))
 
 	// Close auction at just after auction expiry
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultBidDuration))
 	require.NoError(t, keeper.CloseAuction(ctx, auctionID))
 	// Check buyer's coins increased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 115), c("token2", 50)))

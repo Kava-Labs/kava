@@ -13,7 +13,7 @@ const (
 	// DefaultMaxAuctionDuration max length of auction
 	DefaultMaxAuctionDuration time.Duration = 2 * 24 * time.Hour
 	// DefaultBidDuration how long an auction gets extended when someone bids, roughly 3 hours in blocks
-	DefaultMaxBidDuration time.Duration = 3 * time.Hour
+	DefaultBidDuration time.Duration = 3 * time.Hour
 )
 
 // Parameter keys
@@ -43,7 +43,7 @@ func NewAuctionParams(maxAuctionDuration time.Duration, bidDuration time.Duratio
 func DefaultAuctionParams() AuctionParams {
 	return NewAuctionParams(
 		DefaultMaxAuctionDuration,
-		DefaultMaxBidDuration,
+		DefaultBidDuration,
 	)
 }
 

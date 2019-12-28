@@ -66,6 +66,7 @@ func (k Keeper) storeNewAuction(ctx sdk.Context, auction types.Auction) (types.I
 	auction = auction.WithID(newAuctionID)
 
 	k.SetAuction(ctx, auction)
+	k.InsertIntoQueue(ctx, auction.GetEndTime(), auction.GetID())
 
 	err = k.IncrementNextAuctionID(ctx)
 	if err != nil {

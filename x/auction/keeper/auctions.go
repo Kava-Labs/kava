@@ -9,7 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// StartForwardAuction starts a normal auction.
+// StartForwardAuction starts a normal auction that mints the sold coins.
 func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (types.ID, sdk.Error) {
 	// create auction
 	auction := types.NewForwardAuction(seller, lot, bidDenom, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
@@ -108,7 +108,12 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 	}
 
 	// store updated auction
-	k.SetAuction(ctx, a) // TODO maybe move into above funcs
+	existing, found := k.GetAuction(ctx, a.GetID())
+	if found {
+		k.RemoveFromQueue(ctx, existing.GetEndTime(), existing.GetID())
+	}
+	k.SetAuction(ctx, a)
+	k.InsertIntoQueue(ctx, a.GetEndTime(), a.GetID())
 
 	return nil
 }
@@ -149,7 +154,7 @@ func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder 
 	a.Bidder = bidder
 	a.Bid = bid
 	// increment timeout
-	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime) // TODO write a min func for time types
+	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultBidDuration), a.MaxEndTime)
 
 	return a, nil
 }
@@ -211,7 +216,7 @@ func (k Keeper) PlaceBidForwardReverse(ctx sdk.Context, a types.ForwardReverseAu
 	a.Lot = lot
 	a.Bid = bid
 	// increment timeout
-	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime)
+	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultBidDuration), a.MaxEndTime)
 
 	return a, nil
 }
@@ -245,7 +250,7 @@ func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder 
 	a.Bidder = bidder
 	a.Lot = lot
 	// increment timeout
-	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime)
+	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultBidDuration), a.MaxEndTime)
 
 	return a, nil
 }
@@ -282,6 +287,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 
 	// Delete auction from store (and queue)
 	k.DeleteAuction(ctx, auctionID)
+	k.RemoveFromQueue(ctx, auction.GetEndTime(), auction.GetID())
 
 	return nil
 }
@@ -297,7 +303,6 @@ func (k Keeper) MintAndPayoutAuctionLot(ctx sdk.Context, a types.ReverseAuction)
 	return nil
 }
 func (k Keeper) PayoutAuctionLot(ctx sdk.Context, a types.Auction) sdk.Error {
-	// TODO this function is responsible for the addition of GetBidder and GetLot to auction interface. Could be split in to two funcs that operate on concrete auction types
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.GetBidder(), sdk.NewCoins(a.GetLot()))
 	if err != nil {
 		return err

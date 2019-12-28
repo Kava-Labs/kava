@@ -16,7 +16,7 @@ const (
 	RouterKey                 = types.RouterKey
 	DefaultParamspace         = types.DefaultParamspace
 	DefaultMaxAuctionDuration = types.DefaultMaxAuctionDuration
-	DefaultMaxBidDuration     = types.DefaultMaxBidDuration
+	DefaultBidDuration        = types.DefaultBidDuration
 	QueryGetAuction           = types.QueryGetAuction
 )
 

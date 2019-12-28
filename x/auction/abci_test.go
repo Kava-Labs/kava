@@ -4,40 +4,53 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/liquidator"
 )
 
 func TestKeeper_EndBlocker(t *testing.T) {
 	// Setup
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	seller := addrs[0]
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+	buyer := addrs[0]
+	recipient := addrs[1]
+	sellerModName := liquidator.ModuleName
+	//sellerAddr := supply.NewModuleAddress(sellerModName)
 
 	tApp := app.NewTestApp()
+	sellerAcc := supply.NewEmptyModuleAccount(sellerModName)
+	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
 	tApp.InitializeFromGenesisStates(
-		app.NewAuthGenState(addrs, []sdk.Coins{cs(c("token1", 100), c("token2", 100))}),
+		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
+			auth.NewBaseAccount(buyer, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
+			sellerAcc,
+		}),
 	)
 
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
 
-	auctionID, err := keeper.StartForwardAuction(ctx, seller, c("token1", 20), c("token2", 0))
+	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), recipient)
 	require.NoError(t, err)
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30), c("token1", 20)))
 
-	// Run the endblocker, simulating a block height just before auction expiry
-	preExpiryHeight := ctx.BlockHeight() + int64(auction.DefaultMaxAuctionDuration) - 1
-	auction.EndBlocker(ctx.WithBlockHeight(preExpiryHeight), keeper)
+	// Run the endblocker, simulating a block time 1ns before auction expiry
+	preExpiryTime := ctx.BlockTime().Add(auction.DefaultBidDuration - 1)
+	auction.EndBlocker(ctx.WithBlockTime(preExpiryTime), keeper)
 
 	// Check auction has not been closed yet
 	_, found := keeper.GetAuction(ctx, auctionID)
 	require.True(t, found)
 
-	// Run the endblocker, simulating a block height just after auction expiry
-	expiryHeight := preExpiryHeight + 1
-	auction.EndBlocker(ctx.WithBlockHeight(expiryHeight), keeper)
+	// Run the endblocker, simulating a block time equal to auction expiry
+	expiryTime := ctx.BlockTime().Add(auction.DefaultBidDuration)
+	auction.EndBlocker(ctx.WithBlockTime(expiryTime), keeper)
 
 	// Check auction has been closed
 	_, found = keeper.GetAuction(ctx, auctionID)
@@ -46,3 +59,8 @@ func TestKeeper_EndBlocker(t *testing.T) {
 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
+
+func NewAuthGenStateFromAccs(accounts authexported.GenesisAccounts) app.GenesisState {
+	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
+	return app.GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
+}

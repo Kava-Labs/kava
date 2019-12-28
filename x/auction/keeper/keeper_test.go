@@ -94,40 +94,40 @@ func TestIterateAuctionsByTime(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 	ctx := tApp.NewContext(true, abci.Header{})
 
-	// create a list of times
-	queue := []struct {
+	// setup byTime index
+	byTimeIndex := []struct {
 		endTime   time.Time
 		auctionID types.ID
 	}{
-		{time.Date(84, time.January, 1, 0, 0, 0, 0, time.UTC), 34345345},
-		{time.Date(98, time.January, 2, 0, 0, 0, 0, time.UTC), 5},
-		{time.Date(98, time.January, 2, 13, 5, 0, 0, time.UTC), 6},
-		{time.Date(98, time.January, 2, 16, 0, 0, 0, time.UTC), 1},
-		{time.Date(98, time.January, 2, 16, 0, 0, 0, time.UTC), 3},
-		{time.Date(98, time.January, 2, 16, 0, 0, 0, time.UTC), 4},
-		{time.Date(98, time.January, 2, 16, 0, 0, 1, time.UTC), 0}, // TODO tidy up redundant entries
+		{time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC), 9999},            // distant past
+		{time.Date(1998, time.January, 1, 11, 59, 59, 999999999, time.UTC), 1}, // just before cutoff
+		{time.Date(1998, time.January, 1, 11, 59, 59, 999999999, time.UTC), 2}, //
+		{time.Date(1998, time.January, 1, 12, 0, 0, 0, time.UTC), 3},           // equal to cutoff
+		{time.Date(1998, time.January, 1, 12, 0, 0, 0, time.UTC), 4},           //
+		{time.Date(1998, time.January, 1, 12, 0, 0, 1, time.UTC), 5},           // just after cutoff
+		{time.Date(1998, time.January, 1, 12, 0, 0, 1, time.UTC), 6},           //
+		{time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC), 0},            // distant future
 	}
-	cutoffTime := time.Date(98, time.January, 2, 16, 0, 0, 0, time.UTC)
-
-	var expectedQueue []types.ID
-	for _, i := range queue {
-		if i.endTime.After(cutoffTime) { // only append items where endTime ≤ cutoffTime
-			break
-		}
-		expectedQueue = append(expectedQueue, i.auctionID)
-	}
-
-	// write and read queue
-	for _, v := range queue {
+	for _, v := range byTimeIndex {
 		keeper.InsertIntoQueue(ctx, v.endTime, v.auctionID)
 	}
-	var readQueue []types.ID
+
+	// read out values from index up to a cutoff time and check they are as expected
+	cutoffTime := time.Date(1998, time.January, 1, 12, 0, 0, 0, time.UTC)
+	var expectedIndex []types.ID
+	for _, v := range byTimeIndex {
+		if v.endTime.Before(cutoffTime) || v.endTime.Equal(cutoffTime) { // endTime ≤ cutoffTime
+			expectedIndex = append(expectedIndex, v.auctionID)
+		}
+
+	}
+	var readIndex []types.ID
 	keeper.IterateAuctionsByTime(ctx, cutoffTime, func(id types.ID) bool {
-		readQueue = append(readQueue, id)
+		readIndex = append(readIndex, id)
 		return false
 	})
 
-	require.Equal(t, expectedQueue, readQueue)
+	require.Equal(t, expectedIndex, readIndex)
 }
 
 func convertIteratorToSlice(keeper keeper.Keeper, iterator sdk.Iterator) []types.ID {
