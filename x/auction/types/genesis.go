@@ -9,13 +9,15 @@ type GenesisAuctions []Auction
 
 // GenesisState - auction state that must be provided at genesis
 type GenesisState struct {
+	NextAuctionID ID
 	AuctionParams AuctionParams   `json:"auction_params" yaml:"auction_params"`
 	Auctions      GenesisAuctions `json:"genesis_auctions" yaml:"genesis_auctions"`
 }
 
 // NewGenesisState returns a new genesis state object for auctions module
-func NewGenesisState(ap AuctionParams, ga GenesisAuctions) GenesisState {
+func NewGenesisState(nextID ID, ap AuctionParams, ga GenesisAuctions) GenesisState {
 	return GenesisState{
+		NextAuctionID: nextID,
 		AuctionParams: ap,
 		Auctions:      ga,
 	}
@@ -23,7 +25,7 @@ func NewGenesisState(ap AuctionParams, ga GenesisAuctions) GenesisState {
 
 // DefaultGenesisState defines default genesis state for auction module
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(DefaultAuctionParams(), GenesisAuctions{})
+	return NewGenesisState(ID(0), DefaultAuctionParams(), GenesisAuctions{})
 }
 
 // Equal checks whether two GenesisState structs are equivalent

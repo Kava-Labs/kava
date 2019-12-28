@@ -6,6 +6,8 @@ import (
 
 // InitGenesis - initializes the store state from genesis data
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
+	keeper.SetNextAuctionID(ctx, data.NextAuctionID)
+
 	keeper.SetParams(ctx, data.AuctionParams)
 
 	for _, a := range data.Auctions {
@@ -15,6 +17,11 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
+	nextAuctionID, err := keeper.GetNextAuctionID(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	params := keeper.GetParams(ctx)
 
 	var genAuctions GenesisAuctions
@@ -23,5 +30,5 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 		return false
 	})
 
-	return NewGenesisState(params, genAuctions)
+	return NewGenesisState(nextAuctionID, params, genAuctions)
 }

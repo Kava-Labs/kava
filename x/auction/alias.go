@@ -17,7 +17,6 @@ const (
 	DefaultParamspace         = types.DefaultParamspace
 	DefaultMaxAuctionDuration = types.DefaultMaxAuctionDuration
 	DefaultMaxBidDuration     = types.DefaultMaxBidDuration
-	DefaultStartingAuctionID  = types.DefaultStartingAuctionID
 	QueryGetAuction           = types.QueryGetAuction
 )
 
@@ -42,7 +41,6 @@ var (
 	ModuleCdc             = types.ModuleCdc
 	KeyAuctionBidDuration = types.KeyAuctionBidDuration
 	KeyAuctionDuration    = types.KeyAuctionDuration
-	KeyAuctionStartingID  = types.KeyAuctionStartingID
 )
 
 type (
