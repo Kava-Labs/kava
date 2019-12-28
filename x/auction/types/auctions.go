@@ -37,6 +37,7 @@ type Auction interface {
 	GetID() ID
 	WithID(ID) Auction
 	GetBidder() sdk.AccAddress
+	GetBid() sdk.Coin
 	GetLot() sdk.Coin
 	GetEndTime() time.Time
 }
@@ -44,7 +45,7 @@ type Auction interface {
 // BaseAuction type shared by all Auctions
 type BaseAuction struct {
 	ID         ID
-	Initiator  string         // Module who starts the auction. Giving away Lot (aka seller in a forward auction). Restricted to being a module account name rather than any account.
+	Initiator  string         // Module that starts the auction. Giving away Lot (aka seller in a forward auction). Restricted to being a module account name rather than any account.
 	Lot        sdk.Coin       // Amount of coins up being given by initiator (FA - amount for sale by seller, RA - cost of good by buyer (bid))
 	Bidder     sdk.AccAddress // Person who bids in the auction. Receiver of Lot. (aka buyer in forward auction, seller in RA)
 	Bid        sdk.Coin       // Amount of coins being given by the bidder (FA - bid, RA - amount being sold)
@@ -57,6 +58,9 @@ func (a BaseAuction) GetID() ID { return a.ID }
 
 // GetBid getter for auction bid
 func (a BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
+
+// GetBid getter for auction lot
+func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 
 // GetLot getter for auction lot
 func (a BaseAuction) GetLot() sdk.Coin { return a.Lot }
@@ -83,7 +87,7 @@ type ForwardAuction struct {
 	BaseAuction
 }
 
-// WithID returns an auction wtih the ID set
+// WithID returns an auction with the ID set
 func (a ForwardAuction) WithID(id ID) Auction { a.ID = id; return a }
 
 // NewForwardAuction creates a new forward auction
@@ -97,7 +101,6 @@ func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 		EndTime:    endTime,
 		MaxEndTime: endTime,
 	}}
-	// output := BankOutput{seller, lot}
 	return auction
 }
 
@@ -106,7 +109,7 @@ type ReverseAuction struct {
 	BaseAuction
 }
 
-// WithID returns an auction wtih the ID set
+// WithID returns an auction with the ID set
 func (a ReverseAuction) WithID(id ID) Auction { a.ID = id; return a }
 
 // NewReverseAuction creates a new reverse auction
@@ -134,7 +137,7 @@ type ForwardReverseAuction struct {
 	OtherPerson sdk.AccAddress // TODO rename, this is normally the original CDP owner, will have to be updated to account for deposits
 }
 
-// WithID returns an auction wtih the ID set
+// WithID returns an auction with the ID set
 func (a ForwardReverseAuction) WithID(id ID) Auction { a.ID = id; return a }
 
 func (a ForwardReverseAuction) String() string {
@@ -167,6 +170,5 @@ func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, ma
 		MaxBid:      maxBid,
 		OtherPerson: otherPerson,
 	}
-	//output := BankOutput{seller, lot}
 	return auction
 }

@@ -20,7 +20,7 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin
 		return 0, err
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, auction) // TODO does this need to be a pointer to satisfy the interface?
+	auctionID, err := k.storeNewAuction(ctx, auction)
 	if err != nil {
 		return 0, err
 	}
@@ -38,7 +38,7 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin,
 		return 0, sdk.ErrInternal("module does not have minting permissions")
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, &auction)
+	auctionID, err := k.storeNewAuction(ctx, auction)
 	if err != nil {
 		return 0, err
 	}
@@ -51,12 +51,12 @@ func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot s
 	auction := types.NewForwardReverseAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, otherPerson)
 
 	// take coins from module account
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.Coins{lot})
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
 		return 0, err
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, &auction)
+	auctionID, err := k.storeNewAuction(ctx, auction)
 	if err != nil {
 		return 0, err
 	}
@@ -64,6 +64,7 @@ func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot s
 }
 
 // PlaceBid places a bid on any auction.
+// TODO passing bid and lot is weird when only one needed
 func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) sdk.Error {
 
 	// get auction from store
@@ -72,11 +73,18 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 		return sdk.ErrInternal("auction doesn't exist")
 	}
 
-	// check end time
+	// validate
 	if ctx.BlockTime().After(auction.GetEndTime()) {
 		return sdk.ErrInternal("auction has closed")
 	}
+	if auction.GetBid().Denom != bid.Denom {
+		return sdk.ErrInternal("bid has incorrect denom")
+	}
+	if auction.GetLot().Denom != lot.Denom {
+		return sdk.ErrInternal("lot has incorrect denom")
+	}
 
+	// place bid
 	var err sdk.Error
 	var a types.Auction
 	switch auc := auction.(type) {
@@ -124,7 +132,7 @@ func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder 
 	if err != nil {
 		return a, err
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.NewCoins(bidAmtToReturn))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(bidAmtToReturn))
 	if err != nil {
 		return a, err
 	}
@@ -185,7 +193,7 @@ func (k Keeper) PlaceBidForwardReverse(ctx sdk.Context, a types.ForwardReverseAu
 	if err != nil {
 		return a, err
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.NewCoins(bidAmtToReturn))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(bidAmtToReturn))
 	if err != nil {
 		return a, err
 	}
@@ -205,7 +213,7 @@ func (k Keeper) PlaceBidForwardReverse(ctx sdk.Context, a types.ForwardReverseAu
 	// increment timeout
 	a.EndTime = earliestTime(ctx.BlockTime().Add(types.DefaultMaxBidDuration), a.MaxEndTime)
 
-	return types.ForwardReverseAuction{}, nil
+	return a, nil
 }
 func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.ReverseAuction, sdk.Error) {
 	// Validate New Bid
@@ -228,7 +236,7 @@ func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder 
 	if err != nil {
 		return a, err
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.NewCoins(bidAmtToReturn))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(bidAmtToReturn))
 	if err != nil {
 		return a, err
 	}
@@ -297,7 +305,11 @@ func (k Keeper) PayoutAuctionLot(ctx sdk.Context, a types.Auction) sdk.Error {
 	return nil
 }
 
-// FIXME stand in func for compiler
+// earliestTime returns the earliest of two times.
 func earliestTime(t1, t2 time.Time) time.Time {
-	return t1
+	if t1.Before(t2) {
+		return t1
+	} else {
+		return t2 // also returned if times are equal
+	}
 }

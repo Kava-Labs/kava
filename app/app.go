@@ -61,7 +61,7 @@ var (
 		supply.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
-		liquidator.AppModuleBasic{},
+		//liquidator.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 	)
 
@@ -74,6 +74,8 @@ var (
 		staking.NotBondedPoolName:   {supply.Burner, supply.Staking},
 		gov.ModuleName:              {supply.Burner},
 		validatorvesting.ModuleName: {supply.Burner},
+		auction.ModuleName:          nil,
+		liquidator.ModuleName:       {supply.Minter, supply.Burner},
 	}
 )
 
@@ -238,7 +240,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
-		app.supplyKeeper, // CDP keeper standing in for bank
+		app.supplyKeeper,
 		auctionSubspace)
 	// app.liquidatorKeeper = liquidator.NewKeeper(
 	// 	app.cdc,
@@ -269,7 +271,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
-		liquidator.NewAppModule(app.liquidatorKeeper),
+		//liquidator.NewAppModule(app.liquidatorKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 	)
 
@@ -289,7 +291,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, liquidator.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, //liquidator.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
