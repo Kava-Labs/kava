@@ -8,7 +8,7 @@ import (
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-// SupplyKeeper defines the expected supply keeper for module accounts (noalias)
+// SupplyKeeper defines the expected supply keeper for module accounts
 type SupplyKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI

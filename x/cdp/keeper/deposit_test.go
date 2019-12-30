@@ -24,9 +24,9 @@ type DepositTestSuite struct {
 func (suite *DepositTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+	_, addrs := app.GeneratePrivKeyAddressPairs(10)
 	authGS := app.NewAuthGenState(
-		addrs,
+		addrs[0:2],
 		[]sdk.Coins{
 			cs(c("xrp", 500000000), c("btc", 500000000)),
 			cs(c("xrp", 200000000))})
@@ -45,15 +45,15 @@ func (suite *DepositTestSuite) SetupTest() {
 }
 
 func (suite *DepositTestSuite) TestGetSetDeposit() {
-	d, found := suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
+	d, found := suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
 	suite.True(found)
 	td := types.NewDeposit(uint64(1), suite.addrs[0], cs(c("xrp", 400000000)))
 	suite.True(d.Equals(td))
 	ds := suite.keeper.GetDeposits(suite.ctx, uint64(1))
 	suite.Equal(1, len(ds))
 	suite.True(ds[0].Equals(td))
-	suite.keeper.DeleteDeposit(suite.ctx, uint64(1), suite.addrs[0])
-	_, found = suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
+	suite.keeper.DeleteDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
+	_, found = suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
 	suite.False(found)
 	ds = suite.keeper.GetDeposits(suite.ctx, uint64(1))
 	suite.Equal(0, len(ds))
@@ -62,7 +62,7 @@ func (suite *DepositTestSuite) TestGetSetDeposit() {
 func (suite *DepositTestSuite) TestDepositCollateral() {
 	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 10000000)))
 	suite.NoError(err)
-	d, found := suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
+	d, found := suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
 	suite.True(found)
 	td := types.NewDeposit(uint64(1), suite.addrs[0], cs(c("xrp", 410000000)))
 	suite.True(d.Equals(td))
@@ -83,7 +83,7 @@ func (suite *DepositTestSuite) TestDepositCollateral() {
 
 	err = suite.keeper.DepositCollateral(suite.ctx, suite.addrs[0], suite.addrs[1], cs(c("xrp", 10000000)))
 	suite.NoError(err)
-	d, found = suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[1])
+	d, found = suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[1])
 	suite.True(found)
 	td = types.NewDeposit(uint64(1), suite.addrs[1], cs(c("xrp", 10000000)))
 	suite.True(d.Equals(td))
@@ -98,16 +98,24 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 10000000)))
 	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
 
-	d, _ := suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
+	d, _ := suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
 	d.InLiquidation = true
+	suite.keeper.DeleteDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
 	suite.keeper.SetDeposit(suite.ctx, d)
+	_, f := suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
+	suite.False(f)
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 10000000)))
-	suite.Equal(types.CodeDepositNotAvailable, err.Result().Code)
+	suite.Equal(types.CodeCdpNotAvailable, err.Result().Code)
 
-	d, _ = suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
+	d, f = suite.keeper.GetDeposit(suite.ctx, types.StatusLiquidated, uint64(1), suite.addrs[0])
+	suite.True(f)
+	suite.keeper.DeleteDeposit(suite.ctx, types.StatusLiquidated, uint64(1), suite.addrs[0])
 	d.InLiquidation = false
 	suite.keeper.SetDeposit(suite.ctx, d)
+	_, f = suite.keeper.GetDeposit(suite.ctx, types.StatusLiquidated, uint64(1), suite.addrs[0])
+	suite.False(f)
+
 	cd, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	cd.AccumulatedFees = cs(c("usdx", 1))
 	suite.keeper.SetCDP(suite.ctx, cd)
@@ -116,7 +124,7 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 10000000)))
 	suite.NoError(err)
-	d, _ = suite.keeper.GetDeposit(suite.ctx, uint64(1), suite.addrs[0])
+	d, _ = suite.keeper.GetDeposit(suite.ctx, types.StatusNil, uint64(1), suite.addrs[0])
 	td := types.NewDeposit(uint64(1), suite.addrs[0], cs(c("xrp", 390000000)))
 	suite.True(d.Equals(td))
 	ak := suite.app.GetAccountKeeper()
@@ -127,6 +135,20 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 	suite.Equal(types.CodeDepositNotFound, err.Result().Code)
 }
 
+func (suite *DepositTestSuite) TestIterateLiquidatedDeposits() {
+	for j := 0; j < 10; j++ {
+		d := types.NewDeposit(uint64(j+2), suite.addrs[j], cs(c("xrp", 1000000)))
+		if j%2 == 0 {
+			d.InLiquidation = true
+		}
+		suite.keeper.SetDeposit(suite.ctx, d)
+	}
+	ds := suite.keeper.GetAllLiquidatedDeposits(suite.ctx)
+	for _, d := range ds {
+		suite.True(d.InLiquidation)
+	}
+	suite.Equal(5, len(ds))
+}
 func TestDepositTestSuite(t *testing.T) {
 	suite.Run(t, new(DepositTestSuite))
 }

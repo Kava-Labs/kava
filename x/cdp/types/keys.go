@@ -36,7 +36,7 @@ var sep = []byte(":")
 // - 0x02<collateralDenomPrefix>:<collateralDebtRatio_Bytes>:<cdpID_Bytes>: cdpID
 // - Ox03: nextCdpID
 // - 0x04: debtDenom
-// - 0x05<cdpID>:<depositorAddr_bytes>: Deposit
+// - 0x05<depositState>:<cdpID>:<depositorAddr_bytes>: Deposit
 // - 0x06<denom>:totalPrincipal
 // - 0x07<denom>:feeRate
 // - 0x08:previousBlockTime
@@ -72,8 +72,7 @@ func GetCdpIDFromBytes(bz []byte) (cdpID uint64) {
 
 // CdpKey key of a specific cdp in the store
 func CdpKey(denomByte byte, cdpID uint64) []byte {
-	prefix := append([]byte{denomByte}, sep...)
-	return append(prefix, GetCdpIDBytes(cdpID)...)
+	return createKey([]byte{denomByte}, sep, GetCdpIDBytes(cdpID))
 }
 
 // SplitCdpKey returns the component parts of a cdp key
@@ -94,16 +93,28 @@ func SplitDenomIterKey(key []byte) byte {
 }
 
 // DepositKey key of a specific deposit in the store
-func DepositKey(cdpID uint64, depositor sdk.AccAddress) []byte {
-	prefix := append(GetCdpIDBytes(cdpID), sep...)
-	return append(prefix, depositor...)
+func DepositKey(status DepositStatus, cdpID uint64, depositor sdk.AccAddress) []byte {
+	return createKey([]byte{status.AsByte()}, sep, GetCdpIDBytes(cdpID), sep, depositor)
 }
 
-// SplitDepositKey returns the component parts of a cdp key
-func SplitDepositKey(key []byte) (uint64, sdk.AccAddress) {
-	cdpID := GetCdpIDFromBytes(key[:8])
-	addr := key[9:]
-	return cdpID, addr
+// SplitDepositKey returns the component parts of a deposit key
+func SplitDepositKey(key []byte) (DepositStatus, uint64, sdk.AccAddress) {
+	status := StatusFromByte(key[0])
+	cdpID := GetCdpIDFromBytes(key[2:10])
+	addr := key[11:]
+	return status, cdpID, addr
+}
+
+// DepositIterKey returns the prefix key for iterating over deposits to a cdp
+func DepositIterKey(status DepositStatus, cdpID uint64) []byte {
+	return createKey([]byte{status.AsByte()}, sep, GetCdpIDBytes(cdpID))
+}
+
+// SplitDepositIterKey returns the component parts of a key for iterating over deposits on a cdp
+func SplitDepositIterKey(key []byte) (status DepositStatus, cdpID uint64) {
+	status = StatusFromByte(key[0])
+	cdpID = GetCdpIDFromBytes(key[2:])
+	return status, cdpID
 }
 
 // CollateralRatioBytes returns the liquidation ratio as sortable bytes
@@ -141,8 +152,7 @@ func SplitCollateralRatioKey(key []byte) (denom byte, cdpID uint64, ratio sdk.De
 // CollateralRatioIterKey returns the key for iterating over cdps by denom and liquidation ratio
 func CollateralRatioIterKey(denomByte byte, ratio sdk.Dec) []byte {
 	ratioBytes := CollateralRatioBytes(ratio)
-	prefix := append([]byte{denomByte}, sep...)
-	return append(prefix, ratioBytes...)
+	return createKey([]byte{denomByte}, sep, ratioBytes)
 }
 
 // SplitCollateralRatioIterKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio

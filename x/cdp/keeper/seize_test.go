@@ -112,7 +112,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeDepositNotAvailable, err.Result().Code)
+	suite.Equal(types.CodeCdpNotAvailable, err.Result().Code)
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {

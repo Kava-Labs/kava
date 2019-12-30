@@ -23,7 +23,7 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
 
-	// ensure governance module account is set
+	// ensure module account is set
 	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}

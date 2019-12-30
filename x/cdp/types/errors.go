@@ -94,7 +94,7 @@ func ErrInvalidWithdrawAmount(codespace sdk.CodespaceType, withdraw sdk.Coins, d
 
 //ErrCdpNotAvailable error for depositing to a CDP in liquidation
 func ErrCdpNotAvailable(codespace sdk.CodespaceType, cdpID uint64) sdk.Error {
-	return sdk.NewError(codespace, CodeCdpNotAvailable, fmt.Sprintf("cannot deposit, cdp %d in liquidation", cdpID))
+	return sdk.NewError(codespace, CodeCdpNotAvailable, fmt.Sprintf("cannot modify cdp %d, in liquidation", cdpID))
 }
 
 // ErrBelowDebtFloor error for creating a cdp with debt below the minimum

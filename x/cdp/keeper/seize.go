@@ -37,7 +37,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 					sdk.NewAttribute(types.AttributeKeyDepositor, fmt.Sprintf("%s", dep.Depositor)),
 				),
 			)
-
+			k.DeleteDeposit(ctx, types.StatusNil, cdp.ID, dep.Depositor)
 			k.SetDeposit(ctx, dep)
 			err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, liqtypes.ModuleName, dep.Amount)
 			if err != nil {

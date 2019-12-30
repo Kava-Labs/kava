@@ -14,6 +14,12 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
+	deposits := k.GetDeposits(ctx, cdp.ID)
+	for _, d := range deposits {
+		if d.InLiquidation {
+			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
+		}
+	}
 	err := k.ValidatePrincipalDraw(ctx, principal)
 	if err != nil {
 		return err
@@ -85,6 +91,12 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
+	}
+	deposits := k.GetDeposits(ctx, cdp.ID)
+	for _, d := range deposits {
+		if d.InLiquidation {
+			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
+		}
 	}
 	err := k.ValidatePaymentCoins(ctx, cdp, payment)
 	if err != nil {
@@ -182,14 +194,14 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 
 // ReturnCollateral returns collateral to depositors on a cdp and removes deposits from the store
 func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
-	k.IterateDeposits(ctx, cdp.ID, func(deposit types.Deposit) bool {
+	deposits := k.GetDeposits(ctx, cdp.ID)
+	for _, deposit := range deposits {
 		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, deposit.Depositor, deposit.Amount)
 		if err != nil {
 			panic(err)
 		}
-		k.DeleteDeposit(ctx, cdp.ID, deposit.Depositor)
-		return false
-	})
+		k.DeleteDeposit(ctx, types.StatusNil, cdp.ID, deposit.Depositor)
+	}
 }
 
 func (k Keeper) calculatePayment(ctx sdk.Context, fees sdk.Coins, payment sdk.Coins) (sdk.Coins, sdk.Coins) {

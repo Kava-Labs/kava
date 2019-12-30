@@ -14,6 +14,32 @@ type Deposit struct {
 	InLiquidation bool           `json:"in_liquidation" yaml:"in_liquidation"`
 }
 
+// DepositStatus is a type alias that represents a deposit status as a byte
+type DepositStatus byte
+
+// Valid Deposit statuses
+const (
+	StatusNil        DepositStatus = 0x00
+	StatusLiquidated DepositStatus = 0x01
+)
+
+// AsByte returns the status as byte
+func (ds DepositStatus) AsByte() byte {
+	return byte(ds)
+}
+
+// StatusFromByte returns the status from its byte representation
+func StatusFromByte(b byte) DepositStatus {
+	switch b {
+	case 0x00:
+		return StatusNil
+	case 0x01:
+		return StatusLiquidated
+	default:
+		panic(fmt.Sprintf("unrecognized deposit status, %v", b))
+	}
+}
+
 // NewDeposit creates a new Deposit object
 func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coins) Deposit {
 	return Deposit{cdpID, depositor, amount, false}
@@ -32,12 +58,12 @@ func (d Deposit) String() string {
 type Deposits []Deposit
 
 // String implements fmt.Stringer
-func (d Deposits) String() string {
-	if len(d) == 0 {
+func (ds Deposits) String() string {
+	if len(ds) == 0 {
 		return "[]"
 	}
-	out := fmt.Sprintf("Deposits for CDP %d:", d[0].CdpID)
-	for _, dep := range d {
+	out := fmt.Sprintf("Deposits for CDP %d:", ds[0].CdpID)
+	for _, dep := range ds {
 		out += fmt.Sprintf("\n  %s: %s", dep.Depositor, dep.Amount)
 		if dep.InLiquidation {
 			out += fmt.Sprintf("(in liquidation)")

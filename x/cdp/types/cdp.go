@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// CDP is the state of a single Collateralized Debt Position.
+// CDP is the state of a single collateralized debt position.
 type CDP struct {
 	ID              uint64         `json:"id" yaml:"id"`                 // unique id for cdp
 	Owner           sdk.AccAddress `json:"owner" yaml:"owner"`           // Account that authorizes changes to the CDP
@@ -20,12 +20,13 @@ type CDP struct {
 
 // NewCDP creates a new CDP object
 func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins, time time.Time) CDP {
+	var fees sdk.Coins
 	return CDP{
 		ID:              id,
 		Owner:           owner,
 		Collateral:      collateral,
 		Principal:       principal,
-		AccumulatedFees: sdk.Coins(nil),
+		AccumulatedFees: fees,
 		FeesUpdated:     time,
 	}
 }
