@@ -6,11 +6,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// ensure Msg interface compliance at compile time
+var (
+	_ sdk.Msg = &MsgCreateCDP{}
+	_ sdk.Msg = &MsgDeposit{}
+	_ sdk.Msg = &MsgWithdraw{}
+	_ sdk.Msg = &MsgDrawDebt{}
+	_ sdk.Msg = &MsgRepayDebt{}
+)
+
 // MsgCreateCDP creates a cdp
 type MsgCreateCDP struct {
-	Sender     sdk.AccAddress
-	Collateral sdk.Coins
-	Principal  sdk.Coins
+	Sender     sdk.AccAddress `json:"sender" yaml:"sender"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+	Principal  sdk.Coins      `json:"principal" yaml:"principal"`
 }
 
 // NewMsgCreateCDP returns a new MsgPlaceBid.
@@ -73,9 +82,9 @@ func (msg MsgCreateCDP) String() string {
 
 // MsgDeposit deposit collateral to an existing cdp.
 type MsgDeposit struct {
-	Owner      sdk.AccAddress
-	Depositor  sdk.AccAddress
-	Collateral sdk.Coins
+	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
+	Depositor  sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgDeposit returns a new MsgDeposit
@@ -135,9 +144,9 @@ func (msg MsgDeposit) String() string {
 
 // MsgWithdraw withdraw collateral from an existing cdp.
 type MsgWithdraw struct {
-	Owner      sdk.AccAddress
-	Depositor  sdk.AccAddress
-	Collateral sdk.Coins
+	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
+	Depositor  sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 
 // NewMsgWithdraw returns a new MsgDeposit
@@ -197,9 +206,9 @@ func (msg MsgWithdraw) String() string {
 
 // MsgDrawDebt draw coins off of collateral in cdp
 type MsgDrawDebt struct {
-	Sender    sdk.AccAddress
-	CdpDenom  string
-	Principal sdk.Coins
+	Sender    sdk.AccAddress `json:"sender" yaml:"sender"`
+	CdpDenom  string         `json:"cdp_denom" yaml:"cdp_denom"`
+	Principal sdk.Coins      `json:"principal" yaml:"principal"`
 }
 
 // NewMsgDrawDebt returns a new MsgDrawDebt
@@ -256,9 +265,9 @@ func (msg MsgDrawDebt) String() string {
 
 // MsgRepayDebt repay debt drawn off the collateral in a CDP
 type MsgRepayDebt struct {
-	Sender   sdk.AccAddress
-	CdpDenom string
-	Payment  sdk.Coins
+	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`
+	CdpDenom string         `json:"cdp_denom" yaml:"cdp_denom"`
+	Payment  sdk.Coins      `json:"payment" yaml:"payment"`
 }
 
 // NewMsgRepayDebt returns a new MsgRepayDebt
