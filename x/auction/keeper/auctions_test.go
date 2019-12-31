@@ -99,7 +99,7 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	buyer := addrs[0]
 	returnAddrs := addrs[1:]
-	returnWeights := []sdk.Int{i(30), i(20), i(10)}
+	returnWeights := is(30, 20, 10)
 	sellerModName := liquidator.ModuleName
 	sellerAddr := supply.NewModuleAddress(sellerModName)
 

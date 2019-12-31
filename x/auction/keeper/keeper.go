@@ -57,8 +57,8 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) sdk.Error {
 	return nil
 }
 
-// storeNewAuction stores an auction, adding a new ID, and setting indexes
-func (k Keeper) storeNewAuction(ctx sdk.Context, auction types.Auction) (types.ID, sdk.Error) {
+// StoreNewAuction stores an auction, adding a new ID
+func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (types.ID, sdk.Error) {
 	newAuctionID, err := k.GetNextAuctionID(ctx)
 	if err != nil {
 		return 0, err
@@ -66,7 +66,6 @@ func (k Keeper) storeNewAuction(ctx sdk.Context, auction types.Auction) (types.I
 	auction = auction.WithID(newAuctionID)
 
 	k.SetAuction(ctx, auction)
-	k.InsertIntoQueue(ctx, auction.GetEndTime(), auction.GetID())
 
 	err = k.IncrementNextAuctionID(ctx)
 	if err != nil {
@@ -75,24 +74,22 @@ func (k Keeper) storeNewAuction(ctx sdk.Context, auction types.Auction) (types.I
 	return newAuctionID, nil
 }
 
-// TODO should get/set/delete be responsible for updating auctionByTime index?
-
 // SetAuction puts the auction into the database and adds it to the queue
 // it overwrites any pre-existing auction with same ID
 func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
-	// remove the auction from the queue if it is already in there
-	// existingAuction, found := k.GetAuction(ctx, auction.GetID())
-	// if found {
-	// 	k.removeFromQueue(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
-	// }
+	// remove the auction from the byTime index if it is already in there
+	existingAuction, found := k.GetAuction(ctx, auction.GetID())
+	if found {
+		k.RemoveFromIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
+	}
 
 	// store auction
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(auction)
 	store.Set(types.GetAuctionKey(auction.GetID()), bz)
 
-	// add to the queue
-	//k.InsertIntoQueue(ctx, auction.GetEndTime(), auction.GetID())
+	// add to index
+	k.InsertIntoIndex(ctx, auction.GetEndTime(), auction.GetID())
 }
 
 // getAuction gets an auction from the store by auctionID
@@ -111,29 +108,32 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID types.ID) (types.Auction, 
 
 // DeleteAuction removes an auction from the store without any validation
 func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID types.ID) {
-	// remove from queue
-	//auction, found := k.GetAuction(ctx, auctionID)
-	// if found {
-	// 	k.removeFromQueue(ctx, auction.GetEndTime(), auctionID)
-	// }
+	// remove from index
+	auction, found := k.GetAuction(ctx, auctionID)
+	if found {
+		k.RemoveFromIndex(ctx, auction.GetEndTime(), auctionID)
+	}
 
 	// delete auction
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 	store.Delete(types.GetAuctionKey(auctionID))
 }
 
-// Inserts a AuctionID into the queue at endTime
-func (k Keeper) InsertIntoQueue(ctx sdk.Context, endTime time.Time, auctionID types.ID) {
+// InsertIntoIndex adds an auction ID and end time into the byTime index
+func (k Keeper) InsertIntoIndex(ctx sdk.Context, endTime time.Time, auctionID types.ID) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), auctionID.Bytes())
 }
 
-// removes an auctionID from the queue
-func (k Keeper) RemoveFromQueue(ctx sdk.Context, endTime time.Time, auctionID types.ID) {
+// RemoveFromIndex removes an auction ID and end time from the byTime index
+func (k Keeper) RemoveFromIndex(ctx sdk.Context, endTime time.Time, auctionID types.ID) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Delete(types.GetAuctionByTimeKey(endTime, auctionID))
 }
 
+// IterateAuctionByTime provides an iterator over auctions ordered by auction.EndTime.
+// For each auction cb will be callled. If cb returns true the iterator will close and stop.
+// TODO can the cutoff time be removed in favour of caller specifying cutoffs in the callback?
 func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.Time, cb func(auctionID types.ID) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	iterator := store.Iterator(
@@ -152,9 +152,8 @@ func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.
 	}
 }
 
-// IterateAuctions provides an iterator over all stored auctions. For
-// each auction, cb will be called. If the cb returns true, the iterator
-// will close and stop.
+// IterateAuctions provides an iterator over all stored auctions.
+// For each auction, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateAuctions(ctx sdk.Context, cb func(auction types.Auction) (stop bool)) {
 	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 

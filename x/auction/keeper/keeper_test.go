@@ -4,12 +4,10 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
@@ -29,10 +27,11 @@ func SetGetDeleteAuction(t *testing.T) {
 	// check before and after match
 	require.True(t, found)
 	require.Equal(t, auction, readAuction)
-	// check auction is in queue
-	// iter := keeper.GetQueueIterator(ctx, 100000)
-	// require.Equal(t, 1, len(convertIteratorToSlice(keeper, iter)))
-	// iter.Close()
+	// check auction is in the index
+	keeper.IterateAuctionsByTime(ctx, auction.GetEndTime(), func(readID types.ID) bool {
+		require.Equal(t, auction.GetID(), readID)
+		return false
+	})
 
 	// delete auction
 	keeper.DeleteAuction(ctx, id)
@@ -40,11 +39,11 @@ func SetGetDeleteAuction(t *testing.T) {
 	// check auction does not exist
 	_, found = keeper.GetAuction(ctx, id)
 	require.False(t, found)
-	// check auction not in queue
-	// iter = keeper.GetQueueIterator(ctx, 100000)
-	// require.Equal(t, 0, len(convertIteratorToSlice(keeper, iter)))
-	// iter.Close()
-
+	// check auction not in index
+	keeper.IterateAuctionsByTime(ctx, time.Unix(999999999, 0), func(readID types.ID) bool {
+		require.Fail(t, "index should be empty", " found auction ID '%s", readID)
+		return false
+	})
 }
 
 func TestIncrementNextAuctionID(t *testing.T) {
@@ -66,27 +65,32 @@ func TestIncrementNextAuctionID(t *testing.T) {
 
 }
 
-// func TestIterateAuctions(t *testing.T) {
-// 	// setup keeper
-// 	tApp := app.NewTestApp()
-// 	keeper := tApp.GetAuctionKeeper()
-// 	ctx := tApp.NewContext(true, abci.Header{})
+func TestIterateAuctions(t *testing.T) {
+	// setup
+	tApp := app.NewTestApp()
+	tApp.InitializeFromGenesisStates()
+	keeper := tApp.GetAuctionKeeper()
+	ctx := tApp.NewContext(true, abci.Header{})
 
-// 	auctions := []types.Auction{
-// 		&types.ForwardAuction{},
-// 	}
-// 	for _, a := range auctions {
-// 		keeper.SetAuction(ctx, a)
-// 	}
+	auctions := []types.Auction{
+		types.NewForwardAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(0),
+		types.NewReverseAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(1),
+		types.NewForwardReverseAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}).WithID(2),
+	}
+	for _, a := range auctions {
+		keeper.SetAuction(ctx, a)
+	}
 
-// 	var readAuctions []types.Auction
-// 	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
-// 		readAuctions = append(readAuctions, a)
-// 		return false
-// 	})
+	// run
+	var readAuctions []types.Auction
+	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
+		readAuctions = append(readAuctions, a)
+		return false
+	})
 
-// 	require.Equal(t, auctions, readAuctions)
-// }
+	// check
+	require.Equal(t, auctions, readAuctions)
+}
 
 func TestIterateAuctionsByTime(t *testing.T) {
 	// setup keeper
@@ -109,7 +113,7 @@ func TestIterateAuctionsByTime(t *testing.T) {
 		{time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC), 0},            // distant future
 	}
 	for _, v := range byTimeIndex {
-		keeper.InsertIntoQueue(ctx, v.endTime, v.auctionID)
+		keeper.InsertIntoIndex(ctx, v.endTime, v.auctionID)
 	}
 
 	// read out values from index up to a cutoff time and check they are as expected
@@ -128,14 +132,4 @@ func TestIterateAuctionsByTime(t *testing.T) {
 	})
 
 	require.Equal(t, expectedIndex, readIndex)
-}
-
-func convertIteratorToSlice(keeper keeper.Keeper, iterator sdk.Iterator) []types.ID {
-	var queue []types.ID
-	for ; iterator.Valid(); iterator.Next() {
-		var auctionID types.ID
-		types.ModuleCdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &auctionID)
-		queue = append(queue, auctionID)
-	}
-	return queue
 }

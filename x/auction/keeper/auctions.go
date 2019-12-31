@@ -20,7 +20,7 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin
 		return 0, err
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, auction)
+	auctionID, err := k.StoreNewAuction(ctx, auction)
 	if err != nil {
 		return 0, err
 	}
@@ -38,7 +38,7 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin,
 		return 0, sdk.ErrInternal("module does not have minting permissions")
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, auction)
+	auctionID, err := k.StoreNewAuction(ctx, auction)
 	if err != nil {
 		return 0, err
 	}
@@ -60,7 +60,7 @@ func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot s
 		return 0, err
 	}
 	// store the auction
-	auctionID, err := k.storeNewAuction(ctx, auction)
+	auctionID, err := k.StoreNewAuction(ctx, auction)
 	if err != nil {
 		return 0, err
 	}
@@ -112,13 +112,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddr
 	}
 
 	// store updated auction
-	existing, found := k.GetAuction(ctx, a.GetID())
-	if found {
-		k.RemoveFromQueue(ctx, existing.GetEndTime(), existing.GetID())
-	}
 	k.SetAuction(ctx, a)
-	k.InsertIntoQueue(ctx, a.GetEndTime(), a.GetID())
-
 	return nil
 }
 
@@ -298,8 +292,6 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
 
 	// Delete auction from store (and queue)
 	k.DeleteAuction(ctx, auctionID)
-	k.RemoveFromQueue(ctx, auction.GetEndTime(), auction.GetID())
-
 	return nil
 }
 func (k Keeper) MintAndPayoutAuctionLot(ctx sdk.Context, a types.ReverseAuction) sdk.Error {
