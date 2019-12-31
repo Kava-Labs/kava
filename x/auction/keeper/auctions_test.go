@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -150,4 +151,91 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	require.NoError(t, keeper.CloseAuction(ctx, auctionID))
 	// Check buyer's coins increased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 115), c("token2", 50)))
+}
+
+func TestStartForwardAuction(t *testing.T) {
+	someTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
+	type args struct {
+		seller   string
+		lot      sdk.Coin
+		bidDenom string
+	}
+	testCases := []struct {
+		name       string
+		blockTime  time.Time
+		args       args
+		expectPass bool
+	}{
+		{
+			"normal",
+			someTime,
+			args{liquidator.ModuleName, c("stable", 10), "gov"},
+			true,
+		},
+		{
+			"no module account",
+			someTime,
+			args{"nonExistentModule", c("stable", 10), "gov"},
+			false,
+		},
+		{
+			"not enough coins",
+			someTime,
+			args{liquidator.ModuleName, c("stable", 101), "gov"},
+			false,
+		},
+		{
+			"incorrect denom",
+			someTime,
+			args{liquidator.ModuleName, c("notacoin", 10), "gov"},
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// setup
+			initialLiquidatorCoins := cs(c("stable", 100))
+			tApp := app.NewTestApp()
+
+			liqAcc := supply.NewEmptyModuleAccount(liquidator.ModuleName, supply.Burner) // TODO could add test to check for burner permissions
+			require.NoError(t, liqAcc.SetCoins(initialLiquidatorCoins))
+			tApp.InitializeFromGenesisStates(
+				NewAuthGenStateFromAccs(authexported.GenesisAccounts{liqAcc}),
+			)
+			ctx := tApp.NewContext(false, abci.Header{}).WithBlockTime(tc.blockTime)
+			keeper := tApp.GetAuctionKeeper()
+
+			// run function under test
+			id, err := keeper.StartForwardAuction(ctx, tc.args.seller, tc.args.lot, tc.args.bidDenom)
+
+			// check
+			sk := tApp.GetSupplyKeeper()
+			liquidatorCoins := sk.GetModuleAccount(ctx, liquidator.ModuleName).GetCoins()
+			actualAuc, found := keeper.GetAuction(ctx, id)
+
+			if tc.expectPass {
+				require.NoError(t, err)
+				// check coins moved
+				require.Equal(t, initialLiquidatorCoins.Sub(cs(tc.args.lot)), liquidatorCoins)
+				// check auction in store and is correct
+				require.True(t, found)
+				expectedAuction := types.Auction(types.ForwardAuction{BaseAuction: types.BaseAuction{
+					ID:         types.ID(0),
+					Initiator:  tc.args.seller,
+					Lot:        tc.args.lot,
+					Bidder:     nil,
+					Bid:        c(tc.args.bidDenom, 0),
+					EndTime:    tc.blockTime.Add(types.DefaultMaxAuctionDuration),
+					MaxEndTime: tc.blockTime.Add(types.DefaultMaxAuctionDuration),
+				}})
+				require.Equal(t, expectedAuction, actualAuc)
+			} else {
+				require.Error(t, err)
+				// check coins not moved
+				require.Equal(t, initialLiquidatorCoins, liquidatorCoins)
+				// check auction not in store
+				require.False(t, found)
+			}
+		})
+	}
 }
