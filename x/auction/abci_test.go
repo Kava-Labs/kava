@@ -19,7 +19,8 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	buyer := addrs[0]
-	recipient := addrs[1]
+	returnAddrs := addrs[1:]
+	returnWeights := []sdk.Int{sdk.NewInt(1)}
 	sellerModName := liquidator.ModuleName
 	//sellerAddr := supply.NewModuleAddress(sellerModName)
 
@@ -36,7 +37,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
 
-	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), recipient)
+	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights)
 	require.NoError(t, err)
 	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30), c("token1", 20)))
 

@@ -133,8 +133,8 @@ func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin
 // ForwardReverseAuction type for forward reverse auction
 type ForwardReverseAuction struct {
 	BaseAuction
-	MaxBid      sdk.Coin
-	OtherPerson sdk.AccAddress // TODO rename, this is normally the original CDP owner, will have to be updated to account for deposits
+	MaxBid     sdk.Coin
+	LotReturns WeightedAddresses // return addresses to pay out reductions in the lot amount to. Lot is bid down during reverse phase.
 }
 
 // WithID returns an auction with the ID set
@@ -149,15 +149,15 @@ func (a ForwardReverseAuction) String() string {
   End Time:   						%s
 	Max End Time:      			%s
 	Max Bid									%s
-	Other Person						%s`,
+	LotReturns						%s`,
 		a.GetID(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
-		a.MaxEndTime.String(), a.MaxBid, a.OtherPerson,
+		a.MaxEndTime.String(), a.MaxBid, a.LotReturns,
 	)
 }
 
 // NewForwardReverseAuction creates a new forward reverse auction
-func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, otherPerson sdk.AccAddress) ForwardReverseAuction {
+func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses) ForwardReverseAuction {
 	auction := ForwardReverseAuction{
 		BaseAuction: BaseAuction{
 			// no ID
@@ -167,8 +167,28 @@ func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, ma
 			Bid:        sdk.NewInt64Coin(maxBid.Denom, 0),
 			EndTime:    EndTime,
 			MaxEndTime: EndTime},
-		MaxBid:      maxBid,
-		OtherPerson: otherPerson,
+		MaxBid:     maxBid,
+		LotReturns: lotReturns,
 	}
 	return auction
+}
+
+type WeightedAddresses struct {
+	Addresses []sdk.AccAddress
+	Weights   []sdk.Int
+}
+
+func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, sdk.Error) {
+	if len(addrs) != len(weights) {
+		return WeightedAddresses{}, sdk.ErrInternal("number of addresses doesn't match number of weights")
+	}
+	for _, w := range weights {
+		if w.IsNegative() {
+			return WeightedAddresses{}, sdk.ErrInternal("weights contain a negative amount")
+		}
+	}
+	return WeightedAddresses{
+		Addresses: addrs,
+		Weights:   weights,
+	}, nil
 }

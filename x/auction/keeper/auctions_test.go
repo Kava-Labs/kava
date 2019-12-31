@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -94,9 +95,10 @@ func TestReverseAuctionBasic(t *testing.T) {
 
 func TestForwardReverseAuctionBasic(t *testing.T) {
 	// Setup
-	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	buyer := addrs[0]
-	recipient := addrs[1]
+	returnAddrs := addrs[1:]
+	returnWeights := []sdk.Int{i(30), i(20), i(10)}
 	sellerModName := liquidator.ModuleName
 	sellerAddr := supply.NewModuleAddress(sellerModName)
 
@@ -106,7 +108,9 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
 			auth.NewBaseAccount(buyer, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
-			auth.NewBaseAccount(recipient, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
+			auth.NewBaseAccount(returnAddrs[0], cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
+			auth.NewBaseAccount(returnAddrs[1], cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
+			auth.NewBaseAccount(returnAddrs[2], cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
 			sellerAcc,
 		}),
 	)
@@ -114,7 +118,7 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 
 	// Start auction
-	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), recipient) // seller, lot, maxBid, otherPerson
+	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights) // seller, lot, maxBid, otherPerson
 	require.NoError(t, err)
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
@@ -125,8 +129,10 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 90)))
 	// Check seller's coins have increased
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 110)))
-	// Check recipient has not received coins
-	tApp.CheckBalance(t, ctx, recipient, cs(c("token1", 100), c("token2", 100)))
+	// Check return addresses have not received coins
+	for _, ra := range returnAddrs {
+		tApp.CheckBalance(t, ctx, ra, cs(c("token1", 100), c("token2", 100)))
+	}
 
 	// Place a reverse bid
 	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50), c("token1", 15))) // bid, lot
@@ -134,8 +140,10 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 50)))
 	// Check seller's coins have increased
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 150)))
-	// Check "recipient" has received coins
-	tApp.CheckBalance(t, ctx, recipient, cs(c("token1", 105), c("token2", 100)))
+	// Check return addresses have received coins
+	tApp.CheckBalance(t, ctx, returnAddrs[0], cs(c("token1", 102), c("token2", 100)))
+	tApp.CheckBalance(t, ctx, returnAddrs[1], cs(c("token1", 102), c("token2", 100)))
+	tApp.CheckBalance(t, ctx, returnAddrs[2], cs(c("token1", 101), c("token2", 100)))
 
 	// Close auction at just after auction expiry
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultBidDuration))

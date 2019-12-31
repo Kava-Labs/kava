@@ -46,12 +46,16 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin,
 }
 
 // StartForwardReverseAuction starts an auction where bidders bid up to a maxBid, then switch to bidding down on price.
-func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, otherPerson sdk.AccAddress) (types.ID, sdk.Error) {
+func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (types.ID, sdk.Error) {
 	// create auction
-	auction := types.NewForwardReverseAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, otherPerson)
+	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
+	if err != nil {
+		return 0, err
+	}
+	auction := types.NewForwardReverseAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, weightedAddresses)
 
 	// take coins from module account
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
+	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
 		return 0, err
 	}
@@ -206,9 +210,16 @@ func (k Keeper) PlaceBidForwardReverse(ctx sdk.Context, a types.ForwardReverseAu
 	if err != nil {
 		return a, err
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.OtherPerson, sdk.NewCoins(lotDecrement))
+	// FIXME paying out rateably to cdp depositors is vulnerable to errors compounding over multiple bids
+	lotPayouts, err := splitCoinIntoWeightedBuckets(lotDecrement, a.LotReturns.Weights)
 	if err != nil {
 		return a, err
+	}
+	for i, payout := range lotPayouts {
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
+		if err != nil {
+			return a, err
+		}
 	}
 
 	// Update Auction
@@ -317,4 +328,18 @@ func earliestTime(t1, t2 time.Time) time.Time {
 	} else {
 		return t2 // also returned if times are equal
 	}
+}
+
+func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdk.Int) ([]sdk.Coin, sdk.Error) {
+	for _, bucket := range buckets {
+		if bucket.IsNegative() {
+			return nil, sdk.ErrInternal("cannot split coin into bucket with negative weight")
+		}
+	}
+	amounts := splitIntIntoWeightedBuckets(coin.Amount, buckets)
+	result := make([]sdk.Coin, len(amounts))
+	for i, a := range amounts {
+		result[i] = sdk.NewCoin(coin.Denom, a)
+	}
+	return result, nil
 }
