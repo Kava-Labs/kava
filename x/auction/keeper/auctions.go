@@ -10,7 +10,7 @@ import (
 )
 
 // StartForwardAuction starts a normal auction that mints the sold coins.
-func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (types.ID, sdk.Error) {
+func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error) {
 	// create auction
 	auction := types.NewForwardAuction(seller, lot, bidDenom, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
 
@@ -28,7 +28,7 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin
 }
 
 // StartReverseAuction starts an auction where sellers compete by offering decreasing prices.
-func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (types.ID, sdk.Error) {
+func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (uint64, sdk.Error) {
 	// create auction
 	auction := types.NewReverseAuction(buyer, bid, initialLot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
 
@@ -46,7 +46,7 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin,
 }
 
 // StartForwardReverseAuction starts an auction where bidders bid up to a maxBid, then switch to bidding down on price.
-func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (types.ID, sdk.Error) {
+func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (uint64, sdk.Error) {
 	// create auction
 	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
 	if err != nil {
@@ -69,7 +69,7 @@ func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot s
 
 // PlaceBid places a bid on any auction.
 // TODO passing bid and lot is weird when only one needed
-func (k Keeper) PlaceBid(ctx sdk.Context, auctionID types.ID, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) sdk.Error {
+func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) sdk.Error {
 
 	// get auction from store
 	auction, found := k.GetAuction(ctx, auctionID)
@@ -261,7 +261,7 @@ func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder 
 }
 
 // CloseAuction closes an auction and distributes funds to the highest bidder.
-func (k Keeper) CloseAuction(ctx sdk.Context, auctionID types.ID) sdk.Error {
+func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 
 	// get the auction from the store
 	auction, found := k.GetAuction(ctx, auctionID)

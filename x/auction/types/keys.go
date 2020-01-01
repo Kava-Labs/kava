@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/binary"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,10 +29,20 @@ var (
 	NextAuctionIDKey = []byte{0x02}
 )
 
-func GetAuctionKey(auctionID ID) []byte {
-	return auctionID.Bytes()
+func GetAuctionKey(auctionID uint64) []byte {
+	return Uint64ToBytes(auctionID)
 }
 
-func GetAuctionByTimeKey(endTime time.Time, auctionID ID) []byte {
-	return append(sdk.FormatTimeBytes(endTime), auctionID.Bytes()...)
+func GetAuctionByTimeKey(endTime time.Time, auctionID uint64) []byte {
+	return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(auctionID)...)
+}
+
+func Uint64FromBytes(bz []byte) uint64 {
+	return binary.BigEndian.Uint64(bz)
+}
+
+func Uint64ToBytes(id uint64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(id))
+	return bz
 }

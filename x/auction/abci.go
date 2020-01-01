@@ -7,8 +7,8 @@ import (
 // EndBlocker runs at the end of every block.
 func EndBlocker(ctx sdk.Context, k Keeper) {
 
-	var expiredAuctions []ID
-	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id ID) bool {
+	var expiredAuctions []uint64
+	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id uint64) bool {
 		expiredAuctions = append(expiredAuctions, id)
 		return false
 	})

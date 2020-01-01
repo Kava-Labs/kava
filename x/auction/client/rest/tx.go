@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -45,7 +46,7 @@ func bidHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		strBid := vars[restBid]
 		strLot := vars[restLot]
 
-		auctionID, err := types.NewIDFromString(strAuctionID)
+		auctionID, err := strconv.ParseUint(strAuctionID, 10, 64)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -17,7 +17,7 @@ func SetGetDeleteAuction(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 	ctx := tApp.NewContext(true, abci.Header{})
 	someTime := time.Date(43, time.January, 1, 0, 0, 0, 0, time.UTC) // need to specify UTC as tz info is lost on unmarshal
-	id := types.ID(5)
+	var id uint64 = 5
 	auction := types.NewForwardAuction("some_module", c("usdx", 100), "kava", someTime).WithID(id)
 
 	// write and read from store
@@ -28,7 +28,7 @@ func SetGetDeleteAuction(t *testing.T) {
 	require.True(t, found)
 	require.Equal(t, auction, readAuction)
 	// check auction is in the index
-	keeper.IterateAuctionsByTime(ctx, auction.GetEndTime(), func(readID types.ID) bool {
+	keeper.IterateAuctionsByTime(ctx, auction.GetEndTime(), func(readID uint64) bool {
 		require.Equal(t, auction.GetID(), readID)
 		return false
 	})
@@ -40,7 +40,7 @@ func SetGetDeleteAuction(t *testing.T) {
 	_, found = keeper.GetAuction(ctx, id)
 	require.False(t, found)
 	// check auction not in index
-	keeper.IterateAuctionsByTime(ctx, time.Unix(999999999, 0), func(readID types.ID) bool {
+	keeper.IterateAuctionsByTime(ctx, time.Unix(999999999, 0), func(readID uint64) bool {
 		require.Fail(t, "index should be empty", " found auction ID '%s", readID)
 		return false
 	})
@@ -53,7 +53,7 @@ func TestIncrementNextAuctionID(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 
 	// store id
-	id := types.ID(123456)
+	var id uint64 = 123456
 	keeper.SetNextAuctionID(ctx, id)
 
 	require.NoError(t, keeper.IncrementNextAuctionID(ctx))
@@ -101,7 +101,7 @@ func TestIterateAuctionsByTime(t *testing.T) {
 	// setup byTime index
 	byTimeIndex := []struct {
 		endTime   time.Time
-		auctionID types.ID
+		auctionID uint64
 	}{
 		{time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC), 9999},            // distant past
 		{time.Date(1998, time.January, 1, 11, 59, 59, 999999999, time.UTC), 1}, // just before cutoff
@@ -118,15 +118,15 @@ func TestIterateAuctionsByTime(t *testing.T) {
 
 	// read out values from index up to a cutoff time and check they are as expected
 	cutoffTime := time.Date(1998, time.January, 1, 12, 0, 0, 0, time.UTC)
-	var expectedIndex []types.ID
+	var expectedIndex []uint64
 	for _, v := range byTimeIndex {
 		if v.endTime.Before(cutoffTime) || v.endTime.Equal(cutoffTime) { // endTime ≤ cutoffTime
 			expectedIndex = append(expectedIndex, v.auctionID)
 		}
 
 	}
-	var readIndex []types.ID
-	keeper.IterateAuctionsByTime(ctx, cutoffTime, func(id types.ID) bool {
+	var readIndex []uint64
+	keeper.IterateAuctionsByTime(ctx, cutoffTime, func(id uint64) bool {
 		readIndex = append(readIndex, id)
 		return false
 	})

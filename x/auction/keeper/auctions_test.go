@@ -220,7 +220,7 @@ func TestStartForwardAuction(t *testing.T) {
 				// check auction in store and is correct
 				require.True(t, found)
 				expectedAuction := types.Auction(types.ForwardAuction{BaseAuction: types.BaseAuction{
-					ID:         types.ID(0),
+					ID:         0,
 					Initiator:  tc.args.seller,
 					Lot:        tc.args.lot,
 					Bidder:     nil,

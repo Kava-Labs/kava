@@ -1,41 +1,17 @@
 package types
 
 import (
-	"encoding/binary"
 	"fmt"
-	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-// ID type for auction IDs
-type ID uint64
-
-// TODO can this be removed?
-// NewIDFromString generate new auction ID from a string
-func NewIDFromString(s string) (ID, error) {
-	n, err := strconv.ParseUint(s, 10, 64) // copied from how the gov module rest handler's parse proposal IDs
-	if err != nil {
-		return 0, err
-	}
-	return ID(n), nil
-}
-func NewIDFromBytes(bz []byte) ID {
-	return ID(binary.BigEndian.Uint64(bz))
-
-}
-func (id ID) Bytes() []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, uint64(id))
-	return bz
-}
-
 // Auction is an interface to several types of auction.
 type Auction interface {
-	GetID() ID
-	WithID(ID) Auction
+	GetID() uint64
+	WithID(uint64) Auction
 	GetBidder() sdk.AccAddress
 	GetBid() sdk.Coin
 	GetLot() sdk.Coin
@@ -44,7 +20,7 @@ type Auction interface {
 
 // BaseAuction type shared by all Auctions
 type BaseAuction struct {
-	ID         ID
+	ID         uint64
 	Initiator  string         // Module that starts the auction. Giving away Lot (aka seller in a forward auction). Restricted to being a module account name rather than any account.
 	Lot        sdk.Coin       // Amount of coins up being given by initiator (FA - amount for sale by seller, RA - cost of good by buyer (bid))
 	Bidder     sdk.AccAddress // Person who bids in the auction. Receiver of Lot. (aka buyer in forward auction, seller in RA)
@@ -54,7 +30,7 @@ type BaseAuction struct {
 }
 
 // GetID getter for auction ID
-func (a BaseAuction) GetID() ID { return a.ID }
+func (a BaseAuction) GetID() uint64 { return a.ID }
 
 // GetBid getter for auction bid
 func (a BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
@@ -88,7 +64,7 @@ type ForwardAuction struct {
 }
 
 // WithID returns an auction with the ID set
-func (a ForwardAuction) WithID(id ID) Auction { a.ID = id; return a }
+func (a ForwardAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // NewForwardAuction creates a new forward auction
 func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) ForwardAuction {
@@ -110,7 +86,7 @@ type ReverseAuction struct {
 }
 
 // WithID returns an auction with the ID set
-func (a ReverseAuction) WithID(id ID) Auction { a.ID = id; return a }
+func (a ReverseAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // NewReverseAuction creates a new reverse auction
 func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) ReverseAuction {
@@ -138,7 +114,7 @@ type ForwardReverseAuction struct {
 }
 
 // WithID returns an auction with the ID set
-func (a ForwardReverseAuction) WithID(id ID) Auction { a.ID = id; return a }
+func (a ForwardReverseAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 func (a ForwardReverseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:

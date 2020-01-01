@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/kava-labs/kava/x/auction/types"
 	"github.com/spf13/cobra"
@@ -39,7 +40,7 @@ func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			id, err := types.NewIDFromString(args[0])
+			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				fmt.Printf("invalid auction id - %s \n", string(args[0]))
 				return err

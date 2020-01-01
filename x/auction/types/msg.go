@@ -4,14 +4,14 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 
 // MsgPlaceBid is the message type used to place a bid on any type of auction.
 type MsgPlaceBid struct {
-	AuctionID ID
+	AuctionID uint64
 	Bidder    sdk.AccAddress // This can be a buyer (who increments bid), or a seller (who decrements lot) TODO rename to be clearer?
 	Bid       sdk.Coin
 	Lot       sdk.Coin
 }
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
-func NewMsgPlaceBid(auctionID ID, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) MsgPlaceBid {
+func NewMsgPlaceBid(auctionID uint64, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) MsgPlaceBid {
 	return MsgPlaceBid{
 		AuctionID: auctionID,
 		Bidder:    bidder,
