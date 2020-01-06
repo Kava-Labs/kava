@@ -9,7 +9,7 @@ type GenesisAuctions []Auction
 
 // GenesisState - auction state that must be provided at genesis
 type GenesisState struct {
-	NextAuctionID uint64 `json:"next_auction_id" yaml:"next_auction_id"`
+	NextAuctionID uint64          `json:"next_auction_id" yaml:"next_auction_id"`
 	AuctionParams AuctionParams   `json:"auction_params" yaml:"auction_params"`
 	Auctions      GenesisAuctions `json:"genesis_auctions" yaml:"genesis_auctions"`
 }
