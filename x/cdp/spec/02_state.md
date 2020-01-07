@@ -3,13 +3,27 @@
 Listed here is the state stored by the module.
 For details see the types package. In particular `keys.go` describes how state is stored in the key-value store.
 <!--
-Structs from types were not copied in here to avoid to creating future work when the structs are updated.
-Similarly key structures are not listed here - they seem like an implementation detail best documented by code comments.
+Store key structures are not listed here - they seem like an implementation detail best documented by code comments.
 -->
 
 ## CDP
 
-A CDP is a struct representing a debt position owned by one or more depositors. It has one collateral type and records the debt that has been drawn and how much fees should be repaid.
+A CDP is a struct representing a debt position owned by one address. It has one collateral type and records the debt that has been drawn and how much fees should be repaid.
+
+Only an owner is authorized to draw or repay debt. But anyone can deposit to any CDP, and withdraw their debt (provided it does not put the CDP below the liquidation ratio).
+
+The CDP's collateral must always equal the total of the deposits. It is stored in the CDP for efficiency purposes.
+
+```go
+type CDP struct {
+    ID              uint64
+    Owner           sdk.AccAddress
+    Collateral      sdk.Coins
+    Principal       sdk.Coins
+    AccumulatedFees sdk.Coins
+    FeesUpdated     time.Time
+}
+```
 
 These are stored with a couple of database indexes for faster lookup:
 
@@ -18,7 +32,20 @@ These are stored with a couple of database indexes for faster lookup:
 
 ## Deposit
 
-A Deposit is a struct recording collateral added to a CDP by one address. That address only has authorization to change their deposited amount.
+A Deposit is a struct recording collateral added to a CDP by one address. The address only has authorization to change their deposited amount.
+
+The liquidation flag indicates whether this deposit has been seized for sell off.
+<!-- TODO when is the flag unset? could the deposit be removed on liquiation to make things simpler? -->
+<!-- TODO can Amount be more than one coin? suggest change to sdk.Coin if not -->
+
+```go
+type Deposit struct {
+    CdpID         uint64
+    Depositor     sdk.AccAddress
+    Amount        sdk.Coins
+    InLiquidation bool
+}
+```
 
 ## Params
 
@@ -30,7 +57,7 @@ A global counter used to create unique CDP ids.
 
 ## DebtDenom
 
-The denom for the internal debt coin. This is in the store as its value can be configured at genesis.
+The name for the internal debt coin. It's set in the store rather than hard-coded so its value can be configured at genesis.
 
 ## Total Principle
 
