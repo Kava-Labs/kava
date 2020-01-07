@@ -25,21 +25,29 @@ var (
 	NewForwardAuction        = types.NewForwardAuction
 	NewReverseAuction        = types.NewReverseAuction
 	NewForwardReverseAuction = types.NewForwardReverseAuction
+	NewWeightedAddresses     = types.NewWeightedAddresses
 	RegisterCodec            = types.RegisterCodec
 	NewGenesisState          = types.NewGenesisState
 	DefaultGenesisState      = types.DefaultGenesisState
 	ValidateGenesis          = types.ValidateGenesis
+	GetAuctionKey            = types.GetAuctionKey
+	GetAuctionByTimeKey      = types.GetAuctionByTimeKey
+	Uint64FromBytes          = types.Uint64FromBytes
+	Uint64ToBytes            = types.Uint64ToBytes
 	NewMsgPlaceBid           = types.NewMsgPlaceBid
-	NewAuctionParams         = types.NewAuctionParams
-	DefaultAuctionParams     = types.DefaultAuctionParams
+	NewParams                = types.NewParams
+	DefaultParams            = types.DefaultParams
 	ParamKeyTable            = types.ParamKeyTable
 	NewKeeper                = keeper.NewKeeper
 	NewQuerier               = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc             = types.ModuleCdc
-	KeyAuctionBidDuration = types.KeyAuctionBidDuration
-	KeyAuctionDuration    = types.KeyAuctionDuration
+	ModuleCdc              = types.ModuleCdc
+	AuctionKeyPrefix       = types.AuctionKeyPrefix
+	AuctionByTimeKeyPrefix = types.AuctionByTimeKeyPrefix
+	NextAuctionIDKey       = types.NextAuctionIDKey
+	KeyAuctionBidDuration  = types.KeyAuctionBidDuration
+	KeyAuctionDuration     = types.KeyAuctionDuration
 )
 
 type (
@@ -48,10 +56,12 @@ type (
 	ForwardAuction        = types.ForwardAuction
 	ReverseAuction        = types.ReverseAuction
 	ForwardReverseAuction = types.ForwardReverseAuction
-	GenesisAuctions       = types.GenesisAuctions
+	WeightedAddresses     = types.WeightedAddresses
+	SupplyKeeper          = types.SupplyKeeper
+	Auctions              = types.Auctions
 	GenesisState          = types.GenesisState
 	MsgPlaceBid           = types.MsgPlaceBid
-	AuctionParams         = types.AuctionParams
+	Params                = types.Params
 	QueryResAuctions      = types.QueryResAuctions
 	Keeper                = keeper.Keeper
 )

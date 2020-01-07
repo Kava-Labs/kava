@@ -8,7 +8,7 @@ import (
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 	keeper.SetNextAuctionID(ctx, data.NextAuctionID)
 
-	keeper.SetParams(ctx, data.AuctionParams)
+	keeper.SetParams(ctx, data.Params)
 
 	for _, a := range data.Auctions {
 		keeper.SetAuction(ctx, a)
@@ -24,7 +24,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 
 	params := keeper.GetParams(ctx)
 
-	var genAuctions GenesisAuctions
+	var genAuctions Auctions
 	keeper.IterateAuctions(ctx, func(a Auction) bool {
 		genAuctions = append(genAuctions, a)
 		return false

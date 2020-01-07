@@ -18,30 +18,30 @@ const (
 
 // Parameter keys
 var (
-	// ParamStoreKeyAuctionParams Param store key for auction params
+	// ParamStoreKeyParams Param store key for auction params
 	KeyAuctionBidDuration = []byte("MaxBidDuration")
 	KeyAuctionDuration    = []byte("MaxAuctionDuration")
 )
 
-var _ subspace.ParamSet = &AuctionParams{}
+var _ subspace.ParamSet = &Params{}
 
-// AuctionParams governance parameters for auction module
-type AuctionParams struct {
-	MaxAuctionDuration time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction, in blocks
-	MaxBidDuration     time.Duration `json:"max_bid_duration" yaml:"max_bid_duration"`
+// Params governance parameters for auction module
+type Params struct {
+	MaxAuctionDuration time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction
+	MaxBidDuration     time.Duration `json:"max_bid_duration" yaml:"max_bid_duration"`         // additional time added to the auction end time after each bid, capped by the expiry.
 }
 
-// NewAuctionParams creates a new AuctionParams object
-func NewAuctionParams(maxAuctionDuration time.Duration, bidDuration time.Duration) AuctionParams {
-	return AuctionParams{
+// NewParams creates a new Params object
+func NewParams(maxAuctionDuration time.Duration, bidDuration time.Duration) Params {
+	return Params{
 		MaxAuctionDuration: maxAuctionDuration,
 		MaxBidDuration:     bidDuration,
 	}
 }
 
-// DefaultAuctionParams default parameters for auctions
-func DefaultAuctionParams() AuctionParams {
-	return NewAuctionParams(
+// DefaultParams default parameters for auctions
+func DefaultParams() Params {
+	return NewParams(
 		DefaultMaxAuctionDuration,
 		DefaultBidDuration,
 	)
@@ -49,35 +49,35 @@ func DefaultAuctionParams() AuctionParams {
 
 // ParamKeyTable Key declaration for parameters
 func ParamKeyTable() subspace.KeyTable {
-	return subspace.NewKeyTable().RegisterParamSet(&AuctionParams{})
+	return subspace.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of auth module's parameters.
 // nolint
-func (ap *AuctionParams) ParamSetPairs() subspace.ParamSetPairs {
+func (ap *Params) ParamSetPairs() subspace.ParamSetPairs {
 	return subspace.ParamSetPairs{
 		{KeyAuctionBidDuration, &ap.MaxBidDuration},
 		{KeyAuctionDuration, &ap.MaxAuctionDuration},
 	}
 }
 
-// Equal returns a boolean determining if two AuctionParams types are identical.
-func (ap AuctionParams) Equal(ap2 AuctionParams) bool {
+// Equal returns a boolean determining if two Params types are identical.
+func (ap Params) Equal(ap2 Params) bool {
 	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&ap)
 	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&ap2)
 	return bytes.Equal(bz1, bz2)
 }
 
 // String implements stringer interface
-func (ap AuctionParams) String() string {
+func (ap Params) String() string {
 	return fmt.Sprintf(`Auction Params:
 	Max Auction Duration: %s
 	Max Bid Duration: %s`, ap.MaxAuctionDuration, ap.MaxBidDuration)
 }
 
 // Validate checks that the parameters have valid values.
-func (ap AuctionParams) Validate() error {
+func (ap Params) Validate() error {
 	// TODO check durations are within acceptable limits, if needed
 	return nil
 }

@@ -149,6 +149,7 @@ func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, ma
 	return auction
 }
 
+// WeightedAddresses type for storing an address and its associated weight
 type WeightedAddresses struct {
 	Addresses []sdk.AccAddress
 	Weights   []sdk.Int

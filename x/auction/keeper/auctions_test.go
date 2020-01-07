@@ -49,11 +49,15 @@ func TestForwardAuctionBasic(t *testing.T) {
 	// Check seller's coins have not increased (because proceeds are burned)
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
 
+	// increment bid same bidder
+	err = keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 20), c("token1", 20))
+	require.NoError(t, err)
+
 	// Close auction at just at auction expiry time
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultBidDuration))
 	require.NoError(t, keeper.CloseAuction(ctx, auctionID))
 	// Check buyer's coins increased
-	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 120), c("token2", 90)))
+	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 120), c("token2", 80)))
 }
 
 func TestReverseAuctionBasic(t *testing.T) {
