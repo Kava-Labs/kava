@@ -11,7 +11,6 @@ import (
 
 // Parameter keys
 var (
-	// ParamStoreKeyAuctionParams Param store key for auction params
 	KeyGlobalDebtLimit       = []byte("GlobalDebtLimit")
 	KeyCollateralParams      = []byte("CollateralParams")
 	KeyDebtParams            = []byte("DebtParams")
