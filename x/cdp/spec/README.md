@@ -3,7 +3,6 @@
 
 ## Table of Contents
 
-<!-- TOC -->
 1. **[Concepts](01_concepts.md)**
 2. **[State](02_state.md)**
 3. **[State Transistions](03_state_transistsions.md)**
@@ -13,21 +12,10 @@
 7. **[Parameters](07_params.md)**
 8. **[EndBlock](08_future_improvements.md)**
 
-
-
 ## Overview
 
-The `x/cdp` module stores and manages Collateralized Debt Positions (or CDPs). Through this module CDPs can be created, modified, and removed by users. This module does not handle system stability through liquidation of CDPs and creation of auctions; relying on other modules to fulfill this role. Further this module requires a pricefeed to determine if CDPs can be updated or not.
+The `x/cdp` module stores and manages Collateralized Debt Positions (or CDPs).
 
-User interactions with this module:
+A CDP enables the creation of an asset pegged to an external price (usually US Dollar) by collateralization with another asset. Collateral is locked in a CDP and new pegged asset can be minted up to approximately the value of the collateral. To unlock the collateral, the debt must be repaid by returning some pegged asset to the CDP at which point it will be burned and the collateral unlocked.
 
-- create a new cdp by depositing some type of coin as collateral
-- withdraw newly minted stable coin from this CDP (up to a fraction of the value of the collateral)
-- repay debt by paying back stable coins (including paying any fees accrued)
-- remove collateral and close CDP
-
-Notable features
-
-- CDPs are multi collateral, but limited to one collateral per cdp.
-- CDPs are owned by one or more addresses, each with the authorization to add and remove collateral and stable coin.
-- CDPs support multiple stable coin denominations.
+Pegged assets remain fully collateralized by the value locked in CDPs. In the event of price changes some of this collateral can be seized and sold off by the system to reclaim and reduce the supply of pegged assets. Note: collateral sell off is not handled by this module.
