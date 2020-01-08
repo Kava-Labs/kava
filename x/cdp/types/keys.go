@@ -32,7 +32,7 @@ var sep = []byte(":")
 //    - One cdp owner can control one cdp per collateral type
 // - 0x01<collateralDenomPrefix>:<cdpID_Bytes>: CDP
 //    - cdps are prefix by denom prefix so we can iterate over cdps of one type
-//    - uses : as separator, otherwise the cdp with ID 11 would be selected when iterating over denom with prefix 1
+//    - uses : as separator
 // - 0x02<collateralDenomPrefix>:<collateralDebtRatio_Bytes>:<cdpID_Bytes>: cdpID
 // - Ox03: nextCdpID
 // - 0x04: debtDenom
@@ -40,7 +40,6 @@ var sep = []byte(":")
 // - 0x06<denom>:totalPrincipal
 // - 0x07<denom>:feeRate
 // - 0x08:previousBlockTime
-// - 0x20 - 0xff are reserved for collaterals
 
 // KVStore key prefixes
 var (

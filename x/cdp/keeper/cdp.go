@@ -24,13 +24,9 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if err != nil {
 		return err
 	}
-	collateralRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, sdk.NewCoins())
+	err = k.ValidateCollateralizationRatio(ctx, collateral, principal, sdk.NewCoins())
 	if err != nil {
 		return err
-	}
-	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
-	if collateralRatio.LT(liquidationRatio) {
-		return types.ErrInvalidCollateralRatio(k.codespace, collateral[0].Denom, collateralRatio, liquidationRatio)
 	}
 
 	// send coins from the owners account to the cdp module
@@ -352,6 +348,20 @@ func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.
 		if sdk.NewCoins(dc).IsAnyGT(dp.DebtLimit) {
 			return types.ErrExceedsDebtLimit(k.codespace, sdk.NewCoins(dc), dp.DebtLimit)
 		}
+	}
+	return nil
+}
+
+// ValidateCollateralizationRatio validate that adding the input principal doesn't put the cdp below the liquidation ratio
+func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) sdk.Error {
+	//
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, fees)
+	if err != nil {
+		return err
+	}
+	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
+	if collateralizationRatio.LT(liquidationRatio) {
+		return types.ErrInvalidCollateralRatio(k.codespace, collateral[0].Denom, collateralizationRatio, liquidationRatio)
 	}
 	return nil
 }

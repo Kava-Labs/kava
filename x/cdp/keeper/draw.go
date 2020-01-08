@@ -14,29 +14,22 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	deposits := k.GetDeposits(ctx, cdp.ID)
-	for _, d := range deposits {
-		if d.InLiquidation {
-			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
-		}
+	err := k.ValidateAvailableCDP(ctx, cdp.ID)
+	if err != nil {
+		return err
 	}
-	err := k.ValidatePrincipalDraw(ctx, principal)
+	err = k.ValidatePrincipalDraw(ctx, principal)
 	if err != nil {
 		return err
 	}
 
 	// fee calculation
-	periods := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
+	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
 
-	// validate that adding principal doesn't put the cdp below the liquidation ratio
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal), cdp.AccumulatedFees.Add(fees))
+	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal), cdp.AccumulatedFees.Add(fees))
 	if err != nil {
 		return err
-	}
-	liquidationRatio := k.getLiquidationRatio(ctx, denom)
-	if collateralizationRatio.LT(liquidationRatio) {
-		return types.ErrInvalidCollateralRatio(k.codespace, denom, collateralizationRatio, liquidationRatio)
 	}
 
 	// mint the principal and send it to the cdp owner
@@ -92,19 +85,17 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	deposits := k.GetDeposits(ctx, cdp.ID)
-	for _, d := range deposits {
-		if d.InLiquidation {
-			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
-		}
+	err := k.ValidateAvailableCDP(ctx, cdp.ID)
+	if err != nil {
+		return err
 	}
-	err := k.ValidatePaymentCoins(ctx, cdp, payment)
+	err = k.ValidatePaymentCoins(ctx, cdp, payment)
 	if err != nil {
 		return err
 	}
 
 	// calculate fees
-	periods := sdk.NewInt(ctx.BlockTime().Unix() - cdp.FeesUpdated.Unix())
+	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
 
 	// calculate fee and principal payment

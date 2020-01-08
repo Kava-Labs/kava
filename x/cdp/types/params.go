@@ -22,7 +22,7 @@ var (
 	DefaultCdpStartingID     = uint64(1)
 	DefaultDebtDenom         = "debt"
 	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
-	minCollateralPrefix      = 32
+	minCollateralPrefix      = 0
 	maxCollateralPrefix      = 255
 )
 

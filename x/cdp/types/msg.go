@@ -82,8 +82,8 @@ func (msg MsgCreateCDP) String() string {
 
 // MsgDeposit deposit collateral to an existing cdp.
 type MsgDeposit struct {
-	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
 	Depositor  sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
 	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 
@@ -130,7 +130,7 @@ func (msg MsgDeposit) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Owner}
+	return []sdk.AccAddress{msg.Depositor}
 }
 
 // String implements the Stringer interface
@@ -144,8 +144,8 @@ func (msg MsgDeposit) String() string {
 
 // MsgWithdraw withdraw collateral from an existing cdp.
 type MsgWithdraw struct {
-	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
 	Depositor  sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
 	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 }
 
@@ -192,7 +192,7 @@ func (msg MsgWithdraw) GetSignBytes() []byte {
 
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Owner}
+	return []sdk.AccAddress{msg.Depositor}
 }
 
 // String implements the Stringer interface

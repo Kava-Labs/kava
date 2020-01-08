@@ -19,11 +19,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
 	// deposits blocked if cdp is in liquidation, have to check all deposits
-	deposits := k.GetDeposits(ctx, cdp.ID)
-	for _, d := range deposits {
-		if d.InLiquidation {
-			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
-		}
+	err = k.ValidateAvailableCDP(ctx, cdp.ID)
+	if err != nil {
+		return err
 	}
 
 	deposit, found := k.GetDeposit(ctx, types.StatusNil, cdp.ID, depositor)
@@ -71,18 +69,13 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
 	// withdrawals blocked if cdp is in liquidation
-	deposits := k.GetDeposits(ctx, cdp.ID)
-	for _, d := range deposits {
-		if d.InLiquidation {
-			return types.ErrCdpNotAvailable(k.codespace, cdp.ID)
-		}
+	err = k.ValidateAvailableCDP(ctx, cdp.ID)
+	if err != nil {
+		return err
 	}
 	deposit, found := k.GetDeposit(ctx, types.StatusNil, cdp.ID, depositor)
 	if !found {
 		return types.ErrDepositNotFound(k.codespace, depositor, cdp.ID)
-	}
-	if deposit.InLiquidation {
-		return types.ErrDepositNotAvailable(k.codespace, cdp.ID, depositor)
 	}
 	if collateral.IsAnyGT(deposit.Amount) {
 		return types.ErrInvalidWithdrawAmount(k.codespace, collateral, deposit.Amount)
@@ -118,9 +111,24 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
 	k.SetCDP(ctx, cdp)
 	deposit.Amount = deposit.Amount.Sub(collateral)
-	k.SetDeposit(ctx, deposit)
+	if deposit.Amount.IsZero() {
+		k.DeleteDeposit(ctx, types.StatusNil, deposit.CdpID, deposit.Depositor)
+	} else {
+		k.SetDeposit(ctx, deposit)
+	}
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal)
 	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, collateralToDebtRatio)
+	return nil
+}
+
+// ValidateAvailableCDP validates that the deposits of a cdp are not in liquidation
+func (k Keeper) ValidateAvailableCDP(ctx sdk.Context, cdpID uint64) sdk.Error {
+	deposits := k.GetDeposits(ctx, cdpID)
+	for _, d := range deposits {
+		if d.InLiquidation {
+			return types.ErrCdpNotAvailable(k.codespace, cdpID)
+		}
+	}
 	return nil
 }
 

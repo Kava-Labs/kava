@@ -13,7 +13,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState)
 	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
-	// pricefeed MUST called InitGenesis before cdp
+	// pricefeed MUST call InitGenesis before cdp
 	collateralMap := make(map[string]int)
 	ap := pk.GetParams(ctx)
 	for _, a := range ap.Markets {
