@@ -43,14 +43,14 @@ func TestForwardAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
 
 	// PlaceBid (bid: 10 token, lot: same as starting)
-	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 10), c("token1", 20))) // bid, lot
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 10)))
 	// Check buyer's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 90)))
 	// Check seller's coins have not increased (because proceeds are burned)
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
 
 	// increment bid same bidder
-	err = keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 20), c("token1", 20))
+	err = keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 20))
 	require.NoError(t, err)
 
 	// Close auction at just at auction expiry time
@@ -85,7 +85,7 @@ func TestReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyerAddr, nil) // zero coins
 
 	// Place a bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, seller, c("token1", 20), c("token2", 10))) // bid, lot
+	require.NoError(t, keeper.PlaceBid(ctx, 0, seller, c("token2", 10)))
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, seller, cs(c("token1", 80), c("token2", 100)))
 	// Check buyer's coins have increased
@@ -129,7 +129,7 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
 
 	// Place a forward bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 10), c("token1", 20))) // bid, lot
+	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 10)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 90)))
 	// Check seller's coins have increased
@@ -140,8 +140,8 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	}
 
 	// Place a reverse bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50), c("token1", 15))) // first bid up to max bid to switch phases
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50), c("token1", 15)))
+	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50))) // first bid up to max bid to switch phases
+	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token1", 15)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 50)))
 	// Check seller's coins have increased

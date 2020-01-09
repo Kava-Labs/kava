@@ -68,8 +68,7 @@ func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot s
 }
 
 // PlaceBid places a bid on any auction.
-// TODO passing bid and lot is weird when only one needed
-func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) sdk.Error {
+func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, newAmount sdk.Coin) sdk.Error {
 
 	// get auction from store
 	auction, found := k.GetAuction(ctx, auctionID)
@@ -81,32 +80,26 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	if ctx.BlockTime().After(auction.GetEndTime()) {
 		return sdk.ErrInternal("auction has closed")
 	}
-	if auction.GetBid().Denom != bid.Denom {
-		return sdk.ErrInternal("bid has incorrect denom")
-	}
-	if auction.GetLot().Denom != lot.Denom {
-		return sdk.ErrInternal("lot has incorrect denom")
-	}
 
 	// place bid
 	var err sdk.Error
 	var a types.Auction
 	switch auc := auction.(type) {
 	case types.ForwardAuction:
-		a, err = k.PlaceBidForward(ctx, auc, bidder, bid)
+		a, err = k.PlaceBidForward(ctx, auc, bidder, newAmount)
 		if err != nil {
 			return err
 		}
 	case types.ReverseAuction:
-		a, err = k.PlaceBidReverse(ctx, auc, bidder, lot)
+		a, err = k.PlaceBidReverse(ctx, auc, bidder, newAmount)
 		if err != nil {
 			return err
 		}
 	case types.ForwardReverseAuction:
 		if !auc.IsReversePhase() {
-			a, err = k.PlaceBidForwardReverseForward(ctx, auc, bidder, bid)
+			a, err = k.PlaceBidForwardReverseForward(ctx, auc, bidder, newAmount)
 		} else {
-			a, err = k.PlaceBidForwardReverseReverse(ctx, auc, bidder, lot)
+			a, err = k.PlaceBidForwardReverseReverse(ctx, auc, bidder, newAmount)
 		}
 		if err != nil {
 			return err
@@ -163,6 +156,9 @@ func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder 
 // TODO naming
 func (k Keeper) PlaceBidForwardReverseForward(ctx sdk.Context, a types.ForwardReverseAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.ForwardReverseAuction, sdk.Error) {
 	// Validate bid
+	if bid.Denom != a.Bid.Denom {
+		return a, sdk.ErrInternal("bid denom doesn't match auction")
+	}
 	if a.IsReversePhase() {
 		return a, sdk.ErrInternal("auction is not in forward phase")
 	}
@@ -201,6 +197,9 @@ func (k Keeper) PlaceBidForwardReverseForward(ctx sdk.Context, a types.ForwardRe
 
 func (k Keeper) PlaceBidForwardReverseReverse(ctx sdk.Context, a types.ForwardReverseAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.ForwardReverseAuction, sdk.Error) {
 	// Validate bid
+	if lot.Denom != a.Lot.Denom {
+		return a, sdk.ErrInternal("lot denom doesn't match auction")
+	}
 	if !a.IsReversePhase() {
 		return a, sdk.ErrInternal("auction not in reverse phase")
 	}

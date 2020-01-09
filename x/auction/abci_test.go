@@ -39,7 +39,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 
 	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights)
 	require.NoError(t, err)
-	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30), c("token1", 20)))
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30)))
 
 	// Run the endblocker, simulating a block time 1ns before auction expiry
 	preExpiryTime := ctx.BlockTime().Add(auction.DefaultBidDuration - 1)

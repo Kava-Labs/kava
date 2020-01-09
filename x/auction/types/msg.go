@@ -9,17 +9,15 @@ var _ sdk.Msg = &MsgPlaceBid{}
 type MsgPlaceBid struct {
 	AuctionID uint64
 	Bidder    sdk.AccAddress // This can be a buyer (who increments bid), or a seller (who decrements lot) TODO rename to be clearer?
-	Bid       sdk.Coin
-	Lot       sdk.Coin
+	Amount    sdk.Coin       // The new bid or lot to set on the auction
 }
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
-func NewMsgPlaceBid(auctionID uint64, bidder sdk.AccAddress, bid sdk.Coin, lot sdk.Coin) MsgPlaceBid {
+func NewMsgPlaceBid(auctionID uint64, bidder sdk.AccAddress, amt sdk.Coin) MsgPlaceBid {
 	return MsgPlaceBid{
 		AuctionID: auctionID,
 		Bidder:    bidder,
-		Bid:       bid,
-		Lot:       lot,
+		Amount:    amt,
 	}
 }
 
@@ -29,18 +27,14 @@ func (msg MsgPlaceBid) Route() string { return RouterKey }
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgPlaceBid) Type() string { return "place_bid" }
 
-// ValidateBasic does a simple validation check that doesn't require access to any other information.
+// ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgPlaceBid) ValidateBasic() sdk.Error {
 	if msg.Bidder.Empty() {
 		return sdk.ErrInternal("invalid (empty) bidder address")
 	}
-	if msg.Bid.Amount.LT(sdk.ZeroInt()) {
-		return sdk.ErrInternal("invalid (negative) bid amount")
+	if !msg.Amount.IsValid() {
+		return sdk.ErrInternal("invalid bid amount")
 	}
-	if msg.Lot.Amount.LT(sdk.ZeroInt()) {
-		return sdk.ErrInternal("invalid (negative) lot amount")
-	}
-	// TODO check coin denoms
 	return nil
 }
 
