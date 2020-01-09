@@ -25,13 +25,13 @@ var (
 
 var _ subspace.ParamSet = &Params{}
 
-// Params governance parameters for auction module
+// Params is the governance parameters for the auction module.
 type Params struct {
 	MaxAuctionDuration time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction
 	MaxBidDuration     time.Duration `json:"max_bid_duration" yaml:"max_bid_duration"`         // additional time added to the auction end time after each bid, capped by the expiry.
 }
 
-// NewParams creates a new Params object
+// NewParams returns a new Params object.
 func NewParams(maxAuctionDuration time.Duration, bidDuration time.Duration) Params {
 	return Params{
 		MaxAuctionDuration: maxAuctionDuration,
@@ -39,7 +39,7 @@ func NewParams(maxAuctionDuration time.Duration, bidDuration time.Duration) Para
 	}
 }
 
-// DefaultParams default parameters for auctions
+// DefaultParams returns the default parameters for auctions.
 func DefaultParams() Params {
 	return NewParams(
 		DefaultMaxAuctionDuration,
@@ -52,8 +52,7 @@ func ParamKeyTable() subspace.KeyTable {
 	return subspace.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-// pairs of auth module's parameters.
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
 // nolint
 func (ap *Params) ParamSetPairs() subspace.ParamSetPairs {
 	return subspace.ParamSetPairs{

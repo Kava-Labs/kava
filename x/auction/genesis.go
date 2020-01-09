@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// InitGenesis - initializes the store state from genesis data
+// InitGenesis initializes the store state from genesis data.
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 	keeper.SetNextAuctionID(ctx, data.NextAuctionID)
 

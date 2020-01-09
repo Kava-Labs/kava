@@ -47,7 +47,7 @@ func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, sdk.Error) {
 	return types.Uint64FromBytes(bz), nil
 }
 
-// incrementNextAuctionID increments the global ID in the store by 1
+// IncrementNextAuctionID increments the next auction ID in the store by 1.
 func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) sdk.Error {
 	id, err := k.GetNextAuctionID(ctx)
 	if err != nil {
@@ -74,13 +74,12 @@ func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64,
 	return newAuctionID, nil
 }
 
-// SetAuction puts the auction into the database and adds it to the queue
-// it overwrites any pre-existing auction with same ID
+// SetAuction puts the auction into the store, and updates any indexes.
 func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	// remove the auction from the byTime index if it is already in there
 	existingAuction, found := k.GetAuction(ctx, auction.GetID())
 	if found {
-		k.RemoveFromIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
+		k.removeFromIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
 	}
 
 	// store auction
@@ -89,10 +88,10 @@ func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	store.Set(types.GetAuctionKey(auction.GetID()), bz)
 
 	// add to index
-	k.InsertIntoIndex(ctx, auction.GetEndTime(), auction.GetID())
+	k.insertIntoIndex(ctx, auction.GetEndTime(), auction.GetID())
 }
 
-// getAuction gets an auction from the store by auctionID
+// GetAuction gets an auction from the store.
 func (k Keeper) GetAuction(ctx sdk.Context, auctionID uint64) (types.Auction, bool) {
 	var auction types.Auction
 
@@ -106,12 +105,12 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID uint64) (types.Auction, bo
 	return auction, true
 }
 
-// DeleteAuction removes an auction from the store without any validation
+// DeleteAuction removes an auction from the store, and any indexes.
 func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) {
 	// remove from index
 	auction, found := k.GetAuction(ctx, auctionID)
 	if found {
-		k.RemoveFromIndex(ctx, auction.GetEndTime(), auctionID)
+		k.removeFromIndex(ctx, auction.GetEndTime(), auctionID)
 	}
 
 	// delete auction
@@ -119,14 +118,14 @@ func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) {
 	store.Delete(types.GetAuctionKey(auctionID))
 }
 
-// InsertIntoIndex adds an auction ID and end time into the byTime index
-func (k Keeper) InsertIntoIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
+// insertIntoIndex adds an auction ID and end time into the byTime index.
+func (k Keeper) insertIntoIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
-	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), types.Uint64ToBytes(auctionID)) // TODO
+	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), types.Uint64ToBytes(auctionID))
 }
 
-// RemoveFromIndex removes an auction ID and end time from the byTime index
-func (k Keeper) RemoveFromIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
+// removeFromIndex removes an auction ID and end time from the byTime index.
+func (k Keeper) removeFromIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Delete(types.GetAuctionByTimeKey(endTime, auctionID))
 }
@@ -143,7 +142,7 @@ func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		// TODO get the auction ID - either read from store, or extract from key
+
 		auctionID := types.Uint64FromBytes(iterator.Value())
 
 		if cb(auctionID) {

@@ -26,7 +26,7 @@ var (
 	AuctionKeyPrefix       = []byte{0x00} // prefix for keys that store auctions
 	AuctionByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the auctionsByTime index
 
-	NextAuctionIDKey = []byte{0x02}
+	NextAuctionIDKey = []byte{0x02} // key for the next auction id
 )
 
 func GetAuctionKey(auctionID uint64) []byte {
@@ -37,10 +37,12 @@ func GetAuctionByTimeKey(endTime time.Time, auctionID uint64) []byte {
 	return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(auctionID)...)
 }
 
+// Uint64FromBytes converts some fixed length bytes back into a uint64.
 func Uint64FromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
+// Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.
 func Uint64ToBytes(id uint64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(id))

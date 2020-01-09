@@ -8,8 +8,8 @@ var _ sdk.Msg = &MsgPlaceBid{}
 // MsgPlaceBid is the message type used to place a bid on any type of auction.
 type MsgPlaceBid struct {
 	AuctionID uint64
-	Bidder    sdk.AccAddress // This can be a buyer (who increments bid), or a seller (who decrements lot) TODO rename to be clearer?
-	Amount    sdk.Coin       // The new bid or lot to set on the auction
+	Bidder    sdk.AccAddress
+	Amount    sdk.Coin // The new bid or lot to be set on the auction.
 }
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
