@@ -1,7 +1,3 @@
-<!--
-order: 5
--->
-
 # Parameters
 
 The auction module contains the following parameters:

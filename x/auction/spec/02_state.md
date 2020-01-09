@@ -1,7 +1,3 @@
-<!--
-order: 2
--->
-
 # State
 
 ## Parameters and genesis state

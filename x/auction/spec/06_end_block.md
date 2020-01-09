@@ -1,8 +1,6 @@
-<!--
-order: 6
--->
+# End Block
 
-At the beginning of each block, auctions that have reached `EndTime` are closed. The logic to close auctions is as follows:
+At the end of each block, auctions that have reached `EndTime` are closed. The logic to close auctions is as follows:
 
 ```go
 var expiredAuctions []uint64

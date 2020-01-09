@@ -1,7 +1,3 @@
-<!--
-order: 3
--->
-
 # Messages
 
 ## Bidding

@@ -1,10 +1,3 @@
-<!--
-order: 0
-title: Auction Overview
-parent:
-  title: "auction"
--->
-
 # `auction`
 
 <!-- TOC -->
