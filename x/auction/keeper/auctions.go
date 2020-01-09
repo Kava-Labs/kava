@@ -83,23 +83,21 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 
 	// place bid
 	var err sdk.Error
-	var a types.Auction
-	switch auc := auction.(type) {
+	var updatedAuction types.Auction
+	switch a := auction.(type) {
 	case types.ForwardAuction:
-		a, err = k.PlaceBidForward(ctx, auc, bidder, newAmount)
-		if err != nil {
+		if updatedAuction, err = k.PlaceBidForward(ctx, a, bidder, newAmount); err != nil {
 			return err
 		}
 	case types.ReverseAuction:
-		a, err = k.PlaceBidReverse(ctx, auc, bidder, newAmount)
-		if err != nil {
+		if updatedAuction, err = k.PlaceBidReverse(ctx, a, bidder, newAmount); err != nil {
 			return err
 		}
 	case types.ForwardReverseAuction:
-		if !auc.IsReversePhase() {
-			a, err = k.PlaceBidForwardReverseForward(ctx, auc, bidder, newAmount)
+		if !a.IsReversePhase() {
+			updatedAuction, err = k.PlaceBidForwardReverseForward(ctx, a, bidder, newAmount)
 		} else {
-			a, err = k.PlaceBidForwardReverseReverse(ctx, auc, bidder, newAmount)
+			updatedAuction, err = k.PlaceBidForwardReverseReverse(ctx, a, bidder, newAmount)
 		}
 		if err != nil {
 			return err
@@ -109,12 +107,12 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	}
 
 	// store updated auction
-	k.SetAuction(ctx, a)
+	k.SetAuction(ctx, updatedAuction)
 	return nil
 }
 
 func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.ForwardAuction, sdk.Error) {
-	// Valid New Bid
+	// Validate New Bid
 	if bid.Denom != a.Bid.Denom {
 		return a, sdk.ErrInternal("bid denom doesn't match auction")
 	}
@@ -155,7 +153,7 @@ func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder 
 
 // TODO naming
 func (k Keeper) PlaceBidForwardReverseForward(ctx sdk.Context, a types.ForwardReverseAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.ForwardReverseAuction, sdk.Error) {
-	// Validate bid
+	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
 		return a, sdk.ErrInternal("bid denom doesn't match auction")
 	}
@@ -289,27 +287,28 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 	}
 
 	// payout to the last bidder
-	var err sdk.Error
 	switch auc := auction.(type) {
-	case types.ForwardAuction, types.ForwardReverseAuction:
-		err = k.PayoutAuctionLot(ctx, auc)
-		if err != nil {
+	case types.ForwardAuction:
+		if err := k.PayoutForwardAuction(ctx, auc); err != nil {
 			return err
 		}
 	case types.ReverseAuction:
-		err = k.MintAndPayoutAuctionLot(ctx, auc)
-		if err != nil {
+		if err := k.PayoutReverseAuction(ctx, auc); err != nil {
+			return err
+		}
+	case types.ForwardReverseAuction:
+		if err := k.PayoutForwardReverseAuction(ctx, auc); err != nil {
 			return err
 		}
 	default:
 		panic("unrecognized auction type")
 	}
 
-	// Delete auction from store (and queue)
 	k.DeleteAuction(ctx, auctionID)
 	return nil
 }
-func (k Keeper) MintAndPayoutAuctionLot(ctx sdk.Context, a types.ReverseAuction) sdk.Error {
+
+func (k Keeper) PayoutReverseAuction(ctx sdk.Context, a types.ReverseAuction) sdk.Error {
 	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -320,8 +319,17 @@ func (k Keeper) MintAndPayoutAuctionLot(ctx sdk.Context, a types.ReverseAuction)
 	}
 	return nil
 }
-func (k Keeper) PayoutAuctionLot(ctx sdk.Context, a types.Auction) sdk.Error {
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.GetBidder(), sdk.NewCoins(a.GetLot()))
+
+func (k Keeper) PayoutForwardAuction(ctx sdk.Context, a types.ForwardAuction) sdk.Error {
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) PayoutForwardReverseAuction(ctx sdk.Context, a types.ForwardReverseAuction) sdk.Error {
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
 	}

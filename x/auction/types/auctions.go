@@ -12,9 +12,6 @@ import (
 type Auction interface {
 	GetID() uint64
 	WithID(uint64) Auction
-	GetBidder() sdk.AccAddress
-	GetBid() sdk.Coin
-	GetLot() sdk.Coin
 	GetEndTime() time.Time
 }
 
@@ -31,15 +28,6 @@ type BaseAuction struct {
 
 // GetID getter for auction ID
 func (a BaseAuction) GetID() uint64 { return a.ID }
-
-// GetBid getter for auction bid
-func (a BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
-
-// GetBid getter for auction lot
-func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
-
-// GetLot getter for auction lot
-func (a BaseAuction) GetLot() sdk.Coin { return a.Lot }
 
 // GetEndTime getter for auction end time
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
