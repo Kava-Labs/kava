@@ -18,7 +18,7 @@ func SetGetDeleteAuction(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 	someTime := time.Date(43, time.January, 1, 0, 0, 0, 0, time.UTC) // need to specify UTC as tz info is lost on unmarshal
 	var id uint64 = 5
-	auction := types.NewForwardAuction("some_module", c("usdx", 100), "kava", someTime).WithID(id)
+	auction := types.NewSurplusAuction("some_module", c("usdx", 100), "kava", someTime).WithID(id)
 
 	// write and read from store
 	keeper.SetAuction(ctx, auction)
@@ -73,9 +73,9 @@ func TestIterateAuctions(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 
 	auctions := []types.Auction{
-		types.NewForwardAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(0),
-		types.NewReverseAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(1),
-		types.NewForwardReverseAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}).WithID(2),
+		types.NewSurplusAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(0),
+		types.NewDebtAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(1),
+		types.NewCollateralAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}).WithID(2),
 	}
 	for _, a := range auctions {
 		keeper.SetAuction(ctx, a)

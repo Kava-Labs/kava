@@ -37,7 +37,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
 
-	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights)
+	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights)
 	require.NoError(t, err)
 	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30)))
 

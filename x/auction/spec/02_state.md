@@ -51,13 +51,13 @@ type BaseAuction struct {
 	MaxEndTime time.Time      // Maximum closing time. Auctions can close before this but never after.
 }
 
-// ForwardAuction type for forward auctions
-type ForwardAuction struct {
+//SurplusAuction type for forward auctions
+typeSurplusAuction struct {
 	BaseAuction
 }
 
-// ReverseAuction type for reverse auctions
-type ReverseAuction struct {
+// DebtAuction type for reverse auctions
+type DebtAuction struct {
 	BaseAuction
 }
 
@@ -67,8 +67,8 @@ type WeightedAddresses struct {
 	Weights   []sdk.Int
 }
 
-// ForwardReverseAuction type for forward reverse auction
-type ForwardReverseAuction struct {
+// CollateralAuction type for forward reverse auction
+type CollateralAuction struct {
 	BaseAuction
 	MaxBid     sdk.Coin
 	LotReturns WeightedAddresses // return addresses to pay out reductions in the lot amount to. Lot is bid down during reverse phase.

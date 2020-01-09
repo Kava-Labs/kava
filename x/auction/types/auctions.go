@@ -46,17 +46,17 @@ func (a BaseAuction) String() string {
 	)
 }
 
-// ForwardAuction type for forward auctions
-type ForwardAuction struct {
+// SurplusAuction type for forward auctions
+type SurplusAuction struct {
 	BaseAuction
 }
 
 // WithID returns an auction with the ID set
-func (a ForwardAuction) WithID(id uint64) Auction { a.ID = id; return a }
+func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// NewForwardAuction creates a new forward auction
-func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) ForwardAuction {
-	auction := ForwardAuction{BaseAuction{
+// NewSurplusAuction creates a new forward auction
+func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
+	auction := SurplusAuction{BaseAuction{
 		// no ID
 		Initiator:  seller,
 		Lot:        lot,
@@ -68,20 +68,20 @@ func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 	return auction
 }
 
-// ReverseAuction type for reverse auctions
-type ReverseAuction struct {
+// DebtAuction type for reverse auctions
+type DebtAuction struct {
 	BaseAuction
 }
 
 // WithID returns an auction with the ID set
-func (a ReverseAuction) WithID(id uint64) Auction { a.ID = id; return a }
+func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// NewReverseAuction creates a new reverse auction
-func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) ReverseAuction {
+// NewDebtAuction creates a new reverse auction
+func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) DebtAuction {
 	// Note: Bidder is set to the initiator's module account address instead of module name. (when the first bid is placed, it is paid out to the initiator)
 	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToAccount.
 	// This isn't a problem currently, but if additional logic/validation was added for sending to coins to Module Accounts, it would be bypassed.
-	auction := ReverseAuction{BaseAuction{
+	auction := DebtAuction{BaseAuction{
 		// no ID
 		Initiator:  buyerModAccName,
 		Lot:        initialLot,
@@ -93,21 +93,21 @@ func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin
 	return auction
 }
 
-// ForwardReverseAuction type for forward reverse auction
-type ForwardReverseAuction struct {
+// CollateralAuction type for forward reverse auction
+type CollateralAuction struct {
 	BaseAuction
 	MaxBid     sdk.Coin
 	LotReturns WeightedAddresses // return addresses to pay out reductions in the lot amount to. Lot is bid down during reverse phase.
 }
 
 // WithID returns an auction with the ID set
-func (a ForwardReverseAuction) WithID(id uint64) Auction { a.ID = id; return a }
+func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-func (a ForwardReverseAuction) IsReversePhase() bool {
+func (a CollateralAuction) IsReversePhase() bool {
 	return a.Bid.IsEqual(a.MaxBid)
 }
 
-func (a ForwardReverseAuction) String() string {
+func (a CollateralAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
   Initiator:              %s
   Lot:               			%s
@@ -123,9 +123,9 @@ func (a ForwardReverseAuction) String() string {
 	)
 }
 
-// NewForwardReverseAuction creates a new forward reverse auction
-func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses) ForwardReverseAuction {
-	auction := ForwardReverseAuction{
+// NewCollateralAuction creates a new forward reverse auction
+func NewCollateralAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses) CollateralAuction {
+	auction := CollateralAuction{
 		BaseAuction: BaseAuction{
 			// no ID
 			Initiator:  seller,

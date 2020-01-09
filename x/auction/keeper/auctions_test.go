@@ -16,7 +16,7 @@ import (
 	"github.com/kava-labs/kava/x/liquidator"
 )
 
-func TestForwardAuctionBasic(t *testing.T) {
+func TestSurplusAuctionBasic(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
@@ -37,7 +37,7 @@ func TestForwardAuctionBasic(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 
 	// Create an auction (lot: 20 token1, initialBid: 0 token2)
-	auctionID, err := keeper.StartForwardAuction(ctx, sellerModName, c("token1", 20), "token2") // lot, bid denom
+	auctionID, err := keeper.StartSurplusAuction(ctx, sellerModName, c("token1", 20), "token2") // lot, bid denom
 	require.NoError(t, err)
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
@@ -60,7 +60,7 @@ func TestForwardAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 120), c("token2", 80)))
 }
 
-func TestReverseAuctionBasic(t *testing.T) {
+func TestDebtAuctionBasic(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	seller := addrs[0]
@@ -79,7 +79,7 @@ func TestReverseAuctionBasic(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 
 	// Start auction
-	auctionID, err := keeper.StartReverseAuction(ctx, buyerModName, c("token1", 20), c("token2", 99999)) // buyer, bid, initialLot
+	auctionID, err := keeper.StartDebtAuction(ctx, buyerModName, c("token1", 20), c("token2", 99999)) // buyer, bid, initialLot
 	require.NoError(t, err)
 	// Check buyer's coins have not decreased, as lot is minted at the end
 	tApp.CheckBalance(t, ctx, buyerAddr, nil) // zero coins
@@ -98,7 +98,7 @@ func TestReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, seller, cs(c("token1", 80), c("token2", 110)))
 }
 
-func TestForwardReverseAuctionBasic(t *testing.T) {
+func TestCollateralAuctionBasic(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	buyer := addrs[0]
@@ -123,7 +123,7 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 
 	// Start auction
-	auctionID, err := keeper.StartForwardReverseAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights) // seller, lot, maxBid, otherPerson
+	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights) // seller, lot, maxBid, otherPerson
 	require.NoError(t, err)
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
@@ -158,7 +158,7 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 115), c("token2", 50)))
 }
 
-func TestStartForwardAuction(t *testing.T) {
+func TestStartSurplusAuction(t *testing.T) {
 	someTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
 	type args struct {
 		seller   string
@@ -211,7 +211,7 @@ func TestStartForwardAuction(t *testing.T) {
 			keeper := tApp.GetAuctionKeeper()
 
 			// run function under test
-			id, err := keeper.StartForwardAuction(ctx, tc.args.seller, tc.args.lot, tc.args.bidDenom)
+			id, err := keeper.StartSurplusAuction(ctx, tc.args.seller, tc.args.lot, tc.args.bidDenom)
 
 			// check
 			sk := tApp.GetSupplyKeeper()
@@ -224,7 +224,7 @@ func TestStartForwardAuction(t *testing.T) {
 				require.Equal(t, initialLiquidatorCoins.Sub(cs(tc.args.lot)), liquidatorCoins)
 				// check auction in store and is correct
 				require.True(t, found)
-				expectedAuction := types.Auction(types.ForwardAuction{BaseAuction: types.BaseAuction{
+				expectedAuction := types.Auction(types.SurplusAuction{BaseAuction: types.BaseAuction{
 					ID:         0,
 					Initiator:  tc.args.seller,
 					Lot:        tc.args.lot,

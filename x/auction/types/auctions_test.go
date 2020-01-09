@@ -2,7 +2,7 @@ package types
 
 // // TODO can this be less verbose? Should PlaceBid() be split into smaller functions?
 // // It would be possible to combine all auction tests into one test runner.
-// func TestForwardAuction_PlaceBid(t *testing.T) {
+// func TesSurplusAuction_PlaceBid(t *testing.T) {
 // 	seller := sdk.AccAddress([]byte("a_seller"))
 // 	buyer1 := sdk.AccAddress([]byte("buyer1"))
 // 	buyer2 := sdk.AccAddress([]byte("buyer2"))
@@ -17,7 +17,7 @@ package types
 // 	}
 // 	tests := []struct {
 // 		name            string
-// 		auction         ForwardAuction
+// 		auction        SurplusAuction
 // 		args            args
 // 		expectedOutputs []BankOutput
 // 		expectedInputs  []BankInput
@@ -28,7 +28,7 @@ package types
 // 	}{
 // 		{
 // 			"normal",
-// 			ForwardAuction{BaseAuction{
+// 		SurplusAuction{BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("usdx", 100),
 // 				Bidder:     buyer1,
@@ -46,7 +46,7 @@ package types
 // 		},
 // 		{
 // 			"lowBid",
-// 			ForwardAuction{BaseAuction{
+// 		SurplusAuction{BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("usdx", 100),
 // 				Bidder:     buyer1,
@@ -64,7 +64,7 @@ package types
 // 		},
 // 		{
 // 			"equalBid",
-// 			ForwardAuction{BaseAuction{
+// 		SurplusAuction{BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("usdx", 100),
 // 				Bidder:     buyer1,
@@ -82,7 +82,7 @@ package types
 // 		},
 // 		{
 // 			"timeout",
-// 			ForwardAuction{BaseAuction{
+// 		SurplusAuction{BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("usdx", 100),
 // 				Bidder:     buyer1,
@@ -100,7 +100,7 @@ package types
 // 		},
 // 		{
 // 			"hitMaxEndTime",
-// 			ForwardAuction{BaseAuction{
+// 		SurplusAuction{BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("usdx", 100),
 // 				Bidder:     buyer1,
@@ -139,7 +139,7 @@ package types
 // 	}
 // }
 
-// func TestReverseAuction_PlaceBid(t *testing.T) {
+// func TestDebtAuction_PlaceBid(t *testing.T) {
 // 	buyer := sdk.AccAddress([]byte("a_buyer"))
 // 	seller1 := sdk.AccAddress([]byte("seller1"))
 // 	seller2 := sdk.AccAddress([]byte("seller2"))
@@ -154,7 +154,7 @@ package types
 // 	}
 // 	tests := []struct {
 // 		name            string
-// 		auction         ReverseAuction
+// 		auction         DebtAuction
 // 		args            args
 // 		expectedOutputs []BankOutput
 // 		expectedInputs  []BankInput
@@ -165,7 +165,7 @@ package types
 // 	}{
 // 		{
 // 			"normal",
-// 			ReverseAuction{BaseAuction{
+// 			DebtAuction{BaseAuction{
 // 				Initiator:  buyer,
 // 				Lot:        c("kava", 10),
 // 				Bidder:     seller1,
@@ -183,7 +183,7 @@ package types
 // 		},
 // 		{
 // 			"highBid",
-// 			ReverseAuction{BaseAuction{
+// 			DebtAuction{BaseAuction{
 // 				Initiator:  buyer,
 // 				Lot:        c("kava", 10),
 // 				Bidder:     seller1,
@@ -201,7 +201,7 @@ package types
 // 		},
 // 		{
 // 			"equalBid",
-// 			ReverseAuction{BaseAuction{
+// 			DebtAuction{BaseAuction{
 // 				Initiator:  buyer,
 // 				Lot:        c("kava", 10),
 // 				Bidder:     seller1,
@@ -219,7 +219,7 @@ package types
 // 		},
 // 		{
 // 			"timeout",
-// 			ReverseAuction{BaseAuction{
+// 			DebtAuction{BaseAuction{
 // 				Initiator:  buyer,
 // 				Lot:        c("kava", 10),
 // 				Bidder:     seller1,
@@ -237,7 +237,7 @@ package types
 // 		},
 // 		{
 // 			"hitMaxEndTime",
-// 			ReverseAuction{BaseAuction{
+// 			DebtAuction{BaseAuction{
 // 				Initiator:  buyer,
 // 				Lot:        c("kava", 10),
 // 				Bidder:     seller1,
@@ -276,7 +276,7 @@ package types
 // 	}
 // }
 
-// func TestForwardReverseAuction_PlaceBid(t *testing.T) {
+// func TestCollateralAuction_PlaceBid(t *testing.T) {
 // 	cdpOwner := sdk.AccAddress([]byte("a_cdp_owner"))
 // 	seller := sdk.AccAddress([]byte("a_seller"))
 // 	buyer1 := sdk.AccAddress([]byte("buyer1"))
@@ -292,7 +292,7 @@ package types
 // 	}
 // 	tests := []struct {
 // 		name            string
-// 		auction         ForwardReverseAuction
+// 		auction         CollateralAuction
 // 		args            args
 // 		expectedOutputs []BankOutput
 // 		expectedInputs  []BankInput
@@ -304,7 +304,7 @@ package types
 // 	}{
 // 		{
 // 			"normalForwardBid",
-// 			ForwardReverseAuction{BaseAuction: BaseAuction{
+// 			CollateralAuction{BaseAuction: BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("xrp", 100),
 // 				Bidder:     buyer1,
@@ -325,7 +325,7 @@ package types
 // 		},
 // 		{
 // 			"normalSwitchOverBid",
-// 			ForwardReverseAuction{BaseAuction: BaseAuction{
+// 			CollateralAuction{BaseAuction: BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("xrp", 100),
 // 				Bidder:     buyer1,
@@ -345,8 +345,8 @@ package types
 // 			true,
 // 		},
 // 		{
-// 			"normalReverseBid",
-// 			ForwardReverseAuction{BaseAuction: BaseAuction{
+// 			"normalDebtBid",
+// 			CollateralAuction{BaseAuction: BaseAuction{
 // 				Initiator:  seller,
 // 				Lot:        c("xrp", 99),
 // 				Bidder:     buyer1,

@@ -9,10 +9,10 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// StartForwardAuction starts a normal auction that mints the sold coins.
-func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error) {
+// StartSurplusAuction starts a normal auction that mints the sold coins.
+func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error) {
 	// create auction
-	auction := types.NewForwardAuction(seller, lot, bidDenom, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
+	auction := types.NewSurplusAuction(seller, lot, bidDenom, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
 
 	// take coins from module account
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
@@ -27,10 +27,10 @@ func (k Keeper) StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin
 	return auctionID, nil
 }
 
-// StartReverseAuction starts an auction where sellers compete by offering decreasing prices.
-func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (uint64, sdk.Error) {
+// StartDebtAuction starts an auction where sellers compete by offering decreasing prices.
+func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (uint64, sdk.Error) {
 	// create auction
-	auction := types.NewReverseAuction(buyer, bid, initialLot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
+	auction := types.NewDebtAuction(buyer, bid, initialLot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration))
 
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
@@ -45,14 +45,14 @@ func (k Keeper) StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin,
 	return auctionID, nil
 }
 
-// StartForwardReverseAuction starts an auction where bidders bid up to a maxBid, then switch to bidding down on price.
-func (k Keeper) StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (uint64, sdk.Error) {
+// StartCollateralAuction starts an auction where bidders bid up to a maxBid, then switch to bidding down on price.
+func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (uint64, sdk.Error) {
 	// create auction
 	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
 	if err != nil {
 		return 0, err
 	}
-	auction := types.NewForwardReverseAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, weightedAddresses)
+	auction := types.NewCollateralAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, weightedAddresses)
 
 	// take coins from module account
 	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
@@ -85,19 +85,19 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	var err sdk.Error
 	var updatedAuction types.Auction
 	switch a := auction.(type) {
-	case types.ForwardAuction:
-		if updatedAuction, err = k.PlaceBidForward(ctx, a, bidder, newAmount); err != nil {
+	case types.SurplusAuction:
+		if updatedAuction, err = k.PlaceBidSurplus(ctx, a, bidder, newAmount); err != nil {
 			return err
 		}
-	case types.ReverseAuction:
-		if updatedAuction, err = k.PlaceBidReverse(ctx, a, bidder, newAmount); err != nil {
+	case types.DebtAuction:
+		if updatedAuction, err = k.PlaceBidDebt(ctx, a, bidder, newAmount); err != nil {
 			return err
 		}
-	case types.ForwardReverseAuction:
+	case types.CollateralAuction:
 		if !a.IsReversePhase() {
-			updatedAuction, err = k.PlaceBidForwardReverseForward(ctx, a, bidder, newAmount)
+			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, a, bidder, newAmount)
 		} else {
-			updatedAuction, err = k.PlaceBidForwardReverseReverse(ctx, a, bidder, newAmount)
+			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, a, bidder, newAmount)
 		}
 		if err != nil {
 			return err
@@ -111,7 +111,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	return nil
 }
 
-func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.ForwardAuction, sdk.Error) {
+func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, sdk.Error) {
 	// Validate New Bid
 	if bid.Denom != a.Bid.Denom {
 		return a, sdk.ErrInternal("bid denom doesn't match auction")
@@ -151,8 +151,7 @@ func (k Keeper) PlaceBidForward(ctx sdk.Context, a types.ForwardAuction, bidder 
 	return a, nil
 }
 
-// TODO naming
-func (k Keeper) PlaceBidForwardReverseForward(ctx sdk.Context, a types.ForwardReverseAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.ForwardReverseAuction, sdk.Error) {
+func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, sdk.Error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
 		return a, sdk.ErrInternal("bid denom doesn't match auction")
@@ -193,7 +192,7 @@ func (k Keeper) PlaceBidForwardReverseForward(ctx sdk.Context, a types.ForwardRe
 	return a, nil
 }
 
-func (k Keeper) PlaceBidForwardReverseReverse(ctx sdk.Context, a types.ForwardReverseAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.ForwardReverseAuction, sdk.Error) {
+func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, sdk.Error) {
 	// Validate bid
 	if lot.Denom != a.Lot.Denom {
 		return a, sdk.ErrInternal("lot denom doesn't match auction")
@@ -240,7 +239,7 @@ func (k Keeper) PlaceBidForwardReverseReverse(ctx sdk.Context, a types.ForwardRe
 	return a, nil
 }
 
-func (k Keeper) PlaceBidReverse(ctx sdk.Context, a types.ReverseAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.ReverseAuction, sdk.Error) {
+func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, sdk.Error) {
 	// Validate New Bid
 	if lot.Denom != a.Lot.Denom {
 		return a, sdk.ErrInternal("lot denom doesn't match auction")
@@ -288,16 +287,16 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 
 	// payout to the last bidder
 	switch auc := auction.(type) {
-	case types.ForwardAuction:
-		if err := k.PayoutForwardAuction(ctx, auc); err != nil {
+	case types.SurplusAuction:
+		if err := k.PayoutSurplusAuction(ctx, auc); err != nil {
 			return err
 		}
-	case types.ReverseAuction:
-		if err := k.PayoutReverseAuction(ctx, auc); err != nil {
+	case types.DebtAuction:
+		if err := k.PayoutDebtAuction(ctx, auc); err != nil {
 			return err
 		}
-	case types.ForwardReverseAuction:
-		if err := k.PayoutForwardReverseAuction(ctx, auc); err != nil {
+	case types.CollateralAuction:
+		if err := k.PayoutCollateralAuction(ctx, auc); err != nil {
 			return err
 		}
 	default:
@@ -308,7 +307,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 	return nil
 }
 
-func (k Keeper) PayoutReverseAuction(ctx sdk.Context, a types.ReverseAuction) sdk.Error {
+func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) sdk.Error {
 	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -320,7 +319,7 @@ func (k Keeper) PayoutReverseAuction(ctx sdk.Context, a types.ReverseAuction) sd
 	return nil
 }
 
-func (k Keeper) PayoutForwardAuction(ctx sdk.Context, a types.ForwardAuction) sdk.Error {
+func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) sdk.Error {
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -328,7 +327,7 @@ func (k Keeper) PayoutForwardAuction(ctx sdk.Context, a types.ForwardAuction) sd
 	return nil
 }
 
-func (k Keeper) PayoutForwardReverseAuction(ctx sdk.Context, a types.ForwardReverseAuction) sdk.Error {
+func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) sdk.Error {
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err

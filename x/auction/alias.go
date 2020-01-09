@@ -22,24 +22,24 @@ const (
 
 var (
 	// functions aliases
-	NewForwardAuction        = types.NewForwardAuction
-	NewReverseAuction        = types.NewReverseAuction
-	NewForwardReverseAuction = types.NewForwardReverseAuction
-	NewWeightedAddresses     = types.NewWeightedAddresses
-	RegisterCodec            = types.RegisterCodec
-	NewGenesisState          = types.NewGenesisState
-	DefaultGenesisState      = types.DefaultGenesisState
-	ValidateGenesis          = types.ValidateGenesis
-	GetAuctionKey            = types.GetAuctionKey
-	GetAuctionByTimeKey      = types.GetAuctionByTimeKey
-	Uint64FromBytes          = types.Uint64FromBytes
-	Uint64ToBytes            = types.Uint64ToBytes
-	NewMsgPlaceBid           = types.NewMsgPlaceBid
-	NewParams                = types.NewParams
-	DefaultParams            = types.DefaultParams
-	ParamKeyTable            = types.ParamKeyTable
-	NewKeeper                = keeper.NewKeeper
-	NewQuerier               = keeper.NewQuerier
+	NewSurplusAuction    = types.NewSurplusAuction
+	NewDebtAuction       = types.NewDebtAuction
+	NewCollateralAuction = types.NewCollateralAuction
+	NewWeightedAddresses = types.NewWeightedAddresses
+	RegisterCodec        = types.RegisterCodec
+	NewGenesisState      = types.NewGenesisState
+	DefaultGenesisState  = types.DefaultGenesisState
+	ValidateGenesis      = types.ValidateGenesis
+	GetAuctionKey        = types.GetAuctionKey
+	GetAuctionByTimeKey  = types.GetAuctionByTimeKey
+	Uint64FromBytes      = types.Uint64FromBytes
+	Uint64ToBytes        = types.Uint64ToBytes
+	NewMsgPlaceBid       = types.NewMsgPlaceBid
+	NewParams            = types.NewParams
+	DefaultParams        = types.DefaultParams
+	ParamKeyTable        = types.ParamKeyTable
+	NewKeeper            = keeper.NewKeeper
+	NewQuerier           = keeper.NewQuerier
 
 	// variable aliases
 	ModuleCdc              = types.ModuleCdc
@@ -51,17 +51,17 @@ var (
 )
 
 type (
-	Auction               = types.Auction
-	BaseAuction           = types.BaseAuction
-	ForwardAuction        = types.ForwardAuction
-	ReverseAuction        = types.ReverseAuction
-	ForwardReverseAuction = types.ForwardReverseAuction
-	WeightedAddresses     = types.WeightedAddresses
-	SupplyKeeper          = types.SupplyKeeper
-	Auctions              = types.Auctions
-	GenesisState          = types.GenesisState
-	MsgPlaceBid           = types.MsgPlaceBid
-	Params                = types.Params
-	QueryResAuctions      = types.QueryResAuctions
-	Keeper                = keeper.Keeper
+	Auction           = types.Auction
+	BaseAuction       = types.BaseAuction
+	SurplusAuction    = types.SurplusAuction
+	DebtAuction       = types.DebtAuction
+	CollateralAuction = types.CollateralAuction
+	WeightedAddresses = types.WeightedAddresses
+	SupplyKeeper      = types.SupplyKeeper
+	Auctions          = types.Auctions
+	GenesisState      = types.GenesisState
+	MsgPlaceBid       = types.MsgPlaceBid
+	Params            = types.Params
+	QueryResAuctions  = types.QueryResAuctions
+	Keeper            = keeper.Keeper
 )

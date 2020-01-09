@@ -21,14 +21,14 @@ type MsgPlaceBid struct {
 **State Modifications:**
 
 * Update bidder if different than previous bidder
-* For forward auctions:
+* For Surplus auctions:
   * Update Bid Amount
   * Return bid coins to previous bidder
   * Burn coins equal to the increment in the bid (CurrentBid - PreviousBid)
-* For Reverse auctions:
+* For Debt auctions:
   * Update lot amount
   * Return bid coins to previous bidder
-* For Forward Reverse auctions:
+* For Collateral auctions:
   * Return bid coins to previous bidder
   * If in forward phase:
     * Update bid amount
