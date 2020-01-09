@@ -12,8 +12,8 @@ import (
 const (
 	// DefaultMaxAuctionDuration max length of auction
 	DefaultMaxAuctionDuration time.Duration = 2 * 24 * time.Hour
-	// DefaultBidDuration how long an auction gets extended when someone bids, roughly 3 hours in blocks
-	DefaultBidDuration time.Duration = 3 * time.Hour
+	// DefaultBidDuration how long an auction gets extended when someone bids
+	DefaultBidDuration time.Duration = 1 * time.Hour
 )
 
 // Parameter keys

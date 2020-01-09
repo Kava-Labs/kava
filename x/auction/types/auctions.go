@@ -72,7 +72,7 @@ func NewForwardAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 		// no ID
 		Initiator:  seller,
 		Lot:        lot,
-		Bidder:     nil, // TODO on the first place bid, 0 coins will be sent to this address, check if this causes problems or can be avoided
+		Bidder:     nil,
 		Bid:        sdk.NewInt64Coin(bidDenom, 0),
 		EndTime:    endTime,
 		MaxEndTime: endTime,
@@ -90,10 +90,9 @@ func (a ReverseAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // NewReverseAuction creates a new reverse auction
 func NewReverseAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) ReverseAuction {
-	// TODO setting the bidder here is a bit hacky
-	// Needs to be set so that when the first bid is placed, it is paid out to the initiator.
-	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToModule. Not a problem currently but if checks/logic regarding modules accounts where added to those methods they would be bypassed.
-	// Alternative: set address to nil, and catch it in an if statement in place bid
+	// Note: Bidder is set to the initiator's module account address instead of module name. (when the first bid is placed, it is paid out to the initiator)
+	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToAccount.
+	// This isn't a problem currently, but if additional logic/validation was added for sending to coins to Module Accounts, it would be bypassed.
 	auction := ReverseAuction{BaseAuction{
 		// no ID
 		Initiator:  buyerModAccName,
@@ -115,6 +114,10 @@ type ForwardReverseAuction struct {
 
 // WithID returns an auction with the ID set
 func (a ForwardReverseAuction) WithID(id uint64) Auction { a.ID = id; return a }
+
+func (a ForwardReverseAuction) IsReversePhase() bool {
+	return a.Bid.IsEqual(a.MaxBid)
+}
 
 func (a ForwardReverseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
@@ -139,7 +142,7 @@ func NewForwardReverseAuction(seller string, lot sdk.Coin, EndTime time.Time, ma
 			// no ID
 			Initiator:  seller,
 			Lot:        lot,
-			Bidder:     nil, // TODO on the first place bid, 0 coins will be sent to this address, check if this causes problems or can be avoided
+			Bidder:     nil,
 			Bid:        sdk.NewInt64Coin(maxBid.Denom, 0),
 			EndTime:    EndTime,
 			MaxEndTime: EndTime},

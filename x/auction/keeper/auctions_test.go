@@ -140,7 +140,8 @@ func TestForwardReverseAuctionBasic(t *testing.T) {
 	}
 
 	// Place a reverse bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50), c("token1", 15))) // bid, lot
+	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50), c("token1", 15))) // first bid up to max bid to switch phases
+	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50), c("token1", 15)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 50)))
 	// Check seller's coins have increased
