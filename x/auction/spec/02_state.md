@@ -30,9 +30,6 @@ type GenesisState struct {
 type Auction interface {
 	GetID() uint64
 	WithID(uint64) Auction
-	GetBidder() sdk.AccAddress
-	GetBid() sdk.Coin
-	GetLot() sdk.Coin
 	GetEndTime() time.Time
 }
 
@@ -47,8 +44,8 @@ type BaseAuction struct {
 	MaxEndTime time.Time      // Maximum closing time. Auctions can close before this but never after.
 }
 
-//SurplusAuction type for forward auctions
-typeSurplusAuction struct {
+// SurplusAuction type for forward auctions
+type SurplusAuction struct {
 	BaseAuction
 }
 

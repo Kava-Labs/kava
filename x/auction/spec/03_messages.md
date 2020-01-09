@@ -9,8 +9,7 @@ Users can bid on auctions using the `MsgPlaceBid` message type. All auction type
 type MsgPlaceBid struct {
 	AuctionID uint64
 	Bidder    sdk.AccAddress
-	Bid       sdk.Coin
-	Lot       sdk.Coin
+	Amount    sdk.Coin
 }
 ```
 
@@ -18,16 +17,16 @@ type MsgPlaceBid struct {
 
 * Update bidder if different than previous bidder
 * For Surplus auctions:
-  * Update Bid Amount
+  * Update Bid to msg.Amount
   * Return bid coins to previous bidder
   * Burn coins equal to the increment in the bid (CurrentBid - PreviousBid)
 * For Debt auctions:
-  * Update lot amount
+  * Update Lot amount to msg.Amount
   * Return bid coins to previous bidder
 * For Collateral auctions:
   * Return bid coins to previous bidder
   * If in forward phase:
-    * Update bid amount
+    * Update Bid amount to msg.Amount
   * If in reverse phase:
-    * Update lot amount
-* Extend auction by `BidDuration`, or `MaxEndTime`
+    * Update Lot amount to msg.Amount
+* Extend auction by `BidDuration`, up to `MaxEndTime`
