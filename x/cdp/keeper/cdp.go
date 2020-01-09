@@ -79,15 +79,19 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	// update total principal for input collateral type
 	k.IncrementTotalPrincipal(ctx, collateral[0].Denom, principal)
 
-	// create the cdp, deposit, and indexes in the store
-	k.SetCDP(ctx, cdp)
+	// set the cdp, deposit, and indexes in the store
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)
+	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	k.IndexCdpByOwner(ctx, cdp)
 	k.SetDeposit(ctx, deposit)
 	k.SetNextCdpID(ctx, id+1)
-	k.IndexCdpByOwner(ctx, cdp)
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)
-	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, collateralToDebtRatio)
-
 	return nil
+}
+
+// SetCdpAndCollateralRatioIndex sets the cdp and collateral ratio index in the store
+func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) {
+	k.SetCDP(ctx, cdp)
+	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, ratio)
 }
 
 // MintDebtCoins mints debt coins in the cdp module account

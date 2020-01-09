@@ -70,9 +70,8 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, principal)
 
 	// set cdp state and indexes in the store
-	k.SetCDP(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	k.IndexCdpByCollateralRatio(ctx, denom, cdp.ID, collateralToDebtRatio)
+	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 
 	return nil
 }
@@ -160,9 +159,8 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	}
 
 	// set cdp state and update indexes
-	k.SetCDP(ctx, cdp)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	k.IndexCdpByCollateralRatio(ctx, denom, cdp.ID, collateralToDebtRatio)
+	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	return nil
 }
 
