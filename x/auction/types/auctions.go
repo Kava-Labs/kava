@@ -46,7 +46,8 @@ func (a BaseAuction) String() string {
 	)
 }
 
-// SurplusAuction is a forward auction that burns what it receives as bids.
+// SurplusAuction is a forward auction that burns what it receives from bids.
+// It is normally used to sell off excess pegged asset acquired by the CDP system.
 type SurplusAuction struct {
 	BaseAuction
 }
@@ -69,6 +70,7 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 }
 
 // DebtAuction is a reverse auction that mints what it pays out.
+// It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
 type DebtAuction struct {
 	BaseAuction
 }
@@ -86,7 +88,7 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, E
 		Initiator:  buyerModAccName,
 		Lot:        initialLot,
 		Bidder:     supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
-		Bid:        bid,                                      // amount that the buyer it buying - doesn't change over course of auction
+		Bid:        bid,                                      // amount that the buyer is buying - doesn't change over course of auction
 		EndTime:    EndTime,
 		MaxEndTime: EndTime,
 	}}
@@ -95,8 +97,9 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, E
 
 // CollateralAuction is a two phase auction.
 // Initially, in forward auction phase, bids can be placed up to a max bid.
-// Then it switches to a reverse auction phase, where the initial amount up for auction is bidded down.
+// Then it switches to a reverse auction phase, where the initial amount up for auction is bid down.
 // Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
+// Collateral auctions are normally used to sell off collateral seized from CDPs.
 type CollateralAuction struct {
 	BaseAuction
 	MaxBid     sdk.Coin

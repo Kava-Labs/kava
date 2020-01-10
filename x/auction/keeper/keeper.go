@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -27,6 +29,11 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.Suppl
 		cdc:           cdc,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 	}
+}
+
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 // SetNextAuctionID stores an ID to be used for the next created auction
@@ -79,16 +86,14 @@ func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	// remove the auction from the byTime index if it is already in there
 	existingAuction, found := k.GetAuction(ctx, auction.GetID())
 	if found {
-		k.removeFromIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
+		k.removeFromByTimeIndex(ctx, existingAuction.GetEndTime(), existingAuction.GetID())
 	}
 
-	// store auction
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(auction)
 	store.Set(types.GetAuctionKey(auction.GetID()), bz)
 
-	// add to index
-	k.insertIntoIndex(ctx, auction.GetEndTime(), auction.GetID())
+	k.InsertIntoByTimeIndex(ctx, auction.GetEndTime(), auction.GetID())
 }
 
 // GetAuction gets an auction from the store.
@@ -107,25 +112,23 @@ func (k Keeper) GetAuction(ctx sdk.Context, auctionID uint64) (types.Auction, bo
 
 // DeleteAuction removes an auction from the store, and any indexes.
 func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) {
-	// remove from index
 	auction, found := k.GetAuction(ctx, auctionID)
 	if found {
-		k.removeFromIndex(ctx, auction.GetEndTime(), auctionID)
+		k.removeFromByTimeIndex(ctx, auction.GetEndTime(), auctionID)
 	}
 
-	// delete auction
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 	store.Delete(types.GetAuctionKey(auctionID))
 }
 
-// insertIntoIndex adds an auction ID and end time into the byTime index.
-func (k Keeper) insertIntoIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
+// InsertIntoByTimeIndex adds an auction ID and end time into the byTime index.
+func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) { // TODO make private, and find way to make tests work
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), types.Uint64ToBytes(auctionID))
 }
 
-// removeFromIndex removes an auction ID and end time from the byTime index.
-func (k Keeper) removeFromIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
+// removeFromByTimeIndex removes an auction ID and end time from the byTime index.
+func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Delete(types.GetAuctionByTimeKey(endTime, auctionID))
 }

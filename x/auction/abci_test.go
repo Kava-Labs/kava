@@ -22,7 +22,6 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	returnAddrs := addrs[1:]
 	returnWeights := []sdk.Int{sdk.NewInt(1)}
 	sellerModName := liquidator.ModuleName
-	//sellerAddr := supply.NewModuleAddress(sellerModName)
 
 	tApp := app.NewTestApp()
 	sellerAcc := supply.NewEmptyModuleAccount(sellerModName)

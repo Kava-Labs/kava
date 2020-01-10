@@ -113,7 +113,7 @@ func TestIterateAuctionsByTime(t *testing.T) {
 		{time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC), 0},            // distant future
 	}
 	for _, v := range byTimeIndex {
-		keeper.InsertIntoIndex(ctx, v.endTime, v.auctionID)
+		keeper.InsertIntoByTimeIndex(ctx, v.endTime, v.auctionID)
 	}
 
 	// read out values from index up to a cutoff time and check they are as expected
