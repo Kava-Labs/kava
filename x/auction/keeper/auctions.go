@@ -121,7 +121,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 	if bid.Denom != a.Bid.Denom {
 		return a, sdk.ErrInternal("bid denom doesn't match auction")
 	}
-	if !a.Bid.IsLT(bid) { // TODO add minimum bid size
+	if !a.Bid.IsLT(bid) {
 		return a, sdk.ErrInternal("bid not greater than last bid")
 	}
 
@@ -255,7 +255,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	if lot.IsNegative() {
 		return a, sdk.ErrInternal("lot less than 0")
 	}
-	if !lot.IsLT(a.Lot) { // TODO add min bid decrements
+	if !lot.IsLT(a.Lot) {
 		return a, sdk.ErrInternal("lot not smaller than last lot")
 	}
 

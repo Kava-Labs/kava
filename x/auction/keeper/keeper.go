@@ -18,7 +18,6 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
-	// TODO codespace
 }
 
 // NewKeeper returns a new auction keeper.
@@ -43,12 +42,10 @@ func (k Keeper) SetNextAuctionID(ctx sdk.Context, id uint64) {
 }
 
 // GetNextAuctionID reads the next available global ID from store
-// TODO might be nicer to convert not found error to a panic, it's not an error that can be recovered from
 func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextAuctionIDKey)
 	if bz == nil {
-		//return 0, types.ErrInvalidGenesis(k.codespace, "initial auction ID hasn't been set") // TODO create error
 		return 0, sdk.ErrInternal("initial auction ID hasn't been set")
 	}
 	return types.Uint64FromBytes(bz), nil
@@ -135,7 +132,6 @@ func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, endTime time.Time, auctio
 
 // IterateAuctionByTime provides an iterator over auctions ordered by auction.EndTime.
 // For each auction cb will be callled. If cb returns true the iterator will close and stop.
-// TODO can the cutoff time be removed in favour of caller specifying cutoffs in the callback?
 func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.Time, cb func(auctionID uint64) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	iterator := store.Iterator(

@@ -18,7 +18,6 @@ func TestSplitIntIntoWeightedBuckets(t *testing.T) {
 		{"100split1,9", i(100), is(1, 9), is(10, 90)},
 		{"7split1,2", i(7), is(1, 2), is(2, 5)},
 		{"17split1,1,1", i(17), is(1, 1, 1), is(6, 6, 5)},
-		// TODO more tests
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

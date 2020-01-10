@@ -202,7 +202,7 @@ func TestStartSurplusAuction(t *testing.T) {
 			initialLiquidatorCoins := cs(c("stable", 100))
 			tApp := app.NewTestApp()
 
-			liqAcc := supply.NewEmptyModuleAccount(liquidator.ModuleName, supply.Burner) // TODO could add test to check for burner permissions
+			liqAcc := supply.NewEmptyModuleAccount(liquidator.ModuleName, supply.Burner)
 			require.NoError(t, liqAcc.SetCoins(initialLiquidatorCoins))
 			tApp.InitializeFromGenesisStates(
 				NewAuthGenStateFromAccs(authexported.GenesisAccounts{liqAcc}),
