@@ -33,37 +33,43 @@ type Auction interface {
 	GetEndTime() time.Time
 }
 
-// BaseAuction type shared by all Auctions
+// BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
 	ID         uint64
-	Initiator  string         // Module that starts the auction. Giving away Lot (aka seller in a forward auction). Restricted to being a module account name rather than any account.
-	Lot        sdk.Coin       // Amount of coins up being given by initiator (FA - amount for sale by seller, RA - cost of good by buyer (bid))
-	Bidder     sdk.AccAddress // Person who bids in the auction. Receiver of Lot. (aka buyer in forward auction, seller in RA)
-	Bid        sdk.Coin       // Amount of coins being given by the bidder (FA - bid, RA - amount being sold)
-	EndTime    time.Time      // Auction closing time. Triggers at the end of the block with time ≥ endTime (bids placed in that block are valid) // TODO ensure everything is consistent with this
+	Initiator  string         // Module name that starts the auction. Pays out Lot.
+	Lot        sdk.Coin       // Coins that will paid out by Initiator to the winning bidder.
+	Bidder     sdk.AccAddress // Latest bidder. Receiver of Lot.
+	Bid        sdk.Coin       // Coins paid into the auction the bidder.
+	EndTime    time.Time      // Current auction closing time. Triggers at the end of the block with time ≥ EndTime.
 	MaxEndTime time.Time      // Maximum closing time. Auctions can close before this but never after.
 }
 
-// SurplusAuction type for forward auctions
+// SurplusAuction is a forward auction that burns what it receives from bids.
+// It is normally used to sell off excess pegged asset acquired by the CDP system.
 type SurplusAuction struct {
 	BaseAuction
 }
 
-// DebtAuction type for reverse auctions
+// DebtAuction is a reverse auction that mints what it pays out.
+// It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
 type DebtAuction struct {
 	BaseAuction
 }
 
-// WeightedAddresses type for storing an address and its associated weight
+// WeightedAddresses is a type for storing some addresses and associated weights.
 type WeightedAddresses struct {
 	Addresses []sdk.AccAddress
 	Weights   []sdk.Int
 }
 
-// CollateralAuction type for forward reverse auction
+// CollateralAuction is a two phase auction.
+// Initially, in forward auction phase, bids can be placed up to a max bid.
+// Then it switches to a reverse auction phase, where the initial amount up for auction is bid down.
+// Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
+// Collateral auctions are normally used to sell off collateral seized from CDPs.
 type CollateralAuction struct {
 	BaseAuction
 	MaxBid     sdk.Coin
-	LotReturns WeightedAddresses // return addresses to pay out reductions in the lot amount to. Lot is bid down during reverse phase.
+	LotReturns WeightedAddresses
 }
 ```
