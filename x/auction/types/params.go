@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 )
 
@@ -19,7 +20,7 @@ const (
 // Parameter keys
 var (
 	// ParamStoreKeyParams Param store key for auction params
-	KeyAuctionBidDuration = []byte("MaxBidDuration")
+	KeyAuctionBidDuration = []byte("BidDuration")
 	KeyAuctionDuration    = []byte("MaxAuctionDuration")
 )
 
@@ -28,14 +29,14 @@ var _ subspace.ParamSet = &Params{}
 // Params is the governance parameters for the auction module.
 type Params struct {
 	MaxAuctionDuration time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction
-	MaxBidDuration     time.Duration `json:"max_bid_duration" yaml:"max_bid_duration"`         // additional time added to the auction end time after each bid, capped by the expiry.
+	BidDuration        time.Duration `json:"bid_duration" yaml:"bid_duration"`                 // additional time added to the auction end time after each bid, capped by the expiry.
 }
 
 // NewParams returns a new Params object.
 func NewParams(maxAuctionDuration time.Duration, bidDuration time.Duration) Params {
 	return Params{
 		MaxAuctionDuration: maxAuctionDuration,
-		MaxBidDuration:     bidDuration,
+		BidDuration:        bidDuration,
 	}
 }
 
@@ -54,29 +55,37 @@ func ParamKeyTable() subspace.KeyTable {
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
 // nolint
-func (ap *Params) ParamSetPairs() subspace.ParamSetPairs {
+func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
 	return subspace.ParamSetPairs{
-		{KeyAuctionBidDuration, &ap.MaxBidDuration},
-		{KeyAuctionDuration, &ap.MaxAuctionDuration},
+		{KeyAuctionBidDuration, &p.BidDuration},
+		{KeyAuctionDuration, &p.MaxAuctionDuration},
 	}
 }
 
 // Equal returns a boolean determining if two Params types are identical.
-func (ap Params) Equal(ap2 Params) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&ap)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&ap2)
+func (p Params) Equal(p2 Params) bool {
+	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&p)
+	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&p2)
 	return bytes.Equal(bz1, bz2)
 }
 
 // String implements stringer interface
-func (ap Params) String() string {
+func (p Params) String() string {
 	return fmt.Sprintf(`Auction Params:
 	Max Auction Duration: %s
-	Max Bid Duration: %s`, ap.MaxAuctionDuration, ap.MaxBidDuration)
+	Bid Duration: %s`, p.MaxAuctionDuration, p.BidDuration)
 }
 
 // Validate checks that the parameters have valid values.
-func (ap Params) Validate() error {
-	// TODO check durations are within acceptable limits, if needed
+func (p Params) Validate() error {
+	if p.BidDuration < 0 {
+		return sdk.ErrInternal("bid duration cannot be negative")
+	}
+	if p.MaxAuctionDuration < 0 {
+		return sdk.ErrInternal("max auction duration cannot be negative")
+	}
+	if p.BidDuration > p.MaxAuctionDuration {
+		return sdk.ErrInternal("bid duration param cannot be larger than max auction duration")
+	}
 	return nil
 }
