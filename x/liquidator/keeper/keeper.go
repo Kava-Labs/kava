@@ -5,7 +5,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 
-	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/liquidator/types"
 )
 
@@ -33,7 +32,7 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, paramstore subspace.Subs
 // SeizeAndStartCollateralAuction pulls collateral out of a CDP and sells it in an auction for stable coin. Excess collateral goes to the original CDP owner.
 // Known as Cat.bite in maker
 // result: stable coin is transferred to module account, collateral is transferred from module account to buyer, (and any excess collateral is transferred to original CDP owner)
-func (k Keeper) SeizeAndStartCollateralAuction(ctx sdk.Context, owner sdk.AccAddress, collateralDenom string) (auction.ID, sdk.Error) {
+func (k Keeper) SeizeAndStartCollateralAuction(ctx sdk.Context, owner sdk.AccAddress, collateralDenom string) (uint64, sdk.Error) {
 	// Get CDP
 	cdp, found := k.cdpKeeper.GetCDP(ctx, owner, collateralDenom)
 	if !found {
@@ -73,7 +72,7 @@ func (k Keeper) SeizeAndStartCollateralAuction(ctx sdk.Context, owner sdk.AccAdd
 // StartDebtAuction sells off minted gov coin to raise set amounts of stable coin.
 // Known as Vow.flop in maker
 // result: minted gov coin moved to highest bidder, stable coin moved to moduleAccount
-func (k Keeper) StartDebtAuction(ctx sdk.Context) (auction.ID, sdk.Error) {
+func (k Keeper) StartDebtAuction(ctx sdk.Context) (uint64, sdk.Error) {
 
 	// Ensure amount of seized stable coin is 0 (ie Joy = 0)
 	stableCoins := k.bankKeeper.GetCoins(ctx, k.cdpKeeper.GetLiquidatorAccountAddress()).AmountOf(k.cdpKeeper.GetStableDenom())
@@ -107,7 +106,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context) (auction.ID, sdk.Error) {
 // StartSurplusAuction sells off excess stable coin in exchange for gov coin, which is burned
 // Known as Vow.flap in maker
 // result: stable coin removed from module account (eventually to buyer), gov coin transferred to module account
-// func (k Keeper) StartSurplusAuction(ctx sdk.Context) (auction.ID, sdk.Error) {
+// func (k Keeper) StartSurplusAuction(ctx sdk.Context) (uint64, sdk.Error) {
 
 // 	// TODO ensure seized debt is 0
 

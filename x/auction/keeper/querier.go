@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/auction/types"
@@ -20,18 +21,14 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var AuctionsList types.QueryResAuctions
+	var auctionsList types.QueryResAuctions
 
-	iterator := keeper.GetAuctionIterator(ctx)
+	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
+		auctionsList = append(auctionsList, fmt.Sprintf("%+v", a)) // TODO formatting
+		return false
+	})
 
-	for ; iterator.Valid(); iterator.Next() {
-
-		var auction types.Auction
-		keeper.cdc.MustUnmarshalBinaryBare(iterator.Value(), &auction)
-		AuctionsList = append(AuctionsList, auction.String())
-	}
-
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, AuctionsList)
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, auctionsList)
 	if err2 != nil {
 		panic("could not marshal result to JSON")
 	}

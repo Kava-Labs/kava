@@ -4,43 +4,45 @@ import (
 	"bytes"
 )
 
-// GenesisAuctions type for an array of auctions
-type GenesisAuctions []Auction
+// Auctions is a slice of auctions.
+type Auctions []Auction
 
-// GenesisState - auction state that must be provided at genesis
+// GenesisState is auction state that must be provided at chain genesis.
 type GenesisState struct {
-	AuctionParams AuctionParams   `json:"auction_params" yaml:"auction_params"`
-	Auctions      GenesisAuctions `json:"genesis_auctions" yaml:"genesis_auctions"`
+	NextAuctionID uint64   `json:"next_auction_id" yaml:"next_auction_id"`
+	Params        Params   `json:"auction_params" yaml:"auction_params"`
+	Auctions      Auctions `json:"genesis_auctions" yaml:"genesis_auctions"`
 }
 
-// NewGenesisState returns a new genesis state object for auctions module
-func NewGenesisState(ap AuctionParams, ga GenesisAuctions) GenesisState {
+// NewGenesisState returns a new genesis state object for auctions module.
+func NewGenesisState(nextID uint64, ap Params, ga Auctions) GenesisState {
 	return GenesisState{
-		AuctionParams: ap,
+		NextAuctionID: nextID,
+		Params:        ap,
 		Auctions:      ga,
 	}
 }
 
-// DefaultGenesisState defines default genesis state for auction module
+// DefaultGenesisState returns the default genesis state for auction module.
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(DefaultAuctionParams(), GenesisAuctions{})
+	return NewGenesisState(0, DefaultParams(), Auctions{})
 }
 
-// Equal checks whether two GenesisState structs are equivalent
+// Equal checks whether two GenesisState structs are equivalent.
 func (data GenesisState) Equal(data2 GenesisState) bool {
 	b1 := ModuleCdc.MustMarshalBinaryBare(data)
 	b2 := ModuleCdc.MustMarshalBinaryBare(data2)
 	return bytes.Equal(b1, b2)
 }
 
-// IsEmpty returns true if a GenesisState is empty
+// IsEmpty returns true if a GenesisState is empty.
 func (data GenesisState) IsEmpty() bool {
 	return data.Equal(GenesisState{})
 }
 
-// ValidateGenesis validates genesis inputs. Returns error if validation of any input fails.
+// ValidateGenesis validates genesis inputs. It returns error if validation of any input fails.
 func ValidateGenesis(data GenesisState) error {
-	if err := data.AuctionParams.Validate(); err != nil {
+	if err := data.Params.Validate(); err != nil {
 		return err
 	}
 	return nil

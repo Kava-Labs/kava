@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
 )
 
@@ -26,7 +25,7 @@ type BankKeeper interface {
 
 // AuctionKeeper expected interface for the auction keeper
 type AuctionKeeper interface {
-	StartForwardAuction(sdk.Context, sdk.AccAddress, sdk.Coin, sdk.Coin) (auction.ID, sdk.Error)
-	StartReverseAuction(sdk.Context, sdk.AccAddress, sdk.Coin, sdk.Coin) (auction.ID, sdk.Error)
-	StartForwardReverseAuction(sdk.Context, sdk.AccAddress, sdk.Coin, sdk.Coin, sdk.AccAddress) (auction.ID, sdk.Error)
+	StartForwardAuction(sdk.Context, sdk.AccAddress, sdk.Coin, sdk.Coin) (uint64, sdk.Error)
+	StartReverseAuction(sdk.Context, sdk.AccAddress, sdk.Coin, sdk.Coin) (uint64, sdk.Error)
+	StartForwardReverseAuction(sdk.Context, sdk.AccAddress, sdk.Coin, sdk.Coin, sdk.AccAddress) (uint64, sdk.Error)
 }

@@ -21,20 +21,20 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic app module basics object
+// AppModuleBasic implements the sdk.AppModuleBasic interface.
 type AppModuleBasic struct{}
 
-// Name get module name
+// Name returns the module name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// RegisterCodec register module codec
+// RegisterCodec registers the module codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	RegisterCodec(cdc)
 }
 
-// DefaultGenesis default genesis state
+// DefaultGenesis returns the default genesis state.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
@@ -64,7 +64,7 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-// AppModule app module type
+// AppModule implements the sdk.AppModule interface.
 type AppModule struct {
 	AppModuleBasic
 	keeper Keeper
@@ -76,11 +76,6 @@ func NewAppModule(keeper Keeper) AppModule {
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 	}
-}
-
-// Name module name
-func (AppModule) Name() string {
-	return ModuleName
 }
 
 // RegisterInvariants performs a no-op.

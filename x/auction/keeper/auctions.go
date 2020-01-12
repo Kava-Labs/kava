@@ -1,0 +1,386 @@
+package keeper
+
+import (
+	"fmt"
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/kava-labs/kava/x/auction/types"
+)
+
+// StartSurplusAuction starts a new surplus (forward) auction.
+func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error) {
+
+	auction := types.NewSurplusAuction(
+		seller,
+		lot,
+		bidDenom,
+		ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration))
+
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
+	if err != nil {
+		return 0, err
+	}
+
+	auctionID, err := k.StoreNewAuction(ctx, auction)
+	if err != nil {
+		return 0, err
+	}
+	return auctionID, nil
+}
+
+// StartDebtAuction starts a new debt (reverse) auction.
+func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (uint64, sdk.Error) {
+
+	auction := types.NewDebtAuction(
+		buyer,
+		bid,
+		initialLot,
+		ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration))
+
+	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
+	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
+	if !macc.HasPermission(supply.Minter) {
+		return 0, sdk.ErrInternal("module does not have minting permissions")
+	}
+
+	auctionID, err := k.StoreNewAuction(ctx, auction)
+	if err != nil {
+		return 0, err
+	}
+	return auctionID, nil
+}
+
+// StartCollateralAuction starts a new collateral (2-phase) auction.
+func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (uint64, sdk.Error) {
+
+	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
+	if err != nil {
+		return 0, err
+	}
+	auction := types.NewCollateralAuction(seller, lot, ctx.BlockTime().Add(types.DefaultMaxAuctionDuration), maxBid, weightedAddresses)
+
+	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
+	if err != nil {
+		return 0, err
+	}
+
+	auctionID, err := k.StoreNewAuction(ctx, auction)
+	if err != nil {
+		return 0, err
+	}
+	return auctionID, nil
+}
+
+// PlaceBid places a bid on any auction.
+func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, newAmount sdk.Coin) sdk.Error {
+
+	auction, found := k.GetAuction(ctx, auctionID)
+	if !found {
+		return sdk.ErrInternal("auction doesn't exist")
+	}
+
+	// validation common to all auctions
+	if ctx.BlockTime().After(auction.GetEndTime()) {
+		return sdk.ErrInternal("auction has closed")
+	}
+
+	// move coins and return updated auction
+	var err sdk.Error
+	var updatedAuction types.Auction
+	switch a := auction.(type) {
+	case types.SurplusAuction:
+		if updatedAuction, err = k.PlaceBidSurplus(ctx, a, bidder, newAmount); err != nil {
+			return err
+		}
+	case types.DebtAuction:
+		if updatedAuction, err = k.PlaceBidDebt(ctx, a, bidder, newAmount); err != nil {
+			return err
+		}
+	case types.CollateralAuction:
+		if !a.IsReversePhase() {
+			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, a, bidder, newAmount)
+		} else {
+			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, a, bidder, newAmount)
+		}
+		if err != nil {
+			return err
+		}
+	default:
+		panic(fmt.Sprintf("unrecognized auction type: %T", auction))
+	}
+
+	k.SetAuction(ctx, updatedAuction)
+	return nil
+}
+
+// PlaceBidSurplus places a forward bid on a surplus auction, moving coins and returning the updated auction.
+func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, sdk.Error) {
+	// Validate new bid
+	if bid.Denom != a.Bid.Denom {
+		return a, sdk.ErrInternal("bid denom doesn't match auction")
+	}
+	if !a.Bid.IsLT(bid) {
+		return a, sdk.ErrInternal("bid not greater than last bid")
+	}
+
+	// New bidder pays back old bidder
+	// Catch edge cases of a bidder replacing their own bid, and the amount being zero (sending zero coins produces meaningless send events).
+	if !bidder.Equals(a.Bidder) && !a.Bid.IsZero() {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+	}
+	// Increase in bid is burned
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
+	if err != nil {
+		return a, err
+	}
+	err = k.supplyKeeper.BurnCoins(ctx, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
+	if err != nil {
+		return a, err
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Bid = bid
+	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout
+
+	return a, nil
+}
+
+// PlaceForwardBidCollateral places a forward bid on a collateral auction, moving coins and returning the updated auction.
+func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, sdk.Error) {
+	// Validate new bid
+	if bid.Denom != a.Bid.Denom {
+		return a, sdk.ErrInternal("bid denom doesn't match auction")
+	}
+	if a.IsReversePhase() {
+		return a, sdk.ErrInternal("auction is not in forward phase")
+	}
+	if !a.Bid.IsLT(bid) {
+		return a, sdk.ErrInternal("auction in forward phase, new bid not higher than last bid")
+	}
+	if a.MaxBid.IsLT(bid) {
+		return a, sdk.ErrInternal("bid higher than max bid")
+	}
+
+	// New bidder pays back old bidder
+	// Catch edge cases of a bidder replacing their own bid, and the amount being zero (sending zero coins produces meaningless send events).
+	if !bidder.Equals(a.Bidder) && !a.Bid.IsZero() {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+	}
+	// Increase in bid sent to auction initiator
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
+	if err != nil {
+		return a, err
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Bid = bid
+	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout
+
+	return a, nil
+}
+
+// PlaceReverseBidCollateral places a reverse bid on a collateral auction, moving coins and returning the updated auction.
+func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, sdk.Error) {
+	// Validate new bid
+	if lot.Denom != a.Lot.Denom {
+		return a, sdk.ErrInternal("lot denom doesn't match auction")
+	}
+	if !a.IsReversePhase() {
+		return a, sdk.ErrInternal("auction not in reverse phase")
+	}
+	if lot.IsNegative() {
+		return a, sdk.ErrInternal("can't bid negative amount")
+	}
+	if !lot.IsLT(a.Lot) {
+		return a, sdk.ErrInternal("auction in reverse phase, new bid not less than previous amount")
+	}
+
+	// New bidder pays back old bidder
+	// Catch edge cases of a bidder replacing their own bid
+	if !bidder.Equals(a.Bidder) {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+	}
+	// Decrease in lot is sent to weighted addresses (normally the CDP depositors)
+	// TODO paying out rateably to cdp depositors is vulnerable to errors compounding over multiple bids - check this can't be gamed.
+	lotPayouts, err := splitCoinIntoWeightedBuckets(a.Lot.Sub(lot), a.LotReturns.Weights)
+	if err != nil {
+		return a, err
+	}
+	for i, payout := range lotPayouts {
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
+		if err != nil {
+			return a, err
+		}
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Lot = lot
+	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout
+
+	return a, nil
+}
+
+// PlaceBidDebt places a reverse bid on a debt auction, moving coins and returning the updated auction.
+func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, sdk.Error) {
+	// Validate new bid
+	if lot.Denom != a.Lot.Denom {
+		return a, sdk.ErrInternal("lot denom doesn't match auction")
+	}
+	if lot.IsNegative() {
+		return a, sdk.ErrInternal("lot less than 0")
+	}
+	if !lot.IsLT(a.Lot) {
+		return a, sdk.ErrInternal("lot not smaller than last lot")
+	}
+
+	// New bidder pays back old bidder
+	// Catch edge cases of a bidder replacing their own bid
+	if !bidder.Equals(a.Bidder) {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		if err != nil {
+			return a, err
+		}
+	}
+
+	// Update Auction
+	a.Bidder = bidder
+	a.Lot = lot
+	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout
+
+	return a, nil
+}
+
+// CloseAuction closes an auction and distributes funds to the highest bidder.
+func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
+
+	auction, found := k.GetAuction(ctx, auctionID)
+	if !found {
+		return sdk.ErrInternal("auction doesn't exist")
+	}
+
+	if ctx.BlockTime().Before(auction.GetEndTime()) {
+		return sdk.ErrInternal(fmt.Sprintf("auction can't be closed as curent block time (%v) is under auction end time (%v)", ctx.BlockTime(), auction.GetEndTime()))
+	}
+
+	// payout to the last bidder
+	switch auc := auction.(type) {
+	case types.SurplusAuction:
+		if err := k.PayoutSurplusAuction(ctx, auc); err != nil {
+			return err
+		}
+	case types.DebtAuction:
+		if err := k.PayoutDebtAuction(ctx, auc); err != nil {
+			return err
+		}
+	case types.CollateralAuction:
+		if err := k.PayoutCollateralAuction(ctx, auc); err != nil {
+			return err
+		}
+	default:
+		panic("unrecognized auction type")
+	}
+
+	k.DeleteAuction(ctx, auctionID)
+	return nil
+}
+
+// PayoutDebtAuction pays out the proceeds for a debt auction, first minting the coins.
+func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) sdk.Error {
+	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, a.Initiator, a.Bidder, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// PayoutSurplusAuction pays out the proceeds for a surplus auction.
+func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) sdk.Error {
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// PayoutCollateralAuction pays out the proceeds for a collateral auction.
+func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) sdk.Error {
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CloseExpiredAuctions finds all auctions that are past (or at) their ending times and closes them, paying out to the highest bidder.
+func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) sdk.Error {
+	var expiredAuctions []uint64
+	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id uint64) bool {
+		expiredAuctions = append(expiredAuctions, id)
+		return false
+	})
+	// Note: iteration and auction closing are in separate loops as db should not be modified during iteration // TODO is this correct? gov modifies during iteration
+	for _, id := range expiredAuctions {
+		if err := k.CloseAuction(ctx, id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// earliestTime returns the earliest of two times.
+func earliestTime(t1, t2 time.Time) time.Time {
+	if t1.Before(t2) {
+		return t1
+	} else {
+		return t2 // also returned if times are equal
+	}
+}
+
+// splitCoinIntoWeightedBuckets divides up some amount of coins according to some weights.
+func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdk.Int) ([]sdk.Coin, sdk.Error) {
+	for _, bucket := range buckets {
+		if bucket.IsNegative() {
+			return nil, sdk.ErrInternal("cannot split coin into bucket with negative weight")
+		}
+	}
+	amounts := splitIntIntoWeightedBuckets(coin.Amount, buckets)
+	result := make([]sdk.Coin, len(amounts))
+	for i, a := range amounts {
+		result[i] = sdk.NewCoin(coin.Denom, a)
+	}
+	return result, nil
+}

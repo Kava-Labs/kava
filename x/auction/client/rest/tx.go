@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -32,7 +33,7 @@ const (
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(
-		fmt.Sprintf("/auction/bid/{%s}/{%s}/{%s}/{%s}", restAuctionID, restBidder, restBid, restLot), bidHandlerFn(cliCtx)).Methods("PUT")
+		fmt.Sprintf("/auction/bid/{%s}/{%s}/{%s}", restAuctionID, restBidder, restBid), bidHandlerFn(cliCtx)).Methods("PUT")
 }
 
 func bidHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -43,9 +44,8 @@ func bidHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		strAuctionID := vars[restAuctionID]
 		bechBidder := vars[restBidder]
 		strBid := vars[restBid]
-		strLot := vars[restLot]
 
-		auctionID, err := types.NewIDFromString(strAuctionID)
+		auctionID, err := strconv.ParseUint(strAuctionID, 10, 64)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -63,13 +63,7 @@ func bidHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		lot, err := sdk.ParseCoin(strLot)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		msg := types.NewMsgPlaceBid(auctionID, bidder, bid, lot)
+		msg := types.NewMsgPlaceBid(auctionID, bidder, bid)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

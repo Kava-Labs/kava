@@ -2,100 +2,35 @@ package types
 
 import (
 	"fmt"
-	"strconv"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-// Auction is an interface to several types of auction.
+// Auction is an interface for handling common actions on auctions.
 type Auction interface {
-	GetID() ID
-	SetID(ID)
-	PlaceBid(currentBlockHeight EndTime, bidder sdk.AccAddress, lot sdk.Coin, bid sdk.Coin) ([]BankOutput, []BankInput, sdk.Error)
-	GetEndTime() EndTime // auctions close at the end of the block with blockheight EndTime (ie bids placed in that block are valid)
-	GetPayout() BankInput
-	String() string
+	GetID() uint64
+	WithID(uint64) Auction
+	GetEndTime() time.Time
 }
 
-// BaseAuction type shared by all Auctions
+// BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
-	ID         ID
-	Initiator  sdk.AccAddress // Person who starts the auction. Giving away Lot (aka seller in a forward auction)
-	Lot        sdk.Coin       // Amount of coins up being given by initiator (FA - amount for sale by seller, RA - cost of good by buyer (bid))
-	Bidder     sdk.AccAddress // Person who bids in the auction. Receiver of Lot. (aka buyer in forward auction, seller in RA)
-	Bid        sdk.Coin       // Amount of coins being given by the bidder (FA - bid, RA - amount being sold)
-	EndTime    EndTime        // Block height at which the auction closes. It closes at the end of this block
-	MaxEndTime EndTime        // Maximum closing time. Auctions can close before this but never after.
+	ID         uint64
+	Initiator  string         // Module name that starts the auction. Pays out Lot.
+	Lot        sdk.Coin       // Coins that will paid out by Initiator to the winning bidder.
+	Bidder     sdk.AccAddress // Latest bidder. Receiver of Lot.
+	Bid        sdk.Coin       // Coins paid into the auction the bidder.
+	EndTime    time.Time      // Current auction closing time. Triggers at the end of the block with time ≥ EndTime.
+	MaxEndTime time.Time      // Maximum closing time. Auctions can close before this but never after.
 }
 
-// ID type for auction IDs
-type ID uint64
+// GetID is a getter for auction ID.
+func (a BaseAuction) GetID() uint64 { return a.ID }
 
-// NewIDFromString generate new auction ID from a string
-func NewIDFromString(s string) (ID, error) {
-	n, err := strconv.ParseUint(s, 10, 64) // copied from how the gov module rest handler's parse proposal IDs
-	if err != nil {
-		return 0, err
-	}
-	return ID(n), nil
-}
-
-// EndTime type for end time of auctions
-type EndTime int64 // TODO rename to Blockheight or don't define custom type
-
-// BankInput the input and output types from the bank module where used here. But they use sdk.Coins instad of sdk.Coin. So it caused a lot of type conversion as auction mainly uses sdk.Coin.
-type BankInput struct {
-	Address sdk.AccAddress
-	Coin    sdk.Coin
-}
-
-// BankOutput output type for auction bids
-type BankOutput struct {
-	Address sdk.AccAddress
-	Coin    sdk.Coin
-}
-
-// GetID getter for auction ID
-func (a BaseAuction) GetID() ID { return a.ID }
-
-// SetID setter for auction ID
-func (a *BaseAuction) SetID(id ID) { a.ID = id }
-
-// GetEndTime getter for auction end time
-func (a BaseAuction) GetEndTime() EndTime { return a.EndTime }
-
-// GetPayout implements Auction
-func (a BaseAuction) GetPayout() BankInput {
-	return BankInput{a.Bidder, a.Lot}
-}
-
-// PlaceBid implements Auction
-func (a *BaseAuction) PlaceBid(currentBlockHeight EndTime, bidder sdk.AccAddress, lot sdk.Coin, bid sdk.Coin) ([]BankOutput, []BankInput, sdk.Error) {
-	// TODO check lot size matches lot?
-	// check auction has not closed
-	if currentBlockHeight > a.EndTime {
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("auction has closed")
-	}
-	// check bid is greater than last bid
-	if !a.Bid.IsLT(bid) { // TODO add minimum bid size
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("bid not greater than last bid")
-	}
-	// calculate coin movements
-	outputs := []BankOutput{{bidder, bid}}                                  // new bidder pays bid now
-	inputs := []BankInput{{a.Bidder, a.Bid}, {a.Initiator, bid.Sub(a.Bid)}} // old bidder is paid back, extra goes to seller
-
-	// update auction
-	a.Bidder = bidder
-	a.Bid = bid
-	// increment timeout // TODO into keeper?
-	a.EndTime = EndTime(min(int64(currentBlockHeight+DefaultMaxBidDuration), int64(a.MaxEndTime))) // TODO is there a better way to structure these types?
-
-	return outputs, inputs, nil
-}
-
-func (e EndTime) String() string {
-	return string(e)
-}
+// GetEndTime is a getter for auction end time.
+func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
 func (a BaseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
@@ -111,118 +46,76 @@ func (a BaseAuction) String() string {
 	)
 }
 
-// NewBaseAuction creates a new base auction
-func NewBaseAuction(seller sdk.AccAddress, lot sdk.Coin, initialBid sdk.Coin, EndTime EndTime) BaseAuction {
-	auction := BaseAuction{
+// SurplusAuction is a forward auction that burns what it receives from bids.
+// It is normally used to sell off excess pegged asset acquired by the CDP system.
+type SurplusAuction struct {
+	BaseAuction
+}
+
+// WithID returns an auction with the ID set.
+func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
+
+// NewSurplusAuction returns a new surplus auction.
+func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
+	auction := SurplusAuction{BaseAuction{
 		// no ID
 		Initiator:  seller,
 		Lot:        lot,
-		Bidder:     seller,     // send the proceeds from the first bid back to the seller
-		Bid:        initialBid, // set this to zero most of the time
-		EndTime:    EndTime,
-		MaxEndTime: EndTime,
-	}
+		Bidder:     nil,
+		Bid:        sdk.NewInt64Coin(bidDenom, 0),
+		EndTime:    endTime,
+		MaxEndTime: endTime,
+	}}
 	return auction
 }
 
-// ForwardAuction type for forward auctions
-type ForwardAuction struct {
+// DebtAuction is a reverse auction that mints what it pays out.
+// It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
+type DebtAuction struct {
 	BaseAuction
 }
 
-// NewForwardAuction creates a new forward auction
-func NewForwardAuction(seller sdk.AccAddress, lot sdk.Coin, initialBid sdk.Coin, EndTime EndTime) (ForwardAuction, BankOutput) {
-	auction := ForwardAuction{BaseAuction{
+// WithID returns an auction with the ID set.
+func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
+
+// NewDebtAuction returns a new debt auction.
+func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) DebtAuction {
+	// Note: Bidder is set to the initiator's module account address instead of module name. (when the first bid is placed, it is paid out to the initiator)
+	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToAccount.
+	// This isn't a problem currently, but if additional logic/validation was added for sending to coins to Module Accounts, it would be bypassed.
+	auction := DebtAuction{BaseAuction{
 		// no ID
-		Initiator:  seller,
-		Lot:        lot,
-		Bidder:     seller,     // send the proceeds from the first bid back to the seller
-		Bid:        initialBid, // set this to zero most of the time
-		EndTime:    EndTime,
-		MaxEndTime: EndTime,
-	}}
-	output := BankOutput{seller, lot}
-	return auction, output
-}
-
-// PlaceBid implements Auction
-func (a *ForwardAuction) PlaceBid(currentBlockHeight EndTime, bidder sdk.AccAddress, lot sdk.Coin, bid sdk.Coin) ([]BankOutput, []BankInput, sdk.Error) {
-	// TODO check lot size matches lot?
-	// check auction has not closed
-	if currentBlockHeight > a.EndTime {
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("auction has closed")
-	}
-	// check bid is greater than last bid
-	if !a.Bid.IsLT(bid) { // TODO add minimum bid size
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("bid not greater than last bid")
-	}
-	// calculate coin movements
-	outputs := []BankOutput{{bidder, bid}}                                  // new bidder pays bid now
-	inputs := []BankInput{{a.Bidder, a.Bid}, {a.Initiator, bid.Sub(a.Bid)}} // old bidder is paid back, extra goes to seller
-
-	// update auction
-	a.Bidder = bidder
-	a.Bid = bid
-	// increment timeout // TODO into keeper?
-	a.EndTime = EndTime(min(int64(currentBlockHeight+DefaultMaxBidDuration), int64(a.MaxEndTime))) // TODO is there a better way to structure these types?
-
-	return outputs, inputs, nil
-}
-
-// ReverseAuction type for reverse auctions
-// TODO  when exporting state and initializing a new genesis, we'll need a way to differentiate forward from reverse auctions
-type ReverseAuction struct {
-	BaseAuction
-}
-
-// NewReverseAuction creates a new reverse auction
-func NewReverseAuction(buyer sdk.AccAddress, bid sdk.Coin, initialLot sdk.Coin, EndTime EndTime) (ReverseAuction, BankOutput) {
-	auction := ReverseAuction{BaseAuction{
-		// no ID
-		Initiator:  buyer,
+		Initiator:  buyerModAccName,
 		Lot:        initialLot,
-		Bidder:     buyer, // send proceeds from the first bid to the buyer
-		Bid:        bid,   // amount that the buyer it buying - doesn't change over course of auction
+		Bidder:     supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
+		Bid:        bid,                                      // amount that the buyer is buying - doesn't change over course of auction
 		EndTime:    EndTime,
 		MaxEndTime: EndTime,
 	}}
-	output := BankOutput{buyer, initialLot}
-	return auction, output
+	return auction
 }
 
-// PlaceBid implements Auction
-func (a *ReverseAuction) PlaceBid(currentBlockHeight EndTime, bidder sdk.AccAddress, lot sdk.Coin, bid sdk.Coin) ([]BankOutput, []BankInput, sdk.Error) {
-
-	// check bid size matches bid?
-	// check auction has not closed
-	if currentBlockHeight > a.EndTime {
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("auction has closed")
-	}
-	// check bid is less than last bid
-	if !lot.IsLT(a.Lot) { // TODO add min bid decrements
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("lot not smaller than last lot")
-	}
-	// calculate coin movements
-	outputs := []BankOutput{{bidder, a.Bid}}                                // new bidder pays bid now
-	inputs := []BankInput{{a.Bidder, a.Bid}, {a.Initiator, a.Lot.Sub(lot)}} // old bidder is paid back, decrease in price for goes to buyer
-
-	// update auction
-	a.Bidder = bidder
-	a.Lot = lot
-	// increment timeout // TODO into keeper?
-	a.EndTime = EndTime(min(int64(currentBlockHeight+DefaultMaxBidDuration), int64(a.MaxEndTime))) // TODO is there a better way to structure these types?
-
-	return outputs, inputs, nil
-}
-
-// ForwardReverseAuction type for forward reverse auction
-type ForwardReverseAuction struct {
+// CollateralAuction is a two phase auction.
+// Initially, in forward auction phase, bids can be placed up to a max bid.
+// Then it switches to a reverse auction phase, where the initial amount up for auction is bid down.
+// Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
+// Collateral auctions are normally used to sell off collateral seized from CDPs.
+type CollateralAuction struct {
 	BaseAuction
-	MaxBid      sdk.Coin
-	OtherPerson sdk.AccAddress // TODO rename, this is normally the original CDP owner
+	MaxBid     sdk.Coin
+	LotReturns WeightedAddresses
 }
 
-func (a ForwardReverseAuction) String() string {
+// WithID returns an auction with the ID set.
+func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
+
+// IsReversePhase returns whether the auction has switched over to reverse phase or not.
+// Auction initially start in forward phase.
+func (a CollateralAuction) IsReversePhase() bool {
+	return a.Bid.IsEqual(a.MaxBid)
+}
+
+func (a CollateralAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
   Initiator:              %s
   Lot:               			%s
@@ -231,77 +124,48 @@ func (a ForwardReverseAuction) String() string {
   End Time:   						%s
 	Max End Time:      			%s
 	Max Bid									%s
-	Other Person						%s`,
+	LotReturns						%s`,
 		a.GetID(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
-		a.MaxEndTime.String(), a.MaxBid, a.OtherPerson,
+		a.MaxEndTime.String(), a.MaxBid, a.LotReturns,
 	)
 }
 
-// NewForwardReverseAuction creates a new forward reverse auction
-func NewForwardReverseAuction(seller sdk.AccAddress, lot sdk.Coin, initialBid sdk.Coin, EndTime EndTime, maxBid sdk.Coin, otherPerson sdk.AccAddress) (ForwardReverseAuction, BankOutput) {
-	auction := ForwardReverseAuction{
+// NewCollateralAuction returns a new collateral auction.
+func NewCollateralAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses) CollateralAuction {
+	auction := CollateralAuction{
 		BaseAuction: BaseAuction{
 			// no ID
 			Initiator:  seller,
 			Lot:        lot,
-			Bidder:     seller,     // send the proceeds from the first bid back to the seller
-			Bid:        initialBid, // 0 most of the time
+			Bidder:     nil,
+			Bid:        sdk.NewInt64Coin(maxBid.Denom, 0),
 			EndTime:    EndTime,
 			MaxEndTime: EndTime},
-		MaxBid:      maxBid,
-		OtherPerson: otherPerson,
+		MaxBid:     maxBid,
+		LotReturns: lotReturns,
 	}
-	output := BankOutput{seller, lot}
-	return auction, output
+	return auction
 }
 
-// PlaceBid implements auction
-func (a *ForwardReverseAuction) PlaceBid(currentBlockHeight EndTime, bidder sdk.AccAddress, lot sdk.Coin, bid sdk.Coin) (outputs []BankOutput, inputs []BankInput, err sdk.Error) {
-	// check auction has not closed
-	if currentBlockHeight > a.EndTime {
-		return []BankOutput{}, []BankInput{}, sdk.ErrInternal("auction has closed")
+// WeightedAddresses is a type for storing some addresses and associated weights.
+type WeightedAddresses struct {
+	Addresses []sdk.AccAddress
+	Weights   []sdk.Int
+}
+
+// NewWeightedAddresses returns a new list addresses with weights.
+func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, sdk.Error) {
+	if len(addrs) != len(weights) {
+		return WeightedAddresses{}, sdk.ErrInternal("number of addresses doesn't match number of weights")
 	}
-
-	// determine phase of auction
-	switch {
-	case a.Bid.IsLT(a.MaxBid) && bid.IsLT(a.MaxBid):
-		// Forward auction phase
-		if !a.Bid.IsLT(bid) { // TODO add min bid increments
-			return []BankOutput{}, []BankInput{}, sdk.ErrInternal("bid not greater than last bid")
+	for _, w := range weights {
+		if w.IsNegative() {
+			return WeightedAddresses{}, sdk.ErrInternal("weights contain a negative amount")
 		}
-		outputs = []BankOutput{{bidder, bid}}                                  // new bidder pays bid now
-		inputs = []BankInput{{a.Bidder, a.Bid}, {a.Initiator, bid.Sub(a.Bid)}} // old bidder is paid back, extra goes to seller
-	case a.Bid.IsLT(a.MaxBid):
-		// Switch over phase
-		if !bid.IsEqual(a.MaxBid) { // require bid == a.MaxBid
-			return []BankOutput{}, []BankInput{}, sdk.ErrInternal("bid greater than the max bid")
-		}
-		outputs = []BankOutput{{bidder, bid}} // new bidder pays bid now
-		inputs = []BankInput{
-			{a.Bidder, a.Bid},               // old bidder is paid back
-			{a.Initiator, bid.Sub(a.Bid)},   // extra goes to seller
-			{a.OtherPerson, a.Lot.Sub(lot)}, //decrease in price for goes to original CDP owner
-		}
-
-	case a.Bid.IsEqual(a.MaxBid):
-		// Reverse auction phase
-		if !lot.IsLT(a.Lot) { // TODO add min bid decrements
-			return []BankOutput{}, []BankInput{}, sdk.ErrInternal("lot not smaller than last lot")
-		}
-		outputs = []BankOutput{{bidder, a.Bid}}                                  // new bidder pays bid now
-		inputs = []BankInput{{a.Bidder, a.Bid}, {a.OtherPerson, a.Lot.Sub(lot)}} // old bidder is paid back, decrease in price for goes to original CDP owner
-	default:
-		panic("should never be reached") // TODO
 	}
-
-	// update auction
-	a.Bidder = bidder
-	a.Lot = lot
-	a.Bid = bid
-	// increment timeout
-	// TODO use bid duration param
-	a.EndTime = EndTime(min(int64(currentBlockHeight+DefaultMaxBidDuration), int64(a.MaxEndTime))) // TODO is there a better way to structure these types?
-
-	return outputs, inputs, nil
+	return WeightedAddresses{
+		Addresses: addrs,
+		Weights:   weights,
+	}, nil
 }
