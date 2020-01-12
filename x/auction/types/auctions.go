@@ -8,6 +8,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
+// distantFuture is a very large time value to use as initial the ending time for auctions.
+// It is not set to the max time supported. This can cause problems with time comparisons, see https://stackoverflow.com/a/32620397.
+// Also amino panics when encoding times ≥ the start of year 10000.
+var DistantFuture time.Time = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
+
 // Auction is an interface for handling common actions on auctions.
 type Auction interface {
 	GetID() uint64
@@ -17,13 +22,14 @@ type Auction interface {
 
 // BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
-	ID         uint64
-	Initiator  string         // Module name that starts the auction. Pays out Lot.
-	Lot        sdk.Coin       // Coins that will paid out by Initiator to the winning bidder.
-	Bidder     sdk.AccAddress // Latest bidder. Receiver of Lot.
-	Bid        sdk.Coin       // Coins paid into the auction the bidder.
-	EndTime    time.Time      // Current auction closing time. Triggers at the end of the block with time ≥ EndTime.
-	MaxEndTime time.Time      // Maximum closing time. Auctions can close before this but never after.
+	ID              uint64
+	Initiator       string         // Module name that starts the auction. Pays out Lot.
+	Lot             sdk.Coin       // Coins that will paid out by Initiator to the winning bidder.
+	Bidder          sdk.AccAddress // Latest bidder. Receiver of Lot.
+	Bid             sdk.Coin       // Coins paid into the auction the bidder.
+	HasReceivedBids bool           // Whether the auction has received any bids or not.
+	EndTime         time.Time      // Current auction closing time. Triggers at the end of the block with time ≥ EndTime.
+	MaxEndTime      time.Time      // Maximum closing time. Auctions can close before this but never after.
 }
 
 // GetID is a getter for auction ID.
@@ -59,12 +65,13 @@ func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
 	auction := SurplusAuction{BaseAuction{
 		// no ID
-		Initiator:  seller,
-		Lot:        lot,
-		Bidder:     nil,
-		Bid:        sdk.NewInt64Coin(bidDenom, 0),
-		EndTime:    endTime,
-		MaxEndTime: endTime,
+		Initiator:       seller,
+		Lot:             lot,
+		Bidder:          nil,
+		Bid:             sdk.NewInt64Coin(bidDenom, 0),
+		HasReceivedBids: false, // new auctions don't have any bids
+		EndTime:         endTime,
+		MaxEndTime:      endTime,
 	}}
 	return auction
 }
@@ -80,19 +87,20 @@ type DebtAuction struct {
 func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // NewDebtAuction returns a new debt auction.
-func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time, debt sdk.Coin) DebtAuction {
+func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, endTime time.Time, debt sdk.Coin) DebtAuction {
 	// Note: Bidder is set to the initiator's module account address instead of module name. (when the first bid is placed, it is paid out to the initiator)
 	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToAccount.
 	// This isn't a problem currently, but if additional logic/validation was added for sending to coins to Module Accounts, it would be bypassed.
 	auction := DebtAuction{
 		BaseAuction: BaseAuction{
 			// no ID
-			Initiator:  buyerModAccName,
-			Lot:        initialLot,
-			Bidder:     supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
-			Bid:        bid,                                      // amount that the buyer is buying - doesn't change over course of auction
-			EndTime:    EndTime,
-			MaxEndTime: EndTime},
+			Initiator:       buyerModAccName,
+			Lot:             initialLot,
+			Bidder:          supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
+			Bid:             bid,                                      // amount that the buyer is buying - doesn't change over course of auction
+			HasReceivedBids: false,                                    // new auctions don't have any bids
+			EndTime:         endTime,
+			MaxEndTime:      endTime},
 		CorrespondingDebt: debt,
 	}
 	return auction
@@ -136,16 +144,17 @@ func (a CollateralAuction) String() string {
 }
 
 // NewCollateralAuction returns a new collateral auction.
-func NewCollateralAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses, debt sdk.Coin) CollateralAuction {
+func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses, debt sdk.Coin) CollateralAuction {
 	auction := CollateralAuction{
 		BaseAuction: BaseAuction{
 			// no ID
-			Initiator:  seller,
-			Lot:        lot,
-			Bidder:     nil,
-			Bid:        sdk.NewInt64Coin(maxBid.Denom, 0),
-			EndTime:    EndTime,
-			MaxEndTime: EndTime},
+			Initiator:       seller,
+			Lot:             lot,
+			Bidder:          nil,
+			Bid:             sdk.NewInt64Coin(maxBid.Denom, 0),
+			HasReceivedBids: false, // new auctions don't have any bids
+			EndTime:         endTime,
+			MaxEndTime:      endTime},
 		CorrespondingDebt: debt,
 		MaxBid:            maxBid,
 		LotReturns:        lotReturns,
