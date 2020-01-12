@@ -25,7 +25,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 
 	tApp := app.NewTestApp()
 	sellerAcc := supply.NewEmptyModuleAccount(sellerModName)
-	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
+	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100), c("debt", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
 			auth.NewBaseAccount(buyer, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
@@ -36,7 +36,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
 
-	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights)
+	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights, c("debt", 40))
 	require.NoError(t, err)
 	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30)))
 

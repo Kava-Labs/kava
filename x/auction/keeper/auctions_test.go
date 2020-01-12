@@ -69,27 +69,29 @@ func TestDebtAuctionBasic(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
+	buyerAcc := supply.NewEmptyModuleAccount(buyerModName, supply.Minter) // reverse auctions mint payout
+	require.NoError(t, buyerAcc.SetCoins(cs(c("debt", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
 			auth.NewBaseAccount(seller, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
-			supply.NewEmptyModuleAccount(buyerModName, supply.Minter), // reverse auctions mint payout
+			buyerAcc,
 		}),
 	)
 	ctx := tApp.NewContext(false, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
 
 	// Start auction
-	auctionID, err := keeper.StartDebtAuction(ctx, buyerModName, c("token1", 20), c("token2", 99999)) // buyer, bid, initialLot
+	auctionID, err := keeper.StartDebtAuction(ctx, buyerModName, c("token1", 20), c("token2", 99999), c("debt", 20))
 	require.NoError(t, err)
-	// Check buyer's coins have not decreased, as lot is minted at the end
-	tApp.CheckBalance(t, ctx, buyerAddr, nil) // zero coins
+	// Check buyer's coins have not decreased (except for debt), as lot is minted at the end
+	tApp.CheckBalance(t, ctx, buyerAddr, cs(c("debt", 80)))
 
 	// Place a bid
 	require.NoError(t, keeper.PlaceBid(ctx, 0, seller, c("token2", 10)))
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, seller, cs(c("token1", 80), c("token2", 100)))
 	// Check buyer's coins have increased
-	tApp.CheckBalance(t, ctx, buyerAddr, cs(c("token1", 20)))
+	tApp.CheckBalance(t, ctx, buyerAddr, cs(c("token1", 20), c("debt", 100)))
 
 	// Close auction at just after auction expiry
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultBidDuration))
@@ -109,7 +111,7 @@ func TestCollateralAuctionBasic(t *testing.T) {
 
 	tApp := app.NewTestApp()
 	sellerAcc := supply.NewEmptyModuleAccount(sellerModName)
-	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
+	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100), c("debt", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
 			auth.NewBaseAccount(buyer, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
@@ -123,17 +125,17 @@ func TestCollateralAuctionBasic(t *testing.T) {
 	keeper := tApp.GetAuctionKeeper()
 
 	// Start auction
-	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights) // seller, lot, maxBid, otherPerson
+	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights, c("debt", 40))
 	require.NoError(t, err)
 	// Check seller's coins have decreased
-	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100)))
+	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100), c("debt", 60)))
 
 	// Place a forward bid
 	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 10)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 90)))
 	// Check seller's coins have increased
-	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 110)))
+	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 110), c("debt", 70)))
 	// Check return addresses have not received coins
 	for _, ra := range returnAddrs {
 		tApp.CheckBalance(t, ctx, ra, cs(c("token1", 100), c("token2", 100)))
@@ -145,7 +147,7 @@ func TestCollateralAuctionBasic(t *testing.T) {
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 50)))
 	// Check seller's coins have increased
-	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 150)))
+	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 150), c("debt", 100)))
 	// Check return addresses have received coins
 	tApp.CheckBalance(t, ctx, returnAddrs[0], cs(c("token1", 102), c("token2", 100)))
 	tApp.CheckBalance(t, ctx, returnAddrs[1], cs(c("token1", 102), c("token2", 100)))
