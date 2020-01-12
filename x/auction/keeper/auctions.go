@@ -27,6 +27,15 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 	if err != nil {
 		return 0, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionStart,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
+		),
+	)
 	return auctionID, nil
 }
 
@@ -55,6 +64,15 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 	if err != nil {
 		return 0, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionStart,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
+		),
+	)
 	return auctionID, nil
 }
 
@@ -86,6 +104,15 @@ func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.C
 	if err != nil {
 		return 0, err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionStart,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
+		),
+	)
 	return auctionID, nil
 }
 
@@ -128,6 +155,13 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	}
 
 	k.SetAuction(ctx, updatedAuction)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionBid,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+		),
+	)
 	return nil
 }
 
@@ -370,6 +404,13 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 	}
 
 	k.DeleteAuction(ctx, auctionID)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionClose,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+		),
+	)
 	return nil
 }
 

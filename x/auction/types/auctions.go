@@ -61,6 +61,9 @@ type SurplusAuction struct {
 // WithID returns an auction with the ID set.
 func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
+// Name returns a name for this auction type. Used to identify auctions in event attributes.
+func (a SurplusAuction) Name() string { return "surplus" }
+
 // NewSurplusAuction returns a new surplus auction.
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
 	auction := SurplusAuction{BaseAuction{
@@ -85,6 +88,9 @@ type DebtAuction struct {
 
 // WithID returns an auction with the ID set.
 func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
+
+// Name returns a name for this auction type. Used to identify auctions in event attributes.
+func (a DebtAuction) Name() string { return "debt" }
 
 // NewDebtAuction returns a new debt auction.
 func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, endTime time.Time, debt sdk.Coin) DebtAuction {
@@ -120,6 +126,9 @@ type CollateralAuction struct {
 
 // WithID returns an auction with the ID set.
 func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
+
+// Name returns a name for this auction type. Used to identify auctions in event attributes.
+func (a CollateralAuction) Name() string { return "collateral" }
 
 // IsReversePhase returns whether the auction has switched over to reverse phase or not.
 // Auction initially start in forward phase.
