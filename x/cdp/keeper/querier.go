@@ -10,13 +10,16 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-
-
+// NewQuerier returns a new querier function
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
+		case types.QueryGetCdp:
+			return queryGetCdp(ctx, req, keeper)
 		case types.QueryGetCdps:
-			return queryGetCdps(ctx, req, keeper)
+			return queryGetCdpsByDenom(ctx, req, keeper)
+		case types.QueryGetCdpsByCollateralization:
+			return queryGetCdpsByRatio(ctx, req, keeper)
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
 		default:
@@ -25,42 +28,45 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-
-// queryGetCdps fetches CDPs, optionally filtering by any of the query params (in QueryCdpsParams).
-// While CDPs do not have an ID, this method can be used to get one CDP by specifying the collateral and owner.
-func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	// Decode request
-	var requestParams types.QueryCdpsParams
+// query a specific cdp
+func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	var requestParams types.QueryCdpParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
 
-	// Get CDPs
-	var cdps types.CDPs
-	if len(requestParams.Owner) != 0 {
-		if len(requestParams.CollateralDenom) != 0 {
-			// owner and collateral specified - get a single CDP
-			cdp, found := keeper.GetCDP(ctx, requestParams.Owner, requestParams.CollateralDenom)
-			if !found {
-				cdp = types.CDP{Owner: requestParams.Owner, CollateralDenom: requestParams.CollateralDenom, CollateralAmount: sdk.ZeroInt(), Debt: sdk.ZeroInt()}
-			}
-			cdps = types.CDPs{cdp}
-		} else {
-			// owner, but no collateral specified - get all CDPs for one address
-			return nil, sdk.ErrInternal("getting all CDPs belonging to one owner not implemented")
-		}
-	} else {
-		// owner not specified -- get all CDPs or all CDPs of one collateral type, optionally filtered by price
-		var errSdk sdk.Error // := doesn't work here
-		cdps, errSdk = keeper.GetCDPs(ctx, requestParams.CollateralDenom, requestParams.UnderCollateralizedAt)
-		if errSdk != nil {
-			return nil, errSdk
-		}
-
+	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	if !valid {
+		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
 	}
 
-	// Encode results
+	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
+	if !found {
+		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdp)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+	return bz, nil
+
+}
+
+// query cdps with matching denom and ratio LESS THAN the input ratio
+func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	var requestParams types.QueryCdpsByRatioParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+	}
+	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	if !valid {
+		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+	}
+
+	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdps)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
@@ -68,8 +74,27 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	return bz, nil
 }
 
-// queryGetParams fetches the cdp module parameters
-// TODO does this need to exist? Can you use cliCtx.QueryStore instead?
+// query all cdps with matching collateral denom
+func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	var requestParams types.QueryCdpsParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+	}
+	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	if !valid {
+		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+	}
+
+	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdps)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+	return bz, nil
+}
+
+// query params in the cdp store
 func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	// Get params
 	params := keeper.GetParams(ctx)

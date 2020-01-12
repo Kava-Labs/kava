@@ -6,7 +6,6 @@ import (
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/liquidator"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 
@@ -61,7 +60,6 @@ var (
 		supply.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
-		//liquidator.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
 	)
 
@@ -75,7 +73,8 @@ var (
 		gov.ModuleName:              {supply.Burner},
 		validatorvesting.ModuleName: {supply.Burner},
 		auction.ModuleName:          nil,
-		liquidator.ModuleName:       {supply.Minter, supply.Burner},
+		cdp.ModuleName:              {supply.Minter, supply.Burner},
+		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
 	}
 )
 
@@ -91,21 +90,20 @@ type App struct {
 	tkeys map[string]*sdk.TransientStoreKey
 
 	// keepers from all the modules
-	accountKeeper    auth.AccountKeeper
-	bankKeeper       bank.Keeper
-	supplyKeeper     supply.Keeper
-	stakingKeeper    staking.Keeper
-	slashingKeeper   slashing.Keeper
-	mintKeeper       mint.Keeper
-	distrKeeper      distr.Keeper
-	govKeeper        gov.Keeper
-	crisisKeeper     crisis.Keeper
-	paramsKeeper     params.Keeper
-	vvKeeper         validatorvesting.Keeper
-	auctionKeeper    auction.Keeper
-	cdpKeeper        cdp.Keeper
-	liquidatorKeeper liquidator.Keeper
-	pricefeedKeeper  pricefeed.Keeper
+	accountKeeper   auth.AccountKeeper
+	bankKeeper      bank.Keeper
+	supplyKeeper    supply.Keeper
+	stakingKeeper   staking.Keeper
+	slashingKeeper  slashing.Keeper
+	mintKeeper      mint.Keeper
+	distrKeeper     distr.Keeper
+	govKeeper       gov.Keeper
+	crisisKeeper    crisis.Keeper
+	paramsKeeper    params.Keeper
+	vvKeeper        validatorvesting.Keeper
+	auctionKeeper   auction.Keeper
+	cdpKeeper       cdp.Keeper
+	pricefeedKeeper pricefeed.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -129,7 +127,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, validatorvesting.StoreKey,
-		auction.StoreKey, cdp.StoreKey, liquidator.StoreKey, pricefeed.StoreKey,
+		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -153,7 +151,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
-	//liquidatorSubspace := app.paramsKeeper.Subspace(liquidator.DefaultParamspace)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 
 	// add keepers
@@ -231,24 +228,19 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[pricefeed.StoreKey],
 		pricefeedSubspace,
 		pricefeed.DefaultCodespace)
+	// NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType)
 	app.cdpKeeper = cdp.NewKeeper(
 		app.cdc,
 		keys[cdp.StoreKey],
 		cdpSubspace,
 		app.pricefeedKeeper,
-		app.bankKeeper)
+		app.supplyKeeper,
+		cdp.DefaultCodespace)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
 		app.supplyKeeper,
 		auctionSubspace)
-	// app.liquidatorKeeper = liquidator.NewKeeper(
-	// 	app.cdc,
-	// 	keys[liquidator.StoreKey],
-	// 	liquidatorSubspace,
-	// 	app.cdpKeeper,
-	// 	app.auctionKeeper,
-	// 	app.cdpKeeper) // CDP keeper standing in for bank
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -271,7 +263,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
-		//liquidator.NewAppModule(app.liquidatorKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 	)
 
@@ -291,7 +282,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, //liquidator.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

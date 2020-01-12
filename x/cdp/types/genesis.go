@@ -1,34 +1,61 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"bytes"
+	"fmt"
+	"time"
+)
 
 // GenesisState is the state that must be provided at genesis.
-// TODO What is globaldebt and is is separate from the global debt limit in CdpParams
-
 type GenesisState struct {
-	Params     CdpParams `json:"params" yaml:"params"`
-	GlobalDebt sdk.Int   `json:"global_debt" yaml:"global_debt"`
-	CDPs       CDPs      `json:"cdps" yaml:"cdps"`
-	// don't need to setup CollateralStates as they are created as needed
+	Params            Params    `json:"params" yaml:"params"`
+	CDPs              CDPs      `json:"cdps" yaml:"cdps"`
+	Deposits          Deposits  `json:"deposits" yaml:"deposits"`
+	StartingCdpID     uint64    `json:"starting_cdp_id" yaml:"starting_cdp_id"`
+	DebtDenom         string    `json:"debt_denom" yaml:"debt_denom"`
+	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
 // DefaultGenesisState returns a default genesis state
-// TODO make this empty, load test values independent
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params: DefaultParams(),
-		CDPs:   CDPs{},
+		Params:            DefaultParams(),
+		CDPs:              CDPs{},
+		Deposits:          Deposits{},
+		StartingCdpID:     DefaultCdpStartingID,
+		DebtDenom:         DefaultDebtDenom,
+		PreviousBlockTime: DefaultPreviousBlockTime,
 	}
 }
 
-// ValidateGenesis performs basic validation of genesis data returning an
+// Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
-func ValidateGenesis(data GenesisState) error {
+func (gs GenesisState) Validate() error {
 
-	if err := data.Params.Validate(); err != nil {
+	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
 
-	// check global debt is zero - force the chain to always start with zero stable coin, otherwise collateralStatus's will need to be set up as well. - what? This seems indefensible.
+	if gs.PreviousBlockTime.Equal(time.Time{}) {
+		return fmt.Errorf("previous block time not set")
+	}
+
+	if gs.DebtDenom == "" {
+		return fmt.Errorf("debt denom not set")
+
+	}
+
 	return nil
+}
+
+// Equal checks whether two gov GenesisState structs are equivalent
+func (gs GenesisState) Equal(gs2 GenesisState) bool {
+	b1 := ModuleCdc.MustMarshalBinaryBare(gs)
+	b2 := ModuleCdc.MustMarshalBinaryBare(gs2)
+	return bytes.Equal(b1, b2)
+}
+
+// IsEmpty returns true if a GenesisState is empty
+func (gs GenesisState) IsEmpty() bool {
+	return gs.Equal(GenesisState{})
 }

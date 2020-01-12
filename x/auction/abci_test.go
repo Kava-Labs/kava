@@ -12,7 +12,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/liquidator"
+	"github.com/kava-labs/kava/x/cdp"
 )
 
 func TestKeeper_EndBlocker(t *testing.T) {
@@ -21,7 +21,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	buyer := addrs[0]
 	returnAddrs := addrs[1:]
 	returnWeights := []sdk.Int{sdk.NewInt(1)}
-	sellerModName := liquidator.ModuleName
+	sellerModName := cdp.LiquidatorMacc
 
 	tApp := app.NewTestApp()
 	sellerAcc := supply.NewEmptyModuleAccount(sellerModName)

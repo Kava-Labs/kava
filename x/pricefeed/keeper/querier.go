@@ -32,8 +32,10 @@ func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
 	}
-	currentPrice := keeper.GetCurrentPrice(ctx, marketID)
-
+	currentPrice, err := keeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		return nil, err
+	}
 	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, currentPrice)
 	if err2 != nil {
 		panic("could not marshal result to JSON")

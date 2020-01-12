@@ -13,14 +13,14 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction/types"
-	"github.com/kava-labs/kava/x/liquidator"
+	"github.com/kava-labs/kava/x/cdp"
 )
 
 func TestSurplusAuctionBasic(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
-	sellerModName := liquidator.ModuleName
+	sellerModName := cdp.LiquidatorMacc
 	sellerAddr := supply.NewModuleAddress(sellerModName)
 
 	tApp := app.NewTestApp()
@@ -64,7 +64,7 @@ func TestDebtAuctionBasic(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	seller := addrs[0]
-	buyerModName := liquidator.ModuleName
+	buyerModName := cdp.LiquidatorMacc
 	buyerAddr := supply.NewModuleAddress(buyerModName)
 
 	tApp := app.NewTestApp()
@@ -104,7 +104,7 @@ func TestCollateralAuctionBasic(t *testing.T) {
 	buyer := addrs[0]
 	returnAddrs := addrs[1:]
 	returnWeights := is(30, 20, 10)
-	sellerModName := liquidator.ModuleName
+	sellerModName := cdp.LiquidatorMacc
 	sellerAddr := supply.NewModuleAddress(sellerModName)
 
 	tApp := app.NewTestApp()
@@ -174,7 +174,7 @@ func TestStartSurplusAuction(t *testing.T) {
 		{
 			"normal",
 			someTime,
-			args{liquidator.ModuleName, c("stable", 10), "gov"},
+			args{cdp.LiquidatorMacc, c("stable", 10), "gov"},
 			true,
 		},
 		{
@@ -186,13 +186,13 @@ func TestStartSurplusAuction(t *testing.T) {
 		{
 			"not enough coins",
 			someTime,
-			args{liquidator.ModuleName, c("stable", 101), "gov"},
+			args{cdp.LiquidatorMacc, c("stable", 101), "gov"},
 			false,
 		},
 		{
 			"incorrect denom",
 			someTime,
-			args{liquidator.ModuleName, c("notacoin", 10), "gov"},
+			args{cdp.LiquidatorMacc, c("notacoin", 10), "gov"},
 			false,
 		},
 	}
@@ -202,7 +202,7 @@ func TestStartSurplusAuction(t *testing.T) {
 			initialLiquidatorCoins := cs(c("stable", 100))
 			tApp := app.NewTestApp()
 
-			liqAcc := supply.NewEmptyModuleAccount(liquidator.ModuleName, supply.Burner)
+			liqAcc := supply.NewEmptyModuleAccount(cdp.LiquidatorMacc, supply.Burner)
 			require.NoError(t, liqAcc.SetCoins(initialLiquidatorCoins))
 			tApp.InitializeFromGenesisStates(
 				NewAuthGenStateFromAccs(authexported.GenesisAccounts{liqAcc}),
@@ -215,7 +215,7 @@ func TestStartSurplusAuction(t *testing.T) {
 
 			// check
 			sk := tApp.GetSupplyKeeper()
-			liquidatorCoins := sk.GetModuleAccount(ctx, liquidator.ModuleName).GetCoins()
+			liquidatorCoins := sk.GetModuleAccount(ctx, cdp.LiquidatorMacc).GetCoins()
 			actualAuc, found := keeper.GetAuction(ctx, id)
 
 			if tc.expectPass {

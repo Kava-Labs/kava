@@ -29,7 +29,6 @@ import (
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/liquidator"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -67,7 +66,6 @@ func (tApp TestApp) GetParamsKeeper() params.Keeper         { return tApp.params
 func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper   { return tApp.vvKeeper }
 func (tApp TestApp) GetAuctionKeeper() auction.Keeper       { return tApp.auctionKeeper }
 func (tApp TestApp) GetCDPKeeper() cdp.Keeper               { return tApp.cdpKeeper }
-func (tApp TestApp) GetLiquidatorKeeper() liquidator.Keeper { return tApp.liquidatorKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper   { return tApp.pricefeedKeeper }
 
 // This calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states

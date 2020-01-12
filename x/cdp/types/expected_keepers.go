@@ -4,18 +4,28 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-type BankKeeper interface {
-	GetCoins(sdk.Context, sdk.AccAddress) sdk.Coins
-	HasCoins(sdk.Context, sdk.AccAddress, sdk.Coins) bool
-	AddCoins(sdk.Context, sdk.AccAddress, sdk.Coins) (sdk.Coins, sdk.Error)
-	SubtractCoins(sdk.Context, sdk.AccAddress, sdk.Coins) (sdk.Coins, sdk.Error)
+// SupplyKeeper defines the expected supply keeper for module accounts
+type SupplyKeeper interface {
+	GetModuleAddress(name string) sdk.AccAddress
+	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
+
+	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
+	SetModuleAccount(sdk.Context, supplyexported.ModuleAccountI)
+
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) sdk.Error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) sdk.Error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) sdk.Error
+	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
+	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
 }
 
+// PricefeedKeeper defines the expected interface for the pricefeed
 type PricefeedKeeper interface {
-	GetCurrentPrice(sdk.Context, string) pftypes.CurrentPrice
+	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, sdk.Error)
 	GetParams(sdk.Context) pftypes.Params
 	// These are used for testing TODO replace mockApp with keeper in tests to remove these
 	SetParams(sdk.Context, pftypes.Params)

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -13,11 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/kava-labs/kava/x/cdp/types"
-
 )
 
 // GetTxCmd returns the transaction commands for this module
-// TODO: Tests, see: https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/cli/tx_test.go
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	cdpTxCmd := &cobra.Command{
 		Use:   "cdp",
@@ -25,33 +21,151 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	cdpTxCmd.AddCommand(client.PostCommands(
-		GetCmdModifyCdp(cdc),
+		GetCmdCreateCdp(cdc),
+		GetCmdDeposit(cdc),
+		GetCmdWithdraw(cdc),
+		GetCmdDraw(cdc),
+		GetCmdRepay(cdc),
 	)...)
 
 	return cdpTxCmd
 }
 
-// GetCmdModifyCdp cli command for creating and modifying cdps.
-func GetCmdModifyCdp(cdc *codec.Codec) *cobra.Command {
+// GetCmdCreateCdp returns the command handler for creating a cdp
+func GetCmdCreateCdp(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "modifycdp [ownerAddress] [collateralType] [collateralChange] [debtChange]",
-		Short: "create or modify a cdp",
-		Args:  cobra.ExactArgs(4),
+		Use:   "create [ownerAddress] [collateralChange] [debtChange]",
+		Short: "create a new cdp",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			collateralChange, ok := sdk.NewIntFromString(args[2])
-			if !ok {
-				fmt.Printf("invalid collateral amount - %s \n", string(args[2]))
-				return nil
+			collateral, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
 			}
-			debtChange, ok := sdk.NewIntFromString(args[3])
-			if !ok {
-				fmt.Printf("invalid debt amount - %s \n", string(args[3]))
-				return nil
+			debt, err := sdk.ParseCoins(args[2])
+			if err != nil {
+				return err
 			}
-			msg := types.NewMsgCreateOrModifyCDP(cliCtx.GetFromAddress(), args[1], collateralChange, debtChange)
-			err := msg.ValidateBasic()
+			msg := types.NewMsgCreateCDP(cliCtx.GetFromAddress(), collateral, debt)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdDeposit cli command for depositing to a cdp.
+func GetCmdDeposit(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposit [ownerAddress] [depositorAddress] [collateralChange]",
+		Short: "deposit to an existing cdp",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			collateral, err := sdk.ParseCoins(args[2])
+			if err != nil {
+				return err
+			}
+			owner, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			depositor, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgDeposit(owner, depositor, collateral)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdWithdraw cli command for withdrawing from a cdp.
+func GetCmdWithdraw(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "withdraw [ownerAddress] [depositorAddress] [collateralChange]",
+		Short: "withdraw from an existing cdp",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			collateral, err := sdk.ParseCoins(args[2])
+			if err != nil {
+				return err
+			}
+			owner, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			depositor, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgWithdraw(owner, depositor, collateral)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdDraw cli command for depositing to a cdp.
+func GetCmdDraw(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "draw [ownerAddress] [collateralDenom] [debtChange]",
+		Short: "draw debt off an existing cdp",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			debt, err := sdk.ParseCoins(args[2])
+			if err != nil {
+				return err
+			}
+			owner, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgDrawDebt(owner, args[1], debt)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdRepay cli command for depositing to a cdp.
+func GetCmdRepay(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "repay [ownerAddress] [collateralDenom] [payment]",
+		Short: "repay debt from an existing cdp",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			payment, err := sdk.ParseCoins(args[2])
+			if err != nil {
+				return err
+			}
+			owner, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgRepayDebt(owner, args[1], payment)
+			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
