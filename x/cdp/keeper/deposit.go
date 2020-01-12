@@ -134,12 +134,6 @@ func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 func (k Keeper) DeleteDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddress) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
 	store.Delete(types.DepositKey(cdpID, depositor))
-}
-
-// IterateDeposits iterates over the all the deposits of a cdp and performs a callback function
-func (k Keeper) IterateDeposits(ctx sdk.Context, cdpID uint64, cb func(deposit types.Deposit) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.DepositIterKey(cdpID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

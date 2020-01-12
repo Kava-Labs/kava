@@ -16,51 +16,52 @@ const (
 	RouterKey                 = types.RouterKey
 	DefaultParamspace         = types.DefaultParamspace
 	DefaultMaxAuctionDuration = types.DefaultMaxAuctionDuration
-	DefaultMaxBidDuration     = types.DefaultMaxBidDuration
-	DefaultStartingAuctionID  = types.DefaultStartingAuctionID
+	DefaultBidDuration        = types.DefaultBidDuration
 	QueryGetAuction           = types.QueryGetAuction
 )
 
 var (
 	// functions aliases
-	NewIDFromString          = types.NewIDFromString
-	NewBaseAuction           = types.NewBaseAuction
-	NewForwardAuction        = types.NewForwardAuction
-	NewReverseAuction        = types.NewReverseAuction
-	NewForwardReverseAuction = types.NewForwardReverseAuction
-	RegisterCodec            = types.RegisterCodec
-	NewGenesisState          = types.NewGenesisState
-	DefaultGenesisState      = types.DefaultGenesisState
-	ValidateGenesis          = types.ValidateGenesis
-	NewMsgPlaceBid           = types.NewMsgPlaceBid
-	NewAuctionParams         = types.NewAuctionParams
-	DefaultAuctionParams     = types.DefaultAuctionParams
-	ParamKeyTable            = types.ParamKeyTable
-	NewKeeper                = keeper.NewKeeper
-	NewQuerier               = keeper.NewQuerier
+	NewSurplusAuction    = types.NewSurplusAuction
+	NewDebtAuction       = types.NewDebtAuction
+	NewCollateralAuction = types.NewCollateralAuction
+	NewWeightedAddresses = types.NewWeightedAddresses
+	RegisterCodec        = types.RegisterCodec
+	NewGenesisState      = types.NewGenesisState
+	DefaultGenesisState  = types.DefaultGenesisState
+	ValidateGenesis      = types.ValidateGenesis
+	GetAuctionKey        = types.GetAuctionKey
+	GetAuctionByTimeKey  = types.GetAuctionByTimeKey
+	Uint64FromBytes      = types.Uint64FromBytes
+	Uint64ToBytes        = types.Uint64ToBytes
+	NewMsgPlaceBid       = types.NewMsgPlaceBid
+	NewParams            = types.NewParams
+	DefaultParams        = types.DefaultParams
+	ParamKeyTable        = types.ParamKeyTable
+	NewKeeper            = keeper.NewKeeper
+	NewQuerier           = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc             = types.ModuleCdc
-	KeyAuctionBidDuration = types.KeyAuctionBidDuration
-	KeyAuctionDuration    = types.KeyAuctionDuration
-	KeyAuctionStartingID  = types.KeyAuctionStartingID
+	ModuleCdc              = types.ModuleCdc
+	AuctionKeyPrefix       = types.AuctionKeyPrefix
+	AuctionByTimeKeyPrefix = types.AuctionByTimeKeyPrefix
+	NextAuctionIDKey       = types.NextAuctionIDKey
+	KeyAuctionBidDuration  = types.KeyAuctionBidDuration
+	KeyAuctionDuration     = types.KeyAuctionDuration
 )
 
 type (
-	Auction               = types.Auction
-	BaseAuction           = types.BaseAuction
-	ID                    = types.ID
-	EndTime               = types.EndTime
-	BankInput             = types.BankInput
-	BankOutput            = types.BankOutput
-	ForwardAuction        = types.ForwardAuction
-	ReverseAuction        = types.ReverseAuction
-	ForwardReverseAuction = types.ForwardReverseAuction
-	BankKeeper            = types.BankKeeper
-	GenesisAuctions       = types.GenesisAuctions
-	GenesisState          = types.GenesisState
-	MsgPlaceBid           = types.MsgPlaceBid
-	AuctionParams         = types.AuctionParams
-	QueryResAuctions      = types.QueryResAuctions
-	Keeper                = keeper.Keeper
+	Auction           = types.Auction
+	BaseAuction       = types.BaseAuction
+	SurplusAuction    = types.SurplusAuction
+	DebtAuction       = types.DebtAuction
+	CollateralAuction = types.CollateralAuction
+	WeightedAddresses = types.WeightedAddresses
+	SupplyKeeper      = types.SupplyKeeper
+	Auctions          = types.Auctions
+	GenesisState      = types.GenesisState
+	MsgPlaceBid       = types.MsgPlaceBid
+	Params            = types.Params
+	QueryResAuctions  = types.QueryResAuctions
+	Keeper            = keeper.Keeper
 )

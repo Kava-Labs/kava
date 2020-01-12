@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/kava-labs/kava/x/auction/types"
 	"github.com/spf13/cobra"
@@ -32,31 +33,26 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdPlaceBid cli command for creating and modifying cdps.
 func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "placebid [AuctionID] [Bidder] [Bid] [Lot]",
+		Use:   "placebid [auctionID] [amount]",
 		Short: "place a bid on an auction",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			id, err := types.NewIDFromString(args[0])
+			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				fmt.Printf("invalid auction id - %s \n", string(args[0]))
 				return err
 			}
 
-			bid, err := sdk.ParseCoin(args[2])
+			amt, err := sdk.ParseCoin(args[2])
 			if err != nil {
-				fmt.Printf("invalid bid amount - %s \n", string(args[2]))
+				fmt.Printf("invalid amount - %s \n", string(args[2]))
 				return err
 			}
 
-			lot, err := sdk.ParseCoin(args[3])
-			if err != nil {
-				fmt.Printf("invalid lot - %s \n", string(args[3]))
-				return err
-			}
-			msg := types.NewMsgPlaceBid(id, cliCtx.GetFromAddress(), bid, lot)
+			msg := types.NewMsgPlaceBid(id, cliCtx.GetFromAddress(), amt)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

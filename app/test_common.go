@@ -66,8 +66,6 @@ func (tApp TestApp) GetParamsKeeper() params.Keeper       { return tApp.paramsKe
 func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
-
-// func (tApp TestApp) GetLiquidatorKeeper() liquidator.Keeper { return tApp.liquidatorKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
 
 // This calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states
@@ -97,8 +95,9 @@ func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) T
 }
 
 func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAddress, expectedCoins sdk.Coins) {
-	actualCoins := tApp.GetAccountKeeper().GetAccount(ctx, owner).GetCoins()
-	require.Equal(t, expectedCoins, actualCoins)
+	acc := tApp.GetAccountKeeper().GetAccount(ctx, owner)
+	require.NotNilf(t, acc, "account with address '%s' doesn't exist", owner)
+	require.Equal(t, expectedCoins, acc.GetCoins())
 }
 
 // Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.

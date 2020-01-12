@@ -84,7 +84,7 @@ func (k Keeper) HandleNewDebt(ctx sdk.Context, collateralDenom string, principal
 	feeCoins := sdk.NewCoins(sdk.NewCoin(principalDenom, previousDebt))
 	newFees := k.CalculateFees(ctx, feeCoins, periods, collateralDenom)
 	k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
-	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMaccName, newFees)
+	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, newFees)
 	k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees).AmountOf(principalDenom))
 }
 

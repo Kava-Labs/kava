@@ -116,7 +116,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	btcLiquidations := int(seizedBtcCollateral.Quo(i(100000000)).Int64())
 	suite.Equal(len(suite.liquidations.btc), btcLiquidations)
 
-	acc = sk.GetModuleAccount(suite.ctx, "liquidator")
+	acc = sk.GetModuleAccount(suite.ctx, cdp.LiquidatorMacc)
 	suite.Equal(suite.liquidations.debt, acc.GetCoins().AmountOf("debt").Int64())
 
 }
