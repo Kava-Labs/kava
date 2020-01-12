@@ -14,19 +14,29 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 		msg        MsgPlaceBid
 		expectPass bool
 	}{
-		{"normal", MsgPlaceBid{0, addr, sdk.NewInt64Coin("usdx", 10), sdk.NewInt64Coin("kava", 20)}, true},
-		{"emptyAddr", MsgPlaceBid{0, sdk.AccAddress{}, sdk.NewInt64Coin("usdx", 10), sdk.NewInt64Coin("kava", 20)}, false},
-		{"negativeBid", MsgPlaceBid{0, addr, sdk.Coin{"usdx", sdk.NewInt(-10)}, sdk.NewInt64Coin("kava", 20)}, false},
-		{"negativeLot", MsgPlaceBid{0, addr, sdk.NewInt64Coin("usdx", 10), sdk.Coin{"kava", sdk.NewInt(-20)}}, false},
-		{"zerocoins", MsgPlaceBid{0, addr, sdk.NewInt64Coin("usdx", 0), sdk.NewInt64Coin("kava", 0)}, true},
+		{"normal",
+			NewMsgPlaceBid(0, addr, c("token", 10)),
+			true},
+		{"emptyAddr",
+			NewMsgPlaceBid(0, sdk.AccAddress{}, c("token", 10)),
+			false},
+		{"negativeAmount",
+			NewMsgPlaceBid(0, addr, sdk.Coin{Denom: "token", Amount: sdk.NewInt(-10)}),
+			false},
+		{"zeroAmount",
+			NewMsgPlaceBid(0, addr, c("token", 0)),
+			true},
 	}
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			if tc.expectPass {
-				require.Nil(t, tc.msg.ValidateBasic())
+				require.NoError(t, tc.msg.ValidateBasic())
 			} else {
-				require.NotNil(t, tc.msg.ValidateBasic())
+				require.Error(t, tc.msg.ValidateBasic())
 			}
 		})
 	}
 }
+
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }

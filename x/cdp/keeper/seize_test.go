@@ -106,7 +106,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
-	liqModAcc := sk.GetModuleAccount(suite.ctx, "liquidator")
+	liqModAcc := sk.GetModuleAccount(suite.ctx, types.LiquidatorMacc)
 	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), liqModAcc.GetCoins())
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])

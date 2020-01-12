@@ -21,7 +21,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgPlaceBid(ctx sdk.Context, keeper Keeper, msg MsgPlaceBid) sdk.Result {
 
-	err := keeper.PlaceBid(ctx, msg.AuctionID, msg.Bidder, msg.Bid, msg.Lot)
+	err := keeper.PlaceBid(ctx, msg.AuctionID, msg.Bidder, msg.Amount)
 	if err != nil {
 		return err.Result()
 	}

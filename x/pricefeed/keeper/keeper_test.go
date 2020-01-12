@@ -120,7 +120,8 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	err := keeper.SetCurrentPrices(ctx, "tstusd")
 	require.NoError(t, err)
 	// Get Current price
-	price := keeper.GetCurrentPrice(ctx, "tstusd")
+	price, err := keeper.GetCurrentPrice(ctx, "tstusd")
+	require.Nil(t, err)
 	require.Equal(t, price.Price.Equal(sdk.MustNewDecFromStr("0.34")), true)
 
 	// Even number of oracles
@@ -130,6 +131,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 		time.Now().Add(time.Hour*1))
 	err = keeper.SetCurrentPrices(ctx, "tstusd")
 	require.NoError(t, err)
-	price = keeper.GetCurrentPrice(ctx, "tstusd")
+	price, err = keeper.GetCurrentPrice(ctx, "tstusd")
+	require.Nil(t, err)
 	require.Equal(t, price.Price.Equal(sdk.MustNewDecFromStr("0.345")), true)
 }

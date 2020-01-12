@@ -22,6 +22,9 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
+
+	// LiquidatorMacc module account for liquidator
+	LiquidatorMacc = "liquidator"
 )
 
 var sep = []byte(":")

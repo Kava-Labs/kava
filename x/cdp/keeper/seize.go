@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/cdp/types"
-	liqtypes "github.com/kava-labs/kava/x/liquidator/types"
 )
 
 // SeizeCollateral liquidates the collateral in the input cdp.
@@ -39,7 +38,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 			)
 			k.DeleteDeposit(ctx, types.StatusNil, cdp.ID, dep.Depositor)
 			k.SetDeposit(ctx, dep)
-			err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, liqtypes.ModuleName, dep.Amount)
+			err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, dep.Amount)
 			if err != nil {
 				panic(err)
 			}
@@ -57,7 +56,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 		debtAmt = debtAmt.Add(dc.Amount)
 	}
 	debtCoins := sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), debtAmt))
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, liqtypes.ModuleName, debtCoins)
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, debtCoins)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +83,7 @@ func (k Keeper) HandleNewDebt(ctx sdk.Context, collateralDenom string, principal
 	feeCoins := sdk.NewCoins(sdk.NewCoin(principalDenom, previousDebt))
 	newFees := k.CalculateFees(ctx, feeCoins, periods, collateralDenom)
 	k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
-	k.supplyKeeper.MintCoins(ctx, liqtypes.ModuleName, newFees)
+	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, newFees)
 	k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees).AmountOf(principalDenom))
 }
 

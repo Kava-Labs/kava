@@ -39,6 +39,7 @@ const (
 	AttributeKeyCdpID               = types.AttributeKeyCdpID
 	AttributeKeyDepositor           = types.AttributeKeyDepositor
 	AttributeValueCategory          = types.AttributeValueCategory
+	LiquidatorMacc                  = types.LiquidatorMacc
 	ModuleName                      = types.ModuleName
 	StoreKey                        = types.StoreKey
 	RouterKey                       = types.RouterKey
