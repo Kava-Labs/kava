@@ -52,8 +52,7 @@ func (k Keeper) GetDenomPrefix(ctx sdk.Context, denom string) (byte, bool) {
 	return 0x00, false
 }
 
-// private methods panic if the input is invalid
-
+// private methods assume collateral has been validated, panic if the input is invalid
 func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
 	params := k.GetParams(ctx)
 	for _, cp := range params.CollateralParams {
@@ -78,4 +77,20 @@ func (k Keeper) getLiquidationRatio(ctx sdk.Context, denom string) sdk.Dec {
 		panic(fmt.Sprintf("collateral not found: %s", denom))
 	}
 	return cp.LiquidationRatio
+}
+
+func (k Keeper) getLiquidationPenalty(ctx sdk.Context, denom string) sdk.Dec {
+	cp, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", denom))
+	}
+	return cp.LiquidationPenalty
+}
+
+func (k Keeper) getAuctionSize(ctx sdk.Context, denom string) sdk.Int {
+	cp, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", denom))
+	}
+	return cp.AuctionSize
 }

@@ -22,6 +22,9 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
+
+	// LiquidatorMaccName name of the liqudiator module account
+	LiquidatorMaccName = "liquidator"
 )
 
 var sep = []byte(":")
@@ -92,28 +95,25 @@ func SplitDenomIterKey(key []byte) byte {
 }
 
 // DepositKey key of a specific deposit in the store
-func DepositKey(status DepositStatus, cdpID uint64, depositor sdk.AccAddress) []byte {
-	return createKey([]byte{status.AsByte()}, sep, GetCdpIDBytes(cdpID), sep, depositor)
+func DepositKey(cdpID uint64, depositor sdk.AccAddress) []byte {
+	return createKey(GetCdpIDBytes(cdpID), sep, depositor)
 }
 
 // SplitDepositKey returns the component parts of a deposit key
-func SplitDepositKey(key []byte) (DepositStatus, uint64, sdk.AccAddress) {
-	status := StatusFromByte(key[0])
-	cdpID := GetCdpIDFromBytes(key[2:10])
-	addr := key[11:]
-	return status, cdpID, addr
+func SplitDepositKey(key []byte) (uint64, sdk.AccAddress) {
+	cdpID := GetCdpIDFromBytes(key[0:8])
+	addr := key[9:]
+	return cdpID, addr
 }
 
 // DepositIterKey returns the prefix key for iterating over deposits to a cdp
-func DepositIterKey(status DepositStatus, cdpID uint64) []byte {
-	return createKey([]byte{status.AsByte()}, sep, GetCdpIDBytes(cdpID))
+func DepositIterKey(cdpID uint64) []byte {
+	return GetCdpIDBytes(cdpID)
 }
 
 // SplitDepositIterKey returns the component parts of a key for iterating over deposits on a cdp
-func SplitDepositIterKey(key []byte) (status DepositStatus, cdpID uint64) {
-	status = StatusFromByte(key[0])
-	cdpID = GetCdpIDFromBytes(key[2:])
-	return status, cdpID
+func SplitDepositIterKey(key []byte) (cdpID uint64) {
+	return GetCdpIDFromBytes(key)
 }
 
 // CollateralRatioBytes returns the liquidation ratio as sortable bytes

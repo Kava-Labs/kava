@@ -62,13 +62,15 @@ func DefaultParams() Params {
 
 // CollateralParam governance parameters for each collateral type within the cdp module
 type CollateralParam struct {
-	Denom            string    `json:"denom" yaml:"denom"`                         // Coin name of collateral type
-	LiquidationRatio sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"` // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
-	DebtLimit        sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
-	StabilityFee     sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`         // per second stability fee for loans opened using this collateral
-	Prefix           byte      `json:"prefix" yaml:"prefix"`
-	MarketID         string    `json:"market_id" yaml:"market_id"`                 // marketID for fetching price of the asset from the pricefeed
-	ConversionFactor sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"` // factor for converting internal units to one base unit of collateral
+	Denom              string    `json:"denom" yaml:"denom"`                         // Coin name of collateral type
+	LiquidationRatio   sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"` // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
+	DebtLimit          sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
+	StabilityFee       sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`         // per second stability fee for loans opened using this collateral
+	AuctionSize        sdk.Int   // Max amount of collateral to sell off in any one auction.
+	LiquidationPenalty sdk.Dec   // percentage penalty (between [0, 1)) applied to a cdp if it is liquidated
+	Prefix             byte      `json:"prefix" yaml:"prefix"`
+	MarketID           string    `json:"market_id" yaml:"market_id"`                 // marketID for fetching price of the asset from the pricefeed
+	ConversionFactor   sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"` // factor for converting internal units to one base unit of collateral
 }
 
 // String implements fmt.Stringer
@@ -77,11 +79,13 @@ func (cp CollateralParam) String() string {
 	Denom: %s
 	Liquidation Ratio: %s
 	Stability Fee: %s
+	Liquidation Penalty: %s
 	Debt Limit: %s
+	Auction Size: %s
 	Prefix: %b
 	Market ID: %s
 	Conversion Factor: %s`,
-		cp.Denom, cp.LiquidationRatio, cp.StabilityFee, cp.DebtLimit, cp.Prefix, cp.MarketID, cp.ConversionFactor)
+		cp.Denom, cp.LiquidationRatio, cp.StabilityFee, cp.LiquidationPenalty, cp.DebtLimit, cp.AuctionSize, cp.Prefix, cp.MarketID, cp.ConversionFactor)
 }
 
 // CollateralParams array of CollateralParam

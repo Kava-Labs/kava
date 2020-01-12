@@ -17,15 +17,21 @@ type Keeper struct {
 	paramSubspace   subspace.Subspace
 	pricefeedKeeper types.PricefeedKeeper
 	supplyKeeper    types.SupplyKeeper
+	auctionKeeper   types.AuctionKeeper
 	codespace       sdk.CodespaceType
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
 
-	// ensure module account is set
+	// ensure cdp module account is set
 	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
+	// ensure liquidator module account is set
+	if addr := sk.GetModuleAddress(types.LiquidatorMaccName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.LiquidatorMaccName))
 	}
 
 	return Keeper{
@@ -33,6 +39,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		cdc:             cdc,
 		paramSubspace:   paramstore.WithKeyTable(types.ParamKeyTable()),
 		pricefeedKeeper: pfk,
+		auctionKeeper:   ak,
 		supplyKeeper:    sk,
 		codespace:       codespace,
 	}

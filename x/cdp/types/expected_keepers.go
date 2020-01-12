@@ -32,3 +32,10 @@ type PricefeedKeeper interface {
 	SetPrice(sdk.Context, sdk.AccAddress, string, sdk.Dec, time.Time) (pftypes.PostedPrice, sdk.Error)
 	SetCurrentPrices(sdk.Context, string) sdk.Error
 }
+
+// AuctionKeeper expected interface for the auction keeper (noalias)
+type AuctionKeeper interface {
+	StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error)
+	StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (uint64, sdk.Error)
+	StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (uint64, sdk.Error)
+}
