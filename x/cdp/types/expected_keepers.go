@@ -35,7 +35,7 @@ type PricefeedKeeper interface {
 
 // AuctionKeeper expected interface for the auction keeper (noalias)
 type AuctionKeeper interface {
-	StartForwardAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error)
-	StartReverseAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin) (uint64, sdk.Error)
-	StartForwardReverseAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int) (uint64, sdk.Error)
+	StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error)
+	StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, sdk.Error)
+	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, sdk.Error)
 }

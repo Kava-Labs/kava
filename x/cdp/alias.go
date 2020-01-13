@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	StatusNil                       = types.StatusNil
-	StatusLiquidated                = types.StatusLiquidated
 	DefaultCodespace                = types.DefaultCodespace
 	CodeCdpAlreadyExists            = types.CodeCdpAlreadyExists
 	CodeCollateralLengthInvalid     = types.CodeCollateralLengthInvalid
@@ -39,12 +37,12 @@ const (
 	AttributeKeyCdpID               = types.AttributeKeyCdpID
 	AttributeKeyDepositor           = types.AttributeKeyDepositor
 	AttributeValueCategory          = types.AttributeValueCategory
-	LiquidatorMacc                  = types.LiquidatorMacc
 	ModuleName                      = types.ModuleName
 	StoreKey                        = types.StoreKey
 	RouterKey                       = types.RouterKey
 	QuerierRoute                    = types.QuerierRoute
 	DefaultParamspace               = types.DefaultParamspace
+	LiquidatorMacc                  = types.LiquidatorMacc
 	QueryGetCdp                     = types.QueryGetCdp
 	QueryGetCdps                    = types.QueryGetCdps
 	QueryGetCdpsByCollateralization = types.QueryGetCdpsByCollateralization
@@ -58,7 +56,6 @@ var (
 	// functions aliases
 	NewCDP                      = types.NewCDP
 	RegisterCodec               = types.RegisterCodec
-	StatusFromByte              = types.StatusFromByte
 	NewDeposit                  = types.NewDeposit
 	ErrCdpAlreadyExists         = types.ErrCdpAlreadyExists
 	ErrInvalidCollateralLength  = types.ErrInvalidCollateralLength
@@ -138,7 +135,6 @@ type (
 	CDP                    = types.CDP
 	CDPs                   = types.CDPs
 	Deposit                = types.Deposit
-	DepositStatus          = types.DepositStatus
 	Deposits               = types.Deposits
 	SupplyKeeper           = types.SupplyKeeper
 	PricefeedKeeper        = types.PricefeedKeeper

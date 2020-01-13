@@ -234,6 +234,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[cdp.StoreKey],
 		cdpSubspace,
 		app.pricefeedKeeper,
+		app.auctionKeeper,
 		app.supplyKeeper,
 		cdp.DefaultCodespace)
 	app.auctionKeeper = auction.NewKeeper(

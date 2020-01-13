@@ -86,10 +86,10 @@ func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep *types.Deposit, d
 		// figure out how much debt is covered by one lots worth of collateral
 		depositDebtAmount := (auctionSize.Quo(*totalCollateral)).Mul(*debt)
 		// start an auction for one lot, attempting to raise depositDebtAmount
-		_, err := k.auctionKeeper.StartForwardReverseAuction(
+		_, err := k.auctionKeeper.StartCollateralAuction(
 			ctx, types.LiquidatorMacc, sdk.NewCoin(dep.Amount[0].Denom, auctionSize),
 			sdk.NewCoin(principalDenom, depositDebtAmount), []sdk.AccAddress{dep.Depositor},
-			[]sdk.Int{auctionSize})
+			[]sdk.Int{auctionSize}, sdk.NewCoin(k.GetDebtDenom(ctx), depositDebtAmount))
 		if err != nil {
 			panic(err)
 		}
@@ -112,7 +112,7 @@ func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps pa
 		returnAddrs = append(returnAddrs, pd.Depositor)
 		returnWeights = append(returnWeights, pd.DebtShare)
 	}
-	_, err := k.auctionKeeper.StartForwardReverseAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(partialDeps[0].Amount[0].Denom, auctionSize), sdk.NewCoin(bidDenom, partialDeps.SumDebt()), returnAddrs, returnWeights)
+	_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(partialDeps[0].Amount[0].Denom, auctionSize), sdk.NewCoin(bidDenom, partialDeps.SumDebt()), returnAddrs, returnWeights, sdk.NewCoin(k.GetDebtDenom(ctx), partialDeps.SumDebt()))
 	if err != nil {
 		panic(err)
 	}
