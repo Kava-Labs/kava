@@ -67,7 +67,7 @@ type CollateralParam struct {
 	DebtLimit          sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
 	StabilityFee       sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`         // per second stability fee for loans opened using this collateral
 	AuctionSize        sdk.Int   // Max amount of collateral to sell off in any one auction.
-	LiquidationPenalty sdk.Dec   // percentage penalty (between [0, 1)) applied to a cdp if it is liquidated
+	LiquidationPenalty sdk.Dec   // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
 	Prefix             byte      `json:"prefix" yaml:"prefix"`
 	MarketID           string    `json:"market_id" yaml:"market_id"`                 // marketID for fetching price of the asset from the pricefeed
 	ConversionFactor   sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"` // factor for converting internal units to one base unit of collateral
@@ -206,6 +206,12 @@ func (p Params) Validate() error {
 		if cp.DebtLimit.IsAnyGT(p.GlobalDebtLimit) {
 			return fmt.Errorf("collateral debt limit for %s exceeds global debt limit: \n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
 				cp.Denom, p.GlobalDebtLimit, cp.DebtLimit)
+		}
+		if cp.LiquidationPenalty.LT(sdk.ZeroDec()) || cp.LiquidationPenalty.GT(sdk.OneDec()) {
+			return fmt.Errorf("liquidation penalty should be between 0 and 1, is %s for %s", cp.LiquidationPenalty, cp.Denom)
+		}
+		if !cp.AuctionSize.IsPositive() {
+			return fmt.Errorf("auction size should be positive, is %s for %s", cp.AuctionSize, cp.Denom)
 		}
 	}
 	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {

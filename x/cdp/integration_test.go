@@ -199,6 +199,12 @@ func badGenStates() []badGenState {
 	g10 := baseGenState()
 	g10.PreviousBlockTime = time.Time{}
 
+	g11 := baseGenState()
+	g11.Params.CollateralParams[0].AuctionSize = i(-10)
+
+	g12 := baseGenState()
+	g12.Params.CollateralParams[0].LiquidationPenalty = d("5.0")
+
 	return []badGenState{
 		badGenState{Genesis: g1, Reason: "duplicate collateral denom"},
 		badGenState{Genesis: g2, Reason: "duplicate collateral prefix"},
@@ -210,6 +216,8 @@ func badGenStates() []badGenState {
 		badGenState{Genesis: g8, Reason: "debt param not found in global debt limit"},
 		badGenState{Genesis: g9, Reason: "debt denom not set"},
 		badGenState{Genesis: g10, Reason: "previous block time not set"},
+		badGenState{Genesis: g11, Reason: "negative auction size"},
+		badGenState{Genesis: g12, Reason: "invalid liquidation penalty"},
 	}
 }
 
