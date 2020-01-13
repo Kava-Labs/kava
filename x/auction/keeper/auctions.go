@@ -176,7 +176,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 	}
 
 	// New bidder pays back old bidder
-	// Catch edge cases of a bidder replacing their own bid, and the amount being zero (sending zero coins produces meaningless send events).
+	// Catch edge cases of a bidder replacing their own bid, or the amount being zero (sending zero coins produces meaningless send events).
 	if !bidder.Equals(a.Bidder) && !a.Bid.IsZero() {
 		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
 		if err != nil {

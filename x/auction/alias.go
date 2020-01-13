@@ -29,7 +29,6 @@ var (
 	RegisterCodec        = types.RegisterCodec
 	NewGenesisState      = types.NewGenesisState
 	DefaultGenesisState  = types.DefaultGenesisState
-	ValidateGenesis      = types.ValidateGenesis
 	GetAuctionKey        = types.GetAuctionKey
 	GetAuctionByTimeKey  = types.GetAuctionByTimeKey
 	Uint64FromBytes      = types.Uint64FromBytes
@@ -58,7 +57,7 @@ type (
 	CollateralAuction = types.CollateralAuction
 	WeightedAddresses = types.WeightedAddresses
 	SupplyKeeper      = types.SupplyKeeper
-	Auctions          = types.Auctions
+	GenesisAuctions   = types.GenesisAuctions
 	GenesisState      = types.GenesisState
 	MsgPlaceBid       = types.MsgPlaceBid
 	Params            = types.Params

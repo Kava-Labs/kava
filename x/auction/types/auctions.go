@@ -38,6 +38,13 @@ func (a BaseAuction) GetID() uint64 { return a.ID }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
+func (a BaseAuction) Validate() error {
+	if a.EndTime.After(a.MaxEndTime) {
+		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)
+	}
+	return nil
+}
+
 func (a BaseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
   Initiator:              %s
@@ -63,6 +70,13 @@ func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // Name returns a name for this auction type. Used to identify auctions in event attributes.
 func (a SurplusAuction) Name() string { return "surplus" }
+
+// GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
+// It is used in genesis initialize the module account correctly.
+func (a SurplusAuction) GetModuleAccountCoins() sdk.Coins {
+	// a.Bid is paid out on bids, so is never stored in the module account
+	return sdk.NewCoins(a.Lot)
+}
 
 // NewSurplusAuction returns a new surplus auction.
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
@@ -91,6 +105,14 @@ func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // Name returns a name for this auction type. Used to identify auctions in event attributes.
 func (a DebtAuction) Name() string { return "debt" }
+
+// GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
+// It is used in genesis initialize the module account correctly.
+func (a DebtAuction) GetModuleAccountCoins() sdk.Coins {
+	// a.Lot is minted at auction close, so is never stored in the module account
+	// a.Bid is paid out on bids, so is never stored in the module account
+	return sdk.NewCoins(a.CorrespondingDebt)
+}
 
 // NewDebtAuction returns a new debt auction.
 func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, endTime time.Time, debt sdk.Coin) DebtAuction {
@@ -129,6 +151,13 @@ func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // Name returns a name for this auction type. Used to identify auctions in event attributes.
 func (a CollateralAuction) Name() string { return "collateral" }
+
+// GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
+// It is used in genesis initialize the module account correctly.
+func (a CollateralAuction) GetModuleAccountCoins() sdk.Coins {
+	// a.Bid is paid out on bids, so is never stored in the module account
+	return sdk.NewCoins(a.Lot).Add(sdk.NewCoins(a.CorrespondingDebt))
+}
 
 // IsReversePhase returns whether the auction has switched over to reverse phase or not.
 // Auction initially start in forward phase.

@@ -2,18 +2,19 @@ package auction
 
 import (
 	"encoding/json"
-
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/auction/client/cli"
 	"github.com/kava-labs/kava/x/auction/client/rest"
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 var (
@@ -41,12 +42,12 @@ func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the auction module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	var gs GenesisState
+	err := ModuleCdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", ModuleName, err)
 	}
-	return ValidateGenesis(data)
+	return gs.Validate()
 }
 
 // RegisterRESTRoutes registers the REST routes for the auction module.
@@ -67,14 +68,17 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements the sdk.AppModule interface.
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
+
+	keeper       Keeper
+	supplyKeeper types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper) AppModule {
+func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		supplyKeeper:   supplyKeeper,
 	}
 }
 
@@ -106,7 +110,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

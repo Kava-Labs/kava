@@ -15,6 +15,7 @@ func init() {
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgPlaceBid{}, "auction/MsgPlaceBid", nil)
 
+	cdc.RegisterInterface((*GenesisAuction)(nil), nil)
 	cdc.RegisterInterface((*Auction)(nil), nil)
 	cdc.RegisterConcrete(SurplusAuction{}, "auction/SurplusAuction", nil)
 	cdc.RegisterConcrete(DebtAuction{}, "auction/DebtAuction", nil)
