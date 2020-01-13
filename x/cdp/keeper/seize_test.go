@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 	"github.com/stretchr/testify/suite"
@@ -106,13 +107,13 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
-	liqModAcc := sk.GetModuleAccount(suite.ctx, types.LiquidatorMacc)
-	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), liqModAcc.GetCoins())
+	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotAvailable, err.Result().Code)
+	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {

@@ -6,9 +6,17 @@ import (
 )
 
 type partialDeposit struct {
-	types.Deposit
-
+	Depositor sdk.AccAddress
+	Amount    sdk.Coins
 	DebtShare sdk.Int
+}
+
+func newPartialDeposit(depositor sdk.AccAddress, amount sdk.Coins, ds sdk.Int) partialDeposit {
+	return partialDeposit{
+		Depositor: depositor,
+		Amount:    amount,
+		DebtShare: ds,
+	}
 }
 
 type partialDeposits []partialDeposit
@@ -37,29 +45,24 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 		for i, dep := range deposits {
 			// create auctions from individual deposits that are larger than the auction size
 			k.CreateAuctionsFromDeposit(ctx, &dep, &debt, &totalCollateral, auctionSize, bidDenom)
-			debtCoveredByDeposit := (dep.Amount[0].Amount.Quo(totalCollateral)).Mul(debt)
 			if !dep.Amount[0].Amount.IsZero() {
+				debtCoveredByDeposit := (dep.Amount[0].Amount.Quo(totalCollateral)).Mul(debt)
 				if (partialAuctionDeposits.SumCollateral().Add(dep.Amount[0].Amount)).LT(auctionSize) {
-					partialAuctionDeposits = append(partialAuctionDeposits, partialDeposit{dep, debtCoveredByDeposit})
-					dep.Amount[0].Amount = sdk.ZeroInt()
+					pd := newPartialDeposit(dep.Depositor, dep.Amount, debtCoveredByDeposit)
+					partialAuctionDeposits = append(partialAuctionDeposits, pd)
+					dep.Amount = sdk.NewCoins(sdk.NewCoin(dep.Amount[0].Denom, sdk.ZeroInt()))
 				} else {
-					partialCollateral := auctionSize.Sub(partialAuctionDeposits.SumCollateral())
-					partialDebt := (partialCollateral.Quo(dep.Amount[0].Amount)).Mul(debtCoveredByDeposit)
+					partialCollateral := sdk.NewCoins(sdk.NewCoin(dep.Amount[0].Denom, auctionSize.Sub(partialAuctionDeposits.SumCollateral())))
+					partialDebt := (partialCollateral[0].Amount.Quo(dep.Amount[0].Amount)).Mul(debtCoveredByDeposit)
 
-					partialDep := partialDeposit{
-						Deposit: types.Deposit{
-							CdpID:     dep.CdpID,
-							Depositor: dep.Depositor,
-							Amount:    sdk.NewCoins(sdk.NewCoin(dep.Amount[0].Denom, partialCollateral)),
-						},
-						DebtShare: partialDebt,
-					}
+					partialDep := newPartialDeposit(dep.Depositor, partialCollateral, partialDebt)
 					partialAuctionDeposits = append(partialAuctionDeposits, partialDep)
 					k.CreateAuctionFromPartialDeposits(ctx, partialAuctionDeposits, &debt, &totalCollateral, auctionSize, bidDenom)
 					partialAuctionDeposits = partialDeposits{}
+					dep.Amount = sdk.NewCoins(sdk.NewCoin(dep.Amount[0].Denom, dep.Amount[0].Amount.Sub(partialCollateral[0].Amount)))
 				}
 			}
-			if dep.Amount[0].Amount.IsZero() {
+			if dep.Amount.IsZero() {
 				// remove the deposit from the slice if it is empty
 				deposits = append(deposits[:i], deposits[i+1:]...)
 				i--
@@ -84,11 +87,10 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep *types.Deposit, debt *sdk.Int, totalCollateral *sdk.Int, auctionSize sdk.Int, principalDenom string) {
 	for dep.Amount[0].Amount.GTE(auctionSize) {
 		// figure out how much debt is covered by one lots worth of collateral
-		depositDebtAmount := (auctionSize.Quo(*totalCollateral)).Mul(*debt)
+		depositDebtAmount := (sdk.NewDecFromInt(auctionSize).Quo(sdk.NewDecFromInt(*totalCollateral))).Mul(sdk.NewDecFromInt(*debt)).RoundInt()
 		// start an auction for one lot, attempting to raise depositDebtAmount
 		_, err := k.auctionKeeper.StartCollateralAuction(
-			ctx, types.LiquidatorMacc, sdk.NewCoin(dep.Amount[0].Denom, auctionSize),
-			sdk.NewCoin(principalDenom, depositDebtAmount), []sdk.AccAddress{dep.Depositor},
+			ctx, types.LiquidatorMacc, sdk.NewCoin(dep.Amount[0].Denom, auctionSize), sdk.NewCoin(principalDenom, depositDebtAmount), []sdk.AccAddress{dep.Depositor},
 			[]sdk.Int{auctionSize}, sdk.NewCoin(k.GetDebtDenom(ctx), depositDebtAmount))
 		if err != nil {
 			panic(err)

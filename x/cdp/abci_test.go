@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -116,7 +117,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	btcLiquidations := int(seizedBtcCollateral.Quo(i(100000000)).Int64())
 	suite.Equal(len(suite.liquidations.btc), btcLiquidations)
 
-	acc = sk.GetModuleAccount(suite.ctx, cdp.LiquidatorMacc)
+	acc = sk.GetModuleAccount(suite.ctx, auction.ModuleName)
 	suite.Equal(suite.liquidations.debt, acc.GetCoins().AmountOf("debt").Int64())
 
 }

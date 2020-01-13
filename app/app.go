@@ -229,6 +229,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		pricefeedSubspace,
 		pricefeed.DefaultCodespace)
 	// NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType)
+	app.auctionKeeper = auction.NewKeeper(
+		app.cdc,
+		keys[auction.StoreKey],
+		app.supplyKeeper,
+		auctionSubspace)
 	app.cdpKeeper = cdp.NewKeeper(
 		app.cdc,
 		keys[cdp.StoreKey],
@@ -237,11 +242,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.auctionKeeper,
 		app.supplyKeeper,
 		cdp.DefaultCodespace)
-	app.auctionKeeper = auction.NewKeeper(
-		app.cdc,
-		keys[auction.StoreKey],
-		app.supplyKeeper,
-		auctionSubspace)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -283,7 +283,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, auction.ModuleName, cdp.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
