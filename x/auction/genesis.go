@@ -46,7 +46,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 
 	params := keeper.GetParams(ctx)
 
-	var genAuctions GenesisAuctions
+	genAuctions := GenesisAuctions{} // return empty list instead of nil if no auctions
 	keeper.IterateAuctions(ctx, func(a Auction) bool {
 		ga, ok := a.(types.GenesisAuction)
 		if !ok {

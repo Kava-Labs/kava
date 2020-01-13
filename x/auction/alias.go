@@ -58,6 +58,7 @@ type (
 	WeightedAddresses = types.WeightedAddresses
 	SupplyKeeper      = types.SupplyKeeper
 	GenesisAuctions   = types.GenesisAuctions
+	GenesisAuction    = types.GenesisAuction
 	GenesisState      = types.GenesisState
 	MsgPlaceBid       = types.MsgPlaceBid
 	Params            = types.Params
