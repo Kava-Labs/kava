@@ -39,7 +39,9 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:              asset,
@@ -65,6 +67,7 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		},
 		StartingCdpID:     cdp.DefaultCdpStartingID,
 		DebtDenom:         cdp.DefaultDebtDenom,
+		GovDenom:          cdp.DefaultGovDenom,
 		CDPs:              cdp.CDPs{},
 		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
 	}
@@ -99,7 +102,9 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:              "xrp",
@@ -143,6 +148,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 		},
 		StartingCdpID:     cdp.DefaultCdpStartingID,
 		DebtDenom:         cdp.DefaultDebtDenom,
+		GovDenom:          cdp.DefaultGovDenom,
 		CDPs:              cdp.CDPs{},
 		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
 	}

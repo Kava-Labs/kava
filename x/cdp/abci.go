@@ -20,6 +20,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 		k.LiquidateCdps(ctx, cp.MarketID, cp.Denom, cp.LiquidationRatio)
 	}
+	k.HandleSurplusAndDebtAuctions(ctx)
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 	return
 }

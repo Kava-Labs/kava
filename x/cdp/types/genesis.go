@@ -13,6 +13,7 @@ type GenesisState struct {
 	Deposits          Deposits  `json:"deposits" yaml:"deposits"`
 	StartingCdpID     uint64    `json:"starting_cdp_id" yaml:"starting_cdp_id"`
 	DebtDenom         string    `json:"debt_denom" yaml:"debt_denom"`
+	GovDenom          string    `json:"gov_denom" yaml:"gov_denom"`
 	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
@@ -24,6 +25,7 @@ func DefaultGenesisState() GenesisState {
 		Deposits:          Deposits{},
 		StartingCdpID:     DefaultCdpStartingID,
 		DebtDenom:         DefaultDebtDenom,
+		GovDenom:          DefaultGovDenom,
 		PreviousBlockTime: DefaultPreviousBlockTime,
 	}
 }

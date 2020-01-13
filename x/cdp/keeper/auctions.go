@@ -37,6 +37,7 @@ func (pd partialDeposits) SumDebt() (sum sdk.Int) {
 	return
 }
 
+// AuctionCollateral creates auctions from the input deposits which attempt to raise the corresponding amount of debt
 func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt sdk.Int, bidDenom string) {
 	auctionSize := k.getAuctionSize(ctx, deposits[0].Amount[0].Denom)
 	partialAuctionDeposits := partialDeposits{}
@@ -76,13 +77,6 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 	}
 }
 
-// deposit -1000xrp
-// auction size 500xrp
-// total collateral 2000xrp
-// total debt = 2000debt
-// debt accounted for by one auction from deposit:
-// (500xrp/2000xrp) * 2000debt = 500debt
-
 // CreateAuctionsFromDeposit creates auctions from the input deposit until there is less than auctionSize left on the deposit
 func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep *types.Deposit, debt *sdk.Int, totalCollateral *sdk.Int, auctionSize sdk.Int, principalDenom string) {
 	for dep.Amount[0].Amount.GTE(auctionSize) {
@@ -104,9 +98,7 @@ func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep *types.Deposit, d
 	}
 }
 
-// totalDebt 1000
-//
-
+// CreateAuctionFromPartialDeposits creates an auction from the input partial deposits
 func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps partialDeposits, debt *sdk.Int, collateral *sdk.Int, auctionSize sdk.Int, bidDenom string) {
 	returnAddrs := []sdk.AccAddress{}
 	returnWeights := []sdk.Int{}
@@ -120,4 +112,78 @@ func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps pa
 	}
 	*debt = debt.Sub(partialDeps.SumDebt())
 	*collateral = collateral.Sub(partialDeps.SumCollateral())
+}
+
+// NetSurplusAndDebt burns surplus and debt coins equal to the minimum of surplus and debt balances held by the liquidator module account
+// for example, if there is 1000 debt and 100 surplus, 100 surplus and 100 debt are burned, netting to 900 debt
+func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) {
+	totalSurplus := k.GetTotalSurplus(ctx, types.LiquidatorMacc)
+	debt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
+	netAmount := sdk.MinInt(totalSurplus, debt)
+	if netAmount.GT(sdk.ZeroInt()) {
+		surplusToBurn := netAmount
+		err := k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
+		if err != nil {
+			panic(err)
+		}
+		for _, dp := range k.GetParams(ctx).DebtParams {
+			for surplusToBurn.GT(sdk.ZeroInt()) {
+				balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+				if balance.LT(netAmount) {
+					err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
+					if err != nil {
+						panic(err)
+					}
+					surplusToBurn = surplusToBurn.Sub(balance)
+				} else {
+					err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, surplusToBurn)))
+					if err != nil {
+						panic(err)
+					}
+					surplusToBurn = sdk.ZeroInt()
+				}
+			}
+		}
+	}
+}
+
+// GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
+func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
+	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
+	totalSurplus := sdk.ZeroInt()
+	for _, dp := range k.GetParams(ctx).DebtParams {
+		surplus := acc.GetCoins().AmountOf(dp.Denom)
+		totalSurplus = totalSurplus.Add(surplus)
+	}
+	return totalSurplus
+}
+
+// GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
+func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
+	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
+	debt := acc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
+	return debt
+}
+
+// HandleSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
+func (k Keeper) HandleSurplusAndDebtAuctions(ctx sdk.Context) {
+	k.NetSurplusAndDebt(ctx)
+	remainingDebt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
+	params := k.GetParams(ctx)
+	if remainingDebt.GTE(params.DebtAuctionThreshold) {
+		_, err := k.auctionKeeper.StartDebtAuction(ctx, types.LiquidatorMacc, sdk.NewCoin("usdx", sdk.NewInt(1)), sdk.NewCoin(k.GetGovDenom(ctx), remainingDebt.Mul(sdk.NewInt(100))), sdk.NewCoin(k.GetDebtDenom(ctx), remainingDebt))
+		if err != nil {
+			panic(err)
+		}
+	}
+	remainingSurplus := k.GetTotalSurplus(ctx, types.LiquidatorMacc)
+	if remainingSurplus.GTE(params.SurplusAuctionThreshold) {
+		for _, dp := range params.DebtParams {
+			surplusLot := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+			_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(dp.Denom, surplusLot), k.GetGovDenom(ctx))
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }

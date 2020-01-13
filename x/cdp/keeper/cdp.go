@@ -303,12 +303,30 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 	return
 }
 
+// GetGovDenom returns the denom of debt in the system
+func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
+	bz := store.Get([]byte{})
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
+	return
+}
+
 // SetDebtDenom set the denom of debt in the system
 func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 	if denom == "" {
 		panic("debt denom not set in genesis")
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
+	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
+	return
+}
+
+// SetGovDenom set the denom of the governance token in the system
+func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
+	if denom == "" {
+		panic("gov denom not set in genesis")
+	}
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
 	return
 }

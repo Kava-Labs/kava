@@ -113,6 +113,7 @@ var (
 	CollateralRatioIndexPrefix = types.CollateralRatioIndexPrefix
 	CdpIDKey                   = types.CdpIDKey
 	DebtDenomKey               = types.DebtDenomKey
+	GovDenomKey                = types.GovDenomKey
 	DepositKeyPrefix           = types.DepositKeyPrefix
 	PrincipalKeyPrefix         = types.PrincipalKeyPrefix
 	AccumulatorKeyPrefix       = types.AccumulatorKeyPrefix
@@ -121,12 +122,17 @@ var (
 	KeyCollateralParams        = types.KeyCollateralParams
 	KeyDebtParams              = types.KeyDebtParams
 	KeyCircuitBreaker          = types.KeyCircuitBreaker
+	KeyDebtThreshold           = types.KeyDebtThreshold
+	KeySurplusThreshold        = types.KeySurplusThreshold
 	DefaultGlobalDebt          = types.DefaultGlobalDebt
 	DefaultCircuitBreaker      = types.DefaultCircuitBreaker
 	DefaultCollateralParams    = types.DefaultCollateralParams
 	DefaultDebtParams          = types.DefaultDebtParams
 	DefaultCdpStartingID       = types.DefaultCdpStartingID
 	DefaultDebtDenom           = types.DefaultDebtDenom
+	DefaultGovDenom            = types.DefaultGovDenom
+	DefaultSurplusThreshold    = types.DefaultSurplusThreshold
+	DefaultDebtThreshold       = types.DefaultDebtThreshold
 	DefaultPreviousBlockTime   = types.DefaultPreviousBlockTime
 	MaxSortableDec             = types.MaxSortableDec
 )

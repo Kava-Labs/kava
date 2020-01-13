@@ -15,12 +15,17 @@ var (
 	KeyCollateralParams      = []byte("CollateralParams")
 	KeyDebtParams            = []byte("DebtParams")
 	KeyCircuitBreaker        = []byte("CircuitBreaker")
+	KeyDebtThreshold         = []byte("DebtThreshold")
+	KeySurplusThreshold      = []byte("SurplusThreshold")
 	DefaultGlobalDebt        = sdk.Coins{}
 	DefaultCircuitBreaker    = false
 	DefaultCollateralParams  = CollateralParams{}
 	DefaultDebtParams        = DebtParams{}
 	DefaultCdpStartingID     = uint64(1)
 	DefaultDebtDenom         = "debt"
+	DefaultGovDenom          = "ukava"
+	DefaultSurplusThreshold  = sdk.NewInt(1000)
+	DefaultDebtThreshold     = sdk.NewInt(1000)
 	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
 	minCollateralPrefix      = 0
 	maxCollateralPrefix      = 255
@@ -28,10 +33,12 @@ var (
 
 // Params governance parameters for cdp module
 type Params struct {
-	CollateralParams CollateralParams `json:"collateral_params" yaml:"collateral_params"`
-	DebtParams       DebtParams       `json:"debt_params" yaml:"debt_params"`
-	GlobalDebtLimit  sdk.Coins        `json:"global_debt_limit" yaml:"global_debt_limit"`
-	CircuitBreaker   bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
+	CollateralParams        CollateralParams `json:"collateral_params" yaml:"collateral_params"`
+	DebtParams              DebtParams       `json:"debt_params" yaml:"debt_params"`
+	GlobalDebtLimit         sdk.Coins        `json:"global_debt_limit" yaml:"global_debt_limit"`
+	SurplusAuctionThreshold sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
+	DebtAuctionThreshold    sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
+	CircuitBreaker          bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
 }
 
 // String implements fmt.Stringer
@@ -40,24 +47,28 @@ func (p Params) String() string {
 	Global Debt Limit: %s
 	Collateral Params: %s
 	Debt Params: %s
+	Surplus Auction Threshold: %s
+	Debt Auction Threshold: %s
 	Circuit Breaker: %t`,
-		p.GlobalDebtLimit, p.CollateralParams, p.DebtParams, p.CircuitBreaker,
+		p.GlobalDebtLimit, p.CollateralParams, p.DebtParams, p.SurplusAuctionThreshold, p.DebtAuctionThreshold, p.CircuitBreaker,
 	)
 }
 
 // NewParams returns a new params object
-func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, breaker bool) Params {
+func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, surplusThreshold sdk.Int, debtThreshold sdk.Int, breaker bool) Params {
 	return Params{
-		GlobalDebtLimit:  debtLimit,
-		CollateralParams: collateralParams,
-		DebtParams:       debtParams,
-		CircuitBreaker:   breaker,
+		GlobalDebtLimit:         debtLimit,
+		CollateralParams:        collateralParams,
+		DebtParams:              debtParams,
+		DebtAuctionThreshold:    debtThreshold,
+		SurplusAuctionThreshold: surplusThreshold,
+		CircuitBreaker:          breaker,
 	}
 }
 
 // DefaultParams returns default params for cdp module
 func DefaultParams() Params {
-	return NewParams(DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParams, DefaultCircuitBreaker)
+	return NewParams(DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParams, DefaultSurplusThreshold, DefaultDebtThreshold, DefaultCircuitBreaker)
 }
 
 // CollateralParam governance parameters for each collateral type within the cdp module
@@ -144,6 +155,8 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		{Key: KeyCollateralParams, Value: &p.CollateralParams},
 		{Key: KeyDebtParams, Value: &p.DebtParams},
 		{Key: KeyCircuitBreaker, Value: &p.CircuitBreaker},
+		{Key: KeySurplusThreshold, Value: &p.SurplusAuctionThreshold},
+		{Key: KeyDebtThreshold, Value: &p.DebtAuctionThreshold},
 	}
 }
 
@@ -221,6 +234,13 @@ func (p Params) Validate() error {
 
 	if p.GlobalDebtLimit.IsAnyNegative() {
 		return fmt.Errorf("global debt limit should be positive for all debt tokens, is %s", p.GlobalDebtLimit)
+	}
+
+	if !p.SurplusAuctionThreshold.IsPositive() {
+		return fmt.Errorf("surplus auction threshold should be positive, is %s", p.SurplusAuctionThreshold)
+	}
+	if !p.DebtAuctionThreshold.IsPositive() {
+		return fmt.Errorf("debt auction threshold should be positive, is %s", p.DebtAuctionThreshold)
 	}
 	return nil
 }
