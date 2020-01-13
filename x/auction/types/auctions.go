@@ -73,25 +73,28 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 // It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
 type DebtAuction struct {
 	BaseAuction
+	CorrespondingDebt sdk.Coin
 }
 
 // WithID returns an auction with the ID set.
 func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // NewDebtAuction returns a new debt auction.
-func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time) DebtAuction {
+func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, EndTime time.Time, debt sdk.Coin) DebtAuction {
 	// Note: Bidder is set to the initiator's module account address instead of module name. (when the first bid is placed, it is paid out to the initiator)
 	// Setting to the module account address bypasses calling supply.SendCoinsFromModuleToModule, instead calls SendCoinsFromModuleToAccount.
 	// This isn't a problem currently, but if additional logic/validation was added for sending to coins to Module Accounts, it would be bypassed.
-	auction := DebtAuction{BaseAuction{
-		// no ID
-		Initiator:  buyerModAccName,
-		Lot:        initialLot,
-		Bidder:     supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
-		Bid:        bid,                                      // amount that the buyer is buying - doesn't change over course of auction
-		EndTime:    EndTime,
-		MaxEndTime: EndTime,
-	}}
+	auction := DebtAuction{
+		BaseAuction: BaseAuction{
+			// no ID
+			Initiator:  buyerModAccName,
+			Lot:        initialLot,
+			Bidder:     supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
+			Bid:        bid,                                      // amount that the buyer is buying - doesn't change over course of auction
+			EndTime:    EndTime,
+			MaxEndTime: EndTime},
+		CorrespondingDebt: debt,
+	}
 	return auction
 }
 
@@ -102,8 +105,9 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, E
 // Collateral auctions are normally used to sell off collateral seized from CDPs.
 type CollateralAuction struct {
 	BaseAuction
-	MaxBid     sdk.Coin
-	LotReturns WeightedAddresses
+	CorrespondingDebt sdk.Coin
+	MaxBid            sdk.Coin
+	LotReturns        WeightedAddresses
 }
 
 // WithID returns an auction with the ID set.
@@ -132,7 +136,7 @@ func (a CollateralAuction) String() string {
 }
 
 // NewCollateralAuction returns a new collateral auction.
-func NewCollateralAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses) CollateralAuction {
+func NewCollateralAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid sdk.Coin, lotReturns WeightedAddresses, debt sdk.Coin) CollateralAuction {
 	auction := CollateralAuction{
 		BaseAuction: BaseAuction{
 			// no ID
@@ -142,8 +146,9 @@ func NewCollateralAuction(seller string, lot sdk.Coin, EndTime time.Time, maxBid
 			Bid:        sdk.NewInt64Coin(maxBid.Denom, 0),
 			EndTime:    EndTime,
 			MaxEndTime: EndTime},
-		MaxBid:     maxBid,
-		LotReturns: lotReturns,
+		CorrespondingDebt: debt,
+		MaxBid:            maxBid,
+		LotReturns:        lotReturns,
 	}
 	return auction
 }
