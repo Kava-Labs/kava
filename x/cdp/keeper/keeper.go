@@ -30,8 +30,8 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 	}
 
 	// ensure liquidator module account is set
-	if addr := sk.GetModuleAddress(types.LiquidatorMaccName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.LiquidatorMaccName))
+	if addr := sk.GetModuleAddress(types.LiquidatorMacc); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.LiquidatorMacc))
 	}
 
 	return Keeper{

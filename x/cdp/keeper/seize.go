@@ -36,7 +36,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 		debt = debt.Add(dc.Amount)
 	}
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMaccName, sdk.NewCoins(debtCoin))
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
 		panic(err)
 	}
@@ -51,13 +51,13 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) {
 				sdk.NewAttribute(types.AttributeKeyDepositor, fmt.Sprintf("%s", dep.Depositor)),
 			),
 		)
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMaccName, dep.Amount)
+		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, dep.Amount)
 		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 		if err != nil {
 			panic(err)
 		}
 	}
-	k.AuctionCollateral(ctx, deposits, debtCoin, cdp.Principal[0].Denom)
+	k.AuctionCollateral(ctx, deposits, debt, cdp.Principal[0].Denom)
 
 	// Decrement total principal for this collateral type
 	for _, dc := range cdp.Principal {
