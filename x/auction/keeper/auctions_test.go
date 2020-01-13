@@ -247,3 +247,67 @@ func TestStartSurplusAuction(t *testing.T) {
 		})
 	}
 }
+
+func TestCloseAuction(t *testing.T) {
+	// Set up
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	buyer := addrs[0]
+	sellerModName := liquidator.ModuleName
+
+	tApp := app.NewTestApp()
+
+	sellerAcc := supply.NewEmptyModuleAccount(sellerModName, supply.Burner) // forward auctions burn proceeds
+	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
+	tApp.InitializeFromGenesisStates(
+		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
+			auth.NewBaseAccount(buyer, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
+			sellerAcc,
+		}),
+	)
+	ctx := tApp.NewContext(false, abci.Header{})
+	keeper := tApp.GetAuctionKeeper()
+
+	// Create an auction (lot: 20 token1, initialBid: 0 token2)
+	id, err := keeper.StartSurplusAuction(ctx, sellerModName, c("token1", 20), "token2") // lot, bid denom
+	require.NoError(t, err)
+
+	// Attempt to close the auction before EndTime
+	require.Error(t, keeper.CloseAuction(ctx, id))
+
+	// Attempt to close auction that does not exist
+	require.Error(t, keeper.CloseAuction(ctx, 999))
+}
+
+func TestCloseExpiredAuctions(t *testing.T) {
+	// Set up
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	buyer := addrs[0]
+	sellerModName := liquidator.ModuleName
+
+	tApp := app.NewTestApp()
+
+	sellerAcc := supply.NewEmptyModuleAccount(sellerModName, supply.Burner) // forward auctions burn proceeds
+	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
+	tApp.InitializeFromGenesisStates(
+		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
+			auth.NewBaseAccount(buyer, cs(c("token1", 100), c("token2", 100)), nil, 0, 0),
+			sellerAcc,
+		}),
+	)
+	ctx := tApp.NewContext(false, abci.Header{})
+	keeper := tApp.GetAuctionKeeper()
+
+	// Start auction 1
+	_, err := keeper.StartSurplusAuction(ctx, sellerModName, c("token1", 20), "token2") // lot, bid denom
+	require.NoError(t, err)
+
+	// Start auction 2
+	_, err = keeper.StartSurplusAuction(ctx, sellerModName, c("token1", 20), "token2") // lot, bid denom
+	require.NoError(t, err)
+
+	// Fast forward the block time
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxAuctionDuration).Add(1))
+
+	// Close expired aucitons
+	keeper.CloseExpiredAuctions(ctx)
+}
