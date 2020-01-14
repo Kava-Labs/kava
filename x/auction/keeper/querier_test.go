@@ -13,6 +13,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/auction/types"
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -39,7 +40,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
-	modName := TestModuleName
+	modName := cdp.LiquidatorMacc
 
 	// Set up seller account
 	sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)

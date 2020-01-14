@@ -252,7 +252,7 @@ func TestCloseAuction(t *testing.T) {
 	// Set up
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
-	sellerModName := TestModuleName
+	sellerModName := cdp.LiquidatorMacc
 
 	tApp := app.NewTestApp()
 
@@ -282,7 +282,7 @@ func TestCloseExpiredAuctions(t *testing.T) {
 	// Set up
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
-	sellerModName := TestModuleName
+	sellerModName := "liquidator"
 
 	tApp := app.NewTestApp()
 
@@ -308,6 +308,7 @@ func TestCloseExpiredAuctions(t *testing.T) {
 	// Fast forward the block time
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxAuctionDuration).Add(1))
 
-	// Close expired aucitons
-	keeper.CloseExpiredAuctions(ctx)
+	// Close expired auctions
+	err = keeper.CloseExpiredAuctions(ctx)
+	require.NoError(t, err)
 }
