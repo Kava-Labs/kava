@@ -252,7 +252,7 @@ func TestCloseAuction(t *testing.T) {
 	// Set up
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
-	sellerModName := liquidator.ModuleName
+	sellerModName := TestModuleName
 
 	tApp := app.NewTestApp()
 
@@ -282,7 +282,7 @@ func TestCloseExpiredAuctions(t *testing.T) {
 	// Set up
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	buyer := addrs[0]
-	sellerModName := liquidator.ModuleName
+	sellerModName := TestModuleName
 
 	tApp := app.NewTestApp()
 

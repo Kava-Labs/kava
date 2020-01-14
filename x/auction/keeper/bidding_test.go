@@ -14,7 +14,10 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction/types"
-	"github.com/kava-labs/kava/x/liquidator"
+)
+
+const (
+	TestModuleName = "Liquidator"
 )
 
 type AuctionType int
@@ -33,7 +36,7 @@ func TestAuctionBidding(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	buyer := addrs[0]
 	secondBuyer := addrs[1]
-	modName := liquidator.ModuleName
+	modName := TestModuleName
 	collateralAddrs := addrs[2:]
 	collateralWeights := is(30, 20, 10)
 
@@ -338,7 +341,7 @@ func TestAuctionBidding(t *testing.T) {
 				auction, found := keeper.GetAuction(ctx, id)
 				require.True(t, found)
 				// Check auction values
-				require.Equal(t, liquidator.ModuleName, auction.GetInitiator())
+				require.Equal(t, TestModuleName, auction.GetInitiator())
 				require.Equal(t, tc.expectedBidder, auction.GetBidder())
 				require.Equal(t, tc.expectedBid, auction.GetBid())
 				require.Equal(t, tc.expectedEndTime, auction.GetEndTime())
