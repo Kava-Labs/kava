@@ -4,11 +4,15 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 // NewHandler returns a function to handle all "auction" type messages.
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+		ctx = ctx.WithEventManager(sdk.NewEventManager())
+
 		switch msg := msg.(type) {
 		case MsgPlaceBid:
 			return handleMsgPlaceBid(ctx, keeper, msg)
@@ -26,5 +30,15 @@ func handleMsgPlaceBid(ctx sdk.Context, keeper Keeper, msg MsgPlaceBid) sdk.Resu
 		return err.Result()
 	}
 
-	return sdk.Result{}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Bidder.String()),
+		),
+	)
+
+	return sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}
 }

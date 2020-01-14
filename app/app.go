@@ -262,7 +262,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
-		auction.NewAppModule(app.auctionKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 	)
@@ -283,7 +283,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, auction.ModuleName, cdp.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

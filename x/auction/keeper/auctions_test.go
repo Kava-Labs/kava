@@ -227,13 +227,14 @@ func TestStartSurplusAuction(t *testing.T) {
 				// check auction in store and is correct
 				require.True(t, found)
 				expectedAuction := types.Auction(types.SurplusAuction{BaseAuction: types.BaseAuction{
-					ID:         0,
-					Initiator:  tc.args.seller,
-					Lot:        tc.args.lot,
-					Bidder:     nil,
-					Bid:        c(tc.args.bidDenom, 0),
-					EndTime:    tc.blockTime.Add(types.DefaultMaxAuctionDuration),
-					MaxEndTime: tc.blockTime.Add(types.DefaultMaxAuctionDuration),
+					ID:              0,
+					Initiator:       tc.args.seller,
+					Lot:             tc.args.lot,
+					Bidder:          nil,
+					Bid:             c(tc.args.bidDenom, 0),
+					HasReceivedBids: false,
+					EndTime:         types.DistantFuture,
+					MaxEndTime:      types.DistantFuture,
 				}})
 				require.Equal(t, expectedAuction, actualAuc)
 			} else {

@@ -1,17 +1,39 @@
 package auction
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// InitGenesis initializes the store state from genesis data.
-func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
-	keeper.SetNextAuctionID(ctx, data.NextAuctionID)
+// InitGenesis initializes the store state from a genesis state.
+func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, gs GenesisState) {
+	if err := gs.Validate(); err != nil {
+		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
+	}
 
-	keeper.SetParams(ctx, data.Params)
+	keeper.SetNextAuctionID(ctx, gs.NextAuctionID)
 
-	for _, a := range data.Auctions {
+	keeper.SetParams(ctx, gs.Params)
+
+	totalAuctionCoins := sdk.NewCoins()
+	for _, a := range gs.Auctions {
 		keeper.SetAuction(ctx, a)
+		// find the total coins that should be present in the module account
+		totalAuctionCoins.Add(a.GetModuleAccountCoins())
+	}
+
+	// check if the module account exists
+	moduleAcc := supplyKeeper.GetModuleAccount(ctx, ModuleName)
+	if moduleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
+	}
+	// check module coins match auction coins
+	// Note: Other sdk modules do not check this, instead just using the existing module account coins, or if zero, setting them.
+	if !moduleAcc.GetCoins().IsEqual(totalAuctionCoins) {
+		panic(fmt.Sprintf("total auction coins (%s) do not equal (%s) module account (%s) ", moduleAcc.GetCoins(), ModuleName, totalAuctionCoins))
 	}
 }
 
@@ -24,9 +46,13 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 
 	params := keeper.GetParams(ctx)
 
-	var genAuctions Auctions
+	genAuctions := GenesisAuctions{} // return empty list instead of nil if no auctions
 	keeper.IterateAuctions(ctx, func(a Auction) bool {
-		genAuctions = append(genAuctions, a)
+		ga, ok := a.(types.GenesisAuction)
+		if !ok {
+			panic("could not convert stored auction to GenesisAuction type")
+		}
+		genAuctions = append(genAuctions, ga)
 		return false
 	})
 
