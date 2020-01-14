@@ -5,7 +5,7 @@ The `x/auction` module emits the following events:
 ## Triggered By Other Modules
 
 | Type          | Attribute Key | Attribute Value     |
-| ------------- | ------------- | ------------------- |
+|---------------|---------------|---------------------|
 | auction_start | auction_id    | {auction ID}        |
 | auction_start | auction_type  | {auction type}      |
 | auction_start | lot_denom     | {auction lot denom} |
@@ -16,7 +16,7 @@ The `x/auction` module emits the following events:
 ### MsgPlaceBid
 
 | Type        | Attribute Key | Attribute Value    |
-| ----------- | ------------- | ------------------ |
+|-------------|---------------|--------------------|
 | auction_bid | auction_id    | {auction ID}       |
 | auction_bid | bidder        | {latest bidder}    |
 | auction_bid | bid_amount    | {coin amount}      |
@@ -28,5 +28,5 @@ The `x/auction` module emits the following events:
 ## EndBlock
 
 | Type          | Attribute Key | Attribute Value |
-| ------------- | ------------- | --------------- |
+|---------------|---------------|-----------------|
 | auction_close | auction_id    | {auction ID}    |
