@@ -14,7 +14,7 @@ type GenesisAuction interface {
 	Validate() error
 }
 
-// Auctions is a slice of auctions.
+// GenesisAuctions is a slice of genesis auctions.
 type GenesisAuctions []GenesisAuction
 
 // GenesisState is auction state that must be provided at chain genesis.
