@@ -17,8 +17,15 @@ var DistantFuture time.Time = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 type Auction interface {
 	GetID() uint64
 	WithID(uint64) Auction
+	GetInitiator() string
+	GetLot() sdk.Coin
+	GetBidder() sdk.AccAddress
+	GetBid() sdk.Coin
 	GetEndTime() time.Time
 }
+
+// Auctions is a slice of auctions.
+type Auctions []Auction
 
 // BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
@@ -34,6 +41,18 @@ type BaseAuction struct {
 
 // GetID is a getter for auction ID.
 func (a BaseAuction) GetID() uint64 { return a.ID }
+
+// GetInitiator is a getter for auction Initiator.
+func (a BaseAuction) GetInitiator() string { return a.Initiator }
+
+// GetLot is a getter for auction Lot.
+func (a BaseAuction) GetLot() sdk.Coin { return a.Lot }
+
+// GetBidder is a getter for auction Bidder.
+func (a BaseAuction) GetBidder() sdk.AccAddress { return a.Bidder }
+
+// GetBid is a getter for auction Bid.
+func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }

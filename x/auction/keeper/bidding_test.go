@@ -28,10 +28,7 @@ const (
 )
 
 func TestAuctionBidding(t *testing.T) {
-	// TODO: Block time
 	someTime := time.Date(0001, time.January, 1, 0, 0, 0, 0, time.UTC)
-	// now := time.Now()
-	// end := now.Add(1000000)
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	buyer := addrs[0]
@@ -113,8 +110,8 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token2", 10), secondBuyer},
 			"",
 			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			secondBuyer,
+			c("token2", 11),
 			true,
 		},
 		{
@@ -144,7 +141,7 @@ func TestAuctionBidding(t *testing.T) {
 			"",
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
-			c("token1", 20),
+			c("token2", 100),
 			true,
 		},
 		{
@@ -153,8 +150,8 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token1", 10), secondBuyer},
 			"",
 			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token1", 20),
+			secondBuyer,
+			c("token2", 100),
 			true,
 		},
 		{
@@ -167,18 +164,6 @@ func TestAuctionBidding(t *testing.T) {
 			c("token1", 20),
 			false,
 		},
-		// TODO: PANIC if test is run (coin.go validates positive coin amount)
-		// {
-		// 	"debt: negative lot amount",
-		// 	auctionArgs{Debt, modName, c("token2", 199), c("token1", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
-		// 	bidArgs{buyer, c("token2", -20), c("token1", 10)},                // lot, bid
-		// 	// TODO: Unreachable code: "lot less than 0"
-		// 	"negative coin amount:",
-		// 	someTime.Add(types.DefaultBidDuration),
-		// 	buyer,
-		// 	c("token1", 20),
-		// 	false,
-		// },
 		{
 			"debt: invalid lot size (larger)",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}},
@@ -205,8 +190,8 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token2", 10), secondBuyer},
 			"",
 			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			secondBuyer,
+			c("token2", 11),
 			true,
 		},
 		{
@@ -255,7 +240,7 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token1", 15), secondBuyer},
 			"",
 			someTime.Add(types.DefaultBidDuration),
-			buyer,
+			secondBuyer,
 			c("token2", 50),
 			true,
 		},
@@ -269,17 +254,6 @@ func TestAuctionBidding(t *testing.T) {
 			c("token2", 50),
 			false,
 		},
-		// TODO: PANIC if test is run (coin.go validates positive coin amount)
-		// {
-		// 	"surplus [debt]: negative lot",
-		// 	auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-		// 	bidArgs{buyer, c("token1", -1), c("token2", 50)}, // lot, bid
-		// 	"can't bid negative amount",
-		// 	someTime.Add(types.DefaultBidDuration),
-		// 	buyer,
-		// 	c("token2", 50),
-		// 	false,
-		// },
 		{
 			"collateral [reverse]: invalid lot size (equal)",
 			auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
@@ -310,7 +284,6 @@ func TestAuctionBidding(t *testing.T) {
 			c("token2", 10),
 			false,
 		},
-		// 	TODO: "timeout", "hitMaxEndTime"
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -319,7 +292,7 @@ func TestAuctionBidding(t *testing.T) {
 			var err error
 			switch tc.auctionArgs.auctionType {
 			case Surplus:
-				id, _ = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom) // lot, bid denom
+				id, _ = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom)
 			case Debt:
 				id, _ = keeper.StartDebtAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.bid, tc.auctionArgs.lot, tc.auctionArgs.debt)
 			case CollateralPhase1, CollateralPhase2:
@@ -333,7 +306,7 @@ func TestAuctionBidding(t *testing.T) {
 				t.Fail()
 			}
 
-			// Close the auction early to test late bidding, if applicable
+			// Close the auction early to test late bidding (if applicable)
 			if strings.Contains(tc.name, "closed") {
 				ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxAuctionDuration).Add(1))
 			}
@@ -341,27 +314,9 @@ func TestAuctionBidding(t *testing.T) {
 			// Place bid on auction
 			err = keeper.PlaceBid(ctx, id, tc.bidArgs.bidder, tc.bidArgs.amount)
 
-			// Check success/failure
-			if tc.expectpass {
-				require.Nil(t, err)
-
-				// Get auction from store
-				auction, found := keeper.GetAuction(ctx, id)
-				require.True(t, found)
-
-				// Check auction values
-				// TODO:
-				// require.Equal(t, tc.expectedBidder, auction.GetBidder())
-				// require.Equal(t, tc.expectedBid, auction.GetBid())
-				require.Equal(t, tc.expectedEndTime, auction.GetEndTime())
-			} else {
-				// Check expected error message
-				require.Contains(t, err.Error(), tc.expectedError)
-			}
-
 			// Place second bid from new bidder
 			if tc.bidArgs.secondBidder != nil {
-				// Set bid increase/decrease based on auction type/phase
+				// Set bid increase/decrease based on auction type, phase
 				var secondBid sdk.Coin
 				switch tc.auctionArgs.auctionType {
 				case Surplus, CollateralPhase1:
@@ -371,10 +326,25 @@ func TestAuctionBidding(t *testing.T) {
 				default:
 					t.Fail()
 				}
-
 				// Place the second bid
-				err = keeper.PlaceBid(ctx, id, tc.bidArgs.secondBidder, secondBid)
-				require.NoError(t, err)
+				err2 := keeper.PlaceBid(ctx, id, tc.bidArgs.secondBidder, secondBid)
+				require.NoError(t, err2)
+			}
+
+			// Check success/failure
+			if tc.expectpass {
+				require.Nil(t, err)
+				// Get auction from store
+				auction, found := keeper.GetAuction(ctx, id)
+				require.True(t, found)
+				// Check auction values
+				require.Equal(t, liquidator.ModuleName, auction.GetInitiator())
+				require.Equal(t, tc.expectedBidder, auction.GetBidder())
+				require.Equal(t, tc.expectedBid, auction.GetBid())
+				require.Equal(t, tc.expectedEndTime, auction.GetEndTime())
+			} else {
+				// Check expected error message
+				require.Contains(t, err.Error(), tc.expectedError)
 			}
 		})
 	}

@@ -278,9 +278,6 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	if !a.IsReversePhase() {
 		return a, sdk.ErrInternal("auction not in reverse phase")
 	}
-	if lot.IsNegative() {
-		return a, sdk.ErrInternal("can't bid negative amount")
-	}
 	if !lot.IsLT(a.Lot) {
 		return a, sdk.ErrInternal("auction in reverse phase, new bid not less than previous amount")
 	}
@@ -327,9 +324,6 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
 		return a, sdk.ErrInternal("lot denom doesn't match auction")
-	}
-	if lot.IsNegative() {
-		return a, sdk.ErrInternal("lot less than 0")
 	}
 	if !lot.IsLT(a.Lot) {
 		return a, sdk.ErrInternal("lot not smaller than last lot")

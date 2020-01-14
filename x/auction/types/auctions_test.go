@@ -109,10 +109,17 @@ func TestBaseAuctionGetters(t *testing.T) {
 		TestBidDenom, endTime,
 	)
 
-	// TODO: GetID(), WithID()
+	auctionID := auction.GetID()
+	auctionBid := auction.GetBid()
+	auctionLot := auction.GetLot()
 	auctionEndTime := auction.GetEndTime()
+	auctionString := auction.String()
 
+	require.Equal(t, auction.ID, auctionID)
+	require.Equal(t, auction.Bid, auctionBid)
+	require.Equal(t, auction.Lot, auctionLot)
 	require.Equal(t, auction.EndTime, auctionEndTime)
+	require.NotNil(t, auctionString)
 }
 
 func TestNewSurplusAuction(t *testing.T) {
@@ -127,14 +134,9 @@ func TestNewSurplusAuction(t *testing.T) {
 
 	require.Equal(t, surplusAuction.Initiator, TestInitiatorModuleName)
 	require.Equal(t, surplusAuction.Lot, c(TestLotDenom, TestLotAmount))
-	// require.Equal(t, surplusAuction.Bidder, nilAccAddress)
 	require.Equal(t, surplusAuction.Bid, c(TestBidDenom, 0))
 	require.Equal(t, surplusAuction.EndTime, endTime)
 	require.Equal(t, surplusAuction.MaxEndTime, endTime)
-
-	// TODO: Does 'WithID' need to return BaseAuction instead of Auction?
-	// surplusAuctionWithID := surplusAuction.WithID(TestAuctionID)
-	// require.Equal(t, surplusAuctionWithID.ID, TestAuctionID)
 }
 
 func TestNewDebtAuction(t *testing.T) {
@@ -151,7 +153,6 @@ func TestNewDebtAuction(t *testing.T) {
 
 	require.Equal(t, debtAuction.Initiator, TestInitiatorModuleName)
 	require.Equal(t, debtAuction.Lot, c(TestLotDenom, TestLotAmount))
-	// TODO: require.Equal(t, forwardAuction.Bidder, nilAccAddress)
 	require.Equal(t, debtAuction.Bid, c(TestBidDenom, TestBidAmount))
 	require.Equal(t, debtAuction.EndTime, endTime)
 	require.Equal(t, debtAuction.MaxEndTime, endTime)
@@ -185,7 +186,6 @@ func TestNewCollateralAuction(t *testing.T) {
 
 	require.Equal(t, collateralAuction.BaseAuction.Initiator, TestInitiatorModuleName)
 	require.Equal(t, collateralAuction.BaseAuction.Lot, c(TestLotDenom, TestLotAmount))
-	// TODO: require.Equal(t, collateralAuction.Bidder, nilAccAddress)
 	require.Equal(t, collateralAuction.BaseAuction.Bid, c(TestBidDenom, 0))
 	require.Equal(t, collateralAuction.BaseAuction.EndTime, endTime)
 	require.Equal(t, collateralAuction.BaseAuction.MaxEndTime, endTime)
