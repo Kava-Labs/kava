@@ -74,8 +74,8 @@ func TestIterateAuctions(t *testing.T) {
 
 	auctions := []types.Auction{
 		types.NewSurplusAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(0),
-		types.NewDebtAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(1),
-		types.NewCollateralAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}).WithID(2),
+		types.NewDebtAuction("buyerMod", c("denom", 12345678), c("anotherdenom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("debt", 12345678)).WithID(1),
+		types.NewCollateralAuction("sellerMod", c("denom", 12345678), time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC), c("anotherdenom", 12345678), types.WeightedAddresses{}, c("debt", 12345678)).WithID(2),
 	}
 	for _, a := range auctions {
 		keeper.SetAuction(ctx, a)
