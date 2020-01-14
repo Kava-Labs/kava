@@ -76,7 +76,7 @@ func TestAuctionBidding(t *testing.T) {
 		name            string
 		auctionArgs     auctionArgs
 		bidArgs         bidArgs
-		expectedError   string
+		expectedError   sdk.CodeType
 		expectedEndTime time.Time
 		expectedBidder  sdk.AccAddress
 		expectedBid     sdk.Coin
@@ -86,7 +86,7 @@ func TestAuctionBidding(t *testing.T) {
 			"basic: auction doesn't exist",
 			auctionArgs{Surplus, "", c("token1", 1), c("token2", 1), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token2", 10), nil},
-			"auction doesn't exist",
+			types.CodeAuctionNotFound,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -96,7 +96,7 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: normal",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token2", 10), nil},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -106,7 +106,7 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: second bidder",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token2", 10), secondBuyer},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
 			c("token2", 11),
@@ -116,7 +116,7 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: invalid bid denom",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("badtoken", 10), nil},
-			"bid denom doesn't match auction",
+			types.CodeInvalidBidDenom,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -126,7 +126,7 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: invalid bid (equal)",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token2", 0), nil},
-			"bid not greater than last bid",
+			types.CodeBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -136,7 +136,7 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: normal",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			bidArgs{buyer, c("token1", 10), nil},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 100),
@@ -146,7 +146,7 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: second bidder",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			bidArgs{buyer, c("token1", 10), secondBuyer},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
 			c("token2", 100),
@@ -156,7 +156,7 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: invalid lot denom",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			bidArgs{buyer, c("badtoken", 10), nil},
-			"lot denom doesn't match auction",
+			types.CodeInvalidLotDenom,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token1", 20),
@@ -166,7 +166,7 @@ func TestAuctionBidding(t *testing.T) {
 			"debt: invalid lot size (larger)",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token1", 21), nil},
-			"lot not smaller than last lot",
+			types.CodeLotTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token1", 20),
@@ -176,7 +176,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: normal",
 			auctionArgs{CollateralPhase1, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token2", 10), nil},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -186,7 +186,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: second bidder",
 			auctionArgs{CollateralPhase1, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token2", 10), secondBuyer},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
 			c("token2", 11),
@@ -196,7 +196,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: invalid bid denom",
 			auctionArgs{CollateralPhase1, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("badtoken", 10), nil},
-			"bid denom doesn't match auction",
+			types.CodeInvalidBidDenom,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -206,7 +206,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: invalid bid size (smaller)",
 			auctionArgs{CollateralPhase1, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token2", 0), nil},                                                                                          // lot, bid
-			"auction in forward phase, new bid not higher than last bid",
+			types.CodeBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -216,7 +216,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [forward]: invalid bid size (greater than max)",
 			auctionArgs{CollateralPhase1, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token2", 101), nil},                                                                                        // lot, bid
-			"bid higher than max bid",
+			types.CodeBidTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -226,7 +226,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [reverse]: normal",
 			auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token1", 15), nil},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 50),
@@ -236,7 +236,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [reverse]: second bidder",
 			auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token1", 15), secondBuyer},
-			"",
+			sdk.CodeType(0),
 			someTime.Add(types.DefaultBidDuration),
 			secondBuyer,
 			c("token2", 50),
@@ -246,7 +246,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [reverse]: invalid lot denom",
 			auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("badtoken", 15), nil},
-			"lot denom doesn't match auction",
+			types.CodeInvalidLotDenom,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 50),
@@ -256,7 +256,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [reverse]: invalid lot size (equal)",
 			auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token1", 20), nil},
-			"auction in reverse phase, new bid not less than previous amount",
+			types.CodeLotTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 50),
@@ -266,7 +266,7 @@ func TestAuctionBidding(t *testing.T) {
 			"collateral [reverse]: invalid lot size (greater)",
 			auctionArgs{CollateralPhase2, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			bidArgs{buyer, c("token1", 21), nil},
-			"auction in reverse phase, new bid not less than previous amount",
+			types.CodeLotTooLarge,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 50),
@@ -276,7 +276,7 @@ func TestAuctionBidding(t *testing.T) {
 			"basic: closed auction",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token2", 10), nil},
-			"auction has closed",
+			types.CodeAuctionIsClosed,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
@@ -287,7 +287,7 @@ func TestAuctionBidding(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Start Auction
 			var id uint64
-			var err error
+			var err sdk.Error
 			switch tc.auctionArgs.auctionType {
 			case Surplus:
 				id, _ = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom)
@@ -341,8 +341,8 @@ func TestAuctionBidding(t *testing.T) {
 				require.Equal(t, tc.expectedBid, auction.GetBid())
 				require.Equal(t, tc.expectedEndTime, auction.GetEndTime())
 			} else {
-				// Check expected error message
-				require.Contains(t, err.Error(), tc.expectedError)
+				// Check expected error code type
+				require.Equal(t, tc.expectedError, err.Result().Code)
 			}
 		})
 	}

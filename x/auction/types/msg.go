@@ -33,7 +33,7 @@ func (msg MsgPlaceBid) ValidateBasic() sdk.Error {
 		return sdk.ErrInternal("invalid (empty) bidder address")
 	}
 	if !msg.Amount.IsValid() {
-		return sdk.ErrInternal("invalid bid amount")
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
 	return nil
 }

@@ -29,7 +29,7 @@ func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res [
 
 	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, auctionsList)
 	if err2 != nil {
-		panic("could not marshal result to JSON")
+		return nil, sdk.ErrInternal("could not marshal result to JSON")
 	}
 
 	return bz, nil

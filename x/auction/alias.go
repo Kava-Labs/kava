@@ -11,13 +11,26 @@ import (
 )
 
 const (
-	ModuleName                = types.ModuleName
-	StoreKey                  = types.StoreKey
-	RouterKey                 = types.RouterKey
-	DefaultParamspace         = types.DefaultParamspace
-	DefaultMaxAuctionDuration = types.DefaultMaxAuctionDuration
-	DefaultBidDuration        = types.DefaultBidDuration
-	QueryGetAuction           = types.QueryGetAuction
+	DefaultCodespace                      = types.DefaultCodespace
+	CodeInvalidInitialAuctionID           = types.CodeInvalidInitialAuctionID
+	CodeUnrecognizedAuctionType           = types.CodeUnrecognizedAuctionType
+	CodeAuctionNotFound                   = types.CodeAuctionNotFound
+	CodeAuctionIsBeforeEndTime            = types.CodeAuctionIsBeforeEndTime
+	CodeAuctionIsClosed                   = types.CodeAuctionIsClosed
+	CodeInvalidBidDenom                   = types.CodeInvalidBidDenom
+	CodeInvalidLotDenom                   = types.CodeInvalidLotDenom
+	CodeBidTooSmall                       = types.CodeBidTooSmall
+	CodeBidTooLarge                       = types.CodeBidTooLarge
+	CodeLotTooLarge                       = types.CodeLotTooLarge
+	CodeCollateralAuctionIsInReversePhase = types.CodeCollateralAuctionIsInReversePhase
+	CodeCollateralAuctionIsInForwardPhase = types.CodeCollateralAuctionIsInForwardPhase
+	ModuleName                            = types.ModuleName
+	StoreKey                              = types.StoreKey
+	RouterKey                             = types.RouterKey
+	DefaultParamspace                     = types.DefaultParamspace
+	DefaultMaxAuctionDuration             = types.DefaultMaxAuctionDuration
+	DefaultBidDuration                    = types.DefaultBidDuration
+	QueryGetAuction                       = types.QueryGetAuction
 )
 
 var (

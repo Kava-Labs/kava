@@ -17,8 +17,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case MsgPlaceBid:
 			return handleMsgPlaceBid(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("Unrecognized auction msg type: %T", msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return sdk.ErrUnknownRequest(fmt.Sprintf("Unrecognized auction msg type: %T", msg)).Result()
 		}
 	}
 }
