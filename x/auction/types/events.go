@@ -8,5 +8,10 @@ const (
 	AttributeValueCategory  = ModuleName
 	AttributeKeyAuctionID   = "auction_id"
 	AttributeKeyAuctionType = "auction_type"
+	AttributeKeyBidder      = "bidder"
+	AttributeKeyBidDenom    = "bid_denom"
 	AttributeKeyLotDenom    = "lot_denom"
+	AttributeKeyBidAmount   = "bid_amount"
+	AttributeKeyLotAmount   = "lot_amount"
+	AttributeKeyEndTime     = "end_time"
 )

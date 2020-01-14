@@ -33,6 +33,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
 			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
 		),
 	)
@@ -70,6 +71,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
 			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
 		),
 	)
@@ -110,6 +112,7 @@ func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.C
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
 			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
 		),
 	)
@@ -156,12 +159,6 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 
 	k.SetAuction(ctx, updatedAuction)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
-		),
-	)
 	return nil
 }
 
@@ -205,6 +202,16 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
 	a.HasReceivedBids = true
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionBid,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyBidAmount, a.Bid.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+		),
+	)
 
 	return a, nil
 }
@@ -254,7 +261,6 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 			return a, err
 		}
 		a.CorrespondingDebt = a.CorrespondingDebt.Sub(debtToReturn) // debtToReturn will always be ≤ a.CorrespondingDebt from the MinInt above
-		// TODO optionally burn out debt and stable just returned to liquidator
 	}
 
 	// Update Auction
@@ -265,6 +271,16 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
 	a.HasReceivedBids = true
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionBid,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyBidAmount, a.Bid.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+		),
+	)
 
 	return a, nil
 }
@@ -319,6 +335,16 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
 	a.HasReceivedBids = true
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionBid,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyLotAmount, a.Lot.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+		),
+	)
+
 	return a, nil
 }
 
@@ -358,7 +384,6 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 			return a, err
 		}
 		a.CorrespondingDebt = a.CorrespondingDebt.Sub(debtToReturn) // debtToReturn will always be ≤ a.CorrespondingDebt from the MinInt above
-		// TODO optionally burn out debt and stable just returned to liquidator
 	}
 
 	// Update Auction
@@ -369,6 +394,16 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
 	a.HasReceivedBids = true
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeAuctionBid,
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyLotAmount, a.Lot.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+		),
+	)
 
 	return a, nil
 }
