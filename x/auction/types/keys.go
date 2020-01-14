@@ -19,6 +19,8 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
+
+	QuerierRoute = ModuleName
 )
 
 var (
