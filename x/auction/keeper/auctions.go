@@ -129,7 +129,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 
 	// validation common to all auctions
 	if ctx.BlockTime().After(auction.GetEndTime()) {
-		return types.ErrAuctionIsClosed(k.codespace, auctionID)
+		return types.ErrAuctionHasExpired(k.codespace, auctionID)
 	}
 
 	// move coins and return updated auction
@@ -411,7 +411,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 	}
 
 	if ctx.BlockTime().Before(auction.GetEndTime()) {
-		return types.ErrAuctionIsBeforeEndTime(k.codespace, ctx.BlockTime(), auction.GetEndTime())
+		return types.ErrAuctionHasNotExpired(k.codespace, ctx.BlockTime(), auction.GetEndTime())
 	}
 
 	// payout to the last bidder

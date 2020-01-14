@@ -15,8 +15,8 @@ const (
 	CodeInvalidModulePermissions          sdk.CodeType      = 2
 	CodeUnrecognizedAuctionType           sdk.CodeType      = 3
 	CodeAuctionNotFound                   sdk.CodeType      = 4
-	CodeAuctionIsBeforeEndTime            sdk.CodeType      = 5
-	CodeAuctionIsClosed                   sdk.CodeType      = 6
+	CodeAuctionHasNotExpired              sdk.CodeType      = 5
+	CodeAuctionHasExpired                 sdk.CodeType      = 6
 	CodeInvalidBidDenom                   sdk.CodeType      = 7
 	CodeInvalidLotDenom                   sdk.CodeType      = 8
 	CodeBidTooSmall                       sdk.CodeType      = 9
@@ -46,14 +46,14 @@ func ErrAuctionNotFound(codespace sdk.CodespaceType, id uint64) sdk.Error {
 	return sdk.NewError(codespace, CodeAuctionNotFound, fmt.Sprintf("auction %d was not found", id))
 }
 
-// ErrAuctionIsBeforeEndTime error for attempting to close an auction that has not passed its end time
-func ErrAuctionIsBeforeEndTime(codespace sdk.CodespaceType, blockTime time.Time, endTime time.Time) sdk.Error {
-	return sdk.NewError(codespace, CodeAuctionIsBeforeEndTime, fmt.Sprintf("auction can't be closed as curent block time (%v) has not passed auction end time (%v)", blockTime, endTime))
+// ErrAuctionHasNotExpired error for attempting to close an auction that has not passed its end time
+func ErrAuctionHasNotExpired(codespace sdk.CodespaceType, blockTime time.Time, endTime time.Time) sdk.Error {
+	return sdk.NewError(codespace, CodeAuctionHasNotExpired, fmt.Sprintf("auction can't be closed as curent block time (%v) has not passed auction end time (%v)", blockTime, endTime))
 }
 
-// ErrAuctionIsClosed error for when an auction is closed and unavailable for bidding
-func ErrAuctionIsClosed(codespace sdk.CodespaceType, id uint64) sdk.Error {
-	return sdk.NewError(codespace, CodeAuctionIsClosed, fmt.Sprintf("auction %d is closed", id))
+// ErrAuctionHasExpired error for when an auction is closed and unavailable for bidding
+func ErrAuctionHasExpired(codespace sdk.CodespaceType, id uint64) sdk.Error {
+	return sdk.NewError(codespace, CodeAuctionHasExpired, fmt.Sprintf("auction %d has closed", id))
 }
 
 // ErrInvalidBidDenom error for when bid denom doesn't match auction bid denom
@@ -78,7 +78,7 @@ func ErrBidTooLarge(codespace sdk.CodespaceType, bid sdk.Coin, maxBid sdk.Coin) 
 
 // ErrLotTooLarge error for when lot is not smaller than auction's last lot
 func ErrLotTooLarge(codespace sdk.CodespaceType, lot sdk.Coin, lastLot sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeLotTooLarge, fmt.Sprintf("lot %s is greater than or equal to auction's last lot %s", lot.String(), lastLot.String()))
+	return sdk.NewError(codespace, CodeLotTooLarge, fmt.Sprintf("lot %s is not less than auction's last lot %s", lot.String(), lastLot.String()))
 }
 
 // ErrCollateralAuctionIsInReversePhase error for when attempting to place a forward bid on a collateral auction in reverse phase

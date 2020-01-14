@@ -15,8 +15,8 @@ const (
 	CodeInvalidInitialAuctionID           = types.CodeInvalidInitialAuctionID
 	CodeUnrecognizedAuctionType           = types.CodeUnrecognizedAuctionType
 	CodeAuctionNotFound                   = types.CodeAuctionNotFound
-	CodeAuctionIsBeforeEndTime            = types.CodeAuctionIsBeforeEndTime
-	CodeAuctionIsClosed                   = types.CodeAuctionIsClosed
+	CodeAuctionHasNotExpired              = types.CodeAuctionHasNotExpired
+	CodeAuctionHasExpired                 = types.CodeAuctionHasExpired
 	CodeInvalidBidDenom                   = types.CodeInvalidBidDenom
 	CodeInvalidLotDenom                   = types.CodeInvalidLotDenom
 	CodeBidTooSmall                       = types.CodeBidTooSmall

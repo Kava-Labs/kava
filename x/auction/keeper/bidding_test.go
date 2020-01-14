@@ -276,7 +276,7 @@ func TestAuctionBidding(t *testing.T) {
 			"basic: closed auction",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			bidArgs{buyer, c("token2", 10), nil},
-			types.CodeAuctionIsClosed,
+			types.CodeAuctionHasExpired,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 10),
