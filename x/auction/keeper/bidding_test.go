@@ -272,17 +272,16 @@ func TestAuctionBidding(t *testing.T) {
 			c("token2", 50),
 			false,
 		},
-		// TODO: Add test back in once Liquidator module is available
-		// {
-		// 	"basic: closed auction",
-		// 	auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-		// 	bidArgs{buyer, c("token2", 10), nil},
-		// 	"",
-		// 	someTime.Add(types.DefaultBidDuration),
-		// 	buyer,
-		// 	c("token2", 10),
-		// 	false,
-		// },
+		{
+			"basic: closed auction",
+			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
+			bidArgs{buyer, c("token2", 10), nil},
+			"auction has closed",
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 10),
+			false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -307,7 +306,7 @@ func TestAuctionBidding(t *testing.T) {
 
 			// Close the auction early to test late bidding (if applicable)
 			if strings.Contains(tc.name, "closed") {
-				ctx = ctx.WithBlockTime(ctx.BlockTime().Add(types.DefaultMaxAuctionDuration).Add(1))
+				ctx = ctx.WithBlockTime(types.DistantFuture.Add(1))
 			}
 
 			// Place bid on auction
