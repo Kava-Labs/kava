@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/auction/types"
@@ -21,10 +20,10 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var auctionsList types.QueryResAuctions
+	var auctionsList types.Auctions
 
 	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
-		auctionsList = append(auctionsList, fmt.Sprintf("%+v", a)) // TODO formatting
+		auctionsList = append(auctionsList, a)
 		return false
 	})
 

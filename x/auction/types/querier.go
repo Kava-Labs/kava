@@ -16,3 +16,17 @@ type QueryResAuctions []string
 func (n QueryResAuctions) String() string {
 	return strings.Join(n[:], "\n")
 }
+
+// QueryAllAuctionParams is the params for an auctions query
+type QueryAllAuctionParams struct {
+	Page  int `json"page:" yaml:"page"`
+	Limit int `json"limit:" yaml:"limit"`
+}
+
+// NewQueryAllAuctionParams creates a new QueryAllAuctionParams
+func NewQueryAllAuctionParams(page int, limit int) QueryAllAuctionParams {
+	return QueryAllAuctionParams{
+		Page:  page,
+		Limit: limit,
+	}
+}
