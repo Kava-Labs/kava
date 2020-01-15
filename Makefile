@@ -67,9 +67,11 @@ build: go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/kvd.exe ./cmd/kvd
 	go build -mod=readonly $(BUILD_FLAGS) -o build/kvcli.exe ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/kvoracle.exe ./cmd/kvoracle
 else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/kvd ./cmd/kvd
 	go build -mod=readonly $(BUILD_FLAGS) -o build/kvcli ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/kvoracle.exe ./cmd/kvoracle
 endif
 
 build-linux: go.sum
@@ -78,6 +80,7 @@ build-linux: go.sum
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvoracle
 
 ########################################
 ### Tools & dependencies
