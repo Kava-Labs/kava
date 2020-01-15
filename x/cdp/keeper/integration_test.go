@@ -39,16 +39,20 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
 			CollateralParams: cdp.CollateralParams{
 				{
-					Denom:            asset,
-					LiquidationRatio: liquidationRatio,
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
-					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					Prefix:           0x20,
-					ConversionFactor: i(6),
-					MarketID:         asset + ":usd",
+					Denom:              asset,
+					LiquidationRatio:   liquidationRatio,
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty: d("0.05"),
+					AuctionSize:        i(100),
+					Prefix:             0x20,
+					ConversionFactor:   i(6),
+					MarketID:           asset + ":usd",
 				},
 			},
 			DebtParams: cdp.DebtParams{
@@ -63,6 +67,7 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		},
 		StartingCdpID:     cdp.DefaultCdpStartingID,
 		DebtDenom:         cdp.DefaultDebtDenom,
+		GovDenom:          cdp.DefaultGovDenom,
 		CDPs:              cdp.CDPs{},
 		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
 	}
@@ -97,25 +102,31 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit: sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
 			CollateralParams: cdp.CollateralParams{
 				{
-					Denom:            "xrp",
-					LiquidationRatio: sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
-					StabilityFee:     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					Prefix:           0x20,
-					MarketID:         "xrp:usd",
-					ConversionFactor: i(6),
+					Denom:              "xrp",
+					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty: d("0.05"),
+					AuctionSize:        i(7000000000),
+					Prefix:             0x20,
+					MarketID:           "xrp:usd",
+					ConversionFactor:   i(6),
 				},
 				{
-					Denom:            "btc",
-					LiquidationRatio: sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
-					StabilityFee:     sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
-					Prefix:           0x21,
-					MarketID:         "btc:usd",
-					ConversionFactor: i(8),
+					Denom:              "btc",
+					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
+					LiquidationPenalty: d("0.025"),
+					AuctionSize:        i(10000000),
+					Prefix:             0x21,
+					MarketID:           "btc:usd",
+					ConversionFactor:   i(8),
 				},
 			},
 			DebtParams: cdp.DebtParams{
@@ -137,6 +148,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 		},
 		StartingCdpID:     cdp.DefaultCdpStartingID,
 		DebtDenom:         cdp.DefaultDebtDenom,
+		GovDenom:          cdp.DefaultGovDenom,
 		CDPs:              cdp.CDPs{},
 		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
 	}

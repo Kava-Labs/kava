@@ -14,3 +14,6 @@
 # Exclude build files
 vendor
 build
+
+# IDE files
+*.vscode

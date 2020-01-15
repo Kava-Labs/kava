@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 	"github.com/stretchr/testify/suite"
@@ -55,15 +56,15 @@ func (suite *SeizeTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
-
+	randSource := rand.New(rand.NewSource(int64(777)))
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
 		amount := 10000000000
-		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 750000000, 1249000000)
+		debt := simulation.RandIntBetween(randSource, 750000000, 1249000000)
 		if j%2 == 0 {
 			collateral = "btc"
 			amount = 100000000
-			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700000000, 5332000000)
+			debt = simulation.RandIntBetween(randSource, 2700000000, 5332000000)
 			if debt >= 4000000000 {
 				tracker.btc = append(tracker.btc, uint64(j+1))
 				tracker.debt += int64(debt)
@@ -103,16 +104,41 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	p := cdp.Principal[0].Amount
 	cl := cdp.Collateral[0].Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	err := suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	suite.NoError(err)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
-	liqModAcc := sk.GetModuleAccount(suite.ctx, types.LiquidatorMacc)
-	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), liqModAcc.GetCoins())
+	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
-	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotAvailable, err.Result().Code)
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
+	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+}
+
+func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
+	sk := suite.app.GetSupplyKeeper()
+	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 6999000000)))
+	suite.NoError(err)
+	cdp, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
+	suite.Equal(2, len(deposits))
+	p := cdp.Principal[0].Amount
+	cl := cdp.Collateral[0].Amount
+	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
+	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	suite.NoError(err)
+	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
+	suite.Equal(tpb.Sub(tpa), p)
+	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
+	ak := suite.app.GetAccountKeeper()
+	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
+	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
+	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {

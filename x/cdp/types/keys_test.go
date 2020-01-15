@@ -20,18 +20,16 @@ func TestKeys(t *testing.T) {
 	db = SplitDenomIterKey(denomKey)
 	require.Equal(t, byte(0x01), db)
 
-	depositKey := DepositKey(StatusNil, 2, addr)
-	status, id, a := SplitDepositKey(depositKey)
+	depositKey := DepositKey(2, addr)
+	id, a := SplitDepositKey(depositKey)
 	require.Equal(t, 2, int(id))
 	require.Equal(t, a, addr)
-	require.Equal(t, StatusNil, status)
 
-	depositIterKey := DepositIterKey(StatusLiquidated, 2)
-	status, id = SplitDepositIterKey(depositIterKey)
+	depositIterKey := DepositIterKey(2)
+	id = SplitDepositIterKey(depositIterKey)
 	require.Equal(t, 2, int(id))
-	require.Equal(t, StatusLiquidated, status)
 
-	require.Panics(t, func() { SplitDepositIterKey(append([]byte{0x03}, GetCdpIDBytes(2)...)) })
+	require.Panics(t, func() { SplitDepositIterKey([]byte{0x03}) })
 
 	collateralKey := CollateralRatioKey(0x01, 2, sdk.MustNewDecFromStr("1.50"))
 	db, id, ratio := SplitCollateralRatioKey(collateralKey)

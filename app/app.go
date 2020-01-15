@@ -229,18 +229,19 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		pricefeedSubspace,
 		pricefeed.DefaultCodespace)
 	// NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType)
-	app.cdpKeeper = cdp.NewKeeper(
-		app.cdc,
-		keys[cdp.StoreKey],
-		cdpSubspace,
-		app.pricefeedKeeper,
-		app.supplyKeeper,
-		cdp.DefaultCodespace)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
 		app.supplyKeeper,
 		auctionSubspace)
+	app.cdpKeeper = cdp.NewKeeper(
+		app.cdc,
+		keys[cdp.StoreKey],
+		cdpSubspace,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+		app.supplyKeeper,
+		cdp.DefaultCodespace)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks

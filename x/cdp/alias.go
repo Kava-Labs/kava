@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	StatusNil                       = types.StatusNil
-	StatusLiquidated                = types.StatusLiquidated
 	DefaultCodespace                = types.DefaultCodespace
 	CodeCdpAlreadyExists            = types.CodeCdpAlreadyExists
 	CodeCollateralLengthInvalid     = types.CodeCollateralLengthInvalid
@@ -36,15 +34,17 @@ const (
 	EventTypeCdpClose               = types.EventTypeCdpClose
 	EventTypeCdpWithdrawal          = types.EventTypeCdpWithdrawal
 	EventTypeCdpLiquidation         = types.EventTypeCdpLiquidation
+	EventTypeBeginBlockerFatal      = types.EventTypeBeginBlockerFatal
 	AttributeKeyCdpID               = types.AttributeKeyCdpID
 	AttributeKeyDepositor           = types.AttributeKeyDepositor
 	AttributeValueCategory          = types.AttributeValueCategory
-	LiquidatorMacc                  = types.LiquidatorMacc
+	AttributeKeyError               = types.AttributeKeyError
 	ModuleName                      = types.ModuleName
 	StoreKey                        = types.StoreKey
 	RouterKey                       = types.RouterKey
 	QuerierRoute                    = types.QuerierRoute
 	DefaultParamspace               = types.DefaultParamspace
+	LiquidatorMacc                  = types.LiquidatorMacc
 	QueryGetCdp                     = types.QueryGetCdp
 	QueryGetCdps                    = types.QueryGetCdps
 	QueryGetCdpsByCollateralization = types.QueryGetCdpsByCollateralization
@@ -58,7 +58,6 @@ var (
 	// functions aliases
 	NewCDP                      = types.NewCDP
 	RegisterCodec               = types.RegisterCodec
-	StatusFromByte              = types.StatusFromByte
 	NewDeposit                  = types.NewDeposit
 	ErrCdpAlreadyExists         = types.ErrCdpAlreadyExists
 	ErrInvalidCollateralLength  = types.ErrInvalidCollateralLength
@@ -116,6 +115,7 @@ var (
 	CollateralRatioIndexPrefix = types.CollateralRatioIndexPrefix
 	CdpIDKey                   = types.CdpIDKey
 	DebtDenomKey               = types.DebtDenomKey
+	GovDenomKey                = types.GovDenomKey
 	DepositKeyPrefix           = types.DepositKeyPrefix
 	PrincipalKeyPrefix         = types.PrincipalKeyPrefix
 	AccumulatorKeyPrefix       = types.AccumulatorKeyPrefix
@@ -124,12 +124,17 @@ var (
 	KeyCollateralParams        = types.KeyCollateralParams
 	KeyDebtParams              = types.KeyDebtParams
 	KeyCircuitBreaker          = types.KeyCircuitBreaker
+	KeyDebtThreshold           = types.KeyDebtThreshold
+	KeySurplusThreshold        = types.KeySurplusThreshold
 	DefaultGlobalDebt          = types.DefaultGlobalDebt
 	DefaultCircuitBreaker      = types.DefaultCircuitBreaker
 	DefaultCollateralParams    = types.DefaultCollateralParams
 	DefaultDebtParams          = types.DefaultDebtParams
 	DefaultCdpStartingID       = types.DefaultCdpStartingID
 	DefaultDebtDenom           = types.DefaultDebtDenom
+	DefaultGovDenom            = types.DefaultGovDenom
+	DefaultSurplusThreshold    = types.DefaultSurplusThreshold
+	DefaultDebtThreshold       = types.DefaultDebtThreshold
 	DefaultPreviousBlockTime   = types.DefaultPreviousBlockTime
 	MaxSortableDec             = types.MaxSortableDec
 )
@@ -138,7 +143,6 @@ type (
 	CDP                    = types.CDP
 	CDPs                   = types.CDPs
 	Deposit                = types.Deposit
-	DepositStatus          = types.DepositStatus
 	Deposits               = types.Deposits
 	SupplyKeeper           = types.SupplyKeeper
 	PricefeedKeeper        = types.PricefeedKeeper

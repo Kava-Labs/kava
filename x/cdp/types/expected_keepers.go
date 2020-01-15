@@ -32,3 +32,10 @@ type PricefeedKeeper interface {
 	SetPrice(sdk.Context, sdk.AccAddress, string, sdk.Dec, time.Time) (pftypes.PostedPrice, sdk.Error)
 	SetCurrentPrices(sdk.Context, string) sdk.Error
 }
+
+// AuctionKeeper expected interface for the auction keeper (noalias)
+type AuctionKeeper interface {
+	StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error)
+	StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, sdk.Error)
+	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, sdk.Error)
+}
