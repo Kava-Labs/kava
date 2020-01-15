@@ -104,7 +104,8 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	p := cdp.Principal[0].Amount
 	cl := cdp.Collateral[0].Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	err := suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	suite.NoError(err)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
 	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
@@ -112,7 +113,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
-	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
 	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
 }
 

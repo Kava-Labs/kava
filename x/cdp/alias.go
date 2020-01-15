@@ -34,9 +34,11 @@ const (
 	EventTypeCdpClose               = types.EventTypeCdpClose
 	EventTypeCdpWithdrawal          = types.EventTypeCdpWithdrawal
 	EventTypeCdpLiquidation         = types.EventTypeCdpLiquidation
+	EventTypeBeginBlockerFatal      = types.EventTypeBeginBlockerFatal
 	AttributeKeyCdpID               = types.AttributeKeyCdpID
 	AttributeKeyDepositor           = types.AttributeKeyDepositor
 	AttributeValueCategory          = types.AttributeValueCategory
+	AttributeKeyError               = types.AttributeKeyError
 	ModuleName                      = types.ModuleName
 	StoreKey                        = types.StoreKey
 	RouterKey                       = types.RouterKey

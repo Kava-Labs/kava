@@ -112,7 +112,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty: d("0.05"),
-					AuctionSize:        i(1000000000),
+					AuctionSize:        i(7000000000),
 					Prefix:             0x20,
 					MarketID:           "xrp:usd",
 					ConversionFactor:   i(6),
