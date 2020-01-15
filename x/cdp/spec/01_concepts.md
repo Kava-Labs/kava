@@ -4,7 +4,7 @@
 
 CDPs enable the creation of a stable pegged asset by collateralization with another on chain asset.
 
-A CDP is owned by a set of users (addresses) and stores one type of collateral. Any user can deposit, withdraw, collateral and pegged asset from their CDPs.
+A CDP is scoped to one collateral type. It has one primary owner, and a set of "depositors". The depositors can deposit and withdraw collateral to the CDP. The owner can draw pegged assets (creating debt) and repay them to cancel the debt.
 
 User interactions with this module:
 
@@ -13,7 +13,12 @@ User interactions with this module:
 - repay debt by paying back stable coins (including paying any fees accrued)
 - remove collateral and close CDP
 
-This module does not handle system stability through liquidation of CDPs and sell off of collateral; instead relying on other modules to fulfill this role. Further an up to date price of each collateral is requited to determine their values.
+Automatic actions:
+
+- CDPs that fall below the liquidation ratio (how over-collateralised the debt is) are seized and collateral is auctioned off through another auction module.
+- Seized debt is netted with the proceeds from auction sales. Any remaining is rebalanced by triggering auctions.
+
+An up to date price of each collateral is required, and is provided by a "pricefeed" module.
 
 Although a CDP is restricted to one type of collateral, users can create other CDPs that store different types. The module parameters store allowed collateral types.
 
@@ -34,14 +39,8 @@ Fees create incentives to open or close CDPs and can be changed by governance to
 
 The CDP module has a 'Module Account' which store user's assets. It relies on a supply keeper to move assets between it's module account and other user and module accounts.
 
-## Dependency: price feed
+## Dependency: pricefeed
 
 The CDP module needs to know the current real world price of collateral assets in order to calculate if CDPs are under collateralized. It calls another module to return a price for a given collateral in units of the pegged asset (usually US Dollars).
 
 CDP assumes the price feed is accurate, leaving it to external modules to achieve this.
-
-## Dependency: liquidator
-
-The CDP module on its own cannot maintain system stability. In the event the system becomes under collateralized, a re-balancing mechanism is needed to seize users' collateral and sell it for the stable asset. Additional stability mechanisms such as minting or burning governance tokens can also be used.
-
-This module exposes the concept of CDP seizing through a keeper method, but does not handle the selling of the seized assets. CDPs can be seized when their collateralization ratio falls below a threshold (usually > 100%) set in the system parameters.
