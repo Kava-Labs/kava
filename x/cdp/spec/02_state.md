@@ -34,8 +34,6 @@ CDPs are stored with a couple of database indexes for faster lookup:
 
 A Deposit is a struct recording collateral added to a CDP by one address. The address only has authorization to change their deposited amount (provided it does not put the CDP below the liquidation ratio).
 
-The liquidation flag indicates whether this deposit has been seized for sell off.
-
 ```go
 type Deposit struct {
     CdpID         uint64
