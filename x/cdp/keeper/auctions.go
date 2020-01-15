@@ -160,28 +160,28 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) sdk.Error {
 	totalSurplus := k.GetTotalSurplus(ctx, types.LiquidatorMacc)
 	debt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	netAmount := sdk.MinInt(totalSurplus, debt)
-	if netAmount.GT(sdk.ZeroInt()) {
-		surplusToBurn := netAmount
-		err := k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
-		if err != nil {
-			return err
-		}
-		for surplusToBurn.GT(sdk.ZeroInt()) {
-			for _, dp := range k.GetParams(ctx).DebtParams {
-				balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
-				if balance.LT(netAmount) {
-					err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
-					if err != nil {
-						return err
-					}
-					surplusToBurn = surplusToBurn.Sub(balance)
-				} else {
-					err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, surplusToBurn)))
-					if err != nil {
-						return err
-					}
-					surplusToBurn = sdk.ZeroInt()
+	if netAmount.IsZero() {
+		return nil
+	}
+	err := k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
+	if err != nil {
+		return err
+	}
+	for netAmount.GT(sdk.ZeroInt()) {
+		for _, dp := range k.GetParams(ctx).DebtParams {
+			balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+			if balance.LT(netAmount) {
+				err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
+				if err != nil {
+					return err
 				}
+				netAmount = netAmount.Sub(balance)
+			} else {
+				err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, netAmount)))
+				if err != nil {
+					return err
+				}
+				netAmount = sdk.ZeroInt()
 			}
 		}
 	}
