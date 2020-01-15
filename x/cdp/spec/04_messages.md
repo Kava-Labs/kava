@@ -1,5 +1,7 @@
 # Messages
 
+Users can submit several types of messages to the cdp module which trigger various state changes detailed below.
+
 ## CreateCDP
 
 CreateCDP sets up and stores a new CDP, adding collateral from the sender, and drawing `Principle` debt.
