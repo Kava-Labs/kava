@@ -56,15 +56,15 @@ func (suite *SeizeTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
-
+	randSource := rand.New(rand.NewSource(int64(777)))
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
 		amount := 10000000000
-		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 750000000, 1249000000)
+		debt := simulation.RandIntBetween(randSource, 750000000, 1249000000)
 		if j%2 == 0 {
 			collateral = "btc"
 			amount = 100000000
-			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700000000, 5332000000)
+			debt = simulation.RandIntBetween(randSource, 2700000000, 5332000000)
 			if debt >= 4000000000 {
 				tracker.btc = append(tracker.btc, uint64(j+1))
 				tracker.debt += int64(debt)

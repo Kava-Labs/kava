@@ -49,6 +49,8 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 	totalCollateral := deposits.SumCollateral()
 	for totalCollateral.GT(sdk.ZeroInt()) {
 		for i, dep := range deposits {
+			collateralAmount := dep.Amount[0].Amount
+			collateralDenom := dep.Amount[0].Denom
 			// create auctions from individual deposits that are larger than the auction size
 			debtChange, collateralChange, err := k.CreateAuctionsFromDeposit(ctx, dep, debt, totalCollateral, auctionSize, bidDenom)
 			if err != nil {
@@ -56,11 +58,10 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 			}
 			debt = debt.Sub(debtChange)
 			totalCollateral = totalCollateral.Sub(collateralChange)
-			dep.Amount = sdk.NewCoins(sdk.NewCoin(dep.Amount[0].Denom, dep.Amount[0].Amount.Sub(collateralChange)))
+			dep.Amount = sdk.NewCoins(sdk.NewCoin(collateralDenom, collateralAmount.Sub(collateralChange)))
+			collateralAmount = collateralAmount.Sub(collateralChange)
 			// if there is leftover collateral that is less than a lot
 			if !dep.Amount.IsZero() {
-				collateralAmount := dep.Amount[0].Amount
-				collateralDenom := dep.Amount[0].Denom
 				// figure out how much debt this deposit accounts for
 				// (depositCollateral / totalCollateral) * totalDebtFromCDP
 				debtCoveredByDeposit := (collateralAmount.Quo(totalCollateral)).Mul(debt)
