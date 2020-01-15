@@ -50,8 +50,10 @@ The cdp module emits the following events:
 
 ## BeginBlock
 
-| Type            | Attribute Key | Attribute Value     |
-|-----------------|---------------|---------------------|
-| cdp_liquidation | module        | cdp                 |
-| cdp_liquidation | cdp_id        | {cdp id}            |
-| cdp_liquidation | depositor     | {depositor address} |
+| Type                    | Attribute Key | Attribute Value     |
+|-------------------------|---------------|---------------------|
+| cdp_liquidation         | module        | cdp                 |
+| cdp_liquidation         | cdp_id        | {cdp id}            |
+| cdp_liquidation         | depositor     | {depositor address} |
+| cdp_begin_blocker_error | module        | cdp                 |
+| cdp_begin_blocker_error | error_message | {error}             |
