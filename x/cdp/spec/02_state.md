@@ -6,6 +6,14 @@ For details see the types package. In particular `keys.go` describes how state i
 Store key structures are not listed here - they seem like an implementation detail best documented by code comments.
 -->
 
+## Module Accounts
+
+The cdp module account controls two module accounts:
+
+**CDP Account:** Stores the deposited cdp collateral, and the debt coins for the debt in all the cdps.
+
+**Liquidator Account:** Stores debt coins that have been seized by the system, and pegged asset that has been raised through auctions.
+
 ## CDP
 
 A CDP is a struct representing a debt position owned by one address. It has one collateral type and records the debt that has been drawn and how much fees should be repaid.
@@ -57,7 +65,7 @@ The name for the internal debt coin. It's set in the store rather than hard-code
 ## Total Principle
 
 Total pegged assets drawn for each pegged asset denom.
-<!-- TODO is this different from the total amount of the assets created? ie does it include amount in liquidator? -->
+<!-- TODO add more details -->
 
 ## FeeRate
 
