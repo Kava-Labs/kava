@@ -37,7 +37,7 @@ State Changes:
 
 - Collateral taken from depositor and sent to cdp module account.
 - The depositor's Deposit struct is updated or a new one created.
-- something to do with fees <!-- TODO -->
+<!-- TODO - something to do with fees -->
 
 ## Withdraw
 
@@ -53,9 +53,9 @@ type MsgWithdraw struct {
 
 State Changes:
 
-- Something to do with fees <!-- TODO -->
-- Collateral coins are sent from cdp's module account to Depositor.
-- Collateral amount of coins subtracted from the Deposit struct. <!-- TODO should this delete deposit if empty?-->
+<!-- TODO - Something to do with fees -->
+- Collateral coins are sent from the cdp module account to Depositor.
+- Collateral amount of coins subtracted from the Deposit struct.
 
 ## DrawDebt
 
