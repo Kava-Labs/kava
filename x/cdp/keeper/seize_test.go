@@ -117,6 +117,30 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
 }
 
+func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
+	sk := suite.app.GetSupplyKeeper()
+	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 6999000000)))
+	suite.NoError(err)
+	cdp, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
+	suite.Equal(2, len(deposits))
+	p := cdp.Principal[0].Amount
+	cl := cdp.Collateral[0].Amount
+	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
+	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	suite.NoError(err)
+	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
+	suite.Equal(tpb.Sub(tpa), p)
+	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
+	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
+	ak := suite.app.GetAccountKeeper()
+	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
+	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
+	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+}
+
 func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	sk := suite.app.GetSupplyKeeper()
 	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)

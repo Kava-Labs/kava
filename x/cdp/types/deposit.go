@@ -54,7 +54,9 @@ func (d Deposit) Empty() bool {
 func (ds Deposits) SumCollateral() (sum sdk.Int) {
 	sum = sdk.ZeroInt()
 	for _, d := range ds {
-		sum = sum.Add(d.Amount[0].Amount)
+		if !d.Amount.IsZero() {
+			sum = sum.Add(d.Amount[0].Amount)
+		}
 	}
 	return
 }

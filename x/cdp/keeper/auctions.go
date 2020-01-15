@@ -49,6 +49,9 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 	totalCollateral := deposits.SumCollateral()
 	for totalCollateral.GT(sdk.ZeroInt()) {
 		for i, dep := range deposits {
+			if dep.Amount.IsZero() {
+				continue
+			}
 			collateralAmount := dep.Amount[0].Amount
 			collateralDenom := dep.Amount[0].Denom
 			// create auctions from individual deposits that are larger than the auction size
@@ -93,13 +96,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 					dep.Amount = sdk.NewCoins(sdk.NewCoin(collateralDenom, collateralAmount.Sub(partialAmount)))
 				}
 			}
-			if dep.Amount.IsZero() {
-				// remove the deposit from the slice if it is empty
-				deposits = append(deposits[:i], deposits[i+1:]...)
-				i--
-			} else {
-				deposits[i] = dep
-			}
+			deposits[i] = dep
 			totalCollateral = deposits.SumCollateral()
 		}
 	}
