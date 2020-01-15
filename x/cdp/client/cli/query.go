@@ -47,8 +47,9 @@ func QueryCdpCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			collateralType := args[1] // TODO validation?
-			bz, err := cdc.MarshalJSON(types.QueryCdpsParams{
+			bz, err := cdc.MarshalJSON(types.QueryCdpParams{
 				CollateralDenom: collateralType,
+				Owner:           ownerAddress,
 			})
 			if err != nil {
 				return err
@@ -58,8 +59,6 @@ func QueryCdpCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdp)
 			res, _, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
-				fmt.Printf("error when getting cdp info - %s", err)
-				fmt.Printf("could not get current cdp info - %s %s \n", string(ownerAddress), string(collateralType))
 				return err
 			}
 
@@ -78,7 +77,7 @@ func QueryCdpsByDenomCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "Query cdps by collateral type",
 		Long: strings.TrimSpace(`Query cdps by a specific collateral type, or query all cdps if none is specifed:
 
-$ <appcli> query cdp cdps atom
+$ <appcli> query cdp cdps uatom
 		`),
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

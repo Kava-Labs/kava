@@ -22,6 +22,9 @@ type Keeper struct {
 
 // NewKeeper returns a new auction keeper.
 func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
+	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
 	return Keeper{
 		supplyKeeper:  supplyKeeper,
 		storeKey:      storeKey,

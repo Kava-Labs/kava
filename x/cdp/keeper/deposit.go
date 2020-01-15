@@ -18,13 +18,8 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
-	// deposits blocked if cdp is in liquidation, have to check all deposits
-	err = k.ValidateAvailableCDP(ctx, cdp.ID)
-	if err != nil {
-		return err
-	}
 
-	deposit, found := k.GetDeposit(ctx, types.StatusNil, cdp.ID, depositor)
+	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if found {
 		deposit.Amount = deposit.Amount.Add(collateral)
 	} else {
@@ -67,12 +62,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
 	}
-	// withdrawals blocked if cdp is in liquidation
-	err = k.ValidateAvailableCDP(ctx, cdp.ID)
-	if err != nil {
-		return err
-	}
-	deposit, found := k.GetDeposit(ctx, types.StatusNil, cdp.ID, depositor)
+	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if !found {
 		return types.ErrDepositNotFound(k.codespace, depositor, cdp.ID)
 	}
@@ -113,28 +103,17 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 
 	deposit.Amount = deposit.Amount.Sub(collateral)
 	if deposit.Amount.IsZero() {
-		k.DeleteDeposit(ctx, types.StatusNil, deposit.CdpID, deposit.Depositor)
+		k.DeleteDeposit(ctx, deposit.CdpID, deposit.Depositor)
 	} else {
 		k.SetDeposit(ctx, deposit)
 	}
 	return nil
 }
 
-// ValidateAvailableCDP validates that the deposits of a cdp are not in liquidation
-func (k Keeper) ValidateAvailableCDP(ctx sdk.Context, cdpID uint64) sdk.Error {
-	deposits := k.GetDeposits(ctx, cdpID)
-	for _, d := range deposits {
-		if d.InLiquidation {
-			return types.ErrCdpNotAvailable(k.codespace, cdpID)
-		}
-	}
-	return nil
-}
-
 // GetDeposit returns the deposit of a depositor on a particular cdp from the store
-func (k Keeper) GetDeposit(ctx sdk.Context, status types.DepositStatus, cdpID uint64, depositor sdk.AccAddress) (deposit types.Deposit, found bool) {
+func (k Keeper) GetDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddress) (deposit types.Deposit, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	bz := store.Get(types.DepositKey(status, cdpID, depositor))
+	bz := store.Get(types.DepositKey(cdpID, depositor))
 	if bz == nil {
 		return deposit, false
 	}
@@ -147,35 +126,20 @@ func (k Keeper) GetDeposit(ctx sdk.Context, status types.DepositStatus, cdpID ui
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(deposit)
-	if deposit.InLiquidation {
-		store.Set(types.DepositKey(types.StatusLiquidated, deposit.CdpID, deposit.Depositor), bz)
-		return
-	}
-	store.Set(types.DepositKey(types.StatusNil, deposit.CdpID, deposit.Depositor), bz)
+	store.Set(types.DepositKey(deposit.CdpID, deposit.Depositor), bz)
 
 }
 
 // DeleteDeposit deletes a deposit from the store
-func (k Keeper) DeleteDeposit(ctx sdk.Context, status types.DepositStatus, cdpID uint64, depositor sdk.AccAddress) {
+func (k Keeper) DeleteDeposit(ctx sdk.Context, cdpID uint64, depositor sdk.AccAddress) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	store.Delete(types.DepositKey(status, cdpID, depositor))
+	store.Delete(types.DepositKey(cdpID, depositor))
 }
 
 // IterateDeposits iterates over the all the deposits of a cdp and performs a callback function
 func (k Keeper) IterateDeposits(ctx sdk.Context, cdpID uint64, cb func(deposit types.Deposit) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.DepositIterKey(types.StatusNil, cdpID))
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
-
-		if cb(deposit) {
-			break
-		}
-	}
-	iterator = sdk.KVStorePrefixIterator(store, types.DepositIterKey(types.StatusLiquidated, cdpID))
+	iterator := sdk.KVStorePrefixIterator(store, types.GetCdpIDBytes(cdpID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -191,31 +155,6 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cdpID uint64, cb func(deposit t
 // GetDeposits returns all the deposits to a cdp
 func (k Keeper) GetDeposits(ctx sdk.Context, cdpID uint64) (deposits types.Deposits) {
 	k.IterateDeposits(ctx, cdpID, func(deposit types.Deposit) bool {
-		deposits = append(deposits, deposit)
-		return false
-	})
-	return
-}
-
-// IterateLiquidatedDeposits iterates over the all liquidated deposits performs a callback function
-func (k Keeper) IterateLiquidatedDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{types.StatusLiquidated.AsByte()})
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var deposit types.Deposit
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
-
-		if cb(deposit) {
-			break
-		}
-	}
-}
-
-// GetAllLiquidatedDeposits returns all deposits with status liquidated
-func (k Keeper) GetAllLiquidatedDeposits(ctx sdk.Context) (deposits types.Deposits) {
-	k.IterateLiquidatedDeposits(ctx, func(deposit types.Deposit) bool {
 		deposits = append(deposits, deposit)
 		return false
 	})

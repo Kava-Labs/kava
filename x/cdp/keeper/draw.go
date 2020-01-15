@@ -14,11 +14,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	err := k.ValidateAvailableCDP(ctx, cdp.ID)
-	if err != nil {
-		return err
-	}
-	err = k.ValidatePrincipalDraw(ctx, principal)
+	err := k.ValidatePrincipalDraw(ctx, principal)
 	if err != nil {
 		return err
 	}
@@ -84,11 +80,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	err := k.ValidateAvailableCDP(ctx, cdp.ID)
-	if err != nil {
-		return err
-	}
-	err = k.ValidatePaymentCoins(ctx, cdp, payment)
+	err := k.ValidatePaymentCoins(ctx, cdp, payment)
 	if err != nil {
 		return err
 	}
@@ -189,7 +181,7 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 		if err != nil {
 			panic(err)
 		}
-		k.DeleteDeposit(ctx, types.StatusNil, cdp.ID, deposit.Depositor)
+		k.DeleteDeposit(ctx, cdp.ID, deposit.Depositor)
 	}
 }
 
