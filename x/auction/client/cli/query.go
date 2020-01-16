@@ -20,15 +20,15 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	auctionQueryCmd.AddCommand(client.GetCommands(
-		QueryCmdGetAuctions(queryRoute, cdc),
+		QueryGetAuctionsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
 
 	return auctionQueryCmd
 }
 
-// QueryCmdGetAuctions queries the auctions in the store
-func QueryCmdGetAuctions(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryGetAuctionsCmd queries the auctions in the store
+func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "getauctions",
 		Short: "get a list of active auctions",
@@ -49,7 +49,7 @@ func QueryCmdGetAuctions(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// QueryParamsCmd returns the command handler for auction parameter querying
+// QueryParamsCmd queries the auction module parameters
 func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
