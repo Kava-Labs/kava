@@ -126,7 +126,7 @@ func (dp DebtParam) String() string {
 	Reference Asset: %s
 	Debt Limit: %s
 	Conversion Factor: %s
-	Debt Floot %s`, dp.Denom, dp.ReferenceAsset, dp.DebtLimit, dp.ConversionFactor, dp.DebtFloor)
+	Debt Floor %s`, dp.Denom, dp.ReferenceAsset, dp.DebtLimit, dp.ConversionFactor, dp.DebtFloor)
 }
 
 // DebtParams array of DebtParam
