@@ -42,9 +42,7 @@ func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			// if err := cliCtx.EnsureAccountExists(); err != nil {
-			// 	return err
-			// }
+
 			price, err := sdk.NewDecFromStr(args[1])
 			if err != nil {
 				return err

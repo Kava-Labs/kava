@@ -37,7 +37,7 @@ func ErrNoValidPrice(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidPrice, fmt.Sprintf("All input prices are expired."))
 }
 
-// ErrInvalidAsset Error constructor for posted price messages for invalid markets
+// ErrInvalidMarket Error constructor for posted price messages for invalid markets
 func ErrInvalidMarket(codespace sdk.CodespaceType, marketId string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidAsset, fmt.Sprintf("market %s does not exist", marketId))
 }
