@@ -1,11 +1,15 @@
 package txs
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/kava-labs/kava/x/pricefeed/types"
+	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // SendTxPostPrice sends a tx containing MsgPostPrice to the kava blockchain
@@ -16,86 +20,59 @@ func SendTxPostPrice(
 	moniker string,
 	passphrase string,
 	cliCtx context.CLIContext,
-	msg *types.MsgPostPrice,
+	msg *pftypes.MsgPostPrice,
 	rpcURL string,
-) error {
+) (sdk.TxResponse, error) {
 
-	// if rpcURL != "" {
-	// 	cliCtx = cliCtx.WithNodeURI(rpcURL)
-	// }
+	if rpcURL != "" {
+		cliCtx = cliCtx.WithNodeURI(rpcURL)
+	}
 
-	// cliCtx.SkipConfirm = true
+	cliCtx.SkipConfirm = true
 
-	// txBldr := authtypes.NewTxBuilderFromCLI().
-	// 	WithTxEncoder(utils.GetTxEncoder(cdc)).
-	// 	WithChainID(chainID)
+	txBldr := authtypes.NewTxBuilderFromCLI().
+		WithTxEncoder(utils.GetTxEncoder(cdc)).
+		WithChainID(chainID)
 
-	// accountRetriever := authtypes.NewAccountRetriever(cliCtx)
+	accountRetriever := authtypes.NewAccountRetriever(cliCtx)
 
-	// acc, err := authtypes.NewAccountRetriever(cliCtx).GetAccount(accAddress)
-	// if err != nil {
-	// 	return err
-	// }
+	err := accountRetriever.EnsureExists(accAddress)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
 
-	// // err := accountRetriever.EnsureExists((sdk.AccAddress(msg.From)))
-	// // if err != nil {
-	// // 	return err
-	// // }
+	// Prepare tx
+	txBldr, err = utils.PrepareTxBuilder(txBldr, cliCtx)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
 
-	// gasPrices := sdk.Coins{sdk.NewCoin("stake", sdk.NewInt(50))}
-	// // gas := sdk.NewInt(200000)
-	// gas := uint64(200000)
+	// Build and sign the transaction
+	txBytes, err := txBldr.BuildAndSign(moniker, passphrase, []sdk.Msg{msg})
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
 
-	// fees := make(sdk.Coins, len(gasPrices))
-	// for i, gp := range gasPrices {
-	// 	fee := gp.Amount.Mul(sdk.NewInt(int64(gas)))
-	// 	fees[i] = sdk.NewCoin(gp.Denom, fee) //(fee).Ceil().RoundInt())
-	// }
+	// Broadcast to a Tendermint node
+	res, err := cliCtx.BroadcastTxCommit(txBytes)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
 
-	// // Build the StdSignMsg
-	// sign := authtypes.StdSignMsg{
-	// 	ChainID:       chainID,
-	// 	AccountNumber: acc.GetSequence(),
-	// 	Sequence:      acc.GetSequence(),
-	// 	Memo:          "",
-	// 	Msgs:          msgs,
-	// 	Fee:           authtypes.NewStdFee(gas, fees),
-	// }
+	return res, nil
+}
 
-	// // Create signature for transaction
-	// stdSignature, err := authtypes.MakeSignature(nil, moniker, passphrase, sign)
+// ConstructMsgPostPrice builds a MsgPostPrice
+func ConstructMsgPostPrice(accAddress sdk.AccAddress, price sdk.Dec, symbol string) (pftypes.MsgPostPrice, error) {
+	// Set expiration time to 1 day in the future
+	expiry := time.Now().Add(24 * time.Hour)
 
-	// // Create the StdTx for broadcast
-	// stdTx := authtypes.NewStdTx(msgs, sign.Fee, []authtypes.StdSignature{stdSignature}, "")
-	// // Marshal amino
-	// out, err := cdc.MarshalBinaryLengthPrefixed(stdTx)
-	// if err != nil {
-	// 	return err
-	// }
+	// Initialize and validate the msg
+	msg := pftypes.NewMsgPostPrice(accAddress, symbol, price, expiry)
+	err := msg.ValidateBasic()
+	if err != nil {
+		return pftypes.MsgPostPrice{}, err
+	}
 
-	// Broadcast transaction
-	// res, err := cliCtx.BroadcastTxSync(out) // BroadcastTxCommit
-	// if err != nil {
-	// 	return err
-	// }
-	// // Prepare tx
-	// txBldr, err = utils.PrepareTxBuilder(txBldr, cliCtx)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // Build and sign the transaction
-	// txBytes, err := txBldr.BuildAndSign(moniker, passphrase, []sdk.Msg{msg})
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // Broadcast to a Tendermint node
-	// res, err := cliCtx.BroadcastTxSync(txBytes)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// cliCtx.PrintOutput(res)
-	return nil
+	return msg, nil
 }

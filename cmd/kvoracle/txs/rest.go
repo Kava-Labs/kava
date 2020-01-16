@@ -52,7 +52,6 @@ func GetAssetList() {
 	for _, asset := range data.Result {
 		fmt.Println(asset)
 	}
-
 }
 
 // GetAssetPrice gets an asset's current price on kava
@@ -81,5 +80,4 @@ func GetAssetPrice(symbol string) {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 
 	fmt.Println(string(respBody))
-
 }
