@@ -10,7 +10,7 @@ const (
 	// QueryRawPrices command for raw price queries
 	QueryRawPrices = "rawprices"
 	// QueryMarkets command for assets query
-	QueryMarkets = "assets"
+	QueryMarkets = "markets"
 )
 
 // QueryPricesParams fields for querying prices
