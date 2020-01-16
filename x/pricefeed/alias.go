@@ -26,7 +26,7 @@ const (
 	DefaultParamspace             = types.DefaultParamspace
 	RawPriceFeedPrefix            = types.RawPriceFeedPrefix
 	CurrentPricePrefix            = types.CurrentPricePrefix
-	AssetPrefix                   = types.AssetPrefix
+	MarketPrefix                  = types.MarketPrefix
 	OraclePrefix                  = types.OraclePrefix
 	TypeMsgPostPrice              = types.TypeMsgPostPrice
 	QueryCurrentPrice             = types.QueryCurrentPrice

@@ -36,8 +36,8 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 // GetCmdPostPrice cli command for posting prices.
 func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "postprice [assetCode] [price] [expiry]",
-		Short: "post the latest price for a particular asset",
+		Use:   "postprice [marketID] [price] [expiry]",
+		Short: "post the latest price for a particular market",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)

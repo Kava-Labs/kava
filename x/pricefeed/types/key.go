@@ -22,8 +22,8 @@ const (
 	// CurrentPricePrefix prefix for the current price of an asset
 	CurrentPricePrefix = StoreKey + ":currentprice:"
 
-	// AssetPrefix Prefix for the assets in the pricefeed system
-	AssetPrefix = StoreKey + ":assets"
+	// MarketPrefix Prefix for the assets in the pricefeed system
+	MarketPrefix = StoreKey + ":markets"
 
 	// OraclePrefix store prefix for the oracle accounts
 	OraclePrefix = StoreKey + ":oracles"

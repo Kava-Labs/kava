@@ -7,7 +7,7 @@ import (
 // InitGenesis sets distribution information for genesis.
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 
-	// Set the assets and oracles from params
+	// Set the markets and oracles from params
 	keeper.SetParams(ctx, data.Params)
 
 	// Iterate through the posted prices and set them in the store
@@ -32,12 +32,12 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 
-	// Get the params for assets and oracles
+	// Get the params for markets and oracles
 	params := keeper.GetParams(ctx)
 
 	var postedPrices []PostedPrice
-	for _, asset := range keeper.GetMarkets(ctx) {
-		pp := keeper.GetRawPrices(ctx, asset.MarketID)
+	for _, market := range keeper.GetMarkets(ctx) {
+		pp := keeper.GetRawPrices(ctx, market.MarketID)
 		postedPrices = append(postedPrices, pp...)
 	}
 

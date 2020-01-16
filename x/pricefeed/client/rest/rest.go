@@ -15,14 +15,14 @@ import (
 )
 
 const (
-	restName = "assetCode"
+	restName = "marketID"
 )
 
 type postPriceReq struct {
-	BaseReq   rest.BaseReq `json:"base_req"`
-	AssetCode string       `json:"asset_code"`
-	Price     string       `json:"price"`
-	Expiry    string       `json:"expiry"`
+	BaseReq  rest.BaseReq `json:"base_req"`
+	MarketID string       `json:"market_id"`
+	Price    string       `json:"price"`
+	Expiry   string       `json:"expiry"`
 }
 
 // RegisterRoutes - Central function to define routes that get registered by the main application
@@ -30,7 +30,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, storeName string) 
 	r.HandleFunc(fmt.Sprintf("/%s/rawprices", storeName), postPriceHandler(cliCtx)).Methods("PUT")
 	r.HandleFunc(fmt.Sprintf("/%s/rawprices/{%s}", storeName, restName), getRawPricesHandler(cliCtx, storeName)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/currentprice/{%s}", storeName, restName), getCurrentPriceHandler(cliCtx, storeName)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/assets", storeName), getAssetsHandler(cliCtx, storeName)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/markets", storeName), getAssetsHandler(cliCtx, storeName)).Methods("GET")
 }
 
 func postPriceHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -67,7 +67,7 @@ func postPriceHandler(cliCtx context.CLIContext) http.HandlerFunc {
 		expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
 
 		// create the message
-		msg := types.NewMsgPostPrice(addr, req.AssetCode, price, expiry)
+		msg := types.NewMsgPostPrice(addr, req.MarketID, price, expiry)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -106,7 +106,7 @@ func getCurrentPriceHandler(cliCtx context.CLIContext, storeName string) http.Ha
 
 func getAssetsHandler(cliCtx context.CLIContext, storeName string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/assets/", storeName), nil)
+		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/markets/", storeName), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return

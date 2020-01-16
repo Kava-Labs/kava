@@ -40,13 +40,13 @@ func (ms Markets) String() string {
 	return strings.TrimSpace(out)
 }
 
-// CurrentPrice struct that contains the metadata of a current price for a particular asset in the pricefeed module.
+// CurrentPrice struct that contains the metadata of a current price for a particular market in the pricefeed module.
 type CurrentPrice struct {
 	MarketID string  `json:"market_id" yaml:"market_id"`
 	Price    sdk.Dec `json:"price" yaml:"price"`
 }
 
-// PostedPrice struct represented a price for an asset posted by a specific oracle
+// PostedPrice price for market posted by a specific oracle
 type PostedPrice struct {
 	MarketID      string         `json:"market_id" yaml:"market_id"`
 	OracleAddress sdk.AccAddress `json:"oracle_address" yaml:"oracle_address"`

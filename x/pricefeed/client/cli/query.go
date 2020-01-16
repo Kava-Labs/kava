@@ -33,17 +33,15 @@ func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 // GetCmdCurrentPrice queries the current price of an asset
 func GetCmdCurrentPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "price [assetCode]",
-		Short: "get the current price of an asset",
+		Use:   "price [marketID]",
+		Short: "get the current price for the input market",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			assetCode := args[0]
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/price/%s", queryRoute, assetCode), nil)
+			marketID := args[0]
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/price/%s", queryRoute, marketID), nil)
 			if err != nil {
-				fmt.Printf("error when querying current price - %s", err)
-				fmt.Printf("could not get current price for - %s \n", assetCode)
-				return nil
+				return err
 			}
 			var out types.CurrentPrice
 			cdc.MustUnmarshalJSON(res, &out)
@@ -55,16 +53,15 @@ func GetCmdCurrentPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdRawPrices queries the current price of an asset
 func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "rawprices [assetCode]",
-		Short: "get the raw oracle prices for an asset",
+		Use:   "rawprices [marketID]",
+		Short: "get the raw oracle prices for the input market",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			assetCode := args[0]
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/rawprices/%s", queryRoute, assetCode), nil)
+			marketID := args[0]
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/rawprices/%s", queryRoute, marketID), nil)
 			if err != nil {
-				fmt.Printf("could not get raw prices for - %s \n", assetCode)
-				return nil
+				return err
 			}
 			var out []types.PostedPrice
 			cdc.MustUnmarshalJSON(res, &out)
@@ -73,7 +70,7 @@ func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// GetCmdMarkets queries list of assets in the pricefeed
+// GetCmdMarkets queries list of markets in the pricefeed
 func GetCmdMarkets(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "markets",
@@ -82,8 +79,7 @@ func GetCmdMarkets(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/markets", queryRoute), nil)
 			if err != nil {
-				fmt.Printf("could not get assets")
-				return nil
+				return err
 			}
 			var out types.Markets
 			cdc.MustUnmarshalJSON(res, &out)

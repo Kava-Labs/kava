@@ -23,9 +23,7 @@ type Keeper struct {
 	codespace sdk.CodespaceType
 }
 
-// NewKeeper returns a new keeper for the pricefeed module. It handles:
-// - adding oracles
-// - adding/removing assets from the pricefeed
+// NewKeeper returns a new keeper for the pricefeed module.
 func NewKeeper(
 	cdc *codec.Codec, storeKey sdk.StoreKey, paramstore params.Subspace, codespace sdk.CodespaceType,
 ) Keeper {
@@ -144,7 +142,7 @@ func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice)
 	return mean
 }
 
-// GetCurrentPrice fetches the current median price of all oracles for a specific asset
+// GetCurrentPrice fetches the current median price of all oracles for a specific market
 func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get([]byte(types.CurrentPricePrefix + marketID))
