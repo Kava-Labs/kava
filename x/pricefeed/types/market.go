@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Market struct that represents an asset in the pricefeed
+// Market an asset in the pricefeed
 type Market struct {
 	MarketID   string           `json:"market_id" yaml:"market_id"`
 	BaseAsset  string           `json:"base_asset" yaml:"base_asset"`

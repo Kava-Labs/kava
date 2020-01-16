@@ -5,23 +5,23 @@ import (
 )
 
 // InitGenesis sets distribution information for genesis.
-func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
-
+func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
 	// Set the markets and oracles from params
-	keeper.SetParams(ctx, data.Params)
+	keeper.SetParams(ctx, gs.Params)
 
 	// Iterate through the posted prices and set them in the store
-	for _, pp := range data.PostedPrices {
+	for _, pp := range gs.PostedPrices {
 		_, err := keeper.SetPrice(ctx, pp.OracleAddress, pp.MarketID, pp.Price, pp.Expiry)
 		if err != nil {
 			panic(err)
 		}
 	}
+	params := keeper.GetParams(ctx)
 
 	// Set the current price (if any) based on what's now in the store
-	for _, a := range data.Params.Markets {
-		if a.Active {
-			err := keeper.SetCurrentPrices(ctx, a.MarketID)
+	for _, market := range params.Markets {
+		if market.Active {
+			err := keeper.SetCurrentPrices(ctx, market.MarketID)
 			if err != nil {
 				panic(err)
 			}

@@ -66,7 +66,6 @@ type (
 	GenesisState      = types.GenesisState
 	MsgPostPrice      = types.MsgPostPrice
 	Params            = types.Params
-	ParamSubspace     = types.ParamSubspace
 	QueryPricesParams = types.QueryPricesParams
 	Keeper            = keeper.Keeper
 )

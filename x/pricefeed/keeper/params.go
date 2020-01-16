@@ -6,21 +6,21 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-// GetParams gets params from the store
+// GetParams returns the params from the store
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.GetMarkets(ctx))
+	var p types.Params
+	k.paramSubspace.GetParamSet(ctx, &p)
+	return p
 }
 
-// SetParams updates params in the store
+// SetParams sets params on the store
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramstore.SetParamSet(ctx, &params)
+	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
-// GetMarkets get asset params from store
+// GetMarkets returns the markets from params
 func (k Keeper) GetMarkets(ctx sdk.Context) types.Markets {
-	var markets types.Markets
-	k.paramstore.Get(ctx, types.KeyMarkets, &markets)
-	return markets
+	return k.GetParams(ctx).Markets
 }
 
 // GetOracles returns the oracles in the pricefeed store

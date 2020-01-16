@@ -51,8 +51,7 @@ func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 			}
 			expiryInt, ok := sdk.NewIntFromString(args[2])
 			if !ok {
-				fmt.Printf("invalid expiry - %s \n", args[2])
-				return nil
+				return fmt.Errorf("invalid expiry - %s", args[2])
 			}
 			expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
 
