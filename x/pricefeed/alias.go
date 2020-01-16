@@ -31,7 +31,7 @@ const (
 	TypeMsgPostPrice              = types.TypeMsgPostPrice
 	QueryCurrentPrice             = types.QueryCurrentPrice
 	QueryRawPrices                = types.QueryRawPrices
-	QueryAssets                   = types.QueryAssets
+	QueryMarkets                  = types.QueryMarkets
 )
 
 var (
@@ -58,16 +58,15 @@ var (
 )
 
 type (
-	Market             = types.Market
-	Markets            = types.Markets
-	CurrentPrice       = types.CurrentPrice
-	PostedPrice        = types.PostedPrice
-	SortDecs           = types.SortDecs
-	GenesisState       = types.GenesisState
-	MsgPostPrice       = types.MsgPostPrice
-	Params             = types.Params
-	ParamSubspace      = types.ParamSubspace
-	QueryRawPricesResp = types.QueryRawPricesResp
-	QueryAssetsResp    = types.QueryAssetsResp
-	Keeper             = keeper.Keeper
+	Market            = types.Market
+	Markets           = types.Markets
+	CurrentPrice      = types.CurrentPrice
+	PostedPrice       = types.PostedPrice
+	SortDecs          = types.SortDecs
+	GenesisState      = types.GenesisState
+	MsgPostPrice      = types.MsgPostPrice
+	Params            = types.Params
+	ParamSubspace     = types.ParamSubspace
+	QueryPricesParams = types.QueryPricesParams
+	Keeper            = keeper.Keeper
 )

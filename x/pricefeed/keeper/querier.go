@@ -17,8 +17,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryCurrentPrice(ctx, path[1:], req, keeper)
 		case types.QueryRawPrices:
 			return queryRawPrices(ctx, path[1:], req, keeper)
-		case types.QueryAssets:
-			return queryAssets(ctx, req, keeper)
+		case types.QueryMarkets:
+			return queryMarkets(ctx, req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown pricefeed query endpoint")
 		}
@@ -26,51 +26,45 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 }
 
-func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	marketID := path[0]
-	_, found := keeper.GetMarket(ctx, marketID)
+func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+	var requestParams types.QueryPricesParams
+	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
 	}
-	currentPrice, err := keeper.GetCurrentPrice(ctx, marketID)
+	currentPrice, sdkErr := keeper.GetCurrentPrice(ctx, requestParams.MarketID)
+	if sdkErr != nil {
+		return nil, sdkErr
+	}
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, currentPrice)
 	if err != nil {
-		return nil, err
-	}
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, currentPrice)
-	if err2 != nil {
 		panic("could not marshal result to JSON")
 	}
 
 	return bz, nil
 }
 
-func queryRawPrices(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var priceList types.QueryRawPricesResp
-	marketID := path[0]
-	_, found := keeper.GetMarket(ctx, marketID)
+func queryRawPrices(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+	var requestParams types.QueryPricesParams
+	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
 	}
-	rawPrices := keeper.GetRawPrices(ctx, marketID)
-	for _, price := range rawPrices {
-		priceList = append(priceList, price.String())
-	}
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, priceList)
-	if err2 != nil {
+	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, rawPrices)
+	if err != nil {
 		panic("could not marshal result to JSON")
 	}
 
 	return bz, nil
 }
 
-func queryAssets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var assetList types.QueryAssetsResp
-	assets := keeper.GetMarketParams(ctx)
-	for _, asset := range assets {
-		assetList = append(assetList, asset.String())
-	}
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, assetList)
-	if err2 != nil {
+func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+	markets := keeper.GetMarkets(ctx)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, markets)
+	if err != nil {
 		panic("could not marshal result to JSON")
 	}
 

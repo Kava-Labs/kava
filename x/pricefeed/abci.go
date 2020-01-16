@@ -9,7 +9,7 @@ import (
 // EndBlocker updates the current pricefeed
 func EndBlocker(ctx sdk.Context, k Keeper) {
 	// Update the current price of each asset.
-	for _, a := range k.GetMarketParams(ctx) {
+	for _, a := range k.GetMarkets(ctx) {
 		if a.Active {
 			err := k.SetCurrentPrices(ctx, a.MarketID)
 			if err != nil {

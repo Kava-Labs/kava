@@ -36,7 +36,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 	params := keeper.GetParams(ctx)
 
 	var postedPrices []PostedPrice
-	for _, asset := range keeper.GetMarketParams(ctx) {
+	for _, asset := range keeper.GetMarkets(ctx) {
 		pp := keeper.GetRawPrices(ctx, asset.MarketID)
 		postedPrices = append(postedPrices, pp...)
 	}

@@ -8,7 +8,7 @@ import (
 
 // GetParams gets params from the store
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.GetMarketParams(ctx))
+	return types.NewParams(k.GetMarkets(ctx))
 }
 
 // SetParams updates params in the store
@@ -16,8 +16,8 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramstore.SetParamSet(ctx, &params)
 }
 
-// GetMarketParams get asset params from store
-func (k Keeper) GetMarketParams(ctx sdk.Context) types.Markets {
+// GetMarkets get asset params from store
+func (k Keeper) GetMarkets(ctx sdk.Context) types.Markets {
 	var markets types.Markets
 	k.paramstore.Get(ctx, types.KeyMarkets, &markets)
 	return markets
@@ -26,7 +26,7 @@ func (k Keeper) GetMarketParams(ctx sdk.Context) types.Markets {
 // GetOracles returns the oracles in the pricefeed store
 func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, sdk.Error) {
 
-	for _, m := range k.GetMarketParams(ctx) {
+	for _, m := range k.GetMarkets(ctx) {
 		if marketID == m.MarketID {
 			return m.Oracles, nil
 		}
@@ -50,7 +50,7 @@ func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddre
 
 // GetMarket returns the market if it is in the pricefeed system
 func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool) {
-	markets := k.GetMarketParams(ctx)
+	markets := k.GetMarkets(ctx)
 
 	for i := range markets {
 		if markets[i].MarketID == marketID {

@@ -24,7 +24,7 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 		},
 	}
 	keeper.SetParams(ctx, mp)
-	markets := keeper.GetMarketParams(ctx)
+	markets := keeper.GetMarkets(ctx)
 	require.Equal(t, len(markets), 1)
 	require.Equal(t, markets[0].MarketID, "tstusd")
 
@@ -38,7 +38,7 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 		},
 	}
 	keeper.SetParams(ctx, mp)
-	markets = keeper.GetMarketParams(ctx)
+	markets = keeper.GetMarkets(ctx)
 	require.Equal(t, len(markets), 2)
 	require.Equal(t, markets[0].MarketID, "tstusd")
 	require.Equal(t, markets[1].MarketID, "tst2usd")

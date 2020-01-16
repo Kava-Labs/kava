@@ -24,7 +24,7 @@ func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	pricefeedQueryCmd.AddCommand(client.GetCommands(
 		GetCmdCurrentPrice(storeKey, cdc),
 		GetCmdRawPrices(storeKey, cdc),
-		GetCmdAssets(storeKey, cdc),
+		GetCmdMarkets(storeKey, cdc),
 	)...)
 
 	return pricefeedQueryCmd
@@ -66,26 +66,26 @@ func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				fmt.Printf("could not get raw prices for - %s \n", assetCode)
 				return nil
 			}
-			var out types.QueryRawPricesResp
+			var out []types.PostedPrice
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
 	}
 }
 
-// GetCmdAssets queries list of assets in the pricefeed
-func GetCmdAssets(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdMarkets queries list of assets in the pricefeed
+func GetCmdMarkets(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "assets",
-		Short: "get the assets in the pricefeed",
+		Use:   "markets",
+		Short: "get the markets in the pricefeed",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/assets", queryRoute), nil)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/markets", queryRoute), nil)
 			if err != nil {
 				fmt.Printf("could not get assets")
 				return nil
 			}
-			var out types.QueryAssetsResp
+			var out types.Markets
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
