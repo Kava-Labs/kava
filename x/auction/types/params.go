@@ -54,11 +54,10 @@ func ParamKeyTable() subspace.KeyTable {
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
-// nolint
 func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
 	return subspace.ParamSetPairs{
-		{KeyAuctionBidDuration, &p.BidDuration},
-		{KeyAuctionDuration, &p.MaxAuctionDuration},
+		{Key: KeyAuctionBidDuration, Value: &p.BidDuration},
+		{Key: KeyAuctionDuration, Value: &p.MaxAuctionDuration},
 	}
 }
 

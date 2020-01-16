@@ -20,8 +20,8 @@ type GenesisAuctions []GenesisAuction
 // GenesisState is auction state that must be provided at chain genesis.
 type GenesisState struct {
 	NextAuctionID uint64          `json:"next_auction_id" yaml:"next_auction_id"`
-	Params        Params          `json:"auction_params" yaml:"auction_params"`
-	Auctions      GenesisAuctions `json:"genesis_auctions" yaml:"genesis_auctions"`
+	Params        Params          `json:"params" yaml:"params"`
+	Auctions      GenesisAuctions `json:"auctions" yaml:"auctions"`
 }
 
 // NewGenesisState returns a new genesis state object for auctions module.
@@ -50,7 +50,7 @@ func (gs GenesisState) IsEmpty() bool {
 	return gs.Equal(GenesisState{})
 }
 
-// ValidateGenesis validates genesis inputs. It returns error if validation of any input fails.
+// Validate validates genesis inputs. It returns error if validation of any input fails.
 func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
