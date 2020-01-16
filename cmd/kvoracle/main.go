@@ -27,15 +27,10 @@ import (
 	"github.com/kava-labs/kava/cmd/kvoracle/txs"
 )
 
-var appCodec *amino.Codec
-
-const (
-	rpcURL  = "tcp://localhost:26657"
-	chainID = "testing"
-)
-
 // FlagRPCURL specifies the url for kava's rpc
 const FlagRPCURL = "rpc-url"
+
+var appCodec *amino.Codec
 
 func init() {
 	// Read in the configuration file for the sdk
