@@ -173,7 +173,7 @@ func GetCmdRepay(cdc *codec.Codec) *cobra.Command {
 		Use:   "repay [collateral-name] [debt]",
 		Short: "repay debt to an existing cdp",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Cancel out debt in an existing cdp by paying it down.
+			fmt.Sprintf(`Cancel out debt in an existing cdp.
 
 Example:
 $ %s tx %s repay uatom 1000usdx --from myKeyName
