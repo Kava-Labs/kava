@@ -113,20 +113,18 @@ func (cps CollateralParams) String() string {
 
 // DebtParam governance params for debt assets
 type DebtParam struct {
-	Denom            string    `json:"denom" yaml:"denom"`
-	ReferenceAsset   string    `json:"reference_asset" yaml:"reference_asset"`
-	DebtLimit        sdk.Coins `json:"debt_limit" yaml:"debt_limit"`
-	ConversionFactor sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"`
-	DebtFloor        sdk.Int   `json:"debt_floor" yaml:"debt_floor"` // minimum active loan size, used to prevent dust
+	Denom            string  `json:"denom" yaml:"denom"`
+	ReferenceAsset   string  `json:"reference_asset" yaml:"reference_asset"`
+	ConversionFactor sdk.Int `json:"conversion_factor" yaml:"conversion_factor"`
+	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"` // minimum active loan size, used to prevent dust
 }
 
 func (dp DebtParam) String() string {
 	return fmt.Sprintf(`Debt:
 	Denom: %s
 	Reference Asset: %s
-	Debt Limit: %s
 	Conversion Factor: %s
-	Debt Floot %s`, dp.Denom, dp.ReferenceAsset, dp.DebtLimit, dp.ConversionFactor, dp.DebtFloor)
+	Debt Floot %s`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor)
 }
 
 // DebtParams array of DebtParam
@@ -163,25 +161,13 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
 	debtDenoms := make(map[string]int)
-	debtParamsDebtLimit := sdk.Coins{}
 	for _, dp := range p.DebtParams {
 		_, found := debtDenoms[dp.Denom]
 		if found {
 			return fmt.Errorf("duplicate debt denom: %s", dp.Denom)
 		}
 		debtDenoms[dp.Denom] = 1
-		if dp.DebtLimit.IsAnyNegative() {
-			return fmt.Errorf("debt limit for all debt tokens should be positive, is %s for %s", dp.DebtLimit, dp.Denom)
-		}
-		debtParamsDebtLimit = debtParamsDebtLimit.Add(dp.DebtLimit)
-	}
-	if !debtParamsDebtLimit.DenomsSubsetOf(p.GlobalDebtLimit) {
-		return fmt.Errorf("debt denom not found in global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
-			p.GlobalDebtLimit, debtParamsDebtLimit)
-	}
-	if debtParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
-		return fmt.Errorf("debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tdebt limits: %s",
-			p.GlobalDebtLimit, debtParamsDebtLimit)
+
 	}
 
 	collateralDupMap := make(map[string]int)

@@ -59,7 +59,6 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
@@ -133,14 +132,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
