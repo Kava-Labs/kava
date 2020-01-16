@@ -36,13 +36,13 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryCdpCmd returns the command handler for querying a particular cdp
 func QueryCdpCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdp [ownerAddress] [collateral name]",
+		Use:   "cdp [owner-addr] [collateral-name]",
 		Short: "get info about a cdp",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Get a CDP by the owner address and the collateral name.
 
 Example:
-$ %s query %s cdp kava kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
+$ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -79,7 +79,7 @@ $ %s query %s cdp kava kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 // QueryCdpsByDenomCmd returns the command handler for querying cdps for a collateral type
 func QueryCdpsByDenomCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdps [collateral name]",
+		Use:   "cdps [collateral-name]",
 		Short: "query CDPs by collateral",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`List all CDPs collateralized with the specified asset.
@@ -116,7 +116,7 @@ $ %s query %s cdps uatom
 // that are under the specified collateral ratio
 func QueryCdpsByDenomAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdps-by-ratio [collateral name] [collateralization ratio]",
+		Use:   "cdps-by-ratio [collateral-name] [collateralization-ratio]",
 		Short: "get cdps under a collateralization ratio",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`List all CDPs under a collateralization ratios.
