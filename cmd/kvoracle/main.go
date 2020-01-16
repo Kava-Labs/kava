@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
+	"github.com/jasonlvhit/gocron"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -15,47 +15,42 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/cmd/kvoracle/feed"
 	"github.com/kava-labs/kava/cmd/kvoracle/txs"
-	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
-	// "github.com/kava-labs/kava/cmd/kvoracle/feed"
 )
 
 var appCodec *amino.Codec
 
-// TODO: const FlagRPCURL = "rpc-url"
+const (
+	rpcURL  = "tcp://localhost:26657"
+	chainID = "testing"
+)
 
 func init() {
 
 	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(sdk.Bech32PrefixAccAddr, sdk.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(sdk.Bech32PrefixValAddr, sdk.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(sdk.Bech32PrefixConsAddr, sdk.Bech32PrefixConsPub)
+	app.SetBech32AddressPrefixes(config)
 	config.Seal()
 
 	appCodec = app.MakeCodec()
 
 	DefaultCLIHome := os.ExpandEnv("$HOME/.kvcli")
 
-	// Add --chain-id to persistent flags and mark it required
-	rootCmd.PersistentFlags().String(client.FlagChainID, "", "Chain ID of tendermint node")
-	// rootCmd.PersistentFlags().String(FlagRPCURL, "", "RPC URL of tendermint node")
-	rootCmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
-		return initConfig(rootCmd)
-	}
-
 	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
+		client.LineBreak,
 		postAssetPriceCmd(),
 		client.LineBreak,
-		getAssetPriceCmd(),
-		client.LineBreak,
-		getInitPriceCollectionCmd(),
+		getInitPriceFeedCmd(),
 	)
 
 	executor := cli.PrepareMainCmd(rootCmd, "KVORACLE", DefaultCLIHome)
@@ -73,38 +68,26 @@ var rootCmd = &cobra.Command{
 
 func postAssetPriceCmd() *cobra.Command {
 	postAssetPriceCmd := &cobra.Command{
-		Use:     "price post [asset] [account-address]",
-		Short:   "",
-		Args:    cobra.ExactArgs(2),
-		Example: "kvfeed price btc:usd kava1302ukkphmpkqjm49prh7tf8y6vvslmrsp64f2m --chain-id=testing", //--chain-id=testing
+		Use:     "postprice [moniker] [market] [price]",
+		Short:   "Post the price of the base asset in a market",
+		Args:    cobra.ExactArgs(3),
+		Example: "kvoracle postprice testuser btc:usd 8005.93",
 		RunE:    RunPostAssetPriceCmd,
 	}
 
 	return postAssetPriceCmd
 }
 
-func getAssetPriceCmd() *cobra.Command {
-	getAssetPriceCmd := &cobra.Command{
-		Use:     "price get [asset]",
-		Short:   "",
-		Args:    cobra.ExactArgs(2),
-		Example: "kvfeed price btc:usd kava1302ukkphmpkqjm49prh7tf8y6vvslmrsp64f2m --chain-id=testing", //--chain-id=testing
-		RunE:    RunGetAssetPriceCmd,
-	}
-
-	return getAssetPriceCmd
-}
-
-func getInitPriceCollectionCmd() *cobra.Command {
-	getInitPriceCollectionCmd := &cobra.Command{
+func getInitPriceFeedCmd() *cobra.Command {
+	getInitPriceFeedCmd := &cobra.Command{
 		Use:     "init",
-		Short:   "",
+		Short:   "Initialize an oracle that automatically updates kava's price feed",
 		Args:    cobra.ExactArgs(2),
-		Example: "kvfeed price btc:usd kava1302ukkphmpkqjm49prh7tf8y6vvslmrsp64f2m --chain-id=testing", //--chain-id=testing
-		RunE:    RunInitPriceCollectionCmd,
+		Example: "kvoracle init testuser bitcoin,kava,ripple,binancecoin",
+		RunE:    RunInitPriceFeedCmd,
 	}
 
-	return getInitPriceCollectionCmd
+	return getInitPriceFeedCmd
 }
 
 // RunPostAssetPriceCmd executes the getAssetPrice with the provided parameters
@@ -115,94 +98,103 @@ func RunPostAssetPriceCmd(cmd *cobra.Command, args []string) error {
 		return errors.New("Must specify a 'chain-id'")
 	}
 
-	// Parse the validator's moniker
-	validatorFrom := args[1]
+	// Parse the oracle's moniker
+	validatorFrom := args[0]
 
-	// Parse Tendermint RPC URL
-	rpcURL := viper.GetString(FlagRPCURL)
+	// Parse the market code
+	marketCode := args[1]
 
-	if rpcURL != "" {
-		_, err := url.Parse(rpcURL)
-		if rpcURL != "" && err != nil {
-			return fmt.Errorf("invalid RPC URL: %v", rpcURL)
-		}
+	// Parse the price
+	price, err := sdk.NewDecFromStr(args[2])
+	if err != nil {
+		return err
 	}
+
+	// TODO: 'sdkErr' due to: https://github.com/cosmos/scaffold/pull/37
 
 	// Get the validator's name and account address using their moniker
-	validatorAccAddress, validatorName, err := sdkContext.GetFromFields(validatorFrom, false)
-	if err != nil {
-		return err
+	accAddress, validatorName, sdkErr := context.GetFromFields(validatorFrom, false)
+	if sdkErr != nil {
+		return sdkErr
 	}
-	// Convert the validator's account address into type ValAddress
-	validatorAddress := sdk.ValAddress(validatorAccAddress)
 
 	// Get the validator's passphrase using their moniker
-	passphrase, err := keys.GetPassphrase(validatorFrom)
-	if err != nil {
-		return err
+	passphrase, sdkErr := keys.GetPassphrase(validatorFrom)
+	if sdkErr != nil {
+		return sdkErr
 	}
 
 	// Test passphrase is correct
-	_, err = authtxb.MakeSignature(nil, validatorName, passphrase, authtxb.StdSignMsg{})
-	if err != nil {
-		return err
+	_, sdkErr = authtypes.MakeSignature(nil, validatorName, passphrase, authtypes.StdSignMsg{})
+	if sdkErr != nil {
+		return sdkErr
 	}
 
 	// Set up our CLIContext
-	cliCtx := sdkContext.NewCLIContext().
+	cliCtx := context.NewCLIContext().
 		WithCodec(appCodec).
-		WithFromAddress(sdk.AccAddress(validatorAddress)).
+		WithFromAddress(accAddress).
 		WithFromName(validatorName)
 
-	// Construct message
-	addr, err := sdk.AccAddressFromBech32("kava1302ukkphmpkqjm49prh7tf8y6vvslmrsp64f2m")
-	if err != nil {
-		return err
+	// Build the msg
+	msgPostPrice, sdkErr := txs.ConstructMsgPostPrice(accAddress, price, marketCode)
+	if sdkErr != nil {
+		return sdkErr
 	}
-	expiry := time.Now().Add(1 * time.Hour)
-	price, err := sdk.NewDecFromStr("8001.00")
 
-
-	msgPostPrice := pftypes.NewMsgPostPrice(addr, "xrp", price, expiry)
-
-	// txs.SendTxPostPrice()
-
-	return nil
-
-}
-
-func RunGetAssetPriceCmd(cmd *cobra.Command, args []string) error {
-	assetsRaw := args[0]
-	if len(assetsRaw) < 1 {
-		return errors.New("Must specify assets")
+	// Send tx containing msg to kava
+	fmt.Printf("Posting price '%f' for %s...\n", msgPostPrice.Price, msgPostPrice.AssetCode)
+	txRes, sdkErr := txs.SendTxPostPrice(chainID, appCodec, accAddress, validatorName, passphrase, cliCtx, &msgPostPrice, rpcURL)
+	if sdkErr != nil {
+		return sdkErr
 	}
-	// GetAssetPrice
-	return nil
-}
 
-func RunInitPriceCollectionCmd(cmd *cobra.Command, args []string) error {
-	// TODO: Parse symbols []string
-
-	// Get time, asset prices
-	// now := time.Now().Format("15:04:05")
-	// TODO: Import feed
-	// assets := feed.GeckoPrices(symbols, "USD")
-
-	// fmt.Println()
-	// fmt.Println("Time: ", now)
-	// fmt.Println("-------------")
-
-	// // Print our coins
-	// for _, asset := range assets {
-	// 	fmt.Printf("%s: $%f\n", asset.Symbol, math.Round(asset.Price*1000)/1000)
-	// }
-	// fmt.Println()
+	fmt.Println("Tx hash:", txRes.TxHash)
 
 	return nil
 }
 
-func initConfig(cmd *cobra.Command) error {
-	return viper.BindPFlag(client.FlagChainID, cmd.PersistentFlags().Lookup(client.FlagChainID))
+// RunInitPriceFeedCmd runs the InitPriceFeed Cmd cmd
+func RunInitPriceFeedCmd(cmd *cobra.Command, args []string) error {
+	// Parse the oracle's moniker
+	oracleFrom := args[0]
+
+	// Parse our coins
+	coins := strings.Split(args[1], ",")
+	if 1 > len(coins) {
+		return errors.New("Must give at least one coin")
+	}
+
+	// Get the oracle's name and account address using their moniker
+	accAddress, oracleName, sdkErr := context.GetFromFields(oracleFrom, false)
+	if sdkErr != nil {
+		return sdkErr
+	}
+
+	// Get the oracle's passphrase using their moniker
+	passphrase, sdkErr := keys.GetPassphrase(oracleFrom)
+	if sdkErr != nil {
+		return sdkErr
+	}
+
+	// Test passphrase is correct
+	_, sdkErr = authtypes.MakeSignature(nil, oracleFrom, passphrase, authtypes.StdSignMsg{})
+	if sdkErr != nil {
+		return sdkErr
+	}
+
+	// Set up our CLIContext
+	cliCtx := context.NewCLIContext().
+		WithCodec(appCodec).
+		WithFromAddress(accAddress).
+		WithFromName(oracleName)
+
+	// Schedule cron for price collection and posting
+	gocron.Every(1).Minute().Do(feed.GetPricesAndPost, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
+	<-gocron.Start()
+	gocron.Clear()
+
+	return nil
 }
 
 func main() {
