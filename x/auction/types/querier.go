@@ -7,6 +7,7 @@ import (
 const (
 	// QueryGetAuction command for getting the information about a particular auction
 	QueryGetAuction = "getauctions"
+	QueryGetParams  = "params"
 )
 
 // QueryResAuctions Result Payload for an auctions query

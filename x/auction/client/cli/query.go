@@ -20,14 +20,15 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	auctionQueryCmd.AddCommand(client.GetCommands(
-		GetCmdGetAuctions(queryRoute, cdc),
+		QueryCmdGetAuctions(queryRoute, cdc),
+		QueryParamsCmd(queryRoute, cdc),
 	)...)
 
 	return auctionQueryCmd
 }
 
-// GetCmdGetAuctions queries the auctions in the store
-func GetCmdGetAuctions(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryCmdGetAuctions queries the auctions in the store
+func QueryCmdGetAuctions(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "getauctions",
 		Short: "get a list of active auctions",
@@ -43,6 +44,31 @@ func GetCmdGetAuctions(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if len(out) == 0 {
 				out = append(out, "There are currently no auctions")
 			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+// QueryParamsCmd returns the command handler for auction parameter querying
+func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "params",
+		Short: "get the auction module parameters",
+		Long:  "Get the current global auction module parameters.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var out types.Params
+			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
 	}
