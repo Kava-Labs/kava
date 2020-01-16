@@ -46,24 +46,25 @@ var (
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
 	NewMsgPostPrice     = types.NewMsgPostPrice
-	ParamKeyTable       = types.ParamKeyTable
 	NewParams           = types.NewParams
 	DefaultParams       = types.DefaultParams
+	ParamKeyTable       = types.ParamKeyTable
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc  = types.ModuleCdc
-	KeyMarkets = types.KeyMarkets
+	ModuleCdc      = types.ModuleCdc
+	KeyMarkets     = types.KeyMarkets
+	DefaultMarkets = types.DefaultMarkets
 )
 
 type (
+	GenesisState      = types.GenesisState
 	Market            = types.Market
 	Markets           = types.Markets
 	CurrentPrice      = types.CurrentPrice
 	PostedPrice       = types.PostedPrice
 	SortDecs          = types.SortDecs
-	GenesisState      = types.GenesisState
 	MsgPostPrice      = types.MsgPostPrice
 	Params            = types.Params
 	QueryPricesParams = types.QueryPricesParams

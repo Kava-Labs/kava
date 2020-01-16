@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,9 +16,9 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
 		case types.QueryCurrentPrice:
-			return queryCurrentPrice(ctx, path[1:], req, keeper)
+			return queryCurrentPrice(ctx, req, keeper)
 		case types.QueryRawPrices:
-			return queryRawPrices(ctx, path[1:], req, keeper)
+			return queryRawPrices(ctx, req, keeper)
 		case types.QueryMarkets:
 			return queryMarkets(ctx, req, keeper)
 		default:
@@ -26,8 +28,12 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 }
 
-func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+func queryCurrentPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
 	var requestParams types.QueryPricesParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
@@ -44,8 +50,12 @@ func queryCurrentPrice(ctx sdk.Context, path []string, req abci.RequestQuery, ke
 	return bz, nil
 }
 
-func queryRawPrices(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
 	var requestParams types.QueryPricesParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")

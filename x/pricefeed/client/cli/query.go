@@ -11,7 +11,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	// Group nameservice queries under a subcommand
 	pricefeedQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -22,9 +22,9 @@ func GetQueryCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	pricefeedQueryCmd.AddCommand(client.GetCommands(
-		GetCmdCurrentPrice(storeKey, cdc),
-		GetCmdRawPrices(storeKey, cdc),
-		GetCmdMarkets(storeKey, cdc),
+		GetCmdCurrentPrice(queryRoute, cdc),
+		GetCmdRawPrices(queryRoute, cdc),
+		GetCmdMarkets(queryRoute, cdc),
 	)...)
 
 	return pricefeedQueryCmd
@@ -39,13 +39,22 @@ func GetCmdCurrentPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			marketID := args[0]
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/price/%s", queryRoute, marketID), nil)
+
+			bz, err := cdc.MarshalJSON(types.QueryPricesParams{
+				MarketID: marketID,
+			})
 			if err != nil {
 				return err
 			}
-			var out types.CurrentPrice
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCurrentPrice)
+
+			res, _, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			var price types.CurrentPrice
+			cdc.MustUnmarshalJSON(res, &price)
+			return cliCtx.PrintOutput(price)
 		},
 	}
 }
@@ -59,13 +68,23 @@ func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			marketID := args[0]
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/rawprices/%s", queryRoute, marketID), nil)
+
+			bz, err := cdc.MarshalJSON(types.QueryPricesParams{
+				MarketID: marketID,
+			})
 			if err != nil {
 				return err
 			}
-			var out []types.PostedPrice
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryRawPrices)
+
+			res, _, err := cliCtx.QueryWithData(route, bz)
+
+			if err != nil {
+				return err
+			}
+			var prices []types.PostedPrice
+			cdc.MustUnmarshalJSON(res, &prices)
+			return cliCtx.PrintOutput(prices)
 		},
 	}
 }
@@ -77,13 +96,14 @@ func GetCmdMarkets(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "get the markets in the pricefeed",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/markets", queryRoute), nil)
+			route := fmt.Sprintf("custom/%s/markets", queryRoute)
+			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
-			var out types.Markets
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var markets types.Markets
+			cdc.MustUnmarshalJSON(res, &markets)
+			return cliCtx.PrintOutput(markets)
 		},
 	}
 }

@@ -20,6 +20,7 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
+
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
 
@@ -50,7 +51,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 
 // RegisterRESTRoutes register rest routes
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	rest.RegisterRoutes(ctx, rtr, StoreKey)
+	rest.RegisterRoutes(ctx, rtr)
 }
 
 // GetTxCmd get the root tx command of this module
