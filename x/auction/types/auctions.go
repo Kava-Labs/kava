@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-// distantFuture is a very large time value to use as initial the ending time for auctions.
+// DistantFuture is a very large time value to use as initial the ending time for auctions.
 // It is not set to the max time supported. This can cause problems with time comparisons, see https://stackoverflow.com/a/32620397.
 // Also amino panics when encoding times ≥ the start of year 10000.
-var DistantFuture time.Time = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
+var DistantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 
 // Auction is an interface for handling common actions on auctions.
 type Auction interface {
@@ -57,6 +57,7 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
+// Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
 	if a.EndTime.After(a.MaxEndTime) {
 		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)

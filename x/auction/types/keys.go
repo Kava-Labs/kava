@@ -20,9 +20,11 @@ const (
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
 
+	// QuerierRoute route used for abci queries
 	QuerierRoute = ModuleName
 )
 
+// Key prefixes
 var (
 	AuctionKeyPrefix       = []byte{0x00} // prefix for keys that store auctions
 	AuctionByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the auctionsByTime index
@@ -30,10 +32,12 @@ var (
 	NextAuctionIDKey = []byte{0x02} // key for the next auction id
 )
 
+// GetAuctionKey returns the bytes of an auction key
 func GetAuctionKey(auctionID uint64) []byte {
 	return Uint64ToBytes(auctionID)
 }
 
+// GetAuctionByTimeKey returns the key for iterating auctions by time
 func GetAuctionByTimeKey(endTime time.Time, auctionID uint64) []byte {
 	return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(auctionID)...)
 }

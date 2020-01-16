@@ -19,8 +19,8 @@ func (n QueryResAuctions) String() string {
 
 // QueryAllAuctionParams is the params for an auctions query
 type QueryAllAuctionParams struct {
-	Page  int `json"page:" yaml:"page"`
-	Limit int `json"limit:" yaml:"limit"`
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
 }
 
 // NewQueryAllAuctionParams creates a new QueryAllAuctionParams
