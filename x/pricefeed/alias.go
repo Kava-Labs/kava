@@ -40,7 +40,7 @@ var (
 	ErrEmptyInput       = types.ErrEmptyInput
 	ErrExpired          = types.ErrExpired
 	ErrNoValidPrice     = types.ErrNoValidPrice
-	ErrInvalidAsset     = types.ErrInvalidAsset
+	ErrInvalidMarket    = types.ErrInvalidMarket
 	ErrInvalidOracle    = types.ErrInvalidOracle
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
@@ -60,8 +60,6 @@ var (
 type (
 	Market             = types.Market
 	Markets            = types.Markets
-	Oracle             = types.Oracle
-	Oracles            = types.Oracles
 	CurrentPrice       = types.CurrentPrice
 	PostedPrice        = types.PostedPrice
 	SortDecs           = types.SortDecs

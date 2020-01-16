@@ -82,7 +82,7 @@ func (k Keeper) SetPrice(
 func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
 	_, ok := k.GetMarket(ctx, marketID)
 	if !ok {
-		return types.ErrInvalidAsset(k.codespace)
+		return types.ErrInvalidMarket(k.codespace, marketID)
 	}
 	prices := k.GetRawPrices(ctx, marketID)
 	var notExpiredPrices []types.CurrentPrice

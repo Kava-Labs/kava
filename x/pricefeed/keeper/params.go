@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
@@ -26,28 +24,28 @@ func (k Keeper) GetMarketParams(ctx sdk.Context) types.Markets {
 }
 
 // GetOracles returns the oracles in the pricefeed store
-func (k Keeper) GetOracles(ctx sdk.Context, marketID string) (types.Oracles, error) {
+func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, sdk.Error) {
 
 	for _, m := range k.GetMarketParams(ctx) {
 		if marketID == m.MarketID {
 			return m.Oracles, nil
 		}
 	}
-	return types.Oracles{}, fmt.Errorf("asset %s not found", marketID)
+	return []sdk.AccAddress{}, types.ErrInvalidMarket(k.Codespace(), marketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
-func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (types.Oracle, error) {
+func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (sdk.AccAddress, sdk.Error) {
 	oracles, err := k.GetOracles(ctx, marketID)
 	if err != nil {
-		return types.Oracle{}, fmt.Errorf("asset %s not found", marketID)
+		return sdk.AccAddress{}, types.ErrInvalidMarket(k.Codespace(), marketID)
 	}
-	for _, o := range oracles {
-		if address.Equals(o.Address) {
-			return o, nil
+	for _, addr := range oracles {
+		if address.Equals(addr) {
+			return addr, nil
 		}
 	}
-	return types.Oracle{}, fmt.Errorf("oracle %s not found for asset %s", address, marketID)
+	return sdk.AccAddress{}, types.ErrInvalidOracle(k.codespace, address)
 }
 
 // GetMarket returns the market if it is in the pricefeed system

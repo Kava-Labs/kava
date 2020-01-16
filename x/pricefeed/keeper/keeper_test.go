@@ -20,7 +20,7 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 
 	mp := types.Params{
 		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -33,8 +33,8 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 
 	mp = types.Params{
 		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
-			types.Market{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			types.Market{MarketID: "tst2usd", BaseAsset: "tst2", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -56,7 +56,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 
 	mp := types.Params{
 		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)
@@ -100,7 +100,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 
 	mp := types.Params{
 		Markets: types.Markets{
-			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: types.Oracles{}, Active: true},
+			types.Market{MarketID: "tstusd", BaseAsset: "tst", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 		},
 	}
 	keeper.SetParams(ctx, mp)

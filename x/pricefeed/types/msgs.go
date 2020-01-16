@@ -14,10 +14,10 @@ const (
 // MsgPostPrice struct representing a posted price message.
 // Used by oracles to input prices to the pricefeed
 type MsgPostPrice struct {
-	From      sdk.AccAddress // client that sent in this address
-	AssetCode string         // asset code used by exchanges/api
-	Price     sdk.Dec        // price in decimal (max precision 18)
-	Expiry    time.Time      // expiry time
+	From     sdk.AccAddress // client that sent in this address
+	MarketID string         // asset code used by exchanges/api
+	Price    sdk.Dec        // price in decimal (max precision 18)
+	Expiry   time.Time      // expiry time
 }
 
 // NewMsgPostPrice creates a new post price msg
@@ -27,10 +27,10 @@ func NewMsgPostPrice(
 	price sdk.Dec,
 	expiry time.Time) MsgPostPrice {
 	return MsgPostPrice{
-		From:      from,
-		AssetCode: assetCode,
-		Price:     price,
-		Expiry:    expiry,
+		From:     from,
+		MarketID: assetCode,
+		Price:    price,
+		Expiry:   expiry,
 	}
 }
 
@@ -54,10 +54,10 @@ func (msg MsgPostPrice) GetSigners() []sdk.AccAddress {
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgPostPrice) ValidateBasic() sdk.Error {
 	if msg.From.Empty() {
-		return sdk.ErrInternal("invalid (empty) bidder address")
+		return sdk.ErrInternal("invalid (empty) from address")
 	}
-	if len(msg.AssetCode) == 0 {
-		return sdk.ErrInternal("invalid (empty) asset code")
+	if len(msg.MarketID) == 0 {
+		return sdk.ErrInternal("invalid (empty) market id")
 	}
 	if msg.Price.LT(sdk.ZeroDec()) {
 		return sdk.ErrInternal("invalid (negative) price")
