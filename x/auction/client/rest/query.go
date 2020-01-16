@@ -12,8 +12,6 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// r.HandleFunc(fmt.Sprintf("/auction/bid/{%s}/{%s}/{%s}/{%s}", restAuctionID, restBidder, restBid, restLot), bidHandlerFn(cdc, cliCtx)).Methods("PUT")
-
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/auction/getauctions"), queryGetAuctionsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/auction/params", getParamsHandlerFn(cliCtx)).Methods("GET")
