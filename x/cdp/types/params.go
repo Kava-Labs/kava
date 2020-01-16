@@ -73,12 +73,12 @@ func DefaultParams() Params {
 
 // CollateralParam governance parameters for each collateral type within the cdp module
 type CollateralParam struct {
-	Denom              string    `json:"denom" yaml:"denom"`                         // Coin name of collateral type
-	LiquidationRatio   sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"` // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
-	DebtLimit          sdk.Coins `json:"debt_limit" yaml:"debt_limit"`               // Maximum amount of debt allowed to be drawn from this collateral type
-	StabilityFee       sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`         // per second stability fee for loans opened using this collateral
-	AuctionSize        sdk.Int   // Max amount of collateral to sell off in any one auction.
-	LiquidationPenalty sdk.Dec   // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
+	Denom              string    `json:"denom" yaml:"denom"`                             // Coin name of collateral type
+	LiquidationRatio   sdk.Dec   `json:"liquidation_ratio" yaml:"liquidation_ratio"`     // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
+	DebtLimit          sdk.Coins `json:"debt_limit" yaml:"debt_limit"`                   // Maximum amount of debt allowed to be drawn from this collateral type
+	StabilityFee       sdk.Dec   `json:"stability_fee" yaml:"stability_fee"`             // per second stability fee for loans opened using this collateral
+	AuctionSize        sdk.Int   `json:"auction_size" yaml:"auction_size"`               // Max amount of collateral to sell off in any one auction.
+	LiquidationPenalty sdk.Dec   `json:"liquidation_penalty" yaml:"liquidation_penalty"` // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
 	Prefix             byte      `json:"prefix" yaml:"prefix"`
 	MarketID           string    `json:"market_id" yaml:"market_id"`                 // marketID for fetching price of the asset from the pricefeed
 	ConversionFactor   sdk.Int   `json:"conversion_factor" yaml:"conversion_factor"` // factor for converting internal units to one base unit of collateral
@@ -124,7 +124,7 @@ func (dp DebtParam) String() string {
 	Denom: %s
 	Reference Asset: %s
 	Conversion Factor: %s
-	Debt Floot %s`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor)
+	Debt Floor %s`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor)
 }
 
 // DebtParams array of DebtParam
@@ -160,6 +160,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
+	// validate debt params
 	debtDenoms := make(map[string]int)
 	for _, dp := range p.DebtParams {
 		_, found := debtDenoms[dp.Denom]
@@ -170,6 +171,7 @@ func (p Params) Validate() error {
 
 	}
 
+	// validate collateral params
 	collateralDupMap := make(map[string]int)
 	prefixDupMap := make(map[int]int)
 	collateralParamsDebtLimit := sdk.Coins{}
@@ -212,16 +214,19 @@ func (p Params) Validate() error {
 		if !cp.AuctionSize.IsPositive() {
 			return fmt.Errorf("auction size should be positive, is %s for %s", cp.AuctionSize, cp.Denom)
 		}
+		if cp.StabilityFee.LT(sdk.OneDec()) {
+			return fmt.Errorf("stability fee must be ≥ 1.0, is %s for %s", cp.StabilityFee, cp.Denom)
+		}
 	}
 	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
 		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
 			p.GlobalDebtLimit, collateralParamsDebtLimit)
 	}
 
+	// validate global params
 	if p.GlobalDebtLimit.IsAnyNegative() {
 		return fmt.Errorf("global debt limit should be positive for all debt tokens, is %s", p.GlobalDebtLimit)
 	}
-
 	if !p.SurplusAuctionThreshold.IsPositive() {
 		return fmt.Errorf("surplus auction threshold should be positive, is %s", p.SurplusAuctionThreshold)
 	}

@@ -27,18 +27,18 @@ func NewQueryCdpsParams(denom string) QueryCdpsParams {
 	}
 }
 
+// QueryCdpParams params for query /cdp/cdp
+type QueryCdpParams struct {
+	CollateralDenom string         // get CDPs with this collateral denom
+	Owner           sdk.AccAddress // get CDPs belonging to this owner
+}
+
 // NewQueryCdpParams returns QueryCdpParams
 func NewQueryCdpParams(owner sdk.AccAddress, denom string) QueryCdpParams {
 	return QueryCdpParams{
 		Owner:           owner,
 		CollateralDenom: denom,
 	}
-}
-
-// QueryCdpParams params for query /cdp/cdp
-type QueryCdpParams struct {
-	CollateralDenom string         // get CDPs with this collateral denom
-	Owner           sdk.AccAddress // get CDPs belonging to this owner
 }
 
 // QueryCdpsByRatioParams params for query /cdp/cdps/ratio
