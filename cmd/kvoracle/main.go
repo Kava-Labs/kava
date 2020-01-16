@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/jasonlvhit/gocron"
@@ -33,8 +34,10 @@ const (
 	chainID = "testing"
 )
 
-func init() {
+// FlagRPCURL specifies the url for kava's rpc
+const FlagRPCURL = "rpc-url"
 
+func init() {
 	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
@@ -43,6 +46,13 @@ func init() {
 	appCodec = app.MakeCodec()
 
 	DefaultCLIHome := os.ExpandEnv("$HOME/.kvcli")
+
+	// Add (--chain-id, --rpc-url) to persistent flags and mark them required
+	rootCmd.PersistentFlags().String(client.FlagChainID, "", "Chain ID of tendermint node")
+	rootCmd.PersistentFlags().String(FlagRPCURL, "", "RPC URL of tendermint node")
+	rootCmd.PersistentPreRunE = func(_ *cobra.Command, _ []string) error {
+		return initConfig(rootCmd)
+	}
 
 	// Construct Root Command
 	rootCmd.AddCommand(
@@ -68,10 +78,10 @@ var rootCmd = &cobra.Command{
 
 func postAssetPriceCmd() *cobra.Command {
 	postAssetPriceCmd := &cobra.Command{
-		Use:     "postprice [moniker] [market] [price]",
+		Use:     "postprice [oracle-moniker] [market] [price] --rpc-url=[rpc-url] --chain-id=[chain-id]",
 		Short:   "Post the price of the base asset in a market",
 		Args:    cobra.ExactArgs(3),
-		Example: "kvoracle postprice testuser btc:usd 8005.93",
+		Example: "kvoracle postprice testuser btc:usd 8105.93  --rpc-url=tcp://localhost:26657 --chain-id=testing",
 		RunE:    RunPostAssetPriceCmd,
 	}
 
@@ -80,10 +90,10 @@ func postAssetPriceCmd() *cobra.Command {
 
 func getInitPriceFeedCmd() *cobra.Command {
 	getInitPriceFeedCmd := &cobra.Command{
-		Use:     "init",
+		Use:     "init [oracle-moniker] [coin1, coin2] [interval-minutes] --rpc-url=[rpc-url] --chain-id=[chain-id]",
 		Short:   "Initialize an oracle that automatically updates kava's price feed",
-		Args:    cobra.ExactArgs(2),
-		Example: "kvoracle init testuser bitcoin,kava,ripple,binancecoin",
+		Args:    cobra.ExactArgs(3),
+		Example: "kvoracle init testuser bitcoin,kava,ripple,binancecoin 5 --rpc-url=tcp://localhost:26657 --chain-id=testing",
 		RunE:    RunInitPriceFeedCmd,
 	}
 
@@ -92,6 +102,12 @@ func getInitPriceFeedCmd() *cobra.Command {
 
 // RunPostAssetPriceCmd executes the getAssetPrice with the provided parameters
 func RunPostAssetPriceCmd(cmd *cobra.Command, args []string) error {
+	// Parse RPC URL
+	rpcURL := viper.GetString(FlagRPCURL)
+	if strings.TrimSpace(rpcURL) == "" {
+		return errors.New("Must specify an 'rpc-url'")
+	}
+
 	// Parse chain's ID
 	chainID := viper.GetString(client.FlagChainID)
 	if strings.TrimSpace(chainID) == "" {
@@ -156,13 +172,34 @@ func RunPostAssetPriceCmd(cmd *cobra.Command, args []string) error {
 
 // RunInitPriceFeedCmd runs the InitPriceFeed Cmd cmd
 func RunInitPriceFeedCmd(cmd *cobra.Command, args []string) error {
+	// Parse RPC URL
+	rpcURL := viper.GetString(FlagRPCURL)
+	if strings.TrimSpace(rpcURL) == "" {
+		return errors.New("Must specify an 'rpc-url'")
+	}
+
+	// Parse chain's ID
+	chainID := viper.GetString(client.FlagChainID)
+	if strings.TrimSpace(chainID) == "" {
+		return errors.New("Must specify a 'chain-id'")
+	}
+
 	// Parse the oracle's moniker
 	oracleFrom := args[0]
 
 	// Parse our coins
 	coins := strings.Split(args[1], ",")
 	if 1 > len(coins) {
-		return errors.New("Must give at least one coin")
+		return errors.New("Must specify at least one coin")
+	}
+
+	// Parse the interval in minutes
+	interval, err := strconv.Atoi(args[2])
+	if err != nil {
+		return err
+	}
+	if interval <= 1 {
+		return errors.New("Must specify an interval of 2 minutes or longer")
 	}
 
 	// Get the oracle's name and account address using their moniker
@@ -190,11 +227,19 @@ func RunInitPriceFeedCmd(cmd *cobra.Command, args []string) error {
 		WithFromName(oracleName)
 
 	// Schedule cron for price collection and posting
-	gocron.Every(1).Minute().Do(feed.GetPricesAndPost, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
+	gocron.Every(uint64(interval)).Minutes().Do(feed.GetPricesAndPost, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
 	<-gocron.Start()
 	gocron.Clear()
 
 	return nil
+}
+
+func initConfig(cmd *cobra.Command) error {
+	err := viper.BindPFlag(client.FlagChainID, cmd.PersistentFlags().Lookup(client.FlagChainID))
+	if err != nil {
+		return err
+	}
+	return viper.BindPFlag(FlagRPCURL, cmd.PersistentFlags().Lookup(FlagRPCURL))
 }
 
 func main() {
