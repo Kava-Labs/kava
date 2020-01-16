@@ -6,7 +6,7 @@ import (
 
 // GenesisState - pricefeed state that must be provided at genesis
 type GenesisState struct {
-	Params       Params        `json:"asset_params" yaml:"asset_params"`
+	Params       Params        `json:"params" yaml:"params"`
 	PostedPrices []PostedPrice `json:"posted_prices" yaml:"posted_prices"`
 }
 
