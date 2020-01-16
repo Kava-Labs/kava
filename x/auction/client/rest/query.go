@@ -8,13 +8,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-)
 
-// r.HandleFunc(fmt.Sprintf("/auction/bid/{%s}/{%s}/{%s}/{%s}", restAuctionID, restBidder, restBid, restLot), bidHandlerFn(cdc, cliCtx)).Methods("PUT")
+	"github.com/kava-labs/kava/x/auction/types"
+)
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/auction/getauctions"), queryGetAuctionsHandlerFn(cliCtx)).Methods("GET")
-
+	r.HandleFunc("/auction/params", getParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryGetAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -25,6 +25,20 @@ func queryGetAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the params
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/auction/%s", types.QueryGetParams), nil)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		// Return the params
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
