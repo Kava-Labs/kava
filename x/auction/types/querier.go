@@ -6,7 +6,7 @@ import (
 
 const (
 	// QueryGetAuction command for getting the information about a particular auction
-	QueryGetAuction = "getauctions"
+	QueryGetAuction = "auctions"
 	QueryGetParams  = "params"
 )
 

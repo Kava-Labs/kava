@@ -30,11 +30,11 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryGetAuctionsCmd queries the auctions in the store
 func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "getauctions",
+		Use:   "auctions",
 		Short: "get a list of active auctions",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/getauctions", queryRoute), nil)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/auctions", queryRoute), nil)
 			if err != nil {
 				fmt.Printf("error when getting auctions - %s", err)
 				return nil
