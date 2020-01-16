@@ -162,6 +162,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
+	// validate debt params
 	debtDenoms := make(map[string]int)
 	debtParamsDebtLimit := sdk.Coins{}
 	for _, dp := range p.DebtParams {
@@ -184,6 +185,7 @@ func (p Params) Validate() error {
 			p.GlobalDebtLimit, debtParamsDebtLimit)
 	}
 
+	// validate collateral params
 	collateralDupMap := make(map[string]int)
 	prefixDupMap := make(map[int]int)
 	collateralParamsDebtLimit := sdk.Coins{}
@@ -226,16 +228,19 @@ func (p Params) Validate() error {
 		if !cp.AuctionSize.IsPositive() {
 			return fmt.Errorf("auction size should be positive, is %s for %s", cp.AuctionSize, cp.Denom)
 		}
+		if cp.StabilityFee.LT(sdk.OneDec()) {
+			return fmt.Errorf("stability fee must be ≥ 1.0, is %s for %s", cp.StabilityFee, cp.Denom)
+		}
 	}
 	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
 		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
 			p.GlobalDebtLimit, collateralParamsDebtLimit)
 	}
 
+	// validate global params
 	if p.GlobalDebtLimit.IsAnyNegative() {
 		return fmt.Errorf("global debt limit should be positive for all debt tokens, is %s", p.GlobalDebtLimit)
 	}
-
 	if !p.SurplusAuctionThreshold.IsPositive() {
 		return fmt.Errorf("surplus auction threshold should be positive, is %s", p.SurplusAuctionThreshold)
 	}
