@@ -21,7 +21,7 @@ type GenesisAuctions []GenesisAuction
 type GenesisState struct {
 	NextAuctionID uint64          `json:"next_auction_id" yaml:"next_auction_id"`
 	Params        Params          `json:"params" yaml:"params"`
-	Auctions      GenesisAuctions `json:"genesis_auctions" yaml:"genesis_auctions"`
+	Auctions      GenesisAuctions `json:"auctions" yaml:"auctions"`
 }
 
 // NewGenesisState returns a new genesis state object for auctions module.
