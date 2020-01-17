@@ -118,9 +118,10 @@ func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep types.Deposit, de
 	for depositAmount.GTE(auctionSize) {
 		// figure out how much debt is covered by one lots worth of collateral
 		depositDebtAmount := (sdk.NewDecFromInt(auctionSize).Quo(sdk.NewDecFromInt(totalCollateral))).Mul(sdk.NewDecFromInt(debt)).RoundInt()
-		// start an auction for one lot, attempting to raise depositDebtAmount
+		penalty := k.ApplyLiquidationPenalty(ctx, depositDenom, depositDebtAmount)
+		// start an auction for one lot, attempting to raise depositDebtAmount plus the liquidation penalty
 		_, err := k.auctionKeeper.StartCollateralAuction(
-			ctx, types.LiquidatorMacc, sdk.NewCoin(depositDenom, auctionSize), sdk.NewCoin(principalDenom, depositDebtAmount), []sdk.AccAddress{dep.Depositor},
+			ctx, types.LiquidatorMacc, sdk.NewCoin(depositDenom, auctionSize), sdk.NewCoin(principalDenom, depositDebtAmount.Add(penalty)), []sdk.AccAddress{dep.Depositor},
 			[]sdk.Int{auctionSize}, sdk.NewCoin(k.GetDebtDenom(ctx), depositDebtAmount))
 		if err != nil {
 			return sdk.ZeroInt(), sdk.ZeroInt(), err
