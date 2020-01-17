@@ -12,6 +12,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
 		case types.QueryGetAuction:
+			return queryAuction(ctx, req, keeper)
+		case types.QueryGetAuctions:
 			return queryAuctions(ctx, req, keeper)
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
@@ -21,17 +23,41 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var auctionsList types.Auctions
+func queryAuction(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	// Decode request
+	var requestParams types.QueryAuctionParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+	}
 
+	// Lookup auction
+	auction, found := keeper.GetAuction(ctx, requestParams.AuctionID)
+	if !found {
+		return nil, types.ErrAuctionNotFound(types.DefaultCodespace, requestParams.AuctionID)
+	}
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, auction)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+
+	return bz, nil
+}
+
+func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	// Get all auctions
+	auctionsList := types.Auctions{}
 	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
 		auctionsList = append(auctionsList, a)
 		return false
 	})
 
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, auctionsList)
-	if err2 != nil {
-		return nil, sdk.ErrInternal("could not marshal result to JSON")
+	// Encode Results
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, auctionsList)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
 
 	return bz, nil
@@ -47,5 +73,6 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
+
 	return bz, nil
 }
