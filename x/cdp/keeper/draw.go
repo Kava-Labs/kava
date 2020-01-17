@@ -85,14 +85,14 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if !found {
 		return types.ErrCdpNotFound(k.codespace, owner, denom)
 	}
-	err := k.ValidatePaymentCoins(ctx, cdp, payment)
-	if err != nil {
-		return err
-	}
 
 	// calculate fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	err := k.ValidatePaymentCoins(ctx, cdp, payment, cdp.Principal.Add(cdp.AccumulatedFees).Add(fees))
+	if err != nil {
+		return err
+	}
 
 	// calculate fee and principal payment
 	feePayment, principalPayment := k.calculatePayment(ctx, cdp.AccumulatedFees.Add(fees), payment)
@@ -162,7 +162,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 }
 
 // ValidatePaymentCoins validates that the input coins are valid for repaying debt
-func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coins) sdk.Error {
+func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coins, debt sdk.Coins) sdk.Error {
 	subset := payment.DenomsSubsetOf(cdp.Principal)
 	if !subset {
 		var paymentDenoms []string
@@ -175,8 +175,11 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 		}
 		return types.ErrInvalidPaymentDenom(k.codespace, cdp.ID, principalDenoms, paymentDenoms)
 	}
+	if payment.IsAnyGT(debt) {
+		return types.ErrPaymentExceedsDebt(k.codespace, payment, debt)
+	}
 	for _, dc := range payment {
-		dp, _ := k.GetDebt(ctx, dc.Denom)
+		dp, _ := k.GetDebtParam(ctx, dc.Denom)
 		proposedBalance := cdp.Principal.AmountOf(dc.Denom).Sub(dc.Amount)
 		if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
 			return types.ErrBelowDebtFloor(k.codespace, sdk.NewCoins(sdk.NewCoin(dc.Denom, proposedBalance)), dp.DebtFloor)

@@ -29,7 +29,7 @@ func (suite *DrawTestSuite) SetupTest() {
 	authGS := app.NewAuthGenState(
 		addrs,
 		[]sdk.Coins{
-			cs(c("xrp", 500000000), c("btc", 500000000)),
+			cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
 			cs(c("xrp", 200000000)),
 			cs(c("xrp", 10000000000000), c("usdx", 100000000000))})
 	tApp.InitializeFromGenesisStates(
@@ -88,6 +88,8 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 311000000)))
 	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
 
+	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 30000000)))
+	suite.Equal(types.CodePaymentExceedsDebt, err.Result().Code)
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.NoError(err)
 
