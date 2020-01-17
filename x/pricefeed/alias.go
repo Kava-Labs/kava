@@ -44,7 +44,6 @@ var (
 	ErrInvalidOracle    = types.ErrInvalidOracle
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
 	NewMsgPostPrice     = types.NewMsgPostPrice
 	NewParams           = types.NewParams
 	DefaultParams       = types.DefaultParams
