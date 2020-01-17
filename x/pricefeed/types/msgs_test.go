@@ -10,9 +10,6 @@ import (
 
 func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 	addr := sdk.AccAddress([]byte("someName"))
-	// oracles := []Oracle{Oracle{
-	// 	OracleAddress: addr.String(),
-	// }}
 	price, _ := sdk.NewDecFromStr("0.3005")
 	expiry := tmtime.Now()
 	negativePrice, _ := sdk.NewDecFromStr("-3.05")
