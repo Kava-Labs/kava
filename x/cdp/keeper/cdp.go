@@ -412,6 +412,9 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
 func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, sdk.Error) {
+	if collateral.IsZero() {
+		return sdk.ZeroDec(), nil
+	}
 	marketID := k.getMarketID(ctx, collateral[0].Denom)
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
