@@ -66,16 +66,12 @@ func (suite *ModuleTestSuite) SetupTest() {
 			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2700000000, 5332000000)
 			if debt >= 4000000000 {
 				tracker.btc = append(tracker.btc, uint64(j+1))
-				penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "btc", i(int64(debt)))
-				suite.NoError(err)
-				tracker.debt += int64(debt) + penalty.Int64()
+				tracker.debt += int64(debt)
 			}
 		} else {
 			if debt >= 1000000000 {
 				tracker.xrp = append(tracker.xrp, uint64(j+1))
-				penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", i(int64(debt)))
-				suite.NoError(err)
-				tracker.debt += int64(debt) + penalty.Int64()
+				tracker.debt += int64(debt)
 			}
 		}
 		suite.Nil(suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt)))))
