@@ -3,20 +3,22 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
-	"github.com/kava-labs/kava/x/auction/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
-// TODO: Tests, see: https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/cli/tx_test.go
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	auctionTxCmd := &cobra.Command{
 		Use:   "auction",
@@ -41,7 +43,7 @@ func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx %s bid 34 1000usdx --from myKeyName
 `, version.ClientName, types.ModuleName)),
-		Args:  cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
