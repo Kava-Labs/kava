@@ -33,22 +33,26 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdPlaceBid cli command for placing bids on auctions
 func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "placebid [auction-id] [amount]",
+		Use:   "bid [auction-id] [amount]",
 		Short: "place a bid on an auction",
-		Args:  cobra.MinimumNArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Place a bid on any type of auction. Collateral auctions must be bid up to their maxbid before entering reverse phase.
+
+Example:
+$ %s tx %s bid 34 1000usdx --from myKeyName
+`, version.ClientName, types.ModuleName)),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				fmt.Printf("invalid auction id - %s \n", string(args[0]))
-				return err
+				return fmt.Errorf("auction-id '%s' not a valid uint", args[0])
 			}
 
-			amt, err := sdk.ParseCoin(args[2])
+			amt, err := sdk.ParseCoin(args[1])
 			if err != nil {
-				fmt.Printf("invalid amount - %s \n", string(args[2]))
 				return err
 			}
 
