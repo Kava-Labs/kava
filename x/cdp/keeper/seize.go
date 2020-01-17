@@ -34,14 +34,8 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) sdk.Error {
 		debt = debt.Add(dc.Amount)
 	}
 
-	penalty, err := k.ApplyLiquidationPenalty(ctx, cdp.Collateral[0].Denom, debt)
-	if err != nil {
-		return err
-	}
-	debt = debt.Add(penalty)
-
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
-	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
+	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
 		return err
 	}
@@ -115,12 +109,8 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 }
 
 // ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty and mints the debt coins in the cdp module account
-func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.Int) (sdk.Int, sdk.Error) {
+func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.Int) sdk.Int {
 	penalty := k.getLiquidationPenalty(ctx, denom)
 	penaltyAmount := sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
-	err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), penaltyAmount)))
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
-	return penaltyAmount, nil
+	return penaltyAmount
 }
