@@ -350,9 +350,6 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.E
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
-		if sdk.NewCoins(dc).IsAnyGT(dp.DebtLimit) {
-			return types.ErrExceedsDebtLimit(k.codespace, sdk.NewCoins(dc), dp.DebtLimit)
-		}
 		if dc.Amount.LT(dp.DebtFloor) {
 			return types.ErrBelowDebtFloor(k.codespace, sdk.NewCoins(dc), dp.DebtFloor)
 		}
@@ -363,12 +360,21 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.E
 // ValidatePrincipalDraw validates that an asset is valid for use as debt when drawing debt off an existing cdp
 func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.Error {
 	for _, dc := range principal {
-		dp, found := k.GetDebt(ctx, dc.Denom)
+		_, found := k.GetDebt(ctx, dc.Denom)
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
-		if sdk.NewCoins(dc).IsAnyGT(dp.DebtLimit) {
-			return types.ErrExceedsDebtLimit(k.codespace, sdk.NewCoins(dc), dp.DebtLimit)
+	}
+	return nil
+}
+
+// ValidateDebtLimit validates that the input debt amount does not exceed the global debt limit
+func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, principal sdk.Coins) sdk.Error {
+	for _, dc := range principal {
+		totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, dc.Denom).Add(dc.Amount)
+		globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(dc.Denom)
+		if totalPrincipal.GT(globalLimit) {
+			return types.ErrExceedsDebtLimit(k.codespace, sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, globalLimit)))
 		}
 	}
 	return nil

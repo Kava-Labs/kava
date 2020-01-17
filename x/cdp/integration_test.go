@@ -59,7 +59,6 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
@@ -133,14 +132,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
@@ -189,14 +186,10 @@ func badGenStates() []badGenState {
 	g6 := baseGenState()
 	g6.Params.DebtParams[0].Denom = "susd"
 
-	g7 := baseGenState()
-	g7.Params.DebtParams[0].DebtLimit = sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000001))
-
 	g8 := baseGenState()
 	g8.Params.DebtParams = append(g8.Params.DebtParams, cdp.DebtParam{
 		Denom:          "lol",
 		ReferenceAsset: "usd",
-		DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("lol", 1000000000000)),
 	})
 
 	g9 := baseGenState()
@@ -221,7 +214,6 @@ func badGenStates() []badGenState {
 		badGenState{Genesis: g4, Reason: "single collateral exceeds debt limit"},
 		badGenState{Genesis: g5, Reason: "combined collateral exceeds debt limit"},
 		badGenState{Genesis: g6, Reason: "duplicate debt denom"},
-		badGenState{Genesis: g7, Reason: "debt limit exceeds global debt limit"},
 		badGenState{Genesis: g8, Reason: "debt param not found in global debt limit"},
 		badGenState{Genesis: g9, Reason: "debt denom not set"},
 		badGenState{Genesis: g10, Reason: "previous block time not set"},
@@ -261,14 +253,12 @@ func baseGenState() cdp.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
