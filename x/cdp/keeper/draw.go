@@ -175,6 +175,13 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 		}
 		return types.ErrInvalidPaymentDenom(k.codespace, cdp.ID, principalDenoms, paymentDenoms)
 	}
+	for _, dc := range payment {
+		dp, _ := k.GetDebt(ctx, dc.Denom)
+		proposedBalance := cdp.Principal.AmountOf(dc.Denom).Sub(dc.Amount)
+		if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
+			return types.ErrBelowDebtFloor(k.codespace, sdk.NewCoins(sdk.NewCoin(dc.Denom, proposedBalance)), dp.DebtFloor)
+		}
+	}
 	return nil
 }
 

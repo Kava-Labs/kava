@@ -129,6 +129,8 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 100000000)))
 	suite.Error(err)
 
+	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 9000000)))
+	suite.Equal(types.CodeBelowDebtFloor, err.Result().Code)
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.NoError(err)
 
@@ -176,9 +178,9 @@ func (suite *DrawTestSuite) TestPricefeedFailure() {
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pfk := suite.app.GetPriceFeedKeeper()
 	pfk.SetCurrentPrices(ctx, "xrp:usd")
-	err := suite.keeper.AddPrincipal(ctx, suite.addrs[0], "xrp", cs(c("usdx", 10)))
+	err := suite.keeper.AddPrincipal(ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.Error(err)
-	err = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp", cs(c("usdx", 10)))
+	err = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.NoError(err)
 }
 
@@ -189,7 +191,7 @@ func (suite *DrawTestSuite) TestModuleAccountFailure() {
 		acc := sk.GetModuleAccount(ctx, types.ModuleName)
 		ak := suite.app.GetAccountKeeper()
 		ak.RemoveAccount(ctx, acc)
-		_ = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp", cs(c("usdx", 10)))
+		_ = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	})
 }
 
