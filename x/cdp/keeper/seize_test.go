@@ -67,12 +67,16 @@ func (suite *SeizeTestSuite) SetupTest() {
 			debt = simulation.RandIntBetween(randSource, 2700000000, 5332000000)
 			if debt >= 4000000000 {
 				tracker.btc = append(tracker.btc, uint64(j+1))
-				tracker.debt += int64(debt)
+				penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "btc", i(int64(debt)))
+				suite.NoError(err)
+				tracker.debt += int64(debt) + penalty.Int64()
 			}
 		} else {
 			if debt >= 1000000000 {
 				tracker.xrp = append(tracker.xrp, uint64(j+1))
-				tracker.debt += int64(debt)
+				penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", i(int64(debt)))
+				suite.NoError(err)
+				tracker.debt += int64(debt) + penalty.Int64()
 			}
 		}
 		err := suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt))))
@@ -102,14 +106,16 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	sk := suite.app.GetSupplyKeeper()
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
 	p := cdp.Principal[0].Amount
+	penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", p)
+	suite.NoError(err)
 	cl := cdp.Collateral[0].Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	err := suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
 	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
+	suite.Equal(cs(c("debt", p.Add(penalty).Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
@@ -126,6 +132,8 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
 	suite.Equal(2, len(deposits))
 	p := cdp.Principal[0].Amount
+	penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", p)
+	suite.NoError(err)
 	cl := cdp.Collateral[0].Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
@@ -133,7 +141,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
 	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
+	suite.Equal(cs(c("debt", p.Add(penalty).Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
@@ -160,6 +168,16 @@ func (suite *SeizeTestSuite) TestHandleNewDebt() {
 	suite.keeper.HandleNewDebt(suite.ctx, "xrp", "usdx", i(31536000))
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(sdk.NewDec(tpb.Int64()).Mul(d("1.05")).TruncateInt().Int64(), tpa.Int64())
+}
+
+func (suite *SeizeTestSuite) TestApplyLiquidationPenalty() {
+	penalty, err := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", i(1000))
+	suite.NoError(err)
+	suite.Equal(i(50), penalty)
+	penalty, err = suite.keeper.ApplyLiquidationPenalty(suite.ctx, "btc", i(1000))
+	suite.NoError(err)
+	suite.Equal(i(25), penalty)
+	suite.Panics(func() { suite.keeper.ApplyLiquidationPenalty(suite.ctx, "lol", i(1000)) })
 }
 
 func TestSeizeTestSuite(t *testing.T) {
