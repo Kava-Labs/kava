@@ -17,6 +17,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/rawprices/{%s}", types.ModuleName, restName), queryRawPricesHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/currentprice/{%s}", types.ModuleName, restName), queryCurrentPriceHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/markets", types.ModuleName), queryMarketsHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/params", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryRawPricesHandler(cliCtx context.CLIContext) http.HandlerFunc {
@@ -52,6 +53,20 @@ func queryMarketsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the params
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/pricefeed/%s", types.QueryGetParams), nil)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		// Return the params
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
