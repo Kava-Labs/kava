@@ -30,10 +30,10 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return auctionTxCmd
 }
 
-// GetCmdPlaceBid cli command for creating and modifying cdps.
+// GetCmdPlaceBid cli command for placing bids on auctions
 func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "placebid [auctionID] [amount]",
+		Use:   "placebid [auction-id] [amount]",
 		Short: "place a bid on an auction",
 		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

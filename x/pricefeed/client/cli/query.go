@@ -25,6 +25,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdCurrentPrice(queryRoute, cdc),
 		GetCmdRawPrices(queryRoute, cdc),
 		GetCmdMarkets(queryRoute, cdc),
+		GetCmdQueryParams(queryRoute, cdc),
 	)...)
 
 	return pricefeedQueryCmd
@@ -104,6 +105,31 @@ func GetCmdMarkets(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			var markets types.Markets
 			cdc.MustUnmarshalJSON(res, &markets)
 			return cliCtx.PrintOutput(markets)
+		},
+	}
+}
+
+// GetCmdQueryParams queries the pricefeed module parameters
+func GetCmdQueryParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "params",
+		Short: "get the pricefeed module parameters",
+		Long:  "Get the current global pricefeed module parameters.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var out types.Params
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
 		},
 	}
 }
