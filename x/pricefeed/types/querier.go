@@ -1,9 +1,5 @@
 package types
 
-import (
-	"strings"
-)
-
 // price Takes an [assetcode] and returns CurrentPrice for that asset
 // pricefeed Takes an [assetcode] and returns the raw []PostedPrice for that asset
 // assets Returns []Assets in the pricefeed system
@@ -13,23 +9,11 @@ const (
 	QueryCurrentPrice = "price"
 	// QueryRawPrices command for raw price queries
 	QueryRawPrices = "rawprices"
-	// QueryAssets command for assets query
-	QueryAssets = "assets"
+	// QueryMarkets command for assets query
+	QueryMarkets = "markets"
 )
 
-// QueryRawPricesResp response to a rawprice query
-type QueryRawPricesResp []string
-
-// implement fmt.Stringer
-func (n QueryRawPricesResp) String() string {
-	return strings.Join(n[:], "\n")
+// QueryPricesParams fields for querying prices
+type QueryPricesParams struct {
+	MarketID string
 }
-
-// QueryAssetsResp response to a assets query
-type QueryAssetsResp []string
-
-// implement fmt.Stringer
-func (n QueryAssetsResp) String() string {
-	return strings.Join(n[:], "\n")
-}
-

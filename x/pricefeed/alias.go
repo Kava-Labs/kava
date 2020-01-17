@@ -26,12 +26,12 @@ const (
 	DefaultParamspace             = types.DefaultParamspace
 	RawPriceFeedPrefix            = types.RawPriceFeedPrefix
 	CurrentPricePrefix            = types.CurrentPricePrefix
-	AssetPrefix                   = types.AssetPrefix
+	MarketPrefix                  = types.MarketPrefix
 	OraclePrefix                  = types.OraclePrefix
 	TypeMsgPostPrice              = types.TypeMsgPostPrice
 	QueryCurrentPrice             = types.QueryCurrentPrice
 	QueryRawPrices                = types.QueryRawPrices
-	QueryAssets                   = types.QueryAssets
+	QueryMarkets                  = types.QueryMarkets
 )
 
 var (
@@ -40,36 +40,32 @@ var (
 	ErrEmptyInput       = types.ErrEmptyInput
 	ErrExpired          = types.ErrExpired
 	ErrNoValidPrice     = types.ErrNoValidPrice
-	ErrInvalidAsset     = types.ErrInvalidAsset
+	ErrInvalidMarket    = types.ErrInvalidMarket
 	ErrInvalidOracle    = types.ErrInvalidOracle
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
 	NewMsgPostPrice     = types.NewMsgPostPrice
-	ParamKeyTable       = types.ParamKeyTable
 	NewParams           = types.NewParams
 	DefaultParams       = types.DefaultParams
+	ParamKeyTable       = types.ParamKeyTable
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc  = types.ModuleCdc
-	KeyMarkets = types.KeyMarkets
+	ModuleCdc      = types.ModuleCdc
+	KeyMarkets     = types.KeyMarkets
+	DefaultMarkets = types.DefaultMarkets
 )
 
 type (
-	Market             = types.Market
-	Markets            = types.Markets
-	Oracle             = types.Oracle
-	Oracles            = types.Oracles
-	CurrentPrice       = types.CurrentPrice
-	PostedPrice        = types.PostedPrice
-	SortDecs           = types.SortDecs
-	GenesisState       = types.GenesisState
-	MsgPostPrice       = types.MsgPostPrice
-	Params             = types.Params
-	ParamSubspace      = types.ParamSubspace
-	QueryRawPricesResp = types.QueryRawPricesResp
-	QueryAssetsResp    = types.QueryAssetsResp
-	Keeper             = keeper.Keeper
+	GenesisState      = types.GenesisState
+	Market            = types.Market
+	Markets           = types.Markets
+	CurrentPrice      = types.CurrentPrice
+	PostedPrice       = types.PostedPrice
+	SortDecs          = types.SortDecs
+	MsgPostPrice      = types.MsgPostPrice
+	Params            = types.Params
+	QueryPricesParams = types.QueryPricesParams
+	Keeper            = keeper.Keeper
 )
