@@ -13,6 +13,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetAuction:
 			return queryAuctions(ctx, req, keeper)
+		case types.QueryGetParams:
+			return queryGetParams(ctx, req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown auction query endpoint")
 		}
@@ -32,5 +34,18 @@ func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res [
 		return nil, sdk.ErrInternal("could not marshal result to JSON")
 	}
 
+	return bz, nil
+}
+
+// query params in the auction store
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	// Get params
+	params := keeper.GetParams(ctx)
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, params)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
 	return bz, nil
 }

@@ -21,6 +21,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryRawPrices(ctx, req, keeper)
 		case types.QueryMarkets:
 			return queryMarkets(ctx, req, keeper)
+		case types.QueryGetParams:
+			return queryGetParams(ctx, req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown pricefeed query endpoint")
 		}
@@ -78,5 +80,18 @@ func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 		panic("could not marshal result to JSON")
 	}
 
+	return bz, nil
+}
+
+// query params in the auction store
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	// Get params
+	params := keeper.GetParams(ctx)
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, params)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
 	return bz, nil
 }

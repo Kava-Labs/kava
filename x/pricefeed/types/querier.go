@@ -11,6 +11,8 @@ const (
 	QueryRawPrices = "rawprices"
 	// QueryMarkets command for assets query
 	QueryMarkets = "markets"
+	// QueryGetParams command for params query
+	QueryGetParams = "params"
 )
 
 // QueryPricesParams fields for querying prices
