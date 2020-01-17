@@ -38,7 +38,7 @@ func GetCmdPlaceBid(cdc *codec.Codec) *cobra.Command {
 		Use:   "bid [auction-id] [amount]",
 		Short: "place a bid on an auction",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Place a bid on any type of auction. Collateral auctions must be bid up to their maxbid before entering reverse phase.
+			fmt.Sprintf(`Place a bid on any type of auction, updating the latest bid amount to [amount]. Collateral auctions must be bid up to their maxbid before entering reverse phase.
 
 Example:
 $ %s tx %s bid 34 1000usdx --from myKeyName
