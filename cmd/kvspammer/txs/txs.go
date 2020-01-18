@@ -88,5 +88,4 @@ func QueryCDP(cdc *codec.Codec, cliCtx *context.CLIContext, accAddress sdk.AccAd
 	var cdp cdptypes.CDP
 	cdc.MustUnmarshalJSON(res, &cdp)
 	return cdp, true, nil
-
 }
