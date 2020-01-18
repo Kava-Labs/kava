@@ -4,17 +4,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
-// RegisterCodec registers concrete types on codec
-func RegisterCodec(cdc *codec.Codec) {
-	// TODO: Register the modules msgs
-}
-
-// ModuleCdc defines the module codec
-var ModuleCdc *codec.Codec
+var ModuleCdc = codec.New()
 
 func init() {
-	ModuleCdc = codec.New()
 	RegisterCodec(ModuleCdc)
-	codec.RegisterCrypto(ModuleCdc)
-	ModuleCdc.Seal()
+}
+
+// RegisterCodec registers concrete types on the Amino code
+func RegisterCodec(cdc *codec.Codec) {
+	cdc.RegisterConcrete(MsgHTLC{}, "bep3/MsgHTLC", nil)
+	cdc.RegisterConcrete(MsgDepositHTLC{}, "bep3/MsgDepositHTLC", nil)
+	cdc.RegisterConcrete(MsgClaimHTLC{}, "bep3/MsgClaimHTLC", nil)
+	cdc.RegisterConcrete(MsgRefundHTLC{}, "bep3/MsgRefundHTLC", nil)
 }

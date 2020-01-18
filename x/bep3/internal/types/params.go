@@ -5,58 +5,71 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/cosmos-sdk/x/params"
+	// "github.com/kava-labs/kava/x/bep3/types"
+	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 )
 
-// Default parameter namespace
-const (
-	DefaultParamspace           = ModuleName
-	// TODO: Define your default parameters
-)
-
-// Parameter store keys
+// Parameter keys
 var (
-	// TODO: Define your keys for the parameter store
-	// KeyParamName          = []byte("ParamName")
+	KeyMinimumLockTime = []byte("MinimumLockTime")
+	// TODO: validate this time as reasonable
+	DefaultMinimumLockTime time.Duration = 1 * time.Hour
 )
 
-// ParamKeyTable for bep3 module
-func ParamKeyTable() params.KeyTable {
+// Params governance parameters for bep3 module
+type Params struct {
+	MinimumLockTime time.Duration `json:"minimum_lock_time" yaml:"minimum_lock_time"`
+}
+
+// // GetParams returns the params from the store
+// func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+// 	var p types.Params
+// 	k.paramSubspace.GetParamSet(ctx, &p)
+// 	return p
+// }
+
+// // SetParams sets params on the store
+// func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+// 	k.paramSubspace.SetParamSet(ctx, &params)
+// }
+
+// NewParams returns a new params object
+func NewParams(minimumLockTime time.Duration) Params {
+	return Params{
+		MinimumLockTime: minimumLockTime,
+	}
+}
+
+// DefaultParams returns default params for bep3 module
+func DefaultParams() Params {
+	return NewParams(DefaultMinimumLockTime)
+}
+
+// ParamKeyTable Key declaration for parameters
+func ParamKeyTable() subspace.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// Params - used for initializing default parameter for bep3 at genesis
-type Params struct {
-	// TODO: Add your Paramaters to the Paramter struct
-	// KeyParamName string `json:"key_param_name"`
-}
-
-// NewParams creates a new Params object
-func NewParams(/* TODO: Pass in the paramters*/) Params {
-
-	return Params{
-		// TODO: Create your Params Type
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
+// pairs of auth module's parameters.
+// nolint
+func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
+	return subspace.ParamSetPairs{
+		{Key: KeyMinimumLockTime, Value: &p.MinimumLockTime},
 	}
 }
 
-// String implements the stringer interface for Params
+// String implements fmt.Stringer
 func (p Params) String() string {
-	return fmt.Sprintf(`
-	// TODO: Return all the params as a string
-	`, )
+	return fmt.Sprintf("Params: \n Minimum Lock Time: %s", p.MinimumLockTime)
 }
 
-// ParamSetPairs - Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		// TODO: Pair your key with the param
-		// params.NewParamSetPair(KeyParamName, &p.ParamName),
+// Validate ensure that params have valid values
+func (p Params) Validate() error {
+	if p.MinimumLockTime <= 0 {
+		return sdk.ErrInternal("minimum lock time must be greater than 0")
 	}
-}
-
-// DefaultParams defines the parameters for this module
-func DefaultParams() Params {
-	return NewParams(
-		// TODO: Pass in your default Params
-	)
+	return nil
 }

@@ -1,40 +1,34 @@
 package types
 
-import (
-	"fmt"
-	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	Params       Params                          `json:"params" yaml:"params"`
-	// TODO: Fill out what is needed by the module for genesis
+	NextHTLTID uint64 `json:"next_htlt_id" yaml:"next_htlt_id"`
+	Params     Params `json:"params" yaml:"params"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(
-	params Params, /* TODO: Fill out with what is needed for genesis state*/
-) GenesisState {
-
+func NewGenesisState(nextID uint64, ap Params) GenesisState {
 	return GenesisState{
-		Params:       params,
-		// TODO: Fill out according to your genesis state
+		NextAuctionID: nextID,
+		Params:        params,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
-	return GenesisState{
-		Params:       DefaultParams(),
-		// TODO: Fill out according to your genesis state, these values will be initialized but empty
-	}
+	return NewGenesisState(0, DefaultParams())
+
 }
 
-// ValidateGenesis validates the bep3 genesis parameters
-func ValidateGenesis(data GenesisState) error {
-	// TODO: Create a sanity check to make sure the state conforms to the modules needs
+// IsEmpty returns true if a GenesisState is empty.
+func (gs GenesisState) IsEmpty() bool {
+	return gs.Equal(GenesisState{})
+}
 
-	return nil
+// Validate validates genesis inputs. It returns error if validation of any input fails.
+func (gs GenesisState) Validate() error {
+	// TODO: validate nextHTLTID
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
 }

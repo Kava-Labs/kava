@@ -1,26 +1,35 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strings"
 )
 
-// Query endpoints supported by the bep3 querier
 const (
-	QueryParams    = "params"
-	//TODO: Describe query parametes
+	// QueryGetHTLT command for getting the information about a particular HTLT
+	QueryGetHTLT = "htlt"
+	// QueryGetHTLT command for getting a list of HTLTs
+	QueryGetHTLTs  = "htlts"
+	QueryGetParams = "params"
 )
 
-/* 
-Below you will be able how to set your own queries:
+// QueryResHTLTs Result Payload for a HTLTs query
+type QueryResHTLTs []string
 
-QueryInfoParams defines the params for the following queries:
-- 'custom/bep3/signingInfo'
-type QueryParams struct {
-	ConsAddress sdk.ConsAddress
+// implement fmt.Stringer
+func (n QueryResHTLTs) String() string {
+	return strings.Join(n[:], "\n")
 }
 
-NewQueryInfoParams creates a new QueryInfoParams instance
-func NewQueryInfoParams(consAddr sdk.ConsAddress) QueryInfoParams {
-	return QueryInfoParams{consAddr}
+// QueryHTLTsParams is the params for a HTLTs query
+type QueryHTLTsParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
 }
-*/
+
+// NewQueryHTLTsParams creates a new QueryHTLTsParams
+func NewQueryHTLTsParams(page int, limit int) QueryHTLTsParams {
+	return QueryHTLTsParams{
+		Page:  page,
+		Limit: limit,
+	}
+}
