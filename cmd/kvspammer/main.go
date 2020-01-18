@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/jasonlvhit/gocron"
+	"github.com/jasonlvhit/gocron"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -245,9 +245,10 @@ func RunGenerateCDPsCmd(cmd *cobra.Command, args []string) error {
 	fmt.Println("Tx logs:", txRes.Logs)
 
 	// TODO: Schedule cron for price collection and posting
-	// gocron.Every(uint64(interval)).Minutes().Do(feed.GetPricesAndPost, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
-	// <-gocron.Start()
-	// gocron.Clear()
+	// gocron.Every(uint64(interval)).Minutes().Do(.GetPricesAndPost, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
+	gocron.Every(uint64(2)).Minutes().Do(fmt.Println("here"))
+	<-gocron.Start()
+	gocron.Clear()
 
 	return nil
 }

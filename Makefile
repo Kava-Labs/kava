@@ -80,7 +80,7 @@ build-linux: go.sum
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvspammer
+	go install $(BUILD_FLAGS) ./cmd/kvspammer
 
 ########################################
 ### Tools & dependencies
