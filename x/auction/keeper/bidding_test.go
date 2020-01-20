@@ -36,26 +36,6 @@ func TestAuctionBidding(t *testing.T) {
 	collateralAddrs := addrs[2:]
 	collateralWeights := is(30, 20, 10)
 
-	tApp := app.NewTestApp()
-
-	// Set up seller account
-	sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)
-	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000))))
-
-	// Initialize genesis accounts
-	tApp.InitializeFromGenesisStates(
-		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
-			auth.NewBaseAccount(buyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-			auth.NewBaseAccount(secondBuyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-			auth.NewBaseAccount(collateralAddrs[0], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-			auth.NewBaseAccount(collateralAddrs[1], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-			auth.NewBaseAccount(collateralAddrs[2], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
-			sellerAcc,
-		}),
-	)
-	ctx := tApp.NewContext(false, abci.Header{})
-	keeper := tApp.GetAuctionKeeper()
-
 	type auctionArgs struct {
 		auctionType AuctionType
 		seller      string
@@ -285,6 +265,25 @@ func TestAuctionBidding(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			// Setup test
+			tApp := app.NewTestApp()
+			// Set up seller account
+			sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)
+			require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000))))
+			// Initialize genesis accounts
+			tApp.InitializeFromGenesisStates(
+				NewAuthGenStateFromAccs(authexported.GenesisAccounts{
+					auth.NewBaseAccount(buyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
+					auth.NewBaseAccount(secondBuyer, cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
+					auth.NewBaseAccount(collateralAddrs[0], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
+					auth.NewBaseAccount(collateralAddrs[1], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
+					auth.NewBaseAccount(collateralAddrs[2], cs(c("token1", 1000), c("token2", 1000)), nil, 0, 0),
+					sellerAcc,
+				}),
+			)
+			ctx := tApp.NewContext(false, abci.Header{})
+			keeper := tApp.GetAuctionKeeper()
+
 			// Start Auction
 			var id uint64
 			var err sdk.Error
