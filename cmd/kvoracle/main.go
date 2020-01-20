@@ -32,7 +32,7 @@ const FlagRPCURL = "rpc-url"
 
 var appCodec *amino.Codec
 
-func init() {
+func main() {
 	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
@@ -52,10 +52,8 @@ func init() {
 	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		client.LineBreak,
 		postAssetPriceCmd(),
-		client.LineBreak,
-		getInitPriceFeedCmd(),
+		getStartPriceFeedCmd(),
 	)
 
 	executor := cli.PrepareMainCmd(rootCmd, "KVORACLE", DefaultCLIHome)
@@ -83,16 +81,16 @@ func postAssetPriceCmd() *cobra.Command {
 	return postAssetPriceCmd
 }
 
-func getInitPriceFeedCmd() *cobra.Command {
-	getInitPriceFeedCmd := &cobra.Command{
-		Use:     "init [oracle-moniker] [coin1, coin2] [interval-minutes] --rpc-url=[rpc-url] --chain-id=[chain-id]",
-		Short:   "Initialize an oracle that automatically updates kava's price feed",
+func getStartPriceFeedCmd() *cobra.Command {
+	getStartPriceFeedCmd := &cobra.Command{
+		Use:     "start [oracle-moniker] [coin1, coin2] [interval-minutes] --rpc-url=[rpc-url] --chain-id=[chain-id]",
+		Short:   "Starts an oracle that automatically updates kava's price feed",
 		Args:    cobra.ExactArgs(3),
-		Example: "kvoracle init testuser bitcoin,kava,ripple,binancecoin 5 --rpc-url=tcp://localhost:26657 --chain-id=testing",
-		RunE:    RunInitPriceFeedCmd,
+		Example: "kvoracle start testuser bitcoin,kava,ripple,binancecoin 5 --rpc-url=tcp://localhost:26657 --chain-id=testing",
+		RunE:    RunStartPriceFeedCmd,
 	}
 
-	return getInitPriceFeedCmd
+	return getStartPriceFeedCmd
 }
 
 // RunPostAssetPriceCmd executes the getAssetPrice with the provided parameters
@@ -165,8 +163,8 @@ func RunPostAssetPriceCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// RunInitPriceFeedCmd runs the InitPriceFeed Cmd cmd
-func RunInitPriceFeedCmd(cmd *cobra.Command, args []string) error {
+// RunStartPriceFeedCmd runs the RunStartPriceFeedCmd Cmd cmd
+func RunStartPriceFeedCmd(cmd *cobra.Command, args []string) error {
 	// Parse RPC URL
 	rpcURL := viper.GetString(FlagRPCURL)
 	if strings.TrimSpace(rpcURL) == "" {
@@ -235,11 +233,4 @@ func initConfig(cmd *cobra.Command) error {
 		return err
 	}
 	return viper.BindPFlag(FlagRPCURL, cmd.PersistentFlags().Lookup(FlagRPCURL))
-}
-
-func main() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
 }
