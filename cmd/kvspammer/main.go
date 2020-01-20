@@ -112,7 +112,6 @@ func RunGenerateCDPsCmd(cmd *cobra.Command, args []string) error {
 		return errors.New("Must specify a 'rpc-url'")
 	}
 
-	// TODO: Validate that this denom exists in the app
 	collateralDenom := args[0]
 	if len(collateralDenom) == 0 {
 		return errors.New("Must specify a valid collateral denom")
