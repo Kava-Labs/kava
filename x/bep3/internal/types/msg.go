@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	// "github.com/binance-chain/go-sdk/common/types"
+	"github.com/binance-chain/go-sdk/common/types"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -33,22 +32,14 @@ var (
 	AtomicSwapCoinsAccAddr = types.AccAddress(crypto.AddressHash([]byte("BinanceChainAtomicSwapCoins")))
 )
 
-var (
-	_ sdk.Msg = &HTLTMsg{}
-	_ sdk.Msg = &DepositHTLTMsg{}
-	_ sdk.Msg = &ClaimHTLTMsg{}
-	_ sdk.Msg = &RefundHTLTMsg{}
-)
-
-
 type HTLTMsg struct {
-	From                sdk.AccAddress `json:"from"`
-	To                  sdk.AccAddress `json:"to"`
+	From                types.AccAddress `json:"from"`
+	To                  types.AccAddress `json:"to"`
 	RecipientOtherChain string           `json:"recipient_other_chain"`
 	SenderOtherChain    string           `json:"sender_other_chain"`
 	RandomNumberHash    types.SwapBytes  `json:"random_number_hash"`
 	Timestamp           int64            `json:"timestamp"`
-	Amount              sdk.Coins      `json:"amount"`
+	Amount              types.Coins      `json:"amount"`
 	ExpectedIncome      string           `json:"expected_income"`
 	HeightSpan          int64            `json:"height_span"`
 	CrossChain          bool             `json:"cross_chain"`

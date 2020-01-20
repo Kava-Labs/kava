@@ -3,6 +3,7 @@ module github.com/kava-labs/kava
 go 1.13
 
 require (
+	github.com/binance-chain/go-sdk v1.2.2
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20191010193331-18de630d0ae1
 	github.com/gorilla/mux v1.7.3
 	github.com/spf13/cobra v0.0.5

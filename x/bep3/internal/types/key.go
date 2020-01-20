@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/binary"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -24,7 +26,7 @@ const (
 
 // Key prefixes
 var (
-	HTLTKeyPrefix = []byte{0x00} // prefix for keys that store HTLTs
+	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store HTLTs
 	HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the htltByTime index
 
 	NextHTLTIDKey = []byte{0x02} // key for the next HTLT id

@@ -3,7 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/kava-labs/kava/x/bep3/internal/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -22,14 +22,14 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryHTLT(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var HTLTlist types.HTLTs
+	var kavaHTLTs types.KavaHTLTs
 
-	keeper.IterateHTLTs(ctx, func(a types.HTLT) bool {
-		HTLTlist = append(HTLTlist, a)
+	keeper.IterateHTLTs(ctx, func(h types.KavaHTLT) bool {
+		kavaHTLTs = append(kavaHTLTs, h)
 		return false
 	})
 
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, HTLTlist)
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, kavaHTLTs)
 	if err2 != nil {
 		return nil, sdk.ErrInternal("could not marshal result to JSON")
 	}
@@ -37,7 +37,7 @@ func queryHTLT(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byt
 	return bz, nil
 }
 
-// query params in the auction store
+// query params in the htlt store
 func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	// Get params
 	params := keeper.GetParams(ctx)
