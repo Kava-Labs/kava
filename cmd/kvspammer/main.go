@@ -12,15 +12,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	amino "github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/libs/cli"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	amino "github.com/tendermint/go-amino"
+	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/cmd/kvspammer/spammer"
@@ -162,10 +161,7 @@ func RunGenerateCDPsCmd(cmd *cobra.Command, args []string) error {
 		WithFromAddress(accAddress).
 		WithFromName(from)
 
-	_ = cliCtx
-	_ = maxCollateral
-
-	gocron.Every(uint64(interval)).Seconds().Do(
+	gocron.Every(uint64(interval)).Seconds().Do(func() {
 		spammer.SpamTxCDP(
 			rpcURL,
 			chainID,
@@ -175,12 +171,10 @@ func RunGenerateCDPsCmd(cmd *cobra.Command, args []string) error {
 			principalDenom,
 			maxCollateral,
 			appCodec,
-			&cliCtx,
+			cliCtx,
 			accAddress,
-		),
-	)
-
-	// gocron.Every(uint64(interval)).Seconds().Do(func() { fmt.Println("execute") })
+		)
+	})
 
 	<-gocron.Start()
 	gocron.Clear()

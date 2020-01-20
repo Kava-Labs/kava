@@ -67,7 +67,12 @@ func SendTxRPC(
 }
 
 // QueryCDP queries an individual CDP
-func QueryCDP(cdc *codec.Codec, cliCtx *context.CLIContext, accAddress sdk.AccAddress, collateralDenom string) (cdptypes.CDP, bool, error) {
+func QueryCDP(
+	cdc *codec.Codec,
+	cliCtx context.CLIContext,
+	accAddress sdk.AccAddress,
+	collateralDenom string,
+) (cdptypes.CDP, bool, error) {
 
 	bz, err := cdc.MarshalJSON(cdptypes.QueryCdpParams{
 		CollateralDenom: collateralDenom,

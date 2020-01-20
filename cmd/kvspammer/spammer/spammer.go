@@ -27,16 +27,17 @@ func SpamTxCDP(
 	principalDenom string,
 	maxCollateral int64,
 	appCodec *amino.Codec,
-	cliCtx *context.CLIContext,
+	cliCtx context.CLIContext,
 	accAddress sdk.AccAddress,
-) error {
+) {
+
 	// Set up new source of randomness
 	randSource := rand.New(rand.NewSource(int64(time.Now().Unix())))
 
 	// Attempt to locate existing CDP for this user/collateral denom
 	cdp, found, err := txs.QueryCDP(appCodec, cliCtx, accAddress, collateralDenom)
 	if err != nil {
-		return err
+		fmt.Println(err)
 	}
 
 	// If no existing CDP is found, create new CDP
@@ -50,7 +51,7 @@ func SpamTxCDP(
 	} else {
 		// Calculate a random percentage and load current CDP values for coin amount generation
 		randPercentage := sdk.NewDec(int64(simulation.RandIntBetween(randSource, 1, 25))).QuoInt(sdk.NewInt(100)) // TODO: calculate off % split
-		currCollateral, currDebt, collateralizationRatio := loadCDPData(cdp)
+		currCollateral, currDebt, collateralizationRatio := LoadCDPData(cdp)
 
 		// If collateralization ratio above limit, withdraw colllateral or draw principal
 		// If collateralization ratio is below limit, deposit collateral or repay principal
@@ -85,19 +86,17 @@ func SpamTxCDP(
 	}
 
 	// Send tx containing the msg
-	txRes, sdkErr := txs.SendTxRPC(chainID, appCodec, accAddress, from, passphrase, *cliCtx, msg, rpcURL)
+	txRes, sdkErr := txs.SendTxRPC(chainID, appCodec, accAddress, from, passphrase, cliCtx, msg, rpcURL)
 	if sdkErr != nil {
-		return sdkErr
+		fmt.Println(err)
 	}
 
 	fmt.Println("Tx hash:", txRes.TxHash)
 	fmt.Println("Tx logs:", txRes.Logs)
 
-	return nil
-
 }
 
-func loadCDPData(cdp cdptypes.CDP) (sdk.Dec, sdk.Int, sdk.Dec) {
+func LoadCDPData(cdp cdptypes.CDP) (sdk.Dec, sdk.Int, sdk.Dec) {
 	fmt.Println("Current CDP:", cdp)
 
 	currCollateral := sdk.NewDec(int64(0))
