@@ -52,8 +52,10 @@ func SpamTxCDP(
 		fmt.Printf("Creating new CDP. Collateral: %s, Principal: %s...\n", collateral, principal)
 		msg = []sdk.Msg{cdptypes.NewMsgCreateCDP(accAddress, sdk.NewCoins(collateral), sdk.NewCoins(principal))}
 	} else {
+		fmt.Println(cdp)
+
 		// Calculate a random percentage and load current CDP values for coin amount generation
-		randPercentage := sdk.NewDec(int64(simulation.RandIntBetween(randSource, 1, 25))).QuoInt(sdk.NewInt(100))
+		randPercentage := sdk.NewDec(int64(simulation.RandIntBetween(randSource, 5, 25))).QuoInt(sdk.NewInt(100))
 		currCollateral, currDebt, collateralizationRatio := loadCDPData(cdp)
 
 		// If collateralization ratio above limit, withdraw colllateral or draw principal
@@ -75,7 +77,7 @@ func SpamTxCDP(
 				msg = []sdk.Msg{cdptypes.NewMsgDeposit(accAddress, accAddress, sdk.NewCoins(coin))}
 			} else {
 				coin := sdk.NewCoin(principalDenom, randPercentage.MulInt(currDebt).TruncateInt())
-				msg = []sdk.Msg{cdptypes.NewMsgRepayDebt(accAddress, principalDenom, sdk.NewCoins(coin))}
+				msg = []sdk.Msg{cdptypes.NewMsgRepayDebt(accAddress, collateralDenom, sdk.NewCoins(coin))}
 				fmt.Printf("\nAttempting to repay %s principal...\n", coin)
 			}
 		}
