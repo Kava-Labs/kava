@@ -11,6 +11,9 @@ const (
 	TypeMsgPostPrice = "post_price"
 )
 
+// ensure Msg interface compliance at compile time
+var _ sdk.Msg = &MsgPostPrice{}
+
 // MsgPostPrice struct representing a posted price message.
 // Used by oracles to input prices to the pricefeed
 type MsgPostPrice struct {
