@@ -1,6 +1,7 @@
 package txs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -9,11 +10,48 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/kava-labs/kava/cmd/kvoracle/types"
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-// SendTxPostPrice sends a tx containing MsgPostPrice to the kava blockchain
-func SendTxPostPrice(
+// BuildPostPriceAndSend builds a MsgPostPrice and sends it to the kava blockchain
+func BuildPostPriceAndSend(
+	asset types.Asset,
+	accAddress sdk.AccAddress,
+	chainID string,
+	cdc *codec.Codec,
+	oracleName string,
+	passphrase string,
+	cliCtx context.CLIContext,
+	rpcURL string,
+) (sdk.TxResponse, error) {
+	// Parse the price
+	price, err := sdk.NewDecFromStr(fmt.Sprintf("%f", asset.Price))
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	// Set expiration time to 1 day in the future
+	expiry := time.Now().Add(24 * time.Hour)
+
+	// Initialize and validate the msg
+	msg := pftypes.NewMsgPostPrice(accAddress, asset.TargetMarketCode, price, expiry)
+	err = msg.ValidateBasic()
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	// Send tx containing msg to kava
+	txRes, sdkErr := sendTxPostPrice(chainID, cdc, accAddress, oracleName, passphrase, cliCtx, &msg, rpcURL)
+	if sdkErr != nil {
+		return sdk.TxResponse{}, sdkErr
+	}
+
+	return txRes, nil
+}
+
+// sendTxPostPrice sends a tx containing MsgPostPrice to the kava blockchain
+func sendTxPostPrice(
 	chainID string,
 	cdc *codec.Codec,
 	accAddress sdk.AccAddress,
@@ -23,7 +61,6 @@ func SendTxPostPrice(
 	msg *pftypes.MsgPostPrice,
 	rpcURL string,
 ) (sdk.TxResponse, error) {
-
 	if rpcURL != "" {
 		cliCtx = cliCtx.WithNodeURI(rpcURL)
 	}
@@ -60,19 +97,4 @@ func SendTxPostPrice(
 	}
 
 	return res, nil
-}
-
-// ConstructMsgPostPrice builds a MsgPostPrice
-func ConstructMsgPostPrice(accAddress sdk.AccAddress, price sdk.Dec, symbol string) (pftypes.MsgPostPrice, error) {
-	// Set expiration time to 1 day in the future
-	expiry := time.Now().Add(24 * time.Hour)
-
-	// Initialize and validate the msg
-	msg := pftypes.NewMsgPostPrice(accAddress, symbol, price, expiry)
-	err := msg.ValidateBasic()
-	if err != nil {
-		return pftypes.MsgPostPrice{}, err
-	}
-
-	return msg, nil
 }

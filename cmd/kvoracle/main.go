@@ -135,7 +135,7 @@ func RunStartPriceFeedCmd(cmd *cobra.Command, args []string) error {
 		WithFromName(oracleName)
 
 	// Schedule cron for price collection and posting
-	gocron.Every(uint64(interval)).Seconds().Do(feed.PostPrices, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
+	gocron.Every(uint64(interval)).Seconds().Do(feed.ExecutePostingIteration, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
 	<-gocron.Start()
 	gocron.Clear()
 

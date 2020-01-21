@@ -1,20 +1,5 @@
 package types
 
-// TODO: Replace MarketRes once cli query result has been fixed to no longer be a string
-// type MarketRes struct {
-// 	MarketID   string `json:"market_id" yaml:"market_id"`
-// 	BaseAsset  string `json:"base_asset" yaml:"base_asset"`
-// 	QuoteAsset string `json:"quote_asset" yaml:"quote_asset"`
-// 	Oracles    string `json:"oracles" yaml:"oracles"`
-// 	Active     bool   `json:"active" yaml:"active"`
-// }
-
-// MarketsRes struct
-type MarketsRes struct {
-	Height string   `json:"height"`
-	Result []string `json:"result"`
-}
-
 // Asset struct
 type Asset struct {
 	Symbol           string
@@ -44,3 +29,18 @@ type CoinGeckoMarket struct {
 	HasTradingIncentive bool   `json:"has_trading_incentive"`
 	CoinID              string `json:"coin_id"`
 }
+
+// MarketsRes struct
+type MarketsRes struct {
+	Height string   `json:"height"`
+	Result []string `json:"result"`
+}
+
+// TODO: Replace MarketRes once cli query result has been fixed to no longer be a string
+// type MarketRes struct {
+// 	MarketID   string `json:"market_id" yaml:"market_id"`
+// 	BaseAsset  string `json:"base_asset" yaml:"base_asset"`
+// 	QuoteAsset string `json:"quote_asset" yaml:"quote_asset"`
+// 	Oracles    string `json:"oracles" yaml:"oracles"`
+// 	Active     bool   `json:"active" yaml:"active"`
+// }
