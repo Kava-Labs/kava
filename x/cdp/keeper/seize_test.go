@@ -108,6 +108,9 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.NoError(err)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
+	auctionKeeper := suite.app.GetAuctionKeeper()
+	_, found := auctionKeeper.GetAuction(suite.ctx, 0)
+	suite.True(found)
 	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
 	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
 	ak := suite.app.GetAccountKeeper()
@@ -160,6 +163,16 @@ func (suite *SeizeTestSuite) TestHandleNewDebt() {
 	suite.keeper.HandleNewDebt(suite.ctx, "xrp", "usdx", i(31536000))
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(sdk.NewDec(tpb.Int64()).Mul(d("1.05")).TruncateInt().Int64(), tpa.Int64())
+}
+
+func (suite *SeizeTestSuite) TestApplyLiquidationPenalty() {
+	penalty := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", i(1000))
+	suite.Equal(i(50), penalty)
+	penalty = suite.keeper.ApplyLiquidationPenalty(suite.ctx, "btc", i(1000))
+	suite.Equal(i(25), penalty)
+	penalty = suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", i(675760172))
+	suite.Equal(i(33788009), penalty)
+	suite.Panics(func() { suite.keeper.ApplyLiquidationPenalty(suite.ctx, "lol", i(1000)) })
 }
 
 func TestSeizeTestSuite(t *testing.T) {
