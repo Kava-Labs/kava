@@ -37,16 +37,17 @@ func PostPrices(
 	cliCtx context.CLIContext,
 	rpcURL string,
 ) error {
-	// Get and display current time
-	now := time.Now().Format("15:04:05")
-	fmt.Println("Time: ", now)
+	// Print current time
+	fmt.Println("Time: ", time.Now().Format("15:04:05"))
 
 	// Get asset prices
 	assets := getCoinGeckoPrices(coins, "USD")
 
 	for i := 0; i < len(assets); i++ {
-		startPostPriceRoutine(assets[i], accAddress, chainID, cdc, oracleName, passphrase, cliCtx, rpcURL)
+		startPostPriceRoutine(i+1, assets[i], accAddress, chainID, cdc, oracleName, passphrase, cliCtx, rpcURL)
 	}
+
+	fmt.Println()
 
 	return nil
 }
@@ -55,6 +56,7 @@ func PostPrices(
 // attempt again for a total of 3 attempts. If the tx is received by the blockchain but unsuccessful
 // due to blockchain state, it will not try to resend the tx - but will print the tx log text.
 func startPostPriceRoutine(
+	num int,
 	asset types.Asset,
 	accAddress sdk.AccAddress,
 	chainID string,
@@ -74,7 +76,7 @@ func startPostPriceRoutine(
 			attemptStr = fmt.Sprintf(" [attempt #%d]", attempt)
 		}
 
-		fmt.Printf("Posting price '%f' for %s...%s\n", asset.Price, asset.Symbol, attemptStr)
+		fmt.Printf("\t%d. %s: posting price %f...%s\n", num, asset.Symbol, asset.Price, attemptStr)
 		txRes, err = postPriceToKava(asset, accAddress, chainID, cdc, oracleName, passphrase, cliCtx, rpcURL)
 		if err != nil {
 			time.Sleep(5 * time.Second)
@@ -83,11 +85,17 @@ func startPostPriceRoutine(
 	})
 
 	if err != nil {
-		log.Fatalln("Error:", err)
+		log.Println("\t\tError:", err)
 	}
 
-	fmt.Printf("Tx hash: %s\n", txRes.TxHash)
-	fmt.Printf("Tx log: %v\n\n", txRes.RawLog)
+	fmt.Printf("\t\tTx hash: %s\n", txRes.TxHash)
+	if len(txRes.Logs) > 0 {
+		if txRes.Logs[0].Success {
+			fmt.Printf("\t\tPrice successfully posted.\n")
+		} else {
+			fmt.Printf("\t\tUnsuccessful. %v\n", txRes.Logs[0].Log)
+		}
+	}
 }
 
 func postPriceToKava(
@@ -181,9 +189,9 @@ func setupMarketCodeDict() {
 	codeDict = make(map[string]string)
 
 	// Populate the dictionary
-	codeDict["bitcoin"] = "btc:usd"
-	codeDict["kava"] = "kava:usd"
-	codeDict["ripple"] = "xrp:usd"
-	codeDict["binancecoin"] = "bnb:usd"
-	codeDict["cosmos"] = "atom:usd"
+	codeDict["bitcoin"] = "btc-usd"
+	codeDict["kava"] = "kava-usd"
+	codeDict["ripple"] = "xrp-usd"
+	codeDict["binancecoin"] = "bnb-usd"
+	codeDict["cosmos"] = "atom-usd"
 }

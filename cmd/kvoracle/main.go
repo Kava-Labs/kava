@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -24,7 +23,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/cmd/kvoracle/feed"
-	"github.com/kava-labs/kava/cmd/kvoracle/txs"
 )
 
 // FlagRPCURL specifies the url for kava's rpc
@@ -52,8 +50,7 @@ func main() {
 	// Construct Root Command
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		postAssetPriceCmd(),
-		getStartPriceFeedCmd(),
+		startPriceFeedCmd(),
 	)
 
 	executor := cli.PrepareMainCmd(rootCmd, "KVORACLE", DefaultCLIHome)
@@ -69,98 +66,16 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-func postAssetPriceCmd() *cobra.Command {
-	postAssetPriceCmd := &cobra.Command{
-		Use:     "postprice [oracle-moniker] [market] [price] --rpc-url=[rpc-url] --chain-id=[chain-id]",
-		Short:   "Post the price of the base asset in a market",
-		Args:    cobra.ExactArgs(3),
-		Example: "kvoracle postprice testuser btc:usd 8105.93  --rpc-url=tcp://localhost:26657 --chain-id=testing",
-		RunE:    RunPostAssetPriceCmd,
-	}
-
-	return postAssetPriceCmd
-}
-
-func getStartPriceFeedCmd() *cobra.Command {
-	getStartPriceFeedCmd := &cobra.Command{
+func startPriceFeedCmd() *cobra.Command {
+	startPriceFeedCmd := &cobra.Command{
 		Use:     "start [oracle-moniker] [coin1, coin2] [interval-minutes] --rpc-url=[rpc-url] --chain-id=[chain-id]",
 		Short:   "Starts an oracle that automatically updates kava's price feed",
 		Args:    cobra.ExactArgs(3),
-		Example: "kvoracle start testuser bitcoin,kava,ripple,binancecoin 30 --rpc-url=tcp://localhost:26657 --chain-id=testing",
+		Example: "kvoracle start vlad bitcoin,kava 30 --rpc-url=tcp://localhost:26657 --chain-id=testing",
 		RunE:    RunStartPriceFeedCmd,
 	}
 
-	return getStartPriceFeedCmd
-}
-
-// RunPostAssetPriceCmd executes the getAssetPrice with the provided parameters
-func RunPostAssetPriceCmd(cmd *cobra.Command, args []string) error {
-	// Parse RPC URL
-	rpcURL := viper.GetString(FlagRPCURL)
-	if strings.TrimSpace(rpcURL) == "" {
-		return errors.New("Must specify an 'rpc-url'")
-	}
-
-	// Parse chain's ID
-	chainID := viper.GetString(client.FlagChainID)
-	if strings.TrimSpace(chainID) == "" {
-		return errors.New("Must specify a 'chain-id'")
-	}
-
-	// Parse the oracle's moniker
-	validatorFrom := args[0]
-
-	// Parse the market code
-	marketCode := args[1]
-
-	// Parse the price
-	price, err := sdk.NewDecFromStr(args[2])
-	if err != nil {
-		return err
-	}
-
-	// TODO: 'sdkErr' due to: https://github.com/cosmos/scaffold/pull/37
-
-	// Get the validator's name and account address using their moniker
-	accAddress, validatorName, sdkErr := context.GetFromFields(validatorFrom, false)
-	if sdkErr != nil {
-		return sdkErr
-	}
-
-	// Get the validator's passphrase using their moniker
-	passphrase, sdkErr := keys.GetPassphrase(validatorFrom)
-	if sdkErr != nil {
-		return sdkErr
-	}
-
-	// Test passphrase is correct
-	_, sdkErr = authtypes.MakeSignature(nil, validatorName, passphrase, authtypes.StdSignMsg{})
-	if sdkErr != nil {
-		return sdkErr
-	}
-
-	// Set up our CLIContext
-	cliCtx := context.NewCLIContext().
-		WithCodec(appCodec).
-		WithFromAddress(accAddress).
-		WithFromName(validatorName)
-
-	// Build the msg
-	msgPostPrice, sdkErr := txs.ConstructMsgPostPrice(accAddress, price, marketCode)
-	if sdkErr != nil {
-		return sdkErr
-	}
-
-	// Send tx containing msg to kava
-	fmt.Printf("Posting price '%f' for %s...\n", msgPostPrice.Price, msgPostPrice.AssetCode)
-	txRes, sdkErr := txs.SendTxPostPrice(chainID, appCodec, accAddress, validatorName, passphrase, cliCtx, &msgPostPrice, rpcURL)
-	if sdkErr != nil {
-		return sdkErr
-	}
-
-	fmt.Println("Tx hash:", txRes.TxHash)
-
-	return nil
+	return startPriceFeedCmd
 }
 
 // RunStartPriceFeedCmd runs the RunStartPriceFeed cmd
