@@ -1,21 +1,17 @@
 package types
 
-import (
-	"strings"
-)
-
 const (
-	// QueryGetAuction command for getting the information about a particular auction
-	QueryGetAuction = "auctions"
-	QueryGetParams  = "params"
+	// QueryGetAuction is the query path for querying one auction
+	QueryGetAuction = "auction"
+	// QueryGetAuction is the query path for querying all auctions
+	QueryGetAuctions = "auctions"
+	// QueryGetAuction is the query path for querying the global auction params
+	QueryGetParams = "params"
 )
 
-// QueryResAuctions Result Payload for an auctions query
-type QueryResAuctions []string
-
-// implement fmt.Stringer
-func (n QueryResAuctions) String() string {
-	return strings.Join(n[:], "\n")
+// QueryAuctionParams params for query /auction/auction
+type QueryAuctionParams struct {
+	AuctionID uint64
 }
 
 // QueryAllAuctionParams is the params for an auctions query

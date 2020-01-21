@@ -68,7 +68,7 @@ func ErrInvalidLotDenom(codespace sdk.CodespaceType, lotDenom string, auctionLot
 
 // ErrBidTooSmall error for when bid is not greater than auction's last bid
 func ErrBidTooSmall(codespace sdk.CodespaceType, bid sdk.Coin, lastBid sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeBidTooSmall, fmt.Sprintf("bid %s is smaller than auction's last bid %s", bid.String(), lastBid.String()))
+	return sdk.NewError(codespace, CodeBidTooSmall, fmt.Sprintf("bid %s is not greater than auction's last bid %s", bid.String(), lastBid.String()))
 }
 
 // ErrBidTooLarge error for when bid is larger than auction's maximum allowed bid
