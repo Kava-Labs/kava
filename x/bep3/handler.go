@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/Kava-Labs/kava/x/bep3/internal/types"
 )
 
 // NewHandler creates an sdk.Handler for all the bep3 type messages

@@ -2,7 +2,7 @@ package bep3
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/Kava-Labs/kava/x/bep3/internal/types"
 )
 
 // InitGenesis initialize default parameters

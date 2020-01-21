@@ -1,8 +1,8 @@
 package bep3
 
 import (
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/keeper"
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/Kava-Labs/kava/x/bep3/internal/keeper"
+	"github.com/Kava-Labs/kava/x/bep3/internal/types"
 )
 
 const (
@@ -28,7 +28,7 @@ var (
 	// TODO: Fill out function aliases
 
 	// variable aliases
-	ModuleCdc     = types.ModuleCdc
+	ModuleCdc = types.ModuleCdc
 	// TODO: Fill out variable aliases
 )
 

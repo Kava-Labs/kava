@@ -1,21 +1,20 @@
 package bep3
 
 import (
-	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// BeginBlocker check for infraction evidence or downtime of validators
-// on every begin block
+// BeginBlocker runs at the start of every block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
-// 	TODO: fill out if your application requires beginblock, if not you can delete this function
+	//
 }
 
-// EndBlocker called every block, process inflation, update validator set.
+// EndBlocker runs at the end of every block.
 func EndBlocker(ctx sdk.Context, k Keeper) {
-// 	TODO: fill out if your application requires endblock, if not you can delete this function
+	// err := k.CloseExpiredAuctions(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
 }

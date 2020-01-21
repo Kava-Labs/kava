@@ -10,10 +10,9 @@ import (
 
 const (
 	AtomicSwapRoute = "atomicSwap"
-	HTLT            = "HTLT"
-	DepositHTLT     = "depositHTLT"
-	ClaimHTLT       = "claimHTLT"
-	RefundHTLT      = "refundHTLT"
+	DepositHTLT     = "depositKavaHTLT"
+	ClaimHTLT       = "claimKavaHTLT"
+	RefundHTLT      = "refundKavaHTLT"
 
 	Int64Size               = 8
 	RandomNumberHashLength  = 32
@@ -25,56 +24,63 @@ const (
 	MaximumHeightSpan       = 518400
 )
 
-// TODO: change this...
 var (
 	// bnb prefix address:  bnb1wxeplyw7x8aahy93w96yhwm7xcq3ke4f8ge93u
 	// tbnb prefix address: tbnb1wxeplyw7x8aahy93w96yhwm7xcq3ke4ffasp3d
-	AtomicSwapCoinsAccAddr = types.AccAddress(crypto.AddressHash([]byte("BinanceChainAtomicSwapCoins")))
+	AtomicSwapCoinsAccAddr = types.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
-type HTLTMsg struct {
-	From                types.AccAddress `json:"from"`
-	To                  types.AccAddress `json:"to"`
-	RecipientOtherChain string           `json:"recipient_other_chain"`
-	SenderOtherChain    string           `json:"sender_other_chain"`
-	RandomNumberHash    types.SwapBytes  `json:"random_number_hash"`
-	Timestamp           int64            `json:"timestamp"`
-	Amount              types.Coins      `json:"amount"`
-	ExpectedIncome      string           `json:"expected_income"`
-	HeightSpan          int64            `json:"height_span"`
-	CrossChain          bool             `json:"cross_chain"`
+// MsgCreateKavaHTLT is an HTLT struct, additionally containing an ID and record of updates
+type MsgCreateKavaHTLT struct {
+	HTLT
+	ID      uint64          `json:"id"`
+	Updates UpdateKavaHTLTs `json:"updates"`
 }
 
-func NewHTLTMsg(from, to types.AccAddress, recipientOtherChain, senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
-	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) HTLTMsg {
-	return HTLTMsg{
-		From:                from,
-		To:                  to,
-		RecipientOtherChain: recipientOtherChain,
-		SenderOtherChain:    senderOtherChain,
-		RandomNumberHash:    randomNumberHash,
-		Timestamp:           timestamp,
-		Amount:              amount,
-		ExpectedIncome:      expectedIncome,
-		HeightSpan:          heightSpan,
-		CrossChain:          crossChain,
+// NewMsgCreateKavaHTLT initializes a new MsgCreateKavaHTLT
+func NewMsgCreateKavaHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain, senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
+	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateKavaHTLT {
+	return MsgCreateKavaHTLT{
+		// No id
+		// No updates
+		HTLT: HTLT{
+			From:                from,
+			To:                  to,
+			RecipientOtherChain: recipientOtherChain,
+			SenderOtherChain:    senderOtherChain,
+			RandomNumberHash:    randomNumberHash,
+			Timestamp:           timestamp,
+			Amount:              amount,
+			ExpectedIncome:      expectedIncome,
+			HeightSpan:          heightSpan,
+			CrossChain:          crossChain},
 	}
 }
 
-func (msg HTLTMsg) Route() string { return AtomicSwapRoute }
-func (msg HTLTMsg) Type() string  { return HTLT }
-func (msg HTLTMsg) String() string {
-	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}", msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
+// Route establishes the route for the MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) Route() string { return AtomicSwapRoute }
+
+// Type is the name of MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) Type() string { return "KavaHTLT" }
+
+// String prints the MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) String() string {
+	return fmt.Sprintf("KavaHTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}", msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
 		msg.Timestamp, msg.Amount, msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
 }
-func (msg HTLTMsg) GetInvolvedAddresses() []types.AccAddress {
+
+// GetInvolvedAddresses gets the addresses involved in a MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
-func (msg HTLTMsg) GetSigners() []types.AccAddress {
+
+// GetSigners gets the signers of a MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.From}
 }
 
-func (msg HTLTMsg) ValidateBasic() error {
+// ValidateBasic validates the MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -111,7 +117,8 @@ func (msg HTLTMsg) ValidateBasic() error {
 	return nil
 }
 
-func (msg HTLTMsg) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgCreateKavaHTLT
+func (msg MsgCreateKavaHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -119,33 +126,44 @@ func (msg HTLTMsg) GetSignBytes() []byte {
 	return b
 }
 
-type DepositHTLTMsg struct {
-	From   types.AccAddress `json:"from"`
-	Amount types.Coins      `json:"amount"`
-	SwapID types.SwapBytes  `json:"swap_id"`
+// MsgDepositKavaHTLT defines an HTLT deposit
+type MsgDepositKavaHTLT struct {
+	UpdateKavaHTLT
+	Amount types.Coins `json:"amount"`
 }
 
-func NewDepositHTLTMsg(from types.AccAddress, swapID []byte, amount types.Coins) DepositHTLTMsg {
-	return DepositHTLTMsg{
+// NewMsgDepositKavaHTLT initializes a new MsgDepositKavaHTLT
+func NewMsgDepositKavaHTLT(from types.AccAddress, swapID []byte, amount types.Coins) MsgDepositKavaHTLT {
+	return MsgDepositKavaHTLT{
 		From:   from,
 		SwapID: swapID,
 		Amount: amount,
 	}
 }
 
-func (msg DepositHTLTMsg) Route() string { return AtomicSwapRoute }
-func (msg DepositHTLTMsg) Type() string  { return DepositHTLT }
-func (msg DepositHTLTMsg) String() string {
+// Route establishes the route for the MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) Route() string { return AtomicSwapRoute }
+
+// Type is the name of MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) Type() string { return DepositHTLT }
+
+// String prints the MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) String() string {
 	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
 }
-func (msg DepositHTLTMsg) GetInvolvedAddresses() []types.AccAddress {
+
+// GetInvolvedAddresses gets the addresses involved in a MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
-func (msg DepositHTLTMsg) GetSigners() []types.AccAddress {
+
+// GetSigners gets the signers of a MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.From}
 }
 
-func (msg DepositHTLTMsg) ValidateBasic() error {
+// ValidateBasic validates the MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -158,7 +176,8 @@ func (msg DepositHTLTMsg) ValidateBasic() error {
 	return nil
 }
 
-func (msg DepositHTLTMsg) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgDepositKavaHTLT
+func (msg MsgDepositKavaHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -166,31 +185,42 @@ func (msg DepositHTLTMsg) GetSignBytes() []byte {
 	return b
 }
 
-type ClaimHTLTMsg struct {
-	From         types.AccAddress `json:"from"`
-	SwapID       types.SwapBytes  `json:"swap_id"`
-	RandomNumber types.SwapBytes  `json:"random_number"`
+// MsgClaimKavaHTLT defines an HTLT claim
+type MsgClaimKavaHTLT struct {
+	UpdateKavaHTLT
+	RandomNumber types.SwapBytes `json:"random_number"`
 }
 
-func NewClaimHTLTMsg(from types.AccAddress, swapID, randomNumber []byte) ClaimHTLTMsg {
-	return ClaimHTLTMsg{
+// NewMsgClaimKavaHTLT initializes a new MsgClaimKavaHTLT
+func NewMsgClaimKavaHTLT(from types.AccAddress, swapID, randomNumber []byte) MsgClaimKavaHTLT {
+	return MsgClaimKavaHTLT{
 		From:         from,
 		SwapID:       swapID,
 		RandomNumber: randomNumber,
 	}
 }
 
-func (msg ClaimHTLTMsg) Route() string { return AtomicSwapRoute }
-func (msg ClaimHTLTMsg) Type() string  { return ClaimHTLT }
-func (msg ClaimHTLTMsg) String() string {
+// Route establishes the route for the MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) Route() string { return AtomicSwapRoute }
+
+// Type is the name of MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) Type() string { return ClaimHTLT }
+
+// String prints the MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) String() string {
 	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, msg.SwapID, msg.RandomNumber)
 }
-func (msg ClaimHTLTMsg) GetInvolvedAddresses() []types.AccAddress {
+
+// GetInvolvedAddresses gets the addresses involved in a MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
-func (msg ClaimHTLTMsg) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
 
-func (msg ClaimHTLTMsg) ValidateBasic() error {
+// GetSigners gets the signers of a MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
+
+// ValidateBasic validates the MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -203,7 +233,8 @@ func (msg ClaimHTLTMsg) ValidateBasic() error {
 	return nil
 }
 
-func (msg ClaimHTLTMsg) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgClaimKavaHTLT
+func (msg MsgClaimKavaHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -211,29 +242,40 @@ func (msg ClaimHTLTMsg) GetSignBytes() []byte {
 	return b
 }
 
-type RefundHTLTMsg struct {
-	From   types.AccAddress `json:"from"`
-	SwapID types.SwapBytes  `json:"swap_id"`
+// MsgKavaRefundHTLT defines a refund msg
+type MsgKavaRefundHTLT struct {
+	UpdateKavaHTLT
 }
 
-func NewRefundHTLTMsg(from types.AccAddress, swapID []byte) RefundHTLTMsg {
-	return RefundHTLTMsg{
+// NewMsgKavaRefundHTLT initializes a new MsgKavaRefundHTLT
+func NewMsgKavaRefundHTLT(from types.AccAddress, swapID []byte) MsgKavaRefundHTLT {
+	return MsgKavaRefundHTLT{
 		From:   from,
 		SwapID: swapID,
 	}
 }
 
-func (msg RefundHTLTMsg) Route() string { return AtomicSwapRoute }
-func (msg RefundHTLTMsg) Type() string  { return RefundHTLT }
-func (msg RefundHTLTMsg) String() string {
+// Route establishes the route for the MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) Route() string { return AtomicSwapRoute }
+
+// Type is the name of MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) Type() string { return RefundHTLT }
+
+// String prints the MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) String() string {
 	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, msg.SwapID)
 }
-func (msg RefundHTLTMsg) GetInvolvedAddresses() []types.AccAddress {
+
+// GetInvolvedAddresses gets the addresses involved in a MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
-func (msg RefundHTLTMsg) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
 
-func (msg RefundHTLTMsg) ValidateBasic() error {
+// GetSigners gets the signers of a MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
+
+// ValidateBasic validates the MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -243,7 +285,8 @@ func (msg RefundHTLTMsg) ValidateBasic() error {
 	return nil
 }
 
-func (msg RefundHTLTMsg) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgKavaRefundHTLT
+func (msg MsgKavaRefundHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
