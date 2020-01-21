@@ -86,7 +86,7 @@ func getStartPriceFeedCmd() *cobra.Command {
 		Use:     "start [oracle-moniker] [coin1, coin2] [interval-minutes] --rpc-url=[rpc-url] --chain-id=[chain-id]",
 		Short:   "Starts an oracle that automatically updates kava's price feed",
 		Args:    cobra.ExactArgs(3),
-		Example: "kvoracle start testuser bitcoin,kava,ripple,binancecoin 5 --rpc-url=tcp://localhost:26657 --chain-id=testing",
+		Example: "kvoracle start testuser bitcoin,kava,ripple,binancecoin 30 --rpc-url=tcp://localhost:26657 --chain-id=testing",
 		RunE:    RunStartPriceFeedCmd,
 	}
 
@@ -163,7 +163,7 @@ func RunPostAssetPriceCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// RunStartPriceFeedCmd runs the RunStartPriceFeedCmd Cmd cmd
+// RunStartPriceFeedCmd runs the RunStartPriceFeed cmd
 func RunStartPriceFeedCmd(cmd *cobra.Command, args []string) error {
 	// Parse RPC URL
 	rpcURL := viper.GetString(FlagRPCURL)
@@ -191,8 +191,8 @@ func RunStartPriceFeedCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if interval <= 1 {
-		return errors.New("Must specify an interval of 2 minutes or longer")
+	if interval < 30 {
+		return errors.New("Must specify an interval of 30 seconds or longer")
 	}
 
 	// Get the oracle's name and account address using their moniker
@@ -220,7 +220,7 @@ func RunStartPriceFeedCmd(cmd *cobra.Command, args []string) error {
 		WithFromName(oracleName)
 
 	// Schedule cron for price collection and posting
-	gocron.Every(uint64(interval)).Minutes().Do(feed.GetPricesAndPost, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
+	gocron.Every(uint64(interval)).Seconds().Do(feed.PostPrices, coins, accAddress, chainID, appCodec, oracleName, passphrase, cliCtx, rpcURL)
 	<-gocron.Start()
 	gocron.Clear()
 

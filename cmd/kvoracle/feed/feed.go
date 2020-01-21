@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/matryer/try"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,8 +26,8 @@ const (
 
 var codeDict map[string]string
 
-// GetPricesAndPost gets the current coin prices and posts them to kava
-func GetPricesAndPost(
+// PostPrices gets the current coin prices and posts them to kava
+func PostPrices(
 	coins []string,
 	accAddress sdk.AccAddress,
 	chainID string,
@@ -33,7 +35,8 @@ func GetPricesAndPost(
 	oracleName string,
 	passphrase string,
 	cliCtx context.CLIContext,
-	rpcURL string) error {
+	rpcURL string,
+) error {
 	// Get and display current time
 	now := time.Now().Format("15:04:05")
 	fmt.Println("Time: ", now)
@@ -41,32 +44,81 @@ func GetPricesAndPost(
 	// Get asset prices
 	assets := getCoinGeckoPrices(coins, "USD")
 
-	// Post coin prices to kava
-	for _, asset := range assets {
-		// Parse the price
-		price, err := sdk.NewDecFromStr(fmt.Sprintf("%f", asset.Price))
-		if err != nil {
-			return err
-		}
-
-		// Build the msg
-		msgPostPrice, sdkErr := txs.ConstructMsgPostPrice(accAddress, price, asset.TargetMarketCode)
-		if sdkErr != nil {
-			return sdkErr
-		}
-
-		// Send tx containing msg to kava
-		fmt.Printf("Posting price '%f' for %s...\n", price, asset.Symbol)
-		txRes, sdkErr := txs.SendTxPostPrice(chainID, cdc, accAddress, oracleName, passphrase, cliCtx, &msgPostPrice, rpcURL)
-		if sdkErr != nil {
-			return sdkErr
-		}
-		fmt.Println("Tx hash:", txRes.TxHash)
-		fmt.Println("Tx log:", txRes.RawLog)
-		fmt.Println()
+	for i := 0; i < len(assets); i++ {
+		startPostPriceRoutine(assets[i], accAddress, chainID, cdc, oracleName, passphrase, cliCtx, rpcURL)
 	}
 
 	return nil
+}
+
+// startPostPriceRoutine attempts to send MsgPostPrice. If unsuccessful due to local errors, it will
+// attempt again for a total of 3 attempts. If the tx is received by the blockchain but unsuccessful
+// due to blockchain state, it will not try to resend the tx - but will print the tx log text.
+func startPostPriceRoutine(
+	asset types.Asset,
+	accAddress sdk.AccAddress,
+	chainID string,
+	cdc *codec.Codec,
+	oracleName string,
+	passphrase string,
+	cliCtx context.CLIContext,
+	rpcURL string,
+) {
+
+	var txRes sdk.TxResponse
+	err := try.Do(func(attempt int) (bool, error) {
+		var err error
+
+		attemptStr := ""
+		if attempt > 1 {
+			attemptStr = fmt.Sprintf(" [attempt #%d]", attempt)
+		}
+
+		fmt.Printf("Posting price '%f' for %s...%s\n", asset.Price, asset.Symbol, attemptStr)
+		txRes, err = postPriceToKava(asset, accAddress, chainID, cdc, oracleName, passphrase, cliCtx, rpcURL)
+		if err != nil {
+			time.Sleep(5 * time.Second)
+		}
+		return attempt < 3, err // try 3 times
+	})
+
+	if err != nil {
+		log.Fatalln("Error:", err)
+	}
+
+	fmt.Printf("Tx hash: %s\n", txRes.TxHash)
+	fmt.Printf("Tx log: %v\n\n", txRes.RawLog)
+}
+
+func postPriceToKava(
+	asset types.Asset,
+	accAddress sdk.AccAddress,
+	chainID string,
+	cdc *codec.Codec,
+	oracleName string,
+	passphrase string,
+	cliCtx context.CLIContext,
+	rpcURL string,
+) (sdk.TxResponse, error) {
+	// Parse the price
+	price, err := sdk.NewDecFromStr(fmt.Sprintf("%f", asset.Price))
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	// Build the msg
+	msgPostPrice, sdkErr := txs.ConstructMsgPostPrice(accAddress, price, asset.TargetMarketCode)
+	if sdkErr != nil {
+		return sdk.TxResponse{}, sdkErr
+	}
+
+	// Send tx containing msg to kava
+	txRes, sdkErr := txs.SendTxPostPrice(chainID, cdc, accAddress, oracleName, passphrase, cliCtx, &msgPostPrice, rpcURL)
+	if sdkErr != nil {
+		return sdk.TxResponse{}, sdkErr
+	}
+
+	return txRes, nil
 }
 
 // getCoinGeckoPrices gets prices for an array of coins by their symbols
