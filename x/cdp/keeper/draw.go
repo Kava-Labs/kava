@@ -95,22 +95,22 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	}
 
 	// calculate fee and principal payment
-	feePayment, principalPayment := k.calculatePayment(ctx, cdp.AccumulatedFees.Add(fees), payment)
+	feePayment, principalPayment := k.calculatePayment(ctx, cdp.Principal.Add(cdp.AccumulatedFees).Add(fees), cdp.AccumulatedFees.Add(fees), payment)
 
 	// send the payment from the sender to the cpd module
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, payment)
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, feePayment.Add(principalPayment))
 	if err != nil {
 		return err
 	}
 
 	// burn the payment coins
-	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, payment)
+	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, feePayment.Add(principalPayment))
 	if err != nil {
 		panic(err)
 	}
 
 	// burn the corresponding amount of debt coins
-	err = k.BurnDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), payment)
+	err = k.BurnDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), feePayment.Add(principalPayment))
 	if err != nil {
 		panic(err)
 	}
@@ -119,7 +119,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpRepay,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, payment.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, feePayment.Add(principalPayment).String()),
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
@@ -136,7 +136,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// decrement the total principal for the input collateral type
-	k.DecrementTotalPrincipal(ctx, denom, payment)
+	k.DecrementTotalPrincipal(ctx, denom, feePayment.Add(principalPayment))
 
 	// if the debt is fully paid, return collateral to depositors,
 	// and remove the cdp and indexes from the store
@@ -175,9 +175,6 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 		}
 		return types.ErrInvalidPaymentDenom(k.codespace, cdp.ID, principalDenoms, paymentDenoms)
 	}
-	if payment.IsAnyGT(debt) {
-		return types.ErrPaymentExceedsDebt(k.codespace, payment, debt)
-	}
 	for _, dc := range payment {
 		dp, _ := k.GetDebtParam(ctx, dc.Denom)
 		proposedBalance := cdp.Principal.AmountOf(dc.Denom).Sub(dc.Amount)
@@ -200,10 +197,16 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 	}
 }
 
-func (k Keeper) calculatePayment(ctx sdk.Context, fees sdk.Coins, payment sdk.Coins) (sdk.Coins, sdk.Coins) {
+func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coins, fees sdk.Coins, payment sdk.Coins) (sdk.Coins, sdk.Coins) {
 	// divides repayment into principal and fee components, with fee payment applied first.
+
 	feePayment := sdk.NewCoins()
 	principalPayment := sdk.NewCoins()
+	overpayment := sdk.NewCoins()
+	if payment.IsAnyGT(owed) {
+		overpayment = payment.Sub(owed)
+		payment = payment.Sub(overpayment)
+	}
 	if fees.IsZero() {
 		return sdk.NewCoins(), payment
 	}
