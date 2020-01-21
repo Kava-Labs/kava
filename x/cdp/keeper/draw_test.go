@@ -88,8 +88,6 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 311000000)))
 	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
 
-	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 30000000)))
-	suite.Equal(types.CodePaymentExceedsDebt, err.Result().Code)
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.NoError(err)
 
