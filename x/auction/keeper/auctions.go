@@ -53,7 +53,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
 	if !macc.HasPermission(supply.Minter) {
-		return 0, sdk.ErrInternal("module does not have minting permissions")
+		return 0, types.ErrInvalidModulePermissions(k.codespace, supply.Minter)
 	}
 
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, buyer, types.ModuleName, sdk.NewCoins(debt))
@@ -124,12 +124,12 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
-		return sdk.ErrInternal("auction doesn't exist")
+		return types.ErrAuctionNotFound(k.codespace, auctionID)
 	}
 
 	// validation common to all auctions
 	if ctx.BlockTime().After(auction.GetEndTime()) {
-		return sdk.ErrInternal("auction has closed")
+		return types.ErrAuctionHasExpired(k.codespace, auctionID)
 	}
 
 	// move coins and return updated auction
@@ -154,7 +154,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 			return err
 		}
 	default:
-		panic(fmt.Sprintf("unrecognized auction type: %T", auction))
+		return types.ErrUnrecognizedAuctionType(k.codespace)
 	}
 
 	k.SetAuction(ctx, updatedAuction)
@@ -166,10 +166,10 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, sdk.Error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
-		return a, sdk.ErrInternal("bid denom doesn't match auction")
+		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
 	}
 	if !a.Bid.IsLT(bid) {
-		return a, sdk.ErrInternal("bid not greater than last bid")
+		return a, types.ErrBidTooSmall(k.codespace, bid, a.Bid)
 	}
 
 	// New bidder pays back old bidder
@@ -220,16 +220,16 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, sdk.Error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
-		return a, sdk.ErrInternal("bid denom doesn't match auction")
+		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
 	}
 	if a.IsReversePhase() {
-		return a, sdk.ErrInternal("auction is not in forward phase")
+		return a, types.ErrCollateralAuctionIsInReversePhase(k.codespace, a.ID)
 	}
 	if !a.Bid.IsLT(bid) {
-		return a, sdk.ErrInternal("auction in forward phase, new bid not higher than last bid")
+		return a, types.ErrBidTooSmall(k.codespace, bid, a.Bid)
 	}
 	if a.MaxBid.IsLT(bid) {
-		return a, sdk.ErrInternal("bid higher than max bid")
+		return a, types.ErrBidTooLarge(k.codespace, bid, a.MaxBid)
 	}
 
 	// New bidder pays back old bidder
@@ -250,7 +250,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	if err != nil {
 		return a, err
 	}
-	// Debt coins are sent to liquidator (until there is no CorrespondingDebt left). Amount sent is equal to bidIncrement.
+	// Debt coins are sent to liquidator (until there is no CorrespondingDebt left). Amount sent is equal to bidIncrement (or whatever is left if < bidIncrement).
 	if a.CorrespondingDebt.IsPositive() {
 
 		debtAmountToReturn := sdk.MinInt(bidIncrement.Amount, a.CorrespondingDebt.Amount)
@@ -289,13 +289,13 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, sdk.Error) {
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
-		return a, sdk.ErrInternal("lot denom doesn't match auction")
+		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
 	}
 	if !a.IsReversePhase() {
-		return a, sdk.ErrInternal("auction not in reverse phase")
+		return a, types.ErrCollateralAuctionIsInForwardPhase(k.codespace, a.ID)
 	}
 	if !lot.IsLT(a.Lot) {
-		return a, sdk.ErrInternal("auction in reverse phase, new bid not less than previous amount")
+		return a, types.ErrLotTooLarge(k.codespace, lot, a.Lot)
 	}
 
 	// New bidder pays back old bidder
@@ -349,10 +349,10 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, sdk.Error) {
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
-		return a, sdk.ErrInternal("lot denom doesn't match auction")
+		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
 	}
 	if !lot.IsLT(a.Lot) {
-		return a, sdk.ErrInternal("lot not smaller than last lot")
+		return a, types.ErrLotTooLarge(k.codespace, lot, a.Lot)
 	}
 
 	// New bidder pays back old bidder
@@ -367,7 +367,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 			return a, err
 		}
 	}
-	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to Bid.
+	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to min of Bid and amount of debt.
 	if a.Bidder.Equals(supply.NewModuleAddress(a.Initiator)) {
 
 		debtAmountToReturn := sdk.MinInt(a.Bid.Amount, a.CorrespondingDebt.Amount)
@@ -407,11 +407,11 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
-		return sdk.ErrInternal("auction doesn't exist")
+		return types.ErrAuctionNotFound(k.codespace, auctionID)
 	}
 
 	if ctx.BlockTime().Before(auction.GetEndTime()) {
-		return sdk.ErrInternal(fmt.Sprintf("auction can't be closed as curent block time (%v) is under auction end time (%v)", ctx.BlockTime(), auction.GetEndTime()))
+		return types.ErrAuctionHasNotExpired(k.codespace, ctx.BlockTime(), auction.GetEndTime())
 	}
 
 	// payout to the last bidder
@@ -429,7 +429,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 			return err
 		}
 	default:
-		panic("unrecognized auction type")
+		return types.ErrUnrecognizedAuctionType(k.codespace)
 	}
 
 	k.DeleteAuction(ctx, auctionID)

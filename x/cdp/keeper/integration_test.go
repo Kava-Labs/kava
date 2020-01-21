@@ -21,7 +21,7 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
-				pricefeed.Market{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+				pricefeed.Market{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -59,7 +59,6 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
@@ -78,8 +77,8 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
-				pricefeed.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-				pricefeed.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+				pricefeed.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				pricefeed.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -133,14 +132,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},

@@ -8,13 +8,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Market struct that represents an asset in the pricefeed
+// Market an asset in the pricefeed
 type Market struct {
-	MarketID   string  `json:"market_id" yaml:"market_id"`
-	BaseAsset  string  `json:"base_asset" yaml:"base_asset"`
-	QuoteAsset string  `json:"quote_asset" yaml:"quote_asset"`
-	Oracles    Oracles `json:"oracles" yaml:"oracles"`
-	Active     bool    `json:"active" yaml:"active"`
+	MarketID   string           `json:"market_id" yaml:"market_id"`
+	BaseAsset  string           `json:"base_asset" yaml:"base_asset"`
+	QuoteAsset string           `json:"quote_asset" yaml:"quote_asset"`
+	Oracles    []sdk.AccAddress `json:"oracles" yaml:"oracles"`
+	Active     bool             `json:"active" yaml:"active"`
 }
 
 // String implement fmt.Stringer
@@ -40,35 +40,13 @@ func (ms Markets) String() string {
 	return strings.TrimSpace(out)
 }
 
-// Oracle struct that documents which address an oracle is using
-type Oracle struct {
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-}
-
-// String implements fmt.Stringer
-func (o Oracle) String() string {
-	return fmt.Sprintf(`Address: %s`, o.Address)
-}
-
-// Oracles array type for oracle
-type Oracles []Oracle
-
-// String implements fmt.Stringer
-func (os Oracles) String() string {
-	out := "Oracles:\n"
-	for _, o := range os {
-		out += fmt.Sprintf("%s\n", o.String())
-	}
-	return strings.TrimSpace(out)
-}
-
-// CurrentPrice struct that contains the metadata of a current price for a particular asset in the pricefeed module.
+// CurrentPrice struct that contains the metadata of a current price for a particular market in the pricefeed module.
 type CurrentPrice struct {
 	MarketID string  `json:"market_id" yaml:"market_id"`
 	Price    sdk.Dec `json:"price" yaml:"price"`
 }
 
-// PostedPrice struct represented a price for an asset posted by a specific oracle
+// PostedPrice price for market posted by a specific oracle
 type PostedPrice struct {
 	MarketID      string         `json:"market_id" yaml:"market_id"`
 	OracleAddress sdk.AccAddress `json:"oracle_address" yaml:"oracle_address"`

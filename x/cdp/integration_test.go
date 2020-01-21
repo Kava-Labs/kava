@@ -21,7 +21,7 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
-				pricefeed.Market{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+				pricefeed.Market{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -59,7 +59,6 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
@@ -78,8 +77,8 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
-				pricefeed.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
-				pricefeed.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: pricefeed.Oracles{}, Active: true},
+				pricefeed.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				pricefeed.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -133,14 +132,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
@@ -157,10 +154,10 @@ func NewCDPGenStateMulti() app.GenesisState {
 
 func cdps() (cdps cdp.CDPs) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(10000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8000000))), tmtime.Canonical(time.Now()))
+	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(100000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8000000))), tmtime.Canonical(time.Now()))
 	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(100000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10000000))), tmtime.Canonical(time.Now()))
 	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoins(sdk.NewCoin("btc", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10000000))), tmtime.Canonical(time.Now()))
-	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(500000000))), tmtime.Canonical(time.Now()))
+	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(50000000))), tmtime.Canonical(time.Now()))
 	cdps = append(cdps, c1, c2, c3, c4)
 	return
 }
@@ -189,14 +186,10 @@ func badGenStates() []badGenState {
 	g6 := baseGenState()
 	g6.Params.DebtParams[0].Denom = "susd"
 
-	g7 := baseGenState()
-	g7.Params.DebtParams[0].DebtLimit = sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000001))
-
 	g8 := baseGenState()
 	g8.Params.DebtParams = append(g8.Params.DebtParams, cdp.DebtParam{
 		Denom:          "lol",
 		ReferenceAsset: "usd",
-		DebtLimit:      sdk.NewCoins(sdk.NewInt64Coin("lol", 1000000000000)),
 	})
 
 	g9 := baseGenState()
@@ -221,7 +214,6 @@ func badGenStates() []badGenState {
 		badGenState{Genesis: g4, Reason: "single collateral exceeds debt limit"},
 		badGenState{Genesis: g5, Reason: "combined collateral exceeds debt limit"},
 		badGenState{Genesis: g6, Reason: "duplicate debt denom"},
-		badGenState{Genesis: g7, Reason: "debt limit exceeds global debt limit"},
 		badGenState{Genesis: g8, Reason: "debt param not found in global debt limit"},
 		badGenState{Genesis: g9, Reason: "debt denom not set"},
 		badGenState{Genesis: g10, Reason: "previous block time not set"},
@@ -261,14 +253,12 @@ func baseGenState() cdp.GenesisState {
 				{
 					Denom:            "usdx",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
-					DebtLimit:        sdk.NewCoins(sdk.NewInt64Coin("susd", 1000000000000)),
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
 				},

@@ -7,9 +7,9 @@ var _ sdk.Msg = &MsgPlaceBid{}
 
 // MsgPlaceBid is the message type used to place a bid on any type of auction.
 type MsgPlaceBid struct {
-	AuctionID uint64
-	Bidder    sdk.AccAddress
-	Amount    sdk.Coin // The new bid or lot to be set on the auction.
+	AuctionID uint64         `json:"auction_id" yaml:"auction_id"`
+	Bidder    sdk.AccAddress `json:"bidder" yaml:"bidder"`
+	Amount    sdk.Coin       `json:"amount" yaml:"amount"` // The new bid or lot to be set on the auction.
 }
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
@@ -33,7 +33,7 @@ func (msg MsgPlaceBid) ValidateBasic() sdk.Error {
 		return sdk.ErrInternal("invalid (empty) bidder address")
 	}
 	if !msg.Amount.IsValid() {
-		return sdk.ErrInternal("invalid bid amount")
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
 	return nil
 }

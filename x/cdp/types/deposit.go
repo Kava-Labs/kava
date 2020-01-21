@@ -51,10 +51,13 @@ func (d Deposit) Empty() bool {
 	return d.Equals(Deposit{})
 }
 
+// SumCollateral returns the total amount of collateral in the input deposits
 func (ds Deposits) SumCollateral() (sum sdk.Int) {
 	sum = sdk.ZeroInt()
 	for _, d := range ds {
-		sum = sum.Add(d.Amount[0].Amount)
+		if !d.Amount.IsZero() {
+			sum = sum.Add(d.Amount[0].Amount)
+		}
 	}
 	return
 }

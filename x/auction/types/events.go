@@ -1,5 +1,6 @@
 package types
 
+// Events for auction module
 const (
 	EventTypeAuctionStart = "auction_start"
 	EventTypeAuctionBid   = "auction_bid"

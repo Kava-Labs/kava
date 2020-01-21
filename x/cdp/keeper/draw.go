@@ -19,6 +19,11 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 		return err
 	}
 
+	err = k.ValidateDebtLimit(ctx, cdp.Collateral[0].Denom, principal)
+	if err != nil {
+		return err
+	}
+
 	// fee calculation
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)

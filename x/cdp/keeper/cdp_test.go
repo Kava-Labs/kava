@@ -256,8 +256,11 @@ func (suite *CdpTestSuite) TestValidatePrincipal() {
 	err = suite.keeper.ValidatePrincipalAdd(suite.ctx, d)
 	suite.Equal(types.CodeDebtNotSupported, err.Result().Code)
 	d = sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000000000001)))
-	err = suite.keeper.ValidatePrincipalAdd(suite.ctx, d)
+	err = suite.keeper.ValidateDebtLimit(suite.ctx, "xrp", d)
 	suite.Equal(types.CodeExceedsDebtLimit, err.Result().Code)
+	d = sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100000000)))
+	err = suite.keeper.ValidateDebtLimit(suite.ctx, "xrp", d)
+	suite.NoError(err)
 }
 
 func (suite *CdpTestSuite) TestCalculateCollateralizationRatio() {

@@ -18,6 +18,7 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
+	codespace     sdk.CodespaceType
 }
 
 // NewKeeper returns a new auction keeper.
@@ -49,7 +50,7 @@ func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextAuctionIDKey)
 	if bz == nil {
-		return 0, sdk.ErrInternal("initial auction ID hasn't been set")
+		return 0, types.ErrInvalidInitialAuctionID(k.codespace)
 	}
 	return types.Uint64FromBytes(bz), nil
 }

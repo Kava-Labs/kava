@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
-// distantFuture is a very large time value to use as initial the ending time for auctions.
+// DistantFuture is a very large time value to use as initial the ending time for auctions.
 // It is not set to the max time supported. This can cause problems with time comparisons, see https://stackoverflow.com/a/32620397.
 // Also amino panics when encoding times ≥ the start of year 10000.
-var DistantFuture time.Time = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
+var DistantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 
 // Auction is an interface for handling common actions on auctions.
 type Auction interface {
@@ -29,14 +29,14 @@ type Auctions []Auction
 
 // BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
-	ID              uint64
-	Initiator       string         // Module name that starts the auction. Pays out Lot.
-	Lot             sdk.Coin       // Coins that will paid out by Initiator to the winning bidder.
-	Bidder          sdk.AccAddress // Latest bidder. Receiver of Lot.
-	Bid             sdk.Coin       // Coins paid into the auction the bidder.
-	HasReceivedBids bool           // Whether the auction has received any bids or not.
-	EndTime         time.Time      // Current auction closing time. Triggers at the end of the block with time ≥ EndTime.
-	MaxEndTime      time.Time      // Maximum closing time. Auctions can close before this but never after.
+	ID              uint64         `json:"id" yaml:"id"`
+	Initiator       string         `json:"initiator" yaml:"initiator"`                 // Module name that starts the auction. Pays out Lot.
+	Lot             sdk.Coin       `json:"lot" yaml:"lot"`                             // Coins that will paid out by Initiator to the winning bidder.
+	Bidder          sdk.AccAddress `json:"bidder" yaml:"bidder"`                       // Latest bidder. Receiver of Lot.
+	Bid             sdk.Coin       `json:"bid" yaml:"bid"`                             // Coins paid into the auction the bidder.
+	HasReceivedBids bool           `json:"has_received_bids" yaml:"has_received_bids"` // Whether the auction has received any bids or not.
+	EndTime         time.Time      `json:"end_time" yaml:"end_time"`                   // Current auction closing time. Triggers at the end of the block with time ≥ EndTime.
+	MaxEndTime      time.Time      `json:"max_end_time" yaml:"max_end_time"`           // Maximum closing time. Auctions can close before this but never after.
 }
 
 // GetID is a getter for auction ID.
@@ -57,6 +57,7 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
+// Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
 	if a.EndTime.After(a.MaxEndTime) {
 		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)
@@ -81,7 +82,7 @@ func (a BaseAuction) String() string {
 // SurplusAuction is a forward auction that burns what it receives from bids.
 // It is normally used to sell off excess pegged asset acquired by the CDP system.
 type SurplusAuction struct {
-	BaseAuction
+	BaseAuction `json:"base_auction" yaml:"base_auction"`
 }
 
 // WithID returns an auction with the ID set.
@@ -115,8 +116,8 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 // DebtAuction is a reverse auction that mints what it pays out.
 // It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
 type DebtAuction struct {
-	BaseAuction
-	CorrespondingDebt sdk.Coin
+	BaseAuction       `json:"base_auction" yaml:"base_auction"`
+	CorrespondingDebt sdk.Coin `json:"corresponding_debt" yaml:"corresponding_debt"`
 }
 
 // WithID returns an auction with the ID set.
@@ -159,10 +160,10 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 // Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
 // Collateral auctions are normally used to sell off collateral seized from CDPs.
 type CollateralAuction struct {
-	BaseAuction
-	CorrespondingDebt sdk.Coin
-	MaxBid            sdk.Coin
-	LotReturns        WeightedAddresses
+	BaseAuction       `json:"base_auction" yaml:"base_auction"`
+	CorrespondingDebt sdk.Coin          `json:"corresponding_debt" yaml:"corresponding_debt"`
+	MaxBid            sdk.Coin          `json:"max_bid" yaml:"max_bid"`
+	LotReturns        WeightedAddresses `json:"lot_returns" yaml:"lot_returns"`
 }
 
 // WithID returns an auction with the ID set.

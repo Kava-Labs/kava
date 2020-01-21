@@ -28,11 +28,13 @@ func HandleMsgPostPrice(
 	k Keeper,
 	msg MsgPostPrice) sdk.Result {
 
-	// TODO cleanup message validation and errors
-	_, err := k.GetOracle(ctx, msg.AssetCode, msg.From)
+	_, err := k.GetOracle(ctx, msg.MarketID, msg.From)
 	if err != nil {
-		return ErrInvalidOracle(k.Codespace()).Result()
+		return err.Result()
 	}
-	k.SetPrice(ctx, msg.From, msg.AssetCode, msg.Price, msg.Expiry)
+	_, err = k.SetPrice(ctx, msg.From, msg.MarketID, msg.Price, msg.Expiry)
+	if err != nil {
+		return err.Result()
+	}
 	return sdk.Result{}
 }
