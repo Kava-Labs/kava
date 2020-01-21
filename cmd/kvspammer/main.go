@@ -82,10 +82,10 @@ var cdpCmd = &cobra.Command{
 
 func generateCDPsCmd() *cobra.Command {
 	generateCDPsCmd := &cobra.Command{
-		Use:     "gencdps [collateral-denom] [debt-denom] [max-collateral] [interval-seconds] --from=[moniker] --rpc-url=[rpc-url] --chain-id=[chain-id]",
+		Use:     "generate [collateral-denom] [debt-denom] [max-collateral] [interval-seconds] --from=[moniker] --rpc-url=[rpc-url] --chain-id=[chain-id]",
 		Short:   "Initalizes a feed which generates random CDPs within the parameterized bounds",
 		Args:    cobra.ExactArgs(4),
-		Example: "kvspammer cdp gencdps btc usdx 50 20 --from=vlad --rpc-url=tcp://localhost:26657 --chain-id=testing",
+		Example: "kvspammer cdp generate btc usdx 50 20 --from=vlad --rpc-url=tcp://localhost:26657 --chain-id=testing",
 		RunE:    RunGenerateCDPsCmd,
 	}
 
