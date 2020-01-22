@@ -35,6 +35,32 @@ type liquidationTracker struct {
 func (suite *ModuleTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	coins := []sdk.Coins{}
+	tracker := liquidationTracker{}
+
+	for j := 0; j < 100; j++ {
+		coins = append(coins, cs(c("btc", 100000000), c("xrp", 10000000000)))
+	}
+	_, addrs := app.GeneratePrivKeyAddressPairs(100)
+
+	authGS := app.NewAuthGenState(
+		addrs, coins)
+	tApp.InitializeFromGenesisStates(
+		authGS,
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+	)
+	suite.ctx = ctx
+	suite.app = tApp
+	suite.keeper = tApp.GetCDPKeeper()
+	suite.cdps = cdp.CDPs{}
+	suite.addrs = addrs
+	suite.liquidations = tracker
+}
+
+func (suite *ModuleTestSuite) createCdps() {
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(cdp.CDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 	coins := []sdk.Coins{}
@@ -96,6 +122,7 @@ func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	suite.Equal(price, pp.Price)
 }
 func (suite *ModuleTestSuite) TestBeginBlock() {
+	suite.createCdps()
 	sk := suite.app.GetSupplyKeeper()
 	acc := sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
 	originalXrpCollateral := acc.GetCoins().AmountOf("xrp")
@@ -120,6 +147,33 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	acc = sk.GetModuleAccount(suite.ctx, auction.ModuleName)
 	suite.Equal(suite.liquidations.debt, acc.GetCoins().AmountOf("debt").Int64())
 
+}
+
+func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
+	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], cs(c("xrp", 10000000000)), cs(c("usdx", 1000000000)))
+	suite.NoError(err)
+	suite.keeper.SetPreviousBlockTime(suite.ctx, suite.ctx.BlockTime())
+	previousBlockTime, _ := suite.keeper.GetPreviousBlockTime(suite.ctx)
+	suite.Equal(i(1000000000), suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx"))
+	sk := suite.app.GetSupplyKeeper()
+	cdpMacc := sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	suite.Equal(i(1000000000), cdpMacc.GetCoins().AmountOf("debt"))
+	for i := 0; i < 100; i++ {
+		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
+		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+	}
+
+	cdpMacc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
+	suite.Equal(i(1000000900), (cdpMacc.GetCoins().AmountOf("debt")))
+	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+
+	timeElapsed := sdk.NewInt(suite.ctx.BlockTime().Unix() - previousBlockTime.Unix())
+
+	fees := suite.keeper.CalculateFees(suite.ctx, cdp.Principal, timeElapsed, "xrp")
+	suite.Equal(i(928), fees.AmountOf("usdx"))
+
+	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
+	suite.NoError(err)
 }
 
 func TestModuleTestSuite(t *testing.T) {

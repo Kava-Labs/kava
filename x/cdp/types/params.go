@@ -24,8 +24,8 @@ var (
 	DefaultCdpStartingID     = uint64(1)
 	DefaultDebtDenom         = "debt"
 	DefaultGovDenom          = "ukava"
-	DefaultSurplusThreshold  = sdk.NewInt(1000)
-	DefaultDebtThreshold     = sdk.NewInt(1000)
+	DefaultSurplusThreshold  = sdk.NewInt(1000000000)
+	DefaultDebtThreshold     = sdk.NewInt(1000000000)
 	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
 	minCollateralPrefix      = 0
 	maxCollateralPrefix      = 255

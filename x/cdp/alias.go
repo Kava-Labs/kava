@@ -154,7 +154,6 @@ type (
 	MsgWithdraw            = types.MsgWithdraw
 	MsgDrawDebt            = types.MsgDrawDebt
 	MsgRepayDebt           = types.MsgRepayDebt
-	MsgTransferCDP         = types.MsgTransferCDP
 	Params                 = types.Params
 	CollateralParam        = types.CollateralParam
 	CollateralParams       = types.CollateralParams

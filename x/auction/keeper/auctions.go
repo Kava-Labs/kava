@@ -250,7 +250,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	if err != nil {
 		return a, err
 	}
-	// Debt coins are sent to liquidator (until there is no CorrespondingDebt left). Amount sent is equal to bidIncrement.
+	// Debt coins are sent to liquidator (until there is no CorrespondingDebt left). Amount sent is equal to bidIncrement (or whatever is left if < bidIncrement).
 	if a.CorrespondingDebt.IsPositive() {
 
 		debtAmountToReturn := sdk.MinInt(bidIncrement.Amount, a.CorrespondingDebt.Amount)
@@ -367,7 +367,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 			return a, err
 		}
 	}
-	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to Bid.
+	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to min of Bid and amount of debt.
 	if a.Bidder.Equals(supply.NewModuleAddress(a.Initiator)) {
 
 		debtAmountToReturn := sdk.MinInt(a.Bid.Amount, a.CorrespondingDebt.Amount)

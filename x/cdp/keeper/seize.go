@@ -33,7 +33,10 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) sdk.Error {
 	for _, dc := range cdp.AccumulatedFees {
 		debt = debt.Add(dc.Amount)
 	}
-
+	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
+	if modAccountDebt.LT(debt) {
+		debt = modAccountDebt
+	}
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
@@ -113,4 +116,9 @@ func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.
 	penalty := k.getLiquidationPenalty(ctx, denom)
 	penaltyAmount := sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
 	return penaltyAmount
+}
+
+func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdk.Int {
+	macc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
+	return macc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
 }

@@ -321,8 +321,3 @@ func (msg MsgRepayDebt) String() string {
 	Payment: %s
 `, msg.Sender, msg.CdpDenom, msg.Payment)
 }
-
-// MsgTransferCDP changes the ownership of a cdp
-type MsgTransferCDP struct {
-	// TODO
-}
