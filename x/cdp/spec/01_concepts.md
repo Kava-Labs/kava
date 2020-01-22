@@ -18,7 +18,7 @@ Automatic actions:
 - CDPs that fall below the liquidation ratio (how over-collateralized the debt is) are seized and collateral is auctioned off through another auction module.
 - Seized debt is netted with the proceeds from auction sales. Any remaining is rebalanced by triggering auctions.
 
-An up to date price of each collateral is required, and is provided by a "pricefeed" module.
+An up-to-date price of each collateral is required, and is provided by a "pricefeed" module.
 
 Although a CDP is restricted to one type of collateral asset, users can create other CDPs collateralized by different assets. Allowed types can be updated by governance.
 
