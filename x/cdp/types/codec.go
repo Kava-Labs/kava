@@ -19,5 +19,4 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgWithdraw{}, "cdp/MsgWithdraw", nil)
 	cdc.RegisterConcrete(MsgDrawDebt{}, "cdp/MsgDrawDebt", nil)
 	cdc.RegisterConcrete(MsgRepayDebt{}, "cdp/MsgRepayDebt", nil)
-	cdc.RegisterConcrete(MsgTransferCDP{}, "cdp/MsgTransferCDP", nil)
 }

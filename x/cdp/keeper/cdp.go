@@ -346,7 +346,7 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) sdk.Er
 // ValidatePrincipalAdd validates that an asset is valid for use as debt when creating a new cdp
 func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.Error {
 	for _, dc := range principal {
-		dp, found := k.GetDebt(ctx, dc.Denom)
+		dp, found := k.GetDebtParam(ctx, dc.Denom)
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
@@ -360,7 +360,7 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.E
 // ValidatePrincipalDraw validates that an asset is valid for use as debt when drawing debt off an existing cdp
 func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.Error {
 	for _, dc := range principal {
-		_, found := k.GetDebt(ctx, dc.Denom)
+		_, found := k.GetDebtParam(ctx, dc.Denom)
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
@@ -443,6 +443,6 @@ func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coi
 
 // converts the input debt to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdk.Dec) {
-	dp, _ := k.GetDebt(ctx, debt.Denom)
+	dp, _ := k.GetDebtParam(ctx, debt.Denom)
 	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
 }

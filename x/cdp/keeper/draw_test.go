@@ -29,7 +29,7 @@ func (suite *DrawTestSuite) SetupTest() {
 	authGS := app.NewAuthGenState(
 		addrs,
 		[]sdk.Coins{
-			cs(c("xrp", 500000000), c("btc", 500000000)),
+			cs(c("xrp", 500000000), c("btc", 500000000), c("usdx", 10000000000)),
 			cs(c("xrp", 200000000)),
 			cs(c("xrp", 10000000000000), c("usdx", 100000000000))})
 	tApp.InitializeFromGenesisStates(
@@ -126,8 +126,6 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(types.CodeInvalidPaymentDenom, err.Result().Code)
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[1], "xrp", cs(c("xusd", 10000000)))
 	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
-	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 100000000)))
-	suite.Error(err)
 
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 9000000)))
 	suite.Equal(types.CodeBelowDebtFloor, err.Result().Code)
@@ -144,6 +142,16 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(sdk.Coins(nil), acc.GetCoins())
 
+}
+
+func (suite *DrawTestSuite) TestRepayPrincipalOverpay() {
+	err := suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 20000000)))
+	suite.NoError(err)
+	ak := suite.app.GetAccountKeeper()
+	acc := ak.GetAccount(suite.ctx, suite.addrs[0])
+	suite.Equal(i(10000000000), (acc.GetCoins().AmountOf("usdx")))
+	_, found := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	suite.False(found)
 }
 
 func (suite *DrawTestSuite) TestAddRepayPrincipalFees() {
