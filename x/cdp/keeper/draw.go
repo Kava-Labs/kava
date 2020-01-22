@@ -203,7 +203,8 @@ func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coins, fees sdk.Coins
 	feePayment := sdk.NewCoins()
 	principalPayment := sdk.NewCoins()
 	overpayment := sdk.NewCoins()
-	if payment.IsAnyGT(owed) {
+	// TODO must compare denoms directly if there are multiple principal denoms
+	if payment.IsAllGT(owed) {
 		overpayment = payment.Sub(owed)
 		payment = payment.Sub(overpayment)
 	}
