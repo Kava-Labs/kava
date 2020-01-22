@@ -96,6 +96,13 @@ jobs:
           target: start-remote-sims
           description: "Test multi-seed simulation (long)"
 
+  link-check:
+    executor: golang
+    steps:
+      - make:
+          target: link-check
+          description: "Check url links are not broken"
+
 
 workflows:
   version: 2
@@ -107,6 +114,9 @@ workflows:
             tags:
               only:
                 - /^v.*/
+      - link-check:
+          requires:
+            - setup-dependencies
       - test-cover:
           requires:
             - setup-dependencies
