@@ -95,6 +95,15 @@ clean:
 	rm -rf build/
 
 ########################################
+### Linting
+
+# Check url links in the repo are not broken.
+# This tool checks local markdown links as well.
+# Set to exclude riot links as they trigger false positives
+link-check:
+	@go run github.com/raviqqe/liche -r . --exclude ^https://riot.im/app
+
+########################################
 ### Testing
 
 # TODO tidy up cli tests to use same -Enable flag as simulations, or the other way round
