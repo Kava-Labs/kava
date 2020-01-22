@@ -18,9 +18,9 @@ The cdp module account controls two module accounts:
 
 A CDP is a struct representing a debt position owned by one address. It has one collateral type and records the debt that has been drawn and how much fees should be repaid.
 
-Only an owner is authorized to draw or repay debt. But anyone can deposit to any CDP, and withdraw their debt (provided it does not put the CDP below the liquidation ratio). Deposits are recorded separately in `Deposit` types.
+Only an owner is authorized to draw or repay debt. But anyone can deposit or withdraw collateral to a CDP (provided it does not put the CDP below the liquidation ratio). Deposits are recorded separately in `Deposit` types.
 
-The CDP's collateral must always equal the total of the deposits. It is stored in the CDP for efficiency purposes.
+The CDP's collateral always equal the total of the deposits.
 
 ```go
 type CDP struct {
@@ -60,17 +60,12 @@ A global counter used to create unique CDP ids.
 
 ## DebtDenom
 
-The name for the internal debt coin. It's set in the store rather than hard-coded so its value can be configured at genesis.
+The name for the internal debt coin. Its value can be configured at genesis.
 
 ## Total Principle
 
-Total pegged assets drawn for each pegged asset denom.
-<!-- TODO add more details -->
-
-## FeeRate
-
-<!-- TODO -->
+Total pegged assets minted plus accumulated fees. This aggregate of all debt is used to calculate the new debt created every block due to due to fees.
 
 ## Previous Block Time
 
-A record of the last block time used in calculating fees.
+A record of the last block time used to calculate fees.

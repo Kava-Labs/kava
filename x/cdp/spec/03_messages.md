@@ -16,14 +16,14 @@ type MsgCreateCDP struct {
 
 State changes:
 
-- new CDP created, Sender becomes CDP owner
-- collateral taken from Sender, sent to cdp module account, new Deposit created
-- principal coins minted and sent to Sender
+- a new CDP is created, `Sender` becomes CDP owner
+- collateral taken from `Sender` and sent to cdp module account, new `Deposit` created
+- `Principal` coins minted and sent to `Sender`
 - equal amount of internal debt coins created and stored in cdp module account
 
 ## Deposit
 
-Deposit adds collateral to a CDP in the form of a deposit. Collateral is taken from Depositor.
+Deposit adds collateral to a CDP in the form of a deposit. Collateral is taken from `Depositor`.
 
 ```go
 type MsgDeposit struct {
@@ -35,9 +35,9 @@ type MsgDeposit struct {
 
 State Changes:
 
-- Collateral taken from depositor and sent to cdp module account.
-- The depositor's Deposit struct is updated or a new one created.
-<!-- TODO - something to do with fees -->
+- `Collateral` taken from depositor and sent to cdp module account
+- the depositor's `Deposit` struct is updated or a new one created
+- fees are updated (see below)
 
 ## Withdraw
 
@@ -53,9 +53,9 @@ type MsgWithdraw struct {
 
 State Changes:
 
-<!-- TODO - Something to do with fees -->
-- Collateral coins are sent from the cdp module account to Depositor.
-- Collateral amount of coins subtracted from the Deposit struct.
+- `Collateral` coins are sent from the cdp module account to `Depositor`
+- `Collateral` amount of coins subtracted from the `Deposit` struct
+- fees are updated (see below)
 
 ## DrawDebt
 
@@ -72,10 +72,10 @@ type MsgDrawDebt struct {
 
 State Changes:
 
-- Mint Principal coins and send them to Sender.
-- Mint equal amount of internal debt coins and store in cdp's module account.
-- Update CDP struct with new principal and fees. <!-- TODO how fees are calculated -->
-- Increment total principal for principal denom.
+- mint `Principal` coins and send them to `Sender`, updating the CDP's `Principal` field
+- mint equal amount of internal debt coins and store in the module account
+- increment total principal for principal denom
+- fees are updated (see below)
 
 ## RepayDebt
 
@@ -91,9 +91,23 @@ type MsgRepayDebt struct {
 
 State Changes:
 
-- Burn Payment coins taken from Sender.
-- Burn an equal amount of internal debt coins.
-- Update CDP by reducing Principal by Paymment, also update fees <!-- TODO -->
-- Decrement total principal for payment denom.
-- If fees and principal are zero, return collateral:
-  - For each deposit, send coins from the cdp's module account to the depositor, and delete the deposit struct from store.
+- burn `Payment` coins taken from `Sender`, updating the CDP by reducing `Principal` field by `Paymment`
+- burn an equal amount of internal debt coins
+- decrement total principal for payment denom
+- fees are updated (see below)
+- if fees and principal are zero, return collateral to depositors:
+  - For each deposit, send coins from the cdp module account to the depositor, and delete the deposit struct from store.
+
+## Fees
+
+When CDPs are updated the fees accumulated since last update are calculated and added on.
+
+```
+feesAccumulated = (outstandingDebt * (feeRate^periods)) - outstandingDebt
+```
+
+where:
+
+- `outstandingDebt` is the CDP's `Principal` plus `AccumulatedFees`
+- `periods` is the number of seconds since last fee update
+- `feeRate` is the per second debt interest rate

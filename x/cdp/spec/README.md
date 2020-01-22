@@ -16,4 +16,4 @@ The `x/cdp` module stores and manages Collateralized Debt Positions (or CDPs).
 
 A CDP enables the creation of an asset pegged to an external price (usually US Dollar) by collateralization with another asset. Collateral is locked in a CDP and new pegged asset can be minted up to approximately the value of the collateral. To unlock the collateral, the debt must be repaid by returning some pegged asset to the CDP at which point it will be burned and the collateral unlocked.
 
-Pegged assets remain fully collateralized by the value locked in CDPs. In the event of price changes some of this collateral can be seized and sold off by the system to reclaim and reduce the supply of pegged assets.
+Pegged assets remain fully collateralized by the value locked in CDPs. In the event of price changes, this collateral can be seized and sold off by the system to reclaim and reduce the supply of pegged assets.
