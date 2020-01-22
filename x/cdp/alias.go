@@ -27,6 +27,7 @@ const (
 	CodeInvalidWithdrawAmount       = types.CodeInvalidWithdrawAmount
 	CodeCdpNotAvailable             = types.CodeCdpNotAvailable
 	CodeBelowDebtFloor              = types.CodeBelowDebtFloor
+	CodePaymentExceedsDebt          = types.CodePaymentExceedsDebt
 	EventTypeCreateCdp              = types.EventTypeCreateCdp
 	EventTypeCdpDeposit             = types.EventTypeCdpDeposit
 	EventTypeCdpDraw                = types.EventTypeCdpDraw
@@ -74,6 +75,7 @@ var (
 	ErrInvalidWithdrawAmount    = types.ErrInvalidWithdrawAmount
 	ErrCdpNotAvailable          = types.ErrCdpNotAvailable
 	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
+	ErrPaymentExceedsDebt       = types.ErrPaymentExceedsDebt
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetCdpIDBytes               = types.GetCdpIDBytes
 	GetCdpIDFromBytes           = types.GetCdpIDFromBytes
