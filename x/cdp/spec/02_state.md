@@ -1,10 +1,6 @@
 # State
 
-Listed here is the state stored by the module.
-For details see the types package. In particular `keys.go` describes how state is stored in the key-value store.
-<!--
-Store key structures are not listed here - they seem like an implementation detail best documented by code comments.
--->
+For detail on the state tracked by the cdp module see the types package. In particular [keys.go](../types/keys.go) describes how state is stored in the key-value store.
 
 ## Module Accounts
 
@@ -12,15 +8,15 @@ The cdp module account controls two module accounts:
 
 **CDP Account:** Stores the deposited cdp collateral, and the debt coins for the debt in all the cdps.
 
-**Liquidator Account:** Stores debt coins that have been seized by the system, and pegged asset that has been raised through auctions.
+**Liquidator Account:** Stores debt coins that have been seized by the system, and any stable asset that has been raised through auctions.
 
 ## CDP
 
 A CDP is a struct representing a debt position owned by one address. It has one collateral type and records the debt that has been drawn and how much fees should be repaid.
 
-Only an owner is authorized to draw or repay debt. But anyone can deposit or withdraw collateral to a CDP (provided it does not put the CDP below the liquidation ratio). Deposits are recorded separately in `Deposit` types.
+Only an owner is authorized to draw or repay debt, but anyone can deposit collateral to a CDP. Deposits are scoped per address and are recorded separately in `Deposit` types. Depositors are free to withdraw their collateral provided it does not put the CDP below the liquidation ratio.
 
-The CDP's collateral always equal the total of the deposits.
+The CDP's collateral always equal to the total of the deposits.
 
 ```go
 type CDP struct {
@@ -36,7 +32,7 @@ type CDP struct {
 CDPs are stored with a couple of database indexes for faster lookup:
 
 - by collateral ratio - to look up cdps that are close to the liquidation ratio
-- by owner index - to look up cdps that an address has deposited to
+- by owner index - to look up cdps that an address is the owner of
 
 ## Deposit
 
@@ -60,11 +56,11 @@ A global counter used to create unique CDP ids.
 
 ## DebtDenom
 
-The name for the internal debt coin. Its value can be configured at genesis.
+The name of the internal debt coin. Its value can be configured at genesis.
 
 ## Total Principle
 
-Total pegged assets minted plus accumulated fees. This aggregate of all debt is used to calculate the new debt created every block due to due to fees.
+Sum of all non seized debt plus accumulated fees. This is used to calculate the new debt created every block due to the fee interest rate.
 
 ## Previous Block Time
 
