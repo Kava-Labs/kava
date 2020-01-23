@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -55,7 +54,8 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralDenom string, princ
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
 	bz := store.Get([]byte(collateralDenom + principalDenom))
 	if bz == nil {
-		panic(fmt.Sprintf("total principal of %s for %s collateral not set in genesis", principalDenom, collateralDenom))
+		k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, sdk.ZeroInt())
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &total)
 	return total
