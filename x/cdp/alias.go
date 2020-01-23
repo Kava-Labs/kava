@@ -120,7 +120,6 @@ var (
 	GovDenomKey                = types.GovDenomKey
 	DepositKeyPrefix           = types.DepositKeyPrefix
 	PrincipalKeyPrefix         = types.PrincipalKeyPrefix
-	AccumulatorKeyPrefix       = types.AccumulatorKeyPrefix
 	PreviousBlockTimeKey       = types.PreviousBlockTimeKey
 	KeyGlobalDebtLimit         = types.KeyGlobalDebtLimit
 	KeyCollateralParams        = types.KeyCollateralParams
