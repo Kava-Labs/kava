@@ -16,7 +16,7 @@ Each CollateralParam has the following parameters:
 | Denom            | string        | "pbnb"                                      | collateral coin denom                                                                                          |
 | LiquidationRatio | string (dec)  | "1.500000000000000000"                      | the ratio under which a cdp with this collateral type will be liquidated                                       |
 | DebtLimit        | array (coin)  | [{"denom":"pbnb","amount":"1000000000000"}] | maximum pegged asset that can be minted backed by this collateral type                                         |
-| StabilityFee     | string (dec)  | "0.000000003170000000"                      | per second fee                                                                                                 |
+| StabilityFee     | string (dec)  | "1.000000001547126"                      | per second fee                                                                                                 |
 | Prefix           | number (byte) | 34                                          | identifier used in store keys - **must** be unique across collateral types                                     |
 | MarketID         | string        | "BNB/USD"                                   | price feed identifier for this collateral type                                                                 |
 | ConversionFactor | string (int)  | "6"                                         | 10^_ multiplier to go from external amount (say BTC1.50) to internal representation of that amount (150000000) |
