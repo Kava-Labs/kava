@@ -34,7 +34,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState)
 		for _, dp := range gs.Params.DebtParams {
 			k.SetTotalPrincipal(ctx, cp.Denom, dp.Denom, sdk.ZeroInt())
 		}
-		k.SetFeeRate(ctx, cp.Denom, cp.StabilityFee)
 	}
 
 	// add cdps

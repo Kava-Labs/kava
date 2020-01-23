@@ -94,3 +94,12 @@ func (k Keeper) getAuctionSize(ctx sdk.Context, denom string) sdk.Int {
 	}
 	return cp.AuctionSize
 }
+
+// GetFeeRate returns the per second fee rate for the input denom
+func (k Keeper) getFeeRate(ctx sdk.Context, denom string) (fee sdk.Dec) {
+	collalateralParam, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("could not get fee rate for %s, collateral not found", denom))
+	}
+	return collalateralParam.StabilityFee
+}
