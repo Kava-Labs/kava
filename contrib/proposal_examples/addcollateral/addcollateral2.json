@@ -1,17 +1,17 @@
 {
   "title": "CDP Param Change",
-  "description": "Add collateral bnb",
+  "description": "Add collateral XRP",
   "changes": [
     {
       "subspace": "cdp",
       "key": "CollateralParams",
       "value": [
         {
-            "auction_size": "5000000000",
+            "auction_size": "50000000",
             "conversion_factor": "6",
             "debt_limit": [
               {
-                "amount": "1000000000000",
+                "amount": "1000000000",
                 "denom": "usdx"
               }
             ],
@@ -37,56 +37,46 @@
             "market_id": "btc:usd",
             "prefix": 1,
             "stability_fee": "1.0000000007829977"
-          },
-          {
-            "auction_size": "450000000",
-            "conversion_factor": "6",
-            "debt_limit": [
-              {
-                "amount": "1000000000000",
-                "denom": "usdx"
-              }
-            ],
-            "denom": "bnb",
-            "liquidation_penalty": "0.03",
-            "liquidation_ratio": "1.75",
-            "market_id": "bnb:usd",
-            "prefix": 2,
-            "stability_fee": "1.000000001547126"
-        }  
+          }
       ]
     },
     {
-        "subspace": "cdp",
-        "key": "DebtParams",
-        "value": [
-            {
-                "conversion_factor": "6",
-                "debt_floor": "10000000",
-                "debt_limit": [
-                  {
-                    "amount": "3000000000000",
-                    "denom": "usdx"
-                  }
-                ],
-                "denom": "usdx",
-                "reference_asset": "usd"
-            }
-        ]
+      "subspace": "cdp",
+      "key": "DebtParams",
+      "value": [
+          {
+              "conversion_factor": "6",
+              "debt_floor": "10000000",
+              "debt_limit": [
+                {
+                  "amount": "3000000000000",
+                  "denom": "usdx"
+                }
+              ],
+              "denom": "usdx",
+              "reference_asset": "usd"
+          }
+      ]
     },
     {
-        "subspace": "cdp",
-        "key": "GlobalDebtLimit",
-        "value": [
-            {
-                "global_debt_limit": [
-                    {
-                    "amount": "3000000000000",
-                    "denom": "usdx"
-                    }
-                ]
-            }
-        ]
+      "subspace": "cdp",
+      "key": "GlobalDebtLimit",
+      "value": [
+          {
+              "global_debt_limit": [
+                  {
+                  "amount": "3000000000000",
+                  "denom": "usdx"
+                  }
+              ]
+          }
+      ]
+    }
+  ],
+  "deposit": [
+    {
+      "denom": "ukava",
+      "amount": "1000000"
     }
   ]
 }
