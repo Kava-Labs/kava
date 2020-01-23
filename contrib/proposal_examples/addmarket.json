@@ -1,0 +1,45 @@
+{
+  "title": "Pricefeed Param Change",
+  "description": "Add market bnb-usd",
+  "changes": [
+    {
+      "subspace": "pricefeed",
+      "key": "Markets",
+      "value": [
+        {
+          "active": true,
+          "base_asset": "btc",
+          "market_id": "btc-usd",
+          "oracles": [
+            "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
+          ],
+          "quote_asset": "usd"
+        },
+        {
+          "active": true,
+          "base_asset": "xrp",
+          "market_id": "xrp-usd",
+          "oracles": [
+            "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
+          ],
+          "quote_asset": "usd"
+        },
+        {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb-usd",
+            "oracles": [
+              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
+            ],
+            "quote_asset": "usd"
+        }          
+      ]
+    }
+  ],
+  "deposit": [
+    {
+      "denom": "ukava",
+      "amount": "200000000"
+    }
+  ]
+}

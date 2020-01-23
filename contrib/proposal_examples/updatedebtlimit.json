@@ -1,0 +1,28 @@
+{
+  "title": "CDP Param Change",
+  "description": "Update usdx debt limit for collateral type btc",
+  "changes": [
+    {
+      "subspace": "cdp",
+      "key": "CollateralParams",
+      "value": [
+          {
+            "auction_size": "10000000",
+            "conversion_factor": "8",
+            "debt_limit": [
+              {
+                "amount": "10000",
+                "denom": "usdx"
+              }
+            ],
+            "denom": "btc",
+            "liquidation_penalty": "0.05",
+            "liquidation_ratio": "2.0",
+            "market_id": "btc:usd",
+            "prefix": 1,
+            "stability_fee": "1.0000000007829977"
+          }
+      ]
+    }
+  ]
+}
