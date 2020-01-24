@@ -1,0 +1,17 @@
+{
+    "title": "Auction Param Change",
+    "description": "Update auction bid duration",
+    "changes": [
+      {
+        "subspace": "auction",
+        "key": "BidDuration",
+        "value": "123450000000"
+      }
+    ],
+    "deposit": [
+      {
+        "denom": "ukava",
+        "amount": "1000000"
+      }
+    ]
+  }
