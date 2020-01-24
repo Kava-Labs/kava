@@ -149,9 +149,6 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, a, bidder, newAmount)
 		} else {
 			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, a, bidder, newAmount)
-			if a.Phase != "reverse" {
-				k.setReversePhase(ctx, auctionID)
-			}
 		}
 		if err != nil {
 			return err
@@ -334,6 +331,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
 	a.HasReceivedBids = true
+	a.Phase = "reverse"
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -503,16 +501,6 @@ func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) sdk.Error {
 		}
 	}
 	return nil
-}
-
-// setReversePhase sets the phase of collateral auction to reverse
-func (k Keeper) setReversePhase(ctx sdk.Context, auctionID uint64) {
-	a, _ := k.GetAuction(ctx, auctionID)
-	switch auc := a.(type) {
-	case types.CollateralAuction:
-		auc.Phase = "reverse"
-		k.SetAuction(ctx, auc)
-	}
 }
 
 // earliestTime returns the earliest of two times.
