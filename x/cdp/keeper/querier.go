@@ -20,6 +20,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetCdpsByRatio(ctx, req, keeper)
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
+		case types.QueryGetCdpDeposits:
+			return queryGetDeposits(ctx, req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown cdp query endpoint")
 		}
@@ -45,6 +47,34 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdp)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+	return bz, nil
+
+}
+
+// query a specific cdp
+func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	var requestParams types.QueryCdpDeposits
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+	}
+
+	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	if !valid {
+		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+	}
+
+	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
+	if !found {
+		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
+	}
+
+	deposits := keeper.GetDeposits(ctx, cdp.ID)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, deposits)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
