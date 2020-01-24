@@ -222,8 +222,8 @@ func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid
 
 // WeightedAddresses is a type for storing some addresses and associated weights.
 type WeightedAddresses struct {
-	Addresses []sdk.AccAddress
-	Weights   []sdk.Int
+	Addresses []sdk.AccAddress `json:"addresses" yaml:"addresses"`
+	Weights   []sdk.Int        `json:"weights" yaml:"weights"`
 }
 
 // NewWeightedAddresses returns a new list addresses with weights.
