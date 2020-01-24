@@ -305,7 +305,7 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 
 // GetGovDenom returns the denom of debt in the system
 func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	bz := store.Get([]byte{})
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
 	return
