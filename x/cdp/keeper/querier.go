@@ -54,7 +54,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 }
 
-// query a specific cdp
+// query deposits on a particular cdp
 func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var requestParams types.QueryCdpDeposits
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
