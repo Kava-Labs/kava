@@ -78,7 +78,6 @@ func (k Keeper) SetPrice(
 				sdk.NewAttribute(types.AttributeExpiry, fmt.Sprintf("%s", expiry.String())),
 			),
 		)
-
 		store.Set(
 			[]byte(types.RawPriceFeedPrefix+marketID), k.cdc.MustMarshalBinaryBare(prices),
 		)
