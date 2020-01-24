@@ -36,5 +36,14 @@ func HandleMsgPostPrice(
 	if err != nil {
 		return err.Result()
 	}
-	return sdk.Result{}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	)
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
 }

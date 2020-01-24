@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -67,6 +68,17 @@ func (k Keeper) SetPrice(
 			index = len(prices) - 1
 		}
 
+		// Emit an event containing the oracle's new price
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeOracleUpdatedPrice,
+				sdk.NewAttribute(types.AttributeMarketID, fmt.Sprintf("%s", marketID)),
+				sdk.NewAttribute(types.AttributeOracle, fmt.Sprintf("%s", oracle.String())),
+				sdk.NewAttribute(types.AttributeMarketPrice, fmt.Sprintf("%s", price.String())),
+				sdk.NewAttribute(types.AttributeExpiry, fmt.Sprintf("%s", expiry.String())),
+			),
+		)
+
 		store.Set(
 			[]byte(types.RawPriceFeedPrefix+marketID), k.cdc.MustMarshalBinaryBare(prices),
 		)
@@ -76,7 +88,7 @@ func (k Keeper) SetPrice(
 
 }
 
-// SetCurrentPrices updates the price of an asset to the meadian of all valid oracle inputs
+// SetCurrentPrices updates the price of an asset to the median of all valid oracle inputs
 func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
 	_, ok := k.GetMarket(ctx, marketID)
 	if !ok {
@@ -102,11 +114,21 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
 	}
 	medianPrice := k.CalculateMedianPrice(ctx, notExpiredPrices)
 
+	// Emit an event for market price update
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeMarketPriceUpdated,
+			sdk.NewAttribute(types.AttributeMarketID, fmt.Sprintf("%s", marketID)),
+			sdk.NewAttribute(types.AttributeMarketPrice, fmt.Sprintf("%s", medianPrice.String())),
+		),
+	)
+
 	store := ctx.KVStore(k.key)
 	currentPrice := types.CurrentPrice{
 		MarketID: marketID,
 		Price:    medianPrice,
 	}
+
 	store.Set(
 		[]byte(types.CurrentPricePrefix+marketID), k.cdc.MustMarshalBinaryBare(currentPrice),
 	)
