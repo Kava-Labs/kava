@@ -47,12 +47,6 @@
           {
               "conversion_factor": "6",
               "debt_floor": "10000000",
-              "debt_limit": [
-                {
-                  "amount": "3000000000000",
-                  "denom": "usdx"
-                }
-              ],
               "denom": "usdx",
               "reference_asset": "usd"
           }
@@ -62,14 +56,10 @@
       "subspace": "cdp",
       "key": "GlobalDebtLimit",
       "value": [
-          {
-              "global_debt_limit": [
-                  {
-                  "amount": "3000000000000",
-                  "denom": "usdx"
-                  }
-              ]
-          }
+        {
+          "amount": "3000000000000",
+          "denom": "usdx"
+        }
       ]
     }
   ],
