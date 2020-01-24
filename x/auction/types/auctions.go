@@ -22,7 +22,7 @@ type Auction interface {
 	GetBidder() sdk.AccAddress
 	GetBid() sdk.Coin
 	GetEndTime() time.Time
-	Name() string
+	GetType() string
 }
 
 // Auctions is a slice of auctions.
@@ -31,6 +31,7 @@ type Auctions []Auction
 // BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
 	ID              uint64         `json:"id" yaml:"id"`
+	Type            string         `json:"type" yaml:"type"`
 	Initiator       string         `json:"initiator" yaml:"initiator"`                 // Module name that starts the auction. Pays out Lot.
 	Lot             sdk.Coin       `json:"lot" yaml:"lot"`                             // Coins that will paid out by Initiator to the winning bidder.
 	Bidder          sdk.AccAddress `json:"bidder" yaml:"bidder"`                       // Latest bidder. Receiver of Lot.
@@ -58,8 +59,8 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a BaseAuction) Name() string { return "base" }
+// GetType returns theauction type. Used to identify auctions in event attributes.
+func (a BaseAuction) GetType() string { return "base" }
 
 // Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
@@ -71,14 +72,14 @@ func (a BaseAuction) Validate() error {
 
 func (a BaseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
-	Name: 									%s
+	Type: 									%s
   Initiator:              %s
   Lot:               			%s
   Bidder:            		  %s
   Bid:        						%s
   End Time:   						%s
   Max End Time:      			%s`,
-		a.GetID(), a.Name(), a.Initiator, a.Lot,
+		a.GetID(), a.GetType(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
 		a.MaxEndTime.String(),
 	)
@@ -93,8 +94,8 @@ type SurplusAuction struct {
 // WithID returns an auction with the ID set.
 func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a SurplusAuction) Name() string { return "surplus" }
+// GetType returns the auction type. Used to identify auctions in event attributes.
+func (a SurplusAuction) GetType() string { return "surplus" }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -129,8 +130,8 @@ type DebtAuction struct {
 // WithID returns an auction with the ID set.
 func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a DebtAuction) Name() string { return "debt" }
+// GetType returns the auction type. Used to identify auctions in event attributes.
+func (a DebtAuction) GetType() string { return "debt" }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -176,8 +177,8 @@ type CollateralAuction struct {
 // WithID returns an auction with the ID set.
 func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a CollateralAuction) Name() string { return "collateral" }
+// GetType returns the auction type. Used to identify auctions in event attributes.
+func (a CollateralAuction) GetType() string { return "collateral" }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -203,7 +204,7 @@ func (a CollateralAuction) String() string {
 	Max End Time:      			%s
 	Max Bid									%s
 	LotReturns						%s`,
-		a.GetID(), a.Name(), a.Initiator, a.Lot,
+		a.GetID(), a.GetType(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
 		a.MaxEndTime.String(), a.MaxBid, a.LotReturns,
 	)
