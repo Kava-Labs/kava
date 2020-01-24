@@ -93,6 +93,13 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
 	if !ok {
 		return types.ErrInvalidMarket(k.codespace, marketID)
 	}
+	// store current price
+	validPrevPrice := true
+	prevPrice, err := k.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		validPrevPrice = false
+	}
+
 	prices := k.GetRawPrices(ctx, marketID)
 	var notExpiredPrices []types.CurrentPrice
 	// filter out expired prices
@@ -113,14 +120,19 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
 	}
 	medianPrice := k.CalculateMedianPrice(ctx, notExpiredPrices)
 
-	// Emit an event for market price update
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeMarketPriceUpdated,
-			sdk.NewAttribute(types.AttributeMarketID, fmt.Sprintf("%s", marketID)),
-			sdk.NewAttribute(types.AttributeMarketPrice, fmt.Sprintf("%s", medianPrice.String())),
-		),
-	)
+	// check case that market price was not set in genesis
+	if validPrevPrice {
+		// only emit event if price has changed
+		if !medianPrice.Equal(prevPrice.Price) {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeMarketPriceUpdated,
+					sdk.NewAttribute(types.AttributeMarketID, fmt.Sprintf("%s", marketID)),
+					sdk.NewAttribute(types.AttributeMarketPrice, fmt.Sprintf("%s", medianPrice.String())),
+				),
+			)
+		}
+	}
 
 	store := ctx.KVStore(k.key)
 	currentPrice := types.CurrentPrice{
