@@ -221,6 +221,25 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	suite.Equal(gs.Params, p)
 }
 
+func (suite *QuerierTestSuite) TestQueryDeposits() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpDeposits}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Collateral[0].Denom)),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetCdpDeposits}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	deposits := suite.keeper.GetDeposits(ctx, suite.cdps[0].ID)
+
+	var d types.Deposits
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &d))
+	suite.Equal(deposits, d)
+
+}
+
 func TestQuerierTestSuite(t *testing.T) {
 	suite.Run(t, new(QuerierTestSuite))
 }
