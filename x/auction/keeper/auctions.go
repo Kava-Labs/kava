@@ -149,6 +149,9 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, a, bidder, newAmount)
 		} else {
 			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, a, bidder, newAmount)
+			if a.Phase != "reverse" {
+				k.setReversePhase(ctx, auctionID)
+			}
 		}
 		if err != nil {
 			return err
@@ -502,13 +505,22 @@ func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) sdk.Error {
 	return nil
 }
 
+// setReversePhase sets the phase of collateral auction to reverse
+func (k Keeper) setReversePhase(ctx sdk.Context, auctionID uint64) {
+	a, _ := k.GetAuction(ctx, auctionID)
+	switch auc := a.(type) {
+	case types.CollateralAuction:
+		auc.Phase = "reverse"
+		k.SetAuction(ctx, auc)
+	}
+}
+
 // earliestTime returns the earliest of two times.
 func earliestTime(t1, t2 time.Time) time.Time {
 	if t1.Before(t2) {
 		return t1
-	} else {
-		return t2 // also returned if times are equal
 	}
+	return t2 // also returned if times are equal
 }
 
 // splitCoinIntoWeightedBuckets divides up some amount of coins according to some weights.

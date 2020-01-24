@@ -323,6 +323,7 @@ func TestStartSurplusAuction(t *testing.T) {
 				require.True(t, found)
 				expectedAuction := types.Auction(types.SurplusAuction{BaseAuction: types.BaseAuction{
 					ID:              0,
+					Type:            "surplus",
 					Initiator:       tc.args.seller,
 					Lot:             tc.args.lot,
 					Bidder:          nil,
