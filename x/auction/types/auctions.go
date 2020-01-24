@@ -22,6 +22,7 @@ type Auction interface {
 	GetBidder() sdk.AccAddress
 	GetBid() sdk.Coin
 	GetEndTime() time.Time
+	Name() string
 }
 
 // Auctions is a slice of auctions.
@@ -57,6 +58,9 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
+// Name returns a name for this auction type. Used to identify auctions in event attributes.
+func (a BaseAuction) Name() string { return "base" }
+
 // Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
 	if a.EndTime.After(a.MaxEndTime) {
@@ -67,13 +71,14 @@ func (a BaseAuction) Validate() error {
 
 func (a BaseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
+	Name: 									%s
   Initiator:              %s
   Lot:               			%s
   Bidder:            		  %s
   Bid:        						%s
   End Time:   						%s
   Max End Time:      			%s`,
-		a.GetID(), a.Initiator, a.Lot,
+		a.GetID(), a.Name(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
 		a.MaxEndTime.String(),
 	)
@@ -82,7 +87,7 @@ func (a BaseAuction) String() string {
 // SurplusAuction is a forward auction that burns what it receives from bids.
 // It is normally used to sell off excess pegged asset acquired by the CDP system.
 type SurplusAuction struct {
-	BaseAuction `json:"base_auction" yaml:"base_auction"`
+	BaseAuction
 }
 
 // WithID returns an auction with the ID set.
@@ -116,7 +121,8 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 // DebtAuction is a reverse auction that mints what it pays out.
 // It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
 type DebtAuction struct {
-	BaseAuction       `json:"base_auction" yaml:"base_auction"`
+	BaseAuction
+
 	CorrespondingDebt sdk.Coin `json:"corresponding_debt" yaml:"corresponding_debt"`
 }
 
@@ -160,7 +166,8 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 // Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
 // Collateral auctions are normally used to sell off collateral seized from CDPs.
 type CollateralAuction struct {
-	BaseAuction       `json:"base_auction" yaml:"base_auction"`
+	BaseAuction
+
 	CorrespondingDebt sdk.Coin          `json:"corresponding_debt" yaml:"corresponding_debt"`
 	MaxBid            sdk.Coin          `json:"max_bid" yaml:"max_bid"`
 	LotReturns        WeightedAddresses `json:"lot_returns" yaml:"lot_returns"`
@@ -187,6 +194,7 @@ func (a CollateralAuction) IsReversePhase() bool {
 
 func (a CollateralAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
+	Name:  									%s
   Initiator:              %s
   Lot:               			%s
   Bidder:            		  %s
@@ -195,7 +203,7 @@ func (a CollateralAuction) String() string {
 	Max End Time:      			%s
 	Max Bid									%s
 	LotReturns						%s`,
-		a.GetID(), a.Initiator, a.Lot,
+		a.GetID(), a.Name(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
 		a.MaxEndTime.String(), a.MaxBid, a.LotReturns,
 	)
