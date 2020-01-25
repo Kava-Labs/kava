@@ -66,12 +66,12 @@ func (cdps CDPs) String() string {
 // AugmentedCDP provides additional information about an active CDP
 type AugmentedCDP struct {
 	CDP                    `json:"cdp" yaml:"cdp"`
-	CollateralUSDXValue    sdk.Dec `json:"collateral_usdx_value" yaml:"collateral_usdx_value"`     // collateral's market value (quantity * price)
-	CollateralizationRatio sdk.Dec `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
+	CollateralValue        sdk.Coin `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value in debt coin
+	CollateralizationRatio sdk.Dec  `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
 }
 
 // NewAugmentedCDP creates a new AugmentedCDP object
-func NewAugmentedCDP(cdp CDP, collateralUSDXValue sdk.Dec, collateralizationRatio sdk.Dec) AugmentedCDP {
+func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) AugmentedCDP {
 	augmentedCDP := AugmentedCDP{
 		CDP: CDP{
 			ID:              cdp.ID,
@@ -81,7 +81,7 @@ func NewAugmentedCDP(cdp CDP, collateralUSDXValue sdk.Dec, collateralizationRati
 			AccumulatedFees: cdp.AccumulatedFees,
 			FeesUpdated:     cdp.FeesUpdated,
 		},
-		CollateralUSDXValue:    collateralUSDXValue,
+		CollateralValue:        collateralValue,
 		CollateralizationRatio: collateralizationRatio,
 	}
 	return augmentedCDP
@@ -94,7 +94,7 @@ func (augCDP AugmentedCDP) String() string {
 	ID: %d
 	Collateral Type: %s
 	Collateral: %s
-	Collateral USDX Value: %s
+	Collateral Value: %s
 	Principal: %s
 	Fees: %s
 	Fees Last Updated: %s
@@ -103,7 +103,7 @@ func (augCDP AugmentedCDP) String() string {
 		augCDP.ID,
 		augCDP.Collateral[0].Denom,
 		augCDP.Collateral,
-		augCDP.CollateralUSDXValue,
+		augCDP.CollateralValue,
 		augCDP.Principal,
 		augCDP.AccumulatedFees,
 		augCDP.FeesUpdated,

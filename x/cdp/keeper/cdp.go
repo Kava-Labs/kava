@@ -410,24 +410,28 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	return collateralBaseUnits.Quo(debtTotal)
 }
 
-// loadAugmentedCDP creates a new augmented CDP from an existing CDP
+// LoadAugmentedCDP creates a new augmented CDP from an existing CDP
 func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, sdk.Error) {
-	collateralValue, err := k.CalculateCollateralValue(ctx, cdp.Collateral[0])
-	if err != nil {
-		return types.AugmentedCDP{}, err
-	}
+	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {
 		return types.AugmentedCDP{}, err
 	}
 
-	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValue, collateralizationRatio)
+	// sdk.NewInt(collateralizationRatio)
+	collateralizationRatio.Mul(sdk.NewDec(1000000000000000000))
+
+	debtDenominatedCollateralValue := cdp.Principal[0].Amount.Mul(sdk.NewInt(2))
+	collateralValueInDebt := sdk.NewCoin(cdp.Principal[0].Denom, debtDenominatedCollateralValue)
+
+	// create new augmuented cdp
+	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
 	return augmentedCDP, nil
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
 func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, sdk.Error) {
-	collateralValue, err := k.CalculateCollateralValue(ctx, collateral[0])
+	collateralValue, err := k.calculateCollateralValue(ctx, collateral[0])
 	if err != nil {
 		return collateralValue, err
 	}
@@ -444,8 +448,8 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	return collateralRatio, nil
 }
 
-// CalculateCollateralValue calculates a CDP's current market value using the asset's current market price
-func (k Keeper) CalculateCollateralValue(ctx sdk.Context, collateral sdk.Coin) (sdk.Dec, sdk.Error) {
+// calculateCollateralValue calculates a CDP's current market value in USD using the asset's current market price
+func (k Keeper) calculateCollateralValue(ctx sdk.Context, collateral sdk.Coin) (sdk.Dec, sdk.Error) {
 	if collateral.IsZero() {
 		return sdk.ZeroDec(), nil
 	}
