@@ -9,6 +9,8 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
+const BaseDigitFactor = 1000000000000000000
+
 // AddCdp adds a cdp for a specific owner and collateral type
 func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins) sdk.Error {
 	// validation
@@ -417,12 +419,15 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	if err != nil {
 		return types.AugmentedCDP{}, err
 	}
-
-	// sdk.NewInt(collateralizationRatio)
-	collateralizationRatio.Mul(sdk.NewDec(1000000000000000000))
-
-	debtDenominatedCollateralValue := cdp.Principal[0].Amount.Mul(sdk.NewInt(2))
-	collateralValueInDebt := sdk.NewCoin(cdp.Principal[0].Denom, debtDenominatedCollateralValue)
+	// calcylate collateral value in debt coin
+	var totalDebt int64
+	if len(cdp.AccumulatedFees) > 0 {
+		totalDebt += cdp.AccumulatedFees[0].Amount.Int64()
+	}
+	totalDebt += cdp.Principal[0].Amount.Int64()
+	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)
+	collateralValueInDebtDenom := collateralizationRatio.Mul(debtBaseAdjusted)
+	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal[0].Denom, collateralValueInDebtDenom.Int64())
 
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
@@ -431,10 +436,17 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
 func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, sdk.Error) {
-	collateralValue, err := k.calculateCollateralValue(ctx, collateral[0])
-	if err != nil {
-		return collateralValue, err
+	if collateral.IsZero() {
+		return sdk.ZeroDec(), nil
 	}
+	marketID := k.getMarketID(ctx, collateral[0].Denom)
+	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		return sdk.Dec{}, err
+	}
+	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral[0])
+	collateralValue := collateralBaseUnits.Mul(price.Price)
+
 	principalTotal := sdk.ZeroDec()
 	for _, pc := range principal {
 		prinicpalBaseUnits := k.convertDebtToBaseUnits(ctx, pc)
@@ -446,22 +458,6 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	}
 	collateralRatio := collateralValue.Quo(principalTotal)
 	return collateralRatio, nil
-}
-
-// calculateCollateralValue calculates a CDP's current market value in USD using the asset's current market price
-func (k Keeper) calculateCollateralValue(ctx sdk.Context, collateral sdk.Coin) (sdk.Dec, sdk.Error) {
-	if collateral.IsZero() {
-		return sdk.ZeroDec(), nil
-	}
-	marketID := k.getMarketID(ctx, collateral.Denom)
-	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
-	if err != nil {
-		return sdk.Dec{}, err
-	}
-	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral)
-	collateralValue := collateralBaseUnits.Mul(price.Price)
-
-	return collateralValue, nil
 }
 
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
