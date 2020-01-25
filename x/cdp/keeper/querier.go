@@ -74,7 +74,6 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
 		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
-		// TODO: we can do better...
 		if err == nil {
 			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 		}
@@ -103,7 +102,6 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
 		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
-		// TODO: we can do better...
 		if err == nil {
 			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 		}

@@ -150,9 +150,9 @@ $ %s query %s cdps-by-ratio uatom 1.5
 			}
 
 			// Decode and print results
-			var out types.CDPs
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var cdps types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &cdps)
+			return cliCtx.PrintOutput(cdps)
 		},
 	}
 }
