@@ -44,7 +44,13 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdp)
+	augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
+	if err != nil {
+		// TODO: types.ErrLoadingAugmentedCDP()
+		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDP)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

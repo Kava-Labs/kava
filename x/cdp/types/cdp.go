@@ -62,3 +62,51 @@ func (cdps CDPs) String() string {
 	}
 	return out
 }
+
+// AugmentedCDP provides additional information about an active CDP
+type AugmentedCDP struct {
+	CDP                    `json:"cdp" yaml:"cdp"`
+	CollateralValue        sdk.Dec `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value (quantity * price)
+	CollateralizationRatio sdk.Dec `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
+}
+
+// NewAugmentedCDP creates a new AugmentedCDP object
+func NewAugmentedCDP(cdp CDP, collateralValue sdk.Dec, collateralizationRatio sdk.Dec) AugmentedCDP {
+	augmentedCDP := AugmentedCDP{
+		CDP: CDP{
+			ID:              cdp.ID,
+			Owner:           cdp.Owner,
+			Collateral:      cdp.Collateral,
+			Principal:       cdp.Principal,
+			AccumulatedFees: cdp.AccumulatedFees,
+			FeesUpdated:     cdp.FeesUpdated,
+		},
+		CollateralValue:        collateralValue,
+		CollateralizationRatio: collateralizationRatio,
+	}
+	return augmentedCDP
+}
+
+// String implements fmt.stringer
+func (augCDP AugmentedCDP) String() string {
+	return strings.TrimSpace(fmt.Sprintf(`AugmentedCDP:
+	Owner:      %s
+	ID: %d
+	Collateral Type: %s
+	Collateral: %s
+	Collateral Value: %s
+	Principal: %s
+	Fees: %s
+	Fees Last Updated: %s
+	Collateralization ratio: %s`,
+		augCDP.Owner,
+		augCDP.ID,
+		augCDP.Collateral[0].Denom,
+		augCDP.Collateral,
+		augCDP.CollateralValue,
+		augCDP.Principal,
+		augCDP.AccumulatedFees,
+		augCDP.FeesUpdated,
+		augCDP.CollateralizationRatio,
+	))
+}

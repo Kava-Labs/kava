@@ -410,18 +410,27 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	return collateralBaseUnits.Quo(debtTotal)
 }
 
+// loadAugmentedCDP creates a new augmented CDP from an existing CDP
+func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, sdk.Error) {
+	collateralValue, err := k.CalculateCollateralValue(ctx, cdp.Collateral[0])
+	if err != nil {
+		return types.AugmentedCDP{}, err
+	}
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees)
+	if err != nil {
+		return types.AugmentedCDP{}, err
+	}
+
+	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValue, collateralizationRatio)
+	return augmentedCDP, nil
+}
+
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
 func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, sdk.Error) {
-	if collateral.IsZero() {
-		return sdk.ZeroDec(), nil
-	}
-	marketID := k.getMarketID(ctx, collateral[0].Denom)
-	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	collateralValue, err := k.CalculateCollateralValue(ctx, collateral[0])
 	if err != nil {
-		return sdk.Dec{}, err
+		return collateralValue, err
 	}
-	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral[0])
-	collateralValue := collateralBaseUnits.Mul(price.Price)
 	principalTotal := sdk.ZeroDec()
 	for _, pc := range principal {
 		prinicpalBaseUnits := k.convertDebtToBaseUnits(ctx, pc)
@@ -433,6 +442,22 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	}
 	collateralRatio := collateralValue.Quo(principalTotal)
 	return collateralRatio, nil
+}
+
+// CalculateCollateralValue calculates a CDP's current market value using the asset's current market price
+func (k Keeper) CalculateCollateralValue(ctx sdk.Context, collateral sdk.Coin) (sdk.Dec, sdk.Error) {
+	if collateral.IsZero() {
+		return sdk.ZeroDec(), nil
+	}
+	marketID := k.getMarketID(ctx, collateral.Denom)
+	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		return sdk.Dec{}, err
+	}
+	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral)
+	collateralValue := collateralBaseUnits.Mul(price.Price)
+
+	return collateralValue, nil
 }
 
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))

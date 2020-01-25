@@ -69,7 +69,7 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 			}
 
 			// Decode and print results
-			var cdp types.CDP
+			var cdp types.AugmentedCDP
 			cdc.MustUnmarshalJSON(res, &cdp)
 			return cliCtx.PrintOutput(cdp)
 		},
