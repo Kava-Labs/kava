@@ -105,9 +105,9 @@ $ %s query %s cdps uatom
 			}
 
 			// Decode and print results
-			var out types.CDPs
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var cdps types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &cdps)
+			return cliCtx.PrintOutput(cdps)
 		},
 	}
 }

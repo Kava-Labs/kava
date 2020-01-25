@@ -70,7 +70,16 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 
 	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdps)
+
+	var augmentedCDPs types.AugmentedCDPs
+	for _, cdp := range cdps {
+		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
+		// TODO: we can do better...
+		if err == nil {
+			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
+		}
+	}
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -90,7 +99,16 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 
 	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdps)
+
+	var augmentedCDPs types.AugmentedCDPs
+	for _, cdp := range cdps {
+		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
+		// TODO: we can do better...
+		if err == nil {
+			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
+		}
+	}
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

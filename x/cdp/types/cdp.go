@@ -66,12 +66,12 @@ func (cdps CDPs) String() string {
 // AugmentedCDP provides additional information about an active CDP
 type AugmentedCDP struct {
 	CDP                    `json:"cdp" yaml:"cdp"`
-	CollateralValue        sdk.Dec `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value (quantity * price)
+	CollateralUSDXValue    sdk.Dec `json:"collateral_usdx_value" yaml:"collateral_usdx_value"`     // collateral's market value (quantity * price)
 	CollateralizationRatio sdk.Dec `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
 }
 
 // NewAugmentedCDP creates a new AugmentedCDP object
-func NewAugmentedCDP(cdp CDP, collateralValue sdk.Dec, collateralizationRatio sdk.Dec) AugmentedCDP {
+func NewAugmentedCDP(cdp CDP, collateralUSDXValue sdk.Dec, collateralizationRatio sdk.Dec) AugmentedCDP {
 	augmentedCDP := AugmentedCDP{
 		CDP: CDP{
 			ID:              cdp.ID,
@@ -81,7 +81,7 @@ func NewAugmentedCDP(cdp CDP, collateralValue sdk.Dec, collateralizationRatio sd
 			AccumulatedFees: cdp.AccumulatedFees,
 			FeesUpdated:     cdp.FeesUpdated,
 		},
-		CollateralValue:        collateralValue,
+		CollateralUSDXValue:    collateralUSDXValue,
 		CollateralizationRatio: collateralizationRatio,
 	}
 	return augmentedCDP
@@ -94,7 +94,7 @@ func (augCDP AugmentedCDP) String() string {
 	ID: %d
 	Collateral Type: %s
 	Collateral: %s
-	Collateral Value: %s
+	Collateral USDX Value: %s
 	Principal: %s
 	Fees: %s
 	Fees Last Updated: %s
@@ -103,10 +103,22 @@ func (augCDP AugmentedCDP) String() string {
 		augCDP.ID,
 		augCDP.Collateral[0].Denom,
 		augCDP.Collateral,
-		augCDP.CollateralValue,
+		augCDP.CollateralUSDXValue,
 		augCDP.Principal,
 		augCDP.AccumulatedFees,
 		augCDP.FeesUpdated,
 		augCDP.CollateralizationRatio,
 	))
+}
+
+// AugmentedCDPs a collection of AugmentedCDP objects
+type AugmentedCDPs []AugmentedCDP
+
+// String implements stringer
+func (augcdps AugmentedCDPs) String() string {
+	out := ""
+	for _, augcdp := range augcdps {
+		out += augcdp.String() + "\n"
+	}
+	return out
 }
