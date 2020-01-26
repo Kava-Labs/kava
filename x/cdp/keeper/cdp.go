@@ -460,6 +460,19 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	return collateralRatio, nil
 }
 
+// CalculateCollateralizationRatioFromAbsoluteRatio takes a coin's denom and an absolute ratio and returns the respective collateralization ratio
+func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralDenom string, absoluteRatio sdk.Dec) (sdk.Dec, sdk.Error) {
+	// get price collateral
+	marketID := k.getMarketID(ctx, collateralDenom)
+	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		return sdk.Dec{}, err
+	}
+	// convert absolute ratio to collateralization ratio
+	respectiveCollateralRatio := absoluteRatio.Quo(price.Price)
+	return respectiveCollateralRatio, nil
+}
+
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin) (baseUnits sdk.Dec) {
 	cp, _ := k.GetCollateral(ctx, collateral.Denom)

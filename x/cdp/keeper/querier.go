@@ -69,8 +69,13 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
 	}
 
-	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
+	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could get collateralization ratio from absolute ratio", err.Error()))
+	}
 
+	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, ratio)
+	// augment CDPs by adding collateral value and collateralization ratio
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
 		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
