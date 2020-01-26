@@ -9,6 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
+// BaseDigitFactor is 10**18, used during coin calculations
 const BaseDigitFactor = 1000000000000000000
 
 // AddCdp adds a cdp for a specific owner and collateral type
@@ -419,7 +420,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	if err != nil {
 		return types.AugmentedCDP{}, err
 	}
-	// calcylate collateral value in debt coin
+	// calculate collateral value in debt coin
 	var totalDebt int64
 	if len(cdp.AccumulatedFees) > 0 {
 		totalDebt += cdp.AccumulatedFees[0].Amount.Int64()

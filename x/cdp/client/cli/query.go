@@ -119,7 +119,7 @@ func QueryCdpsByDenomAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Com
 		Use:   "cdps-by-ratio [collateral-name] [collateralization-ratio]",
 		Short: "get cdps under a collateralization ratio",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`List all CDPs under a specified collateralization ratios.
+			fmt.Sprintf(`List all CDPs under a specified collateralization ratio.
 Collateralization ratio is: collateral * price / debt.
 
 Example:

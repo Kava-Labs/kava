@@ -103,7 +103,7 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 
 	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
-
+	// augment CDPs by adding collateral value and collateralization ratio
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
 		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
