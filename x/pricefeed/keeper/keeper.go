@@ -72,10 +72,10 @@ func (k Keeper) SetPrice(
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeOracleUpdatedPrice,
-				sdk.NewAttribute(types.AttributeMarketID, fmt.Sprintf("%s", marketID)),
-				sdk.NewAttribute(types.AttributeOracle, fmt.Sprintf("%s", oracle.String())),
-				sdk.NewAttribute(types.AttributeMarketPrice, fmt.Sprintf("%s", price.String())),
-				sdk.NewAttribute(types.AttributeExpiry, fmt.Sprintf("%s", expiry.String())),
+				sdk.NewAttribute(types.AttributeMarketID, marketID),
+				sdk.NewAttribute(types.AttributeOracle, oracle.String()),
+				sdk.NewAttribute(types.AttributeMarketPrice, price.String()),
+				sdk.NewAttribute(types.AttributeExpiry, fmt.Sprintf("%d", expiry.Unix())),
 			),
 		)
 		store.Set(
