@@ -422,10 +422,12 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	}
 	// calculate collateral value in debt coin
 	var totalDebt int64
-	if len(cdp.AccumulatedFees) > 0 {
-		totalDebt += cdp.AccumulatedFees[0].Amount.Int64()
+	for _, principalCoin := range cdp.Principal {
+		totalDebt += principalCoin.Amount.Int64()
 	}
-	totalDebt += cdp.Principal[0].Amount.Int64()
+	for _, feeCoin := range cdp.AccumulatedFees {
+		totalDebt += feeCoin.Amount.Int64()
+	}
 	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)
 	collateralValueInDebtDenom := collateralizationRatio.Mul(debtBaseAdjusted)
 	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal[0].Denom, collateralValueInDebtDenom.Int64())
