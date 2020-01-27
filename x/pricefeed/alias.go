@@ -17,7 +17,14 @@ const (
 	CodeInvalidPrice              = types.CodeInvalidPrice
 	CodeInvalidAsset              = types.CodeInvalidAsset
 	CodeInvalidOracle             = types.CodeInvalidOracle
+	EventTypeMarketPriceUpdated   = types.EventTypeMarketPriceUpdated
+	EventTypeOracleUpdatedPrice   = types.EventTypeOracleUpdatedPrice
 	EventTypeNoValidPrices        = types.EventTypeNoValidPrices
+	AttributeValueCategory        = types.AttributeValueCategory
+	AttributeMarketID             = types.AttributeMarketID
+	AttributeMarketPrice          = types.AttributeMarketPrice
+	AttributeOracle               = types.AttributeOracle
+	AttributeExpiry               = types.AttributeExpiry
 	AttributeKeyPriceUpdateFailed = types.AttributeKeyPriceUpdateFailed
 	ModuleName                    = types.ModuleName
 	StoreKey                      = types.StoreKey
