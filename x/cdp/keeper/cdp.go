@@ -418,9 +418,10 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	// calculate additional fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	totalFees := cdp.AccumulatedFees.Add(fees)
 
 	// calculate collateralization ratio
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees.Add(fees))
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, totalFees)
 	if err != nil {
 		return types.AugmentedCDP{}, err
 	}
@@ -430,7 +431,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	for _, principalCoin := range cdp.Principal {
 		totalDebt += principalCoin.Amount.Int64()
 	}
-	for _, feeCoin := range cdp.AccumulatedFees {
+	for _, feeCoin := range cdp.AccumulatedFees.Add(fees) {
 		totalDebt += feeCoin.Amount.Int64()
 	}
 
