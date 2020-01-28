@@ -60,7 +60,13 @@ func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Decode and print results
 			var auction types.Auction
 			cdc.MustUnmarshalJSON(res, &auction)
-			return cliCtx.PrintOutput(auction)
+			auctionWithType := types.NewAuctionWithType(auction)
+			switch a := auction.(type) {
+			case types.CollateralAuction:
+				auctionWithPhase := types.NewAuctionWithPhase(a)
+				cliCtx.PrintOutput(auctionWithPhase)
+			}
+			return cliCtx.PrintOutput(auctionWithType)
 		},
 	}
 }
@@ -83,7 +89,12 @@ func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Decode and print results
 			var auctions types.Auctions
 			cdc.MustUnmarshalJSON(res, &auctions)
-			return cliCtx.PrintOutput(auctions)
+
+			var auctionsWithType []types.AuctionWithType
+			for _, a := range auctions {
+				auctionsWithType = append(auctionsWithType, types.NewAuctionWithType(a))
+			}
+			return cliCtx.PrintOutput(auctionsWithType)
 		},
 	}
 }

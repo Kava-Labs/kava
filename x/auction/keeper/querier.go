@@ -37,20 +37,9 @@ func queryAuction(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	if !found {
 		return nil, types.ErrAuctionNotFound(types.DefaultCodespace, requestParams.AuctionID)
 	}
-	auctionWithType := types.NewAuctionWithType(auction)
-	switch a := auction.(type) {
-	case types.CollateralAuction:
-		auctionWithPhase := types.NewAuctionWithPhase(a)
-		bz, err := codec.MarshalJSONIndent(keeper.cdc, auctionWithPhase)
-		if err != nil {
-			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-		}
-
-		return bz, nil
-	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, auctionWithType)
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, auction)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -60,9 +49,9 @@ func queryAuction(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 
 func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	// Get all auctions
-	auctionsList := []types.AuctionWithType{}
+	auctionsList := types.Auctions{}
 	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
-		auctionsList = append(auctionsList, types.NewAuctionWithType(a))
+		auctionsList = append(auctionsList, a)
 		return false
 	})
 

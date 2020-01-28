@@ -51,10 +51,24 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
+		var auction types.Auction
+		err = cliCtx.Codec.UnmarshalJSON(res, auction)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
+
+		auctionWithType := types.NewAuctionWithType(auction)
+		switch a := auction.(type) {
+		case types.CollateralAuction:
+			auctionWithPhase := types.NewAuctionWithPhase(a)
+			rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithPhase))
+			return
+		}
+
+		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithType))
 	}
 }
 
@@ -73,7 +87,20 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 		// Return auctions
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
+
+		var auctions types.Auctions
+		err = cliCtx.Codec.UnmarshalJSON(res, auctions)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		var auctionsWithType []types.AuctionWithType
+		for _, a := range auctions {
+			auctionsWithType = append(auctionsWithType, types.NewAuctionWithType(a))
+		}
+
+		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionsWithType))
 	}
 }
 
