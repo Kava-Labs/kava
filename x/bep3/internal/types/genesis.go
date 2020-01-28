@@ -6,22 +6,22 @@ import (
 
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	NextHTLTID uint64 `json:"next_htlt_id" yaml:"next_htlt_id"`
-	Params     Params `json:"params" yaml:"params"`
+	NextKHTLTID uint64 `json:"next_htlt_id" yaml:"next_htlt_id"`
+	Params      Params `json:"params" yaml:"params"`
 }
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(nextID uint64, params Params) GenesisState {
 	return GenesisState{
-		NextHTLTID: nextID,
-		Params:     params,
+		NextKHTLTID: nextID,
+		Params:      params,
+		// TODO: KTLTs:      GenesisKTLTs `json:"ktlts" yaml:"ktlts"`
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(0, DefaultParams())
-
 }
 
 // Equal checks whether two GenesisState structs are equivalent.

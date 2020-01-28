@@ -5,30 +5,30 @@ import (
 )
 
 const (
-	// QueryGetHTLT command for getting the information about a particular HTLT
-	QueryGetHTLT = "htlt"
-	// QueryGetHTLT command for getting a list of HTLTs
-	QueryGetHTLTs  = "htlts"
+	// QueryGetKHTLT command for getting the information about a particular HTLT
+	QueryGetKHTLT = "htlt"
+	// QueryGetKHTLTs command for getting a list of KHTLTs
+	QueryGetKHTLTs = "htlts"
 	QueryGetParams = "params"
 )
 
-// QueryResHTLTs Result Payload for a HTLTs query
-type QueryResHTLTs []string
+// QueryResKHTLTs Result Payload for a KHTLTs query
+type QueryResKHTLTs []string
 
 // implement fmt.Stringer
-func (n QueryResHTLTs) String() string {
+func (n QueryResKHTLTs) String() string {
 	return strings.Join(n[:], "\n")
 }
 
-// QueryHTLTsParams is the params for a HTLTs query
-type QueryHTLTsParams struct {
+// QueryKHTLTsParams is the params for a KHTLTs query
+type QueryKHTLTsParams struct {
 	Page  int `json:"page" yaml:"page"`
 	Limit int `json:"limit" yaml:"limit"`
 }
 
-// NewQueryHTLTsParams creates a new QueryHTLTsParams
-func NewQueryHTLTsParams(page int, limit int) QueryHTLTsParams {
-	return QueryHTLTsParams{
+// NewQueryKHTLTsParams creates a new QueryKHTLTsParams
+func NewQueryKHTLTsParams(page int, limit int) QueryKHTLTsParams {
+	return QueryKHTLTsParams{
 		Page:  page,
 		Limit: limit,
 	}

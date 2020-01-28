@@ -26,19 +26,19 @@ const (
 
 // Key prefixes
 var (
-	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store HTLTs
-	HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the htltByTime index
+	KHTLTKeyPrefix       = []byte{0x00} // prefix for keys that store KHTLTs
+	KHTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the khtltByTime index
 
-	NextHTLTIDKey = []byte{0x02} // key for the next HTLT id
+	NextKHTLTIDKey = []byte{0x02} // key for the next KHTLT id
 )
 
-// GetHTLTKey returns the bytes of an HTLT key
-func GetHTLTKey(htltID uint64) []byte {
+// GetKHTLTKey returns the bytes of an KHTLT key
+func GetKHTLTKey(htltID uint64) []byte {
 	return Uint64ToBytes(htltID)
 }
 
-// GetHTLTByTimeKey returns the key for iterating HTLTs by time
-func GetHTLTByTimeKey(endTime time.Time, htltID uint64) []byte {
+// GetKHTLTByTimeKey returns the key for iterating KHTLTs by time
+func GetKHTLTByTimeKey(endTime time.Time, htltID uint64) []byte {
 	return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(htltID)...)
 }
 

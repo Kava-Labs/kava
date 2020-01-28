@@ -38,7 +38,7 @@ type MsgCreateKHTLT struct {
 }
 
 // NewMsgCreateKHTLT initializes a new MsgCreateKHTLT
-func NewMsgCreateKHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain, senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
+func NewMsgCreateKHTLT(originChain string, from types.AccAddress, to types.AccAddress, recipientOtherChain, senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
 	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateKHTLT {
 	return MsgCreateKHTLT{
 		// No id
@@ -54,6 +54,7 @@ func NewMsgCreateKHTLT(from types.AccAddress, to types.AccAddress, recipientOthe
 			ExpectedIncome:      expectedIncome,
 			HeightSpan:          heightSpan,
 			CrossChain:          crossChain},
+		OriginChain: originChain,
 	}
 }
 

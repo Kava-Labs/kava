@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 
@@ -41,133 +42,131 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// SetNextHTLTID stores an ID to be used for the next created auction
-func (k Keeper) SetNextHTLTID(ctx sdk.Context, id uint64) {
+// SetNextKHTLTID stores an ID to be used for the next created KHTLT
+func (k Keeper) SetNextKHTLTID(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.NextHTLTIDKey, types.Uint64ToBytes(id))
+	store.Set(types.NextKHTLTIDKey, types.Uint64ToBytes(id))
 }
 
-// GetNextHTLTID reads the next available global ID from store
-func (k Keeper) GetNextHTLTID(ctx sdk.Context) (uint64, sdk.Error) {
+// GetNextKHTLTID reads the next available global ID from store
+func (k Keeper) GetNextKHTLTID(ctx sdk.Context) (uint64, sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NextHTLTIDKey)
+	bz := store.Get(types.NextKHTLTIDKey)
 	if bz == nil {
-		return 0, types.ErrInvalidInitialHTLTID(k.codespace)
+		return 0, types.ErrInvalidInitialKHTLTID(k.codespace)
 	}
 	return types.Uint64FromBytes(bz), nil
 }
 
-// IncrementNextHTLTID increments the next HTLT ID in the store by 1.
-func (k Keeper) IncrementNextHTLTID(ctx sdk.Context) sdk.Error {
-	id, err := k.GetNextHTLTID(ctx)
+// IncrementNextKHTLTID increments the next HTLT ID in the store by 1.
+func (k Keeper) IncrementNextKHTLTID(ctx sdk.Context) sdk.Error {
+	id, err := k.GetNextKHTLTID(ctx)
 	if err != nil {
 		return err
 	}
-	k.SetNextHTLTID(ctx, id+1)
+	k.SetNextKHTLTID(ctx, id+1)
 	return nil
 }
 
-// StoreNewHTLT stores an HTLT, adding a new ID
-func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.KavaHTLT) (uint64, sdk.Error) {
-	newHTLTID, err := k.GetNextHTLTID(ctx)
+// StoreNewKHTLT stores an KHTLT, adding a new ID
+func (k Keeper) StoreNewKHTLT(ctx sdk.Context, khtlt types.KHTLT) (uint64, sdk.Error) {
+	newKHTLTID, err := k.GetNextKHTLTID(ctx)
 	if err != nil {
 		return 0, err
 	}
-	htlt = htlt.WithID(newHTLTID)
+	khtlt = khtlt.WithID(newKHTLTID)
 
-	k.SetHTLT(ctx, htlt)
+	k.SetKHTLT(ctx, khtlt)
 
-	err = k.IncrementNextHTLTID(ctx)
+	err = k.IncrementNextKHTLTID(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return newHTLTID, nil
+	return newKHTLTID, nil
 }
 
-// SetHTLT puts the HTLT into the store, and updates any indexes.
-func (k Keeper) SetHTLT(ctx sdk.Context, htlt types.KavaHTLT) {
-	// TODO: remove the HTLT from the byTime index if it is already in there
-	// existingHTLT, found := k.GetHTLT(ctx, htlt.ID)
+// SetKHTLT puts the KHTLT into the store, and updates any indexes.
+func (k Keeper) SetKHTLT(ctx sdk.Context, khtlt types.KHTLT) {
+	existingKHTLT, found := k.GetKHTLT(ctx, khtlt.ID)
+	if found {
+		k.removeFromByTimeIndex(ctx, existingKHTLT.EndTime, existingKHTLT.ID)
+	}
 
-	// if found {
-	// 	k.removeFromByTimeIndex(ctx, existingHTLT.GetEndTime(), existingHTLT.GetID())
-	// }
-
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HTLTKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(htlt)
-	store.Set(types.GetHTLTKey(htlt.ID), bz)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KHTLTKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(khtlt)
+	store.Set(types.GetKHTLTKey(khtlt.ID), bz)
 
 	// k.InsertIntoByTimeIndex(ctx, htlt.GetEndTime(), htlt.ID)
 }
 
-// GetHTLT gets an htlt from the store.
-func (k Keeper) GetHTLT(ctx sdk.Context, htltID uint64) (types.KavaHTLT, bool) {
-	var htlt types.KavaHTLT
+// GetKHTLT gets an htlt from the store.
+func (k Keeper) GetKHTLT(ctx sdk.Context, htltID uint64) (types.KHTLT, bool) {
+	var khtlt types.KHTLT
 
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HTLTKeyPrefix)
-	bz := store.Get(types.GetHTLTKey(htltID))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KHTLTKeyPrefix)
+	bz := store.Get(types.GetKHTLTKey(khtlt.ID))
 	if bz == nil {
-		return htlt, false
+		return khtlt, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &htlt)
-	return htlt, true
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &khtlt)
+	return khtlt, true
 }
 
-// // DeleteAuction removes an auction from the store, and any indexes.
-// func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) {
-// 	auction, found := k.GetAuction(ctx, auctionID)
-// 	if found {
-// 		k.removeFromByTimeIndex(ctx, auction.GetEndTime(), auctionID)
-// 	}
+// DeleteKHTLT removes a KHTLT from the store, and any indexes.
+func (k Keeper) DeleteKHTLT(ctx sdk.Context, khtltID uint64) {
+	khtlt, found := k.GetKHTLT(ctx, khtltID)
+	if found {
+		k.removeFromByTimeIndex(ctx, khtlt.EndTime, khtltID)
+	}
 
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
-// 	store.Delete(types.GetAuctionKey(auctionID))
-// }
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KHTLTKeyPrefix)
+	store.Delete(types.GetKHTLTKey(khtltID))
+}
 
-// // InsertIntoByTimeIndex adds an auction ID and end time into the byTime index.
-// func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) { // TODO make private, and find way to make tests work
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
-// 	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), types.Uint64ToBytes(auctionID))
-// }
+// InsertIntoByTimeIndex adds a KHTLT ID and end time into the byTime index.
+func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, khtltID uint64) { // TODO make private, and find way to make tests work
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KHTLTByTimeKeyPrefix)
+	store.Set(types.GetKHTLTByTimeKey(endTime, khtltID), types.Uint64ToBytes(khtltID))
+}
 
-// // removeFromByTimeIndex removes an auction ID and end time from the byTime index.
-// func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
-// 	store.Delete(types.GetAuctionByTimeKey(endTime, auctionID))
-// }
+// removeFromByTimeIndex removes an KHTLT ID and end time from the byTime index.
+func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, endTime time.Time, khtltID uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KHTLTByTimeKeyPrefix)
+	store.Delete(types.GetKHTLTByTimeKey(endTime, khtltID))
+}
 
-// // IterateAuctionByTime provides an iterator over auctions ordered by auction.EndTime.
-// // For each auction cb will be callled. If cb returns true the iterator will close and stop.
-// func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.Time, cb func(auctionID uint64) (stop bool)) {
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
-// 	iterator := store.Iterator(
-// 		nil, // start at the very start of the prefix store
-// 		sdk.PrefixEndBytes(sdk.FormatTimeBytes(inclusiveCutoffTime)), // include any keys with times equal to inclusiveCutoffTime
-// 	)
-
-// 	defer iterator.Close()
-// 	for ; iterator.Valid(); iterator.Next() {
-
-// 		auctionID := types.Uint64FromBytes(iterator.Value())
-
-// 		if cb(auctionID) {
-// 			break
-// 		}
-// 	}
-// }
-
-// IterateHTLTs provides an iterator over all stored HTLTs.
-// For each HTLT, cb will be called. If cb returns true, the iterator will close and stop.
-func (k Keeper) IterateHTLTs(ctx sdk.Context, cb func(htlt types.KavaHTLT) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.HTLTKeyPrefix)
+// IterateKHTLTsByTime provides an iterator over KHTLTs ordered by KHTLT.EndTime.
+// For each KHTLT cb will be callled. If cb returns true the iterator will close and stop.
+func (k Keeper) IterateKHTLTsByTime(ctx sdk.Context, inclusiveCutoffTime time.Time, cb func(khtltID uint64) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KHTLTByTimeKeyPrefix)
+	iterator := store.Iterator(
+		nil, // start at the very start of the prefix store
+		sdk.PrefixEndBytes(sdk.FormatTimeBytes(inclusiveCutoffTime)), // include any keys with times equal to inclusiveCutoffTime
+	)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var htlt types.KavaHTLT
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &htlt)
 
-		if cb(htlt) {
+		khtltID := types.Uint64FromBytes(iterator.Value())
+
+		if cb(khtltID) {
+			break
+		}
+	}
+}
+
+// IterateKHTLTs provides an iterator over all stored KHTLTs.
+// For each KHTLT, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateKHTLTs(ctx sdk.Context, cb func(htlt types.KHTLT) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KHTLTKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var khtlt types.KHTLT
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &khtlt)
+
+		if cb(khtlt) {
 			break
 		}
 	}
