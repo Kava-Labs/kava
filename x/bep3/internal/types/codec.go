@@ -12,8 +12,9 @@ func init() {
 
 // RegisterCodec registers concrete types on the Amino code
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(HTLTMsg{}, "bep3/HTLTMsg", nil)
-	cdc.RegisterConcrete(DepositHTLTMsg{}, "bep3/DepositHTLTMsg", nil)
-	cdc.RegisterConcrete(ClaimHTLTMsg{}, "bep3/ClaimHTLTMsg", nil)
-	cdc.RegisterConcrete(RefundHTLTMsg{}, "bep3/RefundHTLTMsg", nil)
+	// TODO: Register messages
+	// cdc.RegisterConcrete(HTLTMsg{}, "bep3/HTLTMsg", nil)
+	// cdc.RegisterConcrete(DepositHTLTMsg{}, "bep3/DepositHTLTMsg", nil)
+	// cdc.RegisterConcrete(ClaimHTLTMsg{}, "bep3/ClaimHTLTMsg", nil)
+	// cdc.RegisterConcrete(RefundHTLTMsg{}, "bep3/RefundHTLTMsg", nil)
 }
