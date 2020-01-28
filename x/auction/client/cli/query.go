@@ -64,7 +64,7 @@ func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			switch a := auction.(type) {
 			case types.CollateralAuction:
 				auctionWithPhase := types.NewAuctionWithPhase(a)
-				cliCtx.PrintOutput(auctionWithPhase)
+				return cliCtx.PrintOutput(auctionWithPhase)
 			}
 			return cliCtx.PrintOutput(auctionWithType)
 		},
