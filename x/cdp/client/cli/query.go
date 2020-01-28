@@ -161,13 +161,13 @@ $ %s query %s cdps-by-ratio uatom 1.5
 // QueryCdpDepositsCmd returns the command handler for querying the deposits of a particular cdp
 func QueryCdpDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdp deposits [owner-addr] [collateral-name]",
+		Use:   "deposits [owner-addr] [collateral-name]",
 		Short: "get deposits for a cdp",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Get the deposits of a CDP.
 
 Example:
-$ %s query %s cdp deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
+$ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
