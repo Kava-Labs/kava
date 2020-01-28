@@ -266,9 +266,6 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	// Update Auction
 	a.Bidder = bidder
 	a.Bid = bid
-	if bid.IsEqual(a.MaxBid) {
-		a.Phase = "reverse"
-	}
 	if !a.HasReceivedBids {
 		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
 	}
