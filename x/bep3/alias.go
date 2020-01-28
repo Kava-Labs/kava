@@ -1,10 +1,10 @@
 package bep3
 
 import (
-	// "github.com/Kava-Labs/kava/x/bep3/internal/keeper"
-	// "github.com/Kava-Labs/kava/x/bep3/internal/types"
-	"./internal/keeper"
-	"./internal/types"
+	"github.com/kava-labs/kava/x/bep3/internal/keeper"
+	"github.com/kava-labs/kava/x/bep3/internal/types"
+	// "./internal/keeper"
+	// "./internal/types"
 )
 
 const (

@@ -1,9 +1,9 @@
 package keeper
 
 import (
+	"github.com/Kava-Labs/kava/x/bep3/internal/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/bep3/internal/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 

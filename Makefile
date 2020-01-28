@@ -76,8 +76,8 @@ build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvcli
+	go install $(BUILD_FLAGS) ./cmd/kvd
+	go install $(BUILD_FLAGS) ./cmd/kvcli
 
 ########################################
 ### Tools & dependencies

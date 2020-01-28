@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	"github.com/Kava-Labs/kava/x/bep3/internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/bep3/internal/types"
 )
 
 // GetParams returns the total set of bep3 parameters.

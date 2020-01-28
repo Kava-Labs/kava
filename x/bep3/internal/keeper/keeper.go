@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/kava-labs/kava/x/bep3/internal/types"
+	"github.com/Kava-Labs/kava/x/bep3/internal/types"
 )
 
 // Keeper of the bep3 store

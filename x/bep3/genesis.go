@@ -1,9 +1,9 @@
 package bep3
 
 import (
-	"./internal/types"
+	// "./internal/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	// "github.com/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/kava-labs/kava/x/bep3/internal/types"
 )
 
 // InitGenesis initialize default parameters
