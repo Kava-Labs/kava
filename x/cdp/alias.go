@@ -28,6 +28,7 @@ const (
 	CodeCdpNotAvailable             = types.CodeCdpNotAvailable
 	CodeBelowDebtFloor              = types.CodeBelowDebtFloor
 	CodePaymentExceedsDebt          = types.CodePaymentExceedsDebt
+	CodeLoadingAugmentedCDP         = types.CodeLoadingAugmentedCDP
 	EventTypeCreateCdp              = types.EventTypeCreateCdp
 	EventTypeCdpDeposit             = types.EventTypeCdpDeposit
 	EventTypeCdpDraw                = types.EventTypeCdpDraw
@@ -76,6 +77,7 @@ var (
 	ErrCdpNotAvailable          = types.ErrCdpNotAvailable
 	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
 	ErrPaymentExceedsDebt       = types.ErrPaymentExceedsDebt
+	ErrLoadingAugmentedCDP      = types.ErrLoadingAugmentedCDP
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetCdpIDBytes               = types.GetCdpIDBytes
 	GetCdpIDFromBytes           = types.GetCdpIDFromBytes
@@ -143,6 +145,8 @@ var (
 type (
 	CDP                    = types.CDP
 	CDPs                   = types.CDPs
+	AugmentedCDP           = types.AugmentedCDP
+	AugmentedCDPs          = types.AugmentedCDPs
 	Deposit                = types.Deposit
 	Deposits               = types.Deposits
 	SupplyKeeper           = types.SupplyKeeper

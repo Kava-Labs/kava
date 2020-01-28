@@ -5,12 +5,15 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
+	pfkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -23,18 +26,21 @@ const (
 type QuerierTestSuite struct {
 	suite.Suite
 
-	keeper  keeper.Keeper
-	addrs   []sdk.AccAddress
-	app     app.TestApp
-	cdps    types.CDPs
-	ctx     sdk.Context
-	querier sdk.Querier
+	keeper          keeper.Keeper
+	pricefeedKeeper pfkeeper.Keeper
+	addrs           []sdk.AccAddress
+	app             app.TestApp
+	cdps            types.CDPs
+	augmentedCDPs   types.AugmentedCDPs
+	ctx             sdk.Context
+	querier         sdk.Querier
 }
 
 func (suite *QuerierTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
+	augmentedCDPs := make(types.AugmentedCDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 	coins := []sdk.Coins{}
 
@@ -53,6 +59,30 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
+	suite.pricefeedKeeper = tApp.GetPriceFeedKeeper()
+
+	// Set up markets
+	oracle := addrs[9]
+	marketParams := pftypes.Params{
+		Markets: pftypes.Markets{
+			pftypes.Market{MarketID: "xrp-usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+			pftypes.Market{MarketID: "btc-usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+		},
+	}
+	suite.pricefeedKeeper.SetParams(ctx, marketParams)
+
+	// Set collateral prices for use in collateralization calculations
+	_, err := suite.pricefeedKeeper.SetPrice(
+		ctx, oracle, "xrp-usd",
+		sdk.MustNewDecFromStr("0.75"),
+		time.Now().Add(1*time.Hour))
+	suite.Nil(err)
+
+	_, err = suite.pricefeedKeeper.SetPrice(
+		ctx, oracle, "btc-usd",
+		sdk.MustNewDecFromStr("5000"),
+		time.Now().Add(1*time.Hour))
+	suite.Nil(err)
 
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
@@ -67,9 +97,12 @@ func (suite *QuerierTestSuite) SetupTest() {
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
 		cdps[j] = c
+		aCDP, _ := suite.keeper.LoadAugmentedCDP(suite.ctx, c)
+		augmentedCDPs[j] = aCDP
 	}
 
 	suite.cdps = cdps
+	suite.augmentedCDPs = augmentedCDPs
 	suite.querier = keeper.NewQuerier(suite.keeper)
 	suite.addrs = addrs
 }
@@ -84,9 +117,9 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var c types.CDP
+	var c types.AugmentedCDP
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
-	suite.Equal(suite.cdps[0], c)
+	suite.Equal(suite.augmentedCDPs[0], c)
 
 	query = abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
@@ -125,7 +158,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByDenom() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var c types.CDPs
+	var c types.AugmentedCDPs
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
 	suite.Equal(50, len(c))
 
@@ -140,19 +173,21 @@ func (suite *QuerierTestSuite) TestQueryCdpsByDenom() {
 func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	ratioCountBtc := 0
 	ratioCountXrp := 0
-	xrpRatio := d("50.0")
-	btcRatio := d("0.003")
+	xrpRatio := d("2.0")
+	btcRatio := d("2500")
 	expectedXrpIds := []int{}
 	expectedBtcIds := []int{}
 	for _, cdp := range suite.cdps {
-		r := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
+		absoluteRatio := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
+		collateralizationRatio, err := suite.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(suite.ctx, cdp.Collateral[0].Denom, absoluteRatio)
+		suite.Nil(err)
 		if cdp.Collateral[0].Denom == "xrp" {
-			if r.LT(xrpRatio) {
+			if collateralizationRatio.LT(xrpRatio) {
 				ratioCountXrp += 1
 				expectedXrpIds = append(expectedXrpIds, int(cdp.ID))
 			}
 		} else {
-			if r.LT(btcRatio) {
+			if collateralizationRatio.LT(btcRatio) {
 				ratioCountBtc += 1
 				expectedBtcIds = append(expectedBtcIds, int(cdp.ID))
 			}
@@ -168,7 +203,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var c types.CDPs
+	var c types.AugmentedCDPs
 	actualXrpIds := []int{}
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
 	for _, k := range c {
@@ -185,7 +220,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	c = types.CDPs{}
+	c = types.AugmentedCDPs{}
 	actualBtcIds := []int{}
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
 	for _, k := range c {
@@ -201,7 +236,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	bz, err = suite.querier(ctx, []string{types.QueryGetCdpsByCollateralization}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
-	c = types.CDPs{}
+	c = types.AugmentedCDPs{}
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &c))
 	suite.Equal(0, len(c))
 }

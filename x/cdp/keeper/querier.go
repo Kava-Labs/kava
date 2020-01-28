@@ -44,7 +44,12 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdp)
+	augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
+	if err != nil {
+		return nil, types.ErrLoadingAugmentedCDP(keeper.codespace, cdp.ID)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDP)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -64,8 +69,21 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
 	}
 
-	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdps)
+	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could get collateralization ratio from absolute ratio", err.Error()))
+	}
+
+	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, ratio)
+	// augment CDPs by adding collateral value and collateralization ratio
+	var augmentedCDPs types.AugmentedCDPs
+	for _, cdp := range cdps {
+		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
+		if err == nil {
+			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
+		}
+	}
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -85,7 +103,15 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 
 	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, cdps)
+	// augment CDPs by adding collateral value and collateralization ratio
+	var augmentedCDPs types.AugmentedCDPs
+	for _, cdp := range cdps {
+		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
+		if err == nil {
+			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
+		}
+	}
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

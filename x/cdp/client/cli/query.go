@@ -69,7 +69,7 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 			}
 
 			// Decode and print results
-			var cdp types.CDP
+			var cdp types.AugmentedCDP
 			cdc.MustUnmarshalJSON(res, &cdp)
 			return cliCtx.PrintOutput(cdp)
 		},
@@ -105,9 +105,9 @@ $ %s query %s cdps uatom
 			}
 
 			// Decode and print results
-			var out types.CDPs
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var cdps types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &cdps)
+			return cliCtx.PrintOutput(cdps)
 		},
 	}
 }
@@ -119,7 +119,7 @@ func QueryCdpsByDenomAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Com
 		Use:   "cdps-by-ratio [collateral-name] [collateralization-ratio]",
 		Short: "get cdps under a collateralization ratio",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`List all CDPs under a collateralization ratios.
+			fmt.Sprintf(`List all CDPs under a specified collateralization ratio.
 Collateralization ratio is: collateral * price / debt.
 
 Example:
@@ -150,9 +150,9 @@ $ %s query %s cdps-by-ratio uatom 1.5
 			}
 
 			// Decode and print results
-			var out types.CDPs
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var cdps types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &cdps)
+			return cliCtx.PrintOutput(cdps)
 		},
 	}
 }
