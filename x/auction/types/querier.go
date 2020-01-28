@@ -3,9 +3,9 @@ package types
 const (
 	// QueryGetAuction is the query path for querying one auction
 	QueryGetAuction = "auction"
-	// QueryGetAuction is the query path for querying all auctions
+	// QueryGetAuctions is the query path for querying all auctions
 	QueryGetAuctions = "auctions"
-	// QueryGetAuction is the query path for querying the global auction params
+	// QueryGetParams is the query path for querying the global auction params
 	QueryGetParams = "params"
 )
 
@@ -25,5 +25,35 @@ func NewQueryAllAuctionParams(page int, limit int) QueryAllAuctionParams {
 	return QueryAllAuctionParams{
 		Page:  page,
 		Limit: limit,
+	}
+}
+
+// AuctionWithType augmented struct including auction type for querying
+type AuctionWithType struct {
+	Auction Auction
+
+	Type string `json:"type" yaml:"type"`
+}
+
+// NewAuctionWithType returns new AuctionWithType
+func NewAuctionWithType(a Auction) AuctionWithType {
+	return AuctionWithType{
+		Auction: a,
+		Type:    a.GetType(),
+	}
+}
+
+// AuctionWithPhase augmented type for collateral auctions which includes auction phase for querying
+type AuctionWithPhase struct {
+	Auction CollateralAuction
+
+	Phase string `json:"phase" yaml:"phase"`
+}
+
+// NewAuctionWithPhase returns new AuctionWithPhase
+func NewAuctionWithPhase(ca CollateralAuction) AuctionWithPhase {
+	return AuctionWithPhase{
+		Auction: ca,
+		Phase:   ca.GetPhase(),
 	}
 }

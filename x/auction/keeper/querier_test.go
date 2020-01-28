@@ -87,15 +87,15 @@ func (suite *QuerierTestSuite) TestQueryAuction() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes into type Auction
-	var auction types.Auction
+	var auction types.AuctionWithType
 	suite.NoError(types.ModuleCdc.UnmarshalJSON(bz, &auction))
 
 	// Check the returned auction
-	suite.Equal(suite.auctions[0].GetID(), auction.GetID())
-	suite.Equal(suite.auctions[0].GetInitiator(), auction.GetInitiator())
-	suite.Equal(suite.auctions[0].GetLot(), auction.GetLot())
-	suite.Equal(suite.auctions[0].GetBid(), auction.GetBid())
-	suite.Equal(suite.auctions[0].GetEndTime(), auction.GetEndTime())
+	suite.Equal(suite.auctions[0].GetID(), auction.Auction.GetID())
+	suite.Equal(suite.auctions[0].GetInitiator(), auction.Auction.GetInitiator())
+	suite.Equal(suite.auctions[0].GetLot(), auction.Auction.GetLot())
+	suite.Equal(suite.auctions[0].GetBid(), auction.Auction.GetBid())
+	suite.Equal(suite.auctions[0].GetEndTime(), auction.Auction.GetEndTime())
 
 }
 
@@ -113,7 +113,7 @@ func (suite *QuerierTestSuite) TestQueryAuctions() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes into type Auctions
-	var auctions types.Auctions
+	var auctions []types.AuctionWithType
 	suite.NoError(types.ModuleCdc.UnmarshalJSON(bz, &auctions))
 
 	// Check that each Auction has correct values
@@ -121,11 +121,11 @@ func (suite *QuerierTestSuite) TestQueryAuctions() {
 		suite.FailNow("no auctions returned") // skip the panic from indexing empty slice below
 	}
 	for i := 0; i < TestAuctionCount; i++ {
-		suite.Equal(suite.auctions[i].GetID(), auctions[i].GetID())
-		suite.Equal(suite.auctions[i].GetInitiator(), auctions[i].GetInitiator())
-		suite.Equal(suite.auctions[i].GetLot(), auctions[i].GetLot())
-		suite.Equal(suite.auctions[i].GetBid(), auctions[i].GetBid())
-		suite.Equal(suite.auctions[i].GetEndTime(), auctions[i].GetEndTime())
+		suite.Equal(suite.auctions[i].GetID(), auctions[i].Auction.GetID())
+		suite.Equal(suite.auctions[i].GetInitiator(), auctions[i].Auction.GetInitiator())
+		suite.Equal(suite.auctions[i].GetLot(), auctions[i].Auction.GetLot())
+		suite.Equal(suite.auctions[i].GetBid(), auctions[i].Auction.GetBid())
+		suite.Equal(suite.auctions[i].GetEndTime(), auctions[i].Auction.GetEndTime())
 	}
 }
 

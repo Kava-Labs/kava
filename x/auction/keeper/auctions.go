@@ -331,7 +331,6 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
 	a.HasReceivedBids = true
-	a.Phase = "reverse"
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

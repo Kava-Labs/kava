@@ -31,7 +31,6 @@ type Auctions []Auction
 // BaseAuction is a common type shared by all Auctions.
 type BaseAuction struct {
 	ID              uint64         `json:"id" yaml:"id"`
-	Type            string         `json:"type" yaml:"type"`
 	Initiator       string         `json:"initiator" yaml:"initiator"`                 // Module name that starts the auction. Pays out Lot.
 	Lot             sdk.Coin       `json:"lot" yaml:"lot"`                             // Coins that will paid out by Initiator to the winning bidder.
 	Bidder          sdk.AccAddress `json:"bidder" yaml:"bidder"`                       // Latest bidder. Receiver of Lot.
@@ -72,14 +71,13 @@ func (a BaseAuction) Validate() error {
 
 func (a BaseAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
-	Type: 									%s
   Initiator:              %s
   Lot:               			%s
   Bidder:            		  %s
   Bid:        						%s
   End Time:   						%s
   Max End Time:      			%s`,
-		a.GetID(), a.GetType(), a.Initiator, a.Lot,
+		a.GetID(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
 		a.MaxEndTime.String(),
 	)
@@ -108,7 +106,6 @@ func (a SurplusAuction) GetModuleAccountCoins() sdk.Coins {
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
 	auction := SurplusAuction{BaseAuction{
 		// no ID
-		Type:            "surplus",
 		Initiator:       seller,
 		Lot:             lot,
 		Bidder:          nil,
@@ -150,7 +147,6 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 	auction := DebtAuction{
 		BaseAuction: BaseAuction{
 			// no ID
-			Type:            "debt",
 			Initiator:       buyerModAccName,
 			Lot:             initialLot,
 			Bidder:          supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
@@ -171,7 +167,6 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 type CollateralAuction struct {
 	BaseAuction
 
-	Phase             string            `json:"phase" yaml:"phase"`
 	CorrespondingDebt sdk.Coin          `json:"corresponding_debt" yaml:"corresponding_debt"`
 	MaxBid            sdk.Coin          `json:"max_bid" yaml:"max_bid"`
 	LotReturns        WeightedAddresses `json:"lot_returns" yaml:"lot_returns"`
@@ -182,9 +177,6 @@ func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // GetType returns the auction type. Used to identify auctions in event attributes.
 func (a CollateralAuction) GetType() string { return "collateral" }
-
-// GetPhase returns the phase of a collateral auction
-func (a CollateralAuction) GetPhase() string { return a.Phase }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -199,10 +191,16 @@ func (a CollateralAuction) IsReversePhase() bool {
 	return a.Bid.IsEqual(a.MaxBid)
 }
 
+// GetPhase returns the phase of a collateral auction
+func (a CollateralAuction) GetPhase() string {
+	if a.IsReversePhase() {
+		return "reverse"
+	}
+	return "forward"
+}
+
 func (a CollateralAuction) String() string {
 	return fmt.Sprintf(`Auction %d:
-	Type:  									%s
-	Phase: 									%s
   Initiator:              %s
   Lot:               			%s
   Bidder:            		  %s
@@ -211,7 +209,7 @@ func (a CollateralAuction) String() string {
 	Max End Time:      			%s
 	Max Bid									%s
 	LotReturns						%s`,
-		a.GetID(), a.GetType(), a.GetPhase(), a.Initiator, a.Lot,
+		a.GetID(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
 		a.MaxEndTime.String(), a.MaxBid, a.LotReturns,
 	)
@@ -222,7 +220,6 @@ func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid
 	auction := CollateralAuction{
 		BaseAuction: BaseAuction{
 			// no ID
-			Type:            "collateral",
 			Initiator:       seller,
 			Lot:             lot,
 			Bidder:          nil,
@@ -230,7 +227,6 @@ func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid
 			HasReceivedBids: false, // new auctions don't have any bids
 			EndTime:         endTime,
 			MaxEndTime:      endTime},
-		Phase:             "forward",
 		CorrespondingDebt: debt,
 		MaxBid:            maxBid,
 		LotReturns:        lotReturns,
