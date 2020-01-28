@@ -11,8 +11,11 @@ import (
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
-		case types.QueryGetKHTLT:
-			return queryKHTLT(ctx, req, keeper)
+		// TODO: Get individual KHTLT by ID
+		// case types.QueryGetKHTLT:
+		// 	return queryKHTLT(ctx, req, keeper)
+		case types.QueryGetKHTLTs:
+			return queryKHTLTs(ctx, req, keeper)
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
 		default:
@@ -21,7 +24,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryKHTLT(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
+func queryKHTLTs(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
 	var KHTLTs types.KHTLTs
 
 	keeper.IterateKHTLTs(ctx, func(h types.KHTLT) bool {

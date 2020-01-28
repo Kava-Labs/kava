@@ -30,58 +30,84 @@ var (
 	AtomicSwapCoinsAccAddr = types.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
-// MsgCreateKHTLT is an HTLT struct, additionally containing an ID and record of updates
-type MsgCreateKHTLT struct {
-	HTLT
-	OriginChain string `json:"origin_chain"`
-	// Updates UpdateKavaHTLTs `json:"updates"`
+// MsgCreateHTLT contains an HTLT struct
+type MsgCreateHTLT struct {
+	From                types.AccAddress `json:"from"`
+	To                  types.AccAddress `json:"to"`
+	RecipientOtherChain string           `json:"recipient_other_chain"`
+	SenderOtherChain    string           `json:"sender_other_chain"`
+	RandomNumberHash    types.SwapBytes  `json:"random_number_hash"`
+	Timestamp           int64            `json:"timestamp"`
+	Amount              types.Coins      `json:"amount"`
+	ExpectedIncome      string           `json:"expected_income"`
+	HeightSpan          int64            `json:"height_span"`
+	CrossChain          bool             `json:"cross_chain"`
 }
 
-// NewMsgCreateKHTLT initializes a new MsgCreateKHTLT
-func NewMsgCreateKHTLT(originChain string, from types.AccAddress, to types.AccAddress, recipientOtherChain, senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
-	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateKHTLT {
-	return MsgCreateKHTLT{
-		// No id
-		// No updates
-		HTLT: HTLT{
-			From:                from,
-			To:                  to,
-			RecipientOtherChain: recipientOtherChain,
-			SenderOtherChain:    senderOtherChain,
-			RandomNumberHash:    randomNumberHash,
-			Timestamp:           timestamp,
-			Amount:              amount,
-			ExpectedIncome:      expectedIncome,
-			HeightSpan:          heightSpan,
-			CrossChain:          crossChain},
-		OriginChain: originChain,
+// NewMsgCreateHTLT initializes a new MsgCreateHTLT
+func NewMsgCreateHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain,
+	senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
+	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateHTLT {
+	return MsgCreateHTLT{
+		From:                from,
+		To:                  to,
+		RecipientOtherChain: recipientOtherChain,
+		SenderOtherChain:    senderOtherChain,
+		RandomNumberHash:    randomNumberHash,
+		Timestamp:           timestamp,
+		Amount:              amount,
+		ExpectedIncome:      expectedIncome,
+		HeightSpan:          heightSpan,
+		CrossChain:          crossChain,
 	}
 }
 
-// Route establishes the route for the MsgCreateKHTLT
-func (msg MsgCreateKHTLT) Route() string { return AtomicSwapRoute }
+// TODO: revisit
+// NewMsgCreateKHTLT initializes a new MsgCreateKHTLT
+// func NewMsgCreateKHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain, senderOtherChain string,
+// 	randomNumberHash types.SwapBytes, timestamp int64, amount types.Coins, expectedIncome string, heightSpan int64,
+// 	crossChain bool) MsgCreateKHTLT {
+// 	return MsgCreateKHTLT{
+// 		HTLT: HTLT{
+// 			From:                from,
+// 			To:                  to,
+// 			RecipientOtherChain: recipientOtherChain,
+// 			SenderOtherChain:    senderOtherChain,
+// 			RandomNumberHash:    randomNumberHash,
+// 			Timestamp:           timestamp,
+// 			Amount:              amount,
+// 			ExpectedIncome:      expectedIncome,
+// 			HeightSpan:          heightSpan,
+// 			CrossChain:          crossChain},
+// 		OriginChain: "kava", // TODO
+// 	}
+// }
 
-// Type is the name of MsgCreateKHTLT
-func (msg MsgCreateKHTLT) Type() string { return "KavaHTLT" }
+// Route establishes the route for the MsgCreateHTLT
+func (msg MsgCreateHTLT) Route() string { return AtomicSwapRoute }
+
+// Type is the name of MsgCreateHTLT
+func (msg MsgCreateHTLT) Type() string { return "KavaHTLT" }
 
 // String prints the MsgCreateKHTLT
-func (msg MsgCreateKHTLT) String() string {
-	return fmt.Sprintf("KavaHTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}", msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
+func (msg MsgCreateHTLT) String() string {
+	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
+		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
 		msg.Timestamp, msg.Amount, msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgCreateKHTLT
-func (msg MsgCreateKHTLT) GetInvolvedAddresses() []types.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgCreateHTLT
+func (msg MsgCreateHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgCreateKHTLT
-func (msg MsgCreateKHTLT) GetSigners() []types.AccAddress {
+// GetSigners gets the signers of a MsgCreateHTLT
+func (msg MsgCreateHTLT) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the MsgCreateKHTLT
-func (msg MsgCreateKHTLT) ValidateBasic() error {
+// ValidateBasic validates the MsgCreateHTLT
+func (msg MsgCreateHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -118,8 +144,8 @@ func (msg MsgCreateKHTLT) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgCreateKHTLT
-func (msg MsgCreateKHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgCreateHTLT
+func (msg MsgCreateHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)

@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// HTLT contains the base of an HTLT
+// HTLT contains the base of an HTLT as implemented by BinanceChain
 type HTLT struct {
 	From                types.AccAddress `json:"from"`
 	To                  types.AccAddress `json:"to"`
@@ -21,14 +21,48 @@ type HTLT struct {
 	CrossChain          bool             `json:"cross_chain"`
 }
 
-// KHTLT extends BaseHTLT to include an ID and actions/updates to the HTLT
+// NewHTLT returns a new HTLT.
+func NewHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain,
+	senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
+	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) HTLT {
+	return HTLT{
+		From:                from,
+		To:                  to,
+		RecipientOtherChain: recipientOtherChain,
+		SenderOtherChain:    senderOtherChain,
+		RandomNumberHash:    randomNumberHash,
+		Timestamp:           timestamp,
+		Amount:              amount,
+		ExpectedIncome:      expectedIncome,
+		HeightSpan:          heightSpan,
+		CrossChain:          crossChain,
+	}
+}
+
+// KHTLT extends HTLT
 type KHTLT struct {
-	HTLT        HTLT         `json:"htlt"`
-	ID          uint64       `json:"id"`
-	OriginChain string       `json:"origin_chain"`
-	EndTime     time.Time    `json:"end_time"`
-	Updates     UpdatesKHTLT `json:"updates"`
-	Status      string       `json:"status"` // TODO: Use enum for status
+	ID   uint64 `json:"id"`
+	HTLT HTLT   `json:"htlt"`
+	// Relayer     sdk.AccAddress `json:"relayer"`
+	// OriginChain string         `json:"origin_chain"`
+	EndTime time.Time `json:"end_time"`
+	// Updates     UpdatesKHTLT   `json:"updates"`
+	// Status      string         `json:"status"` // TODO: Use enum for status
+}
+
+// NewKHTLT returns a new KHTLT.
+func NewKHTLT(htlt HTLT) KHTLT {
+	khtlt := KHTLT{
+		// ID:   id,
+		HTLT: htlt,
+		// TODO: SwapID
+		// Relayer: relayer,
+		// // OriginChain: originChain,
+		EndTime: time.Now().Add(DefaultMinimumLockTime),
+		// Updates: UpdatesKHTLT{},
+		// Status:  "active", // TODO: use Swap.Status
+	}
+	return khtlt
 }
 
 // KHTLTs is a slice of KHTLTs

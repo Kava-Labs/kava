@@ -8,9 +8,9 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/Kava-Labs/kava/x/bep3/client/cli"
-	"github.com/Kava-Labs/kava/x/bep3/client/rest"
-	"github.com/Kava-Labs/kava/x/bep3/internal/types"
+	// "github.com/Kava-Labs/kava/x/bep3/client/cli"
+	// "github.com/Kava-Labs/kava/x/bep3/client/rest"
+	// "github.com/Kava-Labs/kava/x/bep3/internal/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"

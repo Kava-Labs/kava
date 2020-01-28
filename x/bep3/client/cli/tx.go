@@ -1,9 +1,6 @@
 package cli
 
 import (
-	"fmt"
-	"bufio"
-
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -12,47 +9,54 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+
+	// "github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+
+	"../../internal/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	bep3TxCmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%S transactions subcommands", types.ModuleName),
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		Use:   "bep3",
+		Short: "bep3 transactions subcommands",
 	}
 
 	bep3TxCmd.AddCommand(client.PostCommands(
-		// TODO: Add tx based commands
-		// GetCmd<Action>(cdc)
+		GetCmdCreateHtlt(cdc),
 	)...)
 
 	return bep3TxCmd
 }
 
-// Example:
-//
-// GetCmd<Action> is the CLI command for doing <Action>
-// func GetCmd<Action>(cdc *codec.Codec) *cobra.Command {
-// 	return &cobra.Command{
-// 		Use:   "/* Describe your action cmd */",
-// 		Short: "/* Provide a short description on the cmd */",
-// 		Args:  cobra.ExactArgs(2), // Does your request require arguments
-// 		RunE: func(cmd *cobra.Command, args []string) error {
-// 			cliCtx := context.NewCLIContext().WithCodec(cdc)
+// GetCmdCreateHtlt cli command for creating htlts
+func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "create [coin]",
+		Short: "create a new Hashed Time Locked Transaction (HTLT)",
+		Args:  cobra.MinimumNArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-// 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			// id, err := strconv.ParseUint(args[0], 10, 64)
+			// if err != nil {
+			// 	fmt.Printf("invalid auction id - %s \n", string(args[0]))
+			// 	return err
+			// }
 
-// 			msg := types.NewMsg<Action>(/* Action params */)
-// 			err = msg.ValidateBasic()
-// 			if err != nil {
-// 				return err
-// 			}
+			amt, err := bnb.ParseCoin(args[2])
+			if err != nil {
+				fmt.Printf("invalid amount - %s \n", string(args[2]))
+				return err
+			}
 
-// 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-// 		},
-// 	}
-// }
+			msg := types.NewMsgCreateHtlt(cliCtx.GetFromAddress(), amt)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}

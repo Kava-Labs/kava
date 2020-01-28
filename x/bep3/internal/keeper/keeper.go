@@ -96,7 +96,7 @@ func (k Keeper) SetKHTLT(ctx sdk.Context, khtlt types.KHTLT) {
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(khtlt)
 	store.Set(types.GetKHTLTKey(khtlt.ID), bz)
 
-	// k.InsertIntoByTimeIndex(ctx, htlt.GetEndTime(), htlt.ID)
+	k.InsertIntoByTimeIndex(ctx, khtlt.EndTime, khtlt.ID)
 }
 
 // GetKHTLT gets an htlt from the store.
