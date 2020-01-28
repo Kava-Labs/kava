@@ -142,11 +142,13 @@ func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps pa
 
 	returnAddrs := []sdk.AccAddress{}
 	returnWeights := []sdk.Int{}
+	depositDenom := partialDeps[0].Amount[0].Denom
 	for _, pd := range partialDeps {
 		returnAddrs = append(returnAddrs, pd.Depositor)
 		returnWeights = append(returnWeights, pd.DebtShare)
 	}
-	_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(partialDeps[0].Amount[0].Denom, auctionSize), sdk.NewCoin(bidDenom, partialDeps.SumDebt()), returnAddrs, returnWeights, sdk.NewCoin(k.GetDebtDenom(ctx), partialDeps.SumDebt()))
+	penalty := k.ApplyLiquidationPenalty(ctx, depositDenom, partialDeps.SumDebt())
+	_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(partialDeps[0].Amount[0].Denom, auctionSize), sdk.NewCoin(bidDenom, partialDeps.SumDebt().Add(penalty)), returnAddrs, returnWeights, sdk.NewCoin(k.GetDebtDenom(ctx), partialDeps.SumDebt()))
 	if err != nil {
 		return sdk.ZeroInt(), sdk.ZeroInt(), err
 	}
