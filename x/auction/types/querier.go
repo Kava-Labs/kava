@@ -28,34 +28,27 @@ func NewQueryAllAuctionParams(page int, limit int) QueryAllAuctionParams {
 	}
 }
 
-// AuctionWithType augmented struct including auction type for querying
-type AuctionWithType struct {
-	Auction Auction
-
-	Type string `json:"type" yaml:"type"`
-}
-
-// NewAuctionWithType returns new AuctionWithType
-func NewAuctionWithType(a Auction) AuctionWithType {
-	return AuctionWithType{
-		Auction: a,
-		Type:    a.GetType(),
-	}
-}
-
 // AuctionWithPhase augmented type for collateral auctions which includes auction phase for querying
 type AuctionWithPhase struct {
-	Auction CollateralAuction
+	Auction Auction
 
 	Type  string `json:"type" yaml:"type"`
 	Phase string `json:"phase" yaml:"phase"`
 }
 
 // NewAuctionWithPhase returns new AuctionWithPhase
-func NewAuctionWithPhase(ca CollateralAuction) AuctionWithPhase {
-	return AuctionWithPhase{
-		Auction: ca,
-		Type:    ca.GetType(),
-		Phase:   ca.GetPhase(),
+func NewAuctionWithPhase(a Auction) AuctionWithPhase {
+	switch auc := a.(type) {
+	case CollateralAuction:
+		return AuctionWithPhase{
+			Auction: auc,
+			Type:    auc.GetType(),
+			Phase:   auc.GetPhase(),
+		}
+	default:
+		return AuctionWithPhase{
+			Auction: auc,
+			Type:    auc.GetType(),
+		}
 	}
 }
