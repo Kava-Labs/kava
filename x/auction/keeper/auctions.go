@@ -32,7 +32,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 		sdk.NewEvent(
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
-			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
 			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
 			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
 		),
@@ -70,7 +70,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 		sdk.NewEvent(
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
-			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
 			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
 			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
 		),
@@ -111,7 +111,7 @@ func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.C
 		sdk.NewEvent(
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
-			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.Name()),
+			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
 			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
 			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
 		),
@@ -506,9 +506,8 @@ func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) sdk.Error {
 func earliestTime(t1, t2 time.Time) time.Time {
 	if t1.Before(t2) {
 		return t1
-	} else {
-		return t2 // also returned if times are equal
 	}
+	return t2 // also returned if times are equal
 }
 
 // splitCoinIntoWeightedBuckets divides up some amount of coins according to some weights.

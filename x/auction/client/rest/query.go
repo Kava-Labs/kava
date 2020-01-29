@@ -51,10 +51,18 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
+		var auction types.Auction
+		err = cliCtx.Codec.UnmarshalJSON(res, auction)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
+
+		auctionWithPhase := types.NewAuctionWithPhase(auction)
+
+		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithPhase))
 	}
 }
 
@@ -73,7 +81,20 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 		// Return auctions
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
+
+		var auctions types.Auctions
+		err = cliCtx.Codec.UnmarshalJSON(res, auctions)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		var auctionsWithPhase []types.AuctionWithPhase
+		for _, a := range auctions {
+			auctionsWithPhase = append(auctionsWithPhase, types.NewAuctionWithPhase(a))
+		}
+
+		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionsWithPhase))
 	}
 }
 
