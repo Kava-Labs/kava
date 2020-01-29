@@ -47,6 +47,7 @@ func NewAuctionWithType(a Auction) AuctionWithType {
 type AuctionWithPhase struct {
 	Auction CollateralAuction
 
+	Type  string `json:"type" yaml:"type"`
 	Phase string `json:"phase" yaml:"phase"`
 }
 
@@ -54,6 +55,7 @@ type AuctionWithPhase struct {
 func NewAuctionWithPhase(ca CollateralAuction) AuctionWithPhase {
 	return AuctionWithPhase{
 		Auction: ca,
+		Type:    ca.GetType(),
 		Phase:   ca.GetPhase(),
 	}
 }
