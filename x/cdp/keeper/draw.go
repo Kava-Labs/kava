@@ -110,7 +110,16 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	}
 
 	// burn the corresponding amount of debt coins
-	err = k.BurnDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), feePayment.Add(principalPayment))
+	cdpDebt := k.getModAccountDebt(ctx, types.ModuleName)
+	paymentAmount := sdk.ZeroInt()
+	for _, c := range feePayment.Add(principalPayment) {
+		paymentAmount = paymentAmount.Add(c.Amount)
+	}
+	coinsToBurn := sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), paymentAmount))
+	if paymentAmount.GT(cdpDebt) {
+		coinsToBurn = sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), cdpDebt))
+	}
+	err = k.BurnDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), coinsToBurn)
 	if err != nil {
 		panic(err)
 	}

@@ -110,7 +110,7 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 	return nil
 }
 
-// BurnDebtCoins burns debts coins from the cdp module account
+// BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coins) sdk.Error {
 	coinsToBurn := sdk.NewCoins()
 	for _, pc := range paymentCoins {
