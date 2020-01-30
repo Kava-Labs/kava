@@ -22,6 +22,7 @@ type Auction interface {
 	GetBidder() sdk.AccAddress
 	GetBid() sdk.Coin
 	GetEndTime() time.Time
+	GetType() string
 }
 
 // Auctions is a slice of auctions.
@@ -57,6 +58,9 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
+// GetType returns theauction type. Used to identify auctions in event attributes.
+func (a BaseAuction) GetType() string { return "base" }
+
 // Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
 	if a.EndTime.After(a.MaxEndTime) {
@@ -82,14 +86,14 @@ func (a BaseAuction) String() string {
 // SurplusAuction is a forward auction that burns what it receives from bids.
 // It is normally used to sell off excess pegged asset acquired by the CDP system.
 type SurplusAuction struct {
-	BaseAuction `json:"base_auction" yaml:"base_auction"`
+	BaseAuction
 }
 
 // WithID returns an auction with the ID set.
 func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a SurplusAuction) Name() string { return "surplus" }
+// GetType returns the auction type. Used to identify auctions in event attributes.
+func (a SurplusAuction) GetType() string { return "surplus" }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -116,15 +120,16 @@ func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime tim
 // DebtAuction is a reverse auction that mints what it pays out.
 // It is normally used to acquire pegged asset to cover the CDP system's debts that were not covered by selling collateral.
 type DebtAuction struct {
-	BaseAuction       `json:"base_auction" yaml:"base_auction"`
+	BaseAuction
+
 	CorrespondingDebt sdk.Coin `json:"corresponding_debt" yaml:"corresponding_debt"`
 }
 
 // WithID returns an auction with the ID set.
 func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a DebtAuction) Name() string { return "debt" }
+// GetType returns the auction type. Used to identify auctions in event attributes.
+func (a DebtAuction) GetType() string { return "debt" }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -160,7 +165,8 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 // Unsold Lot is sent to LotReturns, being divided among the addresses by weight.
 // Collateral auctions are normally used to sell off collateral seized from CDPs.
 type CollateralAuction struct {
-	BaseAuction       `json:"base_auction" yaml:"base_auction"`
+	BaseAuction
+
 	CorrespondingDebt sdk.Coin          `json:"corresponding_debt" yaml:"corresponding_debt"`
 	MaxBid            sdk.Coin          `json:"max_bid" yaml:"max_bid"`
 	LotReturns        WeightedAddresses `json:"lot_returns" yaml:"lot_returns"`
@@ -169,8 +175,8 @@ type CollateralAuction struct {
 // WithID returns an auction with the ID set.
 func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
-// Name returns a name for this auction type. Used to identify auctions in event attributes.
-func (a CollateralAuction) Name() string { return "collateral" }
+// GetType returns the auction type. Used to identify auctions in event attributes.
+func (a CollateralAuction) GetType() string { return "collateral" }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -183,6 +189,14 @@ func (a CollateralAuction) GetModuleAccountCoins() sdk.Coins {
 // Auction initially start in forward phase.
 func (a CollateralAuction) IsReversePhase() bool {
 	return a.Bid.IsEqual(a.MaxBid)
+}
+
+// GetPhase returns the phase of a collateral auction
+func (a CollateralAuction) GetPhase() string {
+	if a.IsReversePhase() {
+		return "reverse"
+	}
+	return "forward"
 }
 
 func (a CollateralAuction) String() string {
@@ -222,8 +236,8 @@ func NewCollateralAuction(seller string, lot sdk.Coin, endTime time.Time, maxBid
 
 // WeightedAddresses is a type for storing some addresses and associated weights.
 type WeightedAddresses struct {
-	Addresses []sdk.AccAddress
-	Weights   []sdk.Int
+	Addresses []sdk.AccAddress `json:"addresses" yaml:"addresses"`
+	Weights   []sdk.Int        `json:"weights" yaml:"weights"`
 }
 
 // NewWeightedAddresses returns a new list addresses with weights.

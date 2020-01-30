@@ -6,7 +6,7 @@
 3. **[Messages](03_messages.md)**
 4. **[Events](04_events.md)**
 5. **[Params](05_params.md)**
-6. **[BeginBlock](06_begin_block.md)**
+6. **[EndBlock](06_end_block.md)**
 
 ## Abstract
 

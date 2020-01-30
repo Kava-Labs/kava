@@ -93,7 +93,9 @@ func (suite *DepositTestSuite) TestDepositCollateral() {
 }
 
 func (suite *DepositTestSuite) TestWithdrawCollateral() {
-	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 321000000)))
+	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 400000000)))
+	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 321000000)))
 	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 10000000)))
 	suite.Equal(types.CodeCdpNotFound, err.Result().Code)

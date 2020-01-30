@@ -210,7 +210,7 @@ func badGenStates() []badGenState {
 	return []badGenState{
 		badGenState{Genesis: g1, Reason: "duplicate collateral denom"},
 		badGenState{Genesis: g2, Reason: "duplicate collateral prefix"},
-		badGenState{Genesis: g3, Reason: "duplicate collateral prefix"},
+		badGenState{Genesis: g3, Reason: "invalid debt limit"},
 		badGenState{Genesis: g4, Reason: "single collateral exceeds debt limit"},
 		badGenState{Genesis: g5, Reason: "combined collateral exceeds debt limit"},
 		badGenState{Genesis: g6, Reason: "duplicate debt denom"},

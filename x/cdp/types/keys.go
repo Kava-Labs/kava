@@ -54,8 +54,7 @@ var (
 	GovDenomKey                = []byte{0x05}
 	DepositKeyPrefix           = []byte{0x06}
 	PrincipalKeyPrefix         = []byte{0x07}
-	AccumulatorKeyPrefix       = []byte{0x08}
-	PreviousBlockTimeKey       = []byte{0x09}
+	PreviousBlockTimeKey       = []byte{0x08}
 )
 
 var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))

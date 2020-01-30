@@ -7,6 +7,7 @@ import (
 // Querier routes for the cdp module
 const (
 	QueryGetCdp                     = "cdp"
+	QueryGetCdpDeposits             = "deposits"
 	QueryGetCdps                    = "cdps"
 	QueryGetCdpsByCollateralization = "ratio"
 	QueryGetParams                  = "params"
@@ -36,6 +37,20 @@ type QueryCdpParams struct {
 // NewQueryCdpParams returns QueryCdpParams
 func NewQueryCdpParams(owner sdk.AccAddress, denom string) QueryCdpParams {
 	return QueryCdpParams{
+		Owner:           owner,
+		CollateralDenom: denom,
+	}
+}
+
+// QueryCdpDeposits params for query /cdp/deposits
+type QueryCdpDeposits struct {
+	CollateralDenom string         // get CDPs with this collateral denom
+	Owner           sdk.AccAddress // get CDPs belonging to this owner
+}
+
+// NewQueryCdpDeposits returns QueryCdpDeposits
+func NewQueryCdpDeposits(owner sdk.AccAddress, denom string) QueryCdpDeposits {
+	return QueryCdpDeposits{
 		Owner:           owner,
 		CollateralDenom: denom,
 	}
