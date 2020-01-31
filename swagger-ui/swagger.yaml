@@ -112,7 +112,7 @@
         summary: Syncing state of node
         tags:
           - Tendermint RPC
-        description: Get if the node is currently syning with other nodes
+        description: Get the syncing status of the node
         produces:
           - application/json
         responses:
@@ -298,7 +298,7 @@
                   $ref: "#/definitions/StdTx"
                 mode:
                   type: string
-                  example: block
+                  example: sync
         responses:
           200:
             description: Tx broadcasting result
@@ -1991,7 +1991,23 @@
         value:
           type: string
     Msg:
-      type: string
+      type: object
+      required:
+        - from
+      properties:
+        type:
+          type: string
+          example: "cdp/MsgCreateCDP"
+        value:
+          type: object
+          properties:
+            from:
+              type: string
+              example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq
+            collateral:
+              $ref: "#/definitions/CoinCollateral"
+            principal:
+              $ref: "#/definitions/CoinPrincipal"
     Address:
       type: string
       description: bech32 encoded address
@@ -2005,13 +2021,46 @@
       properties:
         denom:
           type: string
-          example: stake
+          example: ukava
         amount:
           type: string
           example: "50"
+    CoinCollateral:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: bnb
+        amount:
+          type: string
+          example: "10000000000"
+    CoinPrincipal:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: usdx
+        amount:
+          type: string
+          example: "10000000"
     Hash:
       type: string
       example: EE5F3404034C524501629B56E0DDC38FAD651F04
+    Signature:
+      type: object
+      properties:
+        signature:
+          type: string
+          example: "W1HfKcc4F0rCSoxheZ7fsrB5nGK58U4gKysuzsmUwhloVnCxmbCx289uVMMvQN6tOcQsz7hMVTJrXSA1xzevvw=="
+        pubkey:
+          type: object
+          properties:
+            type:
+              type: string
+              example: "tendermint/PubKeySecp256k1"
+            value:
+              type: string
+              example: "Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd/w09CXN"
     TxQuery:
       type: object
       properties:
@@ -2078,27 +2127,10 @@
                 $ref: "#/definitions/Coin"
         memo:
           type: string
-        signature:
-          type: object
-          properties:
-            signature:
-              type: string
-              example: MEUCIQD02fsDPra8MtbRsyB1w7bqTM55Wu138zQbFcWx4+CFyAIge5WNPfKIuvzBZ69MyqHsqD8S1IwiEp+iUb6VSdtlpgY=
-            pub_key:
-              type: object
-              properties:
-                type:
-                  type: string
-                  example: "tendermint/PubKeySecp256k1"
-                value:
-                  type: string
-                  example: "Avz04VhtKJh8ACCVzlI8aTosGy0ikFXKIVHQ3jKMrosH"
-            account_number:
-              type: string
-              example: "0"
-            sequence:
-              type: string
-              example: "0"
+        signatures:
+          type: array
+          items:
+            $ref: "#/definitions/Signature"
     BlockID:
       type: object
       properties:
