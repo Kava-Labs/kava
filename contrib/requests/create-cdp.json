@@ -1,0 +1,25 @@
+{
+  "base_req": {
+    "from": "kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq",
+    "memo": "",
+    "chain_id": "kava-internal",
+    "account_number": "11",
+    "sequence": "6",
+    "gas": "500000",
+    "gas_adjustment": "1.0",
+    "simulate": false
+  },
+  "owner": "kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq",
+  "collateral": [
+    {
+      "denom": "xrp",
+      "amount": "110000000"
+    }
+  ],
+  "principal": [
+    {
+      "denom": "usdx",
+      "amount": "10000000"
+    }
+  ]
+}
