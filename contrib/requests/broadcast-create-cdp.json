@@ -1,0 +1,22 @@
+{
+  "tx": {
+    "msg": [
+      {"type":"cdp/MsgCreateCDP","value":{"sender":"kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq","collateral":[{"denom":"xrp","amount":"110000000"}],"principal":[{"denom":"usdx","amount":"10000000"}]}}
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "500000"
+    },
+    "memo": "",
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd/w09CXN"
+        },
+        "signature": "W1HfKcc4F0rCSoxheZ7fsrB5nGK58U4gKysuzsmUwhloVnCxmbCx289uVMMvQN6tOcQsz7hMVTJrXSA1xzevvw=="
+      }
+    ]
+  },
+  "mode": "sync"
+}
