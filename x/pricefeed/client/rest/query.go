@@ -14,17 +14,18 @@ import (
 
 // define routes that get registered by the main application
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/rawprices/{%s}", types.ModuleName, RestMarketID), queryRawPricesHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/price/{%s}", types.ModuleName, RestMarketID), queryPriceHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/markets", types.ModuleName), queryMarketsHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/markets", types.ModuleName), queryMarketsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/oracles/{%s}", types.ModuleName, RestMarketID), queryOraclesHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/rawprices/{%s}", types.ModuleName, RestMarketID), queryRawPricesHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/price/{%s}", types.ModuleName, RestMarketID), queryPriceHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryRawPricesHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryRawPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
-		queryRawPricesParams := types.NewQueryRawPricesParams(paramMarketID)
+		queryRawPricesParams := types.NewQueryWithMarketIDParams(paramMarketID)
 
 		bz, err := cliCtx.Codec.MarshalJSON(queryRawPricesParams)
 		if err != nil {
@@ -45,7 +46,7 @@ func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
-		queryPriceParams := types.NewQueryPriceParams(paramMarketID)
+		queryPriceParams := types.NewQueryWithMarketIDParams(paramMarketID)
 
 		bz, err := cliCtx.Codec.MarshalJSON(queryPriceParams)
 		if err != nil {
@@ -58,14 +59,34 @@ func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
-func queryMarketsHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryMarketsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryMarkets), nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryOraclesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		paramMarketID := vars[RestMarketID]
+		queryOraclesParams := types.NewQueryWithMarketIDParams(paramMarketID)
+
+		bz, err := cliCtx.Codec.MarshalJSON(queryOraclesParams)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryOracles), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return

@@ -83,9 +83,8 @@ func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 	return bz, nil
 }
 
-// query params in the auction store
+// query params in the pricefeed store
 func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	// Get params
 	params := keeper.GetParams(ctx)
 
 	// Encode results
