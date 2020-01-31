@@ -18,7 +18,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/{owner}/{denom}/deposits", postDepositHandlerFn(cliCtx)).Methods("PUT")
 	r.HandleFunc("/cdp/{owner}/{denom}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("PUT")
 	r.HandleFunc("/cdp/{owner}/{denom}/draw", postDrawHandlerFn(cliCtx)).Methods("PUT")
-	r.HandleFunc("/cdp/{owner}/{denom}/wipe", postRepayHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp/{owner}/{denom}/repay", postRepayHandlerFn(cliCtx)).Methods("PUT")
 
 }
 
