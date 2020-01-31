@@ -65,14 +65,14 @@ var (
 )
 
 type (
-	GenesisState     = types.GenesisState
-	Market           = types.Market
-	Markets          = types.Markets
-	CurrentPrice     = types.CurrentPrice
-	PostedPrice      = types.PostedPrice
-	SortDecs         = types.SortDecs
-	MsgPostPrice     = types.MsgPostPrice
-	Params           = types.Params
-	QueryPriceParams = types.QueryPriceParams
-	Keeper           = keeper.Keeper
+	GenesisState            = types.GenesisState
+	Market                  = types.Market
+	Markets                 = types.Markets
+	CurrentPrice            = types.CurrentPrice
+	PostedPrice             = types.PostedPrice
+	SortDecs                = types.SortDecs
+	MsgPostPrice            = types.MsgPostPrice
+	Params                  = types.Params
+	QueryWithMarketIDParams = types.QueryWithMarketIDParams
+	Keeper                  = keeper.Keeper
 )

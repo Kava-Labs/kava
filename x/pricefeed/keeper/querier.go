@@ -19,6 +19,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryPrice(ctx, req, keeper)
 		case types.QueryRawPrices:
 			return queryRawPrices(ctx, req, keeper)
+		case types.QueryOracles:
+			return queryOracles(ctx, req, keeper)
 		case types.QueryMarkets:
 			return queryMarkets(ctx, req, keeper)
 		case types.QueryGetParams:
@@ -31,7 +33,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
-	var requestParams types.QueryPriceParams
+	var requestParams types.QueryWithMarketIDParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
@@ -53,7 +55,7 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 }
 
 func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
-	var requestParams types.QueryPriceParams
+	var requestParams types.QueryWithMarketIDParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
@@ -65,6 +67,26 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, rawPrices)
+	if err != nil {
+		panic("could not marshal result to JSON")
+	}
+
+	return bz, nil
+}
+
+func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+	var requestParams types.QueryWithMarketIDParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+	}
+
+	oracles, err := keeper.GetOracles(ctx, requestParams.MarketID)
+	if err != nil {
+		return []byte{}, sdk.ErrUnknownRequest("market not found")
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, oracles)
 	if err != nil {
 		panic("could not marshal result to JSON")
 	}
