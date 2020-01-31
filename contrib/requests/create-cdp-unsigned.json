@@ -1,0 +1,31 @@
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "cdp/MsgCreateCDP",
+        "value": {
+          "sender": "kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03",
+          "collateral": [
+            {
+              "denom": "xrp",
+              "amount": "110000000"
+            }
+          ],
+          "principal": [
+            {
+              "denom": "usdx",
+              "amount": "10000000"
+            }
+          ]
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "500000"
+    },
+    "signatures": null,
+    "memo": ""
+  }
+}
