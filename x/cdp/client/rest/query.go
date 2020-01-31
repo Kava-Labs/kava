@@ -20,7 +20,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/cdp/{%s}", types.RestCollateralDenom), queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/{%s}/ratio/{%s}", types.RestCollateralDenom, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralDenom), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/cdps/params", getParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/cdp/params", getParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
