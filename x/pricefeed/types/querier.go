@@ -26,3 +26,15 @@ func NewQueryPriceParams(marketID string) QueryPriceParams {
 		MarketID: marketID,
 	}
 }
+
+// QueryRawPricesParams fields for querying raw prices
+type QueryRawPricesParams struct {
+	MarketID string
+}
+
+// NewQueryRawPricesParams creates a new instance of QueryRawPricesParams
+func NewQueryRawPricesParams(marketID string) QueryRawPricesParams {
+	return QueryRawPricesParams{
+		MarketID: marketID,
+	}
+}

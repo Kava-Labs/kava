@@ -24,7 +24,15 @@ func queryRawPricesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/rawprices/%s", types.ModuleName, paramMarketID), nil)
+		queryRawPricesParams := types.NewQueryRawPricesParams(paramMarketID)
+
+		bz, err := cliCtx.Codec.MarshalJSON(queryRawPricesParams)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryRawPrices), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -37,7 +45,6 @@ func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
-
 		queryPriceParams := types.NewQueryPriceParams(paramMarketID)
 
 		bz, err := cliCtx.Codec.MarshalJSON(queryPriceParams)
