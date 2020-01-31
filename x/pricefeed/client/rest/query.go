@@ -14,17 +14,17 @@ import (
 
 // define routes that get registered by the main application
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/rawprices/{%s}", types.ModuleName, restName), queryRawPricesHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/currentprice/{%s}", types.ModuleName, restName), queryCurrentPriceHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/rawprices/{%s}", types.ModuleName, RestMarketID), queryRawPricesHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/price/{%s}", types.ModuleName, RestMarketID), queryPriceHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/markets", types.ModuleName), queryMarketsHandler(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/params", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryRawPricesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		paramType := vars[restName]
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/rawprices/%s", paramType), nil)
+		paramMarketID := vars[RestMarketID]
+		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/rawprices/%s", types.ModuleName, paramMarketID), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -33,22 +33,32 @@ func queryRawPricesHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryCurrentPriceHandler(cliCtx context.CLIContext) http.HandlerFunc {
+func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		paramType := vars[restName]
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/price/%s", paramType), nil)
+		paramMarketID := vars[RestMarketID]
+
+		queryPriceParams := types.NewQueryPriceParams(paramMarketID)
+
+		bz, err := cliCtx.Codec.MarshalJSON(queryPriceParams)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
+
+		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryPrice), bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
 func queryMarketsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/markets/"), nil)
+		res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryMarkets), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -60,7 +70,7 @@ func queryMarketsHandler(cliCtx context.CLIContext) http.HandlerFunc {
 func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Get the params
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/pricefeed/%s", types.QueryGetParams), nil)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetParams), nil)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())

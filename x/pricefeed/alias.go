@@ -36,7 +36,7 @@ const (
 	MarketPrefix                  = types.MarketPrefix
 	OraclePrefix                  = types.OraclePrefix
 	TypeMsgPostPrice              = types.TypeMsgPostPrice
-	QueryCurrentPrice             = types.QueryCurrentPrice
+	QueryPrice                    = types.QueryPrice
 	QueryRawPrices                = types.QueryRawPrices
 	QueryMarkets                  = types.QueryMarkets
 )
@@ -65,14 +65,14 @@ var (
 )
 
 type (
-	GenesisState      = types.GenesisState
-	Market            = types.Market
-	Markets           = types.Markets
-	CurrentPrice      = types.CurrentPrice
-	PostedPrice       = types.PostedPrice
-	SortDecs          = types.SortDecs
-	MsgPostPrice      = types.MsgPostPrice
-	Params            = types.Params
-	QueryPricesParams = types.QueryPricesParams
-	Keeper            = keeper.Keeper
+	GenesisState     = types.GenesisState
+	Market           = types.Market
+	Markets          = types.Markets
+	CurrentPrice     = types.CurrentPrice
+	PostedPrice      = types.PostedPrice
+	SortDecs         = types.SortDecs
+	MsgPostPrice     = types.MsgPostPrice
+	Params           = types.Params
+	QueryPriceParams = types.QueryPriceParams
+	Keeper           = keeper.Keeper
 )

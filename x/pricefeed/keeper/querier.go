@@ -15,8 +15,8 @@ import (
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
-		case types.QueryCurrentPrice:
-			return queryCurrentPrice(ctx, req, keeper)
+		case types.QueryPrice:
+			return queryPrice(ctx, req, keeper)
 		case types.QueryRawPrices:
 			return queryRawPrices(ctx, req, keeper)
 		case types.QueryMarkets:
@@ -30,8 +30,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 }
 
-func queryCurrentPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
-	var requestParams types.QueryPricesParams
+func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+	var requestParams types.QueryPriceParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
@@ -53,7 +53,7 @@ func queryCurrentPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (r
 }
 
 func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
-	var requestParams types.QueryPricesParams
+	var requestParams types.QueryPriceParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))

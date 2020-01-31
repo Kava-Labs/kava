@@ -21,7 +21,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func postPriceHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req postPriceReq
+		var req PostPriceReq
 
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")

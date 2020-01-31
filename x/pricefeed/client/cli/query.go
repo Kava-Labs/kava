@@ -41,13 +41,13 @@ func GetCmdCurrentPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryPricesParams{
+			bz, err := cdc.MarshalJSON(types.QueryPriceParams{
 				MarketID: marketID,
 			})
 			if err != nil {
 				return err
 			}
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCurrentPrice)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPrice)
 
 			res, _, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
@@ -70,7 +70,7 @@ func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryPricesParams{
+			bz, err := cdc.MarshalJSON(types.QueryPriceParams{
 				MarketID: marketID,
 			})
 			if err != nil {
