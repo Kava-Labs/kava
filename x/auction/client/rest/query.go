@@ -46,13 +46,13 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Query
-		res, height, err := cliCtx.QueryWithData("custom/gov/proposal", bz)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("/custom/%s/%s", types.ModuleName, types.QueryGetAuction), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		var auction types.Auction
-		err = cliCtx.Codec.UnmarshalJSON(res, auction)
+		err = cliCtx.Codec.UnmarshalJSON(res, &auction)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -74,7 +74,7 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		// Get all auctions
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("/custom/auction/%s", types.QueryGetAuctions), nil)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("/custom/%s/%s", types.ModuleName, types.QueryGetAuctions), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -83,7 +83,7 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		cliCtx = cliCtx.WithHeight(height)
 
 		var auctions types.Auctions
-		err = cliCtx.Codec.UnmarshalJSON(res, auctions)
+		err = cliCtx.Codec.UnmarshalJSON(res, &auctions)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -106,7 +106,7 @@ func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		// Get the params
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/auction/%s", types.QueryGetParams), nil)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetParams), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
