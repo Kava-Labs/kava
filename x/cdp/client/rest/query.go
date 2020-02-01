@@ -17,7 +17,7 @@ import (
 // define routes that get registered by the main application
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralDenom), queryCdpHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdps/{%s}", types.RestCollateralDenom), queryCdpsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdps/denom/{%s}", types.RestCollateralDenom), queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdps/ratio/{%s}/{%s}", types.RestCollateralDenom, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("cdps/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralDenom), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/params", getParamsHandlerFn(cliCtx)).Methods("GET")
