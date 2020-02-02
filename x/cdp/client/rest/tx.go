@@ -36,7 +36,7 @@ func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Create and return msg
 		msg := types.NewMsgCreateCDP(
-			requestBody.Owner,
+			requestBody.Sender,
 			requestBody.Collateral,
 			requestBody.Principal,
 		)

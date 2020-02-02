@@ -17,7 +17,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // PostCdpReq defines the properties of cdp request's body.
 type PostCdpReq struct {
 	BaseReq    rest.BaseReq   `json:"base_req" yaml:"base_req"`
-	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
+	Sender     sdk.AccAddress `json:"sender" yaml:"sender"`
 	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
 	Principal  sdk.Coins      `json:"principal" yaml:"principal"`
 }
