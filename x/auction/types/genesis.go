@@ -7,6 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// DefaultNextAuctionID is the starting poiint for auction IDs.
+const DefaultNextAuctionID uint64 = 1
+
 // GenesisAuction is an interface that extends the auction interface to add functionality needed for initializing auctions from genesis.
 type GenesisAuction interface {
 	Auction
@@ -35,7 +38,11 @@ func NewGenesisState(nextID uint64, ap Params, ga GenesisAuctions) GenesisState 
 
 // DefaultGenesisState returns the default genesis state for auction module.
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(1, DefaultParams(), GenesisAuctions{})
+	return NewGenesisState(
+		DefaultNextAuctionID,
+		DefaultParams(),
+		GenesisAuctions{},
+	)
 }
 
 // Equal checks whether two GenesisState structs are equivalent.

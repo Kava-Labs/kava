@@ -78,7 +78,7 @@ func (suite *QuerierTestSuite) TestQueryAuction() {
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAuction}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.QueryAuctionParams{AuctionID: 0}), // get the first auction
+		Data: types.ModuleCdc.MustMarshalJSON(types.QueryAuctionParams{AuctionID: types.DefaultNextAuctionID}), // get the first auction
 	}
 
 	// Execute query and check the []byte result
