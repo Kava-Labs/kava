@@ -17,12 +17,15 @@ var DistantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
 type Auction interface {
 	GetID() uint64
 	WithID(uint64) Auction
+
 	GetInitiator() string
 	GetLot() sdk.Coin
 	GetBidder() sdk.AccAddress
 	GetBid() sdk.Coin
 	GetEndTime() time.Time
+
 	GetType() string
+	GetPhase() string
 }
 
 // Auctions is a slice of auctions.
@@ -102,6 +105,9 @@ func (a SurplusAuction) GetModuleAccountCoins() sdk.Coins {
 	return sdk.NewCoins(a.Lot)
 }
 
+// GetPhase returns the direction of a surplus auction, which never changes.
+func (a SurplusAuction) GetPhase() string { return "forward" }
+
 // NewSurplusAuction returns a new surplus auction.
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
 	auction := SurplusAuction{BaseAuction{
@@ -138,6 +144,9 @@ func (a DebtAuction) GetModuleAccountCoins() sdk.Coins {
 	// a.Bid is paid out on bids, so is never stored in the module account
 	return sdk.NewCoins(a.CorrespondingDebt)
 }
+
+// GetPhase returns the direction of a debt auction, which never changes.
+func (a DebtAuction) GetPhase() string { return "reverse" }
 
 // NewDebtAuction returns a new debt auction.
 func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, endTime time.Time, debt sdk.Coin) DebtAuction {
@@ -186,12 +195,12 @@ func (a CollateralAuction) GetModuleAccountCoins() sdk.Coins {
 }
 
 // IsReversePhase returns whether the auction has switched over to reverse phase or not.
-// Auction initially start in forward phase.
+// CollateralAuctions initially start in forward phase.
 func (a CollateralAuction) IsReversePhase() bool {
 	return a.Bid.IsEqual(a.MaxBid)
 }
 
-// GetPhase returns the phase of a collateral auction
+// GetPhase returns the direction of a collateral auction.
 func (a CollateralAuction) GetPhase() string {
 	if a.IsReversePhase() {
 		return "reverse"

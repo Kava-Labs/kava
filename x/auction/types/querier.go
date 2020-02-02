@@ -38,17 +38,9 @@ type AuctionWithPhase struct {
 
 // NewAuctionWithPhase returns new AuctionWithPhase
 func NewAuctionWithPhase(a Auction) AuctionWithPhase {
-	switch auc := a.(type) {
-	case CollateralAuction:
-		return AuctionWithPhase{
-			Auction: auc,
-			Type:    auc.GetType(),
-			Phase:   auc.GetPhase(),
-		}
-	default:
-		return AuctionWithPhase{
-			Auction: auc,
-			Type:    auc.GetType(),
-		}
+	return AuctionWithPhase{
+		Auction: a,
+		Type:    a.GetType(),
+		Phase:   a.GetPhase(),
 	}
 }
