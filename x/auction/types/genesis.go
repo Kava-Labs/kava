@@ -35,7 +35,7 @@ func NewGenesisState(nextID uint64, ap Params, ga GenesisAuctions) GenesisState 
 
 // DefaultGenesisState returns the default genesis state for auction module.
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(0, DefaultParams(), GenesisAuctions{})
+	return NewGenesisState(1, DefaultParams(), GenesisAuctions{})
 }
 
 // Equal checks whether two GenesisState structs are equivalent.
