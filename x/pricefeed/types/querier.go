@@ -5,17 +5,26 @@ package types
 // assets Returns []Assets in the pricefeed system
 
 const (
-	// QueryCurrentPrice command for current price queries
-	QueryCurrentPrice = "price"
-	// QueryRawPrices command for raw price queries
-	QueryRawPrices = "rawprices"
+	// QueryGetParams command for params query
+	QueryGetParams = "parameters"
 	// QueryMarkets command for assets query
 	QueryMarkets = "markets"
-	// QueryGetParams command for params query
-	QueryGetParams = "params"
+	// QueryOracles command for oracles query
+	QueryOracles = "oracles"
+	// QueryRawPrices command for raw price queries
+	QueryRawPrices = "rawprices"
+	// QueryPrice command for price queries
+	QueryPrice = "price"
 )
 
-// QueryPricesParams fields for querying prices
-type QueryPricesParams struct {
+// QueryWithMarketIDParams fields for querying information from a specific market
+type QueryWithMarketIDParams struct {
 	MarketID string
+}
+
+// NewQueryWithMarketIDParams creates a new instance of QueryWithMarketIDParams
+func NewQueryWithMarketIDParams(marketID string) QueryWithMarketIDParams {
+	return QueryWithMarketIDParams{
+		MarketID: marketID,
+	}
 }

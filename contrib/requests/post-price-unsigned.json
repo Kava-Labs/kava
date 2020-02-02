@@ -1,0 +1,22 @@
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "pricefeed/MsgPostPrice",
+        "value": {
+          "from": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
+          "market_id": "xrp:usd",
+          "price": "0.290000000000000000",
+          "expiry": "2100-03-29T10:40:00Z"
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "500000"
+    },
+    "signatures": null,
+    "memo": ""
+  }
+}
