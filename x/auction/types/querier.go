@@ -30,7 +30,7 @@ func NewQueryAllAuctionParams(page int, limit int) QueryAllAuctionParams {
 
 // AuctionWithPhase augmented type for collateral auctions which includes auction phase for querying
 type AuctionWithPhase struct {
-	Auction Auction
+	Auction Auction `json:"auction" yaml:"auction"`
 
 	Type  string `json:"type" yaml:"type"`
 	Phase string `json:"phase" yaml:"phase"`
