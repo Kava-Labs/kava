@@ -136,7 +136,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
 	auctionKeeper := suite.app.GetAuctionKeeper()
-	_, found := auctionKeeper.GetAuction(suite.ctx, 0)
+	_, found := auctionKeeper.GetAuction(suite.ctx, 1)
 	suite.True(found)
 	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
 	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
