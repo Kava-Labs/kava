@@ -87,7 +87,7 @@ func TestDebtAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyerAddr, cs(c("debt", 80)))
 
 	// Place a bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, seller, c("token2", 10)))
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, seller, c("token2", 10)))
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, seller, cs(c("token1", 80), c("token2", 100)))
 	// Check buyer's coins have increased
@@ -127,7 +127,7 @@ func TestDebtAuctionDebtRemaining(t *testing.T) {
 	tApp.CheckBalance(t, ctx, buyerAddr, cs(c("debt", 80)))
 
 	// Place a bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, seller, c("token2", 10)))
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, seller, c("token2", 10)))
 	// Check seller's coins have decreased
 	tApp.CheckBalance(t, ctx, seller, cs(c("token1", 90), c("token2", 100)))
 	// Check buyer's coins have increased
@@ -173,7 +173,7 @@ func TestCollateralAuctionBasic(t *testing.T) {
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100), c("debt", 60)))
 
 	// Place a forward bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 10)))
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 10)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 90)))
 	// Check seller's coins have increased
@@ -184,8 +184,8 @@ func TestCollateralAuctionBasic(t *testing.T) {
 	}
 
 	// Place a reverse bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 50))) // first bid up to max bid to switch phases
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token1", 15)))
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 50))) // first bid up to max bid to switch phases
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token1", 15)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 50)))
 	// Check seller's coins have increased
@@ -233,7 +233,7 @@ func TestCollateralAuctionDebtRemaining(t *testing.T) {
 	tApp.CheckBalance(t, ctx, sellerAddr, cs(c("token1", 80), c("token2", 100), c("debt", 60)))
 
 	// Place a forward bid
-	require.NoError(t, keeper.PlaceBid(ctx, 0, buyer, c("token2", 10)))
+	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 10)))
 	// Check bidder's coins have decreased
 	tApp.CheckBalance(t, ctx, buyer, cs(c("token1", 100), c("token2", 90)))
 	// Check seller's coins have increased
@@ -322,7 +322,7 @@ func TestStartSurplusAuction(t *testing.T) {
 				// check auction in store and is correct
 				require.True(t, found)
 				expectedAuction := types.Auction(types.SurplusAuction{BaseAuction: types.BaseAuction{
-					ID:              0,
+					ID:              id,
 					Initiator:       tc.args.seller,
 					Lot:             tc.args.lot,
 					Bidder:          nil,

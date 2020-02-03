@@ -12,12 +12,12 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-const RestAuctionID = "auction-id"
+const restAuctionID = "auction-id"
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/auction/auctions/{%s}", RestAuctionID), queryAuctionHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/auction/auctions", queryAuctionsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/auction/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/{%s}/auctions", types.ModuleName), queryAuctionsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/{%s}/auctions/{%s}", types.ModuleName, restAuctionID), queryAuctionHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/{%s}/parameters", types.ModuleName), getParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -30,12 +30,12 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Prepare params for querier
 		vars := mux.Vars(r)
-		if len(vars[RestAuctionID]) == 0 {
-			err := fmt.Errorf("%s required but not specified", RestAuctionID)
+		if len(vars[restAuctionID]) == 0 {
+			err := fmt.Errorf("%s required but not specified", restAuctionID)
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		auctionID, ok := rest.ParseUint64OrReturnBadRequest(w, vars[RestAuctionID])
+		auctionID, ok := rest.ParseUint64OrReturnBadRequest(w, vars[restAuctionID])
 		if !ok {
 			return
 		}
@@ -51,17 +51,17 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		// Decode and return results
+		cliCtx = cliCtx.WithHeight(height)
+
 		var auction types.Auction
 		err = cliCtx.Codec.UnmarshalJSON(res, &auction)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// Decode and return results
-		cliCtx = cliCtx.WithHeight(height)
-
 		auctionWithPhase := types.NewAuctionWithPhase(auction)
-
 		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithPhase))
 	}
 }
@@ -73,13 +73,15 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
+
 		// Get all auctions
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("/custom/%s/%s", types.ModuleName, types.QueryGetAuctions), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
-		// Return auctions
+
+		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
 
 		var auctions types.Auctions
@@ -89,11 +91,10 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		var auctionsWithPhase []types.AuctionWithPhase
+		auctionsWithPhase := []types.AuctionWithPhase{} // using empty slice so json returns [] instead of null when there's no auctions
 		for _, a := range auctions {
 			auctionsWithPhase = append(auctionsWithPhase, types.NewAuctionWithPhase(a))
 		}
-
 		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionsWithPhase))
 	}
 }
@@ -111,7 +112,7 @@ func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// Return the params
+		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}

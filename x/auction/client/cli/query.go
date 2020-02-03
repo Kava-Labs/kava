@@ -85,7 +85,7 @@ func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			var auctions types.Auctions
 			cdc.MustUnmarshalJSON(res, &auctions)
 
-			var auctionsWithPhase []types.AuctionWithPhase
+			auctionsWithPhase := []types.AuctionWithPhase{} // using empty slice so json returns [] instead of null when there's no auctions
 			for _, a := range auctions {
 				auctionsWithPhase = append(auctionsWithPhase, types.NewAuctionWithPhase(a))
 			}

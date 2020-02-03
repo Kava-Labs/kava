@@ -31,6 +31,7 @@ const (
 	DefaultMaxAuctionDuration             = types.DefaultMaxAuctionDuration
 	DefaultBidDuration                    = types.DefaultBidDuration
 	QueryGetAuction                       = types.QueryGetAuction
+	DefaultNextAuctionID                  = types.DefaultNextAuctionID
 )
 
 var (
