@@ -27,6 +27,8 @@ const (
 	CodeInvalidWithdrawAmount       = types.CodeInvalidWithdrawAmount
 	CodeCdpNotAvailable             = types.CodeCdpNotAvailable
 	CodeBelowDebtFloor              = types.CodeBelowDebtFloor
+	CodePaymentExceedsDebt          = types.CodePaymentExceedsDebt
+	CodeLoadingAugmentedCDP         = types.CodeLoadingAugmentedCDP
 	EventTypeCreateCdp              = types.EventTypeCreateCdp
 	EventTypeCdpDeposit             = types.EventTypeCdpDeposit
 	EventTypeCdpDraw                = types.EventTypeCdpDraw
@@ -74,6 +76,8 @@ var (
 	ErrInvalidWithdrawAmount    = types.ErrInvalidWithdrawAmount
 	ErrCdpNotAvailable          = types.ErrCdpNotAvailable
 	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
+	ErrPaymentExceedsDebt       = types.ErrPaymentExceedsDebt
+	ErrLoadingAugmentedCDP      = types.ErrLoadingAugmentedCDP
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetCdpIDBytes               = types.GetCdpIDBytes
 	GetCdpIDFromBytes           = types.GetCdpIDFromBytes
@@ -118,7 +122,6 @@ var (
 	GovDenomKey                = types.GovDenomKey
 	DepositKeyPrefix           = types.DepositKeyPrefix
 	PrincipalKeyPrefix         = types.PrincipalKeyPrefix
-	AccumulatorKeyPrefix       = types.AccumulatorKeyPrefix
 	PreviousBlockTimeKey       = types.PreviousBlockTimeKey
 	KeyGlobalDebtLimit         = types.KeyGlobalDebtLimit
 	KeyCollateralParams        = types.KeyCollateralParams
@@ -142,6 +145,8 @@ var (
 type (
 	CDP                    = types.CDP
 	CDPs                   = types.CDPs
+	AugmentedCDP           = types.AugmentedCDP
+	AugmentedCDPs          = types.AugmentedCDPs
 	Deposit                = types.Deposit
 	Deposits               = types.Deposits
 	SupplyKeeper           = types.SupplyKeeper
@@ -152,7 +157,6 @@ type (
 	MsgWithdraw            = types.MsgWithdraw
 	MsgDrawDebt            = types.MsgDrawDebt
 	MsgRepayDebt           = types.MsgRepayDebt
-	MsgTransferCDP         = types.MsgTransferCDP
 	Params                 = types.Params
 	CollateralParam        = types.CollateralParam
 	CollateralParams       = types.CollateralParams

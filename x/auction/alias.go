@@ -31,6 +31,7 @@ const (
 	DefaultMaxAuctionDuration             = types.DefaultMaxAuctionDuration
 	DefaultBidDuration                    = types.DefaultBidDuration
 	QueryGetAuction                       = types.QueryGetAuction
+	DefaultNextAuctionID                  = types.DefaultNextAuctionID
 )
 
 var (
@@ -75,6 +76,5 @@ type (
 	GenesisState      = types.GenesisState
 	MsgPlaceBid       = types.MsgPlaceBid
 	Params            = types.Params
-	QueryResAuctions  = types.QueryResAuctions
 	Keeper            = keeper.Keeper
 )

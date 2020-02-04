@@ -1,15 +1,18 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 // ensure Msg interface compliance at compile time
 var _ sdk.Msg = &MsgPlaceBid{}
 
 // MsgPlaceBid is the message type used to place a bid on any type of auction.
 type MsgPlaceBid struct {
-	AuctionID uint64
-	Bidder    sdk.AccAddress
-	Amount    sdk.Coin // The new bid or lot to be set on the auction.
+	AuctionID uint64         `json:"auction_id" yaml:"auction_id"`
+	Bidder    sdk.AccAddress `json:"bidder" yaml:"bidder"`
+	Amount    sdk.Coin       `json:"amount" yaml:"amount"` // The new bid or lot to be set on the auction.
 }
 
 // NewMsgPlaceBid returns a new MsgPlaceBid.
@@ -30,10 +33,10 @@ func (msg MsgPlaceBid) Type() string { return "place_bid" }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgPlaceBid) ValidateBasic() sdk.Error {
 	if msg.Bidder.Empty() {
-		return sdk.ErrInternal("invalid (empty) bidder address")
+		return sdk.ErrInvalidAddress("invalid (empty) bidder address")
 	}
 	if !msg.Amount.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Amount.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid bid amount: %s", msg.Amount))
 	}
 	return nil
 }

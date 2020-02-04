@@ -11,13 +11,16 @@ const (
 	TypeMsgPostPrice = "post_price"
 )
 
+// ensure Msg interface compliance at compile time
+var _ sdk.Msg = &MsgPostPrice{}
+
 // MsgPostPrice struct representing a posted price message.
 // Used by oracles to input prices to the pricefeed
 type MsgPostPrice struct {
-	From     sdk.AccAddress // client that sent in this address
-	MarketID string         // asset code used by exchanges/api
-	Price    sdk.Dec        // price in decimal (max precision 18)
-	Expiry   time.Time      // expiry time
+	From     sdk.AccAddress `json:"from" yaml:"from"`           // client that sent in this address
+	MarketID string         `json:"market_id" yaml:"market_id"` // asset code used by exchanges/api
+	Price    sdk.Dec        `json:"price" yaml:"price"`         // price in decimal (max precision 18)
+	Expiry   time.Time      `json:"expiry" yaml:"expiry"`       // expiry time
 }
 
 // NewMsgPostPrice creates a new post price msg

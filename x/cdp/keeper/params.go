@@ -30,8 +30,8 @@ func (k Keeper) GetCollateral(ctx sdk.Context, denom string) (types.CollateralPa
 	return types.CollateralParam{}, false
 }
 
-// GetDebt returns the debt param with matching denom
-func (k Keeper) GetDebt(ctx sdk.Context, denom string) (types.DebtParam, bool) {
+// GetDebtParam returns the debt param with matching denom
+func (k Keeper) GetDebtParam(ctx sdk.Context, denom string) (types.DebtParam, bool) {
 	params := k.GetParams(ctx)
 	for _, dp := range params.DebtParams {
 		if dp.Denom == denom {
@@ -93,4 +93,13 @@ func (k Keeper) getAuctionSize(ctx sdk.Context, denom string) sdk.Int {
 		panic(fmt.Sprintf("collateral not found: %s", denom))
 	}
 	return cp.AuctionSize
+}
+
+// GetFeeRate returns the per second fee rate for the input denom
+func (k Keeper) getFeeRate(ctx sdk.Context, denom string) (fee sdk.Dec) {
+	collalateralParam, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("could not get fee rate for %s, collateral not found", denom))
+	}
+	return collalateralParam.StabilityFee
 }

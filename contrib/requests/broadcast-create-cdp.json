@@ -1,0 +1,39 @@
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "cdp/MsgCreateCDP",
+        "value": {
+          "sender": "kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03",
+          "collateral": [
+            {
+              "denom": "xrp",
+              "amount": "110000000"
+            }
+          ],
+          "principal": [
+            {
+              "denom": "usdx",
+              "amount": "10000000"
+            }
+          ]
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "500000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "AxYhgA8CL/ZmTZCQDS2dGcccu+dv7zOBT0Wz0+grIufW"
+        },
+        "signature": "KMGQekAgj9qSqnu38swM/jTnIkrSskL4m9L3QQlBIbVZdzDQVh9Rkb0UL7TPeXTaswlSTiwFic3hvZZOcjM4SA=="
+      }
+    ],
+    "memo": ""
+  }
+}

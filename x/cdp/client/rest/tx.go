@@ -14,11 +14,11 @@ import (
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/cdp", postCdpHandlerFn(cliCtx)).Methods("PUT")
-	r.HandleFunc("/cdp/{owner}/{denom}/deposits", postDepositHandlerFn(cliCtx)).Methods("PUT")
-	r.HandleFunc("/cdp/{owner}/{denom}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("PUT")
-	r.HandleFunc("/cdp/{owner}/{denom}/draw", postDrawHandlerFn(cliCtx)).Methods("PUT")
-	r.HandleFunc("/cdp/{owner}/{denom}/wipe", postRepayHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc("/cdp", postCdpHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{denom}/deposits", postDepositHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{denom}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{denom}/draw", postDrawHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{denom}/repay", postRepayHandlerFn(cliCtx)).Methods("POST")
 
 }
 
@@ -36,7 +36,7 @@ func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Create and return msg
 		msg := types.NewMsgCreateCDP(
-			requestBody.Owner,
+			requestBody.Sender,
 			requestBody.Collateral,
 			requestBody.Principal,
 		)

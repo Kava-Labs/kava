@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	restName = "marketID"
+	RestMarketID = "market_id"
 )
 
-type postPriceReq struct {
+// PostPriceReq defines the properties of a PostPrice request's body.
+type PostPriceReq struct {
 	BaseReq  rest.BaseReq `json:"base_req"`
 	MarketID string       `json:"market_id"`
 	Price    string       `json:"price"`

@@ -27,6 +27,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCdpCmd(queryRoute, cdc),
 		QueryCdpsByDenomCmd(queryRoute, cdc),
 		QueryCdpsByDenomAndRatioCmd(queryRoute, cdc),
+		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
 
@@ -69,7 +70,7 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 			}
 
 			// Decode and print results
-			var cdp types.CDP
+			var cdp types.AugmentedCDP
 			cdc.MustUnmarshalJSON(res, &cdp)
 			return cliCtx.PrintOutput(cdp)
 		},
@@ -105,9 +106,9 @@ $ %s query %s cdps uatom
 			}
 
 			// Decode and print results
-			var out types.CDPs
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var cdps types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &cdps)
+			return cliCtx.PrintOutput(cdps)
 		},
 	}
 }
@@ -119,7 +120,7 @@ func QueryCdpsByDenomAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Com
 		Use:   "cdps-by-ratio [collateral-name] [collateralization-ratio]",
 		Short: "get cdps under a collateralization ratio",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`List all CDPs under a collateralization ratios.
+			fmt.Sprintf(`List all CDPs under a specified collateralization ratio.
 Collateralization ratio is: collateral * price / debt.
 
 Example:
@@ -150,9 +151,52 @@ $ %s query %s cdps-by-ratio uatom 1.5
 			}
 
 			// Decode and print results
-			var out types.CDPs
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var cdps types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &cdps)
+			return cliCtx.PrintOutput(cdps)
+		},
+	}
+}
+
+// QueryCdpDepositsCmd returns the command handler for querying the deposits of a particular cdp
+func QueryCdpDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposits [owner-addr] [collateral-name]",
+		Short: "get deposits for a cdp",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Get the deposits of a CDP.
+
+Example:
+$ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
+`, version.ClientName, types.ModuleName)),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare params for querier
+			ownerAddress, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			bz, err := cdc.MarshalJSON(types.QueryCdpParams{
+				CollateralDenom: args[1],
+				Owner:           ownerAddress,
+			})
+			if err != nil {
+				return err
+			}
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdpDeposits)
+			res, _, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var deposits types.Deposits
+			cdc.MustUnmarshalJSON(res, &deposits)
+			return cliCtx.PrintOutput(deposits)
 		},
 	}
 }

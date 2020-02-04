@@ -9,6 +9,9 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
+// BaseDigitFactor is 10**18, used during coin calculations
+const BaseDigitFactor = 1000000000000000000
+
 // AddCdp adds a cdp for a specific owner and collateral type
 func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins) sdk.Error {
 	// validation
@@ -107,7 +110,7 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 	return nil
 }
 
-// BurnDebtCoins burns debts coins from the cdp module account
+// BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coins) sdk.Error {
 	coinsToBurn := sdk.NewCoins()
 	for _, pc := range paymentCoins {
@@ -305,7 +308,7 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 
 // GetGovDenom returns the denom of debt in the system
 func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	bz := store.Get([]byte{})
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
 	return
@@ -346,7 +349,7 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) sdk.Er
 // ValidatePrincipalAdd validates that an asset is valid for use as debt when creating a new cdp
 func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.Error {
 	for _, dc := range principal {
-		dp, found := k.GetDebt(ctx, dc.Denom)
+		dp, found := k.GetDebtParam(ctx, dc.Denom)
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
@@ -360,7 +363,7 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.E
 // ValidatePrincipalDraw validates that an asset is valid for use as debt when drawing debt off an existing cdp
 func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.Error {
 	for _, dc := range principal {
-		_, found := k.GetDebt(ctx, dc.Denom)
+		_, found := k.GetDebtParam(ctx, dc.Denom)
 		if !found {
 			return types.ErrDebtNotSupported(k.codespace, dc.Denom)
 		}
@@ -410,8 +413,43 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	return collateralBaseUnits.Quo(debtTotal)
 }
 
+// LoadAugmentedCDP creates a new augmented CDP from an existing CDP
+func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, sdk.Error) {
+	// calculate additional fees
+	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	totalFees := cdp.AccumulatedFees.Add(fees)
+
+	// calculate collateralization ratio
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, totalFees)
+	if err != nil {
+		return types.AugmentedCDP{}, err
+	}
+
+	// total debt is the sum of all oustanding principal and fees
+	var totalDebt int64
+	for _, principalCoin := range cdp.Principal {
+		totalDebt += principalCoin.Amount.Int64()
+	}
+	for _, feeCoin := range cdp.AccumulatedFees.Add(fees) {
+		totalDebt += feeCoin.Amount.Int64()
+	}
+
+	// convert collateral value to debt coin
+	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)
+	collateralValueInDebtDenom := collateralizationRatio.Mul(debtBaseAdjusted)
+	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal[0].Denom, collateralValueInDebtDenom.Int64())
+
+	// create new augmuented cdp
+	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
+	return augmentedCDP, nil
+}
+
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
 func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, sdk.Error) {
+	if collateral.IsZero() {
+		return sdk.ZeroDec(), nil
+	}
 	marketID := k.getMarketID(ctx, collateral[0].Denom)
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
@@ -419,6 +457,7 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	}
 	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral[0])
 	collateralValue := collateralBaseUnits.Mul(price.Price)
+
 	principalTotal := sdk.ZeroDec()
 	for _, pc := range principal {
 		prinicpalBaseUnits := k.convertDebtToBaseUnits(ctx, pc)
@@ -432,6 +471,19 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	return collateralRatio, nil
 }
 
+// CalculateCollateralizationRatioFromAbsoluteRatio takes a coin's denom and an absolute ratio and returns the respective collateralization ratio
+func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralDenom string, absoluteRatio sdk.Dec) (sdk.Dec, sdk.Error) {
+	// get price collateral
+	marketID := k.getMarketID(ctx, collateralDenom)
+	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		return sdk.Dec{}, err
+	}
+	// convert absolute ratio to collateralization ratio
+	respectiveCollateralRatio := absoluteRatio.Quo(price.Price)
+	return respectiveCollateralRatio, nil
+}
+
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin) (baseUnits sdk.Dec) {
 	cp, _ := k.GetCollateral(ctx, collateral.Denom)
@@ -440,6 +492,6 @@ func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coi
 
 // converts the input debt to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdk.Dec) {
-	dp, _ := k.GetDebt(ctx, debt.Denom)
+	dp, _ := k.GetDebtParam(ctx, debt.Denom)
 	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
 }

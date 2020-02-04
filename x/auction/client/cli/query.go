@@ -2,12 +2,14 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
@@ -20,6 +22,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	auctionQueryCmd.AddCommand(client.GetCommands(
+		QueryGetAuctionCmd(queryRoute, cdc),
 		QueryGetAuctionsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
@@ -27,24 +30,66 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return auctionQueryCmd
 }
 
+// QueryGetAuctionCmd queries one auction in the store
+func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "auction [auction-id]",
+		Short: "get a info about an auction",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare params for querier
+			id, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("auction-id '%s' not a valid uint", args[0])
+			}
+			bz, err := cdc.MarshalJSON(types.QueryAuctionParams{
+				AuctionID: id,
+			})
+			if err != nil {
+				return err
+			}
+
+			// Query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuction), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var auction types.Auction
+			cdc.MustUnmarshalJSON(res, &auction)
+			auctionWithPhase := types.NewAuctionWithPhase(auction)
+			return cliCtx.PrintOutput(auctionWithPhase)
+		},
+	}
+}
+
 // QueryGetAuctionsCmd queries the auctions in the store
 func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "auctions",
 		Short: "get a list of active auctions",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/auctions", queryRoute), nil)
+
+			// Query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuctions), nil)
 			if err != nil {
-				fmt.Printf("error when getting auctions - %s", err)
-				return nil
+				return err
 			}
-			var out types.QueryResAuctions
-			cdc.MustUnmarshalJSON(res, &out)
-			if len(out) == 0 {
-				out = append(out, "There are currently no auctions")
+
+			// Decode and print results
+			var auctions types.Auctions
+			cdc.MustUnmarshalJSON(res, &auctions)
+
+			auctionsWithPhase := []types.AuctionWithPhase{} // using empty slice so json returns [] instead of null when there's no auctions
+			for _, a := range auctions {
+				auctionsWithPhase = append(auctionsWithPhase, types.NewAuctionWithPhase(a))
 			}
-			return cliCtx.PrintOutput(out)
+			return cliCtx.PrintOutput(auctionsWithPhase)
 		},
 	}
 }

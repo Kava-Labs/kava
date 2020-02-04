@@ -25,11 +25,16 @@
 
 Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using the [comsos-sdk](https://github.com/cosmos/cosmos-sdk).
 
+
 ## Quick Start
 
 ```sh
 make install
 ```
+
+## Mainnet
+
+Note, the current reccomended version of the software for mainnet is v0.3.1.
 
 To join the latest testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
 

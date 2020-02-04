@@ -59,10 +59,11 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.keeper = tApp.GetAuctionKeeper()
 
 	// Populate with auctions
+	randSrc := rand.New(rand.NewSource(int64(1234)))
 	for j := 0; j < TestAuctionCount; j++ {
-		lotAmount := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 10, 100)
+		lotAmount := simulation.RandIntBetween(randSrc, 10, 100)
 		id, err := suite.keeper.StartSurplusAuction(suite.ctx, modName, c("token1", int64(lotAmount)), "token2")
-		suite.Nil(err)
+		suite.NoError(err)
 
 		auc, found := suite.keeper.GetAuction(suite.ctx, id)
 		suite.True(found)
@@ -72,12 +73,12 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.querier = keeper.NewQuerier(suite.keeper)
 }
 
-func (suite *QuerierTestSuite) TestQueryAuctions() {
+func (suite *QuerierTestSuite) TestQueryAuction() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAuction}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAllAuctionParams(1, TestAuctionCount)),
+		Data: types.ModuleCdc.MustMarshalJSON(types.QueryAuctionParams{AuctionID: types.DefaultNextAuctionID}), // get the first auction
 	}
 
 	// Execute query and check the []byte result
@@ -85,11 +86,40 @@ func (suite *QuerierTestSuite) TestQueryAuctions() {
 	suite.NoError(err)
 	suite.NotNil(bz)
 
+	// Unmarshal the bytes into type Auction
+	var auction types.Auction
+	suite.NoError(types.ModuleCdc.UnmarshalJSON(bz, &auction))
+
+	// Check the returned auction
+	suite.Equal(suite.auctions[0].GetID(), auction.GetID())
+	suite.Equal(suite.auctions[0].GetInitiator(), auction.GetInitiator())
+	suite.Equal(suite.auctions[0].GetLot(), auction.GetLot())
+	suite.Equal(suite.auctions[0].GetBid(), auction.GetBid())
+	suite.Equal(suite.auctions[0].GetEndTime(), auction.GetEndTime())
+
+}
+
+func (suite *QuerierTestSuite) TestQueryAuctions() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	// Set up request query
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAuctions}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAllAuctionParams(1, TestAuctionCount)),
+	}
+
+	// Execute query and check the []byte result
+	bz, err := suite.querier(ctx, []string{types.QueryGetAuctions}, query)
+	suite.NoError(err)
+	suite.NotNil(bz)
+
 	// Unmarshal the bytes into type Auctions
 	var auctions types.Auctions
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &auctions))
+	suite.NoError(types.ModuleCdc.UnmarshalJSON(bz, &auctions))
 
 	// Check that each Auction has correct values
+	if len(auctions) == 0 && len(suite.auctions) != 0 {
+		suite.FailNow("no auctions returned") // skip the panic from indexing empty slice below
+	}
 	for i := 0; i < TestAuctionCount; i++ {
 		suite.Equal(suite.auctions[i].GetID(), auctions[i].GetID())
 		suite.Equal(suite.auctions[i].GetInitiator(), auctions[i].GetInitiator())

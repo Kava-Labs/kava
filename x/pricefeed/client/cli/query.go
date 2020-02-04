@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/spf13/cobra"
 )
@@ -22,8 +23,9 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	pricefeedQueryCmd.AddCommand(client.GetCommands(
-		GetCmdCurrentPrice(queryRoute, cdc),
+		GetCmdPrice(queryRoute, cdc),
 		GetCmdRawPrices(queryRoute, cdc),
+		GetCmdOracles(queryRoute, cdc),
 		GetCmdMarkets(queryRoute, cdc),
 		GetCmdQueryParams(queryRoute, cdc),
 	)...)
@@ -31,8 +33,37 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return pricefeedQueryCmd
 }
 
-// GetCmdCurrentPrice queries the current price of an asset
-func GetCmdCurrentPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdOracles queries the oracle set of an asset
+func GetCmdOracles(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "oracles [marketID]",
+		Short: "get the oracle set for a market",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			marketID := args[0]
+
+			bz, err := cdc.MarshalJSON(types.QueryWithMarketIDParams{
+				MarketID: marketID,
+			})
+			if err != nil {
+				return err
+			}
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryOracles)
+
+			res, _, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			var oracles []sdk.AccAddress
+			cdc.MustUnmarshalJSON(res, &oracles)
+			return cliCtx.PrintOutput(oracles)
+		},
+	}
+}
+
+// GetCmdPrice queries the current price of an asset
+func GetCmdPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "price [marketID]",
 		Short: "get the current price for the input market",
@@ -41,13 +72,13 @@ func GetCmdCurrentPrice(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryPricesParams{
+			bz, err := cdc.MarshalJSON(types.QueryWithMarketIDParams{
 				MarketID: marketID,
 			})
 			if err != nil {
 				return err
 			}
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCurrentPrice)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryPrice)
 
 			res, _, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
@@ -70,7 +101,7 @@ func GetCmdRawPrices(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			marketID := args[0]
 
-			bz, err := cdc.MarshalJSON(types.QueryPricesParams{
+			bz, err := cdc.MarshalJSON(types.QueryWithMarketIDParams{
 				MarketID: marketID,
 			})
 			if err != nil {

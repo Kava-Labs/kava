@@ -46,16 +46,16 @@ func (msg MsgCreateCDP) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
 	}
 	if !msg.Collateral.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid collateral amount: %s", msg.Collateral))
 	}
 	if !msg.Collateral.IsAllPositive() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("negative collateral amount: %s", msg.Collateral))
 	}
 	if !msg.Principal.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Principal.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid principal amount: %s", msg.Principal))
 	}
 	if !msg.Principal.IsAllPositive() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("negative principal amount: %s", msg.Principal))
 	}
 	return nil
 }
@@ -114,10 +114,10 @@ func (msg MsgDeposit) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
 	}
 	if !msg.Collateral.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid collateral amount: %s", msg.Collateral))
 	}
 	if !msg.Collateral.IsAllPositive() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("negative collateral amount: %s", msg.Collateral))
 	}
 	return nil
 }
@@ -176,10 +176,10 @@ func (msg MsgWithdraw) ValidateBasic() sdk.Error {
 		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
 	}
 	if !msg.Collateral.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid collateral amount: %s", msg.Collateral))
 	}
 	if !msg.Collateral.IsAllPositive() {
-		return sdk.ErrInvalidCoins(msg.Collateral.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("negative collateral amount: %s", msg.Collateral))
 	}
 	return nil
 }
@@ -235,10 +235,10 @@ func (msg MsgDrawDebt) ValidateBasic() sdk.Error {
 		return sdk.ErrInternal("invalid (empty) cdp denom")
 	}
 	if !msg.Principal.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Principal.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid principal amount: %s", msg.Principal))
 	}
 	if !msg.Principal.IsAllPositive() {
-		return sdk.ErrInvalidCoins(msg.Principal.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("negative principal amount: %s", msg.Principal))
 	}
 	return nil
 }
@@ -294,10 +294,10 @@ func (msg MsgRepayDebt) ValidateBasic() sdk.Error {
 		return sdk.ErrInternal("invalid (empty) cdp denom")
 	}
 	if !msg.Payment.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Payment.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid payment amount: %s", msg.Payment))
 	}
 	if !msg.Payment.IsAllPositive() {
-		return sdk.ErrInvalidCoins(msg.Payment.String())
+		return sdk.ErrInvalidCoins(fmt.Sprintf("negative payment amount: %s", msg.Payment))
 	}
 	return nil
 }
@@ -320,9 +320,4 @@ func (msg MsgRepayDebt) String() string {
 	CDP Denom: %s
 	Payment: %s
 `, msg.Sender, msg.CdpDenom, msg.Payment)
-}
-
-// MsgTransferCDP changes the ownership of a cdp
-type MsgTransferCDP struct {
-	// TODO
 }

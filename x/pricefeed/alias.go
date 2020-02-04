@@ -17,7 +17,14 @@ const (
 	CodeInvalidPrice              = types.CodeInvalidPrice
 	CodeInvalidAsset              = types.CodeInvalidAsset
 	CodeInvalidOracle             = types.CodeInvalidOracle
+	EventTypeMarketPriceUpdated   = types.EventTypeMarketPriceUpdated
+	EventTypeOracleUpdatedPrice   = types.EventTypeOracleUpdatedPrice
 	EventTypeNoValidPrices        = types.EventTypeNoValidPrices
+	AttributeValueCategory        = types.AttributeValueCategory
+	AttributeMarketID             = types.AttributeMarketID
+	AttributeMarketPrice          = types.AttributeMarketPrice
+	AttributeOracle               = types.AttributeOracle
+	AttributeExpiry               = types.AttributeExpiry
 	AttributeKeyPriceUpdateFailed = types.AttributeKeyPriceUpdateFailed
 	ModuleName                    = types.ModuleName
 	StoreKey                      = types.StoreKey
@@ -29,7 +36,7 @@ const (
 	MarketPrefix                  = types.MarketPrefix
 	OraclePrefix                  = types.OraclePrefix
 	TypeMsgPostPrice              = types.TypeMsgPostPrice
-	QueryCurrentPrice             = types.QueryCurrentPrice
+	QueryPrice                    = types.QueryPrice
 	QueryRawPrices                = types.QueryRawPrices
 	QueryMarkets                  = types.QueryMarkets
 )
@@ -58,14 +65,14 @@ var (
 )
 
 type (
-	GenesisState      = types.GenesisState
-	Market            = types.Market
-	Markets           = types.Markets
-	CurrentPrice      = types.CurrentPrice
-	PostedPrice       = types.PostedPrice
-	SortDecs          = types.SortDecs
-	MsgPostPrice      = types.MsgPostPrice
-	Params            = types.Params
-	QueryPricesParams = types.QueryPricesParams
-	Keeper            = keeper.Keeper
+	GenesisState            = types.GenesisState
+	Market                  = types.Market
+	Markets                 = types.Markets
+	CurrentPrice            = types.CurrentPrice
+	PostedPrice             = types.PostedPrice
+	SortDecs                = types.SortDecs
+	MsgPostPrice            = types.MsgPostPrice
+	Params                  = types.Params
+	QueryWithMarketIDParams = types.QueryWithMarketIDParams
+	Keeper                  = keeper.Keeper
 )

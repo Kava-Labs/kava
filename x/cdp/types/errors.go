@@ -25,6 +25,8 @@ const (
 	CodeInvalidWithdrawAmount   sdk.CodeType      = 13
 	CodeCdpNotAvailable         sdk.CodeType      = 14
 	CodeBelowDebtFloor          sdk.CodeType      = 15
+	CodePaymentExceedsDebt      sdk.CodeType      = 16
+	CodeLoadingAugmentedCDP     sdk.CodeType      = 17
 )
 
 // ErrCdpAlreadyExists error for duplicate cdps
@@ -100,4 +102,14 @@ func ErrCdpNotAvailable(codespace sdk.CodespaceType, cdpID uint64) sdk.Error {
 // ErrBelowDebtFloor error for creating a cdp with debt below the minimum
 func ErrBelowDebtFloor(codespace sdk.CodespaceType, debt sdk.Coins, floor sdk.Int) sdk.Error {
 	return sdk.NewError(codespace, CodeBelowDebtFloor, fmt.Sprintf("proposed cdp debt of %s is below the minimum of %s", debt, floor))
+}
+
+// ErrPaymentExceedsDebt error for repayments that are greater than the debt amount
+func ErrPaymentExceedsDebt(codespace sdk.CodespaceType, payment sdk.Coins, principal sdk.Coins) sdk.Error {
+	return sdk.NewError(codespace, CodePaymentExceedsDebt, fmt.Sprintf("payment of %s exceeds debt of %s", payment, principal))
+}
+
+// ErrLoadingAugmentedCDP error loading augmented cdp
+func ErrLoadingAugmentedCDP(codespace sdk.CodespaceType, cdpID uint64) sdk.Error {
+	return sdk.NewError(codespace, CodeCdpNotFound, fmt.Sprintf("augmented cdp could not be loaded from cdp id %d", cdpID))
 }

@@ -12,33 +12,108 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
+const restAuctionID = "auction-id"
+
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/auction/getauctions"), queryGetAuctionsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/auction/params", getParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/auctions", types.ModuleName), queryAuctionsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/auctions/{%s}", types.ModuleName, restAuctionID), queryAuctionHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), getParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryGetAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, height, err := cliCtx.QueryWithData("/custom/auction/getauctions", nil)
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		// Prepare params for querier
+		vars := mux.Vars(r)
+		if len(vars[restAuctionID]) == 0 {
+			err := fmt.Errorf("%s required but not specified", restAuctionID)
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		auctionID, ok := rest.ParseUint64OrReturnBadRequest(w, vars[restAuctionID])
+		if !ok {
+			return
+		}
+		bz, err := cliCtx.Codec.MarshalJSON(types.QueryAuctionParams{AuctionID: auctionID})
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// Query
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("/custom/%s/%s", types.ModuleName, types.QueryGetAuction), bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Decode and return results
+		cliCtx = cliCtx.WithHeight(height)
+
+		var auction types.Auction
+		err = cliCtx.Codec.UnmarshalJSON(res, &auction)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		auctionWithPhase := types.NewAuctionWithPhase(auction)
+		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithPhase))
+	}
+}
+
+func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		// Get all auctions
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("/custom/%s/%s", types.ModuleName, types.QueryGetAuctions), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
+
+		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
+
+		var auctions types.Auctions
+		err = cliCtx.Codec.UnmarshalJSON(res, &auctions)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		auctionsWithPhase := []types.AuctionWithPhase{} // using empty slice so json returns [] instead of null when there's no auctions
+		for _, a := range auctions {
+			auctionsWithPhase = append(auctionsWithPhase, types.NewAuctionWithPhase(a))
+		}
+		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionsWithPhase))
 	}
 }
 
 func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		// Get the params
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/auction/%s", types.QueryGetParams), nil)
-		cliCtx = cliCtx.WithHeight(height)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetParams), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// Return the params
+		// Decode and return results
+		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
