@@ -23,6 +23,11 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func queryRawPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
 		queryRawPricesParams := types.NewQueryWithMarketIDParams(paramMarketID)
@@ -46,6 +51,11 @@ func queryRawPricesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
 		queryPriceParams := types.NewQueryWithMarketIDParams(paramMarketID)
@@ -69,6 +79,11 @@ func queryPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryMarketsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryMarkets), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -82,6 +97,11 @@ func queryMarketsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryOraclesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		paramMarketID := vars[RestMarketID]
 		queryOraclesParams := types.NewQueryWithMarketIDParams(paramMarketID)
@@ -105,6 +125,11 @@ func queryOraclesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetParams), nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())

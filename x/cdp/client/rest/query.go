@@ -25,6 +25,11 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestOwner]
 		collateralDenom := vars[types.RestCollateralDenom]
@@ -57,6 +62,11 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		collateralDenom := vars[types.RestCollateralDenom]
 
@@ -82,6 +92,11 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		collateralDenom := vars[types.RestCollateralDenom]
 		ratioStr := vars[types.RestRatio]
@@ -113,6 +128,11 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestOwner]
 		collateralDenom := vars[types.RestCollateralDenom]
@@ -145,6 +165,11 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
 		// Get the params
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetParams), nil)
 		cliCtx = cliCtx.WithHeight(height)
