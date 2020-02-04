@@ -15,9 +15,9 @@ import (
 const restAuctionID = "auction-id"
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/{%s}/auctions", types.ModuleName), queryAuctionsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/{%s}/auctions/{%s}", types.ModuleName, restAuctionID), queryAuctionHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/{%s}/parameters", types.ModuleName), getParamsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/auctions", types.ModuleName), queryAuctionsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/auctions/{%s}", types.ModuleName, restAuctionID), queryAuctionHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), getParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
