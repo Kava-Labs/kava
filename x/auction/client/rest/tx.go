@@ -15,7 +15,7 @@ import (
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/{%s}/auctions/{%s}/bids", types.ModuleName, restAuctionID), bidHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/auctions/{%s}/bids", types.ModuleName, restAuctionID), bidHandlerFn(cliCtx)).Methods("POST")
 }
 
 type placeBidReq struct {
