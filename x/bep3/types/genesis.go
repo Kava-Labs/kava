@@ -6,22 +6,19 @@ import (
 
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	NextKHTLTID uint64 `json:"next_htlt_id" yaml:"next_htlt_id"`
-	Params      Params `json:"params" yaml:"params"`
+	Params Params `json:"params" yaml:"params"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(nextID uint64, params Params) GenesisState {
+func NewGenesisState(params Params) GenesisState {
 	return GenesisState{
-		NextKHTLTID: nextID,
-		Params:      params,
-		// TODO: KTLTs:      GenesisKTLTs `json:"ktlts" yaml:"ktlts"`
+		Params: params,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(0, DefaultParams())
+	return NewGenesisState(DefaultParams())
 }
 
 // Equal checks whether two GenesisState structs are equivalent.
@@ -41,23 +38,5 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-
-	// TODO: Allow initial HTLTs upon genesis?
-	// ids := map[uint64]bool{}
-	// for _, a := range gs.HTLTs {
-
-	// 	if err := a.Validate(); err != nil {
-	// 		return fmt.Errorf("found invalid HTLT: %w", err)
-	// 	}
-
-	// 	if ids[a.GetID()] {
-	// 		return fmt.Errorf("found duplicate HTLT ID (%d)", a.GetID())
-	// 	}
-	// 	ids[a.GetID()] = true
-
-	// 	if a.GetID() >= gs.NextHTLTID {
-	// 		return fmt.Errorf("found HTLT ID >= the nextHTLDID (%d >= %d)", a.GetID(), gs.NextHTLTID)
-	// 	}
-	// }
 	return nil
 }

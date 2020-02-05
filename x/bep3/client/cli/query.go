@@ -8,8 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/kava-labs/kava/x/bep3/internal/types"
-	// "github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -21,11 +20,11 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	bep3QueryCmd.AddCommand(client.GetCommands(
-		QueryGetHtltCmd(queryRoute, cdc),
+		QueryGetHtltsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
 
-	return auctionQueryCmd
+	return bep3QueryCmd
 }
 
 // QueryGetHtltsCmd queries the htlts in the store
@@ -40,7 +39,7 @@ func QueryGetHtltsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				fmt.Printf("error when getting htlts - %s", err)
 				return nil
 			}
-			var out types.QueryResHtlts
+			var out types.QueryResHTLTs
 			cdc.MustUnmarshalJSON(res, &out)
 			if len(out) == 0 {
 				out = append(out, "There are currently no htlts")

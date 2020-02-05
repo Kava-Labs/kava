@@ -62,34 +62,13 @@ func NewMsgCreateHTLT(from types.AccAddress, to types.AccAddress, recipientOther
 	}
 }
 
-// TODO: revisit
-// NewMsgCreateKHTLT initializes a new MsgCreateKHTLT
-// func NewMsgCreateKHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain, senderOtherChain string,
-// 	randomNumberHash types.SwapBytes, timestamp int64, amount types.Coins, expectedIncome string, heightSpan int64,
-// 	crossChain bool) MsgCreateKHTLT {
-// 	return MsgCreateKHTLT{
-// 		HTLT: HTLT{
-// 			From:                from,
-// 			To:                  to,
-// 			RecipientOtherChain: recipientOtherChain,
-// 			SenderOtherChain:    senderOtherChain,
-// 			RandomNumberHash:    randomNumberHash,
-// 			Timestamp:           timestamp,
-// 			Amount:              amount,
-// 			ExpectedIncome:      expectedIncome,
-// 			HeightSpan:          heightSpan,
-// 			CrossChain:          crossChain},
-// 		OriginChain: "kava", // TODO
-// 	}
-// }
-
 // Route establishes the route for the MsgCreateHTLT
 func (msg MsgCreateHTLT) Route() string { return AtomicSwapRoute }
 
 // Type is the name of MsgCreateHTLT
 func (msg MsgCreateHTLT) Type() string { return "KavaHTLT" }
 
-// String prints the MsgCreateKHTLT
+// String prints the MsgCreateHTLT
 func (msg MsgCreateHTLT) String() string {
 	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
 		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
@@ -153,45 +132,45 @@ func (msg MsgCreateHTLT) GetSignBytes() []byte {
 	return b
 }
 
-// MsgDepositKTHLT defines an KHTLT deposit
-type MsgDepositKTHLT struct {
+// MsgDepositHTLT defines an HTLT deposit
+type MsgDepositHTLT struct {
 	From   types.AccAddress `json:"from"`
 	SwapID types.SwapBytes  `json:"swap_id"`
 	Amount types.Coins      `json:"amount"`
 }
 
-// NewMsgDepositKTHLT initializes a new MsgDepositKTHLT
-func NewMsgDepositKTHLT(from types.AccAddress, swapID []byte, amount types.Coins) MsgDepositKTHLT {
-	return MsgDepositKTHLT{
+// NewMsgDepositHTLT initializes a new MsgDepositHTLT
+func NewMsgDepositHTLT(from types.AccAddress, swapID []byte, amount types.Coins) MsgDepositHTLT {
+	return MsgDepositHTLT{
 		From:   from,
 		SwapID: swapID,
 		Amount: amount,
 	}
 }
 
-// Route establishes the route for the MsgDepositKTHLT
-func (msg MsgDepositKTHLT) Route() string { return AtomicSwapRoute }
+// Route establishes the route for the MsgDepositHTLT
+func (msg MsgDepositHTLT) Route() string { return AtomicSwapRoute }
 
-// Type is the name of MsgDepositKTHLT
-func (msg MsgDepositKTHLT) Type() string { return DepositHTLT }
+// Type is the name of MsgDepositHTLT
+func (msg MsgDepositHTLT) Type() string { return DepositHTLT }
 
-// String prints the MsgDepositKTHLT
-func (msg MsgDepositKTHLT) String() string {
+// String prints the MsgDepositHTLT
+func (msg MsgDepositHTLT) String() string {
 	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgDepositKTHLT
-func (msg MsgDepositKTHLT) GetInvolvedAddresses() []types.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgDepositHTLT
+func (msg MsgDepositHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgDepositKTHLT
-func (msg MsgDepositKTHLT) GetSigners() []types.AccAddress {
+// GetSigners gets the signers of a MsgDepositHTLT
+func (msg MsgDepositHTLT) GetSigners() []types.AccAddress {
 	return []types.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the MsgDepositKTHLT
-func (msg MsgDepositKTHLT) ValidateBasic() error {
+// ValidateBasic validates the MsgDepositHTLT
+func (msg MsgDepositHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -204,8 +183,8 @@ func (msg MsgDepositKTHLT) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgDepositKTHLT
-func (msg MsgDepositKTHLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgDepositHTLT
+func (msg MsgDepositHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -213,43 +192,43 @@ func (msg MsgDepositKTHLT) GetSignBytes() []byte {
 	return b
 }
 
-// MsgClaimKHTLT defines a KHTLT claim
-type MsgClaimKHTLT struct {
+// MsgClaimHTLT defines a HTLT claim
+type MsgClaimHTLT struct {
 	From         types.AccAddress `json:"from"`
 	SwapID       types.SwapBytes  `json:"swap_id"`
 	RandomNumber types.SwapBytes  `json:"random_number"`
 }
 
-// NewMsgClaimKHTLT initializes a new MsgClaimKHTLT
-func NewMsgClaimKHTLT(from types.AccAddress, swapID, randomNumber []byte) MsgClaimKHTLT {
-	return MsgClaimKHTLT{
+// NewMsgClaimHTLT initializes a new MsgClaimHTLT
+func NewMsgClaimHTLT(from types.AccAddress, swapID, randomNumber []byte) MsgClaimHTLT {
+	return MsgClaimHTLT{
 		From:         from,
 		SwapID:       swapID,
 		RandomNumber: randomNumber,
 	}
 }
 
-// Route establishes the route for the MsgClaimKHTLT
-func (msg MsgClaimKHTLT) Route() string { return AtomicSwapRoute }
+// Route establishes the route for the MsgClaimHTLT
+func (msg MsgClaimHTLT) Route() string { return AtomicSwapRoute }
 
-// Type is the name of MsgClaimKHTLT
-func (msg MsgClaimKHTLT) Type() string { return ClaimHTLT }
+// Type is the name of MsgClaimHTLT
+func (msg MsgClaimHTLT) Type() string { return ClaimHTLT }
 
-// String prints the MsgClaimKHTLT
-func (msg MsgClaimKHTLT) String() string {
+// String prints the MsgClaimHTLT
+func (msg MsgClaimHTLT) String() string {
 	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, msg.SwapID, msg.RandomNumber)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgClaimKHTLT
-func (msg MsgClaimKHTLT) GetInvolvedAddresses() []types.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgClaimHTLT
+func (msg MsgClaimHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgClaimKHTLT
-func (msg MsgClaimKHTLT) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
+// GetSigners gets the signers of a MsgClaimHTLT
+func (msg MsgClaimHTLT) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
 
-// ValidateBasic validates the MsgClaimKHTLT
-func (msg MsgClaimKHTLT) ValidateBasic() error {
+// ValidateBasic validates the MsgClaimHTLT
+func (msg MsgClaimHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -262,8 +241,8 @@ func (msg MsgClaimKHTLT) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgClaimKHTLT
-func (msg MsgClaimKHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgClaimHTLT
+func (msg MsgClaimHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -271,41 +250,41 @@ func (msg MsgClaimKHTLT) GetSignBytes() []byte {
 	return b
 }
 
-// MsgRefundKHTLT defines a refund msg
-type MsgRefundKHTLT struct {
+// MsgRefundHTLT defines a refund msg
+type MsgRefundHTLT struct {
 	From   types.AccAddress `json:"from"`
 	SwapID types.SwapBytes  `json:"swap_id"`
 }
 
-// NewMsgRefundKHTLT initializes a new MsgRefundKHTLT
-func NewMsgRefundKHTLT(from types.AccAddress, swapID []byte) MsgRefundKHTLT {
-	return MsgRefundKHTLT{
+// NewMsgRefundHTLT initializes a new MsgRefundHTLT
+func NewMsgRefundHTLT(from types.AccAddress, swapID []byte) MsgRefundHTLT {
+	return MsgRefundHTLT{
 		From:   from,
 		SwapID: swapID,
 	}
 }
 
-// Route establishes the route for the MsgRefundKHTLT
-func (msg MsgRefundKHTLT) Route() string { return AtomicSwapRoute }
+// Route establishes the route for the MsgRefundHTLT
+func (msg MsgRefundHTLT) Route() string { return AtomicSwapRoute }
 
-// Type is the name of MsgRefundKHTLT
-func (msg MsgRefundKHTLT) Type() string { return RefundHTLT }
+// Type is the name of MsgRefundHTLT
+func (msg MsgRefundHTLT) Type() string { return RefundHTLT }
 
-// String prints the MsgRefundKHTLT
-func (msg MsgRefundKHTLT) String() string {
+// String prints the MsgRefundHTLT
+func (msg MsgRefundHTLT) String() string {
 	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, msg.SwapID)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgRefundKHTLT
-func (msg MsgRefundKHTLT) GetInvolvedAddresses() []types.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgRefundHTLT
+func (msg MsgRefundHTLT) GetInvolvedAddresses() []types.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgRefundKHTLT
-func (msg MsgRefundKHTLT) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
+// GetSigners gets the signers of a MsgRefundHTLT
+func (msg MsgRefundHTLT) GetSigners() []types.AccAddress { return []types.AccAddress{msg.From} }
 
-// ValidateBasic validates the MsgRefundKHTLT
-func (msg MsgRefundKHTLT) ValidateBasic() error {
+// ValidateBasic validates the MsgRefundHTLT
+func (msg MsgRefundHTLT) ValidateBasic() error {
 	if len(msg.From) != types.AddrLen {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	}
@@ -315,8 +294,8 @@ func (msg MsgRefundKHTLT) ValidateBasic() error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgRefundKHTLT
-func (msg MsgRefundKHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgRefundHTLT
+func (msg MsgRefundHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)

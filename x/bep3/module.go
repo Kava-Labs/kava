@@ -12,9 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/kava-kabs/kava/x/bep3/internal/types"
 	"github.com/kava-labs/kava/x/bep3/client/cli"
 	"github.com/kava-labs/kava/x/bep3/client/rest"
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 var (
@@ -45,12 +45,12 @@ func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 
 // ValidateGenesis performs genesis state validation for the bep3 module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	var gs GenesisState
+	err := ModuleCdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis(data)
+	return gs.Validate()
 }
 
 // RegisterRESTRoutes registers the REST routes for the bep3 module.
@@ -68,22 +68,20 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-//____________________________________________________________________________
-
-// AppModule implements an application module for the bep3 module.
+// AppModule implements the sdk.AppModule interface.
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
-	// TODO: Add keepers that your application depends on
+	keeper       Keeper
+	supplyKeeper types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper /*TODO: Add Keepers that your application depends on*/) AppModule {
+func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
-		// TODO: Add keepers that your application depends on
+		keeper:         keeper,
+		supplyKeeper:   supplyKeeper,
 	}
 }
 
@@ -120,7 +118,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.stakingKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

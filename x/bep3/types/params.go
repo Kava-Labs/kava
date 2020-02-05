@@ -53,20 +53,16 @@ func DefaultParams() Params {
 
 // ChainParam governance parameters for each chain within the bep3 module
 type ChainParam struct {
-	Name   string      `json:"name" yaml:"name"`       // name of blockchain
-	RPCURL string      `json:"rpc_url" yaml:"rpc_url"` // rpc url that relayer uses to subscribe to txs
-	Active bool        `json:"active" yaml:"active"`
-	Assets AssetParams `json:"chain_assets" yaml:"chain_assets"` // list of supported assets
+	ChainID string      `json:"chain_id" yaml:"chain_id"`         // blockchain ID
+	Assets  AssetParams `json:"chain_assets" yaml:"chain_assets"` // list of supported assets
 }
 
 // String implements fmt.Stringer
 func (cp ChainParam) String() string {
 	return fmt.Sprintf(`Chain:
-	Name: %s
-	RPC-URL: %s
-	Active: %s
+	ID: %s
 	Assets: %s`,
-		cp.Name, cp.RPCURL, cp.Active, cp.Assets)
+		cp.ChainID, cp.Assets)
 }
 
 // ChainParams array of ChainParam
@@ -83,11 +79,10 @@ func (cps ChainParams) String() string {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Name       string  `json:"name" yaml:"name"`             // name of asset
-	CoinID     string  `json:"coin_id" yaml:"coin_id"`       // internationally recognized coin ID
-	LimitUSDX  sdk.Int `json:"limit_usdx" yaml:"limit_usdx"` // asset limit in usdx
-	Active     bool    `json:"active" yaml:"active"`
-	AboveLimit bool    `json:"above_limit" yaml:"above_limit"`
+	Name   string  `json:"name" yaml:"name"`       // name of asset
+	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
+	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset limit
+	Active bool    `json:"active" yaml:"active"`
 }
 
 // String implements fmt.Stringer
@@ -95,10 +90,9 @@ func (ap AssetParam) String() string {
 	return fmt.Sprintf(`Asset:
 	Name: %s
 	Coin ID: %s
-	Limit USDX: %s
-	Active: %s
-	Above Limit: %s`,
-		ap.Name, ap.CoinID, ap.LimitUSDX, ap.Active, ap.AboveLimit)
+	Limit: %s
+	Active: %t`,
+		ap.Name, ap.CoinID, ap.Limit, ap.Active)
 }
 
 // AssetParams array of AssetParam

@@ -7,17 +7,12 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/denalimarsh/Kava-Labs/kava/x/bep3/internal/types"
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-// TODO: Define your GET REST endpoints
-	r.HandleFunc(
-		"/bep3/parameters",
-		queryParamsHandlerFn(cliCtx),
-	).Methods("GET")
+	r.HandleFunc("/bep3/parameters", queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {

@@ -1,8 +1,6 @@
 package types
 
 import (
-	"time"
-
 	"github.com/binance-chain/go-sdk/common/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -39,34 +37,8 @@ func NewHTLT(from types.AccAddress, to types.AccAddress, recipientOtherChain,
 	}
 }
 
-// KHTLT extends HTLT
-type KHTLT struct {
-	ID   uint64 `json:"id"`
-	HTLT HTLT   `json:"htlt"`
-	// Relayer     sdk.AccAddress `json:"relayer"`
-	// OriginChain string         `json:"origin_chain"`
-	EndTime time.Time `json:"end_time"`
-	// Updates     UpdatesKHTLT   `json:"updates"`
-	// Status      string         `json:"status"` // TODO: Use enum for status
-}
-
-// NewKHTLT returns a new KHTLT.
-func NewKHTLT(htlt HTLT) KHTLT {
-	khtlt := KHTLT{
-		// ID:   id,
-		HTLT: htlt,
-		// TODO: SwapID
-		// Relayer: relayer,
-		// // OriginChain: originChain,
-		EndTime: time.Now().Add(DefaultMinimumLockTime),
-		// Updates: UpdatesKHTLT{},
-		// Status:  "active", // TODO: use Swap.Status
-	}
-	return khtlt
-}
-
-// KHTLTs is a slice of KHTLTs
-type KHTLTs []KHTLT
+// HTLTs is a slice of HTLT
+type HTLTs []HTLT
 
 // // TODO: Validate verifies that the module account has enough coins to
 // //		 complete HTLT and time is less than max time
@@ -77,38 +49,16 @@ type KHTLTs []KHTLT
 // 	return nil
 // }
 
-// UpdateKHTLT is an interface for handling common actions on a KHTLT
-type UpdateKHTLT interface {
-	GetFrom() []byte
-	GetSwapID(types.SwapBytes) KHTLT // TODO: Is this correct?
-	GetInitiator() string
-	GetParentID() uint64
-}
-
-// UpdatesKHTLT is a slice of UpdateKHTLT.
-type UpdatesKHTLT []UpdateKHTLT
-
-// WithID returns an HTLT with the ID set.
-func (h KHTLT) WithID(id uint64) KHTLT { h.ID = id; return h }
-
 // GetModuleAccountCoins returns the total number of coins held in the module account for this HTLT.
 // It is used in genesis initialize the module account correctly.
-func (h KHTLT) GetModuleAccountCoins() sdk.Coins {
+func (h HTLT) GetModuleAccountCoins() sdk.Coins {
 	// We must convert BinanceChain.Coins to Cosmos.Coins
 	var coins sdk.Coins
-	for _, coin := range h.HTLT.Amount {
+	for _, coin := range h.Amount {
 		coins = append(coins, sdk.NewCoin(coin.Denom, sdk.NewInt(coin.Amount)))
 	}
 	return coins
 }
-
-// TODO: UpdateKHTLT is a type shared by all HTLT update structs
-// type UpdateKHTLT struct {
-// 	From   types.AccAddress `json:"from"`
-// 	SwapID types.SwapBytes  `json:"swap_id"`
-// }
-// TODO: UpdateKHTLTs is a slice of UpdateKHTLT
-// type UpdateKHTLTs []UpdateKHTLT
 
 // ClaimKHTLT defines an HTLT claim
 type ClaimKHTLT struct {

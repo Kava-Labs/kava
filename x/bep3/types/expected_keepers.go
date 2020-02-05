@@ -5,7 +5,6 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
-// TODO: Revist
 // SupplyKeeper defines the expected supply Keeper
 type SupplyKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
