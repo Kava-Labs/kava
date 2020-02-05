@@ -5,18 +5,12 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/cosmos-sdk/x/params"
-	// "github.com/kava-labs/kava/x/bep3/types"
 )
 
 // Parameter keys
 var (
-	KeyMinimumLockTime = []byte("MinimumLockTime")
-	KeyChainParams     = []byte("Chains")
-	// TODO: validate this time as reasonable
-	DefaultHTLTStartingID                = uint64(1)
-	DefaultRelayer                       = sdk.AccAddress{}
+	KeyChainParams                       = []byte("Chains")
 	DefaultMinimumLockTime time.Duration = 24 * time.Hour
 	DefaultChainParams                   = ChainParams{}
 )

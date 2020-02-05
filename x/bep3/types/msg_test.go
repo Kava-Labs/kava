@@ -66,3 +66,76 @@ func TestMsgCreateHTLT(t *testing.T) {
 		}
 	}
 }
+
+func TestMsgDepositHTLT(t *testing.T) {
+	tests := []struct {
+		description string
+		from        types.AccAddress
+		swapID      types.SwapBytes
+		amount      types.Coins
+		expectPass  bool
+	}{
+		{"deposit htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), coinsSingle, true},
+	}
+
+	for i, tc := range tests {
+		msg := NewMsgDepositHTLT(
+			tc.from,
+			tc.swapID,
+			tc.amount,
+		)
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+		} else {
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+		}
+	}
+}
+
+func TestMsgClaimHTLT(t *testing.T) {
+	tests := []struct {
+		description  string
+		from         types.AccAddress
+		swapID       types.SwapBytes
+		randomNumber types.SwapBytes
+		expectPass   bool
+	}{
+		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), randomNumberHash, true},
+	}
+
+	for i, tc := range tests {
+		msg := NewMsgClaimHTLT(
+			tc.from,
+			tc.swapID,
+			tc.randomNumber,
+		)
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+		} else {
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+		}
+	}
+}
+
+func TestMsgRefundHTLT(t *testing.T) {
+	tests := []struct {
+		description string
+		from        types.AccAddress
+		swapID      types.SwapBytes
+		expectPass  bool
+	}{
+		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), true},
+	}
+
+	for i, tc := range tests {
+		msg := NewMsgRefundHTLT(
+			tc.from,
+			tc.swapID,
+		)
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+		} else {
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+		}
+	}
+}
