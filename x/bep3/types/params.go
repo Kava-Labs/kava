@@ -23,46 +23,44 @@ var (
 
 // Params governance parameters for bep3 module
 type Params struct {
-	Relayer         sdk.AccAddress `json:"relayer" yaml:"relayer"`
-	MinimumLockTime time.Duration  `json:"minimum_lock_time" yaml:"minimum_lock_time"`
-	ChainParams     ChainParams    `json:"chain_params" yaml:"chain_params"`
+	Chains ChainParams `json:"chains" yaml:"chains"`
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Relayer: %s
-	Minimum Lock Time: %s
 	Chains: %s`,
-		p.Relayer, p.MinimumLockTime, p.ChainParams)
+		p.Chains)
 }
 
 // NewParams returns a new params object
-func NewParams(relayer sdk.AccAddress, minimumLockTime time.Duration, chainParams ChainParams) Params {
+func NewParams(chains ChainParams) Params {
 	return Params{
-		Relayer:         relayer,
-		MinimumLockTime: minimumLockTime,
-		ChainParams:     chainParams,
+		Chains: chains,
 	}
 }
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	return NewParams(DefaultRelayer, DefaultMinimumLockTime, DefaultChainParams)
+	return NewParams(DefaultChainParams)
 }
 
 // ChainParam governance parameters for each chain within the bep3 module
 type ChainParam struct {
-	ChainID string      `json:"chain_id" yaml:"chain_id"`         // blockchain ID
-	Assets  AssetParams `json:"chain_assets" yaml:"chain_assets"` // list of supported assets
+	ChainID         string         `json:"chain_id" yaml:"chain_id"` // blockchain ID
+	Deputy          sdk.AccAddress `json:"deputy" yaml:"deputy"`
+	MaximumLockTime int            `json:"maximum_lock_time" yaml:"maximum_lock_time"`
+	SupportedAssets AssetParams    `json:"chain_assets" yaml:"chain_assets"` // list of supported assets
 }
 
 // String implements fmt.Stringer
 func (cp ChainParam) String() string {
 	return fmt.Sprintf(`Chain:
-	ID: %s
-	Assets: %s`,
-		cp.ChainID, cp.Assets)
+	Chain ID: %s
+	Deputy: %s
+	Maximum Lock Time: %d
+	Supported assets: %s`,
+		cp.ChainID, cp.Deputy, cp.MaximumLockTime, cp.SupportedAssets)
 }
 
 // ChainParams array of ChainParam
@@ -79,7 +77,7 @@ func (cps ChainParams) String() string {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Name   string  `json:"name" yaml:"name"`       // name of asset
+	Symbol string  `json:"symbol" yaml:"symbol"`
 	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
 	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset limit
 	Active bool    `json:"active" yaml:"active"`
@@ -88,11 +86,11 @@ type AssetParam struct {
 // String implements fmt.Stringer
 func (ap AssetParam) String() string {
 	return fmt.Sprintf(`Asset:
-	Name: %s
+	Symbol: %s
 	Coin ID: %s
 	Limit: %s
 	Active: %t`,
-		ap.Name, ap.CoinID, ap.Limit, ap.Active)
+		ap.Symbol, ap.CoinID, ap.Limit, ap.Active)
 }
 
 // AssetParams array of AssetParam
@@ -117,19 +115,17 @@ func ParamKeyTable() params.KeyTable {
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyMinimumLockTime, Value: &p.MinimumLockTime},
-		{Key: KeyChainParams, Value: &p.ChainParams},
+		{Key: KeyChainParams, Value: &p.Chains},
 	}
 }
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	if p.Relayer.Empty() {
-		return sdk.ErrInternal("relayer address cannot be empty")
-	}
-	if p.MinimumLockTime <= 0 {
-		return sdk.ErrInternal("minimum lock time must be greater than 0")
-	}
-	// TODO: validate ChainParams
+	// if p.Relayer.Empty() {
+	// 	return sdk.ErrInternal("relayer address cannot be empty")
+	// }
+	// if p.MinimumLockTime <= 0 {
+	// 	return sdk.ErrInternal("minimum lock time must be greater than 0")
+	// }
 	return nil
 }

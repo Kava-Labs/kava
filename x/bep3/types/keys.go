@@ -19,9 +19,8 @@ const (
 
 // Key prefixes
 var (
-	HTLTKeyPrefix = []byte{0x00} // prefix for keys that store KTLTs
-	// HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the htltByTime index
-
+	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store KTLTs
+	HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the htltByTime index
 )
 
 // GetHTLTByTimeKey returns the key for iterating HTLTs by time
