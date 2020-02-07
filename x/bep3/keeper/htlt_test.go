@@ -33,17 +33,17 @@ var (
 	rnh2         = types.CalculateRandomHash([]byte{72}, timestamp2)
 	rnh3         = types.CalculateRandomHash([]byte{119}, timestamp3)
 	rnh4         = types.CalculateRandomHash([]byte{154}, timestamp4)
-	binanceAddrs = []binance.AccAddress{
-		binance.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
-		binance.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
-		binance.AccAddress(crypto.AddressHash([]byte("BinanceTest3"))),
-		binance.AccAddress(crypto.AddressHash([]byte("BinanceTest4"))),
+	binanceAddrs = []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest3"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest4"))),
 	}
-	kavaAddrs = []binance.AccAddress{
-		binance.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		binance.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
-		binance.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
-		binance.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
+	kavaAddrs = []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
 	}
 )
 
@@ -52,9 +52,6 @@ func (suite *HtltTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-	// tApp.InitializeFromGenesisStates(
-	// 	NewPricefeedGenStateMulti(),
-	// )
 	keeper := tApp.GetBep3Keeper()
 	suite.app = tApp
 	suite.ctx = ctx
@@ -62,7 +59,7 @@ func (suite *HtltTestSuite) SetupTest() {
 	return
 }
 
-func (suite *HtltTestSuite) TestGetSetCdp() {
+func (suite *HtltTestSuite) TestGetSetHtlt() {
 	htlt := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", rnh1, timestamp1, coinsSingle, "bnb50000", 80000, false)
 	swapID := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
 	suite.keeper.SetHTLT(suite.ctx, htlt, swapID)
@@ -96,7 +93,7 @@ func (suite *HtltTestSuite) TestAddHtlt() {
 	// TODO: Test bep3 module custom errors on HTLT creation
 }
 
-func (suite *HtltTestSuite) TestIterateCdps() {
+func (suite *HtltTestSuite) TestIterateHtlts() {
 	htlts := htlts()
 	for _, h := range htlts {
 		swapID := types.CalculateSwapID(h.RandomNumberHash, h.From, h.SenderOtherChain)

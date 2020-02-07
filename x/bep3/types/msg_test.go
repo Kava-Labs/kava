@@ -4,20 +4,22 @@ import (
 	"testing"
 
 	"github.com/binance-chain/go-sdk/common/types"
+	binance "github.com/binance-chain/go-sdk/common/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 )
 
 var (
-	coinsSingle  = types.Coins{types.Coin{Denom: "bnb", Amount: 50000}}
-	coinsZero    = types.Coins{types.Coin{}}
-	binanceAddrs = []types.AccAddress{
-		types.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
-		types.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
+	coinsSingle  = binance.Coins{types.Coin{Denom: "bnb", Amount: 50000}}
+	coinsZero    = binance.Coins{types.Coin{}}
+	binanceAddrs = []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
 	}
-	kavaAddrs = []types.AccAddress{
-		types.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		types.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+	kavaAddrs = []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
 	}
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(9988776655)
@@ -27,13 +29,13 @@ var (
 func TestMsgCreateHTLT(t *testing.T) {
 	tests := []struct {
 		description         string
-		from                types.AccAddress
-		to                  types.AccAddress
+		from                sdk.AccAddress
+		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    types.SwapBytes
+		randomNumberHash    binance.SwapBytes
 		timestamp           int64
-		amount              types.Coins
+		amount              binance.Coins
 		expectedIncome      string
 		heightSpan          int64
 		crossChain          bool
@@ -70,9 +72,9 @@ func TestMsgCreateHTLT(t *testing.T) {
 func TestMsgDepositHTLT(t *testing.T) {
 	tests := []struct {
 		description string
-		from        types.AccAddress
-		swapID      types.SwapBytes
-		amount      types.Coins
+		from        sdk.AccAddress
+		swapID      binance.SwapBytes
+		amount      binance.Coins
 		expectPass  bool
 	}{
 		{"deposit htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), coinsSingle, true},
@@ -95,9 +97,9 @@ func TestMsgDepositHTLT(t *testing.T) {
 func TestMsgClaimHTLT(t *testing.T) {
 	tests := []struct {
 		description  string
-		from         types.AccAddress
-		swapID       types.SwapBytes
-		randomNumber types.SwapBytes
+		from         sdk.AccAddress
+		swapID       binance.SwapBytes
+		randomNumber binance.SwapBytes
 		expectPass   bool
 	}{
 		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), randomNumberHash, true},
@@ -120,8 +122,8 @@ func TestMsgClaimHTLT(t *testing.T) {
 func TestMsgRefundHTLT(t *testing.T) {
 	tests := []struct {
 		description string
-		from        types.AccAddress
-		swapID      types.SwapBytes
+		from        sdk.AccAddress
+		swapID      binance.SwapBytes
 		expectPass  bool
 	}{
 		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), true},

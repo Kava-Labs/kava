@@ -2,10 +2,10 @@ package types
 
 // bep3 module event types
 const (
-	EventTypeCreateHtlt  = "create_htlt"
-	EventTypeDepositHtlt = "deposit_htlt"
-	EventTypeRefundHtlt  = "refund_htlt"
-	EventTypeClaimHtlt   = "claim_htlt"
+	EventTypeCreateHtlt  = "HTLT"
+	EventTypeDepositHtlt = "depositHTLT"
+	EventTypeRefundHtlt  = "claimHTLT"
+	EventTypeClaimHtlt   = "refundHTLT"
 
 	AttributeKeyHtltSwapID = "htlt_swap_id"
 	AttributeKeyFrom       = "htlt_from"

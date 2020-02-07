@@ -19,7 +19,7 @@ const (
 
 // Key prefixes
 var (
-	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store KTLTs
+	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store HTLTs
 	HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the htltByTime index
 )
 

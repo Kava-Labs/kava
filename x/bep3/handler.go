@@ -13,9 +13,8 @@ func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		// case MsgCreateHTLT:
-		// 	return handleMsgCreateHTLT(ctx, k, msg)
-
+		case MsgCreateHTLT:
+			return handleMsgCreateHTLT(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -26,9 +25,6 @@ func NewHandler(k Keeper) sdk.Handler {
 // handleMsgCreateHTLT handles requests to create a new HTLT
 func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk.Result {
 	// msg contains HTLT attributes
-	// Validate Chain name
-	// if name == "kava", initiator must be relayer
-
 	id, err := k.AddHTLT(ctx, msg.From, msg.To, msg.RecipientOtherChain,
 		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
@@ -40,7 +36,7 @@ func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()), // TODO: Should this be deputy address?
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	)
 

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -34,17 +35,21 @@ func QueryGetHtltsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "get a list of active htlts",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/htlts", queryRoute), nil)
+
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetHTLTs), nil)
 			if err != nil {
-				fmt.Printf("error when getting htlts - %s", err)
-				return nil
+				return err
 			}
-			var out types.QueryResHTLTs
-			cdc.MustUnmarshalJSON(res, &out)
-			if len(out) == 0 {
-				out = append(out, "There are currently no htlts")
+
+			var htlts types.HTLTs
+			cdc.MustUnmarshalJSON(res, &htlts)
+
+			if len(htlts) == 0 {
+				return errors.New("There are currently no htlts")
 			}
-			return cliCtx.PrintOutput(out)
+
+			cliCtx = cliCtx.WithHeight(height)
+			return cliCtx.PrintOutput(htlts)
 		},
 	}
 }

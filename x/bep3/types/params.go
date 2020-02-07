@@ -43,8 +43,8 @@ func DefaultParams() Params {
 type ChainParam struct {
 	ChainID         string         `json:"chain_id" yaml:"chain_id"` // blockchain ID
 	Deputy          sdk.AccAddress `json:"deputy" yaml:"deputy"`
-	MaximumLockTime int            `json:"maximum_lock_time" yaml:"maximum_lock_time"`
-	SupportedAssets AssetParams    `json:"chain_assets" yaml:"chain_assets"` // list of supported assets
+	MaximumLockTime int            `json:"maximum_lock_time" yaml:"maximum_lock_time"` // TODO: comment
+	SupportedAssets AssetParams    `json:"chain_assets" yaml:"chain_assets"`           // list of supported assets
 }
 
 // String implements fmt.Stringer
@@ -71,7 +71,7 @@ func (cps ChainParams) String() string {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Symbol string  `json:"symbol" yaml:"symbol"`
+	Symbol string  `json:"symbol" yaml:"symbol"`   //TODO: Change to denom
 	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
 	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset limit
 	Active bool    `json:"active" yaml:"active"`
