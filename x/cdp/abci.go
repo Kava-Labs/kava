@@ -15,10 +15,15 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	if !found {
 		previousBlockTime = ctx.BlockTime()
 	}
-	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+	previousDistTime, found := k.GetPreviousSavingsDistribution(ctx)
+	if !found {
+		previousDistTime = ctx.BlockTime()
+		k.SetPreviousSavingsDistribution(ctx, previousDistTime)
+	}
+	blockTimeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 	for _, cp := range params.CollateralParams {
 		for _, dp := range params.DebtParams {
-			k.HandleNewDebt(ctx, cp.Denom, dp.Denom, timeElapsed)
+			k.HandleNewDebt(ctx, cp.Denom, dp.Denom, blockTimeElapsed)
 		}
 
 		err := k.LiquidateCdps(ctx, cp.MarketID, cp.Denom, cp.LiquidationRatio)
@@ -41,6 +46,22 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 				sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
 			),
 		)
+	}
+	distTimeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistTime.Unix())
+	if distTimeElapsed.GTE(params.SavingsDistributionFrequency) {
+		for _, dp := range params.DebtParams {
+			err := k.ApplySavingsRate(ctx, dp.Denom)
+			if err != nil {
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						EventTypeBeginBlockerFatal,
+						sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
+						sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
+					),
+				)
+			}
+		}
+		k.SetPreviousSavingsDistribution(ctx, ctx.BlockTime())
 	}
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 	return

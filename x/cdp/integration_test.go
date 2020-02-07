@@ -61,6 +61,7 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 					ReferenceAsset:   "usd",
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
 				},
 			},
 		},
@@ -134,12 +135,14 @@ func NewCDPGenStateMulti() app.GenesisState {
 					ReferenceAsset:   "usd",
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
 				},
 			},
 		},
@@ -207,6 +210,9 @@ func badGenStates() []badGenState {
 	g13 := baseGenState()
 	g13.GovDenom = ""
 
+	g14 := baseGenState()
+	g14.Params.DebtParams[0].SavingsRate = d("4.0")
+
 	return []badGenState{
 		badGenState{Genesis: g1, Reason: "duplicate collateral denom"},
 		badGenState{Genesis: g2, Reason: "duplicate collateral prefix"},
@@ -220,6 +226,7 @@ func badGenStates() []badGenState {
 		badGenState{Genesis: g11, Reason: "negative auction size"},
 		badGenState{Genesis: g12, Reason: "invalid liquidation penalty"},
 		badGenState{Genesis: g13, Reason: "gov denom not set"},
+		badGenState{Genesis: g14, Reason: "invalid savings rate"},
 	}
 }
 

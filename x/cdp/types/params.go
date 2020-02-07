@@ -11,34 +11,37 @@ import (
 
 // Parameter keys
 var (
-	KeyGlobalDebtLimit       = []byte("GlobalDebtLimit")
-	KeyCollateralParams      = []byte("CollateralParams")
-	KeyDebtParams            = []byte("DebtParams")
-	KeyCircuitBreaker        = []byte("CircuitBreaker")
-	KeyDebtThreshold         = []byte("DebtThreshold")
-	KeySurplusThreshold      = []byte("SurplusThreshold")
-	DefaultGlobalDebt        = sdk.Coins{}
-	DefaultCircuitBreaker    = false
-	DefaultCollateralParams  = CollateralParams{}
-	DefaultDebtParams        = DebtParams{}
-	DefaultCdpStartingID     = uint64(1)
-	DefaultDebtDenom         = "debt"
-	DefaultGovDenom          = "ukava"
-	DefaultSurplusThreshold  = sdk.NewInt(1000000000)
-	DefaultDebtThreshold     = sdk.NewInt(1000000000)
-	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
-	minCollateralPrefix      = 0
-	maxCollateralPrefix      = 255
+	KeyGlobalDebtLimit                  = []byte("GlobalDebtLimit")
+	KeyCollateralParams                 = []byte("CollateralParams")
+	KeyDebtParams                       = []byte("DebtParams")
+	KeyDistributionFrequency            = []byte("DistributionFrequency")
+	KeyCircuitBreaker                   = []byte("CircuitBreaker")
+	KeyDebtThreshold                    = []byte("DebtThreshold")
+	KeySurplusThreshold                 = []byte("SurplusThreshold")
+	DefaultGlobalDebt                   = sdk.Coins{}
+	DefaultCircuitBreaker               = false
+	DefaultCollateralParams             = CollateralParams{}
+	DefaultDebtParams                   = DebtParams{}
+	DefaultCdpStartingID                = uint64(1)
+	DefaultDebtDenom                    = "debt"
+	DefaultGovDenom                     = "ukava"
+	DefaultSurplusThreshold             = sdk.NewInt(1000000000)
+	DefaultDebtThreshold                = sdk.NewInt(1000000000)
+	DefaultPreviousBlockTime            = tmtime.Canonical(time.Unix(0, 0))
+	DefaultSavingsDistributionFrequency = sdk.NewInt(86400)
+	minCollateralPrefix                 = 0
+	maxCollateralPrefix                 = 255
 )
 
 // Params governance parameters for cdp module
 type Params struct {
-	CollateralParams        CollateralParams `json:"collateral_params" yaml:"collateral_params"`
-	DebtParams              DebtParams       `json:"debt_params" yaml:"debt_params"`
-	GlobalDebtLimit         sdk.Coins        `json:"global_debt_limit" yaml:"global_debt_limit"`
-	SurplusAuctionThreshold sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
-	DebtAuctionThreshold    sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
-	CircuitBreaker          bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
+	CollateralParams             CollateralParams `json:"collateral_params" yaml:"collateral_params"`
+	DebtParams                   DebtParams       `json:"debt_params" yaml:"debt_params"`
+	GlobalDebtLimit              sdk.Coins        `json:"global_debt_limit" yaml:"global_debt_limit"`
+	SurplusAuctionThreshold      sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
+	DebtAuctionThreshold         sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
+	SavingsDistributionFrequency sdk.Int          `json:"savings_distribution_frequency" yaml:"savings_distribution_frequency"`
+	CircuitBreaker               bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
 }
 
 // String implements fmt.Stringer
@@ -49,26 +52,28 @@ func (p Params) String() string {
 	Debt Params: %s
 	Surplus Auction Threshold: %s
 	Debt Auction Threshold: %s
+	Savings Distribution Frequency: %s
 	Circuit Breaker: %t`,
-		p.GlobalDebtLimit, p.CollateralParams, p.DebtParams, p.SurplusAuctionThreshold, p.DebtAuctionThreshold, p.CircuitBreaker,
+		p.GlobalDebtLimit, p.CollateralParams, p.DebtParams, p.SurplusAuctionThreshold, p.DebtAuctionThreshold, p.SavingsDistributionFrequency, p.CircuitBreaker,
 	)
 }
 
 // NewParams returns a new params object
-func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, surplusThreshold sdk.Int, debtThreshold sdk.Int, breaker bool) Params {
+func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, surplusThreshold sdk.Int, debtThreshold sdk.Int, distributionFreq sdk.Int, breaker bool) Params {
 	return Params{
-		GlobalDebtLimit:         debtLimit,
-		CollateralParams:        collateralParams,
-		DebtParams:              debtParams,
-		DebtAuctionThreshold:    debtThreshold,
-		SurplusAuctionThreshold: surplusThreshold,
-		CircuitBreaker:          breaker,
+		GlobalDebtLimit:              debtLimit,
+		CollateralParams:             collateralParams,
+		DebtParams:                   debtParams,
+		DebtAuctionThreshold:         debtThreshold,
+		SurplusAuctionThreshold:      surplusThreshold,
+		SavingsDistributionFrequency: distributionFreq,
+		CircuitBreaker:               breaker,
 	}
 }
 
 // DefaultParams returns default params for cdp module
 func DefaultParams() Params {
-	return NewParams(DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParams, DefaultSurplusThreshold, DefaultDebtThreshold, DefaultCircuitBreaker)
+	return NewParams(DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParams, DefaultSurplusThreshold, DefaultDebtThreshold, DefaultSavingsDistributionFrequency, DefaultCircuitBreaker)
 }
 
 // CollateralParam governance parameters for each collateral type within the cdp module
@@ -116,7 +121,8 @@ type DebtParam struct {
 	Denom            string  `json:"denom" yaml:"denom"`
 	ReferenceAsset   string  `json:"reference_asset" yaml:"reference_asset"`
 	ConversionFactor sdk.Int `json:"conversion_factor" yaml:"conversion_factor"`
-	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"` // minimum active loan size, used to prevent dust
+	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"`     // minimum active loan size, used to prevent dust
+	SavingsRate      sdk.Dec `json:"savings_rate" yaml:"savings_rate"` // the percentage of stability fees that are redirected to savings rate
 }
 
 func (dp DebtParam) String() string {
@@ -155,6 +161,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		{Key: KeyCircuitBreaker, Value: &p.CircuitBreaker},
 		{Key: KeySurplusThreshold, Value: &p.SurplusAuctionThreshold},
 		{Key: KeyDebtThreshold, Value: &p.DebtAuctionThreshold},
+		{Key: KeyDistributionFrequency, Value: &p.SavingsDistributionFrequency},
 	}
 }
 
@@ -166,6 +173,9 @@ func (p Params) Validate() error {
 		_, found := debtDenoms[dp.Denom]
 		if found {
 			return fmt.Errorf("duplicate debt denom: %s", dp.Denom)
+		}
+		if dp.SavingsRate.LT(sdk.ZeroDec()) || dp.SavingsRate.GT(sdk.OneDec()) {
+			return fmt.Errorf("savings rate should be between 0 and 1, is %s for %s", dp.SavingsRate, dp.Denom)
 		}
 		debtDenoms[dp.Denom] = 1
 
@@ -232,6 +242,10 @@ func (p Params) Validate() error {
 	}
 	if !p.DebtAuctionThreshold.IsPositive() {
 		return fmt.Errorf("debt auction threshold should be positive, is %s", p.DebtAuctionThreshold)
+	}
+
+	if !p.SavingsDistributionFrequency.IsPositive() {
+		return fmt.Errorf("savings distribution frequency should be positive, is %s", p.SavingsDistributionFrequency)
 	}
 	return nil
 }

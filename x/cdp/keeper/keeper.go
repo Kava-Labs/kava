@@ -18,11 +18,12 @@ type Keeper struct {
 	pricefeedKeeper types.PricefeedKeeper
 	supplyKeeper    types.SupplyKeeper
 	auctionKeeper   types.AuctionKeeper
+	accountKeeper   types.AccountKeeper
 	codespace       sdk.CodespaceType
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, ack types.AccountKeeper, codespace sdk.CodespaceType) Keeper {
 
 	return Keeper{
 		key:             key,
@@ -31,6 +32,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   ak,
 		supplyKeeper:    sk,
+		accountKeeper:   ack,
 		codespace:       codespace,
 	}
 }
