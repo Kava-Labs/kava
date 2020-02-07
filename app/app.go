@@ -34,7 +34,7 @@ import (
 const (
 	appName          = "kava"
 	Bech32MainPrefix = "kava"
-	Bip44CoinType    = 459
+	Bip44CoinType    = 459 // see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 )
 
 var (

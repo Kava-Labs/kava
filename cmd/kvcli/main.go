@@ -33,7 +33,7 @@ func main() {
 	cdc := app.MakeCodec()
 
 	// Set the global config
-	// Config is not sealed (`config.Seal()`) as the cli supports two coin types for legacy reasons.
+	// config is not sealed as the cli supports two coin types for legacy reasons.
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	app.SetBip44CoinType(config)
