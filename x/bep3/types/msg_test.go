@@ -26,7 +26,7 @@ var (
 	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
 )
 
-func TestMsgCreateHTLT(t *testing.T) {
+func TestHTLTMsg(t *testing.T) {
 	tests := []struct {
 		description         string
 		from                sdk.AccAddress
@@ -49,7 +49,7 @@ func TestMsgCreateHTLT(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgCreateHTLT(
+		msg := NewHTLTMsg(
 			tc.from,
 			tc.to,
 			tc.recipientOtherChain,

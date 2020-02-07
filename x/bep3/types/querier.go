@@ -1,9 +1,5 @@
 package types
 
-import (
-	"strings"
-)
-
 const (
 	// QueryGetHTLT command for getting the information about a particular HTLT
 	QueryGetHTLT = "htlt"
@@ -12,13 +8,29 @@ const (
 	QueryGetParams = "params"
 )
 
-// QueryResHTLTs Result Payload for a HTLTs query
-type QueryResHTLTs []string
+// // Params for query 'custom/atomicswap/swapid'
+// type QuerySwapByID struct {
+// 	SwapID SwapBytes
+// }
+
+// Params for query 'custom/atomicswap/swapcreator'
+// type QuerySwapByCreatorParams struct {
+// 	Creator AccAddress
+// 	Limit   int64
+// 	Offset  int64
+// }
+
+// Params for query 'custom/atomicswap/swaprecipient'
+// type QuerySwapByRecipientParams struct {
+// 	Recipient AccAddress
+// 	Limit     int64
+// 	Offset    int64
+// }
 
 // implement fmt.Stringer
-func (n QueryResHTLTs) String() string {
-	return strings.Join(n[:], "\n")
-}
+// func (n QueryResHTLTs) String() string {
+// 	return strings.Join(n[:], "\n")
+// }
 
 // QueryHTLTsParams is the params for a HTLTs query
 type QueryHTLTsParams struct {

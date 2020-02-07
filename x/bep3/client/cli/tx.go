@@ -38,13 +38,21 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
+			// We need...
+			// 1. ReceiverAddr == KavaExecutor.DeputyAddress
+			//		- kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			// 2. OtherChainAddr == OtherExecutor.DeputyAddress
+			//		- 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A
+			// 3. txLog.OutCoin == deputy.Config.KavaConfig.Symbol (both are converted to uppercase)
+			//		- kava
+
 			// Acc A -> passed with '--from accA'
 			from := cliCtx.GetFromAddress()
 			// from := sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 
 			// Acc B
-			to := sdk.AccAddress("kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03")
-			recipientOtherChain := "0x632f97a5AD065a7a8DAD4ca5BC765Ce65AcAFB6F" //current depty eth address
+			to := sdk.AccAddress("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
+			recipientOtherChain := "0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A" //current depty eth address
 			senderOtherChain := ""
 
 			randomNumberBytes := []byte{15}

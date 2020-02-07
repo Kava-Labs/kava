@@ -2,7 +2,8 @@ package types
 
 // bep3 module event types
 const (
-	EventTypeCreateHtlt  = "HTLT"
+	// EventTypeCreateHtlt  = "HTLT"
+	EventTypeCreateHtlt  = "createHTLT"
 	EventTypeDepositHtlt = "depositHTLT"
 	EventTypeRefundHtlt  = "claimHTLT"
 	EventTypeClaimHtlt   = "refundHTLT"
