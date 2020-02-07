@@ -263,7 +263,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 	)
 

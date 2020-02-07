@@ -7,9 +7,20 @@ import (
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper, gs GenesisState) {
+
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
+	}
+
+	// check if the module accounts exists
+	cdpModuleAcc := sk.GetModuleAccount(ctx, ModuleName)
+	if cdpModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
+	}
+	liqModuleAcc := sk.GetModuleAccount(ctx, LiquidatorMacc)
+	if liqModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", LiquidatorMacc))
 	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
