@@ -48,17 +48,20 @@ const (
 	DefaultParamspace               = types.DefaultParamspace
 	LiquidatorMacc                  = types.LiquidatorMacc
 	QueryGetCdp                     = types.QueryGetCdp
+	QueryGetCdpDeposits             = types.QueryGetCdpDeposits
 	QueryGetCdps                    = types.QueryGetCdps
 	QueryGetCdpsByCollateralization = types.QueryGetCdpsByCollateralization
 	QueryGetParams                  = types.QueryGetParams
 	RestOwner                       = types.RestOwner
 	RestCollateralDenom             = types.RestCollateralDenom
 	RestRatio                       = types.RestRatio
+	BaseDigitFactor                 = keeper.BaseDigitFactor
 )
 
 var (
 	// functions aliases
 	NewCDP                      = types.NewCDP
+	NewAugmentedCDP             = types.NewAugmentedCDP
 	RegisterCodec               = types.RegisterCodec
 	NewDeposit                  = types.NewDeposit
 	ErrCdpAlreadyExists         = types.ErrCdpAlreadyExists
@@ -104,6 +107,7 @@ var (
 	ParamKeyTable               = types.ParamKeyTable
 	NewQueryCdpsParams          = types.NewQueryCdpsParams
 	NewQueryCdpParams           = types.NewQueryCdpParams
+	NewQueryCdpDeposits         = types.NewQueryCdpDeposits
 	NewQueryCdpsByRatioParams   = types.NewQueryCdpsByRatioParams
 	ValidSortableDec            = types.ValidSortableDec
 	SortableDecBytes            = types.SortableDecBytes
@@ -113,33 +117,36 @@ var (
 	NewQuerier                  = keeper.NewQuerier
 
 	// variable aliases
-	ModuleCdc                  = types.ModuleCdc
-	CdpIDKeyPrefix             = types.CdpIDKeyPrefix
-	CdpKeyPrefix               = types.CdpKeyPrefix
-	CollateralRatioIndexPrefix = types.CollateralRatioIndexPrefix
-	CdpIDKey                   = types.CdpIDKey
-	DebtDenomKey               = types.DebtDenomKey
-	GovDenomKey                = types.GovDenomKey
-	DepositKeyPrefix           = types.DepositKeyPrefix
-	PrincipalKeyPrefix         = types.PrincipalKeyPrefix
-	PreviousBlockTimeKey       = types.PreviousBlockTimeKey
-	KeyGlobalDebtLimit         = types.KeyGlobalDebtLimit
-	KeyCollateralParams        = types.KeyCollateralParams
-	KeyDebtParams              = types.KeyDebtParams
-	KeyCircuitBreaker          = types.KeyCircuitBreaker
-	KeyDebtThreshold           = types.KeyDebtThreshold
-	KeySurplusThreshold        = types.KeySurplusThreshold
-	DefaultGlobalDebt          = types.DefaultGlobalDebt
-	DefaultCircuitBreaker      = types.DefaultCircuitBreaker
-	DefaultCollateralParams    = types.DefaultCollateralParams
-	DefaultDebtParams          = types.DefaultDebtParams
-	DefaultCdpStartingID       = types.DefaultCdpStartingID
-	DefaultDebtDenom           = types.DefaultDebtDenom
-	DefaultGovDenom            = types.DefaultGovDenom
-	DefaultSurplusThreshold    = types.DefaultSurplusThreshold
-	DefaultDebtThreshold       = types.DefaultDebtThreshold
-	DefaultPreviousBlockTime   = types.DefaultPreviousBlockTime
-	MaxSortableDec             = types.MaxSortableDec
+	ModuleCdc                           = types.ModuleCdc
+	CdpIDKeyPrefix                      = types.CdpIDKeyPrefix
+	CdpKeyPrefix                        = types.CdpKeyPrefix
+	CollateralRatioIndexPrefix          = types.CollateralRatioIndexPrefix
+	CdpIDKey                            = types.CdpIDKey
+	DebtDenomKey                        = types.DebtDenomKey
+	GovDenomKey                         = types.GovDenomKey
+	DepositKeyPrefix                    = types.DepositKeyPrefix
+	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix
+	PreviousBlockTimeKey                = types.PreviousBlockTimeKey
+	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
+	KeyGlobalDebtLimit                  = types.KeyGlobalDebtLimit
+	KeyCollateralParams                 = types.KeyCollateralParams
+	KeyDebtParams                       = types.KeyDebtParams
+	KeyDistributionFrequency            = types.KeyDistributionFrequency
+	KeyCircuitBreaker                   = types.KeyCircuitBreaker
+	KeyDebtThreshold                    = types.KeyDebtThreshold
+	KeySurplusThreshold                 = types.KeySurplusThreshold
+	DefaultGlobalDebt                   = types.DefaultGlobalDebt
+	DefaultCircuitBreaker               = types.DefaultCircuitBreaker
+	DefaultCollateralParams             = types.DefaultCollateralParams
+	DefaultDebtParams                   = types.DefaultDebtParams
+	DefaultCdpStartingID                = types.DefaultCdpStartingID
+	DefaultDebtDenom                    = types.DefaultDebtDenom
+	DefaultGovDenom                     = types.DefaultGovDenom
+	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
+	DefaultDebtThreshold                = types.DefaultDebtThreshold
+	DefaultPreviousBlockTime            = types.DefaultPreviousBlockTime
+	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
+	MaxSortableDec                      = types.MaxSortableDec
 )
 
 type (
@@ -164,6 +171,7 @@ type (
 	DebtParams             = types.DebtParams
 	QueryCdpsParams        = types.QueryCdpsParams
 	QueryCdpParams         = types.QueryCdpParams
+	QueryCdpDeposits       = types.QueryCdpDeposits
 	QueryCdpsByRatioParams = types.QueryCdpsByRatioParams
 	Keeper                 = keeper.Keeper
 )
