@@ -12,7 +12,6 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,13 +54,6 @@ func main() {
 	}
 
 	// Construct Root Command
-	keysCmd := keys.Commands()
-	for _, c := range keysCmd.Commands() {
-		if c.Name() == "add" {
-			monkeyPatchKeysAddCmd(c)
-			break
-		}
-	}
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		client.ConfigCmd(app.DefaultCLIHome),
@@ -70,7 +62,7 @@ func main() {
 		client.LineBreak,
 		lcd.ServeCommand(cdc, registerRoutes),
 		client.LineBreak,
-		keysCmd,
+		getModifiedKeysCmd(),
 		client.LineBreak,
 		version.Cmd,
 		client.NewCompletionCmd(rootCmd, true),
@@ -171,23 +163,4 @@ func initConfig(cmd *cobra.Command) error {
 		return err
 	}
 	return viper.BindPFlag(cli.OutputFlag, cmd.PersistentFlags().Lookup(cli.OutputFlag))
-}
-
-const flagLegacyHDPath = "legacy-hd-path"
-
-func monkeyPatchKeysAddCmd(keysAddCmd *cobra.Command) {
-	// add flag
-	keysAddCmd.Flags().Bool(flagLegacyHDPath, false, "Use the old coin type when deriving addresses from mnemonics.")
-
-	oldRun := keysAddCmd.RunE
-	keysAddCmd.RunE = func(cmd *cobra.Command, args []string) error {
-		if viper.GetBool(flagLegacyHDPath) {
-			sdk.GetConfig().SetCoinType(sdk.CoinType)
-		}
-		err := oldRun(cmd, args)
-		if viper.GetBool(flagLegacyHDPath) {
-			sdk.GetConfig().SetCoinType(app.Bip44CoinType)
-		}
-		return err
-	}
 }
