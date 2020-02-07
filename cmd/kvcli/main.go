@@ -33,10 +33,11 @@ func main() {
 	// Instantiate the codec for the command line application
 	cdc := app.MakeCodec()
 
-	// Read in the configuration file for the sdk
+	// Set the global config
+	// Config is not sealed (`config.Seal()`) as the cli supports two coin types for legacy reasons.
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
-	config.Seal()
+	app.SetBip44CoinType(config)
 
 	// TODO: setup keybase, viper object, etc. to be passed into
 	// the below functions and eliminate global vars, like we do
@@ -54,6 +55,13 @@ func main() {
 	}
 
 	// Construct Root Command
+	keysCmd := keys.Commands()
+	for _, c := range keysCmd.Commands() {
+		if c.Name() == "add" {
+			monkeyPatchKeysAddCmd(c)
+			break
+		}
+	}
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		client.ConfigCmd(app.DefaultCLIHome),
@@ -62,7 +70,7 @@ func main() {
 		client.LineBreak,
 		lcd.ServeCommand(cdc, registerRoutes),
 		client.LineBreak,
-		keys.Commands(),
+		keysCmd,
 		client.LineBreak,
 		version.Cmd,
 		client.NewCompletionCmd(rootCmd, true),
@@ -163,4 +171,23 @@ func initConfig(cmd *cobra.Command) error {
 		return err
 	}
 	return viper.BindPFlag(cli.OutputFlag, cmd.PersistentFlags().Lookup(cli.OutputFlag))
+}
+
+const flagLegacyHDPath = "legacy-hd-path"
+
+func monkeyPatchKeysAddCmd(keysAddCmd *cobra.Command) {
+	// add flag
+	keysAddCmd.Flags().Bool(flagLegacyHDPath, false, "Use the old coin type when deriving addresses from mnemonics.")
+
+	oldRun := keysAddCmd.RunE
+	keysAddCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		if viper.GetBool(flagLegacyHDPath) {
+			sdk.GetConfig().SetCoinType(sdk.CoinType)
+		}
+		err := oldRun(cmd, args)
+		if viper.GetBool(flagLegacyHDPath) {
+			sdk.GetConfig().SetCoinType(app.Bip44CoinType)
+		}
+		return err
+	}
 }
