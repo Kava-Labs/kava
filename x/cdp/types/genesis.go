@@ -8,25 +8,27 @@ import (
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params            Params    `json:"params" yaml:"params"`
-	CDPs              CDPs      `json:"cdps" yaml:"cdps"`
-	Deposits          Deposits  `json:"deposits" yaml:"deposits"`
-	StartingCdpID     uint64    `json:"starting_cdp_id" yaml:"starting_cdp_id"`
-	DebtDenom         string    `json:"debt_denom" yaml:"debt_denom"`
-	GovDenom          string    `json:"gov_denom" yaml:"gov_denom"`
-	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
+	Params                   Params    `json:"params" yaml:"params"`
+	CDPs                     CDPs      `json:"cdps" yaml:"cdps"`
+	Deposits                 Deposits  `json:"deposits" yaml:"deposits"`
+	StartingCdpID            uint64    `json:"starting_cdp_id" yaml:"starting_cdp_id"`
+	DebtDenom                string    `json:"debt_denom" yaml:"debt_denom"`
+	GovDenom                 string    `json:"gov_denom" yaml:"gov_denom"`
+	PreviousBlockTime        time.Time `json:"previous_block_time" yaml:"previous_block_time"`
+	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml"previous_distribution_time"`
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:            DefaultParams(),
-		CDPs:              CDPs{},
-		Deposits:          Deposits{},
-		StartingCdpID:     DefaultCdpStartingID,
-		DebtDenom:         DefaultDebtDenom,
-		GovDenom:          DefaultGovDenom,
-		PreviousBlockTime: DefaultPreviousBlockTime,
+		Params:                   DefaultParams(),
+		CDPs:                     CDPs{},
+		Deposits:                 Deposits{},
+		StartingCdpID:            DefaultCdpStartingID,
+		DebtDenom:                DefaultDebtDenom,
+		GovDenom:                 DefaultGovDenom,
+		PreviousBlockTime:        DefaultPreviousBlockTime,
+		PreviousDistributionTime: DefaultPreviousDistributionTime,
 	}
 }
 
@@ -40,6 +42,10 @@ func (gs GenesisState) Validate() error {
 
 	if gs.PreviousBlockTime.Equal(time.Time{}) {
 		return fmt.Errorf("previous block time not set")
+	}
+
+	if gs.PreviousDistributionTime.Equal(time.Time{}) {
+		return fmt.Errorf("previous distribution time not set")
 	}
 
 	if gs.DebtDenom == "" {

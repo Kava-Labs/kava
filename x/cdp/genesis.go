@@ -81,13 +81,18 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	if !found {
 		previousBlockTime = DefaultPreviousBlockTime
 	}
+	previousDistributionTime, found := k.GetPreviousSavingsDistribution(ctx)
+	if !found {
+		previousDistributionTime = DefaultPreviousDistributionTime
+	}
 	debtDenom := k.GetDebtDenom(ctx)
 
 	return GenesisState{
-		Params:            params,
-		StartingCdpID:     cdpID,
-		CDPs:              cdps,
-		PreviousBlockTime: previousBlockTime,
-		DebtDenom:         debtDenom,
+		Params:                   params,
+		StartingCdpID:            cdpID,
+		CDPs:                     cdps,
+		PreviousBlockTime:        previousBlockTime,
+		PreviousDistributionTime: previousDistributionTime,
+		DebtDenom:                debtDenom,
 	}
 }

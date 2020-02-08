@@ -145,6 +145,7 @@ var (
 	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
 	DefaultDebtThreshold                = types.DefaultDebtThreshold
 	DefaultPreviousBlockTime            = types.DefaultPreviousBlockTime
+	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
 	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
 	MaxSortableDec                      = types.MaxSortableDec
 )

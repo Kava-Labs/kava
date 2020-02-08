@@ -66,11 +66,12 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				},
 			},
 		},
-		StartingCdpID:     cdp.DefaultCdpStartingID,
-		DebtDenom:         cdp.DefaultDebtDenom,
-		GovDenom:          cdp.DefaultGovDenom,
-		CDPs:              cdp.CDPs{},
-		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -148,11 +149,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 				},
 			},
 		},
-		StartingCdpID:     cdp.DefaultCdpStartingID,
-		DebtDenom:         cdp.DefaultDebtDenom,
-		GovDenom:          cdp.DefaultGovDenom,
-		CDPs:              cdp.CDPs{},
-		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -274,10 +276,11 @@ func baseGenState() cdp.GenesisState {
 				},
 			},
 		},
-		StartingCdpID:     cdp.DefaultCdpStartingID,
-		DebtDenom:         cdp.DefaultDebtDenom,
-		GovDenom:          cdp.DefaultGovDenom,
-		CDPs:              cdp.CDPs{},
-		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 }

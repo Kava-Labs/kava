@@ -28,6 +28,7 @@ var (
 	DefaultSurplusThreshold             = sdk.NewInt(1000000000)
 	DefaultDebtThreshold                = sdk.NewInt(1000000000)
 	DefaultPreviousBlockTime            = tmtime.Canonical(time.Unix(0, 0))
+	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
 	DefaultSavingsDistributionFrequency = sdk.NewInt(86400)
 	minCollateralPrefix                 = 0
 	maxCollateralPrefix                 = 255
