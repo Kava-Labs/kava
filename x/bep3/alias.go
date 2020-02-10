@@ -34,11 +34,11 @@ var (
 )
 
 type (
-	Keeper        = keeper.Keeper
-	CodeType      = types.CodeType
-	GenesisState  = types.GenesisState
-	Params        = types.Params
-	MsgCreateHTLT = types.MsgCreateHTLT
+	Keeper       = keeper.Keeper
+	CodeType     = types.CodeType
+	GenesisState = types.GenesisState
+	Params       = types.Params
+	HTLTMsg      = types.HTLTMsg
 
 	// TODO: Fill out module types
 )

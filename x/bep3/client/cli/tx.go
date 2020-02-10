@@ -3,7 +3,6 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	binance "github.com/binance-chain/go-sdk/common/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -30,10 +29,12 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdCreateHtlt cli command for creating htlts
 func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create [from] [to] [recipientOtherChain] [senderOtherChain] [randNumHash] [timestamp] [amount] [expectedIncome] [heightSpan] [crosschain]",
+		Use:   "create [to] [recipientOtherChain] [secretNumber] [timestamp] [coins] [expectedIncome] [heightSpan] [crosschain]",
 		Short: "create a new Hashed Time Locked Transaction (HTLT)",
 		Args:  cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+
+			// TODO: User submits RandomNumberHash instead of [secretNumber], [timestamp]
 
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -51,7 +52,8 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 			// from := sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 
 			// Acc B
-			to := sdk.AccAddress("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
+
+			to := sdk.AccAddress("kava15qdefkmwswysgg4qxgcqpqr35k3m49pkx2jdfnw")
 			recipientOtherChain := "0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A" //current depty eth address
 			senderOtherChain := ""
 
@@ -59,13 +61,12 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 			timestampInt64 := int64(9988776655)
 			randomNumberHash := types.CalculateRandomHash(randomNumberBytes, timestampInt64)
 
-			amount := binance.Coins{binance.Coin{Denom: "kava", Amount: 100}}
+			amount := sdk.Coins{sdk.Coin{Denom: "kava", Amount: sdk.NewInt(100)}}
 			expectedIncome := "kava100"
 			heightSpan := int64(500000)
 			crossChain := true
 
-			msg := types.NewMsgCreateHTLT(from, to, recipientOtherChain, senderOtherChain,
-				randomNumberHash, timestampInt64, amount, expectedIncome, heightSpan, crossChain)
+			msg := types.NewHTLTMsg(from, to, recipientOtherChain, senderOtherChain, randomNumberHash, timestampInt64, amount, expectedIncome, heightSpan, crossChain)
 
 			err := msg.ValidateBasic()
 			if err != nil {

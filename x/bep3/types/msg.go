@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/binance-chain/go-sdk/common/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -33,22 +32,22 @@ var (
 
 // HTLTMsg contains an HTLT struct
 type HTLTMsg struct {
-	From                sdk.AccAddress  `json:"from"`
-	To                  sdk.AccAddress  `json:"to"`
-	RecipientOtherChain string          `json:"recipient_other_chain"`
-	SenderOtherChain    string          `json:"sender_other_chain"`
-	RandomNumberHash    types.SwapBytes `json:"random_number_hash"`
-	Timestamp           int64           `json:"timestamp"`
-	Amount              types.Coins     `json:"amount"`
-	ExpectedIncome      string          `json:"expected_income"`
-	HeightSpan          int64           `json:"height_span"`
-	CrossChain          bool            `json:"cross_chain"`
+	From                sdk.AccAddress `json:"from"`
+	To                  sdk.AccAddress `json:"to"`
+	RecipientOtherChain string         `json:"recipient_other_chain"`
+	SenderOtherChain    string         `json:"sender_other_chain"`
+	RandomNumberHash    SwapBytes      `json:"random_number_hash"`
+	Timestamp           int64          `json:"timestamp"`
+	Amount              sdk.Coins      `json:"amount"`
+	ExpectedIncome      string         `json:"expected_income"`
+	HeightSpan          int64          `json:"height_span"`
+	CrossChain          bool           `json:"cross_chain"`
 }
 
 // NewHTLTMsg initializes a new HTLTMsg
 func NewHTLTMsg(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64,
-	amount types.Coins, expectedIncome string, heightSpan int64, crossChain bool) HTLTMsg {
+	senderOtherChain string, randomNumberHash SwapBytes, timestamp int64,
+	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) HTLTMsg {
 	return HTLTMsg{
 		From:                from,
 		To:                  to,
@@ -116,7 +115,7 @@ func (msg HTLTMsg) ValidateBasic() sdk.Error {
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
 	}
-	if !msg.Amount.IsPositive() {
+	if !msg.Amount.IsAllPositive() {
 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
 	}
 	if msg.HeightSpan < MinimumHeightSpan || msg.HeightSpan > MaximumHeightSpan {
@@ -136,13 +135,13 @@ func (msg HTLTMsg) GetSignBytes() []byte {
 
 // MsgDepositHTLT defines an HTLT deposit
 type MsgDepositHTLT struct {
-	From   sdk.AccAddress  `json:"from"`
-	SwapID types.SwapBytes `json:"swap_id"`
-	Amount types.Coins     `json:"amount"`
+	From   sdk.AccAddress `json:"from"`
+	SwapID SwapBytes      `json:"swap_id"`
+	Amount sdk.Coins      `json:"amount"`
 }
 
 // NewMsgDepositHTLT initializes a new MsgDepositHTLT
-func NewMsgDepositHTLT(from sdk.AccAddress, swapID []byte, amount types.Coins) MsgDepositHTLT {
+func NewMsgDepositHTLT(from sdk.AccAddress, swapID []byte, amount sdk.Coins) MsgDepositHTLT {
 	return MsgDepositHTLT{
 		From:   from,
 		SwapID: swapID,
@@ -173,13 +172,13 @@ func (msg MsgDepositHTLT) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgDepositHTLT
 func (msg MsgDepositHTLT) ValidateBasic() error {
-	if len(msg.From) != types.AddrLen {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	}
+	// if len(msg.From) != types.AddrLen {
+	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
+	// }
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
-	if !msg.Amount.IsPositive() {
+	if !msg.Amount.IsAllPositive() {
 		return fmt.Errorf("the swapped out coin must be positive")
 	}
 	return nil
@@ -196,9 +195,9 @@ func (msg MsgDepositHTLT) GetSignBytes() []byte {
 
 // MsgClaimHTLT defines a HTLT claim
 type MsgClaimHTLT struct {
-	From         sdk.AccAddress  `json:"from"`
-	SwapID       types.SwapBytes `json:"swap_id"`
-	RandomNumber types.SwapBytes `json:"random_number"`
+	From         sdk.AccAddress `json:"from"`
+	SwapID       SwapBytes      `json:"swap_id"`
+	RandomNumber SwapBytes      `json:"random_number"`
 }
 
 // NewMsgClaimHTLT initializes a new MsgClaimHTLT
@@ -233,9 +232,9 @@ func (msg MsgClaimHTLT) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgClaimHTLT
 func (msg MsgClaimHTLT) ValidateBasic() error {
-	if len(msg.From) != types.AddrLen {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	}
+	// if len(msg.From) != types.AddrLen {
+	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
+	// }
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
@@ -256,8 +255,8 @@ func (msg MsgClaimHTLT) GetSignBytes() []byte {
 
 // MsgRefundHTLT defines a refund msg
 type MsgRefundHTLT struct {
-	From   sdk.AccAddress  `json:"from"`
-	SwapID types.SwapBytes `json:"swap_id"`
+	From   sdk.AccAddress `json:"from"`
+	SwapID SwapBytes      `json:"swap_id"`
 }
 
 // NewMsgRefundHTLT initializes a new MsgRefundHTLT
@@ -291,9 +290,9 @@ func (msg MsgRefundHTLT) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgRefundHTLT
 func (msg MsgRefundHTLT) ValidateBasic() error {
-	if len(msg.From) != types.AddrLen {
-		return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	}
+	// if len(msg.From) != types.AddrLen {
+	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
+	// }
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}

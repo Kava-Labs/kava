@@ -3,14 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	binance "github.com/binance-chain/go-sdk/common/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // AddHTLT adds an htlt
 func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash binance.SwapBytes, timestamp int64, amount binance.Coins,
+	senderOtherChain string, randomNumberHash types.SwapBytes, timestamp int64, amount sdk.Coins,
 	expectedIncome string, heightSpan int64, crossChain bool) ([]byte, sdk.Error) {
 
 	// validation
@@ -51,7 +50,7 @@ func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
 }
 
 // ValidateAsset validates that a amount is valid for HTLTs
-func (k Keeper) ValidateAsset(ctx sdk.Context, assets binance.Coins) sdk.Error {
+func (k Keeper) ValidateAsset(ctx sdk.Context, assets sdk.Coins) sdk.Error {
 	if len(assets) != 1 {
 		return sdk.ErrInternal("HTLTs currently only support 1 asset at a time")
 	}

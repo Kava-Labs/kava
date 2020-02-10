@@ -3,16 +3,14 @@ package types
 import (
 	"testing"
 
-	"github.com/binance-chain/go-sdk/common/types"
-	binance "github.com/binance-chain/go-sdk/common/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 )
 
 var (
-	coinsSingle  = binance.Coins{types.Coin{Denom: "bnb", Amount: 50000}}
-	coinsZero    = binance.Coins{types.Coin{}}
+	coinsSingle  = sdk.Coins{sdk.Coin{Denom: "bnb", Amount: sdk.NewInt(50000)}}
+	coinsZero    = sdk.Coins{sdk.Coin{}}
 	binanceAddrs = []sdk.AccAddress{
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
@@ -33,9 +31,9 @@ func TestHTLTMsg(t *testing.T) {
 		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    binance.SwapBytes
+		randomNumberHash    SwapBytes
 		timestamp           int64
-		amount              binance.Coins
+		amount              sdk.Coins
 		expectedIncome      string
 		heightSpan          int64
 		crossChain          bool
@@ -73,8 +71,8 @@ func TestMsgDepositHTLT(t *testing.T) {
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      binance.SwapBytes
-		amount      binance.Coins
+		swapID      SwapBytes
+		amount      sdk.Coins
 		expectPass  bool
 	}{
 		{"deposit htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), coinsSingle, true},
@@ -98,8 +96,8 @@ func TestMsgClaimHTLT(t *testing.T) {
 	tests := []struct {
 		description  string
 		from         sdk.AccAddress
-		swapID       binance.SwapBytes
-		randomNumber binance.SwapBytes
+		swapID       SwapBytes
+		randomNumber SwapBytes
 		expectPass   bool
 	}{
 		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), randomNumberHash, true},
@@ -123,7 +121,7 @@ func TestMsgRefundHTLT(t *testing.T) {
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      binance.SwapBytes
+		swapID      SwapBytes
 		expectPass  bool
 	}{
 		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), true},

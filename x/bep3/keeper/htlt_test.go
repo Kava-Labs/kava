@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	binance "github.com/binance-chain/go-sdk/common/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/keeper"
@@ -23,8 +22,8 @@ type HtltTestSuite struct {
 }
 
 var (
-	coinsSingle  = binance.Coins{binance.Coin{Denom: "bnb", Amount: 50000}}
-	coinsZero    = binance.Coins{binance.Coin{}}
+	coinsSingle  = sdk.Coins{sdk.Coin{Denom: "bnb", Amount: sdk.NewInt(50000)}}
+	coinsZero    = sdk.Coins{sdk.Coin{}}
 	timestamp1   = int64(6655443322)
 	timestamp2   = int64(7766554433)
 	timestamp3   = int64(8877665544)
