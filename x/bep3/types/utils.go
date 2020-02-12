@@ -23,35 +23,3 @@ func CalculateSwapID(randomNumberHash []byte, sender sdk.AccAddress, senderOther
 	data = append(data, []byte(senderOtherChain)...)
 	return tmhash.Sum(data)
 }
-
-// func ConvertBinanceAddress(addr binance.AccAddress) (sdk.AccAddress, sdk.Error) {
-// 	sdkAddr, err := sdk.AccAddressFromBech32(addr.String())
-// 	if err != nil {
-// 		return sdk.AccAddress{}, sdk.ErrInvalidAddress(fmt.Sprintf("%s", err))
-// 	}
-// 	return sdkAddr, nil
-// }
-
-// func ConvertBinanceAddresses(binanceAddrs []binance.AccAddress) ([]sdk.AccAddress, sdk.Error) {
-// 	var sdkAddrs []sdk.AccAddress
-// 	for _, addr := range binanceAddrs {
-// 		sdkAddr, err := sdk.AccAddressFromBech32(addr.String())
-// 		if err != nil {
-// 			return []sdk.AccAddress{}, sdk.ErrInvalidAddress(fmt.Sprintf("%s", err))
-// 		}
-// 		sdkAddrs = append(sdkAddrs, sdkAddr)
-// 	}
-// 	return sdkAddrs, nil
-// }
-
-// func ConvertBinanceCoin(coin binance.Coin) sdk.Coin {
-// 	return sdk.NewInt64Coin(coin.Denom, coin.Amount)
-// }
-
-// func ConvertBinanceCoins(binanceCoins binance.Coins) sdk.Coins {
-// 	var sdkCoins sdk.Coins
-// 	for _, binanceCoin := range binanceCoins {
-// 		sdkCoins = append(sdkCoins, ConvertBinanceCoin(binanceCoin))
-// 	}
-// 	return sdkCoins
-// }
