@@ -3,16 +3,19 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/crypto"
 )
 
 const (
-	AtomicSwapRoute = "atomicSwap"
-	DepositHTLT     = "depositHTLT"
-	ClaimHTLT       = "claimHTLT"
-	RefundHTLT      = "refundHTLT"
+	Htlt        = "HTLT"
+	DepositHTLT = "depositHTLT"
+	ClaimHTLT   = "claimHTLT"
+	RefundHTLT  = "refundHTLT"
+	CalcSwapID  = "calcSwapID"
 
 	Int64Size               = 8
 	RandomNumberHashLength  = 32
@@ -63,11 +66,10 @@ func NewHTLTMsg(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 }
 
 // Route establishes the route for the HTLTMsg
-// TODO: This was changed from 'AtomicSwapRoute'
 func (msg HTLTMsg) Route() string { return RouterKey }
 
 // Type is the name of HTLTMsg
-func (msg HTLTMsg) Type() string { return "HTLT" }
+func (msg HTLTMsg) Type() string { return Htlt }
 
 // String prints the HTLTMsg
 func (msg HTLTMsg) String() string {
@@ -150,7 +152,7 @@ func NewMsgDepositHTLT(from sdk.AccAddress, swapID []byte, amount sdk.Coins) Msg
 }
 
 // Route establishes the route for the MsgDepositHTLT
-func (msg MsgDepositHTLT) Route() string { return AtomicSwapRoute }
+func (msg MsgDepositHTLT) Route() string { return RouterKey }
 
 // Type is the name of MsgDepositHTLT
 func (msg MsgDepositHTLT) Type() string { return DepositHTLT }
@@ -210,7 +212,7 @@ func NewMsgClaimHTLT(from sdk.AccAddress, swapID, randomNumber []byte) MsgClaimH
 }
 
 // Route establishes the route for the MsgClaimHTLT
-func (msg MsgClaimHTLT) Route() string { return AtomicSwapRoute }
+func (msg MsgClaimHTLT) Route() string { return RouterKey }
 
 // Type is the name of MsgClaimHTLT
 func (msg MsgClaimHTLT) Type() string { return ClaimHTLT }
@@ -268,7 +270,7 @@ func NewMsgRefundHTLT(from sdk.AccAddress, swapID []byte) MsgRefundHTLT {
 }
 
 // Route establishes the route for the MsgRefundHTLT
-func (msg MsgRefundHTLT) Route() string { return AtomicSwapRoute }
+func (msg MsgRefundHTLT) Route() string { return RouterKey }
 
 // Type is the name of MsgRefundHTLT
 func (msg MsgRefundHTLT) Type() string { return RefundHTLT }
@@ -301,6 +303,67 @@ func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
 
 // GetSignBytes gets the sign bytes of a MsgRefundHTLT
 func (msg MsgRefundHTLT) GetSignBytes() []byte {
+	b, err := json.Marshal(msg)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// MsgCalculateSwapID defines a CalculateSwapID msg
+type MsgCalculateSwapID struct {
+	From             sdk.AccAddress `json:"from"`
+	RandomNumberHash common.Hash    `json:"random_number_hash"`
+	Sender           string         `json:"sender"`
+	SenderOtherChain string         `json:"sender_other_chain"`
+}
+
+// NewMsgCalculateSwapID initializes a new CalculateSwapID msg
+func NewMsgCalculateSwapID(from sdk.AccAddress, randomNumberHash common.Hash,
+	sender string, senderOtherChain string) MsgCalculateSwapID {
+	return MsgCalculateSwapID{
+		From:             from,
+		RandomNumberHash: randomNumberHash,
+		Sender:           sender,
+		SenderOtherChain: senderOtherChain,
+	}
+}
+
+// Route establishes the route for the MsgCalculateSwapID
+func (msg MsgCalculateSwapID) Route() string { return RouterKey }
+
+// Type is the name of MsgCalculateSwapID
+func (msg MsgCalculateSwapID) Type() string { return CalcSwapID }
+
+// String prints the MsgCalculateSwapID
+func (msg MsgCalculateSwapID) String() string {
+	return fmt.Sprintf("calcSwapID{%v#%v#%v}", msg.RandomNumberHash, msg.Sender, msg.SenderOtherChain)
+}
+
+// GetSigners gets the signers of a MsgCalculateSwapID
+func (msg MsgCalculateSwapID) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// ValidateBasic validates the MsgCalculateSwapID
+func (msg MsgCalculateSwapID) ValidateBasic() sdk.Error {
+	// if len(msg.From) != types.AddrLen {
+	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
+	// }
+	if len(strings.TrimSpace(msg.SenderOtherChain)) > 0 {
+		return sdk.ErrInternal(fmt.Sprintf("sender address should be specified"))
+	}
+	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
+		return sdk.ErrInternal(fmt.Sprintf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength))
+	}
+	if len(msg.RandomNumberHash) != RandomNumberHashLength {
+		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
+	}
+	return nil
+}
+
+// GetSignBytes gets the sign bytes of a MsgCalculateSwapID
+func (msg MsgCalculateSwapID) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
