@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -313,13 +312,13 @@ func (msg MsgRefundHTLT) GetSignBytes() []byte {
 // MsgCalculateSwapID defines a CalculateSwapID msg
 type MsgCalculateSwapID struct {
 	From             sdk.AccAddress `json:"from"`
-	RandomNumberHash common.Hash    `json:"random_number_hash"`
+	RandomNumberHash []byte         `json:"random_number_hash"`
 	Sender           string         `json:"sender"`
 	SenderOtherChain string         `json:"sender_other_chain"`
 }
 
 // NewMsgCalculateSwapID initializes a new CalculateSwapID msg
-func NewMsgCalculateSwapID(from sdk.AccAddress, randomNumberHash common.Hash,
+func NewMsgCalculateSwapID(from sdk.AccAddress, randomNumberHash []byte,
 	sender string, senderOtherChain string) MsgCalculateSwapID {
 	return MsgCalculateSwapID{
 		From:             from,
@@ -337,7 +336,7 @@ func (msg MsgCalculateSwapID) Type() string { return CalcSwapID }
 
 // String prints the MsgCalculateSwapID
 func (msg MsgCalculateSwapID) String() string {
-	return fmt.Sprintf("calcSwapID{%v#%v#%v}", msg.RandomNumberHash, msg.Sender, msg.SenderOtherChain)
+	return fmt.Sprintf("calcSwapID{%v#%v#%v#%v}", msg.From, msg.RandomNumberHash, msg.Sender, msg.SenderOtherChain)
 }
 
 // GetSigners gets the signers of a MsgCalculateSwapID
@@ -350,7 +349,7 @@ func (msg MsgCalculateSwapID) ValidateBasic() sdk.Error {
 	// if len(msg.From) != types.AddrLen {
 	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	// }
-	if len(strings.TrimSpace(msg.SenderOtherChain)) > 0 {
+	if len(strings.TrimSpace(msg.Sender)) == 0 {
 		return sdk.ErrInternal(fmt.Sprintf("sender address should be specified"))
 	}
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {

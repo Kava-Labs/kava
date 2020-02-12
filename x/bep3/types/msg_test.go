@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -22,6 +23,10 @@ var (
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(9988776655)
 	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
+	ethAddrs          = []common.Address{
+		common.HexToAddress("0x6f456B7F0b1658Be2683375159E7f09a8831CBe5"),
+		common.HexToAddress("0x3a6CEef76Fd677332Dc0bA09604bD6acB1BeF613"),
+	}
 )
 
 func TestHTLTMsg(t *testing.T) {
@@ -131,6 +136,35 @@ func TestMsgRefundHTLT(t *testing.T) {
 		msg := NewMsgRefundHTLT(
 			tc.from,
 			tc.swapID,
+		)
+		if tc.expectPass {
+			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+		} else {
+			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+		}
+	}
+}
+
+func TestMsgCalculateSwapID(t *testing.T) {
+	tests := []struct {
+		description      string
+		from             sdk.AccAddress
+		randomNumberHash []byte
+		sender           string
+		senderOtherChain string
+		expectPass       bool
+	}{
+		{"normal", kavaAddrs[0], CalculateRandomHash(randomNumberBytes, timestampInt64), ethAddrs[0].String(), ethAddrs[1].String(), true},
+		{"no sender", kavaAddrs[0], CalculateRandomHash(randomNumberBytes, timestampInt64), "", ethAddrs[1].String(), false},
+		{"short hash", kavaAddrs[0], []byte("hash_is_too_short"), "", ethAddrs[1].String(), false},
+	}
+
+	for i, tc := range tests {
+		msg := NewMsgCalculateSwapID(
+			tc.from,
+			tc.randomNumberHash,
+			tc.sender,
+			tc.senderOtherChain,
 		)
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
