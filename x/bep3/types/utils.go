@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"strings"
 
-	// binance "github.com/binance-chain/go-sdk/common/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
