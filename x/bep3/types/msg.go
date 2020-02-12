@@ -171,15 +171,15 @@ func (msg MsgDepositHTLT) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic validates the MsgDepositHTLT
-func (msg MsgDepositHTLT) ValidateBasic() error {
+func (msg MsgDepositHTLT) ValidateBasic() sdk.Error {
 	// if len(msg.From) != types.AddrLen {
 	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	// }
 	if len(msg.SwapID) != SwapIDLength {
-		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
+		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
 	}
 	if !msg.Amount.IsAllPositive() {
-		return fmt.Errorf("the swapped out coin must be positive")
+		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
 	}
 	return nil
 }
@@ -231,15 +231,15 @@ func (msg MsgClaimHTLT) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic validates the MsgClaimHTLT
-func (msg MsgClaimHTLT) ValidateBasic() error {
+func (msg MsgClaimHTLT) ValidateBasic() sdk.Error {
 	// if len(msg.From) != types.AddrLen {
 	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	// }
 	if len(msg.SwapID) != SwapIDLength {
-		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
+		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
 	}
 	if len(msg.RandomNumber) != RandomNumberLength {
-		return fmt.Errorf("the length of random number should be %d", RandomNumberLength)
+		return sdk.ErrInternal(fmt.Sprintf("the length of random number should be %d", RandomNumberLength))
 	}
 	return nil
 }
@@ -289,12 +289,12 @@ func (msg MsgRefundHTLT) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic validates the MsgRefundHTLT
-func (msg MsgRefundHTLT) ValidateBasic() error {
+func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
 	// if len(msg.From) != types.AddrLen {
 	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
 	// }
 	if len(msg.SwapID) != SwapIDLength {
-		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
+		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
 	}
 	return nil
 }
