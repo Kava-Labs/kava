@@ -11,9 +11,8 @@ import (
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
-		// TODO: Get individual HTLT by ID
-		// case types.QueryGetHTLT:
-		// 	return queryHTLT(ctx, req, keeper)
+		case types.QueryGetHTLT:
+			return queryHTLT(ctx, req, keeper)
 		case types.QueryGetHTLTs:
 			return queryHTLTs(ctx, req, keeper)
 		case types.QueryGetParams:
@@ -22,6 +21,29 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return nil, sdk.ErrUnknownRequest("unknown bep3 query endpoint")
 		}
 	}
+}
+
+func queryHTLT(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	// Decode request
+	var requestParams types.QuerySwapByID
+	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+	}
+
+	// Lookup htlt
+	htlt, found := keeper.GetHTLT(ctx, requestParams.SwapID)
+	if !found {
+		return nil, sdk.ErrInternal("Not found")
+	}
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, htlt)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+
+	return bz, nil
 }
 
 func queryHTLTs(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {

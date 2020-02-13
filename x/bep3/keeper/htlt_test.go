@@ -28,10 +28,10 @@ var (
 	timestamp2   = int64(7766554433)
 	timestamp3   = int64(8877665544)
 	timestamp4   = int64(9988776655)
-	rnh1         = types.CalculateRandomHash([]byte{15}, timestamp1)
-	rnh2         = types.CalculateRandomHash([]byte{72}, timestamp2)
-	rnh3         = types.CalculateRandomHash([]byte{119}, timestamp3)
-	rnh4         = types.CalculateRandomHash([]byte{154}, timestamp4)
+	rnh1         = types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{15}, timestamp1))
+	rnh2         = types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{72}, timestamp2))
+	rnh3         = types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{119}, timestamp3))
+	rnh4         = types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{154}, timestamp4))
 	binanceAddrs = []sdk.AccAddress{
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
@@ -60,14 +60,16 @@ func (suite *HtltTestSuite) SetupTest() {
 
 func (suite *HtltTestSuite) TestGetSetHtlt() {
 	htlt := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", rnh1, timestamp1, coinsSingle, "bnb50000", 80000, false)
-	swapID := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
+	swapID, err := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
+	suite.NoError(err)
 	suite.keeper.SetHTLT(suite.ctx, htlt, swapID)
 
 	h, found := suite.keeper.GetHTLT(suite.ctx, swapID)
 	suite.True(found)
 	suite.Equal(htlt, h)
 
-	fakeSwapID := types.CalculateSwapID(htlt.RandomNumberHash, kavaAddrs[1], "otheraddress")
+	fakeSwapID, err := types.CalculateSwapID(htlt.RandomNumberHash, kavaAddrs[1], "otheraddress")
+	suite.NoError(err)
 	_, found = suite.keeper.GetHTLT(suite.ctx, fakeSwapID)
 	suite.False(found)
 
@@ -83,23 +85,21 @@ func (suite *HtltTestSuite) TestAddHtlt() {
 	acc.SetCoins(sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000000000))))
 	ak.SetAccount(suite.ctx, acc)
 
-	expectedSwapID := types.CalculateSwapID(rnh2, binanceAddrs[0], "")
+	expectedSwapIDBytes, err := types.CalculateSwapID(rnh2, binanceAddrs[0], "")
+	suite.NoError(err)
+	expectedSwapID := types.BytesToHexEncodedString(expectedSwapIDBytes)
 
 	swapID, err := suite.keeper.AddHTLT(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", rnh2, timestamp2, coinsSingle, "bnb50000", 80000, false)
 	suite.NoError(err)
 	suite.Equal(swapID, expectedSwapID)
-
-	// TODO: Test bep3 module custom errors on HTLT creation
 }
 
 func (suite *HtltTestSuite) TestIterateHtlts() {
 	htlts := htlts()
 	for _, h := range htlts {
-		swapID := types.CalculateSwapID(h.RandomNumberHash, h.From, h.SenderOtherChain)
+		swapID, err := types.CalculateSwapID(h.RandomNumberHash, h.From, h.SenderOtherChain)
+		suite.NoError(err)
 		suite.keeper.SetHTLT(suite.ctx, h, swapID)
-		// TODO: IndexHtltByTime
-		// TODO: IndexHtltBySender
-		// TODO: IndexHtltByReceiver
 	}
 	res := suite.keeper.GetAllHtlts(suite.ctx)
 	suite.Equal(4, len(res))
@@ -109,7 +109,6 @@ func TestHtltTestSuite(t *testing.T) {
 	suite.Run(t, new(HtltTestSuite))
 }
 
-// TODO: Move to integrationTest.go
 func htlts() types.HTLTs {
 	var htlts types.HTLTs
 	h1 := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", rnh1, timestamp1, coinsSingle, "bnb50000", 50500, false)

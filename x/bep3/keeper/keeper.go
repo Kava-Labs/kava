@@ -41,18 +41,17 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // StoreNewHTLT stores an HTLT
-func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.HTLT) []byte {
-	swapID := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
+func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.HTLT) (string, error) {
+	swapID, err := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
+	if err != nil {
+		return "", err
+	}
 	k.SetHTLT(ctx, htlt, swapID)
-	return swapID
+	return types.BytesToHexEncodedString(swapID), nil
 }
 
 // SetHTLT puts the HTLT into the store, and updates any indexes.
 func (k Keeper) SetHTLT(ctx sdk.Context, htlt types.HTLT, swapID []byte) {
-	// existingHTLT, found := k.GetHTLT(ctx, htlt.Timestamp)
-	// if found {
-	// 	k.removeFromByTimeIndex(ctx, existingHTLT.Timestamp, existingHTLT.ID)
-	// }
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(htlt)
 	store.Set(swapID, bz)
@@ -93,35 +92,3 @@ func (k Keeper) IterateHTLTs(ctx sdk.Context, cb func(htlt types.HTLT) (stop boo
 		}
 	}
 }
-
-// InsertIntoByTimeIndex adds a HTLT ID and end time into the byTime index.
-// func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, htltID uint64) { // TODO make private, and find way to make tests work
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HTLTByTimeKeyPrefix)
-// 	store.Set(types.GetHTLTByTimeKey(endTime, htltID), types.Uint64ToBytes(htltID))
-// }
-
-// removeFromByTimeIndex removes an HTLT ID and end time from the byTime index.
-// func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, endTime time.Time, htltID uint64) {
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HTLTByTimeKeyPrefix)
-// 	store.Delete(types.GetHTLTByTimeKey(endTime, htltID))
-// }
-
-// // IterateHTLTsByTime provides an iterator over HTLTs ordered by HTLT.EndTime.
-// // For each HTLT cb will be callled. If cb returns true the iterator will close and stop.
-// func (k Keeper) IterateHTLTsByTime(ctx sdk.Context, inclusiveCutoffTime time.Time, cb func(htltID uint64) (stop bool)) {
-// 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.HTLTByTimeKeyPrefix)
-// 	iterator := store.Iterator(
-// 		nil, // start at the very start of the prefix store
-// 		sdk.PrefixEndBytes(sdk.FormatTimeBytes(inclusiveCutoffTime)), // include any keys with times equal to inclusiveCutoffTime
-// 	)
-
-// 	defer iterator.Close()
-// 	for ; iterator.Valid(); iterator.Next() {
-
-// 		htltID := types.Uint64FromBytes(iterator.Value())
-
-// 		if cb(htltID) {
-// 			break
-// 		}
-// 	}
-// }
