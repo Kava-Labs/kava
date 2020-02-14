@@ -78,7 +78,7 @@ func (suite *HtltTestSuite) TestGetSetHtlt() {
 	suite.False(found)
 }
 
-func (suite *HtltTestSuite) TestAddHtlt() {
+func (suite *HtltTestSuite) TestCreateHTLT() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
@@ -89,7 +89,7 @@ func (suite *HtltTestSuite) TestAddHtlt() {
 	suite.NoError(err)
 	expectedSwapID := types.BytesToHexEncodedString(expectedSwapIDBytes)
 
-	swapID, err := suite.keeper.AddHTLT(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", rnh2, timestamp2, coinsSingle, "bnb50000", 80000, false)
+	swapID, err := suite.keeper.CreateHTLT(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", rnh2, timestamp2, coinsSingle, "bnb50000", 80000, false)
 	suite.NoError(err)
 	suite.Equal(swapID, expectedSwapID)
 }

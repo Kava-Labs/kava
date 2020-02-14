@@ -7,19 +7,25 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-// AddHTLT adds an htlt
-func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+// CreateHTLT adds an htlt
+func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash string, timestamp int64, coins sdk.Coins,
 	expectedIncome string, heightSpan int64, crossChain bool) (string, sdk.Error) {
 
-	// _, found := k.GetHTLT(ctx, expectedSwapID)
-	// if found {
-	// 	return "", types.ErrHTLTAlreadyExists(k.codespace, expectedSwapID)
-	// }
-
-	err := k.ValidateAsset(ctx, coins)
+	expectedSwapID, err := types.CalculateSwapID(randomNumberHash, from, senderOtherChain)
 	if err != nil {
-		return "", err
+		return "", sdk.ErrInternal(err.Error())
+	}
+
+	_, found := k.GetHTLT(ctx, expectedSwapID)
+	if found {
+		encodedExpectedSwapID := types.BytesToHexEncodedString(expectedSwapID)
+		return "", types.ErrHTLTAlreadyExists(k.codespace, encodedExpectedSwapID)
+	}
+
+	err = k.ValidateAsset(ctx, coins)
+	if err != nil {
+		return "", sdk.ErrInternal(err.Error())
 	}
 
 	htlt := types.NewHTLT(from, to, recipientOtherChain, senderOtherChain,
@@ -122,11 +128,11 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, encodedSwapID st
 		return types.ErrHTLTNotFound(k.codespace, encodedSwapID)
 	}
 
-	// generate hashed random number with param number and timestamp
+	// Calculate hashed random number with param number and timestamp
 	hashedRandomNumber := types.CalculateRandomHash(randomNumber, htlt.Timestamp)
 	stringRandomNumber := types.BytesToHexEncodedString(hashedRandomNumber)
 
-	// generate hashed secret hashed random number, htlt sender, and sender other chain
+	// Calculate hashed secret hashed random number, htlt sender, and sender other chain
 	hashedSecret, err := types.CalculateSwapID(stringRandomNumber, htlt.From, htlt.SenderOtherChain)
 	if err != nil {
 		return sdk.ErrInternal(err.Error())
