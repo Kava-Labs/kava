@@ -41,6 +41,7 @@ func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress,
 		sdk.NewEvent(
 			types.EventTypeCreateHtlt,
 			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", swapID)),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", randomNumberHash)),
 			sdk.NewAttribute(types.AttributeKeyFrom, fmt.Sprintf("%s", htlt.From)),
 			sdk.NewAttribute(types.AttributeKeyTo, fmt.Sprintf("%s", htlt.To)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", htlt.Amount[0].Denom)),
