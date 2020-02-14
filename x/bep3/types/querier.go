@@ -1,14 +1,27 @@
 package types
 
 const (
-	// QueryGetHTLT command for getting the information about a particular HTLT
+	// QueryGetHTLT command for getting info about an HTLT
 	QueryGetHTLT = "htlt"
 	// QueryGetHTLTs command for getting a list of HTLTs
-	QueryGetHTLTs  = "htlts"
+	QueryGetHTLTs = "htlts"
+	// QueryGetParams command for getting module params
 	QueryGetParams = "params"
 )
 
-// QueryHTLTsParams is the params for a HTLTs query
+// QueryHTLTByID contains the params for query 'custom/bep3/htlt'
+type QueryHTLTByID struct {
+	SwapID SwapBytes
+}
+
+// NewQueryHTLTByID creates a new QueryHTLTByID
+func NewQueryHTLTByID(swapBytes SwapBytes) QueryHTLTByID {
+	return QueryHTLTByID{
+		SwapID: swapBytes,
+	}
+}
+
+// QueryHTLTsParams contains the params for a HTLTs query
 type QueryHTLTsParams struct {
 	Page  int `json:"page" yaml:"page"`
 	Limit int `json:"limit" yaml:"limit"`

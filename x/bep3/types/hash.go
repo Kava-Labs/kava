@@ -8,6 +8,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
+// CalculateRandomHash calculates the hash of a number and timestamp
 func CalculateRandomHash(randomNumber []byte, timestamp int64) []byte {
 	data := make([]byte, RandomNumberLength+Int64Size)
 	copy(data[:RandomNumberLength], randomNumber)
@@ -15,10 +16,15 @@ func CalculateRandomHash(randomNumber []byte, timestamp int64) []byte {
 	return tmhash.Sum(data)
 }
 
-func CalculateSwapID(randomNumberHash []byte, sender sdk.AccAddress, senderOtherChain string) []byte {
+// CalculateSwapID calculates the hash of a RandomNumberHash, sdk.AccAddress, and string
+func CalculateSwapID(randomNumberHash string, sender sdk.AccAddress, senderOtherChain string) ([]byte, error) {
+	randomNumberHashBytes, err := HexEncodedStringToBytes(randomNumberHash)
+	if err != nil {
+		return []byte{}, err
+	}
 	senderOtherChain = strings.ToLower(senderOtherChain)
-	data := randomNumberHash
+	data := randomNumberHashBytes
 	data = append(data, []byte(sender)...)
 	data = append(data, []byte(senderOtherChain)...)
-	return tmhash.Sum(data)
+	return tmhash.Sum(data), nil
 }

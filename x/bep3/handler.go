@@ -24,7 +24,6 @@ func NewHandler(k Keeper) sdk.Handler {
 
 // handleMsgCreateHTLT handles requests to create a new HTLT
 func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.HTLTMsg) sdk.Result {
-
 	id, err := k.AddHTLT(ctx, msg.From, msg.To, msg.RecipientOtherChain,
 		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)

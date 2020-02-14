@@ -15,7 +15,7 @@ import (
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	// Group nameservice queries under a subcommand
+	// Group bep3 queries under a subcommand
 	bep3QueryCmd := &cobra.Command{
 		Use:   "bep3",
 		Short: "Querying commands for the bep3 module",
@@ -76,18 +76,15 @@ func QueryGetHtltCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
 				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
 			}
-			hexEncodedSwapID := args[0]
 
 			// Decode swapID's hex encoded string to []byte
-			swapID, err := types.HexEncodedStringToBytes(hexEncodedSwapID)
+			swapID, err := types.HexEncodedStringToBytes(args[0])
 			if err != nil {
 				return err
 			}
 
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.QuerySwapByID{
-				SwapID: swapID,
-			})
+			bz, err := cdc.MarshalJSON(types.NewQueryHTLTByID(swapID))
 			if err != nil {
 				return err
 			}

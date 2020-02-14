@@ -109,22 +109,3 @@ type AtomicSwap struct {
 	ClosedTime   int64      `json:"closed_time"`
 	Status       SwapStatus `json:"status"`
 }
-
-// Params for query 'custom/bep3/swapid'
-type QuerySwapByID struct {
-	SwapID SwapBytes
-}
-
-// Params for query 'custom/bep3/swapcreator'
-type QuerySwapByCreatorParams struct {
-	Creator sdk.AccAddress
-	Limit   int64
-	Offset  int64
-}
-
-// Params for query 'custom/bep3/swaprecipient'
-type QuerySwapByRecipientParams struct {
-	Recipient sdk.AccAddress
-	Limit     int64
-	Offset    int64
-}
