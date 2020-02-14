@@ -30,6 +30,7 @@ func NewHandler(k Keeper) sdk.Handler {
 
 // handleMsgCreateHTLT handles requests to create a new HTLT
 func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk.Result {
+
 	id, err := k.AddHTLT(ctx, msg.From, msg.To, msg.RecipientOtherChain,
 		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
@@ -80,10 +81,7 @@ func handleMsgDepositHTLT(ctx sdk.Context, k Keeper, msg types.MsgDepositHTLT) s
 // handleMsgClaimHTLT handles requests to claim funds in an active HTLT
 func handleMsgClaimHTLT(ctx sdk.Context, k Keeper, msg types.MsgClaimHTLT) sdk.Result {
 
-	// 1. Action
-	// if err != nil {
-	// 	return err.Result()
-	// }
+	// TODO: Action
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -101,10 +99,7 @@ func handleMsgClaimHTLT(ctx sdk.Context, k Keeper, msg types.MsgClaimHTLT) sdk.R
 // handleMsgRefundHTLT handles requests to refund an active HTLT
 func handleMsgRefundHTLT(ctx sdk.Context, k Keeper, msg types.MsgRefundHTLT) sdk.Result {
 
-	// 1. Action
-	// if err != nil {
-	// 	return err.Result()
-	// }
+	// TODO: Action
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

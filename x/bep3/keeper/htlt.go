@@ -9,19 +9,29 @@ import (
 
 // AddHTLT adds an htlt
 func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash string, timestamp int64, asset sdk.Coins,
+	senderOtherChain string, randomNumberHash string, timestamp int64, coins sdk.Coins,
 	expectedIncome string, heightSpan int64, crossChain bool) (string, sdk.Error) {
 
-	err := k.ValidateAsset(ctx, asset)
+	// _, found := k.GetHTLT(ctx, expectedSwapID)
+	// if found {
+	// 	return "", types.ErrHTLTAlreadyExists(k.codespace, expectedSwapID)
+	// }
+
+	err := k.ValidateAsset(ctx, coins)
 	if err != nil {
 		return "", err
 	}
 
 	htlt := types.NewHTLT(from, to, recipientOtherChain, senderOtherChain,
-		randomNumberHash, timestamp, asset, expectedIncome, heightSpan,
+		randomNumberHash, timestamp, coins, expectedIncome, heightSpan,
 		crossChain)
 
-	// TODO: add error already exists
+	// Send coins from sender to the bep3 module
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, coins)
+	if err != nil {
+		return "", sdk.ErrInternal(err.Error())
+	}
+
 	swapID, sdkErr := k.StoreNewHTLT(ctx, htlt)
 	if sdkErr != nil {
 		return "", sdk.ErrInternal(sdkErr.Error())
@@ -39,13 +49,6 @@ func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress,
 	)
 
 	return swapID, nil
-}
-
-// MsgDepositHTLT defines an HTLT deposit
-type MsgDepositHTLT struct {
-	From   sdk.AccAddress `json:"from"`
-	SwapID string         `json:"swap_id"`
-	Amount sdk.Coins      `json:"amount"`
 }
 
 // DepositHTLT deposits funds in an existing HTLT
@@ -75,7 +78,7 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID string,
 	// 	return a, types.ErrAmountTooLarge(k.codespace, coin.Amount)
 	// }
 
-	// send coins from depositor to the bep3 module
+	// Send coins from depositor to the bep3 module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, coins)
 	if err != nil {
 		return sdk.ErrInternal(err.Error())
@@ -114,10 +117,10 @@ func (k Keeper) ValidateAsset(ctx sdk.Context, assets sdk.Coins) sdk.Error {
 	if len(assets) != 1 {
 		return sdk.ErrInternal("HTLTs currently only support 1 asset at a time")
 	}
-	// TODO: Validate that this asset is in module params
-	// _, found := k.GetCollateral(ctx, collateral[0].Denom)
+	// TODO: param validation
+	// _, found := k.GetAsset(ctx, assets[0].Denom)
 	// if !found {
-	// 	return types.ErrCollateralNotSupported(k.codespace, collateral[0].Denom)
+	// 	return types.ErrAssetNotSupported(k.codespace, assets[0].Denom)
 	// }
 	return nil
 }

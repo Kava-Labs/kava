@@ -18,6 +18,7 @@ const (
 	CodeInvalidCoinDenom         CodeType          = 4
 	CodeAmountTooLarge           CodeType          = 5
 	CodeAmountTooSmall           CodeType          = 6
+	CodeHTLTAlreadyExists        CodeType          = 7
 )
 
 // ErrInvalidLockTime Error constructor
@@ -48,4 +49,9 @@ func ErrAmountTooLarge(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
 // ErrAmountTooSmall error for when a coin amount is 0
 func ErrAmountTooSmall(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
 	return sdk.NewError(codespace, CodeAmountTooSmall, fmt.Sprintf("coin %s amount is below the limit for this operation", coin.String()))
+}
+
+// ErrHTLTAlreadyExists error for when an HTLT with this swapID already exists
+func ErrHTLTAlreadyExists(codespace sdk.CodespaceType, swapID string) sdk.Error {
+	return sdk.NewError(codespace, CodeHTLTAlreadyExists, fmt.Sprintf("coin %s amount is below the limit for this operation", swapID))
 }
