@@ -24,7 +24,7 @@ func NewHandler(k Keeper) sdk.Handler {
 
 // handleMsgCreateHTLT handles requests to create a new HTLT
 func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.HTLTMsg) sdk.Result {
-	// msg contains HTLT attributes
+
 	id, err := k.AddHTLT(ctx, msg.From, msg.To, msg.RecipientOtherChain,
 		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
@@ -40,8 +40,13 @@ func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.HTLTMsg) sdk.Resul
 		),
 	)
 
+	swapID, err2 := types.HexEncodedStringToBytes(id)
+	if err2 != nil {
+		return sdk.ErrInternal(fmt.Sprintf("could not decode swap id %x. Error: %s", id, err2)).Result()
+	}
+
 	return sdk.Result{
-		Data:   id,
+		Data:   swapID,
 		Events: ctx.EventManager().Events(),
 	}
 }
