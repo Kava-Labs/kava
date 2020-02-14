@@ -19,8 +19,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgDepositHTLT(ctx, k, msg)
 		case MsgClaimHTLT:
 			return handleMsgClaimHTLT(ctx, k, msg)
-		// case MsgRefundHTLT:
-		// 	return handleMsgRefundHTLT(ctx, k, msg)
+		case MsgRefundHTLT:
+			return handleMsgRefundHTLT(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -99,20 +99,23 @@ func handleMsgClaimHTLT(ctx sdk.Context, k Keeper, msg types.MsgClaimHTLT) sdk.R
 	}
 }
 
-// // handleMsgRefundHTLT handles requests to refund an active HTLT
-// func handleMsgRefundHTLT(ctx sdk.Context, k Keeper, msg types.MsgRefundHTLT) sdk.Result {
+// handleMsgRefundHTLT handles requests to refund an active HTLT
+func handleMsgRefundHTLT(ctx sdk.Context, k Keeper, msg types.MsgRefundHTLT) sdk.Result {
 
-// 	// TODO: Action
+	err := k.RefundHTLT(ctx, msg.From, msg.SwapID)
+	if err != nil {
+		return err.Result()
+	}
 
-// 	ctx.EventManager().EmitEvent(
-// 		sdk.NewEvent(
-// 			sdk.EventTypeMessage,
-// 			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
-// 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-// 		),
-// 	)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	)
 
-// 	return sdk.Result{
-// 		Events: ctx.EventManager().Events(),
-// 	}
-// }
+	return sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}
+}

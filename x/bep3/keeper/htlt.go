@@ -111,7 +111,7 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID string,
 }
 
 // ClaimHTLT validates a claim attempt, and if successful, sends the escrowed amount and closes the HTLT
-func (k Keeper) ClaimHTLT(ctx sdk.Context, claimer sdk.AccAddress, encodedSwapID string, randomNumber []byte) sdk.Error {
+func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, encodedSwapID string, randomNumber []byte) sdk.Error {
 	decodedSwapID, err := types.HexEncodedStringToBytes(encodedSwapID)
 	if err != nil {
 		return sdk.ErrInternal(err.Error())
@@ -144,8 +144,8 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, claimer sdk.AccAddress, encodedSwapID
 	}
 	deputyCoins := htlt.Amount.Sub(claimerCoins)
 
-	// Send expected income from bep3 module to claimer
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, claimer, claimerCoins)
+	// Send expected income from bep3 module to claiming address
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, claimerCoins)
 	if err != nil {
 		return sdk.ErrInternal(err.Error())
 	}
@@ -162,7 +162,7 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, claimer sdk.AccAddress, encodedSwapID
 		sdk.NewEvent(
 			types.EventTypeClaimHtlt,
 			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", encodedSwapID)),
-			sdk.NewAttribute(types.AttributeKeyClaimer, fmt.Sprintf("%s", claimer)),
+			sdk.NewAttribute(types.AttributeKeyClaimer, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", claimerCoins[0].Denom)),
 			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", claimerCoins[0].Amount.Int64())),
 		),
@@ -172,6 +172,44 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, claimer sdk.AccAddress, encodedSwapID
 	k.DeleteHTLT(ctx, decodedSwapID)
 
 	return nil
+}
+
+// RefundHTLT refunds an HTLT, sending assets to the original sender and closing the HTLT
+func (k Keeper) RefundHTLT(ctx sdk.Context, from sdk.AccAddress, encodedSwapID string) sdk.Error {
+	decodedSwapID, err := types.HexEncodedStringToBytes(encodedSwapID)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	htlt, found := k.GetHTLT(ctx, decodedSwapID)
+	if !found {
+		return types.ErrHTLTNotFound(k.codespace, encodedSwapID)
+	}
+
+	if !htlt.From.Equals(from) {
+		return types.ErrOnlyOriginalCreator(k.codespace, from, htlt.From)
+	}
+
+	// Send coins from bep3 module to original creator
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, htlt.Amount)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRefundHtlt,
+			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", encodedSwapID)),
+			sdk.NewAttribute(types.AttributeKeyClaimer, fmt.Sprintf("%s", from)),
+			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", htlt.Amount[0].Denom)),
+			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", htlt.Amount[0].Amount.Int64())),
+		),
+	)
+
+	// Update HTLT state
+	k.DeleteHTLT(ctx, decodedSwapID)
+	return nil
+
 }
 
 // GetAllHtlts returns all HTLTs from the store
