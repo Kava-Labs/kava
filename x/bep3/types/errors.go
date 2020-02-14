@@ -19,6 +19,9 @@ const (
 	CodeAmountTooLarge           CodeType          = 5
 	CodeAmountTooSmall           CodeType          = 6
 	CodeHTLTAlreadyExists        CodeType          = 7
+	CodeInvalidClaimSecret       CodeType          = 8
+	CodeOnlySameChain            CodeType          = 9
+	CodeOnlyOriginalCreator      CodeType          = 10
 )
 
 // ErrInvalidLockTime Error constructor
@@ -54,4 +57,19 @@ func ErrAmountTooSmall(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
 // ErrHTLTAlreadyExists error for when an HTLT with this swapID already exists
 func ErrHTLTAlreadyExists(codespace sdk.CodespaceType, swapID string) sdk.Error {
 	return sdk.NewError(codespace, CodeHTLTAlreadyExists, fmt.Sprintf("coin %s amount is below the limit for this operation", swapID))
+}
+
+// ErrInvalidClaimSecret error when a submitted secret doesn't match an HTLT's swapID
+func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret string, swapID string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidClaimSecret, fmt.Sprintf("hashed claim attempt %s does not match %s", submittedSecret, swapID))
+}
+
+// ErrOnlySameChain error for when an operation is not allowed for cross-chain swaps
+func ErrOnlySameChain(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeOnlySameChain, fmt.Sprintf("this operation is only allowed for same-chain swaps"))
+}
+
+// ErrOnlyOriginalCreator error for when an operation restricted to the original htlt creator
+func ErrOnlyOriginalCreator(codespace sdk.CodespaceType, sender sdk.AccAddress, creator sdk.AccAddress) sdk.Error {
+	return sdk.NewError(codespace, CodeOnlyOriginalCreator, fmt.Sprintf("%s does not match original HTLT creator %s", sender, creator))
 }

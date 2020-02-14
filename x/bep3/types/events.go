@@ -12,6 +12,7 @@ const (
 	AttributeKeyTo         = "htlt_to"
 	AttributeKeyCoinDenom  = "coin_denom"
 	AttributeKeyCoinAmount = "coin_amount"
+	AttributeKeyClaimer    = "htlt_claimer"
 
 	AttributeValueCategory = ModuleName
 )

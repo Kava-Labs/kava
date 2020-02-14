@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	bep3QueryCmd.AddCommand(client.GetCommands(
-		QueryGetCalcSwapIDCmd(queryRoute, cdc),
+		QueryCalcSwapIDCmd(queryRoute, cdc),
+		QueryCalcRandomNumberHashCmd(queryRoute, cdc),
 		QueryGetHtltCmd(queryRoute, cdc),
 		QueryGetHtltsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
@@ -31,12 +33,41 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return bep3QueryCmd
 }
 
-// QueryGetCalcSwapIDCmd calculates the swapID for a random number hash, sender, and sender other chain
-func QueryGetCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryCalcRandomNumberHashCmd calculates the random number hash for a number and timestamp
+func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "calc-rnh [random-number] [timestamp]",
+		Short:   "calculate a random number hash for given a number and timestamp",
+		Example: "bep3 calc-rnh 15 998877665544",
+		Args:    cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Parse query params
+			if len(strings.TrimSpace(args[0])) == 0 {
+				return fmt.Errorf("random-number cannot be empty")
+			}
+			randomNumber := []byte(args[0])
+			timestamp, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf(fmt.Sprintf("timestamp %s could not be converted to an integer", args[1]))
+			}
+
+			// Calculate random number hash and convert to human-readable string
+			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
+			decodedRandomNumberHash := types.BytesToHexEncodedString(randomNumberHash)
+
+			return cliCtx.PrintOutput(decodedRandomNumberHash)
+		},
+	}
+}
+
+// QueryCalcSwapIDCmd calculates the swapID for a random number hash, sender, and sender other chain
+func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "calc-id [randomNumberHash] [sender] [senderOtherChain]",
 		Short:   "calculate swap ID for the given random number hash, sender, and sender other chain",
-		Example: "calc-id 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 kava15qdefkmwswysgg4qxgcqpqr35k3m49pkx2jdfnw bnb1ud3q90r98l3mhd87kswv3h8cgrymzeljct8qn7",
+		Example: "bep3 calc-id 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 kava15qdefkmwswysgg4qxgcqpqr35k3m49pkx2jdfnw bnb1ud3q90r98l3mhd87kswv3h8cgrymzeljct8qn7",
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)

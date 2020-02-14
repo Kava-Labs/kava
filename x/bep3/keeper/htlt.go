@@ -67,6 +67,12 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID string,
 	coin := coins[0]
 
 	// Validate new deposit
+	if htlt.CrossChain {
+		return types.ErrOnlySameChain(k.codespace)
+	}
+	if htlt.From.Equals(from) {
+		return types.ErrOnlyOriginalCreator(k.codespace, from, htlt.From)
+	}
 	if htltCoin.Denom != coin.Denom {
 		return types.ErrInvalidCoinDenom(k.codespace, htltCoin.Denom, coin.Denom)
 	}
@@ -99,6 +105,70 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID string,
 	htlt.ExpectedIncome = currExpectedIncome.Add(coins).String()
 
 	k.SetHTLT(ctx, htlt, decodedSwapID)
+
+	return nil
+}
+
+// ClaimHTLT validates a claim attempt, and if successful, sends the escrowed amount and closes the HTLT
+func (k Keeper) ClaimHTLT(ctx sdk.Context, claimer sdk.AccAddress, encodedSwapID string, randomNumber []byte) sdk.Error {
+	decodedSwapID, err := types.HexEncodedStringToBytes(encodedSwapID)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	htlt, found := k.GetHTLT(ctx, decodedSwapID)
+	if !found {
+		return types.ErrHTLTNotFound(k.codespace, encodedSwapID)
+	}
+
+	// generate hashed random number with param number and timestamp
+	hashedRandomNumber := types.CalculateRandomHash(randomNumber, htlt.Timestamp)
+	stringRandomNumber := types.BytesToHexEncodedString(hashedRandomNumber)
+
+	// generate hashed secret hashed random number, htlt sender, and sender other chain
+	hashedSecret, err := types.CalculateSwapID(stringRandomNumber, htlt.From, htlt.SenderOtherChain)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	encodedHashedSecret := types.BytesToHexEncodedString(hashedSecret)
+	if encodedHashedSecret != encodedSwapID {
+		return types.ErrInvalidClaimSecret(k.codespace, encodedHashedSecret, encodedSwapID)
+	}
+
+	// If HTLT is not cross-chain, htlt.ExpectedIncome should equal htlt.Amount
+	claimerCoins, err := sdk.ParseCoins(htlt.ExpectedIncome)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+	deputyCoins := htlt.Amount.Sub(claimerCoins)
+
+	// Send expected income from bep3 module to claimer
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, claimer, claimerCoins)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	// Send remaining amount from bep3 module to deputy
+	if htlt.CrossChain {
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, htlt.From, deputyCoins)
+		if err != nil {
+			return sdk.ErrInternal(err.Error())
+		}
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaimHtlt,
+			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", encodedSwapID)),
+			sdk.NewAttribute(types.AttributeKeyClaimer, fmt.Sprintf("%s", claimer)),
+			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", claimerCoins[0].Denom)),
+			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", claimerCoins[0].Amount.Int64())),
+		),
+	)
+
+	// Update HTLT state
+	k.DeleteHTLT(ctx, decodedSwapID)
 
 	return nil
 }
