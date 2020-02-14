@@ -27,6 +27,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	bep3TxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateHtlt(cdc),
 		GetCmdDepositHtlt(cdc),
+		GetCmdClaimHtlt(cdc),
+		GetCmdRefundHtlt(cdc),
 	)...)
 
 	return bep3TxCmd
