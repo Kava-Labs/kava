@@ -32,8 +32,8 @@ var (
 	AtomicSwapCoinsAccAddr = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
-// HTLTMsg contains an HTLT struct
-type HTLTMsg struct {
+// MsgCreateHTLT contains an HTLT struct
+type MsgCreateHTLT struct {
 	From                sdk.AccAddress `json:"from"`
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
@@ -46,11 +46,11 @@ type HTLTMsg struct {
 	CrossChain          bool           `json:"cross_chain"`
 }
 
-// NewHTLTMsg initializes a new HTLTMsg
-func NewHTLTMsg(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+// NewMsgCreateHTLT initializes a new MsgCreateHTLT
+func NewMsgCreateHTLT(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash string, timestamp int64,
-	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) HTLTMsg {
-	return HTLTMsg{
+	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateHTLT {
+	return MsgCreateHTLT{
 		From:                from,
 		To:                  to,
 		RecipientOtherChain: recipientOtherChain,
@@ -64,31 +64,31 @@ func NewHTLTMsg(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	}
 }
 
-// Route establishes the route for the HTLTMsg
-func (msg HTLTMsg) Route() string { return RouterKey }
+// Route establishes the route for the MsgCreateHTLT
+func (msg MsgCreateHTLT) Route() string { return RouterKey }
 
-// Type is the name of HTLTMsg
-func (msg HTLTMsg) Type() string { return Htlt }
+// Type is the name of MsgCreateHTLT
+func (msg MsgCreateHTLT) Type() string { return Htlt }
 
-// String prints the HTLTMsg
-func (msg HTLTMsg) String() string {
+// String prints the MsgCreateHTLT
+func (msg MsgCreateHTLT) String() string {
 	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
 		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
 		msg.Timestamp, msg.Amount, msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a HTLTMsg
-func (msg HTLTMsg) GetInvolvedAddresses() []sdk.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgCreateHTLT
+func (msg MsgCreateHTLT) GetInvolvedAddresses() []sdk.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a HTLTMsg
-func (msg HTLTMsg) GetSigners() []sdk.AccAddress {
+// GetSigners gets the signers of a MsgCreateHTLT
+func (msg MsgCreateHTLT) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the HTLTMsg
-func (msg HTLTMsg) ValidateBasic() sdk.Error {
+// ValidateBasic validates the MsgCreateHTLT
+func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -125,8 +125,8 @@ func (msg HTLTMsg) ValidateBasic() sdk.Error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a HTLTMsg
-func (msg HTLTMsg) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgCreateHTLT
+func (msg MsgCreateHTLT) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)

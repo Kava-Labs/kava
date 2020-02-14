@@ -84,7 +84,7 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewHTLTMsg(
+			msg := types.NewMsgCreateHTLT(
 				from, to, recipientOtherChain, senderOtherChain, hashedSecret,
 				timeStamp, coins, expectedIncome, heightSpan, crossChain,
 			)

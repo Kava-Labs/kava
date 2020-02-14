@@ -29,7 +29,7 @@ var (
 	}
 )
 
-func TestHTLTMsg(t *testing.T) {
+func MsgCreateHTLT(t *testing.T) {
 	tests := []struct {
 		description         string
 		from                sdk.AccAddress
@@ -52,7 +52,7 @@ func TestHTLTMsg(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewHTLTMsg(
+		msg := NewMsgCreateHTLT(
 			tc.from,
 			tc.to,
 			tc.recipientOtherChain,

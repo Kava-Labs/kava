@@ -13,7 +13,7 @@ func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case HTLTMsg:
+		case MsgCreateHTLT:
 			return handleMsgCreateHTLT(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
@@ -23,7 +23,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 // handleMsgCreateHTLT handles requests to create a new HTLT
-func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.HTLTMsg) sdk.Result {
+func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk.Result {
 	id, err := k.AddHTLT(ctx, msg.From, msg.To, msg.RecipientOtherChain,
 		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
