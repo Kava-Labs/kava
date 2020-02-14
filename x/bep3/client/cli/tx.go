@@ -35,7 +35,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdCreateHtlt cli command for creating htlts
 func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "create [to] [recipientOtherChain] [hashedSecret] [timestamp] [coins] [expectedIncome] [heightSpan] [crosschain]",
+		Use:     "create [to] [recipien-other-chain] [hashed-secret] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
 		Short:   "create a new Hashed Time Locked Transaction (HTLT)",
 		Example: "bep3 create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 9988776655 100xrp 99xrp 500000 true --from accA",
 		Args:    cobra.MinimumNArgs(8),
@@ -129,6 +129,71 @@ func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
 			msg := types.NewMsgDepositHTLT(from, swapID, coins)
 
 			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdClaimHtlt cli command for claiming an htlt
+func GetCmdClaimHtlt(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "claim [swap-id] [random-number]",
+		Short:   "claim coins in an HTLT using the secret random number",
+		Example: "bep3 claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 123456789 --from accA",
+		Args:    cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			from := cliCtx.GetFromAddress()
+
+			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
+				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
+			}
+			swapID := args[0]
+
+			if len(strings.TrimSpace(args[1])) == 0 {
+				return fmt.Errorf("random-number cannot be empty")
+			}
+			randomNumber := []byte(args[1])
+
+			msg := types.NewMsgClaimHTLT(from, swapID, randomNumber)
+
+			err := msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdRefundHtlt cli command for claiming an htlt
+func GetCmdRefundHtlt(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "refund [swap-id]",
+		Short:   "refund the coins in an HTLT",
+		Example: "bep3 refund 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af --from accA",
+		Args:    cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			from := cliCtx.GetFromAddress()
+
+			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
+				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
+			}
+			swapID := args[0]
+
+			msg := types.NewMsgRefundHTLT(from, swapID)
+
+			err := msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
