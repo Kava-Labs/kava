@@ -35,8 +35,8 @@
     - name: Misc
       description: Query app version
   schemes:
-    - http
-  host: 54.88.243.146:1317
+    - https
+  host: kava-testnet-4000.kava.io
   securityDefinitions:
     kms:
       type: basic
