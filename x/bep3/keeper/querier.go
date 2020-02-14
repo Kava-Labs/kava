@@ -25,7 +25,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 func queryHTLT(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	// Decode request
-	var requestParams types.QuerySwapByID
+	var requestParams types.QueryHTLTByID
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
