@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
@@ -44,10 +43,10 @@ func DefaultParams() Params {
 
 // ChainParam governance parameters for each chain within the bep3 module
 type ChainParam struct {
-	ChainID         string      `json:"chain_id" yaml:"chain_id"`           // international blockchain identifier
-	MinLockTime     int         `json:"min_lock_time" yaml:"min_lock_time"` // HTLT minimum lock time
-	MaxLockTime     int         `json:"max_lock_time" yaml:"max_lock_time"` // HTLT maximum lock time
-	SupportedAssets AssetParams `json:"chain_assets" yaml:"chain_assets"`   // supported assets
+	ChainID         string      `json:"chain_id" yaml:"chain_id"`                 // international blockchain identifier
+	MinLockTime     int64       `json:"min_lock_time" yaml:"min_lock_time"`       // HTLT minimum lock time
+	MaxLockTime     int64       `json:"max_lock_time" yaml:"max_lock_time"`       // HTLT maximum lock time
+	SupportedAssets AssetParams `json:"supported_assets" yaml:"supported_assets"` // supported assets
 }
 
 // String implements fmt.Stringer
@@ -74,10 +73,10 @@ func (cps ChainParams) String() string {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Denom  string  `json:"denom" yaml:"denom"`     // name of the asster
-	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
-	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
-	Active bool    `json:"active" yaml:"active"`   // denotes if asset is available or paused
+	Denom  string `json:"denom" yaml:"denom"`     // name of the asster
+	CoinID string `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
+	Limit  int64  `json:"limit" yaml:"limit"`     // asset supply limit
+	Active bool   `json:"active" yaml:"active"`   // denotes if asset is available or paused
 }
 
 // String implements fmt.Stringer
@@ -148,7 +147,7 @@ func (p Params) Validate() error {
 				return fmt.Errorf(fmt.Sprintf("asset %s on chain %s cannot have duplicate coin id %s", asset.Denom, chain.ChainID, asset.CoinID))
 			}
 			coinIDs[asset.CoinID] = true
-			if !asset.Limit.IsPositive() {
+			if asset.Limit <= 0 {
 				return fmt.Errorf(fmt.Sprintf("asset %s must have limit greater than 0", asset.Denom))
 			}
 		}
