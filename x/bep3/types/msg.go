@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -17,18 +16,19 @@ const (
 	CalcSwapID  = "calcSwapID"
 
 	Int64Size               = 8
-	RandomNumberHashLength  = 32
-	RandomNumberLength      = 32
+	RandomNumberHashLength  = 64
+	RandomNumberLength      = 64
+	AddrByteCount           = 20
 	MaxOtherChainAddrLength = 64
-	SwapIDLength            = 32
+	SwapIDLength            = 64
 	MaxExpectedIncomeLength = 64
 	MinimumHeightSpan       = 360
 	MaximumHeightSpan       = 518400
 )
 
 var (
-	// bnb prefix address:  bnb1wxeplyw7x8aahy93w96yhwm7xcq3ke4f8ge93u
-	// tbnb prefix address: tbnb1wxeplyw7x8aahy93w96yhwm7xcq3ke4ffasp3d
+	// kava prefix address:  [INSERT BEP3-DEPUTY ADDRESS]
+	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
 	AtomicSwapCoinsAccAddr = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
@@ -38,7 +38,7 @@ type HTLTMsg struct {
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
 	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    SwapBytes      `json:"random_number_hash"`
+	RandomNumberHash    string         `json:"random_number_hash"`
 	Timestamp           int64          `json:"timestamp"`
 	Amount              sdk.Coins      `json:"amount"`
 	ExpectedIncome      string         `json:"expected_income"`
@@ -48,7 +48,7 @@ type HTLTMsg struct {
 
 // NewHTLTMsg initializes a new HTLTMsg
 func NewHTLTMsg(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash SwapBytes, timestamp int64,
+	senderOtherChain string, randomNumberHash string, timestamp int64,
 	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) HTLTMsg {
 	return HTLTMsg{
 		From:                from,
@@ -89,12 +89,12 @@ func (msg HTLTMsg) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the HTLTMsg
 func (msg HTLTMsg) ValidateBasic() sdk.Error {
-	// if len(msg.From) != types.AddrLen {
-	// 	return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From)))
-	// }
-	// if len(msg.To) != types.AddrLen {
-	// 	return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.To)))
-	// }
+	if len(msg.From) != AddrByteCount {
+		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+	}
+	if len(msg.To) != AddrByteCount {
+		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To)))
+	}
 	if !msg.CrossChain && len(msg.RecipientOtherChain) != 0 {
 		return sdk.ErrInternal(fmt.Sprintf("must leave recipient address on other chain to empty for single chain swap"))
 	}
@@ -137,12 +137,12 @@ func (msg HTLTMsg) GetSignBytes() []byte {
 // MsgDepositHTLT defines an HTLT deposit
 type MsgDepositHTLT struct {
 	From   sdk.AccAddress `json:"from"`
-	SwapID SwapBytes      `json:"swap_id"`
+	SwapID string         `json:"swap_id"`
 	Amount sdk.Coins      `json:"amount"`
 }
 
 // NewMsgDepositHTLT initializes a new MsgDepositHTLT
-func NewMsgDepositHTLT(from sdk.AccAddress, swapID []byte, amount sdk.Coins) MsgDepositHTLT {
+func NewMsgDepositHTLT(from sdk.AccAddress, swapID string, amount sdk.Coins) MsgDepositHTLT {
 	return MsgDepositHTLT{
 		From:   from,
 		SwapID: swapID,
@@ -173,9 +173,9 @@ func (msg MsgDepositHTLT) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgDepositHTLT
 func (msg MsgDepositHTLT) ValidateBasic() sdk.Error {
-	// if len(msg.From) != types.AddrLen {
-	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	// }
+	if len(msg.From) != AddrByteCount {
+		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+	}
 	if len(msg.SwapID) != SwapIDLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
 	}
@@ -197,12 +197,12 @@ func (msg MsgDepositHTLT) GetSignBytes() []byte {
 // MsgClaimHTLT defines a HTLT claim
 type MsgClaimHTLT struct {
 	From         sdk.AccAddress `json:"from"`
-	SwapID       SwapBytes      `json:"swap_id"`
+	SwapID       string         `json:"swap_id"`
 	RandomNumber SwapBytes      `json:"random_number"`
 }
 
 // NewMsgClaimHTLT initializes a new MsgClaimHTLT
-func NewMsgClaimHTLT(from sdk.AccAddress, swapID, randomNumber []byte) MsgClaimHTLT {
+func NewMsgClaimHTLT(from sdk.AccAddress, swapID string, randomNumber SwapBytes) MsgClaimHTLT {
 	return MsgClaimHTLT{
 		From:         from,
 		SwapID:       swapID,
@@ -233,14 +233,14 @@ func (msg MsgClaimHTLT) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgClaimHTLT
 func (msg MsgClaimHTLT) ValidateBasic() sdk.Error {
-	// if len(msg.From) != types.AddrLen {
-	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	// }
+	if len(msg.From) != AddrByteCount {
+		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+	}
 	if len(msg.SwapID) != SwapIDLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
 	}
-	if len(msg.RandomNumber) != RandomNumberLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of random number should be %d", RandomNumberLength))
+	if len(msg.RandomNumber) == 0 {
+		return sdk.ErrInternal("the length of random number cannot be 0")
 	}
 	return nil
 }
@@ -257,11 +257,11 @@ func (msg MsgClaimHTLT) GetSignBytes() []byte {
 // MsgRefundHTLT defines a refund msg
 type MsgRefundHTLT struct {
 	From   sdk.AccAddress `json:"from"`
-	SwapID SwapBytes      `json:"swap_id"`
+	SwapID string         `json:"swap_id"`
 }
 
 // NewMsgRefundHTLT initializes a new MsgRefundHTLT
-func NewMsgRefundHTLT(from sdk.AccAddress, swapID []byte) MsgRefundHTLT {
+func NewMsgRefundHTLT(from sdk.AccAddress, swapID string) MsgRefundHTLT {
 	return MsgRefundHTLT{
 		From:   from,
 		SwapID: swapID,
@@ -291,9 +291,9 @@ func (msg MsgRefundHTLT) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgRefundHTLT
 func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
-	// if len(msg.From) != types.AddrLen {
-	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	// }
+	if len(msg.From) != AddrByteCount {
+		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+	}
 	if len(msg.SwapID) != SwapIDLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
 	}
@@ -302,67 +302,6 @@ func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
 
 // GetSignBytes gets the sign bytes of a MsgRefundHTLT
 func (msg MsgRefundHTLT) GetSignBytes() []byte {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		panic(err)
-	}
-	return b
-}
-
-// MsgCalculateSwapID defines a CalculateSwapID msg
-type MsgCalculateSwapID struct {
-	From             sdk.AccAddress `json:"from"`
-	RandomNumberHash []byte         `json:"random_number_hash"`
-	Sender           string         `json:"sender"`
-	SenderOtherChain string         `json:"sender_other_chain"`
-}
-
-// NewMsgCalculateSwapID initializes a new CalculateSwapID msg
-func NewMsgCalculateSwapID(from sdk.AccAddress, randomNumberHash []byte,
-	sender string, senderOtherChain string) MsgCalculateSwapID {
-	return MsgCalculateSwapID{
-		From:             from,
-		RandomNumberHash: randomNumberHash,
-		Sender:           sender,
-		SenderOtherChain: senderOtherChain,
-	}
-}
-
-// Route establishes the route for the MsgCalculateSwapID
-func (msg MsgCalculateSwapID) Route() string { return RouterKey }
-
-// Type is the name of MsgCalculateSwapID
-func (msg MsgCalculateSwapID) Type() string { return CalcSwapID }
-
-// String prints the MsgCalculateSwapID
-func (msg MsgCalculateSwapID) String() string {
-	return fmt.Sprintf("calcSwapID{%v#%v#%v#%v}", msg.From, msg.RandomNumberHash, msg.Sender, msg.SenderOtherChain)
-}
-
-// GetSigners gets the signers of a MsgCalculateSwapID
-func (msg MsgCalculateSwapID) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.From}
-}
-
-// ValidateBasic validates the MsgCalculateSwapID
-func (msg MsgCalculateSwapID) ValidateBasic() sdk.Error {
-	// if len(msg.From) != types.AddrLen {
-	// 	return fmt.Errorf("the expected address length is %d, actual length is %d", types.AddrLen, len(msg.From))
-	// }
-	if len(strings.TrimSpace(msg.Sender)) == 0 {
-		return sdk.ErrInternal(fmt.Sprintf("sender address should be specified"))
-	}
-	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength))
-	}
-	if len(msg.RandomNumberHash) != RandomNumberHashLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
-	}
-	return nil
-}
-
-// GetSignBytes gets the sign bytes of a MsgCalculateSwapID
-func (msg MsgCalculateSwapID) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)

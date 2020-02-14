@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	coinsSingle  = sdk.Coins{sdk.Coin{Denom: "bnb", Amount: sdk.NewInt(50000)}}
+	coinsSingle  = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
 	coinsZero    = sdk.Coins{sdk.Coin{}}
 	binanceAddrs = []sdk.AccAddress{
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
@@ -22,7 +22,7 @@ var (
 	}
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(9988776655)
-	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
+	randomNumberHash  = BytesToHexEncodedString(CalculateRandomHash(randomNumberBytes, timestampInt64))
 	ethAddrs          = []common.Address{
 		common.HexToAddress("0x6f456B7F0b1658Be2683375159E7f09a8831CBe5"),
 		common.HexToAddress("0x3a6CEef76Fd677332Dc0bA09604bD6acB1BeF613"),
@@ -36,7 +36,7 @@ func TestHTLTMsg(t *testing.T) {
 		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    SwapBytes
+		randomNumberHash    string
 		timestamp           int64
 		amount              sdk.Coins
 		expectedIncome      string
@@ -44,11 +44,11 @@ func TestHTLTMsg(t *testing.T) {
 		crossChain          bool
 		expectPass          bool
 	}{
-		{"create htlt", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, false, true},
-		{"create htlt cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, true, true},
-		{"create htlt with other chain fields", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, false, false},
-		{"create htlt cross-cross no other chain fields", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, true, false},
-		{"create htlt zero coins", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsZero, "bnb50000", 80000, true, false},
+		{"normal", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, false, true},
+		{"cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, true, true},
+		{"with other chain fields", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, false, false},
+		{"cross-cross no other chain fields", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, "bnb50000", 80000, true, false},
+		{"zero coins", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsZero, "bnb50000", 80000, true, false},
 	}
 
 	for i, tc := range tests {
@@ -73,14 +73,17 @@ func TestHTLTMsg(t *testing.T) {
 }
 
 func TestMsgDepositHTLT(t *testing.T) {
+	swapIDBytes, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := BytesToHexEncodedString(swapIDBytes)
+
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      SwapBytes
+		swapID      string
 		amount      sdk.Coins
 		expectPass  bool
 	}{
-		{"deposit htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), coinsSingle, true},
+		{"normal", binanceAddrs[0], swapID, coinsSingle, true},
 	}
 
 	for i, tc := range tests {
@@ -98,14 +101,17 @@ func TestMsgDepositHTLT(t *testing.T) {
 }
 
 func TestMsgClaimHTLT(t *testing.T) {
+	swapIDBytes, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := BytesToHexEncodedString(swapIDBytes)
+
 	tests := []struct {
 		description  string
 		from         sdk.AccAddress
-		swapID       SwapBytes
+		swapID       string
 		randomNumber SwapBytes
 		expectPass   bool
 	}{
-		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), randomNumberHash, true},
+		{"normal", binanceAddrs[0], swapID, randomNumberBytes, true},
 	}
 
 	for i, tc := range tests {
@@ -123,48 +129,22 @@ func TestMsgClaimHTLT(t *testing.T) {
 }
 
 func TestMsgRefundHTLT(t *testing.T) {
+	swapIDBytes, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := BytesToHexEncodedString(swapIDBytes)
+
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      SwapBytes
+		swapID      string
 		expectPass  bool
 	}{
-		{"claim htlt", binanceAddrs[0], CalculateSwapID(randomNumberHash, binanceAddrs[0], ""), true},
+		{"normal", binanceAddrs[0], swapID, true},
 	}
 
 	for i, tc := range tests {
 		msg := NewMsgRefundHTLT(
 			tc.from,
 			tc.swapID,
-		)
-		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
-		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
-		}
-	}
-}
-
-func TestMsgCalculateSwapID(t *testing.T) {
-	tests := []struct {
-		description      string
-		from             sdk.AccAddress
-		randomNumberHash []byte
-		sender           string
-		senderOtherChain string
-		expectPass       bool
-	}{
-		{"normal", kavaAddrs[0], CalculateRandomHash(randomNumberBytes, timestampInt64), ethAddrs[0].String(), ethAddrs[1].String(), true},
-		{"no sender", kavaAddrs[0], CalculateRandomHash(randomNumberBytes, timestampInt64), "", ethAddrs[1].String(), false},
-		{"short hash", kavaAddrs[0], []byte("hash_is_too_short"), "", ethAddrs[1].String(), false},
-	}
-
-	for i, tc := range tests {
-		msg := NewMsgCalculateSwapID(
-			tc.from,
-			tc.randomNumberHash,
-			tc.sender,
-			tc.senderOtherChain,
 		)
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
