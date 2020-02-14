@@ -15,6 +15,12 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case MsgCreateHTLT:
 			return handleMsgCreateHTLT(ctx, k, msg)
+		case MsgDepositHTLT:
+			return handleMsgDepositHTLT(ctx, k, msg)
+		case MsgClaimHTLT:
+			return handleMsgClaimHTLT(ctx, k, msg)
+		case MsgRefundHTLT:
+			return handleMsgRefundHTLT(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -46,6 +52,69 @@ func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk
 
 	return sdk.Result{
 		Data:   swapID,
+		Events: ctx.EventManager().Events(),
+	}
+}
+
+// handleMsgDepositHTLT handles requests to deposit into an active HTLT
+func handleMsgDepositHTLT(ctx sdk.Context, k Keeper, msg types.MsgDepositHTLT) sdk.Result {
+
+	err := k.DepositHTLT(ctx, msg.From, msg.SwapID, msg.Amount)
+	if err != nil {
+		return err.Result()
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	)
+
+	return sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}
+}
+
+// handleMsgClaimHTLT handles requests to claim funds in an active HTLT
+func handleMsgClaimHTLT(ctx sdk.Context, k Keeper, msg types.MsgClaimHTLT) sdk.Result {
+
+	// 1. Action
+	// if err != nil {
+	// 	return err.Result()
+	// }
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	)
+
+	return sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}
+}
+
+// handleMsgRefundHTLT handles requests to refund an active HTLT
+func handleMsgRefundHTLT(ctx sdk.Context, k Keeper, msg types.MsgRefundHTLT) sdk.Result {
+
+	// 1. Action
+	// if err != nil {
+	// 	return err.Result()
+	// }
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+		),
+	)
+
+	return sdk.Result{
 		Events: ctx.EventManager().Events(),
 	}
 }

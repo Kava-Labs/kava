@@ -26,6 +26,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	bep3TxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateHtlt(cdc),
+		GetCmdDepositHtlt(cdc),
 	)...)
 
 	return bep3TxCmd
@@ -36,7 +37,7 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "create [to] [recipientOtherChain] [hashedSecret] [timestamp] [coins] [expectedIncome] [heightSpan] [crosschain]",
 		Short:   "create a new Hashed Time Locked Transaction (HTLT)",
-		Example: "bep3 create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 9988776655 kava100 kava99 500000 true --from accA",
+		Example: "bep3 create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 9988776655 100xrp 99xrp 500000 true --from accA",
 		Args:    cobra.MinimumNArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -88,6 +89,44 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 				from, to, recipientOtherChain, senderOtherChain, hashedSecret,
 				timeStamp, coins, expectedIncome, heightSpan, crossChain,
 			)
+
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdDepositHtlt cli command for depositing into an htlt
+func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "deposit [swap-id] [coins]",
+		Short:   "deposit coins into an existing HTLT",
+		Example: "bep3 deposit 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 10xrp  --from accA",
+		Args:    cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			from := cliCtx.GetFromAddress()
+
+			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
+				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
+			}
+			swapID := args[0]
+
+			if len(strings.TrimSpace(args[1])) == 0 {
+				return fmt.Errorf("coins cannot be empty")
+			}
+			coins, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDepositHTLT(from, swapID, coins)
 
 			err = msg.ValidateBasic()
 			if err != nil {

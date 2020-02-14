@@ -21,11 +21,12 @@ func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress,
 		randomNumberHash, timestamp, asset, expectedIncome, heightSpan,
 		crossChain)
 
+	// TODO: add error already exists
 	swapID, sdkErr := k.StoreNewHTLT(ctx, htlt)
 	if sdkErr != nil {
 		return "", sdk.ErrInternal(sdkErr.Error())
 	}
-	// Emit event 'htlt_created'
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateHtlt,
@@ -38,6 +39,65 @@ func (k Keeper) AddHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress,
 	)
 
 	return swapID, nil
+}
+
+// MsgDepositHTLT defines an HTLT deposit
+type MsgDepositHTLT struct {
+	From   sdk.AccAddress `json:"from"`
+	SwapID string         `json:"swap_id"`
+	Amount sdk.Coins      `json:"amount"`
+}
+
+// DepositHTLT deposits funds in an existing HTLT
+func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID string, coins sdk.Coins) sdk.Error {
+	decodedSwapID, err := types.HexEncodedStringToBytes(swapID)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	htlt, found := k.GetHTLT(ctx, decodedSwapID)
+	if !found {
+		return types.ErrHTLTNotFound(k.codespace, swapID)
+	}
+
+	htltCoin := htlt.Amount[0]
+	coin := coins[0]
+
+	// Validate new deposit
+	if htltCoin.Denom != coin.Denom {
+		return types.ErrInvalidCoinDenom(k.codespace, htltCoin.Denom, coin.Denom)
+	}
+	if coin.Amount.IsZero() {
+		return types.ErrAmountTooSmall(k.codespace, coin)
+	}
+	// TODO: Param validation
+	// if AssetSupply + coin.Amount > AssetSupplyLimit {
+	// 	return a, types.ErrAmountTooLarge(k.codespace, coin.Amount)
+	// }
+
+	// send coins from depositor to the bep3 module
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, coins)
+	if err != nil {
+		return sdk.ErrInternal(err.Error())
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDepositHtlt,
+			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", swapID)),
+			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", coin.Denom)),
+			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", coin.Amount.Int64())),
+		),
+	)
+
+	// Update HTLT state
+	htlt.Amount = htlt.Amount.Add(coins)
+	currExpectedIncome, _ := sdk.ParseCoins(htlt.ExpectedIncome)
+	htlt.ExpectedIncome = currExpectedIncome.Add(coins).String()
+
+	k.SetHTLT(ctx, htlt, decodedSwapID)
+
+	return nil
 }
 
 // GetAllHtlts returns all HTLTs from the store
@@ -55,5 +115,9 @@ func (k Keeper) ValidateAsset(ctx sdk.Context, assets sdk.Coins) sdk.Error {
 		return sdk.ErrInternal("HTLTs currently only support 1 asset at a time")
 	}
 	// TODO: Validate that this asset is in module params
+	// _, found := k.GetCollateral(ctx, collateral[0].Denom)
+	// if !found {
+	// 	return types.ErrCollateralNotSupported(k.codespace, collateral[0].Denom)
+	// }
 	return nil
 }
