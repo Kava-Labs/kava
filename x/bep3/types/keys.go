@@ -1,5 +1,9 @@
 package types
 
+import (
+	"encoding/hex"
+)
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "bep3"
@@ -19,11 +23,21 @@ const (
 
 // Key prefixes
 var (
-	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store HTLTs
-	HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the htltByTime index
+	HTLTKeyPrefix = []byte{0x00} // prefix for keys that store HTLTs
 )
 
-// GetHTLTByTimeKey returns the key for iterating HTLTs by time
-// func GetHTLTByTimeKey(endTime time.Time, htltID uint64) []byte {
-// 	return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(htltID)...)
-// }
+// BytesToHexEncodedString converts data from []byte to a hex-encoded string
+func BytesToHexEncodedString(data []byte) string {
+	encodedData := make([]byte, hex.EncodedLen(len(data)))
+	hex.Encode(encodedData, data)
+	return string(encodedData)
+}
+
+// HexEncodedStringToBytes converts data from a hex-encoded string to []bytes
+func HexEncodedStringToBytes(data string) ([]byte, error) {
+	decodedData, err := hex.DecodeString(data)
+	if err != nil {
+		return []byte{}, err
+	}
+	return decodedData, nil
+}

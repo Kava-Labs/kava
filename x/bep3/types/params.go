@@ -10,9 +10,12 @@ import (
 
 // Parameter keys
 var (
-	KeyChainParams                       = []byte("Chains")
-	DefaultMinimumLockTime time.Duration = 24 * time.Hour
-	DefaultChainParams                   = ChainParams{}
+	KeyChainParams = []byte("Chains")
+
+	AbsoluteMaximumLockTime               = 720 * time.Hour // 30 days
+	DefaultMinLockTime      time.Duration = 12 * time.Hour  // 12 hours
+	DefaultMaxLockTime      time.Duration = 168 * time.Hour // 7 days
+	DefaultChainParams                    = ChainParams{}
 )
 
 // Params governance parameters for bep3 module
@@ -41,20 +44,20 @@ func DefaultParams() Params {
 
 // ChainParam governance parameters for each chain within the bep3 module
 type ChainParam struct {
-	ChainID         string         `json:"chain_id" yaml:"chain_id"` // blockchain ID
-	Deputy          sdk.AccAddress `json:"deputy" yaml:"deputy"`
-	MaximumLockTime int            `json:"maximum_lock_time" yaml:"maximum_lock_time"` // TODO: comment
-	SupportedAssets AssetParams    `json:"chain_assets" yaml:"chain_assets"`           // list of supported assets
+	ChainID         string      `json:"chain_id" yaml:"chain_id"`           // international blockchain identifier
+	MinLockTime     int         `json:"min_lock_time" yaml:"min_lock_time"` // HTLT minimum lock time
+	MaxLockTime     int         `json:"max_lock_time" yaml:"max_lock_time"` // HTLT maximum lock time
+	SupportedAssets AssetParams `json:"chain_assets" yaml:"chain_assets"`   // supported assets
 }
 
 // String implements fmt.Stringer
 func (cp ChainParam) String() string {
 	return fmt.Sprintf(`Chain:
 	Chain ID: %s
-	Deputy: %s
+	Minimum Lock Time: %d
 	Maximum Lock Time: %d
 	Supported assets: %s`,
-		cp.ChainID, cp.Deputy, cp.MaximumLockTime, cp.SupportedAssets)
+		cp.ChainID, cp.MinLockTime, cp.MaxLockTime, cp.SupportedAssets)
 }
 
 // ChainParams array of ChainParam
@@ -71,20 +74,20 @@ func (cps ChainParams) String() string {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Symbol string  `json:"symbol" yaml:"symbol"`   //TODO: Change to denom
+	Denom  string  `json:"denom" yaml:"denom"`     // name of the asster
 	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
-	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset limit
-	Active bool    `json:"active" yaml:"active"`
+	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
+	Active bool    `json:"active" yaml:"active"`   // denotes if asset is available or paused
 }
 
 // String implements fmt.Stringer
 func (ap AssetParam) String() string {
 	return fmt.Sprintf(`Asset:
-	Symbol: %s
+	Denom: %s
 	Coin ID: %s
 	Limit: %s
 	Active: %t`,
-		ap.Symbol, ap.CoinID, ap.Limit, ap.Active)
+		ap.Denom, ap.CoinID, ap.Limit, ap.Active)
 }
 
 // AssetParams array of AssetParam
@@ -115,11 +118,40 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	// if p.Relayer.Empty() {
-	// 	return sdk.ErrInternal("relayer address cannot be empty")
-	// }
-	// if p.MinimumLockTime <= 0 {
-	// 	return sdk.ErrInternal("minimum lock time must be greater than 0")
-	// }
+	chainIDs := make(map[string]bool)
+	for _, chain := range p.Chains {
+		if len(chain.ChainID) == 0 {
+			return fmt.Errorf("chain id cannot be empty")
+		}
+		if chainIDs[chain.ChainID] {
+			return fmt.Errorf(fmt.Sprintf("cannot have duplicate chain id %s", chain.ChainID))
+		}
+		chainIDs[chain.ChainID] = true
+		if chain.MinLockTime <= 0 {
+			return fmt.Errorf("minimum lock time must be greater than 0")
+		}
+		if chain.MinLockTime >= chain.MaxLockTime {
+			return fmt.Errorf("maximum lock time must be greater than minimum lock time")
+		}
+		if time.Duration(chain.MaxLockTime) > AbsoluteMaximumLockTime {
+			return fmt.Errorf(fmt.Sprintf("maximum lock time cannot be longer than %d", AbsoluteMaximumLockTime))
+		}
+		coinIDs := make(map[string]bool)
+		for _, asset := range chain.SupportedAssets {
+			if len(asset.Denom) == 0 {
+				return fmt.Errorf("asset denom cannot be empty")
+			}
+			if len(asset.CoinID) == 0 {
+				return fmt.Errorf(fmt.Sprintf("asset %s cannot have an empty coin id", asset.Denom))
+			}
+			if coinIDs[asset.CoinID] {
+				return fmt.Errorf(fmt.Sprintf("asset %s on chain %s cannot have duplicate coin id %s", asset.Denom, chain.ChainID, asset.CoinID))
+			}
+			coinIDs[asset.CoinID] = true
+			if !asset.Limit.IsPositive() {
+				return fmt.Errorf(fmt.Sprintf("asset %s must have limit greater than 0", asset.Denom))
+			}
+		}
+	}
 	return nil
 }
