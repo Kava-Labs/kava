@@ -4,8 +4,8 @@ package types
 const (
 	EventTypeCreateHtlt  = "createHTLT"
 	EventTypeDepositHtlt = "depositHTLT"
-	EventTypeRefundHtlt  = "claimHTLT"
-	EventTypeClaimHtlt   = "refundHTLT"
+	EventTypeClaimHtlt   = "claimHTLT"
+	EventTypeRefundHtlt  = "refundHTLT"
 
 	AttributeKeyHtltSwapID       = "htlt_swap_id"
 	AttributeKeyRandomNumberHash = "htlt_random_number_hash"

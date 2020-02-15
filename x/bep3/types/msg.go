@@ -22,8 +22,6 @@ const (
 	MaxOtherChainAddrLength = 64
 	SwapIDLength            = 64
 	MaxExpectedIncomeLength = 64
-	MinimumHeightSpan       = 360
-	MaximumHeightSpan       = 518400
 )
 
 var (
@@ -118,9 +116,6 @@ func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	}
 	if !msg.Amount.IsAllPositive() {
 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
-	}
-	if msg.HeightSpan < MinimumHeightSpan || msg.HeightSpan > MaximumHeightSpan {
-		return sdk.ErrInternal(fmt.Sprintf("the height span should be no less than 360 and no greater than 518400"))
 	}
 	return nil
 }

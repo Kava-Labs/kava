@@ -92,3 +92,12 @@ func (k Keeper) IterateHTLTs(ctx sdk.Context, cb func(htlt types.HTLT) (stop boo
 		}
 	}
 }
+
+// GetAllHtlts returns all HTLTs from the store
+func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
+	k.IterateHTLTs(ctx, func(htlt types.HTLT) bool {
+		htlts = append(htlts, htlt)
+		return false
+	})
+	return
+}

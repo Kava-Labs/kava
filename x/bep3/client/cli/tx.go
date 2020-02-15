@@ -39,7 +39,7 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "create [to] [recipient-other-chain] [hashed-secret] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
 		Short:   "create a new Hashed Time Locked Transaction (HTLT)",
-		Example: "bep3 create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 9988776655 100xrp 99xrp 500000 true --from accA",
+		Example: "bep3 create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 9988776655 100xrp 99xrp 35000000000 true --from accA",
 		Args:    cobra.MinimumNArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)

@@ -22,6 +22,9 @@ const (
 	CodeInvalidClaimSecret       CodeType          = 8
 	CodeOnlySameChain            CodeType          = 9
 	CodeOnlyOriginalCreator      CodeType          = 10
+	CodeAssetNotSupported        CodeType          = 11
+	CodeAssetNotActive           CodeType          = 12
+	CodeInvalidHeightSpan        CodeType          = 13
 )
 
 // ErrInvalidLockTime Error constructor
@@ -72,4 +75,19 @@ func ErrOnlySameChain(codespace sdk.CodespaceType) sdk.Error {
 // ErrOnlyOriginalCreator error for when an operation restricted to the original htlt creator
 func ErrOnlyOriginalCreator(codespace sdk.CodespaceType, sender sdk.AccAddress, creator sdk.AccAddress) sdk.Error {
 	return sdk.NewError(codespace, CodeOnlyOriginalCreator, fmt.Sprintf("%s does not match original HTLT creator %s", sender, creator))
+}
+
+// ErrAssetNotSupported error for when an asset is not supported
+func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
+	return sdk.NewError(codespace, CodeAssetNotSupported, fmt.Sprintf("asset %s is not on the list of supported assets %s", denom))
+}
+
+// ErrAssetNotActive error for when an asset is currently inactive
+func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
+	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is current inactive %s", denom))
+}
+
+// ErrInvalidHeightSpan error a proposed height span is outside of lock time range
+func ErrInvalidHeightSpan(codespace sdk.CodespaceType, heightspan int64, minLockTime int64, maxLockTime int64) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidHeightSpan, fmt.Sprintf("height span %d is outside acceptable range %d - %d", heightspan, minLockTime, maxLockTime))
 }
