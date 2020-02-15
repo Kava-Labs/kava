@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -23,10 +22,6 @@ var (
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(9988776655)
 	randomNumberHash  = BytesToHexEncodedString(CalculateRandomHash(randomNumberBytes, timestampInt64))
-	ethAddrs          = []common.Address{
-		common.HexToAddress("0x6f456B7F0b1658Be2683375159E7f09a8831CBe5"),
-		common.HexToAddress("0x3a6CEef76Fd677332Dc0bA09604bD6acB1BeF613"),
-	}
 )
 
 func MsgCreateHTLT(t *testing.T) {
