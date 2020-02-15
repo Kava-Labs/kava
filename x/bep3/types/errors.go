@@ -79,12 +79,12 @@ func ErrOnlyOriginalCreator(codespace sdk.CodespaceType, sender sdk.AccAddress, 
 
 // ErrAssetNotSupported error for when an asset is not supported
 func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeAssetNotSupported, fmt.Sprintf("asset %s is not on the list of supported assets %s", denom))
+	return sdk.NewError(codespace, CodeAssetNotSupported, fmt.Sprintf("asset %s is not on the list of supported assets", denom))
 }
 
 // ErrAssetNotActive error for when an asset is currently inactive
 func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is current inactive %s", denom))
+	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is current inactive", denom))
 }
 
 // ErrInvalidHeightSpan error a proposed height span is outside of lock time range

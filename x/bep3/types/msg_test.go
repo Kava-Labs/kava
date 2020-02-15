@@ -24,7 +24,7 @@ var (
 	randomNumberHash  = BytesToHexEncodedString(CalculateRandomHash(randomNumberBytes, timestampInt64))
 )
 
-func MsgCreateHTLT(t *testing.T) {
+func TestMsgCreateHTLT(t *testing.T) {
 	tests := []struct {
 		description         string
 		from                sdk.AccAddress

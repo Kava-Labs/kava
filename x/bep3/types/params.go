@@ -15,7 +15,7 @@ var (
 	AbsoluteMaximumLockTime int64 = 2592000000000000 // 30 days
 	DefaultMinLockTime      int64 = 43200000000000   // 12 hours
 	DefaultMaxLockTime      int64 = 604800000000000  // 7 days
-	DefaultSupportedAssets        = AssetParams{}
+	DefaultSupportedAssets        = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
 )
 
 // Params governance parameters for bep3 module
@@ -28,8 +28,8 @@ type Params struct {
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Min lock time: %s,
-	Max lock time: %s,
+	Min lock time: %d,
+	Max lock time: %d,
 	Supported assets: %s`,
 		p.MinLockTime, p.MaxLockTime, p.SupportedAssets)
 }
@@ -61,7 +61,7 @@ func (ap AssetParam) String() string {
 	return fmt.Sprintf(`Asset:
 	Denom: %s
 	Coin ID: %s
-	Limit: %s
+	Limit: %d
 	Active: %t`,
 		ap.Denom, ap.CoinID, ap.Limit, ap.Active)
 }
