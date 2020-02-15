@@ -2,73 +2,50 @@ package types
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
 // Parameter keys
 var (
-	KeyChainParams = []byte("Chains")
+	KeyMinLockTime     = []byte("MinLockTime")
+	KeyMaxLockTime     = []byte("MaxLockTime")
+	KeySupportedAssets = []byte("SupportedAssets")
 
-	AbsoluteMaximumLockTime               = 720 * time.Hour // 30 days
-	DefaultMinLockTime      time.Duration = 12 * time.Hour  // 12 hours
-	DefaultMaxLockTime      time.Duration = 168 * time.Hour // 7 days
-	DefaultChainParams                    = ChainParams{}
+	AbsoluteMaximumLockTime int64 = 2592000000000000 // 30 days
+	DefaultMinLockTime      int64 = 43200000000000   // 12 hours
+	DefaultMaxLockTime      int64 = 604800000000000  // 7 days
+	DefaultSupportedAssets        = AssetParams{}
 )
 
 // Params governance parameters for bep3 module
 type Params struct {
-	Chains ChainParams `json:"chains" yaml:"chains"`
-}
-
-// String implements fmt.Stringer
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	Chains: %s`,
-		p.Chains)
-}
-
-// NewParams returns a new params object
-func NewParams(chains ChainParams) Params {
-	return Params{
-		Chains: chains,
-	}
-}
-
-// DefaultParams returns default params for bep3 module
-func DefaultParams() Params {
-	return NewParams(DefaultChainParams)
-}
-
-// ChainParam governance parameters for each chain within the bep3 module
-type ChainParam struct {
-	ChainID         string      `json:"chain_id" yaml:"chain_id"`                 // international blockchain identifier
 	MinLockTime     int64       `json:"min_lock_time" yaml:"min_lock_time"`       // HTLT minimum lock time
 	MaxLockTime     int64       `json:"max_lock_time" yaml:"max_lock_time"`       // HTLT maximum lock time
 	SupportedAssets AssetParams `json:"supported_assets" yaml:"supported_assets"` // supported assets
 }
 
 // String implements fmt.Stringer
-func (cp ChainParam) String() string {
-	return fmt.Sprintf(`Chain:
-	Chain ID: %s
-	Minimum Lock Time: %d
-	Maximum Lock Time: %d
+func (p Params) String() string {
+	return fmt.Sprintf(`Params:
+	Min lock time: %s,
+	Max lock time: %s,
 	Supported assets: %s`,
-		cp.ChainID, cp.MinLockTime, cp.MaxLockTime, cp.SupportedAssets)
+		p.MinLockTime, p.MaxLockTime, p.SupportedAssets)
 }
 
-// ChainParams array of ChainParam
-type ChainParams []ChainParam
-
-// String implements fmt.Stringer
-func (cps ChainParams) String() string {
-	out := "Chain Params\n"
-	for _, cp := range cps {
-		out += fmt.Sprintf("%s\n", cp)
+// NewParams returns a new params object
+func NewParams(minLockTime int64, maxLockTime int64, supportedAssets AssetParams) Params {
+	return Params{
+		MinLockTime:     minLockTime,
+		MaxLockTime:     maxLockTime,
+		SupportedAssets: supportedAssets,
 	}
-	return out
+}
+
+// DefaultParams returns default params for bep3 module
+func DefaultParams() Params {
+	return NewParams(DefaultMinLockTime, DefaultMaxLockTime, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain
@@ -111,46 +88,42 @@ func ParamKeyTable() params.KeyTable {
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyChainParams, Value: &p.Chains},
+		{Key: KeyMinLockTime, Value: &p.MinLockTime},
+		{Key: KeyMaxLockTime, Value: &p.MaxLockTime},
+		{Key: KeySupportedAssets, Value: &p.SupportedAssets},
 	}
 }
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	chainIDs := make(map[string]bool)
-	for _, chain := range p.Chains {
-		if len(chain.ChainID) == 0 {
-			return fmt.Errorf("chain id cannot be empty")
+	if p.MinLockTime <= 0 {
+		return fmt.Errorf("minimum lock time must be greater than 0")
+	}
+	if p.MaxLockTime <= 0 {
+		return fmt.Errorf("minimum lock time must be greater than 0")
+	}
+	if p.MinLockTime >= p.MaxLockTime {
+		return fmt.Errorf("maximum lock time must be greater than minimum lock time")
+	}
+	if p.MaxLockTime > AbsoluteMaximumLockTime {
+		return fmt.Errorf(fmt.Sprintf("maximum lock time cannot be longer than %d", AbsoluteMaximumLockTime))
+	}
+	coinIDs := make(map[string]bool)
+	for _, asset := range p.SupportedAssets {
+		if len(asset.Denom) == 0 {
+			return fmt.Errorf("asset denom cannot be empty")
 		}
-		if chainIDs[chain.ChainID] {
-			return fmt.Errorf(fmt.Sprintf("cannot have duplicate chain id %s", chain.ChainID))
+		if len(asset.CoinID) == 0 {
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have an empty coin id", asset.Denom))
 		}
-		chainIDs[chain.ChainID] = true
-		if chain.MinLockTime <= 0 {
-			return fmt.Errorf("minimum lock time must be greater than 0")
+		if coinIDs[asset.CoinID] {
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %s", asset.Denom, asset.CoinID))
 		}
-		if chain.MinLockTime >= chain.MaxLockTime {
-			return fmt.Errorf("maximum lock time must be greater than minimum lock time")
-		}
-		if time.Duration(chain.MaxLockTime) > AbsoluteMaximumLockTime {
-			return fmt.Errorf(fmt.Sprintf("maximum lock time cannot be longer than %d", AbsoluteMaximumLockTime))
-		}
-		coinIDs := make(map[string]bool)
-		for _, asset := range chain.SupportedAssets {
-			if len(asset.Denom) == 0 {
-				return fmt.Errorf("asset denom cannot be empty")
-			}
-			if len(asset.CoinID) == 0 {
-				return fmt.Errorf(fmt.Sprintf("asset %s cannot have an empty coin id", asset.Denom))
-			}
-			if coinIDs[asset.CoinID] {
-				return fmt.Errorf(fmt.Sprintf("asset %s on chain %s cannot have duplicate coin id %s", asset.Denom, chain.ChainID, asset.CoinID))
-			}
-			coinIDs[asset.CoinID] = true
-			if asset.Limit <= 0 {
-				return fmt.Errorf(fmt.Sprintf("asset %s must have limit greater than 0", asset.Denom))
-			}
+		coinIDs[asset.CoinID] = true
+		if asset.Limit <= 0 {
+			return fmt.Errorf(fmt.Sprintf("asset %s must have limit greater than 0", asset.Denom))
 		}
 	}
+
 	return nil
 }

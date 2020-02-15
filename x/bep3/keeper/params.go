@@ -16,49 +16,41 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
-// GetChain returns the chain param with corresponding chain ID
-func (k Keeper) GetChain(ctx sdk.Context, chainID string) (types.ChainParam, bool) {
+// GetMaxLockTime returns the maximum lock time
+func (k Keeper) GetMaxLockTime(ctx sdk.Context) int64 {
 	params := k.GetParams(ctx)
-	for _, cp := range params.Chains {
-		if cp.ChainID == chainID {
-			return cp, true
-		}
-	}
-	return types.ChainParam{}, false
+	return params.MaxLockTime
 }
 
-// GetChainAssets returns a list containing a chain's supported assets
-func (k Keeper) GetChainAssets(ctx sdk.Context, chainID string) (types.AssetParams, bool) {
-	chain, found := k.GetChain(ctx, chainID)
-	if !found {
-		return types.AssetParams{}, false
-	}
-	return chain.SupportedAssets, len(chain.SupportedAssets) > 0
+// GetMinLockTime returns the minimum lock time
+func (k Keeper) GetMinLockTime(ctx sdk.Context) int64 {
+	params := k.GetParams(ctx)
+	return params.MinLockTime
 }
 
-// GetAssetByDenom returns an asset a specific chain by its denom
-func (k Keeper) GetAssetByDenom(ctx sdk.Context, chainID string, denom string) (types.AssetParam, bool) {
-	chain, found := k.GetChain(ctx, chainID)
-	if !found {
-		return types.AssetParam{}, false
-	}
-	for _, ap := range chain.SupportedAssets {
-		if ap.Denom == denom {
-			return ap, true
+// GetAssets returns a list containing all supported assets
+func (k Keeper) GetAssets(ctx sdk.Context) (types.AssetParams, bool) {
+	params := k.GetParams(ctx)
+	return params.SupportedAssets, len(params.SupportedAssets) > 0
+}
+
+// GetAssetByDenom returns an asset by its denom
+func (k Keeper) GetAssetByDenom(ctx sdk.Context, denom string) (types.AssetParam, bool) {
+	params := k.GetParams(ctx)
+	for _, asset := range params.SupportedAssets {
+		if asset.Denom == denom {
+			return asset, true
 		}
 	}
 	return types.AssetParam{}, false
 }
 
-// GetAssetByCoinID returns an asset a specific chain by its coin ID
-func (k Keeper) GetAssetByCoinID(ctx sdk.Context, chainID string, coinID string) (types.AssetParam, bool) {
-	chain, found := k.GetChain(ctx, chainID)
-	if !found {
-		return types.AssetParam{}, false
-	}
-	for _, ap := range chain.SupportedAssets {
-		if ap.CoinID == coinID {
-			return ap, true
+// GetAssetByCoinID returns an asset by its denom
+func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID string) (types.AssetParam, bool) {
+	params := k.GetParams(ctx)
+	for _, asset := range params.SupportedAssets {
+		if asset.CoinID == coinID {
+			return asset, true
 		}
 	}
 	return types.AssetParam{}, false
