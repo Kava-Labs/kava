@@ -49,12 +49,12 @@ func ErrInvalidCoinDenom(codespace sdk.CodespaceType, coinDenom string, htltCoin
 
 // ErrAmountTooLarge error for when a coin amount will put the asset supply over the asset limit
 func ErrAmountTooLarge(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeAmountTooLarge, fmt.Sprintf("deposit of asset %s not allowed due to the asset's global supply limit", coin.String()))
+	return sdk.NewError(codespace, CodeAmountTooLarge, fmt.Sprintf("deposit of asset %s not allowed due to the asset's global supply limit", coin))
 }
 
 // ErrAmountTooSmall error for when a coin amount is 0
 func ErrAmountTooSmall(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeAmountTooSmall, fmt.Sprintf("coin %s amount is below the limit for this operation", coin.String()))
+	return sdk.NewError(codespace, CodeAmountTooSmall, fmt.Sprintf("coin %s amount is below the limit for this operation", coin))
 }
 
 // ErrHTLTAlreadyExists error for when an HTLT with this swapID already exists
