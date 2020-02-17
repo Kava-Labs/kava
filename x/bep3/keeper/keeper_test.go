@@ -69,10 +69,10 @@ func TestHtltTestSuite(t *testing.T) {
 
 func htlts() types.HTLTs {
 	var htlts types.HTLTs
-	h1 := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "bnb50000", 50500, false)
-	h2 := types.NewHTLT(binanceAddrs[1], kavaAddrs[1], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "bnb50000", 61500, false)
-	h3 := types.NewHTLT(binanceAddrs[2], kavaAddrs[2], "", "", randomNumberHashes[2], timestamps[2], coinsSingle, "bnb50000", 72500, false)
-	h4 := types.NewHTLT(binanceAddrs[3], kavaAddrs[3], "", "", randomNumberHashes[3], timestamps[3], coinsSingle, "bnb50000", 83500, false)
+	h1 := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", 50500, false)
+	h2 := types.NewHTLT(binanceAddrs[1], kavaAddrs[1], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 61500, false)
+	h3 := types.NewHTLT(binanceAddrs[2], kavaAddrs[2], "", "", randomNumberHashes[2], timestamps[2], coinsSingle, "50000bnb", 72500, false)
+	h4 := types.NewHTLT(binanceAddrs[3], kavaAddrs[3], "", "", randomNumberHashes[3], timestamps[3], coinsSingle, "50000bnb", 83500, false)
 	htlts = append(htlts, h1, h2, h3, h4)
 	return htlts
 }
