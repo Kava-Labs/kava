@@ -223,15 +223,16 @@ func (k Keeper) RefundHTLT(ctx sdk.Context, from sdk.AccAddress, encodedSwapID s
 
 // ValidateAsset validates that an asset can be accepted
 func (k Keeper) ValidateAsset(ctx sdk.Context, coins sdk.Coins) sdk.Error {
-	if len(coins) > 1 {
-		return sdk.ErrInternal("cannot have multiple coin types")
+	if len(coins) != 1 {
+		return sdk.ErrInternal("amount must contain exactly one coin")
 	}
-	if coins[0].Amount.IsZero() {
-		return types.ErrAmountTooSmall(k.codespace, coins[0])
+	coin := coins[0]
+	if coin.Amount.IsZero() {
+		return types.ErrAmountTooSmall(k.codespace, coin)
 	}
-	asset, found := k.GetAssetByDenom(ctx, coins[0].Denom)
+	asset, found := k.GetAssetByDenom(ctx, coin.Denom)
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, asset.Denom)
+		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
 	}
 	if !asset.Active {
 		return types.ErrAssetNotActive(k.codespace, asset.Denom)
@@ -239,8 +240,8 @@ func (k Keeper) ValidateAsset(ctx sdk.Context, coins sdk.Coins) sdk.Error {
 	skAcc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
 	for _, skCoin := range skAcc.GetCoins() {
 		if skCoin.Denom == asset.Denom {
-			if skCoin.Amount.Add(coins[0].Amount).Int64() > asset.Limit {
-				return types.ErrAmountTooLarge(k.codespace, coins[0])
+			if skCoin.Amount.Add(coin.Amount).Int64() > asset.Limit {
+				return types.ErrAmountTooLarge(k.codespace, coin)
 			}
 		}
 	}
