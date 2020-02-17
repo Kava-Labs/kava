@@ -108,14 +108,21 @@ func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength))
 	}
-	if len(msg.ExpectedIncome) > MaxExpectedIncomeLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of expected income should be less than %d", MaxExpectedIncomeLength))
-	}
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
 	}
 	if !msg.Amount.IsAllPositive() {
 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
+	}
+	if len(msg.ExpectedIncome) > MaxExpectedIncomeLength {
+		return sdk.ErrInternal(fmt.Sprintf("the length of expected income should be less than %d", MaxExpectedIncomeLength))
+	}
+	expectedIncomeCoins, err := sdk.ParseCoins(msg.ExpectedIncome)
+	if err != nil || expectedIncomeCoins == nil {
+		return sdk.ErrInternal(fmt.Sprintf("expected income %s must be in valid format e.g. kava10000", msg.ExpectedIncome))
+	}
+	if msg.Amount.IsAnyGT(expectedIncomeCoins) {
+		return sdk.ErrInternal(fmt.Sprintf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String()))
 	}
 	return nil
 }
