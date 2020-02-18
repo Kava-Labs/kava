@@ -133,6 +133,11 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, encodedSwapID st
 		return types.ErrHTLTNotFound(k.codespace, encodedSwapID)
 	}
 
+	// Only unexpired HTLTs can be claimed
+	if uint64(ctx.BlockTime().Unix()) > htlt.ExpirationBlock {
+		return types.ErrHTLTHasExpired(k.codespace)
+	}
+
 	// Calculate hashed random number with param number and timestamp
 	hashedRandomNumber := types.CalculateRandomHash(randomNumber, htlt.Timestamp)
 	stringRandomNumber := types.BytesToHexEncodedString(hashedRandomNumber)

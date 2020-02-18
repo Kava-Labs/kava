@@ -25,6 +25,7 @@ const (
 	CodeAssetNotSupported        CodeType          = 11
 	CodeAssetNotActive           CodeType          = 12
 	CodeInvalidHeightSpan        CodeType          = 13
+	CodeHTLTHasExpired           CodeType          = 13
 )
 
 // ErrInvalidLockTime Error constructor
@@ -90,4 +91,9 @@ func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
 // ErrInvalidHeightSpan error a proposed height span is outside of lock time range
 func ErrInvalidHeightSpan(codespace sdk.CodespaceType, heightspan int64, minLockTime int64, maxLockTime int64) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidHeightSpan, fmt.Sprintf("height span %d is outside acceptable range %d - %d", heightspan, minLockTime, maxLockTime))
+}
+
+// ErrHTLTHasExpired error for when a HTLT has expired and cannot be claimed
+func ErrHTLTHasExpired(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeHTLTHasExpired, fmt.Sprintf("htlt is expired"))
 }
