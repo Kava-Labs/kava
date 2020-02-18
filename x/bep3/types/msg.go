@@ -121,7 +121,7 @@ func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	if err != nil || expectedIncomeCoins == nil {
 		return sdk.ErrInternal(fmt.Sprintf("expected income %s must be in valid format e.g. kava10000", msg.ExpectedIncome))
 	}
-	if msg.Amount.IsAnyGT(expectedIncomeCoins) {
+	if expectedIncomeCoins.IsAnyGT(msg.Amount) {
 		return sdk.ErrInternal(fmt.Sprintf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String()))
 	}
 	return nil

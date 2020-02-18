@@ -256,3 +256,24 @@ func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
 	})
 	return
 }
+
+// RefundExpiredHTLTs finds all HTLTs that are past (or at) their ending times and closes them.
+func (k Keeper) RefundExpiredHTLTs(ctx sdk.Context) sdk.Error {
+	var expiredHTLTs [][]byte
+	k.IterateHTLTsByTime(ctx, uint64(ctx.BlockTime().Unix()), func(id []byte) bool {
+		expiredHTLTs = append(expiredHTLTs, id)
+		return false
+	})
+
+	sdkAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
+	fmt.Println("sdkAddr: ", sdkAddr)
+
+	// TODO: is this correct? gov modifies during iteration
+	// HTLT refunding is in separate loops as db should not be modified during iteration
+	for _, id := range expiredHTLTs {
+		if err := k.RefundHTLT(ctx, sdkAddr, types.BytesToHexEncodedString(id)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
