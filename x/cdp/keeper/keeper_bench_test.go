@@ -6,11 +6,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/cdp/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// savings the result to a module level variable ensures the compiler doesn't optimize the test away
+// saving the result to a module level variable ensures the compiler doesn't optimize the test away
 var coinsResult sdk.Coins
 
 func BenchmarkAccountIteration(b *testing.B) {
@@ -57,5 +59,82 @@ func BenchmarkAccountIteration(b *testing.B) {
 					})
 			}
 		})
+	}
+}
+
+func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	_, addrs := app.GeneratePrivKeyAddressPairs(n)
+	coins := []sdk.Coins{}
+	for i := 0; i < n; i++ {
+		coins = append(coins, cs(c("btc", 100000000)))
+	}
+	authGS := app.NewAuthGenState(
+		addrs, coins)
+	tApp.InitializeFromGenesisStates(
+		authGS,
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+	)
+	cdpKeeper := tApp.GetCDPKeeper()
+	for i := 0; i < n; i++ {
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i], cs(c("usdx", 100000000)))
+		if err != nil {
+			panic("failed to create cdp")
+		}
+	}
+	return tApp, ctx, cdpKeeper
+}
+
+func BenchmarkCdpIteration(b *testing.B) {
+	benchmarks := []struct {
+		name       string
+		numberCdps int
+	}{
+		{"1000 Cdps", 1000},
+		{"10000 Cdps", 10000},
+		{"100000 Cdps", 100000},
+	}
+	for _, bm := range benchmarks {
+		b.Run(bm.name, func(b *testing.B) {
+			_, ctx, cdpKeeper := createCdps(bm.numberCdps)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				cdpKeeper.IterateAllCdps(ctx, func(c cdp.CDP) (stop bool) {
+					coinsResult = c.Principal
+					return false
+				})
+			}
+		})
+	}
+
+}
+
+var errResult sdk.Error
+
+func BenchmarkCdpCreation(b *testing.B) {
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	_, addrs := app.GeneratePrivKeyAddressPairs(b.N)
+	coins := []sdk.Coins{}
+	for i := 0; i < b.N; i++ {
+		coins = append(coins, cs(c("btc", 100000000)))
+	}
+	authGS := app.NewAuthGenState(
+		addrs, coins)
+	tApp.InitializeFromGenesisStates(
+		authGS,
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+	)
+	cdpKeeper := tApp.GetCDPKeeper()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i], cs(c("usdx", 100000000)))
+		if err != nil {
+			b.Error("unexpected error")
+		}
+		errResult = err
 	}
 }
