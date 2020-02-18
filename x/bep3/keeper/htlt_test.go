@@ -43,7 +43,7 @@ func (suite *HTLTTestSuite) SetupTest() {
 // 	suite.NoError(err)
 // 	expectedSwapID := types.BytesToHexEncodedString(expectedSwapIDBytes)
 
-// 	swapID, err := suite.keeper.CreateHTLT(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "bnb50000", 80000, false)
+// 	swapID, err := suite.keeper.CreateHTLT(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 80000, false)
 // 	suite.NoError(err)
 // 	suite.Equal(swapID, expectedSwapID)
 // }

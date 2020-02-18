@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetHtlt() {
-	htlt := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "bnb50000", 80000, false)
+	htlt := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", 80000, false)
 	swapID, err := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
 	suite.NoError(err)
 	suite.keeper.SetHTLT(suite.ctx, htlt, swapID)

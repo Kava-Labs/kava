@@ -93,11 +93,36 @@ func (k Keeper) IterateHTLTs(ctx sdk.Context, cb func(htlt types.HTLT) (stop boo
 	}
 }
 
-// GetAllHtlts returns all HTLTs from the store
-func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
-	k.IterateHTLTs(ctx, func(htlt types.HTLT) bool {
-		htlts = append(htlts, htlt)
-		return false
-	})
-	return
+// InsertIntoByTimeIndex adds a htlt ID and expiration time into the byTime index.
+func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, expirationTime uint64, htltID uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
+	store.Set(types.GetHTLTByTimeKey(expirationTime, htltID), types.Uint64ToBytes(htltID))
+}
+
+// removeFromByTimeIndex removes a htlt ID and expiration time from the byTime index.
+func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, expirationTime uint64, htltID uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
+	store.Delete(types.GetHTLTByTimeKey(expirationTime, htltID))
+}
+
+// IterateHTLTsByTime provides an iterator over HTLTs ordered by HTLT expiration time,
+// where expiration time = HTLT.timestamp + (HTLT.heightspan*millisecondsPerBlock).
+// TODO: HTLT.timestamp does not always equal the time at which the HTLT was submitted
+// For each HTLT cb will be called. If cb returns true the iterator will close and stop.
+func (k Keeper) IterateHTLTsByTime(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(htltID uint64) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
+	iterator := store.Iterator(
+		nil, // start at the very start of the prefix store
+		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)),
+	)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+
+		htltID := types.Uint64FromBytes(iterator.Value())
+
+		if cb(htltID) {
+			break
+		}
+	}
 }

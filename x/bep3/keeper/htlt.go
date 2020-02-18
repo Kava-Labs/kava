@@ -247,3 +247,12 @@ func (k Keeper) ValidateAsset(ctx sdk.Context, coins sdk.Coins) sdk.Error {
 	}
 	return nil
 }
+
+// GetAllHtlts returns all HTLTs from the store
+func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
+	k.IterateHTLTs(ctx, func(htlt types.HTLT) bool {
+		htlts = append(htlts, htlt)
+		return false
+	})
+	return
+}
