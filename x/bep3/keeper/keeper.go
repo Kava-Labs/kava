@@ -11,9 +11,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-// KavaBlockTime is the expected block time (6 seconds)
-const KavaBlockTime = 6000000000
-
 // Keeper of the bep3 store
 type Keeper struct {
 	key           sdk.StoreKey
@@ -45,18 +42,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // StoreNewHTLT stores an HTLT
 func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.HTLT) (string, error) {
-	swapID, err := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
-	if err != nil {
-		return "", err
-	}
-
-	k.SetHTLT(ctx, htlt, swapID)
-
-	// Add HTLT to ByTime index
-	expirationTime := htlt.Timestamp + (htlt.HeightSpan * KavaBlockTime)
-	k.InsertIntoByTimeIndex(ctx, uint64(expirationTime), swapID)
-
-	return types.BytesToHexEncodedString(swapID), nil
+	k.SetHTLT(ctx, htlt, htlt.SwapID)
+	k.InsertIntoByTimeIndex(ctx, htlt.ExpirationBlock, htlt.SwapID)
+	return types.BytesToHexEncodedString(htlt.SwapID), nil
 }
 
 // SetHTLT puts the HTLT into the store, and updates any indexes.
@@ -103,20 +91,18 @@ func (k Keeper) IterateHTLTs(ctx sdk.Context, cb func(htlt types.HTLT) (stop boo
 }
 
 // InsertIntoByTimeIndex adds a htlt ID and expiration time into the byTime index.
-func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, expirationTime uint64, htltID []byte) {
+func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, expirationBlock uint64, htltID []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
-	store.Set(types.GetHTLTByTimeKey(expirationTime, htltID), htltID)
+	store.Set(types.GetHTLTByTimeKey(expirationBlock, htltID), htltID)
 }
 
 // removeFromByTimeIndex removes a htlt ID and expiration time from the byTime index.
-func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, expirationTime uint64, htltID []byte) {
+func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, expirationBlock uint64, htltID []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
-	store.Delete(types.GetHTLTByTimeKey(expirationTime, htltID))
+	store.Delete(types.GetHTLTByTimeKey(expirationBlock, htltID))
 }
 
-// IterateHTLTsByTime provides an iterator over HTLTs ordered by HTLT expiration time,
-// where expiration time = HTLT.timestamp + (HTLT.heightspan*millisecondsPerBlock).
-// TODO: HTLT.timestamp does not always equal the time at which the HTLT was submitted
+// IterateHTLTsByTime provides an iterator over HTLTs ordered by HTLT expiration block
 // For each HTLT cb will be called. If cb returns true the iterator will close and stop.
 func (k Keeper) IterateHTLTsByTime(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(htltID []byte) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)

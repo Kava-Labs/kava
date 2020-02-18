@@ -12,9 +12,9 @@ var (
 	KeyMaxLockTime     = []byte("MaxLockTime")
 	KeySupportedAssets = []byte("SupportedAssets")
 
-	AbsoluteMaximumLockTime int64 = 2592000000000000 // 30 days
-	DefaultMinLockTime      int64 = 43200000000000   // 12 hours
-	DefaultMaxLockTime      int64 = 604800000000000  // 7 days
+	AbsoluteMaximumLockTime int64 = 10000
+	DefaultMinLockTime      int64 = 10
+	DefaultMaxLockTime      int64 = 1000
 	DefaultSupportedAssets        = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
 )
 

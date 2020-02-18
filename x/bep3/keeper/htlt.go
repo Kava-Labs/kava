@@ -32,9 +32,11 @@ func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddre
 		return "", types.ErrHTLTAlreadyExists(k.codespace, encodedExpectedSwapID)
 	}
 
-	htlt := types.NewHTLT(from, to, recipientOtherChain, senderOtherChain,
-		randomNumberHash, timestamp, coins, expectedIncome, heightSpan,
-		crossChain)
+	expirationBlock := uint64(ctx.BlockHeight() + heightSpan)
+
+	htlt := types.NewHTLT(expectedSwapID, from, to, recipientOtherChain,
+		senderOtherChain, randomNumberHash, timestamp, coins, expectedIncome,
+		heightSpan, crossChain, expirationBlock)
 
 	// Send coins from sender to the bep3 module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, coins)
@@ -259,6 +261,9 @@ func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
 
 // RefundExpiredHTLTs finds all HTLTs that are past (or at) their ending times and closes them.
 func (k Keeper) RefundExpiredHTLTs(ctx sdk.Context) sdk.Error {
+	// TODO: Remove
+	fmt.Println("current block time:", uint64(ctx.BlockTime().Unix()))
+
 	var expiredHTLTs [][]byte
 	k.IterateHTLTsByTime(ctx, uint64(ctx.BlockTime().Unix()), func(id []byte) bool {
 		expiredHTLTs = append(expiredHTLTs, id)

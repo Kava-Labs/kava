@@ -33,9 +33,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetHtlt() {
-	htlt := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", 80000, false)
-	swapID, err := types.CalculateSwapID(htlt.RandomNumberHash, htlt.From, htlt.SenderOtherChain)
+	swapID, err := types.CalculateSwapID(randomNumberHashes[0], binanceAddrs[0], "")
 	suite.NoError(err)
+
+	heightSpan := int64(1000)
+	expirationBlock := uint64(suite.ctx.BlockHeight()) + uint64(heightSpan)
+	htlt := types.NewHTLT(swapID, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", heightSpan, false, expirationBlock)
 	suite.keeper.SetHTLT(suite.ctx, htlt, swapID)
 
 	h, found := suite.keeper.GetHTLT(suite.ctx, swapID)
@@ -53,7 +56,7 @@ func (suite *KeeperTestSuite) TestGetSetHtlt() {
 }
 
 func (suite *KeeperTestSuite) TestIterateHtlts() {
-	htlts := htlts()
+	htlts := htlts(4)
 	for _, h := range htlts {
 		swapID, err := types.CalculateSwapID(h.RandomNumberHash, h.From, h.SenderOtherChain)
 		suite.NoError(err)
@@ -67,12 +70,18 @@ func TestHtltTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func htlts() types.HTLTs {
+func htlts(count int) types.HTLTs {
 	var htlts types.HTLTs
-	h1 := types.NewHTLT(binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", 50500, false)
-	h2 := types.NewHTLT(binanceAddrs[1], kavaAddrs[1], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 61500, false)
-	h3 := types.NewHTLT(binanceAddrs[2], kavaAddrs[2], "", "", randomNumberHashes[2], timestamps[2], coinsSingle, "50000bnb", 72500, false)
-	h4 := types.NewHTLT(binanceAddrs[3], kavaAddrs[3], "", "", randomNumberHashes[3], timestamps[3], coinsSingle, "50000bnb", 83500, false)
+
+	var swapIDs [][]byte
+	for i := 0; i < count; i++ {
+		swapID, _ := types.CalculateSwapID(randomNumberHashes[i], binanceAddrs[i], "")
+		swapIDs = append(swapIDs, swapID)
+	}
+	h1 := types.NewHTLT(swapIDs[0], binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", 50500, false, uint64(50500+1000))
+	h2 := types.NewHTLT(swapIDs[1], binanceAddrs[1], kavaAddrs[1], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 61500, false, uint64(61500+1000))
+	h3 := types.NewHTLT(swapIDs[2], binanceAddrs[2], kavaAddrs[2], "", "", randomNumberHashes[2], timestamps[2], coinsSingle, "50000bnb", 72500, false, uint64(72500+1000))
+	h4 := types.NewHTLT(swapIDs[3], binanceAddrs[3], kavaAddrs[3], "", "", randomNumberHashes[3], timestamps[3], coinsSingle, "50000bnb", 83500, false, uint64(83500+1000))
 	htlts = append(htlts, h1, h2, h3, h4)
 	return htlts
 }

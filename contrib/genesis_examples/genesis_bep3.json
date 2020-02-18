@@ -296,8 +296,8 @@
     },
     "bep3": {
         "params": {
-            "min_lock_time": "30000000000",
-            "max_lock_time": "172800000000000",
+            "min_lock_time": "10",
+            "max_lock_time": "1000",
             "supported_assets": [
                 {
                     "denom": "btc",

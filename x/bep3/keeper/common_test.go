@@ -7,15 +7,8 @@ import (
 )
 
 var (
-	coinsSingle        = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
-	coinsZero          = sdk.Coins{sdk.Coin{}}
-	timestamps         = []int64{6655443322, 7766554433, 8877665544, 9988776655}
-	randomNumberHashes = []string{
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{15}, timestamps[0])),
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{72}, timestamps[1])),
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{119}, timestamps[2])),
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{154}, timestamps[3])),
-	}
+	coinsSingle  = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
+	coinsZero    = sdk.Coins{sdk.Coin{}}
 	binanceAddrs = []sdk.AccAddress{
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
@@ -27,5 +20,12 @@ var (
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
+	}
+	timestamps         = []int64{6655443322, 7766554433, 8877665544, 9988776655}
+	randomNumberHashes = []string{
+		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{15}, timestamps[0])),
+		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{72}, timestamps[1])),
+		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{119}, timestamps[2])),
+		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{154}, timestamps[3])),
 	}
 )

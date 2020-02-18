@@ -30,8 +30,6 @@ var (
 
 // GetHTLTByTimeKey returns the key for iterating HTLTs by time
 func GetHTLTByTimeKey(expirationTime uint64, htltID []byte) []byte {
-	// TODO: time.Time vs. uint64
-	// return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(auctionID)...)
 	return append(Uint64ToBytes(expirationTime), htltID...)
 }
 
