@@ -1,6 +1,8 @@
 package bep3
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -8,6 +10,7 @@ import (
 func EndBlocker(ctx sdk.Context, k Keeper) {
 	err := k.RefundExpiredHTLTs(ctx)
 	if err != nil {
-		panic(err)
+		// TODO: panic?
+		fmt.Println(err)
 	}
 }
