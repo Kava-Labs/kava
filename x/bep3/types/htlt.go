@@ -11,7 +11,7 @@ type HTLT struct {
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
 	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    string         `json:"random_number_hash"`
+	RandomNumberHash    []byte         `json:"random_number_hash"`
 	Timestamp           int64          `json:"timestamp"`
 	Amount              sdk.Coins      `json:"amount"`
 	ExpectedIncome      string         `json:"expected_income"`
@@ -22,7 +22,7 @@ type HTLT struct {
 
 // NewHTLT returns a new HTLT
 func NewHTLT(swapID []byte, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash string, timestamp int64, amount sdk.Coins,
+	senderOtherChain string, randomNumberHash []byte, timestamp int64, amount sdk.Coins,
 	expectedIncome string, heightSpan int64, crossChain bool, expirationBlock uint64) HTLT {
 	return HTLT{
 		SwapID:              swapID,

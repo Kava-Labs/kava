@@ -81,8 +81,13 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			sender := sdk.AccAddress(args[1])
 			senderOtherChain := args[2]
 
+			bytesRNH, err := types.HexEncodedStringToBytes(randomNumberHash)
+			if err != nil {
+				return err
+			}
+
 			// Calculate swap ID and convert to human-readable string
-			swapIDBytes, err := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
+			swapIDBytes, err := types.CalculateSwapID(bytesRNH, sender, senderOtherChain)
 			if err != nil {
 				return err
 			}

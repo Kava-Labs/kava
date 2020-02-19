@@ -25,7 +25,8 @@ const (
 	CodeAssetNotSupported        CodeType          = 11
 	CodeAssetNotActive           CodeType          = 12
 	CodeInvalidHeightSpan        CodeType          = 13
-	CodeHTLTHasExpired           CodeType          = 13
+	CodeHTLTHasExpired           CodeType          = 14
+	CodeOnlyDeputy               CodeType          = 15
 )
 
 // ErrInvalidLockTime Error constructor
@@ -39,8 +40,8 @@ func ErrInvalidModulePermissions(codespace sdk.CodespaceType, permission string)
 }
 
 // ErrHTLTNotFound error for when an htlt is not found
-func ErrHTLTNotFound(codespace sdk.CodespaceType, id string) sdk.Error {
-	return sdk.NewError(codespace, CodeHTLTNotFound, fmt.Sprintf("HTLT %s was not found", id))
+func ErrHTLTNotFound(codespace sdk.CodespaceType, id []byte) sdk.Error {
+	return sdk.NewError(codespace, CodeHTLTNotFound, fmt.Sprintf("HTLT %s was not found", BytesToHexEncodedString(id)))
 }
 
 // ErrInvalidCoinDenom error for when coin denom doesn't match HTLT coin denom
@@ -64,8 +65,13 @@ func ErrHTLTAlreadyExists(codespace sdk.CodespaceType, swapID string) sdk.Error 
 }
 
 // ErrInvalidClaimSecret error when a submitted secret doesn't match an HTLT's swapID
-func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret string, swapID string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidClaimSecret, fmt.Sprintf("hashed claim attempt %s does not match %s", submittedSecret, swapID))
+func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret []byte, swapID []byte) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidClaimSecret,
+		fmt.Sprintf("hashed claim attempt %s does not match %s",
+			BytesToHexEncodedString(submittedSecret),
+			BytesToHexEncodedString(swapID),
+		),
+	)
 }
 
 // ErrOnlySameChain error for when an operation is not allowed for cross-chain swaps
@@ -96,4 +102,9 @@ func ErrInvalidHeightSpan(codespace sdk.CodespaceType, heightspan int64, minLock
 // ErrHTLTHasExpired error for when a HTLT has expired and cannot be claimed
 func ErrHTLTHasExpired(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeHTLTHasExpired, fmt.Sprintf("htlt is expired"))
+}
+
+// ErrOnlyDeputy error for when an operation restricted to the authorized deputy
+func ErrOnlyDeputy(codespace sdk.CodespaceType, sender sdk.AccAddress, deputy sdk.AccAddress) sdk.Error {
+	return sdk.NewError(codespace, CodeOnlyDeputy, fmt.Sprintf("%s does not match authorized deputy %s", sender, deputy))
 }

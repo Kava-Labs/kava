@@ -16,11 +16,11 @@ const (
 	CalcSwapID  = "calcSwapID"
 
 	Int64Size               = 8
-	RandomNumberHashLength  = 64
-	RandomNumberLength      = 64
+	RandomNumberHashLength  = 32
+	RandomNumberLength      = 32
 	AddrByteCount           = 20
 	MaxOtherChainAddrLength = 64
-	SwapIDLength            = 64
+	SwapIDLength            = 32
 	MaxExpectedIncomeLength = 64
 )
 
@@ -36,7 +36,7 @@ type MsgCreateHTLT struct {
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
 	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    string         `json:"random_number_hash"`
+	RandomNumberHash    []byte         `json:"random_number_hash"`
 	Timestamp           int64          `json:"timestamp"`
 	Amount              sdk.Coins      `json:"amount"`
 	ExpectedIncome      string         `json:"expected_income"`
@@ -46,7 +46,7 @@ type MsgCreateHTLT struct {
 
 // NewMsgCreateHTLT initializes a new MsgCreateHTLT
 func NewMsgCreateHTLT(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash string, timestamp int64,
+	senderOtherChain string, randomNumberHash []byte, timestamp int64,
 	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateHTLT {
 	return MsgCreateHTLT{
 		From:                from,
@@ -71,8 +71,9 @@ func (msg MsgCreateHTLT) Type() string { return Htlt }
 // String prints the MsgCreateHTLT
 func (msg MsgCreateHTLT) String() string {
 	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
-		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain, msg.RandomNumberHash,
-		msg.Timestamp, msg.Amount, msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
+		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain,
+		BytesToHexEncodedString(msg.RandomNumberHash), msg.Timestamp,
+		msg.Amount, msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgCreateHTLT
@@ -139,12 +140,12 @@ func (msg MsgCreateHTLT) GetSignBytes() []byte {
 // MsgDepositHTLT defines an HTLT deposit
 type MsgDepositHTLT struct {
 	From   sdk.AccAddress `json:"from"`
-	SwapID string         `json:"swap_id"`
+	SwapID []byte         `json:"swap_id"`
 	Amount sdk.Coins      `json:"amount"`
 }
 
 // NewMsgDepositHTLT initializes a new MsgDepositHTLT
-func NewMsgDepositHTLT(from sdk.AccAddress, swapID string, amount sdk.Coins) MsgDepositHTLT {
+func NewMsgDepositHTLT(from sdk.AccAddress, swapID []byte, amount sdk.Coins) MsgDepositHTLT {
 	return MsgDepositHTLT{
 		From:   from,
 		SwapID: swapID,
@@ -160,7 +161,7 @@ func (msg MsgDepositHTLT) Type() string { return DepositHTLT }
 
 // String prints the MsgDepositHTLT
 func (msg MsgDepositHTLT) String() string {
-	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
+	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, BytesToHexEncodedString(msg.SwapID))
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgDepositHTLT
@@ -199,12 +200,12 @@ func (msg MsgDepositHTLT) GetSignBytes() []byte {
 // MsgClaimHTLT defines a HTLT claim
 type MsgClaimHTLT struct {
 	From         sdk.AccAddress `json:"from"`
-	SwapID       string         `json:"swap_id"`
-	RandomNumber SwapBytes      `json:"random_number"`
+	SwapID       []byte         `json:"swap_id"`
+	RandomNumber []byte         `json:"random_number"`
 }
 
 // NewMsgClaimHTLT initializes a new MsgClaimHTLT
-func NewMsgClaimHTLT(from sdk.AccAddress, swapID string, randomNumber SwapBytes) MsgClaimHTLT {
+func NewMsgClaimHTLT(from sdk.AccAddress, swapID []byte, randomNumber []byte) MsgClaimHTLT {
 	return MsgClaimHTLT{
 		From:         from,
 		SwapID:       swapID,
@@ -220,7 +221,7 @@ func (msg MsgClaimHTLT) Type() string { return ClaimHTLT }
 
 // String prints the MsgClaimHTLT
 func (msg MsgClaimHTLT) String() string {
-	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, msg.SwapID, msg.RandomNumber)
+	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, BytesToHexEncodedString(msg.SwapID), msg.RandomNumber)
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgClaimHTLT
@@ -259,11 +260,11 @@ func (msg MsgClaimHTLT) GetSignBytes() []byte {
 // MsgRefundHTLT defines a refund msg
 type MsgRefundHTLT struct {
 	From   sdk.AccAddress `json:"from"`
-	SwapID string         `json:"swap_id"`
+	SwapID []byte         `json:"swap_id"`
 }
 
 // NewMsgRefundHTLT initializes a new MsgRefundHTLT
-func NewMsgRefundHTLT(from sdk.AccAddress, swapID string) MsgRefundHTLT {
+func NewMsgRefundHTLT(from sdk.AccAddress, swapID []byte) MsgRefundHTLT {
 	return MsgRefundHTLT{
 		From:   from,
 		SwapID: swapID,
@@ -278,7 +279,7 @@ func (msg MsgRefundHTLT) Type() string { return RefundHTLT }
 
 // String prints the MsgRefundHTLT
 func (msg MsgRefundHTLT) String() string {
-	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, msg.SwapID)
+	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, BytesToHexEncodedString(msg.SwapID))
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgRefundHTLT

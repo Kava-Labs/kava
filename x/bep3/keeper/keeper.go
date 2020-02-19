@@ -41,17 +41,16 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // StoreNewHTLT stores an HTLT
-func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.HTLT) (string, error) {
-	k.SetHTLT(ctx, htlt, htlt.SwapID)
+func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.HTLT) {
+	k.SetHTLT(ctx, htlt)
 	k.InsertIntoByTimeIndex(ctx, htlt.ExpirationBlock, htlt.SwapID)
-	return types.BytesToHexEncodedString(htlt.SwapID), nil
 }
 
 // SetHTLT puts the HTLT into the store, and updates any indexes.
-func (k Keeper) SetHTLT(ctx sdk.Context, htlt types.HTLT, swapID []byte) {
+func (k Keeper) SetHTLT(ctx sdk.Context, htlt types.HTLT) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(htlt)
-	store.Set(swapID, bz)
+	store.Set(htlt.SwapID, bz)
 }
 
 // GetHTLT gets an htlt from the store.

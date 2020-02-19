@@ -16,6 +16,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
+// GetBnbDeputyAddress returns the Bnbchain's deputy address
+func (k Keeper) GetBnbDeputyAddress(ctx sdk.Context) sdk.AccAddress {
+	params := k.GetParams(ctx)
+	return params.BnbDeputyAddress
+}
+
 // GetMaxLockTime returns the maximum lock time
 func (k Keeper) GetMaxLockTime(ctx sdk.Context) int64 {
 	params := k.GetParams(ctx)

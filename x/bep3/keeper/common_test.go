@@ -22,10 +22,10 @@ var (
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
 	}
 	timestamps         = []int64{6655443322, 7766554433, 8877665544, 9988776655}
-	randomNumberHashes = []string{
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{15}, timestamps[0])),
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{72}, timestamps[1])),
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{119}, timestamps[2])),
-		types.BytesToHexEncodedString(types.CalculateRandomHash([]byte{154}, timestamps[3])),
+	randomNumberHashes = [][]byte{
+		types.CalculateRandomHash([]byte{15}, timestamps[0]),
+		types.CalculateRandomHash([]byte{72}, timestamps[1]),
+		types.CalculateRandomHash([]byte{119}, timestamps[2]),
+		types.CalculateRandomHash([]byte{154}, timestamps[3]),
 	}
 )

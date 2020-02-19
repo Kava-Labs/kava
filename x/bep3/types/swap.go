@@ -89,6 +89,12 @@ func (bz *SwapBytes) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (swap SwapBytes) String() string {
+	data := make([]byte, hex.EncodedLen(len(swap)))
+	hex.Encode(data, swap)
+	return string(data)
+}
+
 type AtomicSwap struct {
 	From      sdk.AccAddress `json:"from"`
 	To        sdk.AccAddress `json:"to"`

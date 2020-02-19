@@ -3,49 +3,57 @@ package types
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // Parameter keys
 var (
+	BnbDeputyAddress   = []byte("BnbDeputyAddress")
 	KeyMinLockTime     = []byte("MinLockTime")
 	KeyMaxLockTime     = []byte("MaxLockTime")
 	KeySupportedAssets = []byte("SupportedAssets")
 
 	AbsoluteMaximumLockTime int64 = 10000
-	DefaultMinLockTime      int64 = 10
-	DefaultMaxLockTime      int64 = 1000
-	DefaultSupportedAssets        = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
+	// TODO: This cannot be a random address at genesis time
+	DefaultBnbDeputyAddress sdk.AccAddress = sdk.AccAddress(crypto.AddressHash([]byte("null")))
+	DefaultMinLockTime      int64          = 10
+	DefaultMaxLockTime      int64          = 1000
+	DefaultSupportedAssets                 = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
 )
 
 // Params governance parameters for bep3 module
 type Params struct {
-	MinLockTime     int64       `json:"min_lock_time" yaml:"min_lock_time"`       // HTLT minimum lock time
-	MaxLockTime     int64       `json:"max_lock_time" yaml:"max_lock_time"`       // HTLT maximum lock time
-	SupportedAssets AssetParams `json:"supported_assets" yaml:"supported_assets"` // supported assets
+	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // Bnbchain deputy address
+	MinLockTime      int64          `json:"min_lock_time" yaml:"min_lock_time"`           // HTLT minimum lock time
+	MaxLockTime      int64          `json:"max_lock_time" yaml:"max_lock_time"`           // HTLT maximum lock time
+	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`     // supported assets
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
+	Bnbchain deputy address: %s,
 	Min lock time: %d,
 	Max lock time: %d,
 	Supported assets: %s`,
-		p.MinLockTime, p.MaxLockTime, p.SupportedAssets)
+		p.BnbDeputyAddress, p.MinLockTime, p.MaxLockTime, p.SupportedAssets)
 }
 
 // NewParams returns a new params object
-func NewParams(minLockTime int64, maxLockTime int64, supportedAssets AssetParams) Params {
+func NewParams(bnbDeputyAddress sdk.AccAddress, minLockTime int64, maxLockTime int64, supportedAssets AssetParams) Params {
 	return Params{
-		MinLockTime:     minLockTime,
-		MaxLockTime:     maxLockTime,
-		SupportedAssets: supportedAssets,
+		BnbDeputyAddress: bnbDeputyAddress,
+		MinLockTime:      minLockTime,
+		MaxLockTime:      maxLockTime,
+		SupportedAssets:  supportedAssets,
 	}
 }
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	return NewParams(DefaultMinLockTime, DefaultMaxLockTime, DefaultSupportedAssets)
+	return NewParams(DefaultBnbDeputyAddress, DefaultMinLockTime, DefaultMaxLockTime, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain

@@ -21,7 +21,7 @@ var (
 	}
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(9988776655)
-	randomNumberHash  = BytesToHexEncodedString(CalculateRandomHash(randomNumberBytes, timestampInt64))
+	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
 )
 
 func TestMsgCreateHTLT(t *testing.T) {
@@ -31,7 +31,7 @@ func TestMsgCreateHTLT(t *testing.T) {
 		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    string
+		randomNumberHash    SwapBytes
 		timestamp           int64
 		amount              sdk.Coins
 		expectedIncome      string
@@ -68,13 +68,12 @@ func TestMsgCreateHTLT(t *testing.T) {
 }
 
 func TestMsgDepositHTLT(t *testing.T) {
-	swapIDBytes, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
-	swapID := BytesToHexEncodedString(swapIDBytes)
+	swapID, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      string
+		swapID      SwapBytes
 		amount      sdk.Coins
 		expectPass  bool
 	}{
@@ -96,17 +95,16 @@ func TestMsgDepositHTLT(t *testing.T) {
 }
 
 func TestMsgClaimHTLT(t *testing.T) {
-	swapIDBytes, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
-	swapID := BytesToHexEncodedString(swapIDBytes)
+	swapID, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description  string
 		from         sdk.AccAddress
-		swapID       string
+		swapID       SwapBytes
 		randomNumber SwapBytes
 		expectPass   bool
 	}{
-		{"normal", binanceAddrs[0], swapID, randomNumberBytes, true},
+		{"normal", binanceAddrs[0], swapID, randomNumberHash, true},
 	}
 
 	for i, tc := range tests {
@@ -124,13 +122,12 @@ func TestMsgClaimHTLT(t *testing.T) {
 }
 
 func TestMsgRefundHTLT(t *testing.T) {
-	swapIDBytes, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
-	swapID := BytesToHexEncodedString(swapIDBytes)
+	swapID, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      string
+		swapID      SwapBytes
 		expectPass  bool
 	}{
 		{"normal", binanceAddrs[0], swapID, true},

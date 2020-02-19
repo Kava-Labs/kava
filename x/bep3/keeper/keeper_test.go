@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestGetSetHtlt() {
 	heightSpan := int64(1000)
 	expirationBlock := uint64(suite.ctx.BlockHeight()) + uint64(heightSpan)
 	htlt := types.NewHTLT(swapID, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", heightSpan, false, expirationBlock)
-	suite.keeper.SetHTLT(suite.ctx, htlt, swapID)
+	suite.keeper.SetHTLT(suite.ctx, htlt)
 
 	h, found := suite.keeper.GetHTLT(suite.ctx, swapID)
 	suite.True(found)
@@ -58,9 +58,7 @@ func (suite *KeeperTestSuite) TestGetSetHtlt() {
 func (suite *KeeperTestSuite) TestIterateHtlts() {
 	htlts := htlts(4)
 	for _, h := range htlts {
-		swapID, err := types.CalculateSwapID(h.RandomNumberHash, h.From, h.SenderOtherChain)
-		suite.NoError(err)
-		suite.keeper.SetHTLT(suite.ctx, h, swapID)
+		suite.keeper.SetHTLT(suite.ctx, h)
 	}
 	res := suite.keeper.GetAllHtlts(suite.ctx)
 	suite.Equal(4, len(res))

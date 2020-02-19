@@ -296,6 +296,7 @@
     },
     "bep3": {
         "params": {
+            "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
             "min_lock_time": "10",
             "max_lock_time": "1000",
             "supported_assets": [
