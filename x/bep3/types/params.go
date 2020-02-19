@@ -5,19 +5,17 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 // Parameter keys
 var (
-	BnbDeputyAddress   = []byte("BnbDeputyAddress")
-	KeyMinLockTime     = []byte("MinLockTime")
-	KeyMaxLockTime     = []byte("MaxLockTime")
-	KeySupportedAssets = []byte("SupportedAssets")
+	KeyBnbDeputyAddress = []byte("BnbDeputyAddress")
+	KeyMinLockTime      = []byte("MinLockTime")
+	KeyMaxLockTime      = []byte("MaxLockTime")
+	KeySupportedAssets  = []byte("SupportedAssets")
 
-	AbsoluteMaximumLockTime int64 = 10000
-	// TODO: This cannot be a random address at genesis time
-	DefaultBnbDeputyAddress sdk.AccAddress = sdk.AccAddress(crypto.AddressHash([]byte("null")))
+	AbsoluteMaximumLockTime int64          = 10000
+	DefaultBnbDeputyAddress sdk.AccAddress = sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 	DefaultMinLockTime      int64          = 10
 	DefaultMaxLockTime      int64          = 1000
 	DefaultSupportedAssets                 = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
@@ -96,6 +94,7 @@ func ParamKeyTable() params.KeyTable {
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
+		{Key: KeyBnbDeputyAddress, Value: &p.BnbDeputyAddress},
 		{Key: KeyMinLockTime, Value: &p.MinLockTime},
 		{Key: KeyMaxLockTime, Value: &p.MaxLockTime},
 		{Key: KeySupportedAssets, Value: &p.SupportedAssets},
