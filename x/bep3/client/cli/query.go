@@ -51,7 +51,7 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 
 			// Calculate random number hash and convert to human-readable string
 			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
-			decodedRandomNumberHash := types.BytesToHexEncodedString(randomNumberHash)
+			decodedRandomNumberHash := types.BytesToHex(randomNumberHash)
 
 			return cliCtx.PrintOutput(decodedRandomNumberHash)
 		},
@@ -83,7 +83,7 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			swapID := types.BytesToHexEncodedString(swapIDBytes)
+			swapID := types.BytesToHex(swapIDBytes)
 
 			return cliCtx.PrintOutput(swapID)
 		},

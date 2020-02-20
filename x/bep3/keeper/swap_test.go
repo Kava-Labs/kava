@@ -31,21 +31,15 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	return
 }
 
-// TODO: test panicked: UnmarshalJSON cannot decode empty bytes
-// func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
+// TODO: implement keeper tests
 // 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 // 	ak := suite.app.GetAccountKeeper()
 // 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 // 	acc.SetCoins(sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000000000))))
 // 	ak.SetAccount(suite.ctx, acc)
 
-// 	expectedSwapIDBytes, err := types.CalculateSwapID(randomNumberHashes[1], binanceAddrs[0], "")
+// 	err := suite.keeper.CreateAtomicSwap(suite.ctx, kavaAddrs[0], kavaAddrs[1], "", "0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A", randomNumberHashes[0], timestamps[0], coinsSingle, "99btc", 1000, false)
 // 	suite.NoError(err)
-// 	expectedSwapID := types.BytesToHexEncodedString(expectedSwapIDBytes)
-
-// 	swapID, err := suite.keeper.CreateAtomicSwap(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 80000, false)
-// 	suite.NoError(err)
-// 	suite.Equal(swapID, expectedSwapID)
 // }
 
 func TestAtomicSwapTestSuite(t *testing.T) {

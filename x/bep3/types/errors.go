@@ -42,7 +42,7 @@ func ErrInvalidModulePermissions(codespace sdk.CodespaceType, permission string)
 
 // ErrAtomicSwapNotFound error for when an atomic swap is not found
 func ErrAtomicSwapNotFound(codespace sdk.CodespaceType, id []byte) sdk.Error {
-	return sdk.NewError(codespace, CodeAtomicSwapNotFound, fmt.Sprintf("AtomicSwap %s was not found", BytesToHexEncodedString(id)))
+	return sdk.NewError(codespace, CodeAtomicSwapNotFound, fmt.Sprintf("AtomicSwap %s was not found", BytesToHex(id)))
 }
 
 // ErrInvalidCoinDenom error for when coin denom doesn't match AtomicSwap coin denom
@@ -69,8 +69,8 @@ func ErrAtomicSwapAlreadyExists(codespace sdk.CodespaceType, swapID cmn.HexBytes
 func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret []byte, swapID []byte) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidClaimSecret,
 		fmt.Sprintf("hashed claim attempt %s does not match %s",
-			BytesToHexEncodedString(submittedSecret),
-			BytesToHexEncodedString(swapID),
+			BytesToHex(submittedSecret),
+			BytesToHex(swapID),
 		),
 	)
 }

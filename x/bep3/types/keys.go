@@ -45,8 +45,8 @@ func Uint64FromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-// BytesToHexEncodedString converts data from []byte to a hex-encoded string
-func BytesToHexEncodedString(data []byte) string {
+// BytesToHex converts data from []byte to a hex-encoded string
+func BytesToHex(data []byte) string {
 	encodedData := make([]byte, hex.EncodedLen(len(data)))
 	hex.Encode(encodedData, data)
 	return string(encodedData)
