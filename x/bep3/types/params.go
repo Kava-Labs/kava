@@ -104,11 +104,8 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	if p.MinLockTime <= 0 {
-		return fmt.Errorf("minimum lock time must be greater than 0")
-	}
-	if p.MaxLockTime <= 0 {
-		return fmt.Errorf("minimum lock time must be greater than 0")
+	if p.MinLockTime < AbsoluteMinimumLockTime {
+		return fmt.Errorf(fmt.Sprintf("minimum lock time cannot be shorter than %d", AbsoluteMinimumLockTime))
 	}
 	if p.MinLockTime >= p.MaxLockTime {
 		return fmt.Errorf("maximum lock time must be greater than minimum lock time")

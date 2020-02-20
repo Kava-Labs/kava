@@ -1,11 +1,13 @@
 package types
 
 import (
+	"encoding/json"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	cmm "github.com/tendermint/tendermint/libs/common"
 )
 
-// AtomicSwap is an Hash-Time Locked Transaction on Kava
+// AtomicSwap is an Hash-Time Locked Transaction (HTLT) on Kava
 type AtomicSwap struct {
 	SwapID              cmm.HexBytes   `json:"swap_id"`
 	From                sdk.AccAddress `json:"from"`
@@ -41,3 +43,57 @@ func NewAtomicSwap(swapID cmm.HexBytes, from sdk.AccAddress, to sdk.AccAddress, 
 
 // AtomicSwaps is a slice of AtomicSwap
 type AtomicSwaps []AtomicSwap
+
+// SwapStatus is the status of an AtomicSwap
+type SwapStatus byte
+
+const (
+	NULL      SwapStatus = 0x00
+	Open      SwapStatus = 0x01
+	Completed SwapStatus = 0x02
+	Expired   SwapStatus = 0x03
+)
+
+// NewSwapStatusFromString converts string to SwapStatus type
+func NewSwapStatusFromString(str string) SwapStatus {
+	switch str {
+	case "Open", "open":
+		return Open
+	case "Completed", "completed":
+		return Completed
+	case "Expired", "expired":
+		return Expired
+	default:
+		return NULL
+	}
+}
+
+// String returns the string representation of a SwapStatus
+func (status SwapStatus) String() string {
+	switch status {
+	case Open:
+		return "Open"
+	case Completed:
+		return "Completed"
+	case Expired:
+		return "Expired"
+	default:
+		return "NULL"
+	}
+}
+
+// MarshalJSON marshals the SwapStatus
+func (status SwapStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(status.String())
+}
+
+// UnmarshalJSON unmarshals the SwapStatus
+func (status *SwapStatus) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	*status = NewSwapStatusFromString(s)
+	return nil
+}
