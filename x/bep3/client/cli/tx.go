@@ -53,7 +53,7 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 			recipientOtherChain := args[1] // same as OtherExecutor.DeputyAddress
 			senderOtherChain := args[2]
 
-			randomNumberHash, err := types.HexEncodedStringToBytes(args[3])
+			randomNumberHash, err := types.HexToBytes(args[3])
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "deposit [swap-id] [coins]",
 		Short:   "deposit coins into an existing HTLT",
-		Example: "bep3 deposit 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 10xrp  --from accA",
+		Example: "bep3 deposit 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 10btc  --from accA",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -108,10 +108,7 @@ func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			// if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-			// 	return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			// }
-			swapID, err := types.HexEncodedStringToBytes(args[0])
+			swapID, err := types.HexToBytes(args[0])
 			if err != nil {
 				return err
 			}
@@ -149,10 +146,7 @@ func GetCmdClaimHtlt(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			// if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-			// 	return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			// }
-			swapID, err := types.HexEncodedStringToBytes(args[0])
+			swapID, err := types.HexToBytes(args[0])
 			if err != nil {
 				return err
 			}
@@ -187,10 +181,7 @@ func GetCmdRefundHtlt(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			// if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-			// 	return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			// }
-			swapID, err := types.HexEncodedStringToBytes(args[0])
+			swapID, err := types.HexToBytes(args[0])
 			if err != nil {
 				return err
 			}

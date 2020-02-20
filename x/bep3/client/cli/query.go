@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -38,15 +37,12 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 	return &cobra.Command{
 		Use:     "calc-rnh [random-number] [timestamp]",
 		Short:   "calculate a random number hash for given a number and timestamp",
-		Example: "bep3 calc-rnh 15 9988776655",
+		Example: "bep3 calc-rnh 15 998877665544",
 		Args:    cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Parse query params
-			if len(strings.TrimSpace(args[0])) == 0 {
-				return fmt.Errorf("random-number cannot be empty")
-			}
 			randomNumber := []byte(args[0])
 			timestamp, err := strconv.ParseInt(args[1], 10, 64)
 			if err != nil {
@@ -73,15 +69,11 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Parse query params
-			if len(strings.TrimSpace(args[0])) != types.RandomNumberHashLength {
-				return fmt.Errorf("random-number-hash should have length %d", types.RandomNumberHashLength)
-			}
 			randomNumberHash := args[0]
-
 			sender := sdk.AccAddress(args[1])
 			senderOtherChain := args[2]
 
-			bytesRNH, err := types.HexEncodedStringToBytes(randomNumberHash)
+			bytesRNH, err := types.HexToBytes(randomNumberHash)
 			if err != nil {
 				return err
 			}
@@ -109,7 +101,7 @@ func QueryGetHtltCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Decode swapID's hex encoded string to []byte
-			swapID, err := types.HexEncodedStringToBytes(args[0])
+			swapID, err := types.HexToBytes(args[0])
 			if err != nil {
 				return err
 			}

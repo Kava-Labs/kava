@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/types"
-	// cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 // CreateHTLT adds an htlt
@@ -29,9 +28,9 @@ func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddre
 		return sdk.ErrInternal(err2.Error())
 	}
 
-	_, found := k.GetHTLT(ctx, expectedSwapID)
+	existingHtlt, found := k.GetHTLT(ctx, expectedSwapID)
 	if found {
-		return types.ErrHTLTAlreadyExists(k.codespace, types.BytesToHexEncodedString(expectedSwapID))
+		return types.ErrHTLTAlreadyExists(k.codespace, existingHtlt.SwapID)
 	}
 
 	if crossChain {
@@ -104,7 +103,7 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte,
 	if htlt.CrossChain {
 		return types.ErrOnlySameChain(k.codespace)
 	}
-	if htlt.From.Equals(from) {
+	if !htlt.From.Equals(from) {
 		return types.ErrOnlyOriginalCreator(k.codespace, from, htlt.From)
 	}
 	if htltCoin.Denom != coin.Denom {

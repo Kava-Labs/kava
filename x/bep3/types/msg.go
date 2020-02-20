@@ -21,7 +21,7 @@ const (
 	RandomNumberLength      = 32
 	AddrByteCount           = 20
 	MaxOtherChainAddrLength = 64
-	// SwapIDLength            = 32
+	SwapIDLength            = 32
 	MaxExpectedIncomeLength = 64
 )
 
@@ -73,7 +73,7 @@ func (msg MsgCreateHTLT) Type() string { return Htlt }
 func (msg MsgCreateHTLT) String() string {
 	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
 		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain,
-		BytesToHexEncodedString(msg.RandomNumberHash), msg.Timestamp, msg.Amount, msg.ExpectedIncome,
+		msg.RandomNumberHash, msg.Timestamp, msg.Amount, msg.ExpectedIncome,
 		msg.HeightSpan, msg.CrossChain)
 }
 
@@ -110,6 +110,7 @@ func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength))
 	}
+	fmt.Println("len(msg.RandomNumberHash):", len(msg.RandomNumberHash))
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
 	}
@@ -162,7 +163,7 @@ func (msg MsgDepositHTLT) Type() string { return DepositHTLT }
 
 // String prints the MsgDepositHTLT
 func (msg MsgDepositHTLT) String() string {
-	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, BytesToHexEncodedString(msg.SwapID))
+	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgDepositHTLT
@@ -180,9 +181,9 @@ func (msg MsgDepositHTLT) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
-	// if len(msg.SwapID) != SwapIDLength {
-	// 	return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
-	// }
+	if len(msg.SwapID) != SwapIDLength {
+		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
+	}
 	if !msg.Amount.IsAllPositive() {
 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
 	}
@@ -222,7 +223,7 @@ func (msg MsgClaimHTLT) Type() string { return ClaimHTLT }
 
 // String prints the MsgClaimHTLT
 func (msg MsgClaimHTLT) String() string {
-	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, BytesToHexEncodedString(msg.SwapID), BytesToHexEncodedString(msg.RandomNumber))
+	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, msg.SwapID, msg.RandomNumber)
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgClaimHTLT
@@ -240,9 +241,9 @@ func (msg MsgClaimHTLT) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
-	// if len(msg.SwapID) != SwapIDLength {
-	// 	return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
-	// }
+	if len(msg.SwapID) != SwapIDLength {
+		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
+	}
 	if len(msg.RandomNumber) == 0 {
 		return sdk.ErrInternal("the length of random number cannot be 0")
 	}
@@ -280,7 +281,7 @@ func (msg MsgRefundHTLT) Type() string { return RefundHTLT }
 
 // String prints the MsgRefundHTLT
 func (msg MsgRefundHTLT) String() string {
-	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, BytesToHexEncodedString(msg.SwapID))
+	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, msg.SwapID)
 }
 
 // GetInvolvedAddresses gets the addresses involved in a MsgRefundHTLT
@@ -298,9 +299,9 @@ func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
-	// if len(msg.SwapID) != SwapIDLength {
-	// 	return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
-	// }
+	if len(msg.SwapID) != SwapIDLength {
+		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
+	}
 	return nil
 }
 

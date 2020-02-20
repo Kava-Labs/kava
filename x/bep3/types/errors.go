@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 // CodeType is the local code type
@@ -60,7 +61,7 @@ func ErrAmountTooSmall(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
 }
 
 // ErrHTLTAlreadyExists error for when an HTLT with this swapID already exists
-func ErrHTLTAlreadyExists(codespace sdk.CodespaceType, swapID string) sdk.Error {
+func ErrHTLTAlreadyExists(codespace sdk.CodespaceType, swapID cmn.HexBytes) sdk.Error {
 	return sdk.NewError(codespace, CodeHTLTAlreadyExists, fmt.Sprintf("coin %s amount is below the limit for this operation", swapID))
 }
 
