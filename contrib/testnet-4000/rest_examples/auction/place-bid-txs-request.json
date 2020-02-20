@@ -1,0 +1,32 @@
+{
+    "tx": {
+        "msg": [
+            {
+                "type": "auction/MsgPlaceBid",
+                "value": {
+                    "auction_id": "1",
+                    "bidder": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
+                    "amount": {
+                        "denom": "usdx",
+                        "amount": "100000000"
+                    }
+                }
+            }
+        ],
+        "fee": {
+            "amount": [],
+            "gas": "500000"
+        },
+        "signatures": [
+            {
+                "pub_key": {
+                    "type": "tendermint/PubKeySecp256k1",
+                    "value": "AsBYqm9S7cjIBdG6N/xzAGuEizTt2S2CJuM1FCsgta7u"
+                },
+                "signature": "O3zsB8P61SN7/5C+TNfO9hMaFYWV6hjr2aVigN0GrckR2PQGZhpyEZ03P71A9uK7DFLawzvAHDZRqQu833lAnA=="
+            }
+        ],
+        "memo": "arbitrary text"
+    },
+    "mode": "block"
+}
