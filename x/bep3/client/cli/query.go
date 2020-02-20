@@ -38,7 +38,7 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 	return &cobra.Command{
 		Use:     "calc-rnh [random-number] [timestamp]",
 		Short:   "calculate a random number hash for given a number and timestamp",
-		Example: "bep3 calc-rnh 15 998877665544",
+		Example: "bep3 calc-rnh 15 9988776655",
 		Args:    cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -107,11 +107,6 @@ func QueryGetHtltCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Parse query params
-			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			}
 
 			// Decode swapID's hex encoded string to []byte
 			swapID, err := types.HexEncodedStringToBytes(args[0])

@@ -2,16 +2,18 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	cmm "github.com/tendermint/tendermint/libs/common"
 )
 
 // HTLT is an Hash-Time Locked Transaction on Kava
+// TODO: model after AtomicSwap?
 type HTLT struct {
-	SwapID              []byte         `json:"swap_id"`
+	SwapID              cmm.HexBytes   `json:"swap_id"`
 	From                sdk.AccAddress `json:"from"`
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
 	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    []byte         `json:"random_number_hash"`
+	RandomNumberHash    cmm.HexBytes   `json:"random_number_hash"`
 	Timestamp           int64          `json:"timestamp"`
 	Amount              sdk.Coins      `json:"amount"`
 	ExpectedIncome      string         `json:"expected_income"`
@@ -21,8 +23,8 @@ type HTLT struct {
 }
 
 // NewHTLT returns a new HTLT
-func NewHTLT(swapID []byte, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash []byte, timestamp int64, amount sdk.Coins,
+func NewHTLT(swapID cmm.HexBytes, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+	senderOtherChain string, randomNumberHash cmm.HexBytes, timestamp int64, amount sdk.Coins,
 	expectedIncome string, heightSpan int64, crossChain bool, expirationBlock uint64) HTLT {
 	return HTLT{
 		SwapID:              swapID,

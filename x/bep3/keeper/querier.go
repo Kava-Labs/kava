@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -30,6 +32,8 @@ func queryHTLT(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, s
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
+
+	fmt.Println(requestParams.SwapID)
 
 	// Lookup htlt
 	htlt, found := keeper.GetHTLT(ctx, requestParams.SwapID)

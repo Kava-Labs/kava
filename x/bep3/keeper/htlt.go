@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/types"
+	// cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 // CreateHTLT adds an htlt
@@ -67,7 +68,7 @@ func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddre
 		sdk.NewEvent(
 			types.EventTypeCreateHtlt,
 			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", randomNumberHash)),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", htlt.RandomNumberHash)),
 			sdk.NewAttribute(types.AttributeKeyFrom, fmt.Sprintf("%s", htlt.From)),
 			sdk.NewAttribute(types.AttributeKeyTo, fmt.Sprintf("%s", htlt.To)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", htlt.Amount[0].Denom)),
@@ -92,7 +93,7 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte,
 	}
 
 	// Only unexpired HTLTs can receive deposits
-	if uint64(ctx.BlockTime().Unix()) > htlt.ExpirationBlock {
+	if uint64(ctx.BlockHeight()) > htlt.ExpirationBlock {
 		return types.ErrHTLTHasExpired(k.codespace)
 	}
 
@@ -119,7 +120,7 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte,
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDepositHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", swapID)),
+			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", coin.Denom)),
 			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", coin.Amount.Int64())),
 		),
@@ -144,7 +145,7 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 	}
 
 	// Only unexpired HTLTs can be claimed
-	if uint64(ctx.BlockTime().Unix()) > htlt.ExpirationBlock {
+	if uint64(ctx.BlockHeight()) > htlt.ExpirationBlock {
 		return types.ErrHTLTHasExpired(k.codespace)
 	}
 
@@ -171,26 +172,32 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 			return err
 		}
 
+		// Mint full amount of this coin's associated debt coin to bep3 module for internal limit tracking
 		internalTrackingCoins, err2 := getEqualInternalTrackingCoins(htlt.Amount)
 		if err2 != nil {
 			return sdk.ErrInternal(err2.Error())
 		}
 
-		// Mint full amount of this coin's associated debt coin to bep3 module for internal limit tracking
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.ModuleName, internalTrackingCoins)
+		err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, internalTrackingCoins)
 		if err != nil {
 			return err
 		}
-		// Mint coins to claimer
+
+		// Mint coins for distribution
+		err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, htlt.Amount)
+		if err != nil {
+			return err
+		}
+		// Send claimer their portion of coins
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, claimerCoins)
 		if err != nil {
 			return err
 		}
-		// Mint remaining coins to deputy
+		// Send deputy remaining coins
 		deputyCoins := htlt.Amount.Sub(claimerCoins)
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, k.GetBnbDeputyAddress(ctx), deputyCoins)
 		if err != nil {
-			return sdk.ErrInternal(err.Error())
+			return err
 		}
 	} else {
 		// Send amount from bep3 module to adresss that successfully claimed HTLT
@@ -203,7 +210,7 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaimHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", types.BytesToHexEncodedString(swapID))),
+			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
 			sdk.NewAttribute(types.AttributeKeyClaimer, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", claimerCoins[0].Denom)),
 			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", claimerCoins[0].Amount.Int64())),
@@ -240,7 +247,7 @@ func (k Keeper) RefundHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte) 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRefundHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", types.BytesToHexEncodedString(swapID))),
+			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
 			sdk.NewAttribute(types.AttributeKeyFrom, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", htlt.Amount[0].Denom)),
 			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", htlt.Amount[0].Amount.Int64())),
@@ -310,7 +317,7 @@ func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
 // RefundExpiredHTLTs finds all HTLTs that are past (or at) their ending times and closes them.
 func (k Keeper) RefundExpiredHTLTs(ctx sdk.Context) sdk.Error {
 	var expiredHTLTs [][]byte
-	k.IterateHTLTsByTime(ctx, uint64(ctx.BlockTime().Unix()), func(id []byte) bool {
+	k.IterateHTLTsByTime(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
 		expiredHTLTs = append(expiredHTLTs, id)
 		return false
 	})
@@ -329,6 +336,6 @@ func (k Keeper) RefundExpiredHTLTs(ctx sdk.Context) sdk.Error {
 // getEqualInternalTrackingCoins returns an equal amount of internal tracking coins
 func getEqualInternalTrackingCoins(coins sdk.Coins) (sdk.Coins, error) {
 	coin := coins[0]
-	internalCoinStr := []string{coin.Amount.String(), coin.Denom, "_INTERNAL_TRACKING_COIN"}
+	internalCoinStr := []string{coin.Amount.String(), coin.Denom, "debt"}
 	return sdk.ParseCoins(strings.Join(internalCoinStr, ""))
 }

@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
+	cmm "github.com/tendermint/tendermint/libs/common"
 )
 
 var (
@@ -31,7 +32,7 @@ func TestMsgCreateHTLT(t *testing.T) {
 		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    SwapBytes
+		randomNumberHash    cmm.HexBytes
 		timestamp           int64
 		amount              sdk.Coins
 		expectedIncome      string
@@ -73,7 +74,7 @@ func TestMsgDepositHTLT(t *testing.T) {
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      SwapBytes
+		swapID      cmm.HexBytes
 		amount      sdk.Coins
 		expectPass  bool
 	}{
@@ -100,8 +101,8 @@ func TestMsgClaimHTLT(t *testing.T) {
 	tests := []struct {
 		description  string
 		from         sdk.AccAddress
-		swapID       SwapBytes
-		randomNumber SwapBytes
+		swapID       cmm.HexBytes
+		randomNumber cmm.HexBytes
 		expectPass   bool
 	}{
 		{"normal", binanceAddrs[0], swapID, randomNumberHash, true},
@@ -127,7 +128,7 @@ func TestMsgRefundHTLT(t *testing.T) {
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      SwapBytes
+		swapID      cmm.HexBytes
 		expectPass  bool
 	}{
 		{"normal", binanceAddrs[0], swapID, true},

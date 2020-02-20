@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/binary"
 	"encoding/hex"
+
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -59,4 +61,14 @@ func HexEncodedStringToBytes(data string) ([]byte, error) {
 		return []byte{}, err
 	}
 	return decodedData, nil
+}
+
+// StringToHexBytes converts data from a string to Tendermint's cmn.HexBytes
+func StringToHexBytes(data string) (cmn.HexBytes, error) {
+	dataRawBytes, err := hex.DecodeString(data)
+	if err != nil {
+		return cmn.HexBytes{}, err
+	}
+
+	return cmn.HexBytes(dataRawBytes), nil
 }

@@ -53,7 +53,6 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 			recipientOtherChain := args[1] // same as OtherExecutor.DeputyAddress
 			senderOtherChain := args[2]
 
-			// TODO: string to SwapBytes
 			randomNumberHash, err := types.HexEncodedStringToBytes(args[3])
 			if err != nil {
 				return err
@@ -109,9 +108,9 @@ func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			}
+			// if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
+			// 	return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
+			// }
 			swapID, err := types.HexEncodedStringToBytes(args[0])
 			if err != nil {
 				return err
@@ -150,9 +149,9 @@ func GetCmdClaimHtlt(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			}
+			// if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
+			// 	return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
+			// }
 			swapID, err := types.HexEncodedStringToBytes(args[0])
 			if err != nil {
 				return err
@@ -188,9 +187,9 @@ func GetCmdRefundHtlt(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
-				return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
-			}
+			// if len(strings.TrimSpace(args[0])) != types.SwapIDLength {
+			// 	return fmt.Errorf("swap-id should have length %d", types.SwapIDLength)
+			// }
 			swapID, err := types.HexEncodedStringToBytes(args[0])
 			if err != nil {
 				return err

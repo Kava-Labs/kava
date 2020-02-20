@@ -1,5 +1,10 @@
 package types
 
+import (
+	cmm "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/tendermint/libs/common"
+)
+
 const (
 	// QueryGetHTLT command for getting info about an HTLT
 	QueryGetHTLT = "htlt"
@@ -11,11 +16,11 @@ const (
 
 // QueryHTLTByID contains the params for query 'custom/bep3/htlt'
 type QueryHTLTByID struct {
-	SwapID SwapBytes
+	SwapID cmm.HexBytes
 }
 
 // NewQueryHTLTByID creates a new QueryHTLTByID
-func NewQueryHTLTByID(swapBytes SwapBytes) QueryHTLTByID {
+func NewQueryHTLTByID(swapBytes cmn.HexBytes) QueryHTLTByID {
 	return QueryHTLTByID{
 		SwapID: swapBytes,
 	}
