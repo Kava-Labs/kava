@@ -15,9 +15,10 @@ var (
 	KeySupportedAssets  = []byte("SupportedAssets")
 
 	AbsoluteMaximumLockTime int64          = 10000
+	AbsoluteMinimumLockTime int64          = 10
 	DefaultBnbDeputyAddress sdk.AccAddress = sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
-	DefaultMinLockTime      int64          = 10
-	DefaultMaxLockTime      int64          = 1000
+	DefaultMinLockTime      int64          = 20
+	DefaultMaxLockTime      int64          = 200
 	DefaultSupportedAssets                 = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
 )
 
