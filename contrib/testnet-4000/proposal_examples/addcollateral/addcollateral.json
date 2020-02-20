@@ -1,0 +1,50 @@
+{
+    "title": "CDP Param Change",
+    "description": "Add collateral XRP",
+    "changes": [
+      {
+        "subspace": "cdp",
+        "key": "CollateralParams",
+        "value": [
+          {
+              "auction_size": "50000000",
+              "conversion_factor": "6",
+              "debt_limit": [
+                {
+                  "amount": "1000000000",
+                  "denom": "usdx"
+                }
+              ],
+              "denom": "xrp",
+              "liquidation_penalty": "0.05",
+              "liquidation_ratio": "2.0",
+              "market_id": "xrp:usd",
+              "prefix": 0,
+              "stability_fee": "1.000000001547126"
+            },
+            {
+              "auction_size": "10000000",
+              "conversion_factor": "8",
+              "debt_limit": [
+                {
+                  "amount": "1000000000000",
+                  "denom": "usdx"
+                }
+              ],
+              "denom": "btc",
+              "liquidation_penalty": "0.05",
+              "liquidation_ratio": "1.5",
+              "market_id": "btc:usd",
+              "prefix": 1,
+              "stability_fee": "1.0000000007829977"
+            }
+        ]
+      }
+    ],
+    "deposit": [
+      {
+        "denom": "ukava",
+        "amount": "1000000"
+      }
+    ]
+  }

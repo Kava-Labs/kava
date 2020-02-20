@@ -1,0 +1,25 @@
+{
+  "base_req": {
+    "from": "kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03",
+    "memo": "",
+    "chain_id": "testing",
+    "account_number": "2",
+    "sequence": "0",
+    "gas": "500000",
+    "gas_adjustment": "1.0",
+    "simulate": false
+  },
+  "owner": "kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03",
+  "collateral": [
+    {
+      "denom": "xrp",
+      "amount": "110000000"
+    }
+  ],
+  "principal": [
+    {
+      "denom": "usdx",
+      "amount": "10000000"
+    }
+  ]
+}
