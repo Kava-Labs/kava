@@ -1,7 +1,7 @@
 ---
-  swagger: "2.0"
+  swagger: '2.0'
   info:
-    version: "3.0"
+    version: '3.0'
     title: Kava Light Client RPC
     description: A REST interface for state queries, transaction generation and broadcasting.
   tags:
@@ -9,6 +9,12 @@
       description: Search, encode, or broadcast transactions.
     - name: Tendermint RPC
       description: Tendermint APIs, such as query blocks, transactions and validatorset
+    - name: CDP
+      description: CDP module APIs
+    - name: Auction
+      description: Auction module APIs
+    - name: Pricefeed
+      description: Auction module APIs
     - name: Auth
       description: Authenticate accounts
     - name: Bank
@@ -30,7 +36,7 @@
       description: Query app version
   schemes:
     - https
-  host: data.kava.io
+  host: kava-testnet-4000.kava.io
   securityDefinitions:
     kms:
       type: basic
@@ -136,7 +142,7 @@
           200:
             description: The latest block
             schema:
-              $ref: "#/definitions/BlockQuery"
+              $ref: '#/definitions/BlockQuery'
           500:
             description: Server internal error
     /blocks/{height}:
@@ -157,7 +163,7 @@
           200:
             description: The block at a specific height
             schema:
-              $ref: "#/definitions/BlockQuery"
+              $ref: '#/definitions/BlockQuery'
           404:
             description: Request block height doesn't
           400:
@@ -182,7 +188,7 @@
                 validators:
                   type: array
                   items:
-                    $ref: "#/definitions/TendermintValidator"
+                    $ref: '#/definitions/TendermintValidator'
           500:
             description: Server internal error
     /validatorsets/{height}:
@@ -210,7 +216,7 @@
                 validators:
                   type: array
                   items:
-                    $ref: "#/definitions/TendermintValidator"
+                    $ref: '#/definitions/TendermintValidator'
           404:
             description: Block at height not available
           400:
@@ -236,7 +242,7 @@
           200:
             description: Tx with the provided hash
             schema:
-              $ref: "#/definitions/TxQuery"
+              $ref: '#/definitions/TxQuery'
           500:
             description: Internal Server Error
     /txs:
@@ -252,12 +258,12 @@
             name: message.action
             type: string
             description: "transaction events such as 'message.action=send' which results in the following endpoint: 'GET /txs?message.action=send'. note that each module documents its own events. look for xx_events.md in the corresponding cosmos-sdk/docs/spec directory"
-            x-example: "send"
+            x-example: 'send'
           - in: query
             name: message.sender
             type: string
             description: "transaction tags with sender: 'GET /txs?message.action=send&message.sender=kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv'"
-            x-example: "kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv"
+            x-example: 'kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv'
           - in: query
             name: page
             description: Page number
@@ -272,7 +278,7 @@
           200:
             description: All txs matching the provided events
             schema:
-              $ref: "#/definitions/PaginatedQueryTxs"
+              $ref: '#/definitions/PaginatedQueryTxs'
           400:
             description: Invalid search events
           500:
@@ -295,7 +301,7 @@
               type: object
               properties:
                 tx:
-                  $ref: "#/definitions/StdTx"
+                  $ref: '#/definitions/StdTx'
                 mode:
                   type: string
                   example: sync
@@ -303,7 +309,7 @@
           200:
             description: Tx broadcasting result
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           500:
             description: Internal Server Error
     /txs/encode:
@@ -325,7 +331,7 @@
               type: object
               properties:
                 tx:
-                  $ref: "#/definitions/StdTx"
+                  $ref: '#/definitions/StdTx'
         responses:
           200:
             description: The tx was successfully decoded and re-encoded
@@ -364,11 +370,587 @@
           200:
             description: The tx was successfully decoded
             schema:
-              $ref: "#/definitions/StdTx"
+              $ref: '#/definitions/StdTx'
           400:
             description: The tx was malformated
           500:
             description: Server internal error
+    /cdp:
+      post:
+        summary: Create a cdp transaction
+        tags:
+          - CDP
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - description: create cdp post parameters
+            name: post_cdp_req
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                collateral:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinCollateral'
+                principal:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinPrincipal'
+        responses:
+          200:
+            description: Tx was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Server internal error
+    /cdp/{owner}/{denom}/deposits:
+      post:
+        summary: Create a deposit to cdp transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            description: Owner address in bech32 format
+            required: true
+            type: string
+            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+          - description: deposit cdp post parameters
+            name: post_deposit_req
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                depositor:
+                  $ref: '#/definitions/Address'
+                collateral:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinCollateral'
+        responses:
+          200:
+            description: Tx was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Server internal error
+    /cdp/{owner}/{denom}/withdraw:
+      post:
+        summary: create a withdraw collateral transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            description: Owner address in bech32 format
+            required: true
+            type: string
+            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+          - description: withdraw cdp post parameters
+            name: post_withdraw_req
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                depositor:
+                  $ref: '#/definitions/Address'
+                collateral:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinCollateral'
+        responses:
+          200:
+            description: Tx was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Server internal error
+    /cdp/{owner}/{denom}/draw:
+      post:
+        summary: Create a draw debt transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            description: Owner address in bech32 format
+            required: true
+            type: string
+            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+          - description: draw cdp post parameters
+            name: post_draw_req
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                principal:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinPrincipal'
+        responses:
+          200:
+            description: Tx was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Server internal error
+    /cdp/{owner}/{denom}/repay:
+      post:
+        summary: Repay debt from a CDP
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            description: Owner address in bech32 format
+            required: true
+            type: string
+            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+          - description: repay cdp post parameters
+            name: post_repay_req
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                payment:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinPrincipal'
+        responses:
+          200:
+            description: Tx was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Server internal error
+    /cdp/parameters:
+      get:
+        summary: Get the parameters of the cdp module
+        tags:
+          - CDP
+        produces:
+          - application/json
+        responses:
+          200:
+            description: The parameters of the cdp module
+            schema:
+              type: object
+              properties:
+                collateral_params:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CollateralParam'
+                debt_params:
+                  type: array
+                  items:
+                    $ref: '#/definitions/DebtParam'
+                global_debt_limit:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CoinCollateral'
+                surplus_auction_threshold:
+                  type: string
+                  example: '1000000000'
+                debt_auction_threshold:
+                  type: string
+                  example: '1000000000'
+                circuit_breaker:
+                  type: boolean
+                  example: false
+          500:
+            description: Server internal error
+    /cdp/cdps/cdp/{owner}/{denom}:
+      get:
+        summary: Get the cdp associated with the input owner address and collateral denom
+        tags:
+          - CDP
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            description: Owner address in bech32 format
+            required: true
+            type: string
+            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+        responses:
+          200:
+            description: CDP associated with owner
+            schema:
+              $ref: '#/definitions/CdpResponse'
+          500:
+            description: Server internal error
+    /cdp/cdps/denom/{denom}:
+      get:
+        summary: Get all cdps with collateral type equal to the input collateral denom
+        tags:
+          - CDP
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+        responses:
+          200:
+            description: All CDPs with the input collateral denom
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/CdpResponse'
+          500:
+            description: Server internal error
+    /cdp/cdps/ratio/{denom}/{ratio}:
+      get:
+        summary: Get all cdps with collateral type equal to the input collateral denom and collateralization ratio strictly less than the input ratio
+        tags:
+          - CDP
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+          - in: path
+            name: ratio
+            description: Collateralization ratio
+            required: true
+            type: string
+            x-example: 2.0
+        responses:
+          200:
+            description: All CDPs with the input collateral denom and collateralization ratio less than the input ratio
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/CdpResponse'
+          500:
+            description: Server internal error
+    /cdp/cdps/cdp/deposits/{owner}/{denom}:
+      get:
+        summary: Get the deposits associated with the cdp owned by the input owner address and with colalteral type equal to the input collateral denom
+        tags:
+          - CDP
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            description: Owner address in bech32 format
+            required: true
+            type: string
+            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: xrp
+        responses:
+          200:
+            description: Deposits associated with the cdp
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/CdpDepositResponse'
+          500:
+            description: Server internal error
+    /auction/auctions/{id}/bids:
+      post:
+        summary: Generate a place bid transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - Auction
+        parameters:
+          - in: path
+            name: id
+            description: Auction id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /auction/parameters:
+      get:
+        summary: Query auction parameters
+        produces:
+          - application/json
+        tags:
+          - Auction
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/AuctionParameters'
+          500:
+            description: Internal Server Error
+    /auction/auctions:
+      get:
+        summary: Query auctions
+        description: Query all ongoing auctions
+        produces:
+          - application/json
+        tags:
+          - Auction
+        responses:
+          200:
+            description: OK
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/AuctionResponse'
+          500:
+            description: Internal Server Error
+    /auction/auctions/{id}:
+      get:
+        summary: Query auction
+        description: Query auction by id
+        produces:
+          - application/json
+        tags:
+          - Auction
+        parameters:
+          - in: path
+            name: id
+            description: Auction id
+            required: true
+            type: string
+            x-example: 2
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/AuctionResponse'
+          400:
+            description: invalid auction id
+          500:
+            description: Internal Server Error
+    /pricefeed/postprice:
+      put:
+        summary: Generate post price transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - Pricefeed
+        parameters:
+          - description: post price request
+            name: post_price_req
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                market_id:
+                  type: string
+                  example: 'xrp:usd'
+                price:
+                  type: string
+                  example: '0.298464000000000007'
+                expiry:
+                  type: string
+                  example: '2020-02-12T23:20:00Z'
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /pricefeed/parameters:
+      get:
+        summary: Query pricefeed parameters
+        produces:
+          - application/json
+        tags:
+          - Pricefeed
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/PricefeedParameters'
+          500:
+            description: Internal Server Error
+    /pricefeed/markets:
+      get:
+        summary: Query markets in the pricefeed
+        produces:
+          - application/json
+        tags:
+          - Pricefeed
+        responses:
+          200:
+            description: OK
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Market'
+          500:
+            description: Internal Server Error
+    /pricefeed/oracles/{market_id}:
+      get:
+        summary: Query markets in the pricefeed
+        produces:
+          - application/json
+        tags:
+          - Pricefeed
+        parameters:
+          - in: path
+            name: market_id
+            description: the market id of the market
+            required: true
+            type: string
+            x-example: 'xrp:usd'
+        responses:
+          200:
+            description: OK
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Address'
+          500:
+            description: Internal Server Error
+    /pricefeed/rawprices/{market_id}:
+      get:
+        summary: Query markets in the pricefeed
+        produces:
+          - application/json
+        tags:
+          - Pricefeed
+        parameters:
+          - in: path
+            name: market_id
+            description: the market id of the market
+            required: true
+            type: string
+            x-example: 'xrp:usd'
+        responses:
+          200:
+            description: OK
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/PostedPrice'
+          500:
+            description: Internal Server Error
+    /pricefeed/price/{market_id}:
+      get:
+        summary: Query markets in the pricefeed
+        produces:
+          - application/json
+        tags:
+          - Pricefeed
+        parameters:
+          - in: path
+            name: market_id
+            description: the market id of the market
+            required: true
+            type: string
+            x-example: 'xrp:usd'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/Prices'
+          500:
+            description: Internal Server Error
     /bank/balances/{address}:
       get:
         summary: Get the account balances
@@ -389,7 +971,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Coin"
+                $ref: '#/definitions/Coin'
           500:
             description: Server internal error
     /bank/accounts/{address}/transfers:
@@ -416,16 +998,16 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 amount:
                   type: array
                   items:
-                    $ref: "#/definitions/Coin"
+                    $ref: '#/definitions/Coin'
         responses:
           202:
-            description: Tx was succesfully generated
+            description: Tx was successfully generated
             schema:
-              $ref: "#/definitions/StdTx"
+              $ref: '#/definitions/StdTx'
           400:
             description: Invalid request
           500:
@@ -462,9 +1044,9 @@
                     coins:
                       type: array
                       items:
-                        $ref: "#/definitions/Coin"
+                        $ref: '#/definitions/Coin'
                     public_key:
-                      $ref: "#/definitions/PublicKey"
+                      $ref: '#/definitions/PublicKey'
                     sequence:
                       type: string
           500:
@@ -489,7 +1071,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Delegation"
+                $ref: '#/definitions/Delegation'
           400:
             description: Invalid delegator address
           500:
@@ -504,13 +1086,13 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 delegator_address:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 validator_address:
-                  $ref: "#/definitions/ValidatorAddress"
+                  $ref: '#/definitions/ValidatorAddress'
                 delegation:
-                  $ref: "#/definitions/Coin"
+                  $ref: '#/definitions/Coin'
         tags:
           - Staking
         consumes:
@@ -521,7 +1103,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid delegator address or delegation request body
           401:
@@ -552,7 +1134,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Delegation"
+              $ref: '#/definitions/Delegation'
           400:
             description: Invalid delegator address or validator address
           500:
@@ -577,7 +1159,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/UnbondingDelegation"
+                $ref: '#/definitions/UnbondingDelegation'
           400:
             description: Invalid delegator address
           500:
@@ -592,14 +1174,14 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 delegator_address:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 validator_address:
-                  $ref: "#/definitions/ValidatorAddress"
+                  $ref: '#/definitions/ValidatorAddress'
                 shares:
                   type: string
-                  example: "100"
+                  example: '100'
         tags:
           - Staking
         consumes:
@@ -610,7 +1192,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid delegator address or unbonding delegation request body
           401:
@@ -641,7 +1223,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/UnbondingDelegationPair"
+              $ref: '#/definitions/UnbondingDelegationPair'
           400:
             description: Invalid delegator address or validator address
           500:
@@ -675,7 +1257,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Redelegation"
+                $ref: '#/definitions/Redelegation'
           500:
             description: Internal Server Error
     /staking/delegators/{delegatorAddr}/redelegations:
@@ -696,16 +1278,16 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 delegator_address:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 validator_src_addressess:
-                  $ref: "#/definitions/ValidatorAddress"
+                  $ref: '#/definitions/ValidatorAddress'
                 validator_dst_address:
-                  $ref: "#/definitions/ValidatorAddress"
+                  $ref: '#/definitions/ValidatorAddress'
                 shares:
                   type: string
-                  example: "100"
+                  example: '100'
         tags:
           - Staking
         consumes:
@@ -714,9 +1296,9 @@
           - application/json
         responses:
           200:
-            description: Tx was succesfully generated
+            description: Tx was successfully generated
             schema:
-              $ref: "#/definitions/StdTx"
+              $ref: '#/definitions/StdTx'
           400:
             description: Invalid delegator address or redelegation request body
           500:
@@ -741,7 +1323,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Validator"
+                $ref: '#/definitions/Validator'
           400:
             description: Invalid delegator address
           500:
@@ -770,7 +1352,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Validator"
+              $ref: '#/definitions/Validator'
           400:
             description: Invalid delegator address or validator address
           500:
@@ -804,7 +1386,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Validator"
+                $ref: '#/definitions/Validator'
           500:
             description: Internal Server Error
     /staking/validators/{validatorAddr}:
@@ -825,7 +1407,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Validator"
+              $ref: '#/definitions/Validator'
           400:
             description: Invalid validator address
           500:
@@ -850,7 +1432,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Delegation"
+                $ref: '#/definitions/Delegation'
           400:
             description: Invalid validator address
           500:
@@ -875,7 +1457,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/UnbondingDelegation"
+                $ref: '#/definitions/UnbondingDelegation'
           400:
             description: Invalid validator address
           500:
@@ -988,7 +1570,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/SigningInfo"
+                $ref: '#/definitions/SigningInfo'
           400:
             description: Invalid validator public key for one of the validators
           500:
@@ -1010,7 +1592,7 @@
             required: true
             in: path
             x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
-          - description: ""
+          - description: ''
             name: UnjailBody
             in: body
             required: true
@@ -1018,12 +1600,12 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/StdTx"
+                  $ref: '#/definitions/StdTx'
         responses:
           200:
-            description: Tx was succesfully generated
+            description: Tx was successfully generated
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid validator address or base_req
           500:
@@ -1076,25 +1658,25 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 title:
                   type: string
                 description:
                   type: string
                 proposal_type:
                   type: string
-                  example: "text"
+                  example: 'text'
                 proposer:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 initial_deposit:
                   type: array
                   items:
-                    $ref: "#/definitions/Coin"
+                    $ref: '#/definitions/Coin'
         responses:
           200:
-            description: Tx was succesfully generated
+            description: Tx was successfully generated
             schema:
-              $ref: "#/definitions/StdTx"
+              $ref: '#/definitions/StdTx'
           400:
             description: Invalid proposal body
           500:
@@ -1128,7 +1710,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/TextProposal"
+                $ref: '#/definitions/TextProposal'
           400:
             description: Invalid query parameters
           500:
@@ -1152,28 +1734,28 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 title:
                   type: string
-                  x-example: "Param Change"
+                  x-example: 'Param Change'
                 description:
                   type: string
-                  x-example: "Update max validators"
+                  x-example: 'Update max validators'
                 proposer:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 deposit:
                   type: array
                   items:
-                    $ref: "#/definitions/Coin"
+                    $ref: '#/definitions/Coin'
                 changes:
                   type: array
                   items:
-                    $ref: "#/definitions/ParamChange"
+                    $ref: '#/definitions/ParamChange'
         responses:
           200:
-            description: The transaction was succesfully generated
+            description: The transaction was successfully generated
             schema:
-              $ref: "#/definitions/StdTx"
+              $ref: '#/definitions/StdTx'
           400:
             description: Invalid proposal body
           500:
@@ -1191,12 +1773,12 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/TextProposal"
+              $ref: '#/definitions/TextProposal'
           400:
             description: Invalid proposal id
           500:
@@ -1214,12 +1796,12 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Proposer"
+              $ref: '#/definitions/Proposer'
           400:
             description: Invalid proposal ID
           500:
@@ -1237,14 +1819,14 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
         responses:
           200:
             description: OK
             schema:
               type: array
               items:
-                $ref: "#/definitions/Deposit"
+                $ref: '#/definitions/Deposit'
           400:
             description: Invalid proposal id
           500:
@@ -1264,8 +1846,8 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
-          - description: ""
+            x-example: '2'
+          - description: ''
             name: post_deposit_body
             in: body
             required: true
@@ -1273,18 +1855,18 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 depositor:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 amount:
                   type: array
                   items:
-                    $ref: "#/definitions/Coin"
+                    $ref: '#/definitions/Coin'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid proposal id or deposit body
           401:
@@ -1305,7 +1887,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
           - type: string
             description: Bech32 depositor address
             name: depositor
@@ -1316,7 +1898,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Deposit"
+              $ref: '#/definitions/Deposit'
           400:
             description: Invalid proposal id or depositor address
           404:
@@ -1337,14 +1919,14 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
         responses:
           200:
             description: OK
             schema:
               type: array
               items:
-                $ref: "#/definitions/Vote"
+                $ref: '#/definitions/Vote'
           400:
             description: Invalid proposal id
           500:
@@ -1364,7 +1946,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
           - description: valid value of `"option"` field can be `"yes"`, `"no"`, `"no_with_veto"` and `"abstain"`
             name: post_vote_body
             in: body
@@ -1373,17 +1955,17 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 voter:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
                 option:
                   type: string
-                  example: "yes"
+                  example: 'yes'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid proposal id or vote body
           401:
@@ -1404,7 +1986,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
           - type: string
             description: Bech32 voter address
             name: voter
@@ -1415,7 +1997,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Vote"
+              $ref: '#/definitions/Vote'
           400:
             description: Invalid proposal id or voter address
           404:
@@ -1436,12 +2018,12 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: '2'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/TallyResult"
+              $ref: '#/definitions/TallyResult'
           400:
             description: Invalid proposal id
           500:
@@ -1463,10 +2045,10 @@
                 min_deposit:
                   type: array
                   items:
-                    $ref: "#/definitions/Coin"
+                    $ref: '#/definitions/Coin'
                 max_deposit_period:
                   type: string
-                  example: "86400000000000"
+                  example: '86400000000000'
           400:
             description: <other_path> is not a valid query request path
           404:
@@ -1488,13 +2070,13 @@
               properties:
                 threshold:
                   type: string
-                  example: "0.5000000000"
+                  example: '0.5000000000'
                 veto:
                   type: string
-                  example: "0.3340000000"
+                  example: '0.3340000000'
                 governance_penalty:
                   type: string
-                  example: "0.0100000000"
+                  example: '0.0100000000'
           400:
             description: <other_path> is not a valid query request path
           404:
@@ -1516,7 +2098,7 @@
               properties:
                 voting_period:
                   type: string
-                  example: "86400000000000"
+                  example: '86400000000000'
           400:
             description: <other_path> is not a valid query request path
           404:
@@ -1542,7 +2124,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/DelegatorTotalRewards"
+              $ref: '#/definitions/DelegatorTotalRewards'
           400:
             description: Invalid delegator address
           500:
@@ -1562,12 +2144,12 @@
             schema:
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid delegator address
           401:
@@ -1601,7 +2183,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Coin"
+                $ref: '#/definitions/Coin'
           400:
             description: Invalid delegator address
           500:
@@ -1621,12 +2203,12 @@
             schema:
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid delegator address or delegation body
           401:
@@ -1652,7 +2234,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Address"
+              $ref: '#/definitions/Address'
           400:
             description: Invalid delegator address
           500:
@@ -1672,14 +2254,14 @@
             schema:
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
                 withdraw_address:
-                  $ref: "#/definitions/Address"
+                  $ref: '#/definitions/Address'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid delegator or withdraw address
           401:
@@ -1705,7 +2287,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/ValidatorDistInfo"
+              $ref: '#/definitions/ValidatorDistInfo'
           400:
             description: Invalid validator address
           500:
@@ -1730,7 +2312,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Coin"
+                $ref: '#/definitions/Coin'
           500:
             description: Internal Server Error
     /distribution/validators/{validatorAddr}/rewards:
@@ -1754,7 +2336,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Coin"
+                $ref: '#/definitions/Coin'
           400:
             description: Invalid validator address
           500:
@@ -1774,12 +2356,12 @@
             schema:
               properties:
                 base_req:
-                  $ref: "#/definitions/BaseReq"
+                  $ref: '#/definitions/BaseReq'
         responses:
           200:
             description: OK
             schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
+              $ref: '#/definitions/BroadcastTxCommitResult'
           400:
             description: Invalid validator address
           401:
@@ -1799,7 +2381,7 @@
             schema:
               type: array
               items:
-                $ref: "#/definitions/Coin"
+                $ref: '#/definitions/Coin'
           500:
             description: Internal Server Error
     /distribution/parameters:
@@ -1887,7 +2469,7 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Supply"
+              $ref: '#/definitions/Supply'
           500:
             description: Internal Server Error
     /supply/total/{denomination}:
@@ -1908,7 +2490,7 @@
           200:
             description: OK
             schema:
-               type: string
+              type: string
           400:
             description: Invalid coin denomination
           500:
@@ -1932,7 +2514,7 @@
         tags:
           type: array
           items:
-            $ref: "#/definitions/KVPair"
+            $ref: '#/definitions/KVPair'
       example:
         code: 0
         data: data
@@ -1941,8 +2523,8 @@
         gas_wanted: 10000
         info: info
         tags:
-          - ""
-          - ""
+          - ''
+          - ''
     DeliverTxResult:
       type: object
       properties:
@@ -1961,7 +2543,7 @@
         tags:
           type: array
           items:
-            $ref: "#/definitions/KVPair"
+            $ref: '#/definitions/KVPair'
       example:
         code: 5
         data: data
@@ -1970,17 +2552,17 @@
         gas_wanted: 10000
         info: info
         tags:
-          - ""
-          - ""
+          - ''
+          - ''
     BroadcastTxCommitResult:
       type: object
       properties:
         check_tx:
-          $ref: "#/definitions/CheckTxResult"
+          $ref: '#/definitions/CheckTxResult'
         deliver_tx:
-          $ref: "#/definitions/DeliverTxResult"
+          $ref: '#/definitions/DeliverTxResult'
         hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         height:
           type: integer
     KVPair:
@@ -1997,17 +2579,13 @@
       properties:
         type:
           type: string
-          example: "cdp/MsgCreateCDP"
+          example: 'string'
         value:
           type: object
           properties:
             from:
               type: string
               example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq
-            collateral:
-              $ref: "#/definitions/CoinCollateral"
-            principal:
-              $ref: "#/definitions/CoinPrincipal"
     Address:
       type: string
       description: bech32 encoded address
@@ -2024,7 +2602,7 @@
           example: ukava
         amount:
           type: string
-          example: "50"
+          example: '50'
     CoinCollateral:
       type: object
       properties:
@@ -2033,7 +2611,7 @@
           example: bnb
         amount:
           type: string
-          example: "10000000000"
+          example: '10000000000'
     CoinPrincipal:
       type: object
       properties:
@@ -2042,7 +2620,7 @@
           example: usdx
         amount:
           type: string
-          example: "10000000"
+          example: '10000000'
     Hash:
       type: string
       example: EE5F3404034C524501629B56E0DDC38FAD651F04
@@ -2051,27 +2629,27 @@
       properties:
         signature:
           type: string
-          example: "W1HfKcc4F0rCSoxheZ7fsrB5nGK58U4gKysuzsmUwhloVnCxmbCx289uVMMvQN6tOcQsz7hMVTJrXSA1xzevvw=="
+          example: 'W1HfKcc4F0rCSoxheZ7fsrB5nGK58U4gKysuzsmUwhloVnCxmbCx289uVMMvQN6tOcQsz7hMVTJrXSA1xzevvw=='
         pubkey:
           type: object
           properties:
             type:
               type: string
-              example: "tendermint/PubKeySecp256k1"
+              example: 'tendermint/PubKeySecp256k1'
             value:
               type: string
-              example: "Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd/w09CXN"
+              example: 'Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd/w09CXN'
     TxQuery:
       type: object
       properties:
         hash:
           type: string
-          example: "D085138D913993919295FF4B0A9107F1F2CDE0D37A87CE0644E217CBF3B49656"
+          example: 'D085138D913993919295FF4B0A9107F1F2CDE0D37A87CE0644E217CBF3B49656'
         height:
           type: number
           example: 368
         tx:
-          $ref: "#/definitions/StdTx"
+          $ref: '#/definitions/StdTx'
         result:
           type: object
           properties:
@@ -2079,14 +2657,14 @@
               type: string
             gas_wanted:
               type: string
-              example: "200000"
+              example: '200000'
             gas_used:
               type: string
-              example: "26354"
+              example: '26354'
             tags:
               type: array
               items:
-                $ref: "#/definitions/KVPair"
+                $ref: '#/definitions/KVPair'
     PaginatedQueryTxs:
       type: object
       properties:
@@ -2108,14 +2686,14 @@
         txs:
           type: array
           items:
-            $ref: "#/definitions/TxQuery"
+            $ref: '#/definitions/TxQuery'
     StdTx:
       type: object
       properties:
         msg:
           type: array
           items:
-            $ref: "#/definitions/Msg"
+            $ref: '#/definitions/Msg'
         fee:
           type: object
           properties:
@@ -2124,18 +2702,18 @@
             amount:
               type: array
               items:
-                $ref: "#/definitions/Coin"
+                $ref: '#/definitions/Coin'
         memo:
           type: string
         signatures:
           type: array
           items:
-            $ref: "#/definitions/Signature"
+            $ref: '#/definitions/Signature'
     BlockID:
       type: object
       properties:
         hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         parts:
           type: object
           properties:
@@ -2143,7 +2721,7 @@
               type: number
               example: 0
             hash:
-              $ref: "#/definitions/Hash"
+              $ref: '#/definitions/Hash'
     BlockHeader:
       type: object
       properties:
@@ -2155,33 +2733,33 @@
           example: 1
         time:
           type: string
-          example: "2017-12-30T05:53:09.287+01:00"
+          example: '2017-12-30T05:53:09.287+01:00'
         num_txs:
           type: number
           example: 0
         last_block_id:
-          $ref: "#/definitions/BlockID"
+          $ref: '#/definitions/BlockID'
         total_txs:
           type: number
           example: 35
         last_commit_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         data_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         validators_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         next_validators_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         consensus_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         app_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         last_results_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         evidence_hash:
-          $ref: "#/definitions/Hash"
+          $ref: '#/definitions/Hash'
         proposer_address:
-          $ref: "#/definitions/Address"
+          $ref: '#/definitions/Address'
         version:
           type: object
           properties:
@@ -2195,7 +2773,7 @@
       type: object
       properties:
         header:
-          $ref: "#/definitions/BlockHeader"
+          $ref: '#/definitions/BlockHeader'
         txs:
           type: array
           items:
@@ -2208,7 +2786,7 @@
           type: object
           properties:
             block_id:
-              $ref: "#/definitions/BlockID"
+              $ref: '#/definitions/BlockID'
             precommits:
               type: array
               items:
@@ -2218,24 +2796,24 @@
                     type: string
                   validator_index:
                     type: string
-                    example: "0"
+                    example: '0'
                   height:
                     type: string
-                    example: "0"
+                    example: '0'
                   round:
                     type: string
-                    example: "0"
+                    example: '0'
                   timestamp:
                     type: string
-                    example: "2017-12-30T05:53:09.287+01:00"
+                    example: '2017-12-30T05:53:09.287+01:00'
                   type:
                     type: number
                     example: 2
                   block_id:
-                    $ref: "#/definitions/BlockID"
+                    $ref: '#/definitions/BlockID'
                   signature:
                     type: string
-                    example: "7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO4bjvuj6rwH1mTUJrRuMMZvAAqT9VjNgP0RA/TDp6u/92AqrZfXJSpBQ=="
+                    example: '7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO4bjvuj6rwH1mTUJrRuMMZvAAqT9VjNgP0RA/TDp6u/92AqrZfXJSpBQ=='
     BlockQuery:
       type: object
       properties:
@@ -2243,60 +2821,60 @@
           type: object
           properties:
             header:
-              $ref: "#/definitions/BlockHeader"
+              $ref: '#/definitions/BlockHeader'
             block_id:
-              $ref: "#/definitions/BlockID"
+              $ref: '#/definitions/BlockID'
         block:
-          $ref: "#/definitions/Block"
+          $ref: '#/definitions/Block'
     DelegationDelegatorReward:
       type: object
       properties:
         validator_address:
-          $ref: "#/definitions/ValidatorAddress"
+          $ref: '#/definitions/ValidatorAddress'
         reward:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
     DelegatorTotalRewards:
       type: object
       properties:
         rewards:
           type: array
           items:
-            $ref: "#/definitions/DelegationDelegatorReward"
+            $ref: '#/definitions/DelegationDelegatorReward'
         total:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
     BaseReq:
       type: object
       properties:
         from:
           type: string
-          example: "kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc"
+          example: 'kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc'
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
-          example: "Sent via Cosmos Voyager 🚀"
+          example: 'Sent via Cosmos Voyager 🚀'
         chain_id:
           type: string
-          example: "Cosmos-Hub"
+          example: 'kava-1'
         account_number:
           type: string
-          example: "0"
+          example: '0'
         sequence:
           type: string
-          example: "1"
+          example: '1'
         gas:
           type: string
-          example: "200000"
+          example: '200000'
         gas_adjustment:
           type: string
-          example: "1.2"
+          example: '1.2'
         fees:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
         simulate:
           type: boolean
           example: false
@@ -2305,16 +2883,183 @@
       type: object
       properties:
         address:
-          $ref: "#/definitions/ValidatorAddress"
+          $ref: '#/definitions/ValidatorAddress'
         pub_key:
           type: string
           example: kavavalconspub1zcjduepq0vu2zgkgk49efa0nqwzndanq5m4c7pa3u4apz4g2r9gspqg6g9cs3k9cuf
         voting_power:
           type: string
-          example: "1000"
+          example: '1000'
         proposer_priority:
           type: string
-          example: "1000"
+          example: '1000'
+    CdpResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 1
+        owner:
+          type: string
+          example: kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc
+        collateral:
+          $ref: '#/definitions/CoinCollateral'
+        principal:
+          $ref: '#/definitions/CoinPrincipal'
+        accumulated_fees:
+          $ref: '#/definitions/CoinPrincipal'
+        fees_updated:
+          type: string
+          example: '2020-02-05T23:45:55.761435272Z'
+        collateral_value:
+          $ref: '#/definitions/CoinPrincipal'
+        collateralization_ratio:
+          type: string
+          example: '2.721734157907653857'
+    CdpDepositResponse:
+      type: object
+      properties:
+        cdp_id:
+          type: string
+          example: 1
+        depositor:
+          type: string
+          example: kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc
+        amount:
+          $ref: '#/definitions/CoinCollateral'
+    PricefeedParameters:
+      type: object
+      properties:
+        markets:
+          type: array
+          items:
+            $ref: '#/definitions/Market'
+    Price:
+      type: object
+      properties:
+        market_id:
+          type: string
+          example: 'xrp:usd'
+        price:
+          type: string
+          example: '0.298758999999999997'
+    PostedPrice:
+      type: object
+      properties:
+        market_id:
+          type: string
+          example: 'xrp:usd'
+        oracle_address:
+          type: string
+          example: kava10cw2m04528dwlc44k0myd7strj3eq5jr6s8pxs
+        price:
+          type: string
+          example: '0.298758999999999997'
+        expiry:
+          type: string
+          example: '2020-02-12T23:10:00Z'
+    Market:
+      type: object
+      properties:
+        market_id:
+          type: string
+          example: 'xrp:usd'
+        base_asset:
+          type: string
+          example: 'xrp'
+        quote_asset:
+          type: string
+          example: 'usd'
+        oracles:
+          type: array
+          items:
+            $ref: '#/definitions/Address'
+        active:
+          type: boolean
+          example: true
+    AuctionParameters:
+      type: object
+      properties:
+        max_auction_duration:
+          type: string
+          example: 172800000000000
+        bid_duration:
+          type: string
+          example: 600000000000
+    AuctionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 1
+        initiator:
+          type: string
+          example: liquidator
+        lot:
+          $ref: '#/definitions/CoinCollateral'
+        bidder:
+          $ref: '#/definitions/Address'
+        bid:
+          $ref: '#/definitions/Coin'
+        has_received_bids:
+          type: boolean
+          example: false
+        end_time:
+          type: string
+          example: '2020-02-05T23:45:55.761435272Z'
+        max_end_time:
+          type: string
+          example: '2020-02-05T23:45:55.761435272Z'
+        type:
+          type: string
+          example: collateral
+        phase:
+          type: string
+          example: forward
+    CollateralParam:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: xrp
+        liquidation_ratio:
+          type: string
+          example: '2.000000000000000000'
+        debt_limit:
+          $ref: '#/definitions/CoinPrincipal'
+        stability_fee:
+          type: string
+          example: '1.000000001547126000'
+        auction_size:
+          type: string
+          example: '5000000000'
+        liquidation_penalty:
+          type: string
+          example: '0.050000000000000000'
+        prefix:
+          type: integer
+          example: 0
+        market_id:
+          type: string
+          example: 'xrp:usd'
+        conversion_factor:
+          type: string
+          example: '6'
+    DebtParam:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: usdx
+        reference_asset:
+          type: string
+          example: 'usd'
+        conversion_factor:
+          type: string
+          example: '6'
+        debt_floor:
+          type: string
+          example: '10000000'
     TextProposal:
       type: object
       properties:
@@ -2329,13 +3074,13 @@
         proposal_status:
           type: string
         final_tally_result:
-          $ref: "#/definitions/TallyResult"
+          $ref: '#/definitions/TallyResult'
         submit_time:
           type: string
         total_deposit:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
         voting_start_time:
           type: string
     Proposer:
@@ -2351,26 +3096,26 @@
         amount:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
         proposal_id:
           type: string
         depositor:
-          $ref: "#/definitions/Address"
+          $ref: '#/definitions/Address'
     TallyResult:
       type: object
       properties:
         yes:
           type: string
-          example: "0.0000000000"
+          example: '0.0000000000'
         abstain:
           type: string
-          example: "0.0000000000"
+          example: '0.0000000000'
         no:
           type: string
-          example: "0.0000000000"
+          example: '0.0000000000'
         no_with_veto:
           type: string
-          example: "0.0000000000"
+          example: '0.0000000000'
     Vote:
       type: object
       properties:
@@ -2384,7 +3129,7 @@
       type: object
       properties:
         operator_address:
-          $ref: "#/definitions/ValidatorAddress"
+          $ref: '#/definitions/ValidatorAddress'
         consensus_pubkey:
           type: string
           example: kavavalconspub1zcjduepq0vu2zgkgk49efa0nqwzndanq5m4c7pa3u4apz4g2r9gspqg6g9cs3k9cuf
@@ -2411,31 +3156,31 @@
               type: string
         bond_height:
           type: string
-          example: "0"
+          example: '0'
         bond_intra_tx_counter:
           type: integer
           example: 0
         unbonding_height:
           type: string
-          example: "0"
+          example: '0'
         unbonding_time:
           type: string
-          example: "1970-01-01T00:00:00Z"
+          example: '1970-01-01T00:00:00Z'
         commission:
           type: object
           properties:
             rate:
               type: string
-              example: "0"
+              example: '0'
             max_rate:
               type: string
-              example: "0"
+              example: '0'
             max_change_rate:
               type: string
-              example: "0"
+              example: '0'
             update_time:
               type: string
-              example: "1970-01-01T00:00:00Z"
+              example: '1970-01-01T00:00:00Z'
     Delegation:
       type: object
       properties:
@@ -2446,7 +3191,7 @@
         shares:
           type: string
         balance:
-          $ref: "#/definitions/Coin"
+          $ref: '#/definitions/Coin'
     UnbondingDelegationPair:
       type: object
       properties:
@@ -2457,7 +3202,7 @@
         entries:
           type: array
           items:
-            $ref: "#/definitions/UnbondingEntries"
+            $ref: '#/definitions/UnbondingEntries'
     UnbondingEntries:
       type: object
       properties:
@@ -2496,7 +3241,7 @@
         entries:
           type: array
           items:
-            $ref: "#/definitions/Redelegation"
+            $ref: '#/definitions/Redelegation'
     RedelegationEntry:
       type: object
       properties:
@@ -2514,15 +3259,15 @@
       type: object
       properties:
         operator_address:
-          $ref: "#/definitions/ValidatorAddress"
+          $ref: '#/definitions/ValidatorAddress'
         self_bond_rewards:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
         val_commission:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
     PublicKey:
       type: object
       properties:
@@ -2546,13 +3291,13 @@
       properties:
         subspace:
           type: string
-          example: "staking"
+          example: 'staking'
         key:
           type: string
-          example: "MaxValidators"
+          example: 'MaxValidators'
         subkey:
           type: string
-          example: ""
+          example: ''
         value:
           type: object
     Supply:
@@ -2561,4 +3306,4 @@
         total:
           type: array
           items:
-            $ref: "#/definitions/Coin"
+            $ref: '#/definitions/Coin'
