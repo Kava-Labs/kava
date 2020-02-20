@@ -24,8 +24,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	bep3QueryCmd.AddCommand(client.GetCommands(
 		QueryCalcSwapIDCmd(queryRoute, cdc),
 		QueryCalcRandomNumberHashCmd(queryRoute, cdc),
-		QueryGetHtltCmd(queryRoute, cdc),
-		QueryGetHtltsCmd(queryRoute, cdc),
+		QueryGetAtomicSwapCmd(queryRoute, cdc),
+		QueryGetAtomicSwapsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
 
@@ -90,12 +90,12 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// QueryGetHtltCmd queries an HTLT by swapID
-func QueryGetHtltCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryGetAtomicSwapCmd queries an AtomicSwap by swapID
+func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "htlt [swap-id]",
-		Short:   "get HTLT information",
-		Example: "bep3 htlt 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af",
+		Use:     "swap [swap-id]",
+		Short:   "get atomic swap information",
+		Example: "bep3 swap 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -107,48 +107,48 @@ func QueryGetHtltCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.NewQueryHTLTByID(swapID))
+			bz, err := cdc.MarshalJSON(types.NewQueryAtomicSwapByID(swapID))
 			if err != nil {
 				return err
 			}
 
 			// Execute query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetHTLT), bz)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
 			if err != nil {
 				return err
 			}
 
 			// Decode and print results
-			var htlt types.HTLT
-			cdc.MustUnmarshalJSON(res, &htlt)
-			return cliCtx.PrintOutput(htlt)
+			var atomicSwap types.AtomicSwap
+			cdc.MustUnmarshalJSON(res, &atomicSwap)
+			return cliCtx.PrintOutput(atomicSwap)
 		},
 	}
 }
 
-// QueryGetHtltsCmd queries the htlts in the store
-func QueryGetHtltsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryGetAtomicSwapsCmd queries AtomicSwaps in the store
+func QueryGetAtomicSwapsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "htlts",
-		Short:   "get a list of active htlts",
-		Example: "bep3 htlts",
+		Use:     "swaps",
+		Short:   "get a list of active atomic swaps",
+		Example: "bep3 swaps",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetHTLTs), nil)
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwaps), nil)
 			if err != nil {
 				return err
 			}
 
-			var htlts types.HTLTs
-			cdc.MustUnmarshalJSON(res, &htlts)
+			var atomicSwaps types.AtomicSwaps
+			cdc.MustUnmarshalJSON(res, &atomicSwaps)
 
-			if len(htlts) == 0 {
-				return fmt.Errorf("There are currently no htlts")
+			if len(atomicSwaps) == 0 {
+				return fmt.Errorf("There are currently no atomic swaps")
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(htlts)
+			return cliCtx.PrintOutput(atomicSwaps)
 		},
 	}
 }

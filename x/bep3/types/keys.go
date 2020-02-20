@@ -24,13 +24,13 @@ const (
 
 // Key prefixes
 var (
-	HTLTKeyPrefix       = []byte{0x00} // prefix for keys that store HTLTs
-	HTLTByTimeKeyPrefix = []byte{0x01} // prefix for keys of the HTLTByTime index
+	AtomicSwapKeyPrefix     = []byte{0x00} // prefix for keys that store AtomicSwaps
+	AtomicSwapByBlockPrefix = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
 )
 
-// GetHTLTByTimeKey returns the key for iterating HTLTs by time
-func GetHTLTByTimeKey(expirationTime uint64, htltID []byte) []byte {
-	return append(Uint64ToBytes(expirationTime), htltID...)
+// GetAtomicSwapByBlockKey returns the key for iterating AtomicSwaps by block
+func GetAtomicSwapByBlockKey(expirationBlock uint64, atomicSwapID []byte) []byte {
+	return append(Uint64ToBytes(expirationBlock), atomicSwapID...)
 }
 
 // Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.

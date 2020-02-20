@@ -6,35 +6,35 @@ import (
 )
 
 const (
-	// QueryGetHTLT command for getting info about an HTLT
-	QueryGetHTLT = "htlt"
-	// QueryGetHTLTs command for getting a list of HTLTs
-	QueryGetHTLTs = "htlts"
+	// QueryGetAtomicSwap command for getting info about an AtomicSwap
+	QueryGetAtomicSwap = "swap"
+	// QueryGetAtomicSwaps command for getting a list of AtomicSwaps
+	QueryGetAtomicSwaps = "swaps"
 	// QueryGetParams command for getting module params
 	QueryGetParams = "params"
 )
 
-// QueryHTLTByID contains the params for query 'custom/bep3/htlt'
-type QueryHTLTByID struct {
+// QueryAtomicSwapByID contains the params for query 'custom/bep3/swap'
+type QueryAtomicSwapByID struct {
 	SwapID cmm.HexBytes
 }
 
-// NewQueryHTLTByID creates a new QueryHTLTByID
-func NewQueryHTLTByID(swapBytes cmn.HexBytes) QueryHTLTByID {
-	return QueryHTLTByID{
+// NewQueryAtomicSwapByID creates a new QueryAtomicSwapByID
+func NewQueryAtomicSwapByID(swapBytes cmn.HexBytes) QueryAtomicSwapByID {
+	return QueryAtomicSwapByID{
 		SwapID: swapBytes,
 	}
 }
 
-// QueryHTLTsParams contains the params for a HTLTs query
-type QueryHTLTsParams struct {
+// QueryAtomicSwaps contains the params for an AtomicSwaps query
+type QueryAtomicSwaps struct {
 	Page  int `json:"page" yaml:"page"`
 	Limit int `json:"limit" yaml:"limit"`
 }
 
-// NewQueryHTLTsParams creates a new QueryHTLTsParams
-func NewQueryHTLTsParams(page int, limit int) QueryHTLTsParams {
-	return QueryHTLTsParams{
+// NewQueryAtomicSwaps creates a new QueryAtomicSwaps
+func NewQueryAtomicSwaps(page int, limit int) QueryAtomicSwaps {
+	return QueryAtomicSwaps{
 		Page:  page,
 		Limit: limit,
 	}

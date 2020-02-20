@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	Htlt        = "HTLT"
-	DepositHTLT = "depositHTLT"
-	ClaimHTLT   = "claimHTLT"
-	RefundHTLT  = "refundHTLT"
-	CalcSwapID  = "calcSwapID"
+	CreateAtomicSwap  = "createAtomicSwap"
+	DepositAtomicSwap = "depositAtomicSwap"
+	ClaimAtomicSwap   = "claimAtomicSwap"
+	RefundAtomicSwap  = "refundAtomicSwap"
+	CalcSwapID        = "calcSwapID"
 
 	Int64Size               = 8
 	RandomNumberHashLength  = 32
@@ -31,8 +31,8 @@ var (
 	AtomicSwapCoinsAccAddr = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
-// MsgCreateHTLT contains an HTLT struct
-type MsgCreateHTLT struct {
+// MsgCreateAtomicSwap contains an AtomicSwap struct
+type MsgCreateAtomicSwap struct {
 	From                sdk.AccAddress `json:"from"`
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
@@ -45,11 +45,11 @@ type MsgCreateHTLT struct {
 	CrossChain          bool           `json:"cross_chain"`
 }
 
-// NewMsgCreateHTLT initializes a new MsgCreateHTLT
-func NewMsgCreateHTLT(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+// NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
+func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash cmm.HexBytes, timestamp int64,
-	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateHTLT {
-	return MsgCreateHTLT{
+	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateAtomicSwap {
+	return MsgCreateAtomicSwap{
 		From:                from,
 		To:                  to,
 		RecipientOtherChain: recipientOtherChain,
@@ -63,32 +63,32 @@ func NewMsgCreateHTLT(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChai
 	}
 }
 
-// Route establishes the route for the MsgCreateHTLT
-func (msg MsgCreateHTLT) Route() string { return RouterKey }
+// Route establishes the route for the MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) Route() string { return RouterKey }
 
-// Type is the name of MsgCreateHTLT
-func (msg MsgCreateHTLT) Type() string { return Htlt }
+// Type is the name of MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) Type() string { return CreateAtomicSwap }
 
-// String prints the MsgCreateHTLT
-func (msg MsgCreateHTLT) String() string {
-	return fmt.Sprintf("HTLT{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
+// String prints the MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) String() string {
+	return fmt.Sprintf("AtomicSwap{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
 		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain,
 		msg.RandomNumberHash, msg.Timestamp, msg.Amount, msg.ExpectedIncome,
 		msg.HeightSpan, msg.CrossChain)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgCreateHTLT
-func (msg MsgCreateHTLT) GetInvolvedAddresses() []sdk.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgCreateHTLT
-func (msg MsgCreateHTLT) GetSigners() []sdk.AccAddress {
+// GetSigners gets the signers of a MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the MsgCreateHTLT
-func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
+// ValidateBasic validates the MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -110,7 +110,6 @@ func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength))
 	}
-	fmt.Println("len(msg.RandomNumberHash):", len(msg.RandomNumberHash))
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
 	}
@@ -130,8 +129,8 @@ func (msg MsgCreateHTLT) ValidateBasic() sdk.Error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgCreateHTLT
-func (msg MsgCreateHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgCreateAtomicSwap
+func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -139,45 +138,45 @@ func (msg MsgCreateHTLT) GetSignBytes() []byte {
 	return b
 }
 
-// MsgDepositHTLT defines an HTLT deposit
-type MsgDepositHTLT struct {
+// MsgDepositAtomicSwap defines an AtomicSwap deposit
+type MsgDepositAtomicSwap struct {
 	From   sdk.AccAddress `json:"from"`
 	SwapID cmm.HexBytes   `json:"swap_id"`
 	Amount sdk.Coins      `json:"amount"`
 }
 
-// NewMsgDepositHTLT initializes a new MsgDepositHTLT
-func NewMsgDepositHTLT(from sdk.AccAddress, swapID []byte, amount sdk.Coins) MsgDepositHTLT {
-	return MsgDepositHTLT{
+// NewMsgDepositAtomicSwap initializes a new MsgDepositAtomicSwap
+func NewMsgDepositAtomicSwap(from sdk.AccAddress, swapID []byte, amount sdk.Coins) MsgDepositAtomicSwap {
+	return MsgDepositAtomicSwap{
 		From:   from,
 		SwapID: swapID,
 		Amount: amount,
 	}
 }
 
-// Route establishes the route for the MsgDepositHTLT
-func (msg MsgDepositHTLT) Route() string { return RouterKey }
+// Route establishes the route for the MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) Route() string { return RouterKey }
 
-// Type is the name of MsgDepositHTLT
-func (msg MsgDepositHTLT) Type() string { return DepositHTLT }
+// Type is the name of MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) Type() string { return DepositAtomicSwap }
 
-// String prints the MsgDepositHTLT
-func (msg MsgDepositHTLT) String() string {
-	return fmt.Sprintf("depositHTLT{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
+// String prints the MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) String() string {
+	return fmt.Sprintf("depositAtomicSwap{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgDepositHTLT
-func (msg MsgDepositHTLT) GetInvolvedAddresses() []sdk.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgDepositHTLT
-func (msg MsgDepositHTLT) GetSigners() []sdk.AccAddress {
+// GetSigners gets the signers of a MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the MsgDepositHTLT
-func (msg MsgDepositHTLT) ValidateBasic() sdk.Error {
+// ValidateBasic validates the MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -190,8 +189,8 @@ func (msg MsgDepositHTLT) ValidateBasic() sdk.Error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgDepositHTLT
-func (msg MsgDepositHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgDepositAtomicSwap
+func (msg MsgDepositAtomicSwap) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -199,45 +198,45 @@ func (msg MsgDepositHTLT) GetSignBytes() []byte {
 	return b
 }
 
-// MsgClaimHTLT defines a HTLT claim
-type MsgClaimHTLT struct {
+// MsgClaimAtomicSwap defines a AtomicSwap claim
+type MsgClaimAtomicSwap struct {
 	From         sdk.AccAddress `json:"from"`
 	SwapID       cmm.HexBytes   `json:"swap_id"`
 	RandomNumber cmm.HexBytes   `json:"random_number"`
 }
 
-// NewMsgClaimHTLT initializes a new MsgClaimHTLT
-func NewMsgClaimHTLT(from sdk.AccAddress, swapID, randomNumber []byte) MsgClaimHTLT {
-	return MsgClaimHTLT{
+// NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
+func NewMsgClaimAtomicSwap(from sdk.AccAddress, swapID, randomNumber []byte) MsgClaimAtomicSwap {
+	return MsgClaimAtomicSwap{
 		From:         from,
 		SwapID:       swapID,
 		RandomNumber: randomNumber,
 	}
 }
 
-// Route establishes the route for the MsgClaimHTLT
-func (msg MsgClaimHTLT) Route() string { return RouterKey }
+// Route establishes the route for the MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) Route() string { return RouterKey }
 
-// Type is the name of MsgClaimHTLT
-func (msg MsgClaimHTLT) Type() string { return ClaimHTLT }
+// Type is the name of MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) Type() string { return ClaimAtomicSwap }
 
-// String prints the MsgClaimHTLT
-func (msg MsgClaimHTLT) String() string {
-	return fmt.Sprintf("claimHTLT{%v#%v#%v}", msg.From, msg.SwapID, msg.RandomNumber)
+// String prints the MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) String() string {
+	return fmt.Sprintf("claimAtomicSwap{%v#%v#%v}", msg.From, msg.SwapID, msg.RandomNumber)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgClaimHTLT
-func (msg MsgClaimHTLT) GetInvolvedAddresses() []sdk.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgClaimHTLT
-func (msg MsgClaimHTLT) GetSigners() []sdk.AccAddress {
+// GetSigners gets the signers of a MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the MsgClaimHTLT
-func (msg MsgClaimHTLT) ValidateBasic() sdk.Error {
+// ValidateBasic validates the MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -250,8 +249,8 @@ func (msg MsgClaimHTLT) ValidateBasic() sdk.Error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgClaimHTLT
-func (msg MsgClaimHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgClaimAtomicSwap
+func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -259,43 +258,43 @@ func (msg MsgClaimHTLT) GetSignBytes() []byte {
 	return b
 }
 
-// MsgRefundHTLT defines a refund msg
-type MsgRefundHTLT struct {
+// MsgRefundAtomicSwap defines a refund msg
+type MsgRefundAtomicSwap struct {
 	From   sdk.AccAddress `json:"from"`
 	SwapID cmm.HexBytes   `json:"swap_id"`
 }
 
-// NewMsgRefundHTLT initializes a new MsgRefundHTLT
-func NewMsgRefundHTLT(from sdk.AccAddress, swapID []byte) MsgRefundHTLT {
-	return MsgRefundHTLT{
+// NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap
+func NewMsgRefundAtomicSwap(from sdk.AccAddress, swapID []byte) MsgRefundAtomicSwap {
+	return MsgRefundAtomicSwap{
 		From:   from,
 		SwapID: swapID,
 	}
 }
 
-// Route establishes the route for the MsgRefundHTLT
-func (msg MsgRefundHTLT) Route() string { return RouterKey }
+// Route establishes the route for the MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) Route() string { return RouterKey }
 
-// Type is the name of MsgRefundHTLT
-func (msg MsgRefundHTLT) Type() string { return RefundHTLT }
+// Type is the name of MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) Type() string { return RefundAtomicSwap }
 
-// String prints the MsgRefundHTLT
-func (msg MsgRefundHTLT) String() string {
-	return fmt.Sprintf("refundHTLT{%v#%v}", msg.From, msg.SwapID)
+// String prints the MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) String() string {
+	return fmt.Sprintf("refundAtomicSwap{%v#%v}", msg.From, msg.SwapID)
 }
 
-// GetInvolvedAddresses gets the addresses involved in a MsgRefundHTLT
-func (msg MsgRefundHTLT) GetInvolvedAddresses() []sdk.AccAddress {
+// GetInvolvedAddresses gets the addresses involved in a MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
 }
 
-// GetSigners gets the signers of a MsgRefundHTLT
-func (msg MsgRefundHTLT) GetSigners() []sdk.AccAddress {
+// GetSigners gets the signers of a MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-// ValidateBasic validates the MsgRefundHTLT
-func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
+// ValidateBasic validates the MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) ValidateBasic() sdk.Error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -305,8 +304,8 @@ func (msg MsgRefundHTLT) ValidateBasic() sdk.Error {
 	return nil
 }
 
-// GetSignBytes gets the sign bytes of a MsgRefundHTLT
-func (msg MsgRefundHTLT) GetSignBytes() []byte {
+// GetSignBytes gets the sign bytes of a MsgRefundAtomicSwap
+func (msg MsgRefundAtomicSwap) GetSignBytes() []byte {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)

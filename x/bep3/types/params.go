@@ -25,8 +25,8 @@ var (
 // Params governance parameters for bep3 module
 type Params struct {
 	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // Bnbchain deputy address
-	MinLockTime      int64          `json:"min_lock_time" yaml:"min_lock_time"`           // HTLT minimum lock time
-	MaxLockTime      int64          `json:"max_lock_time" yaml:"max_lock_time"`           // HTLT maximum lock time
+	MinLockTime      int64          `json:"min_lock_time" yaml:"min_lock_time"`           // AtomicSwap minimum lock time
+	MaxLockTime      int64          `json:"max_lock_time" yaml:"max_lock_time"`           // AtomicSwap maximum lock time
 	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`     // supported assets
 }
 

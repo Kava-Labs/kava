@@ -5,9 +5,8 @@ import (
 	cmm "github.com/tendermint/tendermint/libs/common"
 )
 
-// HTLT is an Hash-Time Locked Transaction on Kava
-// TODO: model after AtomicSwap?
-type HTLT struct {
+// AtomicSwap is an Hash-Time Locked Transaction on Kava
+type AtomicSwap struct {
 	SwapID              cmm.HexBytes   `json:"swap_id"`
 	From                sdk.AccAddress `json:"from"`
 	To                  sdk.AccAddress `json:"to"`
@@ -17,16 +16,15 @@ type HTLT struct {
 	Timestamp           int64          `json:"timestamp"`
 	Amount              sdk.Coins      `json:"amount"`
 	ExpectedIncome      string         `json:"expected_income"`
-	HeightSpan          int64          `json:"height_span"`
 	CrossChain          bool           `json:"cross_chain"`
 	ExpirationBlock     uint64         `json:"expiration_block"`
 }
 
-// NewHTLT returns a new HTLT
-func NewHTLT(swapID cmm.HexBytes, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+// NewAtomicSwap returns a new AtomicSwap
+func NewAtomicSwap(swapID cmm.HexBytes, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash cmm.HexBytes, timestamp int64, amount sdk.Coins,
-	expectedIncome string, heightSpan int64, crossChain bool, expirationBlock uint64) HTLT {
-	return HTLT{
+	expectedIncome string, crossChain bool, expirationBlock uint64) AtomicSwap {
+	return AtomicSwap{
 		SwapID:              swapID,
 		From:                from,
 		To:                  to,
@@ -36,11 +34,10 @@ func NewHTLT(swapID cmm.HexBytes, from sdk.AccAddress, to sdk.AccAddress, recipi
 		Timestamp:           timestamp,
 		Amount:              amount,
 		ExpectedIncome:      expectedIncome,
-		HeightSpan:          heightSpan,
 		CrossChain:          crossChain,
 		ExpirationBlock:     expirationBlock,
 	}
 }
 
-// HTLTs is a slice of HTLT
-type HTLTs []HTLT
+// AtomicSwaps is a slice of AtomicSwap
+type AtomicSwaps []AtomicSwap

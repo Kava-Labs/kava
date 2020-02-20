@@ -25,7 +25,7 @@ var (
 	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
 )
 
-func TestMsgCreateHTLT(t *testing.T) {
+func TestMsgCreateAtomicSwap(t *testing.T) {
 	tests := []struct {
 		description         string
 		from                sdk.AccAddress
@@ -48,7 +48,7 @@ func TestMsgCreateHTLT(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgCreateHTLT(
+		msg := NewMsgCreateAtomicSwap(
 			tc.from,
 			tc.to,
 			tc.recipientOtherChain,
@@ -68,7 +68,7 @@ func TestMsgCreateHTLT(t *testing.T) {
 	}
 }
 
-func TestMsgDepositHTLT(t *testing.T) {
+func TestMsgDepositAtomicSwap(t *testing.T) {
 	swapID, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
@@ -82,7 +82,7 @@ func TestMsgDepositHTLT(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgDepositHTLT(
+		msg := NewMsgDepositAtomicSwap(
 			tc.from,
 			tc.swapID,
 			tc.amount,
@@ -95,7 +95,7 @@ func TestMsgDepositHTLT(t *testing.T) {
 	}
 }
 
-func TestMsgClaimHTLT(t *testing.T) {
+func TestMsgClaimAtomicSwap(t *testing.T) {
 	swapID, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
@@ -109,7 +109,7 @@ func TestMsgClaimHTLT(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgClaimHTLT(
+		msg := NewMsgClaimAtomicSwap(
 			tc.from,
 			tc.swapID,
 			tc.randomNumber,
@@ -122,7 +122,7 @@ func TestMsgClaimHTLT(t *testing.T) {
 	}
 }
 
-func TestMsgRefundHTLT(t *testing.T) {
+func TestMsgRefundAtomicSwap(t *testing.T) {
 	swapID, _ := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
@@ -135,7 +135,7 @@ func TestMsgRefundHTLT(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgRefundHTLT(
+		msg := NewMsgRefundAtomicSwap(
 			tc.from,
 			tc.swapID,
 		)

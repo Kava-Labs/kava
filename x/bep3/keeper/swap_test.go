@@ -11,7 +11,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-type HTLTTestSuite struct {
+type AtomicSwapTestSuite struct {
 	suite.Suite
 
 	keeper keeper.Keeper
@@ -19,7 +19,7 @@ type HTLTTestSuite struct {
 	ctx    sdk.Context
 }
 
-func (suite *HTLTTestSuite) SetupTest() {
+func (suite *AtomicSwapTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
@@ -32,7 +32,7 @@ func (suite *HTLTTestSuite) SetupTest() {
 }
 
 // TODO: test panicked: UnmarshalJSON cannot decode empty bytes
-// func (suite *HTLTTestSuite) TestCreateHTLT() {
+// func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 // 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 // 	ak := suite.app.GetAccountKeeper()
 // 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
@@ -43,11 +43,11 @@ func (suite *HTLTTestSuite) SetupTest() {
 // 	suite.NoError(err)
 // 	expectedSwapID := types.BytesToHexEncodedString(expectedSwapIDBytes)
 
-// 	swapID, err := suite.keeper.CreateHTLT(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 80000, false)
+// 	swapID, err := suite.keeper.CreateAtomicSwap(suite.ctx, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", 80000, false)
 // 	suite.NoError(err)
 // 	suite.Equal(swapID, expectedSwapID)
 // }
 
-func TestHTLTTestSuite(t *testing.T) {
-	suite.Run(t, new(HTLTTestSuite))
+func TestAtomicSwapTestSuite(t *testing.T) {
+	suite.Run(t, new(AtomicSwapTestSuite))
 }

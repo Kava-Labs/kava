@@ -9,8 +9,8 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-// CreateHTLT adds an htlt
-func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
+// CreateAtomicSwap adds an atomicSwap
+func (k Keeper) CreateAtomicSwap(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash []byte, timestamp int64, coins sdk.Coins,
 	expectedIncome string, heightSpan int64, crossChain bool) sdk.Error {
 
@@ -28,13 +28,13 @@ func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddre
 		return sdk.ErrInternal(err2.Error())
 	}
 
-	existingHtlt, found := k.GetHTLT(ctx, expectedSwapID)
+	existingAtomicSwap, found := k.GetAtomicSwap(ctx, expectedSwapID)
 	if found {
-		return types.ErrHTLTAlreadyExists(k.codespace, existingHtlt.SwapID)
+		return types.ErrAtomicSwapAlreadyExists(k.codespace, existingAtomicSwap.SwapID)
 	}
 
 	if crossChain {
-		// Only the deputy may submit cross-chain HTLTs
+		// Only the deputy may submit cross-chain AtomicSwaps
 		deputyAddress := k.GetBnbDeputyAddress(ctx)
 		if !deputyAddress.Equals(from) {
 			return types.ErrOnlyDeputy(k.codespace, from, deputyAddress)
@@ -45,10 +45,10 @@ func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddre
 			return sdk.ErrInternal(err.Error())
 		}
 		if !coins.IsEqual(expectedIncomeCoins) {
-			return sdk.ErrInternal("a same-chain HTLT must have an amount equal to the expected income")
+			return sdk.ErrInternal("a same-chain AtomicSwap must have an amount equal to the expected income")
 		}
 
-		// Same-chain HTLTs require user to send funds
+		// Same-chain AtomicSwaps require user to send funds
 		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, coins)
 		if err != nil {
 			return sdk.ErrInternal(err.Error())
@@ -57,57 +57,57 @@ func (k Keeper) CreateHTLT(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddre
 
 	expirationBlock := uint64(ctx.BlockHeight() + heightSpan)
 
-	htlt := types.NewHTLT(expectedSwapID, from, to, recipientOtherChain,
+	atomicSwap := types.NewAtomicSwap(expectedSwapID, from, to, recipientOtherChain,
 		senderOtherChain, randomNumberHash, timestamp, coins, expectedIncome,
-		heightSpan, crossChain, expirationBlock)
+		crossChain, expirationBlock)
 
-	k.StoreNewHTLT(ctx, htlt)
+	k.StoreNewAtomicSwap(ctx, atomicSwap)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeCreateHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", htlt.RandomNumberHash)),
-			sdk.NewAttribute(types.AttributeKeyFrom, fmt.Sprintf("%s", htlt.From)),
-			sdk.NewAttribute(types.AttributeKeyTo, fmt.Sprintf("%s", htlt.To)),
-			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", htlt.Amount[0].Denom)),
-			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", htlt.Amount[0].Amount.Int64())),
+			types.EventTypeCreateAtomicSwap,
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", atomicSwap.SwapID)),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", atomicSwap.RandomNumberHash)),
+			sdk.NewAttribute(types.AttributeKeyFrom, fmt.Sprintf("%s", atomicSwap.From)),
+			sdk.NewAttribute(types.AttributeKeyTo, fmt.Sprintf("%s", atomicSwap.To)),
+			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", atomicSwap.Amount[0].Denom)),
+			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", atomicSwap.Amount[0].Amount.Int64())),
 		),
 	)
 
 	return nil
 }
 
-// DepositHTLT deposits funds in an existing HTLT
-func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, coins sdk.Coins) sdk.Error {
+// DepositAtomicSwap deposits funds in an existing AtomicSwap
+func (k Keeper) DepositAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, coins sdk.Coins) sdk.Error {
 
 	err := k.ValidateCoinDeposit(ctx, coins)
 	if err != nil {
 		return err
 	}
 
-	htlt, found := k.GetHTLT(ctx, swapID)
+	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return types.ErrHTLTNotFound(k.codespace, swapID)
+		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
 	}
 
-	// Only unexpired HTLTs can receive deposits
-	if uint64(ctx.BlockHeight()) > htlt.ExpirationBlock {
-		return types.ErrHTLTHasExpired(k.codespace)
+	// Only unexpired AtomicSwaps can receive deposits
+	if uint64(ctx.BlockHeight()) > atomicSwap.ExpirationBlock {
+		return types.ErrAtomicSwapHasExpired(k.codespace)
 	}
 
-	htltCoin := htlt.Amount[0]
+	atomicSwapCoin := atomicSwap.Amount[0]
 	coin := coins[0]
 
 	// Validate new deposit
-	if htlt.CrossChain {
+	if atomicSwap.CrossChain {
 		return types.ErrOnlySameChain(k.codespace)
 	}
-	if !htlt.From.Equals(from) {
-		return types.ErrOnlyOriginalCreator(k.codespace, from, htlt.From)
+	if !atomicSwap.From.Equals(from) {
+		return types.ErrOnlyOriginalCreator(k.codespace, from, atomicSwap.From)
 	}
-	if htltCoin.Denom != coin.Denom {
-		return types.ErrInvalidCoinDenom(k.codespace, htltCoin.Denom, coin.Denom)
+	if atomicSwapCoin.Denom != coin.Denom {
+		return types.ErrInvalidCoinDenom(k.codespace, atomicSwapCoin.Denom, coin.Denom)
 	}
 
 	// Send coins from depositor to the bep3 module
@@ -118,39 +118,39 @@ func (k Keeper) DepositHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte,
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeDepositHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
+			types.EventTypeDepositAtomicSwap,
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", atomicSwap.SwapID)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", coin.Denom)),
 			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", coin.Amount.Int64())),
 		),
 	)
 
-	// Update HTLT state
-	htlt.Amount = htlt.Amount.Add(coins)
-	currExpectedIncome, _ := sdk.ParseCoins(htlt.ExpectedIncome)
-	htlt.ExpectedIncome = currExpectedIncome.Add(coins).String()
+	// Update AtomicSwap state
+	atomicSwap.Amount = atomicSwap.Amount.Add(coins)
+	currExpectedIncome, _ := sdk.ParseCoins(atomicSwap.ExpectedIncome)
+	atomicSwap.ExpectedIncome = currExpectedIncome.Add(coins).String()
 
-	k.SetHTLT(ctx, htlt)
+	k.SetAtomicSwap(ctx, atomicSwap)
 
 	return nil
 }
 
-// ClaimHTLT validates a claim attempt, and if successful, sends the escrowed amount and closes the HTLT
-func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) sdk.Error {
+// ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap
+func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) sdk.Error {
 
-	htlt, found := k.GetHTLT(ctx, swapID)
+	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return types.ErrHTLTNotFound(k.codespace, swapID)
+		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
 	}
 
-	// Only unexpired HTLTs can be claimed
-	if uint64(ctx.BlockHeight()) > htlt.ExpirationBlock {
-		return types.ErrHTLTHasExpired(k.codespace)
+	// Only unexpired AtomicSwaps can be claimed
+	if uint64(ctx.BlockHeight()) > atomicSwap.ExpirationBlock {
+		return types.ErrAtomicSwapHasExpired(k.codespace)
 	}
 
 	//  Calculate hashed secret using submitted number
-	hashedSubmittedNumber := types.CalculateRandomHash(randomNumber, htlt.Timestamp)
-	hashedSecret, err := types.CalculateSwapID(hashedSubmittedNumber, htlt.From, htlt.SenderOtherChain)
+	hashedSubmittedNumber := types.CalculateRandomHash(randomNumber, atomicSwap.Timestamp)
+	hashedSecret, err := types.CalculateSwapID(hashedSubmittedNumber, atomicSwap.From, atomicSwap.SenderOtherChain)
 	if err != nil {
 		return sdk.ErrInternal(err.Error())
 	}
@@ -159,20 +159,20 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, swapID)
 	}
 
-	// If HTLT is not cross-chain, htlt.ExpectedIncome equals htlt.Amount
-	claimerCoins, err := sdk.ParseCoins(htlt.ExpectedIncome)
+	// If AtomicSwap is not cross-chain, atomicSwap.ExpectedIncome equals atomicSwap.Amount
+	claimerCoins, err := sdk.ParseCoins(atomicSwap.ExpectedIncome)
 	if err != nil {
 		return sdk.ErrInternal(err.Error())
 	}
 
-	if htlt.CrossChain {
-		err := k.ValidateCoinMint(ctx, htlt.Amount)
+	if atomicSwap.CrossChain {
+		err := k.ValidateCoinMint(ctx, atomicSwap.Amount)
 		if err != nil {
 			return err
 		}
 
 		// Mint full amount of this coin's associated debt coin to bep3 module for internal limit tracking
-		internalTrackingCoins, err2 := getEqualInternalTrackingCoins(htlt.Amount)
+		internalTrackingCoins, err2 := getEqualInternalTrackingCoins(atomicSwap.Amount)
 		if err2 != nil {
 			return sdk.ErrInternal(err2.Error())
 		}
@@ -183,7 +183,7 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 		}
 
 		// Mint coins for distribution
-		err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, htlt.Amount)
+		err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, atomicSwap.Amount)
 		if err != nil {
 			return err
 		}
@@ -193,13 +193,13 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 			return err
 		}
 		// Send deputy remaining coins
-		deputyCoins := htlt.Amount.Sub(claimerCoins)
+		deputyCoins := atomicSwap.Amount.Sub(claimerCoins)
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, k.GetBnbDeputyAddress(ctx), deputyCoins)
 		if err != nil {
 			return err
 		}
 	} else {
-		// Send amount from bep3 module to adresss that successfully claimed HTLT
+		// Send amount from bep3 module to adresss that successfully claimed AtomicSwap
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, claimerCoins)
 		if err != nil {
 			return sdk.ErrInternal(err.Error())
@@ -208,36 +208,36 @@ func (k Keeper) ClaimHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte, r
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeClaimHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
+			types.EventTypeClaimAtomicSwap,
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", atomicSwap.SwapID)),
 			sdk.NewAttribute(types.AttributeKeyClaimer, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", claimerCoins[0].Denom)),
 			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", claimerCoins[0].Amount.Int64())),
 		),
 	)
 
-	// Update HTLT state
-	k.DeleteHTLT(ctx, swapID)
+	// Update AtomicSwap state
+	k.DeleteAtomicSwap(ctx, swapID)
 
 	return nil
 }
 
-// RefundHTLT refunds an HTLT, sending assets to the original sender and closing the HTLT
-func (k Keeper) RefundHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte) sdk.Error {
+// RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap
+func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) sdk.Error {
 
-	htlt, found := k.GetHTLT(ctx, swapID)
+	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return types.ErrHTLTNotFound(k.codespace, swapID)
+		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
 	}
 
 	// Refund request must come from original creator or bep3 module
-	if !from.Equals(htlt.From) && !k.GetBnbDeputyAddress(ctx).Equals(htlt.From) {
-		return types.ErrOnlyOriginalCreator(k.codespace, from, htlt.From)
+	if !from.Equals(atomicSwap.From) && !k.GetBnbDeputyAddress(ctx).Equals(atomicSwap.From) {
+		return types.ErrOnlyOriginalCreator(k.codespace, from, atomicSwap.From)
 	}
 
-	if !htlt.CrossChain {
+	if !atomicSwap.CrossChain {
 		// Refund coins from bep3 module to original creator
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, htlt.From, htlt.Amount)
+		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.From, atomicSwap.Amount)
 		if err != nil {
 			return sdk.ErrInternal(err.Error())
 		}
@@ -245,16 +245,16 @@ func (k Keeper) RefundHTLT(ctx sdk.Context, from sdk.AccAddress, swapID []byte) 
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeRefundHtlt,
-			sdk.NewAttribute(types.AttributeKeyHtltSwapID, fmt.Sprintf("%s", htlt.SwapID)),
+			types.EventTypeRefundAtomicSwap,
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", atomicSwap.SwapID)),
 			sdk.NewAttribute(types.AttributeKeyFrom, fmt.Sprintf("%s", from)),
-			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", htlt.Amount[0].Denom)),
-			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", htlt.Amount[0].Amount.Int64())),
+			sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", atomicSwap.Amount[0].Denom)),
+			sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", atomicSwap.Amount[0].Amount.Int64())),
 		),
 	)
 
-	// Update HTLT state
-	k.DeleteHTLT(ctx, swapID)
+	// Update AtomicSwap state
+	k.DeleteAtomicSwap(ctx, swapID)
 	return nil
 
 }
@@ -304,28 +304,28 @@ func (k Keeper) ValidateCoinMint(ctx sdk.Context, coins sdk.Coins) sdk.Error {
 	return nil
 }
 
-// GetAllHtlts returns all HTLTs from the store
-func (k Keeper) GetAllHtlts(ctx sdk.Context) (htlts types.HTLTs) {
-	k.IterateHTLTs(ctx, func(htlt types.HTLT) bool {
-		htlts = append(htlts, htlt)
+// GetAllAtomicSwaps returns all AtomicSwaps from the store
+func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwaps) {
+	k.IterateAtomicSwaps(ctx, func(atomicSwap types.AtomicSwap) bool {
+		atomicSwaps = append(atomicSwaps, atomicSwap)
 		return false
 	})
 	return
 }
 
-// RefundExpiredHTLTs finds all HTLTs that are past (or at) their ending times and closes them.
-func (k Keeper) RefundExpiredHTLTs(ctx sdk.Context) sdk.Error {
-	var expiredHTLTs [][]byte
-	k.IterateHTLTsByTime(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
-		expiredHTLTs = append(expiredHTLTs, id)
+// RefundExpiredAtomicSwaps finds all AtomicSwaps that are past (or at) their ending times and closes them.
+func (k Keeper) RefundExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
+	var expiredAtomicSwaps [][]byte
+	k.IterateAtomicSwapsByBlock(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
+		expiredAtomicSwaps = append(expiredAtomicSwaps, id)
 		return false
 	})
 
 	sdkAddr := k.supplyKeeper.GetModuleAddress(types.ModuleName)
 
-	// HTLT refunding is in separate loops as db should not be modified during iteration
-	for _, id := range expiredHTLTs {
-		if err := k.RefundHTLT(ctx, sdkAddr, id); err != nil {
+	// AtomicSwap refunding is in separate loops as db should not be modified during iteration
+	for _, id := range expiredAtomicSwaps {
+		if err := k.RefundAtomicSwap(ctx, sdkAddr, id); err != nil {
 			return err
 		}
 	}

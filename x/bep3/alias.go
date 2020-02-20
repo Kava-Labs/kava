@@ -12,8 +12,8 @@ const (
 	DefaultParamspace      = types.DefaultParamspace
 	DefaultCodespace       = types.DefaultCodespace
 	QueryGetParams         = types.QueryGetParams
-	QueryGetHTLT           = types.QueryGetHTLT
-	QueryGetHTLTs          = types.QueryGetHTLTs
+	QueryGetAtomicSwap     = types.QueryGetAtomicSwap
+	QueryGetAtomicSwaps    = types.QueryGetAtomicSwaps
 	QuerierRoute           = types.QuerierRoute
 	AttributeValueCategory = types.AttributeValueCategory
 )
@@ -31,12 +31,12 @@ var (
 )
 
 type (
-	Keeper         = keeper.Keeper
-	CodeType       = types.CodeType
-	GenesisState   = types.GenesisState
-	Params         = types.Params
-	MsgCreateHTLT  = types.MsgCreateHTLT
-	MsgDepositHTLT = types.MsgDepositHTLT
-	MsgRefundHTLT  = types.MsgRefundHTLT
-	MsgClaimHTLT   = types.MsgClaimHTLT
+	Keeper               = keeper.Keeper
+	CodeType             = types.CodeType
+	GenesisState         = types.GenesisState
+	Params               = types.Params
+	MsgCreateAtomicSwap  = types.MsgCreateAtomicSwap
+	MsgDepositAtomicSwap = types.MsgDepositAtomicSwap
+	MsgRefundAtomicSwap  = types.MsgRefundAtomicSwap
+	MsgClaimAtomicSwap   = types.MsgClaimAtomicSwap
 )

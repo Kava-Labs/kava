@@ -13,14 +13,14 @@ func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case MsgCreateHTLT:
-			return handleMsgCreateHTLT(ctx, k, msg)
-		case MsgDepositHTLT:
-			return handleMsgDepositHTLT(ctx, k, msg)
-		case MsgClaimHTLT:
-			return handleMsgClaimHTLT(ctx, k, msg)
-		case MsgRefundHTLT:
-			return handleMsgRefundHTLT(ctx, k, msg)
+		case MsgCreateAtomicSwap:
+			return handleMsgCreateAtomicSwap(ctx, k, msg)
+		case MsgDepositAtomicSwap:
+			return handleMsgDepositAtomicSwap(ctx, k, msg)
+		case MsgClaimAtomicSwap:
+			return handleMsgClaimAtomicSwap(ctx, k, msg)
+		case MsgRefundAtomicSwap:
+			return handleMsgRefundAtomicSwap(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -28,10 +28,10 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-// handleMsgCreateHTLT handles requests to create a new HTLT
-func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk.Result {
+// handleMsgCreateAtomicSwap handles requests to create a new AtomicSwap
+func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgCreateAtomicSwap) sdk.Result {
 
-	err := k.CreateHTLT(ctx, msg.From, msg.To, msg.RecipientOtherChain,
+	err := k.CreateAtomicSwap(ctx, msg.From, msg.To, msg.RecipientOtherChain,
 		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
 	if err != nil {
@@ -51,10 +51,10 @@ func handleMsgCreateHTLT(ctx sdk.Context, k Keeper, msg types.MsgCreateHTLT) sdk
 	}
 }
 
-// handleMsgDepositHTLT handles requests to deposit into an active HTLT
-func handleMsgDepositHTLT(ctx sdk.Context, k Keeper, msg types.MsgDepositHTLT) sdk.Result {
+// handleMsgDepositAtomicSwap handles requests to deposit into an active AtomicSwap
+func handleMsgDepositAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgDepositAtomicSwap) sdk.Result {
 
-	err := k.DepositHTLT(ctx, msg.From, msg.SwapID, msg.Amount)
+	err := k.DepositAtomicSwap(ctx, msg.From, msg.SwapID, msg.Amount)
 	if err != nil {
 		return err.Result()
 	}
@@ -72,10 +72,10 @@ func handleMsgDepositHTLT(ctx sdk.Context, k Keeper, msg types.MsgDepositHTLT) s
 	}
 }
 
-// handleMsgClaimHTLT handles requests to claim funds in an active HTLT
-func handleMsgClaimHTLT(ctx sdk.Context, k Keeper, msg types.MsgClaimHTLT) sdk.Result {
+// handleMsgClaimAtomicSwap handles requests to claim funds in an active AtomicSwap
+func handleMsgClaimAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgClaimAtomicSwap) sdk.Result {
 
-	err := k.ClaimHTLT(ctx, msg.From, msg.SwapID, msg.RandomNumber)
+	err := k.ClaimAtomicSwap(ctx, msg.From, msg.SwapID, msg.RandomNumber)
 	if err != nil {
 		return err.Result()
 	}
@@ -93,10 +93,10 @@ func handleMsgClaimHTLT(ctx sdk.Context, k Keeper, msg types.MsgClaimHTLT) sdk.R
 	}
 }
 
-// handleMsgRefundHTLT handles requests to refund an active HTLT
-func handleMsgRefundHTLT(ctx sdk.Context, k Keeper, msg types.MsgRefundHTLT) sdk.Result {
+// handleMsgRefundAtomicSwap handles requests to refund an active AtomicSwap
+func handleMsgRefundAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgRefundAtomicSwap) sdk.Result {
 
-	err := k.RefundHTLT(ctx, msg.From, msg.SwapID)
+	err := k.RefundAtomicSwap(ctx, msg.From, msg.SwapID)
 	if err != nil {
 		return err.Result()
 	}

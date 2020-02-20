@@ -24,27 +24,27 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	bep3TxCmd.AddCommand(client.PostCommands(
-		GetCmdCreateHtlt(cdc),
-		GetCmdDepositHtlt(cdc),
-		GetCmdClaimHtlt(cdc),
-		GetCmdRefundHtlt(cdc),
+		GetCmdCreateAtomicSwap(cdc),
+		GetCmdDepositAtomicSwap(cdc),
+		GetCmdClaimAtomicSwap(cdc),
+		GetCmdRefundAtomicSwap(cdc),
 	)...)
 
 	return bep3TxCmd
 }
 
-// GetCmdCreateHtlt cli command for creating htlts
-func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
+// GetCmdCreateAtomicSwap cli command for creating atomic swaps
+func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "create [to] [recipient-other-chain] [sender-other-chain] [hashed-secret] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
-		Short:   "create a new Hashed Time Locked Transaction (HTLT)",
+		Short:   "create a new atomic swap",
 		Example: "bep3 create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A '' 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 9988776655 100xrp 99xrp 1000 true --from accA",
 		Args:    cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain HTLTs)
+			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain AtomicSwaps)
 			to, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -80,7 +80,7 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateHTLT(
+			msg := types.NewMsgCreateAtomicSwap(
 				from, to, recipientOtherChain, senderOtherChain, randomNumberHash,
 				timeStamp, coins, expectedIncome, heightSpan, crossChain,
 			)
@@ -95,11 +95,11 @@ func GetCmdCreateHtlt(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// GetCmdDepositHtlt cli command for depositing into an htlt
-func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
+// GetCmdDepositAtomicSwap cli command for depositing into an atomic swaps
+func GetCmdDepositAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "deposit [swap-id] [coins]",
-		Short:   "deposit coins into an existing HTLT",
+		Short:   "deposit coins into an existing atomic swap",
 		Example: "bep3 deposit 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 10btc  --from accA",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -121,7 +121,7 @@ func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgDepositHTLT(from, swapID, coins)
+			msg := types.NewMsgDepositAtomicSwap(from, swapID, coins)
 
 			err = msg.ValidateBasic()
 			if err != nil {
@@ -133,11 +133,11 @@ func GetCmdDepositHtlt(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// GetCmdClaimHtlt cli command for claiming an htlt
-func GetCmdClaimHtlt(cdc *codec.Codec) *cobra.Command {
+// GetCmdClaimAtomicSwap cli command for claiming an atomic swap
+func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "claim [swap-id] [random-number]",
-		Short:   "claim coins in an HTLT using the secret random number",
+		Short:   "claim coins in an atomic swap using the secret number",
 		Example: "bep3 claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 123456789 --from accA",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -156,7 +156,7 @@ func GetCmdClaimHtlt(cdc *codec.Codec) *cobra.Command {
 			}
 			randomNumber := []byte(args[1])
 
-			msg := types.NewMsgClaimHTLT(from, swapID, randomNumber)
+			msg := types.NewMsgClaimAtomicSwap(from, swapID, randomNumber)
 
 			err = msg.ValidateBasic()
 			if err != nil {
@@ -168,11 +168,11 @@ func GetCmdClaimHtlt(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// GetCmdRefundHtlt cli command for claiming an htlt
-func GetCmdRefundHtlt(cdc *codec.Codec) *cobra.Command {
+// GetCmdRefundAtomicSwap cli command for claiming an atomic swap
+func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "refund [swap-id]",
-		Short:   "refund the coins in an HTLT",
+		Short:   "refund the coins in an atomic swap",
 		Example: "bep3 refund 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af --from accA",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -186,7 +186,7 @@ func GetCmdRefundHtlt(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgRefundHTLT(from, swapID)
+			msg := types.NewMsgRefundAtomicSwap(from, swapID)
 
 			err = msg.ValidateBasic()
 			if err != nil {

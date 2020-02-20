@@ -2,18 +2,18 @@ package types
 
 // bep3 module event types
 const (
-	EventTypeCreateHtlt  = "createHTLT"
-	EventTypeDepositHtlt = "depositHTLT"
-	EventTypeClaimHtlt   = "claimHTLT"
-	EventTypeRefundHtlt  = "refundHTLT"
+	EventTypeCreateAtomicSwap  = "createAtomicSwap"
+	EventTypeDepositAtomicSwap = "depositAtomicSwap"
+	EventTypeClaimAtomicSwap   = "claimAtomicSwap"
+	EventTypeRefundAtomicSwap  = "refundAtomicSwap"
 
-	AttributeKeyHtltSwapID       = "htlt_swap_id"
-	AttributeKeyRandomNumberHash = "htlt_random_number_hash"
-	AttributeKeyFrom             = "htlt_from"
-	AttributeKeyTo               = "htlt_to"
+	AttributeKeyAtomicSwapID     = "swap_id"
+	AttributeKeyRandomNumberHash = "random_number_hash"
+	AttributeKeyFrom             = "from"
+	AttributeKeyTo               = "to"
 	AttributeKeyCoinDenom        = "coin_denom"
 	AttributeKeyCoinAmount       = "coin_amount"
-	AttributeKeyClaimer          = "htlt_claimer"
+	AttributeKeyClaimer          = "claimer"
 
 	AttributeValueCategory = ModuleName
 )

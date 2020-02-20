@@ -40,78 +40,78 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// StoreNewHTLT stores an HTLT
-func (k Keeper) StoreNewHTLT(ctx sdk.Context, htlt types.HTLT) {
-	k.SetHTLT(ctx, htlt)
-	k.InsertIntoByTimeIndex(ctx, htlt)
+// StoreNewAtomicSwap stores an AtomicSwap
+func (k Keeper) StoreNewAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	k.SetAtomicSwap(ctx, atomicSwap)
+	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 }
 
-// SetHTLT puts the HTLT into the store, and updates any indexes.
-func (k Keeper) SetHTLT(ctx sdk.Context, htlt types.HTLT) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(htlt)
-	store.Set(htlt.SwapID, bz)
+// SetAtomicSwap puts the AtomicSwap into the store, and updates any indexes.
+func (k Keeper) SetAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(atomicSwap)
+	store.Set(atomicSwap.SwapID, bz)
 }
 
-// GetHTLT gets an htlt from the store.
-func (k Keeper) GetHTLT(ctx sdk.Context, swapID []byte) (types.HTLT, bool) {
-	var htlt types.HTLT
+// GetAtomicSwap gets an AtomicSwap from the store.
+func (k Keeper) GetAtomicSwap(ctx sdk.Context, swapID []byte) (types.AtomicSwap, bool) {
+	var atomicSwap types.AtomicSwap
 
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
 	bz := store.Get(swapID)
 	if bz == nil {
-		return htlt, false
+		return atomicSwap, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &htlt)
-	return htlt, true
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &atomicSwap)
+	return atomicSwap, true
 }
 
-// DeleteHTLT removes a HTLT from the store, and any indexes.
-func (k Keeper) DeleteHTLT(ctx sdk.Context, swapID []byte) {
-	// Remove HTLT from byTime index
-	htlt, found := k.GetHTLT(ctx, swapID)
+// DeleteAtomicSwap removes an AtomicSwap from the store, and any indexes.
+func (k Keeper) DeleteAtomicSwap(ctx sdk.Context, swapID []byte) {
+	// Remove AtomicSwap from byTime index
+	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if found {
-		k.removeFromByTimeIndex(ctx, htlt.ExpirationBlock, htlt.SwapID)
+		k.removeFromByBlockIndex(ctx, atomicSwap.ExpirationBlock, atomicSwap.SwapID)
 	}
 
-	// Remove HTLT from store
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTKeyPrefix)
+	// Remove AtomicSwap from store
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
 	store.Delete(swapID)
 }
 
-// IterateHTLTs provides an iterator over all stored HTLTs.
-// For each HTLT, cb will be called. If cb returns true, the iterator will close and stop.
-func (k Keeper) IterateHTLTs(ctx sdk.Context, cb func(htlt types.HTLT) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.HTLTKeyPrefix)
+// IterateAtomicSwaps provides an iterator over all stored AtomicSwaps.
+// For each AtomicSwap, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateAtomicSwaps(ctx sdk.Context, cb func(atomicSwap types.AtomicSwap) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var htlt types.HTLT
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &htlt)
+		var atomicSwap types.AtomicSwap
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &atomicSwap)
 
-		if cb(htlt) {
+		if cb(atomicSwap) {
 			break
 		}
 	}
 }
 
-// InsertIntoByTimeIndex adds a htlt ID and expiration time into the byTime index.
-func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, htlt types.HTLT) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
-	store.Set(types.GetHTLTByTimeKey(htlt.ExpirationBlock, htlt.SwapID), htlt.SwapID)
+// InsertIntoByBlockIndex adds a swap ID and expiration time into the byTime index.
+func (k Keeper) InsertIntoByBlockIndex(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
+	store.Set(types.GetAtomicSwapByBlockKey(atomicSwap.ExpirationBlock, atomicSwap.SwapID), atomicSwap.SwapID)
 }
 
-// removeFromByTimeIndex removes a htlt ID and expiration time from the byTime index.
-func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, expirationBlock uint64, swapID []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
-	store.Delete(types.GetHTLTByTimeKey(expirationBlock, swapID))
+// removeFromByBlockIndex removes a swap ID and expiration time from the byTime index.
+func (k Keeper) removeFromByBlockIndex(ctx sdk.Context, expirationBlock uint64, swapID []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
+	store.Delete(types.GetAtomicSwapByBlockKey(expirationBlock, swapID))
 }
 
-// IterateHTLTsByTime provides an iterator over HTLTs ordered by HTLT expiration block
-// For each HTLT cb will be called. If cb returns true the iterator will close and stop.
-func (k Keeper) IterateHTLTsByTime(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(htltID []byte) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HTLTByTimeKeyPrefix)
+// IterateAtomicSwapsByBlock provides an iterator over AtomicSwaps ordered by AtomicSwap expiration block
+// For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
+func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(atomicSwapID []byte) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store
 		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
@@ -120,9 +120,9 @@ func (k Keeper) IterateHTLTsByTime(ctx sdk.Context, inclusiveCutoffTime uint64, 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 
-		htltID := iterator.Value()
+		atomicSwapID := iterator.Value()
 
-		if cb(htltID) {
+		if cb(atomicSwapID) {
 			break
 		}
 	}
