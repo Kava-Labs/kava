@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v.0.3.2]
+
+[\#364] Use new BIP44 coin type in the CLI, retain support for the old one through a flag.
+
 ## [v0.3.1]
 
 [\#266] Bump tendermint version to 0.32.7 to address cosmos security advisory [Periwinkle](https://forum.cosmos.network/t/cosmos-mainnet-security-advisory-periwinkle/2911)

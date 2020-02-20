@@ -12,7 +12,6 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,10 +32,11 @@ func main() {
 	// Instantiate the codec for the command line application
 	cdc := app.MakeCodec()
 
-	// Read in the configuration file for the sdk
+	// Set the global config
+	// config is not sealed as the cli supports two coin types for legacy reasons.
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
-	config.Seal()
+	app.SetBip44CoinType(config)
 
 	// TODO: setup keybase, viper object, etc. to be passed into
 	// the below functions and eliminate global vars, like we do
@@ -62,7 +62,7 @@ func main() {
 		client.LineBreak,
 		lcd.ServeCommand(cdc, registerRoutes),
 		client.LineBreak,
-		keys.Commands(),
+		getModifiedKeysCmd(),
 		client.LineBreak,
 		version.Cmd,
 		client.NewCompletionCmd(rootCmd, true),
