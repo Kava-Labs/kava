@@ -138,66 +138,6 @@ func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
 	return b
 }
 
-// // MsgDepositAtomicSwap defines an AtomicSwap deposit
-// type MsgDepositAtomicSwap struct {
-// 	From   sdk.AccAddress `json:"from"`
-// 	SwapID cmm.HexBytes   `json:"swap_id"`
-// 	Amount sdk.Coins      `json:"amount"`
-// }
-
-// // NewMsgDepositAtomicSwap initializes a new MsgDepositAtomicSwap
-// func NewMsgDepositAtomicSwap(from sdk.AccAddress, swapID []byte, amount sdk.Coins) MsgDepositAtomicSwap {
-// 	return MsgDepositAtomicSwap{
-// 		From:   from,
-// 		SwapID: swapID,
-// 		Amount: amount,
-// 	}
-// }
-
-// // Route establishes the route for the MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) Route() string { return RouterKey }
-
-// // Type is the name of MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) Type() string { return DepositAtomicSwap }
-
-// // String prints the MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) String() string {
-// 	return fmt.Sprintf("depositAtomicSwap{%v#%v#%v}", msg.From, msg.Amount, msg.SwapID)
-// }
-
-// // GetInvolvedAddresses gets the addresses involved in a MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) GetInvolvedAddresses() []sdk.AccAddress {
-// 	return append(msg.GetSigners(), AtomicSwapCoinsAccAddr)
-// }
-
-// // GetSigners gets the signers of a MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) GetSigners() []sdk.AccAddress {
-// 	return []sdk.AccAddress{msg.From}
-// }
-
-// // ValidateBasic validates the MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) ValidateBasic() sdk.Error {
-// 	if len(msg.From) != AddrByteCount {
-// 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
-// 	}
-// 	if len(msg.SwapID) != SwapIDLength {
-// 		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
-// 	}
-// 	if !msg.Amount.IsAllPositive() {
-// 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
-// 	}
-// 	return nil
-// }
-
-// // GetSignBytes gets the sign bytes of a MsgDepositAtomicSwap
-// func (msg MsgDepositAtomicSwap) GetSignBytes() []byte {
-// 	b, err := json.Marshal(msg)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return b
-// }
-
 // MsgClaimAtomicSwap defines a AtomicSwap claim
 type MsgClaimAtomicSwap struct {
 	From         sdk.AccAddress `json:"from"`

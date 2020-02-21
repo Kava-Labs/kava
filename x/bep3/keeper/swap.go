@@ -81,63 +81,6 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	return nil
 }
 
-// DepositAtomicSwap deposits funds in an existing AtomicSwap
-// func (k Keeper) DepositAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, coins sdk.Coins) sdk.Error {
-
-// err := k.validateCoinDeposit(ctx, coins)
-// if err != nil {
-// 	return err
-// }
-
-// atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
-// if !found {
-// 	return types.ErrAtomicSwapNotFound(k.codespace, swapID)
-// }
-
-// // Only unexpired AtomicSwaps can receive deposits
-// if uint64(ctx.BlockHeight()) > atomicSwap.ExpirationBlock {
-// 	return types.ErrAtomicSwapHasExpired(k.codespace)
-// }
-
-// atomicSwapCoin := atomicSwap.Amount[0]
-// coin := coins[0]
-
-// // Validate new deposit
-// if atomicSwap.CrossChain {
-// 	return types.ErrOnlySameChain(k.codespace)
-// }
-// if !atomicSwap.From.Equals(from) {
-// 	return types.ErrOnlyOriginalCreator(k.codespace, from, atomicSwap.From)
-// }
-// if atomicSwapCoin.Denom != coin.Denom {
-// 	return types.ErrInvalidCoinDenom(k.codespace, atomicSwapCoin.Denom, coin.Denom)
-// }
-
-// // Send coins from depositor to the bep3 module
-// err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, coins)
-// if err != nil {
-// 	return sdk.ErrInternal(err.Error())
-// }
-
-// ctx.EventManager().EmitEvent(
-// 	sdk.NewEvent(
-// 		types.EventTypeDepositAtomicSwap,
-// 		sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", atomicSwap.SwapID)),
-// 		sdk.NewAttribute(types.AttributeKeyCoinDenom, fmt.Sprintf("%s", coin.Denom)),
-// 		sdk.NewAttribute(types.AttributeKeyCoinAmount, fmt.Sprintf("%d", coin.Amount.Int64())),
-// 	),
-// )
-
-// // Update AtomicSwap state
-// atomicSwap.Amount = atomicSwap.Amount.Add(coins)
-// currExpectedIncome, _ := sdk.ParseCoins(atomicSwap.ExpectedIncome)
-// atomicSwap.ExpectedIncome = currExpectedIncome.Add(coins).String()
-
-// k.SetAtomicSwap(ctx, atomicSwap)
-
-// 	return nil
-// }
-
 // ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) sdk.Error {
 
@@ -242,24 +185,6 @@ func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwap
 	})
 	return
 }
-
-// // UpdateExpiredAtomicSwaps finds all AtomicSwaps that are past (or at) their ending times and expires them.
-// func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
-// 	var expiredAtomicSwaps [][]byte
-// 	k.IterateAtomicSwapsByBlock(ctx, uint64(ctx.BlockHeight()), func(index uint64) bool {
-// 		expiredAtomicSwaps = append(expiredAtomicSwaps, index)
-// 		return false
-// 	})
-
-// 	// AtomicSwap refunding is in separate loops as db should not be modified during iteration
-// 	for _, swapID := range expiredAtomicSwaps {
-// 		swap, _ := k.GetAtomicSwap(ctx, swapID)
-// 		swap.Status = types.Expired
-// 		swap.ClosedTime = ctx.BlockHeight()
-// 		k.SetAtomicSwap(ctx, swap, swapID)
-// 	}
-// 	return nil
-// }
 
 // validateCoinDeposit validates that coins can be deposited into an atomic swap
 func (k Keeper) validateCoinDeposit(ctx sdk.Context, coins sdk.Coins) sdk.Error {

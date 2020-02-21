@@ -16,7 +16,6 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*Swap)(nil), nil)
 
 	cdc.RegisterConcrete(MsgCreateAtomicSwap{}, "bep3/MsgCreateAtomicSwap", nil)
-	// cdc.RegisterConcrete(MsgDepositAtomicSwap{}, "bep3/MsgDepositAtomicSwap", nil)
 	cdc.RegisterConcrete(MsgRefundAtomicSwap{}, "bep3/MsgRefundAtomicSwap", nil)
 	cdc.RegisterConcrete(MsgClaimAtomicSwap{}, "bep3/MsgClaimAtomicSwap", nil)
 }

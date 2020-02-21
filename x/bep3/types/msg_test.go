@@ -68,33 +68,6 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 	}
 }
 
-// func TestMsgDepositAtomicSwap(t *testing.T) {
-// 	swapID := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
-
-// 	tests := []struct {
-// 		description string
-// 		from        sdk.AccAddress
-// 		swapID      cmm.HexBytes
-// 		amount      sdk.Coins
-// 		expectPass  bool
-// 	}{
-// 		{"normal", binanceAddrs[0], swapID, coinsSingle, true},
-// 	}
-
-// 	for i, tc := range tests {
-// 		msg := NewMsgDepositAtomicSwap(
-// 			tc.from,
-// 			tc.swapID,
-// 			tc.amount,
-// 		)
-// 		if tc.expectPass {
-// 			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
-// 		} else {
-// 			require.Error(t, msg.ValidateBasic(), "test: %v", i)
-// 		}
-// 	}
-// }
-
 func TestMsgClaimAtomicSwap(t *testing.T) {
 	swapID := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 

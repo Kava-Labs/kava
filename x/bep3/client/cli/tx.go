@@ -25,7 +25,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	bep3TxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateAtomicSwap(cdc),
-		// GetCmdDepositAtomicSwap(cdc),
 		GetCmdClaimAtomicSwap(cdc),
 		GetCmdRefundAtomicSwap(cdc),
 	)...)
@@ -94,44 +93,6 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 }
-
-// // GetCmdDepositAtomicSwap cli command for depositing into an atomic swaps
-// func GetCmdDepositAtomicSwap(cdc *codec.Codec) *cobra.Command {
-// 	return &cobra.Command{
-// 		Use:     "deposit [swap-id] [coins]",
-// 		Short:   "deposit coins into an existing atomic swap",
-// 		Example: "bep3 deposit 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 10btc  --from accA",
-// 		Args:    cobra.ExactArgs(2),
-// 		RunE: func(cmd *cobra.Command, args []string) error {
-// 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-// 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-
-// 			from := cliCtx.GetFromAddress()
-
-// 			swapID, err := types.HexToBytes(args[0])
-// 			if err != nil {
-// 				return err
-// 			}
-
-// 			if len(strings.TrimSpace(args[1])) == 0 {
-// 				return fmt.Errorf("coins cannot be empty")
-// 			}
-// 			coins, err := sdk.ParseCoins(args[1])
-// 			if err != nil {
-// 				return err
-// 			}
-
-// 			msg := types.NewMsgDepositAtomicSwap(from, swapID, coins)
-
-// 			err = msg.ValidateBasic()
-// 			if err != nil {
-// 				return err
-// 			}
-
-// 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-// 		},
-// 	}
-// }
 
 // GetCmdClaimAtomicSwap cli command for claiming an atomic swap
 func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {

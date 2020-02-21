@@ -5,9 +5,4 @@ import (
 )
 
 // EndBlocker runs at the end of every block
-func EndBlocker(ctx sdk.Context, k Keeper) {
-	// err := k.RefundExpiredAtomicSwaps(ctx)
-	// if err != nil {
-	// 	panic(err)
-	// }
-}
+func EndBlocker(ctx sdk.Context, k Keeper) {}
