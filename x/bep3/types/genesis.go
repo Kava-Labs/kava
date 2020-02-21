@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,11 +65,10 @@ func (gs GenesisState) Validate() error {
 		if err := a.Validate(); err != nil {
 			return fmt.Errorf("found invalid atomic swap: %w", err)
 		}
-
-		if ids[BytesToHex(a.GetSwapID())] {
-			return fmt.Errorf("found duplicate atomic swap ID (%s)", BytesToHex(a.GetSwapID()))
+		if ids[hex.EncodeToString(a.GetSwapID())] {
+			return fmt.Errorf("found duplicate atomic swap ID (%s)", hex.EncodeToString(a.GetSwapID()))
 		}
-		ids[BytesToHex(a.GetSwapID())] = true
+		ids[hex.EncodeToString(a.GetSwapID())] = true
 	}
 	return nil
 }

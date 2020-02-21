@@ -61,7 +61,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		ctx.BlockHeight()+heightSpan, timestamp, sender, recipient,
 		senderOtherChain, 0, types.Open)
 
-	k.StoreNewAtomicSwap(ctx, atomicSwap, swapID)
+	k.StoreNewAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
 
 	// Emit 'create_atomic_swap' event
 	ctx.EventManager().EmitEvent(
@@ -69,8 +69,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			types.EventTypeCreateAtomicSwap,
 			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", atomicSwap.Sender)),
 			sdk.NewAttribute(types.AttributeKeyRecipient, fmt.Sprintf("%s", atomicSwap.Recipient)),
-			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(swapID))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", atomicSwap.RandomNumberHash)),
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
 			sdk.NewAttribute(types.AttributeKeyTimestamp, fmt.Sprintf("%d", atomicSwap.Timestamp)),
 			sdk.NewAttribute(types.AttributeKeySenderOtherChain, fmt.Sprintf("%s", atomicSwap.SenderOtherChain)),
 			sdk.NewAttribute(types.AttributeKeyExpireHeight, fmt.Sprintf("%d", atomicSwap.ExpireHeight)),
@@ -102,8 +102,8 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	hashedSecret := types.CalculateSwapID(hashedSubmittedNumber, atomicSwap.Sender, atomicSwap.SenderOtherChain)
 
 	// Confirm that secret unlocks the atomic swap
-	if !bytes.Equal(hashedSecret, swapID) {
-		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, swapID)
+	if !bytes.Equal(hashedSecret, atomicSwap.GetSwapID()) {
+		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, atomicSwap.GetSwapID())
 	}
 
 	// Increment the asset's total supply (if valid)
@@ -121,7 +121,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	// Complete the swap
 	atomicSwap.Status = types.Completed
 	atomicSwap.ClosedBlock = ctx.BlockHeight()
-	k.SetAtomicSwap(ctx, atomicSwap, swapID)
+	k.SetAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
 
 	// Emit "claim_atomic_swap" event
 	ctx.EventManager().EmitEvent(
@@ -129,8 +129,8 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 			types.EventTypeClaimAtomicSwap,
 			sdk.NewAttribute(types.AttributeKeyClaimSender, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeyRecipient, fmt.Sprintf("%s", atomicSwap.Recipient)),
-			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(swapID))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", atomicSwap.RandomNumberHash)),
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
 			sdk.NewAttribute(types.AttributeKeyRandomNumber, fmt.Sprintf("%s", randomNumber)),
 		),
 	)
@@ -162,7 +162,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	// Expire the swap
 	atomicSwap.Status = types.Expired
 	atomicSwap.ClosedBlock = ctx.BlockHeight()
-	k.SetAtomicSwap(ctx, atomicSwap, swapID)
+	k.SetAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
 
 	// Emit 'refund_atomic_swap' event
 	ctx.EventManager().EmitEvent(
@@ -170,8 +170,8 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 			types.EventTypeRefundAtomicSwap,
 			sdk.NewAttribute(types.AttributeKeyRefundSender, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", atomicSwap.Sender)),
-			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(swapID))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", atomicSwap.RandomNumberHash)),
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
 		),
 	)
 

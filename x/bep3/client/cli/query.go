@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -51,9 +52,7 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 
 			// Calculate random number hash and convert to human-readable string
 			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
-			decodedRandomNumberHash := types.BytesToHex(randomNumberHash)
-
-			return cliCtx.PrintOutput(decodedRandomNumberHash)
+			return cliCtx.PrintOutput(hex.EncodeToString(randomNumberHash))
 		},
 	}
 }
@@ -69,18 +68,16 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Parse query params
-			randomNumberHash := args[0]
-			sender := sdk.AccAddress(args[1])
-			senderOtherChain := args[2]
-
-			bytesRNH, err := types.HexToBytes(randomNumberHash)
+			randomNumberHash, err := types.HexToBytes(args[0])
 			if err != nil {
 				return err
 			}
+			sender := sdk.AccAddress(args[1])
+			senderOtherChain := args[2]
 
 			// Calculate swap ID and convert to human-readable string
-			swapID := types.CalculateSwapID(bytesRNH, sender, senderOtherChain)
-			return cliCtx.PrintOutput(types.BytesToHex(swapID))
+			swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
+			return cliCtx.PrintOutput(hex.EncodeToString(swapID))
 		},
 	}
 }
@@ -113,6 +110,8 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
+			// TODO: swap: null
+			// TODO: randomnumberhash: [232, 148....]
 			// Decode and print results
 			var atomicSwap types.AtomicSwap
 			cdc.MustUnmarshalJSON(res, &atomicSwap)

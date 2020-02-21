@@ -33,14 +33,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
-	swapID := types.CalculateSwapID(randomNumberHashes[0], binanceAddrs[0], "")
-
 	heightSpan := int64(1000)
 	expirationBlock := uint64(suite.ctx.BlockHeight()) + uint64(heightSpan)
 	atomicSwap := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(expirationBlock), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", 0, types.Open)
 	suite.keeper.SetAtomicSwap(suite.ctx, atomicSwap, atomicSwap.GetSwapID())
 
-	s, found := suite.keeper.GetAtomicSwap(suite.ctx, swapID)
+	s, found := suite.keeper.GetAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
 	suite.True(found)
 	suite.Equal(atomicSwap, s)
 
@@ -48,8 +46,8 @@ func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	_, found = suite.keeper.GetAtomicSwap(suite.ctx, fakeSwapID)
 	suite.False(found)
 
-	suite.keeper.DeleteAtomicSwap(suite.ctx, swapID)
-	_, found = suite.keeper.GetAtomicSwap(suite.ctx, swapID)
+	suite.keeper.DeleteAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
+	_, found = suite.keeper.GetAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
 	suite.False(found)
 }
 

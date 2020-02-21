@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,7 +31,7 @@ const (
 
 // ErrAtomicSwapNotFound error for when an atomic swap is not found
 func ErrAtomicSwapNotFound(codespace sdk.CodespaceType, id []byte) sdk.Error {
-	return sdk.NewError(codespace, CodeAtomicSwapNotFound, fmt.Sprintf("AtomicSwap %s was not found", BytesToHex(id)))
+	return sdk.NewError(codespace, CodeAtomicSwapNotFound, fmt.Sprintf("AtomicSwap %s was not found", hex.EncodeToString(id)))
 }
 
 // ErrAmountTooSmall error for when a coin amount is 0
@@ -47,8 +48,8 @@ func ErrAtomicSwapAlreadyExists(codespace sdk.CodespaceType, swapID cmn.HexBytes
 func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret []byte, swapID []byte) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidClaimSecret,
 		fmt.Sprintf("hashed claim attempt %s does not match %s",
-			BytesToHex(submittedSecret),
-			BytesToHex(swapID),
+			hex.EncodeToString(submittedSecret),
+			hex.EncodeToString(swapID),
 		),
 	)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type Swap interface {
-	GetSwapID() []byte
+	GetSwapID() cmn.HexBytes
 }
 
 // BaseSwap currently only supports bnbchain => kava asset flows
@@ -26,7 +26,7 @@ type BaseSwap struct {
 	Status           SwapStatus     `json:"status"`
 }
 
-func (a BaseSwap) GetSwapID() []byte {
+func (a BaseSwap) GetSwapID() cmn.HexBytes {
 	return CalculateSwapID(a.RandomNumberHash, a.Sender, a.SenderOtherChain)
 }
 
@@ -36,8 +36,17 @@ func (a BaseSwap) GetModuleAccountCoins() sdk.Coins {
 
 // Validate verifies that recipient is not empty
 func (a BaseSwap) Validate() error {
-	if a.Recipient.Empty() {
-		return fmt.Errorf("cannot have empty recipient")
+	if len(a.Sender) != AddrByteCount {
+		return fmt.Errorf(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Sender)))
+	}
+	if len(a.Recipient) != AddrByteCount {
+		return fmt.Errorf(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Recipient)))
+	}
+	if len(a.RandomNumberHash) != RandomNumberHashLength {
+		return fmt.Errorf(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
+	}
+	if !a.Amount.IsAllPositive() {
+		return fmt.Errorf(fmt.Sprintf("the swapped out coin must be positive"))
 	}
 	return nil
 }
