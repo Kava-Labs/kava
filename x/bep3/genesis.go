@@ -25,7 +25,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		if !ok {
 			panic("could not convert stored GenesisAtomicSwap to AtomicSwap type")
 		}
-		keeper.StoreNewAtomicSwap(ctx, swap, swap.GetSwapID())
+		keeper.SetAtomicSwap(ctx, swap, swap.GetSwapID())
 		totalAtomicSwapCoins.Add(swap.GetModuleAccountCoins())
 	}
 

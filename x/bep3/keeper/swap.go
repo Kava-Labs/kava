@@ -61,7 +61,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		ctx.BlockHeight()+heightSpan, timestamp, sender, recipient,
 		senderOtherChain, 0, types.Open)
 
-	k.StoreNewAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
+	k.SetAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
 
 	// Emit 'create_atomic_swap' event
 	ctx.EventManager().EmitEvent(

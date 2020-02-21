@@ -40,11 +40,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// StoreNewAtomicSwap stores an AtomicSwap
-func (k Keeper) StoreNewAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap, swapID []byte) {
-	k.SetAtomicSwap(ctx, atomicSwap, swapID)
-}
-
 // SetAtomicSwap puts the AtomicSwap into the store, and updates any indexes.
 func (k Keeper) SetAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap, swapID []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
@@ -64,12 +59,6 @@ func (k Keeper) GetAtomicSwap(ctx sdk.Context, swapID []byte) (types.AtomicSwap,
 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &atomicSwap)
 	return atomicSwap, true
-}
-
-// DeleteAtomicSwap removes an AtomicSwap from the store, and any indexes.
-func (k Keeper) DeleteAtomicSwap(ctx sdk.Context, swapID []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
-	store.Delete(swapID)
 }
 
 // IterateAtomicSwaps provides an iterator over all stored AtomicSwaps.
@@ -107,4 +96,20 @@ func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, denom []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
 	store.Set(denom, bz)
+}
+
+// IterateAssetSupplies provides an iterator over all stored AssetSupplies.
+// For each AssetSupply, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var asset sdk.Coin
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &asset)
+
+		if cb(asset) {
+			break
+		}
+	}
 }

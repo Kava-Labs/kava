@@ -45,10 +45,6 @@ func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	fakeSwapID := types.CalculateSwapID(atomicSwap.RandomNumberHash, kavaAddrs[1], "otheraddress")
 	_, found = suite.keeper.GetAtomicSwap(suite.ctx, fakeSwapID)
 	suite.False(found)
-
-	suite.keeper.DeleteAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
-	_, found = suite.keeper.GetAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
-	suite.False(found)
 }
 
 func (suite *KeeperTestSuite) TestIterateAtomicSwaps() {
