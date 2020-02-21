@@ -2,43 +2,64 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cmm "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-// AtomicSwap is an Hash-Time Locked Transaction (HTLT) on Kava
+type Swap interface {
+	GetSwapID() []byte
+}
+
+// BaseSwap currently only supports bnbchain => kava asset flows
+type BaseSwap struct {
+	Swap
+	Amount           sdk.Coins      `json:"amount"`
+	RandomNumberHash cmn.HexBytes   `json:"random_number_hash"`
+	ExpireHeight     int64          `json:"expire_height"`
+	Timestamp        int64          `json:"timestamp"`
+	Sender           sdk.AccAddress `json:"sender"`
+	Recipient        sdk.AccAddress `json:"recipient"`
+	SenderOtherChain string         `json:"sender_other_chain"`
+	ClosedBlock      int64          `json:"closed_block"`
+	Status           SwapStatus     `json:"status"`
+}
+
+func (a BaseSwap) GetSwapID() []byte {
+	return CalculateSwapID(a.RandomNumberHash, a.Sender, a.SenderOtherChain)
+}
+
+func (a BaseSwap) GetModuleAccountCoins() sdk.Coins {
+	return sdk.NewCoins(a.Amount...)
+}
+
+// Validate verifies that recipient is not empty
+func (a BaseSwap) Validate() error {
+	if a.Recipient.Empty() {
+		return fmt.Errorf("cannot have empty recipient")
+	}
+	return nil
+}
+
 type AtomicSwap struct {
-	SwapID              cmm.HexBytes   `json:"swap_id"`
-	From                sdk.AccAddress `json:"from"`
-	To                  sdk.AccAddress `json:"to"`
-	RecipientOtherChain string         `json:"recipient_other_chain"`
-	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    cmm.HexBytes   `json:"random_number_hash"`
-	Timestamp           int64          `json:"timestamp"`
-	Amount              sdk.Coins      `json:"amount"`
-	ExpectedIncome      string         `json:"expected_income"`
-	CrossChain          bool           `json:"cross_chain"`
-	ExpirationBlock     uint64         `json:"expiration_block"`
+	BaseSwap `json:"base_swap" yaml:"base_swap"`
 }
 
 // NewAtomicSwap returns a new AtomicSwap
-func NewAtomicSwap(swapID cmm.HexBytes, from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash cmm.HexBytes, timestamp int64, amount sdk.Coins,
-	expectedIncome string, crossChain bool, expirationBlock uint64) AtomicSwap {
-	return AtomicSwap{
-		SwapID:              swapID,
-		From:                from,
-		To:                  to,
-		RecipientOtherChain: recipientOtherChain,
-		SenderOtherChain:    senderOtherChain,
-		RandomNumberHash:    randomNumberHash,
-		Timestamp:           timestamp,
-		Amount:              amount,
-		ExpectedIncome:      expectedIncome,
-		CrossChain:          crossChain,
-		ExpirationBlock:     expirationBlock,
-	}
+func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
+	recipient sdk.AccAddress, senderOtherChain string, closedBlock int64, status SwapStatus) AtomicSwap {
+	return AtomicSwap{BaseSwap{
+		Amount:           amount,
+		RandomNumberHash: randomNumberHash,
+		ExpireHeight:     expireHeight,
+		Timestamp:        timestamp,
+		Sender:           sender,
+		Recipient:        recipient,
+		SenderOtherChain: senderOtherChain,
+		ClosedBlock:      closedBlock,
+		Status:           status,
+	}}
 }
 
 // AtomicSwaps is a slice of AtomicSwap

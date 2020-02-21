@@ -47,14 +47,14 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 }
 
 func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
-	var AtomicSwaps types.AtomicSwaps
+	var swaps types.AtomicSwaps
 
-	keeper.IterateAtomicSwaps(ctx, func(h types.AtomicSwap) bool {
-		AtomicSwaps = append(AtomicSwaps, h)
+	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
+		swaps = append(swaps, s)
 		return false
 	})
 
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, AtomicSwaps)
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, swaps)
 	if err2 != nil {
 		return nil, sdk.ErrInternal("could not marshal result to JSON")
 	}

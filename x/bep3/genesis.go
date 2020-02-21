@@ -13,12 +13,30 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
 
+	totalAssetSupplyCoins := sdk.NewCoins()
+	for _, asset := range gs.Assets {
+		keeper.SetAssetSupply(ctx, asset, []byte(asset.Denom))
+		totalAssetSupplyCoins.Add(sdk.NewCoins(asset))
+	}
+
+	totalAtomicSwapCoins := sdk.NewCoins()
+	for _, genSwap := range gs.AtomicSwaps {
+		swap, ok := genSwap.(types.AtomicSwap)
+		if !ok {
+			panic("could not convert stored GenesisAtomicSwap to AtomicSwap type")
+		}
+		keeper.StoreNewAtomicSwap(ctx, swap, swap.GetSwapID())
+		totalAtomicSwapCoins.Add(swap.GetModuleAccountCoins())
+	}
+
 	keeper.SetParams(ctx, gs.Params)
 
-	// check if the module account exists
+	totalGenesisCoins := totalAssetSupplyCoins.Add(totalAtomicSwapCoins)
+
+	// Check module coins match expected genesis coins
 	moduleAcc := supplyKeeper.GetModuleAccount(ctx, ModuleName)
-	if moduleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
+	if !moduleAcc.GetCoins().IsEqual(totalGenesisCoins) {
+		panic(fmt.Sprintf("total coins (%s) do not equal (%s) module account (%s) ", moduleAcc.GetCoins(), ModuleName, totalGenesisCoins))
 	}
 }
 
@@ -27,5 +45,20 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, k Keeper) (data types.GenesisState) {
 	params := k.GetParams(ctx)
-	return types.NewGenesisState(params)
+
+	genAssetSupplies := []sdk.Coin{}
+	// TODO: Add k.IterateAssetSupplies
+
+	genAtomicSwaps := types.GenesisAtomicSwaps{}
+	// TODO:
+	// k.IterateAtomicSwaps(ctx, func(a types.Swap) bool {
+	// 	genAtomicSwap, ok := a.(types.GenesisAtomicSwap)
+	// 	if !ok {
+	// 		panic("could not convert stored AtomicSwap to GenesisAtomicSwap type")
+	// 	}
+	// 	genAtomicSwaps = append(genAtomicSwaps, genAtomicSwap)
+	// 	return false
+	// })
+
+	return types.NewGenesisState(params, genAtomicSwaps, genAssetSupplies)
 }

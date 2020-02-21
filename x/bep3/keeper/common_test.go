@@ -21,7 +21,7 @@ var (
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
 	}
-	timestamps         = []int64{6655443322, 7766554433, 8877665544, 9988776655}
+	timestamps         = []int64{100, 200, 300, 400}
 	randomNumberHashes = [][]byte{
 		types.CalculateRandomHash([]byte{15}, timestamps[0]),
 		types.CalculateRandomHash([]byte{72}, timestamps[1]),

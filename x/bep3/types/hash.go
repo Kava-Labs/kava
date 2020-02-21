@@ -17,10 +17,10 @@ func CalculateRandomHash(randomNumber []byte, timestamp int64) []byte {
 }
 
 // CalculateSwapID calculates the hash of a RandomNumberHash, sdk.AccAddress, and string
-func CalculateSwapID(randomNumberHash []byte, sender sdk.AccAddress, senderOtherChain string) ([]byte, error) {
+func CalculateSwapID(randomNumberHash []byte, sender sdk.AccAddress, senderOtherChain string) []byte {
 	senderOtherChain = strings.ToLower(senderOtherChain)
 	data := randomNumberHash
 	data = append(data, []byte(sender)...)
 	data = append(data, []byte(senderOtherChain)...)
-	return tmhash.Sum(data), nil
+	return tmhash.Sum(data)
 }

@@ -22,16 +22,16 @@ func (k Keeper) GetBnbDeputyAddress(ctx sdk.Context) sdk.AccAddress {
 	return params.BnbDeputyAddress
 }
 
-// GetMaxLockTime returns the maximum lock time
-func (k Keeper) GetMaxLockTime(ctx sdk.Context) int64 {
+// GetMaxBlockLock returns the maximum block lock
+func (k Keeper) GetMaxBlockLock(ctx sdk.Context) int64 {
 	params := k.GetParams(ctx)
-	return params.MaxLockTime
+	return params.MaxBlockLock
 }
 
-// GetMinLockTime returns the minimum lock time
-func (k Keeper) GetMinLockTime(ctx sdk.Context) int64 {
+// GetMinBlockLock returns the minimum block lock
+func (k Keeper) GetMinBlockLock(ctx sdk.Context) int64 {
 	params := k.GetParams(ctx)
-	return params.MinLockTime
+	return params.MinBlockLock
 }
 
 // GetAssets returns a list containing all supported assets

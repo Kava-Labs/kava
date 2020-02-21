@@ -26,12 +26,15 @@ const (
 var (
 	AtomicSwapKeyPrefix     = []byte{0x00} // prefix for keys that store AtomicSwaps
 	AtomicSwapByBlockPrefix = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
+	AssetSupplyKeyPrefix    = []byte{0x02} // prefix for keys that store global asset supply counts
+
+	// NextAtomicSwapIndexKey = []byte{0x03} // key for the next atomic swap index
 )
 
-// GetAtomicSwapByBlockKey returns the key for iterating AtomicSwaps by block
-func GetAtomicSwapByBlockKey(expirationBlock uint64, atomicSwapID []byte) []byte {
-	return append(Uint64ToBytes(expirationBlock), atomicSwapID...)
-}
+// // GetAtomicSwapByBlockKey returns the key for iterating AtomicSwaps by block
+// func GetAtomicSwapByBlockKey(expireHeight int64, swapIndex uint64) []byte {
+// 	return append(Uint64ToBytes(uint64(expireHeight)), Uint64ToBytes(swapIndex)...)
+// }
 
 // Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.
 func Uint64ToBytes(id uint64) []byte {

@@ -15,8 +15,8 @@ func NewHandler(k Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case MsgCreateAtomicSwap:
 			return handleMsgCreateAtomicSwap(ctx, k, msg)
-		case MsgDepositAtomicSwap:
-			return handleMsgDepositAtomicSwap(ctx, k, msg)
+		// case MsgDepositAtomicSwap:
+		// 	return handleMsgDepositAtomicSwap(ctx, k, msg)
 		case MsgClaimAtomicSwap:
 			return handleMsgClaimAtomicSwap(ctx, k, msg)
 		case MsgRefundAtomicSwap:
@@ -30,10 +30,10 @@ func NewHandler(k Keeper) sdk.Handler {
 
 // handleMsgCreateAtomicSwap handles requests to create a new AtomicSwap
 func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgCreateAtomicSwap) sdk.Result {
+	err := k.CreateAtomicSwap(ctx, msg.RandomNumberHash, msg.Timestamp, msg.HeightSpan,
+		msg.From, msg.To, msg.SenderOtherChain, msg.RecipientOtherChain, msg.Amount,
+		msg.ExpectedIncome)
 
-	err := k.CreateAtomicSwap(ctx, msg.From, msg.To, msg.RecipientOtherChain,
-		msg.SenderOtherChain, msg.RandomNumberHash, msg.Timestamp, msg.Amount,
-		msg.ExpectedIncome, msg.HeightSpan, msg.CrossChain)
 	if err != nil {
 		return err.Result()
 	}
@@ -51,26 +51,26 @@ func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgCreateAto
 	}
 }
 
-// handleMsgDepositAtomicSwap handles requests to deposit into an active AtomicSwap
-func handleMsgDepositAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgDepositAtomicSwap) sdk.Result {
+// // handleMsgDepositAtomicSwap handles requests to deposit into an active AtomicSwap
+// func handleMsgDepositAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgDepositAtomicSwap) sdk.Result {
 
-	err := k.DepositAtomicSwap(ctx, msg.From, msg.SwapID, msg.Amount)
-	if err != nil {
-		return err.Result()
-	}
+// 	err := k.DepositAtomicSwap(ctx, msg.From, msg.SwapID, msg.Amount)
+// 	if err != nil {
+// 		return err.Result()
+// 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	)
+// 	ctx.EventManager().EmitEvent(
+// 		sdk.NewEvent(
+// 			sdk.EventTypeMessage,
+// 			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+// 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+// 		),
+// 	)
 
-	return sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}
-}
+// 	return sdk.Result{
+// 		Events: ctx.EventManager().Events(),
+// 	}
+// }
 
 // handleMsgClaimAtomicSwap handles requests to claim funds in an active AtomicSwap
 func handleMsgClaimAtomicSwap(ctx sdk.Context, k Keeper, msg types.MsgClaimAtomicSwap) sdk.Result {

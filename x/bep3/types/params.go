@@ -10,23 +10,23 @@ import (
 // Parameter keys
 var (
 	KeyBnbDeputyAddress = []byte("BnbDeputyAddress")
-	KeyMinLockTime      = []byte("MinLockTime")
-	KeyMaxLockTime      = []byte("MaxLockTime")
+	KeyMinBlockLock     = []byte("MinBlockLock")
+	KeyMaxBlockLock     = []byte("MaxBlockLock")
 	KeySupportedAssets  = []byte("SupportedAssets")
 
-	AbsoluteMaximumLockTime int64          = 10000
-	AbsoluteMinimumLockTime int64          = 10
-	DefaultBnbDeputyAddress sdk.AccAddress = sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
-	DefaultMinLockTime      int64          = 20
-	DefaultMaxLockTime      int64          = 200
-	DefaultSupportedAssets                 = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
+	AbsoluteMaximumBlockLock int64          = 10000
+	AbsoluteMinimumBlockLock int64          = 10
+	DefaultBnbDeputyAddress  sdk.AccAddress = sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
+	DefaultMinBlockLock      int64          = 20
+	DefaultMaxBlockLock      int64          = 200
+	DefaultSupportedAssets                  = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
 )
 
 // Params governance parameters for bep3 module
 type Params struct {
 	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // Bnbchain deputy address
-	MinLockTime      int64          `json:"min_lock_time" yaml:"min_lock_time"`           // AtomicSwap minimum lock time
-	MaxLockTime      int64          `json:"max_lock_time" yaml:"max_lock_time"`           // AtomicSwap maximum lock time
+	MinBlockLock     int64          `json:"min_block_lock" yaml:"min_block_lock"`         // AtomicSwap minimum block lock
+	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"`         // AtomicSwap maximum block lock
 	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`     // supported assets
 }
 
@@ -34,25 +34,25 @@ type Params struct {
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Bnbchain deputy address: %s,
-	Min lock time: %d,
-	Max lock time: %d,
+	Min block lock: %d,
+	Max block lock: %d,
 	Supported assets: %s`,
-		p.BnbDeputyAddress, p.MinLockTime, p.MaxLockTime, p.SupportedAssets)
+		p.BnbDeputyAddress, p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, minLockTime int64, maxLockTime int64, supportedAssets AssetParams) Params {
+func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock int64, maxBlockLock int64, supportedAssets AssetParams) Params {
 	return Params{
 		BnbDeputyAddress: bnbDeputyAddress,
-		MinLockTime:      minLockTime,
-		MaxLockTime:      maxLockTime,
+		MinBlockLock:     minBlockLock,
+		MaxBlockLock:     maxBlockLock,
 		SupportedAssets:  supportedAssets,
 	}
 }
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	return NewParams(DefaultBnbDeputyAddress, DefaultMinLockTime, DefaultMaxLockTime, DefaultSupportedAssets)
+	return NewParams(DefaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain
@@ -96,22 +96,22 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		{Key: KeyBnbDeputyAddress, Value: &p.BnbDeputyAddress},
-		{Key: KeyMinLockTime, Value: &p.MinLockTime},
-		{Key: KeyMaxLockTime, Value: &p.MaxLockTime},
+		{Key: KeyMinBlockLock, Value: &p.MinBlockLock},
+		{Key: KeyMaxBlockLock, Value: &p.MaxBlockLock},
 		{Key: KeySupportedAssets, Value: &p.SupportedAssets},
 	}
 }
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	if p.MinLockTime < AbsoluteMinimumLockTime {
-		return fmt.Errorf(fmt.Sprintf("minimum lock time cannot be shorter than %d", AbsoluteMinimumLockTime))
+	if p.MinBlockLock < AbsoluteMinimumBlockLock {
+		return fmt.Errorf(fmt.Sprintf("minimum block lock cannot be shorter than %d", AbsoluteMinimumBlockLock))
 	}
-	if p.MinLockTime >= p.MaxLockTime {
-		return fmt.Errorf("maximum lock time must be greater than minimum lock time")
+	if p.MinBlockLock >= p.MaxBlockLock {
+		return fmt.Errorf("maximum block lock must be greater than minimum block lock")
 	}
-	if p.MaxLockTime > AbsoluteMaximumLockTime {
-		return fmt.Errorf(fmt.Sprintf("maximum lock time cannot be longer than %d", AbsoluteMaximumLockTime))
+	if p.MaxBlockLock > AbsoluteMaximumBlockLock {
+		return fmt.Errorf(fmt.Sprintf("maximum block lock cannot be longer than %d", AbsoluteMaximumBlockLock))
 	}
 	coinIDs := make(map[string]bool)
 	for _, asset := range p.SupportedAssets {

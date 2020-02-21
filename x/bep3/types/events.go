@@ -7,13 +7,23 @@ const (
 	EventTypeClaimAtomicSwap   = "claimAtomicSwap"
 	EventTypeRefundAtomicSwap  = "refundAtomicSwap"
 
-	AttributeKeyAtomicSwapID     = "swap_id"
+	// Common
+	AttributeKeySender           = "sender"
+	AttributeKeyRecipient        = "recipient"
+	AttributeKeyAtomicSwapID     = "atomic_swap_id"
 	AttributeKeyRandomNumberHash = "random_number_hash"
-	AttributeKeyFrom             = "from"
-	AttributeKeyTo               = "to"
-	AttributeKeyCoinDenom        = "coin_denom"
-	AttributeKeyCoinAmount       = "coin_amount"
-	AttributeKeyClaimer          = "claimer"
+	AttributeKeyTimestamp        = "timestamp"
+	AttributeKeySenderOtherChain = "sender_other_chain"
+	AttributeKeyExpireHeight     = "expire_height"
+	AttributeKeyAmount           = "amount"
+	AttributeKeyExpectedIncome   = "expected_income"
+
+	// Claim
+	AttributeKeyClaimSender  = "claim_sender"
+	AttributeKeyRandomNumber = "random_number"
+
+	// Refund
+	AttributeKeyRefundSender = "refund_sender"
 
 	AttributeValueCategory = ModuleName
 )

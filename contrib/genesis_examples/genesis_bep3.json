@@ -297,8 +297,8 @@
     "bep3": {
         "params": {
             "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
-            "min_lock_time": "20",
-            "max_lock_time": "200",
+            "min_block_lock": "20",
+            "max_block_lock": "200",
             "supported_assets": [
                 {
                     "denom": "btc",

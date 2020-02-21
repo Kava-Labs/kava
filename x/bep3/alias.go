@@ -31,12 +31,11 @@ var (
 )
 
 type (
-	Keeper               = keeper.Keeper
-	CodeType             = types.CodeType
-	GenesisState         = types.GenesisState
-	Params               = types.Params
-	MsgCreateAtomicSwap  = types.MsgCreateAtomicSwap
-	MsgDepositAtomicSwap = types.MsgDepositAtomicSwap
-	MsgRefundAtomicSwap  = types.MsgRefundAtomicSwap
-	MsgClaimAtomicSwap   = types.MsgClaimAtomicSwap
+	Keeper              = keeper.Keeper
+	CodeType            = types.CodeType
+	GenesisState        = types.GenesisState
+	Params              = types.Params
+	MsgCreateAtomicSwap = types.MsgCreateAtomicSwap
+	MsgRefundAtomicSwap = types.MsgRefundAtomicSwap
+	MsgClaimAtomicSwap  = types.MsgClaimAtomicSwap
 )

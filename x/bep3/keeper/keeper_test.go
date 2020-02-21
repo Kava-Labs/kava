@@ -33,20 +33,18 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
-	swapID, err := types.CalculateSwapID(randomNumberHashes[0], binanceAddrs[0], "")
-	suite.NoError(err)
+	swapID := types.CalculateSwapID(randomNumberHashes[0], binanceAddrs[0], "")
 
 	heightSpan := int64(1000)
 	expirationBlock := uint64(suite.ctx.BlockHeight()) + uint64(heightSpan)
-	atomicSwap := types.NewAtomicSwap(swapID, binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", false, expirationBlock)
-	suite.keeper.SetAtomicSwap(suite.ctx, atomicSwap)
+	atomicSwap := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(expirationBlock), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", 0, types.Open)
+	suite.keeper.SetAtomicSwap(suite.ctx, atomicSwap, atomicSwap.GetSwapID())
 
 	s, found := suite.keeper.GetAtomicSwap(suite.ctx, swapID)
 	suite.True(found)
 	suite.Equal(atomicSwap, s)
 
-	fakeSwapID, err := types.CalculateSwapID(atomicSwap.RandomNumberHash, kavaAddrs[1], "otheraddress")
-	suite.NoError(err)
+	fakeSwapID := types.CalculateSwapID(atomicSwap.RandomNumberHash, kavaAddrs[1], "otheraddress")
 	_, found = suite.keeper.GetAtomicSwap(suite.ctx, fakeSwapID)
 	suite.False(found)
 
@@ -58,7 +56,7 @@ func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 func (suite *KeeperTestSuite) TestIterateAtomicSwaps() {
 	atomicSwaps := atomicSwaps(4)
 	for _, s := range atomicSwaps {
-		suite.keeper.SetAtomicSwap(suite.ctx, s)
+		suite.keeper.SetAtomicSwap(suite.ctx, s, s.GetSwapID())
 	}
 	res := suite.keeper.GetAllAtomicSwaps(suite.ctx)
 	suite.Equal(4, len(res))
@@ -73,13 +71,13 @@ func atomicSwaps(count int) types.AtomicSwaps {
 
 	var swapIDs [][]byte
 	for i := 0; i < count; i++ {
-		swapID, _ := types.CalculateSwapID(randomNumberHashes[i], binanceAddrs[i], "")
+		swapID := types.CalculateSwapID(randomNumberHashes[i], binanceAddrs[i], "")
 		swapIDs = append(swapIDs, swapID)
 	}
-	s1 := types.NewAtomicSwap(swapIDs[0], binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHashes[0], timestamps[0], coinsSingle, "50000bnb", false, uint64(50500+1000))
-	s2 := types.NewAtomicSwap(swapIDs[1], binanceAddrs[1], kavaAddrs[1], "", "", randomNumberHashes[1], timestamps[1], coinsSingle, "50000bnb", false, uint64(61500+1000))
-	s3 := types.NewAtomicSwap(swapIDs[2], binanceAddrs[2], kavaAddrs[2], "", "", randomNumberHashes[2], timestamps[2], coinsSingle, "50000bnb", false, uint64(72500+1000))
-	s4 := types.NewAtomicSwap(swapIDs[3], binanceAddrs[3], kavaAddrs[3], "", "", randomNumberHashes[3], timestamps[3], coinsSingle, "50000bnb", false, uint64(83500+1000))
+	s1 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(100), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", 0, types.Open)
+	s2 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[1], int64(275), timestamps[1], binanceAddrs[1], kavaAddrs[1], "", 0, types.Open)
+	s3 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[2], int64(325), timestamps[2], binanceAddrs[2], kavaAddrs[2], "", 0, types.Open)
+	s4 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[3], int64(500), timestamps[3], binanceAddrs[3], kavaAddrs[3], "", 0, types.Open)
 	atomicSwaps = append(atomicSwaps, s1, s2, s3, s4)
 	return atomicSwaps
 }
