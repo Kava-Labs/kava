@@ -29,6 +29,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	// Validate that timestamp is within reasonable bounds
+	// Assuming a block time of 10 seconds, the timestamp must be in range [-15 mins, 30 mins] of the current time
 	if ctx.BlockHeight() > 1800 {
 		if timestamp > ctx.BlockHeight()-1800 || timestamp < ctx.BlockHeight()+900 {
 			return types.ErrInvalidTimestamp(k.codespace)
