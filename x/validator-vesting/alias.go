@@ -29,6 +29,7 @@ var (
 	NewValidatorVestingAccountRaw        = types.NewValidatorVestingAccountRaw
 	NewValidatorVestingAccount           = types.NewValidatorVestingAccount
 	NewKeeper                            = keeper.NewKeeper
+	NewQuerier                           = keeper.NewQuerier
 	MakeTestCodec                        = keeper.MakeTestCodec
 	CreateTestInput                      = keeper.CreateTestInput
 	ValidatorVestingTestAccount          = keeper.ValidatorVestingTestAccount

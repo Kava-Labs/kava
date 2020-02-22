@@ -14,6 +14,7 @@ type AccountKeeper interface {
 	GetAccount(sdk.Context, sdk.AccAddress) authexported.Account
 	SetAccount(sdk.Context, authexported.Account)
 	GetAllAccounts(ctx sdk.Context) (accounts []authexported.Account)
+	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
 }
 
 // BankKeeper defines the expected bank keeper (noalias)
