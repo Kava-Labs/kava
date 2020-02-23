@@ -63,4 +63,5 @@ type (
 	CurrentPeriodProgress   = types.CurrentPeriodProgress
 	ValidatorVestingAccount = types.ValidatorVestingAccount
 	Keeper                  = keeper.Keeper
+	TotalCirculatingSupply  = types.TotalCirculatingSupply
 )
