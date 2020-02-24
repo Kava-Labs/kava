@@ -30,7 +30,7 @@ func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Comma
 	return &cobra.Command{
 		Use:   "cirulating-supply",
 		Short: "Query circulating supply information",
-		// Args:  cobra.ExactArgs(1), // No arguments
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
