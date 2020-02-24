@@ -28,7 +28,7 @@ func GetQueryValidatorVesting(queryRoute string, cdc *codec.Codec) *cobra.Comman
 // QueryCirculatingSupplyCmd queries the total circulating supply
 func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cirulating-supply",
+		Use:   "circulating-supply",
 		Short: "Query circulating supply information",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
