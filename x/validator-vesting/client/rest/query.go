@@ -45,7 +45,9 @@ func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
+		// directly write output instead of putting in json
+		w.Write(res)
+		// rest.PostProcessResponse(w, cliCtx, res)
 	}
 
 }
