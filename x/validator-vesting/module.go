@@ -13,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/kava-labs/kava/x/cdp/client/cli"
+	"github.com/kava-labs/kava/x/validator-vesting/client/rest"
 	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 	"github.com/kava-labs/kava/x/validator-vesting/simulation"
 )
@@ -52,13 +54,17 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterRESTRoutes registers no REST routes for the crisis module.
-func (AppModuleBasic) RegisterRESTRoutes(_ context.CLIContext, _ *mux.Router) {}
+func (AppModuleBasic) RegisterRESTRoutes(_ context.CLIContext, _ *mux.Router) {
+	rest.RegisterRoutes(ctx, rtr)
+}
 
 // GetTxCmd returns no root tx command for the validator-vesting module.
 func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
 
 // GetQueryCmd returns no root query command for the validator-vesting module.
-func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd(StoreKey, cdc)
+}
 
 // AppModuleSimulation defines the module simulation functions used by the auth module.
 type AppModuleSimulation struct{}
