@@ -27,7 +27,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, totalSupply)
+	supplyDec := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001"))
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, supplyDec)
 	if err != nil {
 		return nil, sdk.ErrInternal(err.Error())
 	}
@@ -64,8 +65,8 @@ func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 			}
 			return false
 		})
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, circulatingSupply)
+	supplyDec := sdk.NewDecFromInt(circulatingSupply).Mul(sdk.MustNewDecFromStr("0.000001"))
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, supplyDec)
 	if err != nil {
 		return nil, sdk.ErrInternal(err.Error())
 	}

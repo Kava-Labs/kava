@@ -42,7 +42,7 @@ func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Comma
 				return err
 			}
 
-			var out sdk.Int
+			var out sdk.Dec
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
@@ -64,7 +64,7 @@ func QueryTotalSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			var out sdk.Int
+			var out sdk.Dec
 			cdc.MustUnmarshalJSON(res, &out)
 			return cliCtx.PrintOutput(out)
 		},
