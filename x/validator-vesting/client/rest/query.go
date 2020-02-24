@@ -18,25 +18,34 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 }
 
 func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse the query height
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		res, height, err := cliCtx.Query(fmt.Sprintf("vesting/circulatingsupply", types.QueryCirculatingSupply))
+		params := types.NewQueryCirculatingSupplyParams(page, limit)
+		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupply)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		cliCtx = cliCtx.WithHeight(height)
-		// do not write as json, write direct output
-		// rest.PostProcessResponse(w, cliCtx, res)
-
-		w.Write(res) // write the result directly
+		rest.PostProcessResponse(w, cliCtx, res)
 	}
 
 }

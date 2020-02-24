@@ -29,6 +29,7 @@ var (
 	NewPubKey                            = types.NewPubKey
 	NewValidatorVestingAccountRaw        = types.NewValidatorVestingAccountRaw
 	NewValidatorVestingAccount           = types.NewValidatorVestingAccount
+	NewQueryCirculatingSupplyParams      = types.NewQueryCirculatingSupplyParams
 	NewKeeper                            = keeper.NewKeeper
 	NewQuerier                           = keeper.NewQuerier
 	MakeTestCodec                        = keeper.MakeTestCodec
