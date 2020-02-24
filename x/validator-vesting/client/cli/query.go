@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
-// GetQueryValidatorVesting returns the cli query commands for this module
-func GetQueryValidatorVesting(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetQueryCmd returns the cli query commands for this module
+func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	// Group nameservice queries under a subcommand
 	queryValidatorVestingCmd := &cobra.Command{
 		Use:   "validator-vesting",
