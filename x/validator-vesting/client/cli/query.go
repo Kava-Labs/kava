@@ -33,7 +33,6 @@ func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Comma
 		// Args:  cobra.ExactArgs(1), // No arguments
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			name := args[0]
 
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCirculatingSupply), nil)
 			if err != nil {
