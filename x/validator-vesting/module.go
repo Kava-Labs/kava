@@ -118,7 +118,7 @@ func (AppModule) NewHandler() sdk.Handler { return nil }
 
 // QuerierRoute returns the auth module's querier route name.
 func (AppModule) QuerierRoute() string {
-	return ""
+	return ModuleName
 }
 
 // NewQuerierHandler returns the auth module sdk.Querier.
