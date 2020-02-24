@@ -37,7 +37,7 @@ func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Comma
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCirculatingSupply), nil)
 			if err != nil {
 				fmt.Printf("could not get total circulating supply\n")
-				return nil
+				return err
 			}
 
 			var out types.TotalCirculatingSupply
