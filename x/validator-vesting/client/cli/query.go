@@ -22,6 +22,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	queryValidatorVestingCmd.AddCommand(client.GetCommands(
 		QueryCirculatingSupplyCmd(queryRoute, cdc),
+		QueryTotalSupplyCmd(queryRoute, cdc),
 	)...)
 	return queryValidatorVestingCmd
 }
@@ -38,6 +39,28 @@ func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Comma
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCirculatingSupply), nil)
 			if err != nil {
 				fmt.Printf("could not get total circulating supply\n")
+				return err
+			}
+
+			var out sdk.Int
+			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+// QueryTotalSupplyCmd queries the toal supply of ukava
+func QueryTotalSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "total-supply",
+		Short: "Query total supply information",
+
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryTotalSupply), nil)
+			if err != nil {
+				fmt.Printf("could not get total supply\n")
 				return err
 			}
 

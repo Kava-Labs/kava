@@ -17,10 +17,21 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryCirculatingSupply:
 			return queryGetCirculatingSupply(ctx, req, keeper)
+		case types.QueryTotalSupply:
+			return queryGetTotalSupply(ctx, req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown cdp query endpoint")
 		}
 	}
+}
+
+func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, totalSupply)
+	if err != nil {
+		return nil, sdk.ErrInternal(err.Error())
+	}
+	return bz, nil
 }
 
 func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
