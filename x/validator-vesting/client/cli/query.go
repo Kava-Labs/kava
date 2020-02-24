@@ -3,13 +3,12 @@ package cli
 import (
 	"fmt"
 
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-
-	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 // GetQueryValidatorVesting returns the cli query commands for this module
