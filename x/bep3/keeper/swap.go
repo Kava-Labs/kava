@@ -147,6 +147,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 
 	// Delete the swap
 	k.RemoveAtomicSwap(ctx, atomicSwap.GetSwapID())
+	k.RemoveFromByBlockIndex(ctx, atomicSwap)
 	return nil
 }
 
