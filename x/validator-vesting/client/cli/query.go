@@ -49,7 +49,7 @@ func QueryCirculatingSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Comma
 	}
 }
 
-// QueryTotalSupplyCmd queries the toal supply of ukava
+// QueryTotalSupplyCmd queries the total supply of ukava
 func QueryTotalSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "total-supply",
