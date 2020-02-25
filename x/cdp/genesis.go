@@ -64,19 +64,26 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState)
 // ExportGenesis export genesis state for cdp module
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	params := k.GetParams(ctx)
-	cdps := k.GetAllCdps(ctx)
+
+	cdps := CDPs{}
+	deposits := Deposits{}
+	k.IterateAllCdps(ctx, func(cdp CDP) (stop bool) {
+		cdps = append(cdps, cdp)
+		k.IterateDeposits(ctx, cdp.ID, func(deposit Deposit) (stop bool) {
+			deposits = append(deposits, deposit)
+			return false
+		})
+		return false
+	})
+
 	cdpID := k.GetNextCdpID(ctx)
+	debtDenom := k.GetDebtDenom(ctx)
+	govDenom := k.GetGovDenom(ctx)
+
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 	if !found {
 		previousBlockTime = DefaultPreviousBlockTime
 	}
-	debtDenom := k.GetDebtDenom(ctx)
 
-	return GenesisState{
-		Params:            params,
-		StartingCdpID:     cdpID,
-		CDPs:              cdps,
-		PreviousBlockTime: previousBlockTime,
-		DebtDenom:         debtDenom,
-	}
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousBlockTime)
 }

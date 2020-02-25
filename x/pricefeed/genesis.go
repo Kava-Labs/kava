@@ -48,8 +48,5 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 		postedPrices = append(postedPrices, pp...)
 	}
 
-	return GenesisState{
-		Params:       params,
-		PostedPrices: postedPrices,
-	}
+	return NewGenesisState(params, postedPrices)
 }
