@@ -306,6 +306,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
