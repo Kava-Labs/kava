@@ -45,7 +45,24 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return sdk.ErrInvalidAddress("invalid (empty) bidder address")
 	}
 
-	err := k.validateCoinDeposit(ctx, amount)
+	if len(amount) != 1 {
+		return sdk.ErrInternal("amount must contain exactly one coin")
+	}
+
+	// Validate that this asset is supported and active
+	err := k.ValidateActiveAsset(ctx, amount[0])
+	if err != nil {
+		return err
+	}
+
+	// If this asset's supply isn't set in the store, set it to 0
+	_, assetSupplyFoundInStore := k.GetAssetSupply(ctx, []byte(amount[0].Denom))
+	if !assetSupplyFoundInStore {
+		k.SetAssetSupply(ctx, sdk.NewInt64Coin(amount[0].Denom, 0), []byte(amount[0].Denom))
+	}
+
+	// Validate that the proposed increase will not put asset supply over limit
+	err = k.ValidateProposedIncrease(ctx, amount[0])
 	if err != nil {
 		return err
 	}
@@ -175,30 +192,5 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		),
 	)
 
-	return nil
-}
-
-// GetAllAtomicSwaps returns all AtomicSwaps from the store
-func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwaps) {
-	k.IterateAtomicSwaps(ctx, func(atomicSwap types.AtomicSwap) bool {
-		atomicSwaps = append(atomicSwaps, atomicSwap)
-		return false
-	})
-	return
-}
-
-// validateCoinDeposit validates that coins can be deposited into an atomic swap
-func (k Keeper) validateCoinDeposit(ctx sdk.Context, coins sdk.Coins) sdk.Error {
-	if len(coins) != 1 {
-		return sdk.ErrInternal("amount must contain exactly one coin")
-	}
-
-	err := k.ValidateActiveAsset(ctx, coins[0])
-	if err != nil {
-		return err
-	}
-	if coins[0].IsZero() {
-		return types.ErrAmountTooSmall(k.codespace, coins[0])
-	}
 	return nil
 }

@@ -15,7 +15,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 
 	// Set each AssetSupply and store total coin count
 	totalAssetSupplyCoins := sdk.NewCoins()
-	for _, asset := range gs.Assets {
+	for _, asset := range gs.AssetSupplies {
 		keeper.SetAssetSupply(ctx, asset, []byte(asset.Denom))
 		totalAssetSupplyCoins.Add(sdk.NewCoins(asset))
 	}
@@ -44,7 +44,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 func ExportGenesis(ctx sdk.Context, k Keeper) (data types.GenesisState) {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllAtomicSwaps(ctx)
-	assets := k.GetAllAssets(ctx)
+	assets := k.GetAllAssetSupplies(ctx)
 
 	return types.NewGenesisState(params, swaps, assets)
 }

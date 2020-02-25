@@ -10,22 +10,23 @@ import (
 
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	Params      Params      `json:"params" yaml:"params"`
-	AtomicSwaps AtomicSwaps `json:"atomic_swaps" yaml:"atomic_swaps"`
-	Assets      []sdk.Coin  `json:"assets" yaml:"assets"`
+	Params        Params      `json:"params" yaml:"params"`
+	AtomicSwaps   AtomicSwaps `json:"atomic_swaps" yaml:"atomic_swaps"`
+	AssetSupplies []sdk.Coin  `json:"assets_supplies" yaml:"assets_supplies"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, swaps AtomicSwaps, assets []sdk.Coin) GenesisState {
+func NewGenesisState(params Params, swaps AtomicSwaps, assetSupplies []sdk.Coin) GenesisState {
 	return GenesisState{
-		Params:      params,
-		AtomicSwaps: swaps,
-		Assets:      assets,
+		Params:        params,
+		AtomicSwaps:   swaps,
+		AssetSupplies: assetSupplies,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
+
 	return NewGenesisState(
 		DefaultParams(),
 		AtomicSwaps{},

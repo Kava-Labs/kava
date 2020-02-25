@@ -77,11 +77,27 @@ func (k Keeper) IterateAtomicSwaps(ctx sdk.Context, cb func(atomicSwap types.Ato
 	}
 }
 
+// GetAllAtomicSwaps returns all AtomicSwaps from the store
+func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwaps) {
+	k.IterateAtomicSwaps(ctx, func(atomicSwap types.AtomicSwap) bool {
+		atomicSwaps = append(atomicSwaps, atomicSwap)
+		return false
+	})
+	return
+}
+
+// SetAssetSupply updates an asset's current active supply
+func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, coinID []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
+	store.Set(coinID, bz)
+}
+
 // GetAssetSupply gets an asset's current supply from the store.
 func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
 	var asset sdk.Coin
 
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
 	bz := store.Get(denom)
 	if bz == nil {
 		return sdk.Coin{}, false
@@ -89,13 +105,6 @@ func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &asset)
 	return asset, true
-}
-
-// SetAssetSupply updates an asset's current active supply
-func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, denom []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
-	store.Set(denom, bz)
 }
 
 // IterateAssetSupplies provides an iterator over all stored AssetSupplies.
@@ -112,4 +121,13 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (s
 			break
 		}
 	}
+}
+
+// GetAllAssetSupplies returns all asset supplies from the store as an array of sdk.Coin
+func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (assets []sdk.Coin) {
+	k.IterateAssetSupplies(ctx, func(asset sdk.Coin) bool {
+		assets = append(assets, asset)
+		return false
+	})
+	return
 }

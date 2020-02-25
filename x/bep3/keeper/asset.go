@@ -7,29 +7,38 @@ import (
 
 // IncrementAssetSupply increments an asset's supply by the coin param
 func (k Keeper) IncrementAssetSupply(ctx sdk.Context, coin sdk.Coin) sdk.Error {
-	// Don't use ValidateActiveAsset so we don't have to refetch asset
-	asset, ok := k.GetAssetByDenom(ctx, coin.Denom)
-	if !ok {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
-	}
-	if !asset.Active {
-		return types.ErrAssetNotActive(k.codespace, asset.Denom)
+	err := k.ValidateActiveAsset(ctx, coin)
+	if err != nil {
+		return err
 	}
 
+	err = k.ValidateProposedIncrease(ctx, coin)
+	if err != nil {
+		return err
+	}
+
+	currSupply, _ := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, currSupply.Add(coin), []byte(coin.Denom))
+	return nil
+}
+
+// ValidateProposedIncrease checks if a proposed token increase is within supply limits
+func (k Keeper) ValidateProposedIncrease(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 	coinID := []byte(coin.Denom)
+
+	if coin.IsZero() {
+		return types.ErrAmountTooSmall(k.codespace, coin)
+	}
 
 	currSupply, found := k.GetAssetSupply(ctx, coinID)
 	if !found {
-		k.SetAssetSupply(ctx, coin, coinID)
-		return nil
+		return types.ErrAssetSupplyNotSet(k.codespace, coin.Denom)
 	}
 
-	newSupply := currSupply.Add(coin)
-	if newSupply.Amount.Int64() > asset.Limit {
+	asset, _ := k.GetAssetByDenom(ctx, coin.Denom)
+	if currSupply.Add(coin).Amount.Int64() > asset.Limit {
 		return types.ErrAboveAssetSupplyLimit(k.codespace, coin.Denom, currSupply.Amount.Int64(), coin.Amount.Int64(), asset.Limit)
 	}
-
-	k.SetAssetSupply(ctx, newSupply, coinID)
 	return nil
 }
 
@@ -43,12 +52,4 @@ func (k Keeper) ValidateActiveAsset(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 		return types.ErrAssetNotActive(k.codespace, asset.Denom)
 	}
 	return nil
-}
-
-func (k Keeper) GetAllAssets(ctx sdk.Context) (assets []sdk.Coin) {
-	k.IterateAssetSupplies(ctx, func(asset sdk.Coin) bool {
-		assets = append(assets, asset)
-		return false
-	})
-	return
 }

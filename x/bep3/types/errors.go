@@ -20,13 +20,14 @@ const (
 	CodeAmountTooSmall          CodeType          = 4
 	CodeAssetNotSupported       CodeType          = 5
 	CodeAssetNotActive          CodeType          = 6
-	CodeAboveAssetSupplyLimit   CodeType          = 7
-	CodeInvalidClaimSecret      CodeType          = 8
-	CodeAtomicSwapAlreadyExists CodeType          = 9
-	CodeAtomicSwapNotFound      CodeType          = 10
-	CodeSwapNotRefundable       CodeType          = 11
-	CodeSwapNotOpen             CodeType          = 12
-	CodeAtomicSwapHasExpired    CodeType          = 13
+	CodeAssetSupplyNotSet       CodeType          = 7
+	CodeAboveAssetSupplyLimit   CodeType          = 8
+	CodeInvalidClaimSecret      CodeType          = 9
+	CodeAtomicSwapAlreadyExists CodeType          = 10
+	CodeAtomicSwapNotFound      CodeType          = 11
+	CodeSwapNotRefundable       CodeType          = 12
+	CodeSwapNotOpen             CodeType          = 13
+	CodeAtomicSwapHasExpired    CodeType          = 14
 )
 
 // ErrAtomicSwapNotFound error for when an atomic swap is not found
@@ -77,6 +78,11 @@ func ErrAtomicSwapHasExpired(codespace sdk.CodespaceType) sdk.Error {
 // ErrConversionToBytesFailed error for when a hex encoded string can't be converted to bytes
 func ErrConversionToBytesFailed(codespace sdk.CodespaceType, hexEncodedValue string) sdk.Error {
 	return sdk.NewError(codespace, CodeConversionToBytesFailed, fmt.Sprintf("couldn't convert hex encoded %s to bytes", hexEncodedValue))
+}
+
+// ErrAssetSupplyNotSet error for when an asset's supply has not been initialized
+func ErrAssetSupplyNotSet(codespace sdk.CodespaceType, denom string) sdk.Error {
+	return sdk.NewError(codespace, CodeAssetSupplyNotSet, fmt.Sprintf("%s asset supply hasn't been set", denom))
 }
 
 // ErrAboveAssetSupplyLimit error for when a proposed asset supply increase would put the supply over the limit
