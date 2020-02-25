@@ -17,6 +17,19 @@ type GenesisState struct {
 	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
+// NewGenesisState returns a new genesis state
+func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousBlockTime time.Time) GenesisState {
+	return GenesisState{
+		Params:            params,
+		CDPs:              cdps,
+		Deposits:          deposits,
+		StartingCdpID:     startingCdpID,
+		DebtDenom:         debtDenom,
+		GovDenom:          govDenom,
+		PreviousBlockTime: previousBlockTime,
+	}
+}
+
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
