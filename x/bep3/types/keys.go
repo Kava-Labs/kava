@@ -29,6 +29,11 @@ var (
 	AssetSupplyKeyPrefix    = []byte{0x02} // prefix for keys that store global asset supply counts
 )
 
+// GetAtomicSwapByBlockKey returns the key for iterating AtomicSwaps by block
+func GetAtomicSwapByBlockKey(expireHeight int64, swapID []byte) []byte {
+	return append(Uint64ToBytes(uint64(expireHeight)), swapID...)
+}
+
 // Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.
 func Uint64ToBytes(id uint64) []byte {
 	bz := make([]byte, 8)

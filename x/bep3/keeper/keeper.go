@@ -40,11 +40,15 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+// ------------------------------------------
+//				Atomic Swaps
+// ------------------------------------------
+
 // SetAtomicSwap puts the AtomicSwap into the store, and updates any indexes.
-func (k Keeper) SetAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap, swapID []byte) {
+func (k Keeper) SetAtomicSwap(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(atomicSwap)
-	store.Set(swapID, bz)
+	store.Set(atomicSwap.GetSwapID(), bz)
 }
 
 // GetAtomicSwap gets an AtomicSwap from the store.
@@ -59,6 +63,12 @@ func (k Keeper) GetAtomicSwap(ctx sdk.Context, swapID []byte) (types.AtomicSwap,
 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &atomicSwap)
 	return atomicSwap, true
+}
+
+// RemoveAtomicSwap removes an AtomicSwap from the AtomicSwapKeyPrefix.
+func (k Keeper) RemoveAtomicSwap(ctx sdk.Context, swapID []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
+	store.Delete(swapID)
 }
 
 // IterateAtomicSwaps provides an iterator over all stored AtomicSwaps.
@@ -85,6 +95,46 @@ func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwap
 	})
 	return
 }
+
+// ------------------------------------------
+//			Atomic Swap Block Index
+// ------------------------------------------
+
+// InsertIntoByBlockIndex adds a swap ID and expiration time into the byBlock index.
+func (k Keeper) InsertIntoByBlockIndex(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
+	store.Set(types.GetAtomicSwapByBlockKey(atomicSwap.ExpireHeight, atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
+}
+
+// RemoveFromByBlockIndex removes an AtomicSwap from the byBlock index.
+func (k Keeper) RemoveFromByBlockIndex(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
+	store.Delete(types.GetAtomicSwapByBlockKey(atomicSwap.ExpireHeight, atomicSwap.GetSwapID()))
+}
+
+// IterateAtomicSwapsByBlock provides an iterator over AtomicSwaps ordered by AtomicSwap expiration block
+// For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
+func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(swapID []byte) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
+	iterator := store.Iterator(
+		nil, // start at the very start of the prefix store
+		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
+	)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+
+		id := iterator.Value()
+
+		if cb(id) {
+			break
+		}
+	}
+}
+
+// ------------------------------------------
+//				Asset Supplies
+// ------------------------------------------
 
 // SetAssetSupply updates an asset's current active supply
 func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, coinID []byte) {

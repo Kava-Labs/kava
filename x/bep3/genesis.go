@@ -26,7 +26,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		if swap.Validate() != nil {
 			panic(fmt.Sprintf("invalid swap %s", swap.GetSwapID()))
 		}
-		keeper.SetAtomicSwap(ctx, swap, swap.GetSwapID())
+		keeper.SetAtomicSwap(ctx, swap)
+		keeper.InsertIntoByBlockIndex(ctx, swap)
 		totalAtomicSwapCoins.Add(swap.GetModuleAccountCoins())
 	}
 

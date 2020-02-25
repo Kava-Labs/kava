@@ -78,7 +78,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		ctx.BlockHeight()+heightSpan, timestamp, sender, recipient,
 		senderOtherChain, 0, types.Open)
 
-	k.SetAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
+	k.SetAtomicSwap(ctx, atomicSwap)
+	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 
 	// Emit 'create_atomic_swap' event
 	ctx.EventManager().EmitEvent(
@@ -106,11 +107,8 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
 	}
-	if atomicSwap.Status != types.Open {
-		return types.ErrSwapNotOpen(k.codespace)
-	}
 	// Only unexpired AtomicSwaps can be claimed
-	if ctx.BlockHeight() > atomicSwap.ExpireHeight {
+	if atomicSwap.Status == types.Expired {
 		return types.ErrAtomicSwapHasExpired(k.codespace)
 	}
 
@@ -135,12 +133,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return err
 	}
 
-	// Complete the swap
-	atomicSwap.Status = types.Completed
-	atomicSwap.ClosedBlock = ctx.BlockHeight()
-	k.SetAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
-
-	// Emit "claim_atomic_swap" event
+	// Emit 'claim_atomic_swap' event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaimAtomicSwap,
@@ -152,6 +145,8 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		),
 	)
 
+	// Delete the swap
+	k.RemoveAtomicSwap(ctx, atomicSwap.GetSwapID())
 	return nil
 }
 
@@ -162,11 +157,8 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
 	}
-	if atomicSwap.Status != types.Open {
-		return types.ErrSwapNotOpen(k.codespace)
-	}
 	// Only expired swaps may be refunded
-	if ctx.BlockHeight() <= atomicSwap.ExpireHeight {
+	if atomicSwap.Status != types.Expired {
 		return types.ErrSwapNotRefundable(k.codespace)
 	}
 
@@ -175,11 +167,6 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	if err != nil {
 		return err
 	}
-
-	// Expire the swap
-	atomicSwap.Status = types.Expired
-	atomicSwap.ClosedBlock = ctx.BlockHeight()
-	k.SetAtomicSwap(ctx, atomicSwap, atomicSwap.GetSwapID())
 
 	// Emit 'refund_atomic_swap' event
 	ctx.EventManager().EmitEvent(
@@ -192,5 +179,29 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		),
 	)
 
+	// Delete the swap
+	k.RemoveAtomicSwap(ctx, atomicSwap.GetSwapID())
+	return nil
+}
+
+// UpdateExpiredAtomicSwaps finds all AtomicSwaps that are past (or at) their ending times and expires them.
+func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
+	var expiredSwaps [][]byte
+	k.IterateAtomicSwapsByBlock(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
+		expiredSwaps = append(expiredSwaps, id)
+		return false
+	})
+
+	// AtomicSwap refunding is in separate loops as db should not be modified during iteration
+	for _, id := range expiredSwaps {
+		// Update the AtomicSwap's status to expired
+		swap, _ := k.GetAtomicSwap(ctx, id)
+		swap.Status = types.Expired
+		swap.ClosedBlock = ctx.BlockHeight()
+		k.SetAtomicSwap(ctx, swap)
+
+		// Remove swap from block index to prevent unnecessary iteration
+		k.RemoveFromByBlockIndex(ctx, swap)
+	}
 	return nil
 }

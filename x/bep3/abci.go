@@ -2,7 +2,13 @@ package bep3
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// EndBlocker runs at the end of every block
-func EndBlocker(ctx sdk.Context, k Keeper) {}
+// BeginBlocker runs at the start of every block
+func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
+	err := k.UpdateExpiredAtomicSwaps(ctx)
+	if err != nil {
+		panic(err)
+	}
+}
