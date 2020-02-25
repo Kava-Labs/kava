@@ -10,6 +10,9 @@ const (
 
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
+
+	// QuerierRoute should be set to module name
+	QuerierRoute = ModuleName
 )
 
 var (

@@ -68,6 +68,11 @@ type ValidatorVestingAccount struct {
 	DebtAfterFailedVesting sdk.Coins             `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
 }
 
+// TotalCirculatingSupply represents the total circulating supply of Kava
+type TotalCirculatingSupply struct {
+	TotalSupply uint64 `json:"total_supply" yaml:"total_supply"` // total circulating supply
+}
+
 // NewValidatorVestingAccountRaw creates a new ValidatorVestingAccount object from BaseVestingAccount
 func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 	startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
