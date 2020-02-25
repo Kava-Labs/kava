@@ -19,7 +19,7 @@ var (
 	DefaultBnbDeputyAddress  sdk.AccAddress = sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 	DefaultMinBlockLock      int64          = 20
 	DefaultMaxBlockLock      int64          = 200
-	DefaultSupportedAssets                  = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: 1, Active: false}}
+	DefaultSupportedAssets                  = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: sdk.NewInt(1), Active: false}}
 )
 
 // Params governance parameters for bep3 module
@@ -57,10 +57,10 @@ func DefaultParams() Params {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Denom  string `json:"denom" yaml:"denom"`     // name of the asster
-	CoinID string `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
-	Limit  int64  `json:"limit" yaml:"limit"`     // asset supply limit
-	Active bool   `json:"active" yaml:"active"`   // denotes if asset is available or paused
+	Denom  string  `json:"denom" yaml:"denom"`     // name of the asster
+	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
+	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
+	Active bool    `json:"active" yaml:"active"`   // denotes if asset is available or paused
 }
 
 // String implements fmt.Stringer
@@ -68,9 +68,9 @@ func (ap AssetParam) String() string {
 	return fmt.Sprintf(`Asset:
 	Denom: %s
 	Coin ID: %s
-	Limit: %d
+	Limit: %s
 	Active: %t`,
-		ap.Denom, ap.CoinID, ap.Limit, ap.Active)
+		ap.Denom, ap.CoinID, ap.Limit.String(), ap.Active)
 }
 
 // AssetParams array of AssetParam
@@ -125,8 +125,8 @@ func (p Params) Validate() error {
 			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %s", asset.Denom, asset.CoinID))
 		}
 		coinIDs[asset.CoinID] = true
-		if asset.Limit <= 0 {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have limit greater than 0", asset.Denom))
+		if !asset.Limit.IsPositive() {
+			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive limit", asset.Denom))
 		}
 	}
 

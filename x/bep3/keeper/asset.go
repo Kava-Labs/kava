@@ -36,8 +36,8 @@ func (k Keeper) ValidateProposedIncrease(ctx sdk.Context, coin sdk.Coin) sdk.Err
 	}
 
 	asset, _ := k.GetAssetByDenom(ctx, coin.Denom)
-	if currSupply.Add(coin).Amount.Int64() > asset.Limit {
-		return types.ErrAboveAssetSupplyLimit(k.codespace, coin.Denom, currSupply.Amount.Int64(), coin.Amount.Int64(), asset.Limit)
+	if currSupply.Add(coin).Amount.GT(asset.Limit) {
+		return types.ErrAboveAssetSupplyLimit(k.codespace, coin.Denom, currSupply.Amount.Int64(), coin.Amount.Int64(), asset.Limit.Int64())
 	}
 	return nil
 }
