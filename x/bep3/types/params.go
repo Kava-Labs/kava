@@ -14,12 +14,11 @@ var (
 	KeyMaxBlockLock     = []byte("MaxBlockLock")
 	KeySupportedAssets  = []byte("SupportedAssets")
 
-	AbsoluteMaximumBlockLock int64          = 10000
-	AbsoluteMinimumBlockLock int64          = 10
-	DefaultBnbDeputyAddress  sdk.AccAddress = sdk.AccAddress("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
-	DefaultMinBlockLock      int64          = 20
-	DefaultMaxBlockLock      int64          = 200
-	DefaultSupportedAssets                  = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: sdk.NewInt(1), Active: false}}
+	AbsoluteMaximumBlockLock int64 = 10000
+	AbsoluteMinimumBlockLock int64 = 10
+	DefaultMinBlockLock      int64 = 20
+	DefaultMaxBlockLock      int64 = 200
+	DefaultSupportedAssets         = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: sdk.NewInt(1), Active: false}}
 )
 
 // Params governance parameters for bep3 module
@@ -52,7 +51,8 @@ func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock int64, maxBlockLock
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	return NewParams(DefaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
+	defaultBnbDeputyAddress, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
+	return NewParams(defaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain
