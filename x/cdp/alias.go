@@ -78,6 +78,7 @@ var (
 	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
 	ErrPaymentExceedsDebt       = types.ErrPaymentExceedsDebt
 	ErrLoadingAugmentedCDP      = types.ErrLoadingAugmentedCDP
+	NewGenesisState             = types.NewGenesisState
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetCdpIDBytes               = types.GetCdpIDBytes
 	GetCdpIDFromBytes           = types.GetCdpIDFromBytes

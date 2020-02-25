@@ -2,23 +2,27 @@ package pricefeed
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/kava-labs/kava/x/pricefeed/client/cli"
 	"github.com/kava-labs/kava/x/pricefeed/client/rest"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/kava-labs/kava/x/pricefeed/simulation"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModuleSimulation{}
 )
 
 // AppModuleBasic app module basics object
@@ -64,9 +68,33 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
+//____________________________________________________________________________
+
+// AppModuleSimulation defines the module simulation functions used by the pricefeed module.
+type AppModuleSimulation struct{}
+
+// RegisterStoreDecoder registers a decoder for pricefeed module's types
+func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
+}
+
+// GenerateGenesisState creates a randomized GenState of the pricefeed module
+func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// RandomizedParams creates randomized pricefeed param changes for the simulator.
+func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
+}
+
+//____________________________________________________________________________
+
 // AppModule app module type
 type AppModule struct {
 	AppModuleBasic
+	AppModuleSimulation
+
 	keeper Keeper
 }
 
