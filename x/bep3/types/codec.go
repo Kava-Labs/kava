@@ -12,7 +12,6 @@ func init() {
 
 // RegisterCodec registers concrete types on the Amino code
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterInterface((*GenesisAtomicSwap)(nil), nil)
 	cdc.RegisterInterface((*Swap)(nil), nil)
 
 	cdc.RegisterConcrete(MsgCreateAtomicSwap{}, "bep3/MsgCreateAtomicSwap", nil)

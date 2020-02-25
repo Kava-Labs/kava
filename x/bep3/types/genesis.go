@@ -8,27 +8,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type GenesisAtomicSwap interface {
-	Swap
-	GetModuleAccountCoins() sdk.Coins
-	Validate() error
-}
-
-// GenesisAtomicSwaps is a slice of genesis atomic swaps.
-type GenesisAtomicSwaps []GenesisAtomicSwap
-
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	Params      Params             `json:"params" yaml:"params"`
-	AtomicSwaps GenesisAtomicSwaps `json:"atomic_swaps" yaml:"atomic_swaps"`
-	Assets      []sdk.Coin         `json:"assets" yaml:"assets"`
+	Params      Params      `json:"params" yaml:"params"`
+	AtomicSwaps AtomicSwaps `json:"atomic_swaps" yaml:"atomic_swaps"`
+	Assets      []sdk.Coin  `json:"assets" yaml:"assets"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, genAtomicSwaps GenesisAtomicSwaps, assets []sdk.Coin) GenesisState {
+func NewGenesisState(params Params, swaps AtomicSwaps, assets []sdk.Coin) GenesisState {
 	return GenesisState{
 		Params:      params,
-		AtomicSwaps: genAtomicSwaps,
+		AtomicSwaps: swaps,
 		Assets:      assets,
 	}
 }
@@ -37,7 +28,7 @@ func NewGenesisState(params Params, genAtomicSwaps GenesisAtomicSwaps, assets []
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
-		GenesisAtomicSwaps{},
+		AtomicSwaps{},
 		[]sdk.Coin{},
 	)
 }
@@ -61,10 +52,6 @@ func (gs GenesisState) Validate() error {
 	}
 	ids := map[string]bool{}
 	for _, a := range gs.AtomicSwaps {
-
-		if err := a.Validate(); err != nil {
-			return fmt.Errorf("found invalid atomic swap: %w", err)
-		}
 		if ids[hex.EncodeToString(a.GetSwapID())] {
 			return fmt.Errorf("found duplicate atomic swap ID (%s)", hex.EncodeToString(a.GetSwapID()))
 		}

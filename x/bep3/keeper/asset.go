@@ -44,3 +44,11 @@ func (k Keeper) ValidateActiveAsset(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 	}
 	return nil
 }
+
+func (k Keeper) GetAllAssets(ctx sdk.Context) (assets []sdk.Coin) {
+	k.IterateAssetSupplies(ctx, func(asset sdk.Coin) bool {
+		assets = append(assets, asset)
+		return false
+	})
+	return
+}

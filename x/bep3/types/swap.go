@@ -51,6 +51,9 @@ func (a BaseSwap) Validate() error {
 	return nil
 }
 
+// Swaps is a slice of Swap
+type Swaps []Swap
+
 type AtomicSwap struct {
 	BaseSwap `json:"base_swap" yaml:"base_swap"`
 }
