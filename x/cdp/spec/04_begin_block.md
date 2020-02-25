@@ -3,6 +3,7 @@
 At the start of every block the BeginBlocker of the cdp module:
 
 - updates total CDP fees
+- update fees for individual "risky" CDPs
 - liquidates CDPs under the collateral ratio
 - nets out system debt and, if necessary, starts auctions to re-balance it
 - records the last block time
@@ -12,6 +13,8 @@ At the start of every block the BeginBlocker of the cdp module:
 - The total fees accumulated since the last block across all CDPs are calculated.
 - An equal amount of debt coins are minted and sent to the system's CDP module account.
 - An equal amount of stable asset coins are minted and sent to the system's liquidator module account
+
+## Update risky cdps
 
 ## Liquidate CDP
 
