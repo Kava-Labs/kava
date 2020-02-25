@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -39,16 +40,23 @@ func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupply)
-		res, height, err := cliCtx.QueryWithData(route, bz)
+		res, _, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		// directly write output instead of putting in json
-		w.Write(res)
-		// rest.PostProcessResponse(w, cliCtx, res)
+		var totalSupply int64
+		err = cliCtx.Codec.UnmarshalJSON(res, &totalSupply)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		resBytes, err := json.Marshal(totalSupply)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		w.Write(resBytes)
 	}
 }
 
@@ -73,16 +81,23 @@ func getCirculatingSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupply)
-		res, height, err := cliCtx.QueryWithData(route, bz)
+		res, _, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		cliCtx = cliCtx.WithHeight(height)
-		// directly write output instead of putting in json
-		w.Write(res)
-		// rest.PostProcessResponse(w, cliCtx, res)
+		var circSupply int64
+		err = cliCtx.Codec.UnmarshalJSON(res, &circSupply)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		resBytes, err := json.Marshal(circSupply)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		w.Write(resBytes)
 	}
-
 }
