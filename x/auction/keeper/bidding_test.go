@@ -117,6 +117,17 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
+			"surplus: invalid bid (less than)",
+			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
+			[]bidArgs{{buyer, c("token2", 100)}},
+			bidArgs{buyer, c("token2", 99)},
+			types.CodeBidTooSmall,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 10),
+			false,
+		},
+		{
 			"debt: normal",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			nil,
@@ -161,6 +172,17 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
+			"debt: invalid lot size (equal)",
+			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}},
+			nil,
+			bidArgs{buyer, c("token1", 20)},
+			types.CodeLotTooLarge,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token1", 20),
+			false,
+		},
+		{
 			"collateral [forward]: normal",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
@@ -195,6 +217,17 @@ func TestAuctionBidding(t *testing.T) {
 		},
 		{
 			"collateral [forward]: invalid bid size (smaller)",
+			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
+			[]bidArgs{{buyer, c("token2", 10)}},
+			bidArgs{buyer, c("token2", 9)},
+			types.CodeBidTooSmall,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 10),
+			false,
+		},
+		{
+			"collateral [forward]: invalid bid size (equal)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
 			bidArgs{buyer, c("token2", 0)},
@@ -342,6 +375,7 @@ func TestAuctionBidding(t *testing.T) {
 				require.Equal(t, tc.expectedEndTime, auction.GetEndTime())
 			} else {
 				// Check expected error code type
+				require.NotNil(t, err) // catch nil values before they cause a panic below
 				require.Equal(t, tc.expectedError, err.Result().Code)
 			}
 		})
