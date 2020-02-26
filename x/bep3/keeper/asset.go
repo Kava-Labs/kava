@@ -26,7 +26,7 @@ func (k Keeper) IncrementAssetSupply(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 func (k Keeper) ValidateProposedIncrease(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 	coinID := []byte(coin.Denom)
 
-	if coin.IsZero() {
+	if !coin.IsPositive() {
 		return types.ErrAmountTooSmall(k.codespace, coin)
 	}
 

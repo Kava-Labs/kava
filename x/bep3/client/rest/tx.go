@@ -14,5 +14,5 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // Action TX body
 // type <Action>Req struct {
 // 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-// 	// TODO: Define more types if needed
+//
 // }

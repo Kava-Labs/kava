@@ -10,7 +10,7 @@ func init() {
 	RegisterCodec(ModuleCdc)
 }
 
-// RegisterCodec registers concrete types on the Amino code
+// RegisterCodec registers concrete types on amino
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*Swap)(nil), nil)
 

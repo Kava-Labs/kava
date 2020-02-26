@@ -8,34 +8,39 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
+// Swap is an interface for handling common actions
 type Swap interface {
 	GetSwapID() cmn.HexBytes
+	GetModuleAccountCoins() sdk.Coins
+	Validate() error
 }
 
-// BaseSwap currently only supports bnbchain => kava asset flows
-type BaseSwap struct {
+// AtomicSwap contains the information for an atomic swap
+type AtomicSwap struct {
 	Swap
-	Amount           sdk.Coins      `json:"amount"`
-	RandomNumberHash cmn.HexBytes   `json:"random_number_hash"`
-	ExpireHeight     int64          `json:"expire_height"`
-	Timestamp        int64          `json:"timestamp"`
-	Sender           sdk.AccAddress `json:"sender"`
-	Recipient        sdk.AccAddress `json:"recipient"`
-	SenderOtherChain string         `json:"sender_other_chain"`
-	ClosedBlock      int64          `json:"closed_block"`
-	Status           SwapStatus     `json:"status"`
+	Amount           sdk.Coins      `json:"amount"  yaml:"amount"`
+	RandomNumberHash cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
+	ExpireHeight     int64          `json:"expire_height"  yaml:"expire_height"`
+	Timestamp        int64          `json:"timestamp"  yaml:"timestamp"`
+	Sender           sdk.AccAddress `json:"sender"  yaml:"sender"`
+	Recipient        sdk.AccAddress `json:"recipient"  yaml:"recipient"`
+	SenderOtherChain string         `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	ClosedBlock      int64          `json:"closed_block"  yaml:"closed_block"`
+	Status           SwapStatus     `json:"status"  yaml:"status"`
 }
 
-func (a BaseSwap) GetSwapID() cmn.HexBytes {
+// GetSwapID calculates the ID of an atomic swap
+func (a AtomicSwap) GetSwapID() cmn.HexBytes {
 	return CalculateSwapID(a.RandomNumberHash, a.Sender, a.SenderOtherChain)
 }
 
-func (a BaseSwap) GetModuleAccountCoins() sdk.Coins {
+// GetModuleAccountCoins returns the swap's amount as sdk.Coins
+func (a AtomicSwap) GetModuleAccountCoins() sdk.Coins {
 	return sdk.NewCoins(a.Amount...)
 }
 
 // Validate verifies that recipient is not empty
-func (a BaseSwap) Validate() error {
+func (a AtomicSwap) Validate() error {
 	if len(a.Sender) != AddrByteCount {
 		return fmt.Errorf(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Sender)))
 	}
@@ -51,17 +56,10 @@ func (a BaseSwap) Validate() error {
 	return nil
 }
 
-// Swaps is a slice of Swap
-type Swaps []Swap
-
-type AtomicSwap struct {
-	BaseSwap `json:"base_swap" yaml:"base_swap"`
-}
-
 // NewAtomicSwap returns a new AtomicSwap
 func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
 	recipient sdk.AccAddress, senderOtherChain string, closedBlock int64, status SwapStatus) AtomicSwap {
-	return AtomicSwap{BaseSwap{
+	return AtomicSwap{
 		Amount:           amount,
 		RandomNumberHash: randomNumberHash,
 		ExpireHeight:     expireHeight,
@@ -71,7 +69,7 @@ func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight
 		SenderOtherChain: senderOtherChain,
 		ClosedBlock:      closedBlock,
 		Status:           status,
-	}}
+	}
 }
 
 // AtomicSwaps is a slice of AtomicSwap
