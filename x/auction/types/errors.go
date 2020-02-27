@@ -68,7 +68,7 @@ func ErrInvalidLotDenom(codespace sdk.CodespaceType, lotDenom string, auctionLot
 
 // ErrBidTooSmall error for when bid is not greater than auction's last bid
 func ErrBidTooSmall(codespace sdk.CodespaceType, bid sdk.Coin, lastBid sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeBidTooSmall, fmt.Sprintf("bid %s is not greater than auction's last bid %s", bid.String(), lastBid.String()))
+	return sdk.NewError(codespace, CodeBidTooSmall, fmt.Sprintf("bid %s is not greater than auction's min new bid amount %s", bid.String(), lastBid.String()))
 }
 
 // ErrBidTooLarge error for when bid is larger than auction's maximum allowed bid
@@ -78,7 +78,7 @@ func ErrBidTooLarge(codespace sdk.CodespaceType, bid sdk.Coin, maxBid sdk.Coin) 
 
 // ErrLotTooLarge error for when lot is not smaller than auction's last lot
 func ErrLotTooLarge(codespace sdk.CodespaceType, lot sdk.Coin, lastLot sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeLotTooLarge, fmt.Sprintf("lot %s is not less than auction's last lot %s", lot.String(), lastLot.String()))
+	return sdk.NewError(codespace, CodeLotTooLarge, fmt.Sprintf("lot %s is not less than auction's max new lot amount %s", lot.String(), lastLot.String()))
 }
 
 // ErrCollateralAuctionIsInReversePhase error for when attempting to place a forward bid on a collateral auction in reverse phase

@@ -73,6 +73,17 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
+			"basic: closed auction",
+			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
+			nil,
+			bidArgs{buyer, c("token2", 10)},
+			types.CodeAuctionHasExpired,
+			types.DistantFuture,
+			nil,
+			c("token2", 0),
+			false,
+		},
+		{
 			"surplus: normal",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
@@ -120,24 +131,24 @@ func TestAuctionBidding(t *testing.T) {
 			"surplus: invalid bid (equal)",
 			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
-			bidArgs{buyer, c("token2", 0)},
+			bidArgs{buyer, c("token2", 0)}, // min bid is technically 0 at default 5%, but it's capped at 1
 			types.CodeBidTooSmall,
 			types.DistantFuture,
 			nil, // surplus auctions are created with initial bidder as a nil address
 			c("token2", 0),
 			false,
 		},
-		// {
-		// 	"surplus: invalid bid (less than min increment)",
-		// 	auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-		// 	[]bidArgs{{buyer, c("token2", 100)}},
-		// 	bidArgs{buyer, c("token2", 101)},
-		// 	types.CodeBidTooSmall,
-		// 	someTime.Add(types.DefaultBidDuration),
-		// 	buyer,
-		// 	c("token2", 10),
-		// 	false,
-		// },
+		{
+			"surplus: invalid bid (less than min increment)",
+			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
+			[]bidArgs{{buyer, c("token2", 100)}},
+			bidArgs{buyer, c("token2", 104)}, // min bid is 105 at default 5%
+			types.CodeBidTooSmall,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 100),
+			false,
+		},
 		{
 			"debt: normal",
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
@@ -187,6 +198,17 @@ func TestAuctionBidding(t *testing.T) {
 			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
 			bidArgs{buyer, c("token1", 20)},
+			types.CodeLotTooLarge,
+			types.DistantFuture,
+			supply.NewModuleAddress(modName),
+			c("token2", 100),
+			false,
+		},
+		{
+			"debt: invalid lot size (larger than min increment)",
+			auctionArgs{Debt, modName, c("token1", 60), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
+			nil,
+			bidArgs{buyer, c("token1", 58)}, // max lot at default 5% is 57
 			types.CodeLotTooLarge,
 			types.DistantFuture,
 			supply.NewModuleAddress(modName),
@@ -249,6 +271,28 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
+			"collateral [forward]: invalid bid size (less than min increment)",
+			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
+			[]bidArgs{{buyer, c("token2", 50)}},
+			bidArgs{buyer, c("token2", 51)},
+			types.CodeBidTooSmall,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 50),
+			false,
+		},
+		{
+			"collateral [forward]: less than min increment but equal to maxBid",
+			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
+			[]bidArgs{{buyer, c("token2", 99)}},
+			bidArgs{buyer, c("token2", 100)}, // min bid at default 5% is 104
+			sdk.CodeType(0),
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 100),
+			true,
+		},
+		{
 			"collateral [forward]: invalid bid size (greater than max)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 100), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			nil,
@@ -293,17 +337,6 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
-			"collateral [reverse]: invalid lot size (equal)",
-			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
-			[]bidArgs{{buyer, c("token2", 50)}},                                                                                   // put auction into reverse phase
-			bidArgs{buyer, c("token1", 20)},
-			types.CodeLotTooLarge,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 50),
-			false,
-		},
-		{
 			"collateral [reverse]: invalid lot size (greater)",
 			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
 			[]bidArgs{{buyer, c("token2", 50)}},                                                                                   // put auction into reverse phase
@@ -315,14 +348,25 @@ func TestAuctionBidding(t *testing.T) {
 			false,
 		},
 		{
-			"basic: closed auction",
-			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 10), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-			nil,
-			bidArgs{buyer, c("token2", 10)},
-			types.CodeAuctionHasExpired,
-			types.DistantFuture,
-			nil,
-			c("token2", 0),
+			"collateral [reverse]: invalid lot size (equal)",
+			auctionArgs{Collateral, modName, c("token1", 20), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
+			[]bidArgs{{buyer, c("token2", 50)}},                                                                                   // put auction into reverse phase
+			bidArgs{buyer, c("token1", 20)},
+			types.CodeLotTooLarge,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 50),
+			false,
+		},
+		{
+			"collateral [reverse]: invalid lot size (larger than min increment)",
+			auctionArgs{Collateral, modName, c("token1", 60), c("token2", 50), c("debt", 50), collateralAddrs, collateralWeights}, // lot, max bid
+			[]bidArgs{{buyer, c("token2", 50)}}, // put auction into reverse phase
+			bidArgs{buyer, c("token1", 58)},     // max lot at default 5% is 57
+			types.CodeLotTooLarge,
+			someTime.Add(types.DefaultBidDuration),
+			buyer,
+			c("token2", 50),
 			false,
 		},
 	}
@@ -419,7 +463,7 @@ func TestAuctionBidding(t *testing.T) {
 
 			} else {
 				// Check expected error code type
-				require.NotNil(t, err) // catch nil values before they cause a panic below
+				require.NotNil(t, err, "PlaceBid did not return an error") // catch nil values before they cause a panic below
 				require.Equal(t, tc.expectedError, err.Result().Code)
 
 				// Check auction values

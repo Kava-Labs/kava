@@ -59,8 +59,8 @@ var (
 	AuctionKeyPrefix       = types.AuctionKeyPrefix
 	AuctionByTimeKeyPrefix = types.AuctionByTimeKeyPrefix
 	NextAuctionIDKey       = types.NextAuctionIDKey
-	KeyAuctionBidDuration  = types.KeyAuctionBidDuration
-	KeyAuctionDuration     = types.KeyAuctionDuration
+	KeyBidDuration         = types.KeyBidDuration
+	KeyMaxAuctionDuration  = types.KeyMaxAuctionDuration
 )
 
 type (

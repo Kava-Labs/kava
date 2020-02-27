@@ -17,26 +17,36 @@ const (
 	DefaultBidDuration time.Duration = 1 * time.Hour
 )
 
-// Parameter keys
 var (
+	// DefaultIncrement is the smallest percent change a new bid must have from the old one
+	DefaultIncrement sdk.Dec = sdk.MustNewDecFromStr("0.05")
 	// ParamStoreKeyParams Param store key for auction params
-	KeyAuctionBidDuration = []byte("BidDuration")
-	KeyAuctionDuration    = []byte("MaxAuctionDuration")
+	KeyBidDuration         = []byte("BidDuration")
+	KeyMaxAuctionDuration  = []byte("MaxAuctionDuration")
+	KeyIncrementSurplus    = []byte("IncrementSurplus")
+	KeyIncrementDebt       = []byte("IncrementDebt")
+	KeyIncrementCollateral = []byte("IncrementCollateral")
 )
 
 var _ subspace.ParamSet = &Params{}
 
 // Params is the governance parameters for the auction module.
 type Params struct {
-	MaxAuctionDuration time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction
-	BidDuration        time.Duration `json:"bid_duration" yaml:"bid_duration"`                 // additional time added to the auction end time after each bid, capped by the expiry.
+	MaxAuctionDuration  time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction
+	BidDuration         time.Duration `json:"bid_duration" yaml:"bid_duration"`                 // additional time added to the auction end time after each bid, capped by the expiry.
+	IncrementSurplus    sdk.Dec       `json:"increment_surplus" yaml:"increment_surplus"`       // percentage change (of auc.Bid) required for a new bid on a surplus auction
+	IncrementDebt       sdk.Dec       `json:"increment_debt" yaml:"increment_debt"`             // percentage change (of auc.Lot) required for a new bid on a debt auction
+	IncrementCollateral sdk.Dec       `json:"increment_collateral" yaml:"increment_collateral"` // percentage change (of auc.Bid or auc.Lot) required for a new bid on a collateral auction
 }
 
 // NewParams returns a new Params object.
-func NewParams(maxAuctionDuration time.Duration, bidDuration time.Duration) Params {
+func NewParams(maxAuctionDuration, bidDuration time.Duration, incrementSurplus, incrementDebt, incrementCollateral sdk.Dec) Params {
 	return Params{
-		MaxAuctionDuration: maxAuctionDuration,
-		BidDuration:        bidDuration,
+		MaxAuctionDuration:  maxAuctionDuration,
+		BidDuration:         bidDuration,
+		IncrementSurplus:    incrementSurplus,
+		IncrementDebt:       incrementDebt,
+		IncrementCollateral: incrementCollateral,
 	}
 }
 
@@ -45,6 +55,9 @@ func DefaultParams() Params {
 	return NewParams(
 		DefaultMaxAuctionDuration,
 		DefaultBidDuration,
+		DefaultIncrement,
+		DefaultIncrement,
+		DefaultIncrement,
 	)
 }
 
@@ -56,8 +69,11 @@ func ParamKeyTable() subspace.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
 func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
 	return subspace.ParamSetPairs{
-		{Key: KeyAuctionBidDuration, Value: &p.BidDuration},
-		{Key: KeyAuctionDuration, Value: &p.MaxAuctionDuration},
+		{Key: KeyBidDuration, Value: &p.BidDuration},
+		{Key: KeyMaxAuctionDuration, Value: &p.MaxAuctionDuration},
+		{Key: KeyIncrementSurplus, Value: &p.IncrementSurplus},
+		{Key: KeyIncrementDebt, Value: &p.IncrementDebt},
+		{Key: KeyIncrementCollateral, Value: &p.IncrementCollateral},
 	}
 }
 
@@ -72,7 +88,11 @@ func (p Params) Equal(p2 Params) bool {
 func (p Params) String() string {
 	return fmt.Sprintf(`Auction Params:
 	Max Auction Duration: %s
-	Bid Duration: %s`, p.MaxAuctionDuration, p.BidDuration)
+	Bid Duration: %s
+	Increment Surplus: %s
+	Increment Debt: %s
+	Increment Collateral: %s`,
+		p.MaxAuctionDuration, p.BidDuration, p.IncrementSurplus, p.IncrementDebt, p.IncrementCollateral)
 }
 
 // Validate checks that the parameters have valid values.
@@ -85,6 +105,15 @@ func (p Params) Validate() error {
 	}
 	if p.BidDuration > p.MaxAuctionDuration {
 		return sdk.ErrInternal("bid duration param cannot be larger than max auction duration")
+	}
+	if p.IncrementSurplus.IsNegative() {
+		return sdk.ErrInternal("surplus auction increment cannot be less than zero")
+	}
+	if p.IncrementDebt.IsNegative() {
+		return sdk.ErrInternal("debt auction increment cannot be less than zero")
+	}
+	if p.IncrementCollateral.IsNegative() {
+		return sdk.ErrInternal("collateral auction increment cannot be less than zero")
 	}
 	return nil
 }
