@@ -39,7 +39,7 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
 	value, err := sdk.NewDecFromStr("1.1")
 	if err != nil {
-		fmt.Printf("got error: %s", err) //  TODO - QUESTION - is there another method we should use for error logging instead of
+		return err
 		// just using printf?
 	}
 	targetRatio := k.getLiquidationRatio(ctx, collateralDenom).Mul(value) // corresponds to 110% of the liquidation ratio
