@@ -34,9 +34,7 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Next we store the result of the fees in the cdp.AccumulatedFees field
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
-// TODO - QUESTION - this method signature should only take (ctx sdk.Context, cp types.Params) as parameters? Is this correct?
-// TODO - QUESTION - is types.CollateralParam the correct type?
-func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, cp types.CollateralParam) {
+func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) {
 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
 	value, err := sdk.NewDecFromStr("1.1")
@@ -44,10 +42,10 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, cp types.CollateralParam
 		fmt.Printf("got error: %s", err) //  TODO - QUESTION - is there another method we should use for error logging instead of
 		// just using printf?
 	}
-	targetRatio := k.getLiquidationRatio(ctx, cp.Denom).Mul(value) // corresponds to 110% of the liquidation ratio
+	targetRatio := k.getLiquidationRatio(ctx, collateralDenom).Mul(value) // corresponds to 110% of the liquidation ratio
 
 	// now iterate over all the cdps based on collateral ratio
-	k.IterateCdpsByCollateralRatio(ctx, cp.Denom, targetRatio, func(cdp types.CDP) bool {
+	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, targetRatio, func(cdp types.CDP) bool {
 		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 		// now calcuate and store additional fees
