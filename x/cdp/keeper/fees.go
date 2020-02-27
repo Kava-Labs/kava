@@ -28,12 +28,6 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 	return newFees
 }
 
-// TODO UpdateFeesForRiskyCdps
-// Select cdps with 10% of the liquidation ratio (ie. 150% * 0.1 = 15% = 165% or lower)
-// call calculate fees for each of those cdps
-// store the result of calculate fees in cdp.AccumulatedFees
-// set cdp.FeesLastUpdated to the current block time (ie. ctx.BlockTime())
-
 // UpdateFeesForRiskyCdps calculates fees for risky CDPs
 // The overall logic is first select the CDPs with 10% of the liquidation ratio
 // Then we call calculate fees on each of those CDPs
