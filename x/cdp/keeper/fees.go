@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -45,7 +46,11 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, cp types.CollateralParam) {
 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
-	targetRatio := k.getLiquidationRatio(ctx, cp.Denom) * 1.1 // corresponds to 110% of the liquidation ratio
+	value, err := sdk.NewDecFromStr("1.1")
+	if err != nil {
+		fmt.Errorf("got error: %s", err)
+	}
+	targetRatio := k.getLiquidationRatio(ctx, cp.Denom).Mul(value) // corresponds to 110% of the liquidation ratio
 
 	// now iterate over all the cdps based on collateral ratio
 	k.IterateCdpsByCollateralRatio(ctx, cp.Denom, targetRatio, func(cdp types.CDP) bool {
