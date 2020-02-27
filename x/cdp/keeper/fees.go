@@ -54,8 +54,7 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) 
 		cdp.AccumulatedFees.Add(additionalFees)
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
-		return false // TODO - QUESTION - is this the correct thing to return?? The return is
-		// not used in this case as far as I can tell
+		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
 	// this function does not return anything
 }
