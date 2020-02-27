@@ -47,7 +47,7 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) 
 		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 		// now calcuate and store additional fees
-		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, cp.Denom)
+		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
 		// now add the additional fees to the accumulated fees for the cdp
 		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(additionalFees)
 		// and set the fees updated time to the current block time since we just updated it
