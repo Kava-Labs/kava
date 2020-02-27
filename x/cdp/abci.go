@@ -20,8 +20,11 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		for _, dp := range params.DebtParams {
 			k.HandleNewDebt(ctx, cp.Denom, dp.Denom, timeElapsed)
 		}
+
 		// IMPLEMENT HERE FEE UPDATING
-		// k.UpdateFeesForRiskyCdps(ctx, cp)
+		// call our update fees method for the risky cdps
+		k.UpdateFeesForRiskyCdps(ctx, cp)
+
 		err := k.LiquidateCdps(ctx, cp.MarketID, cp.Denom, cp.LiquidationRatio)
 		if err != nil {
 			ctx.EventManager().EmitEvent(

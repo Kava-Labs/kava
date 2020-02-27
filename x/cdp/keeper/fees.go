@@ -40,24 +40,30 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Next we store the result of the fees in the cdp.AccumulatedFees field
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
-// TODO - this method signature should only take (ctx sdk.Context, cp types.Params) as parameters, need
-// to fix / remove others
-// TODO - question - is types.CollateralParam the correct type?
+// TODO - QUESTION - this method signature should only take (ctx sdk.Context, cp types.Params) as parameters? Is this correct?
+// TODO - QUESTION - is types.CollateralParam the correct type?
 func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, cp types.CollateralParam) {
 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
 	value, err := sdk.NewDecFromStr("1.1")
 	if err != nil {
-		fmt.Errorf("got error: %s", err)
+		fmt.Printf("got error: %s", err) //  TODO - QUESTION - is there another method we should use for error logging instead of
+		// just using printf?
 	}
 	targetRatio := k.getLiquidationRatio(ctx, cp.Denom).Mul(value) // corresponds to 110% of the liquidation ratio
 
 	// now iterate over all the cdps based on collateral ratio
 	k.IterateCdpsByCollateralRatio(ctx, cp.Denom, targetRatio, func(cdp types.CDP) bool {
+		// get the number of periods
+		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
+		// now calcuate and store additional fees
 		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, cp.Denom)
+		// now add the additional fees to the accumulated fees for the cdp
 		cdp.AccumulatedFees.Add(additionalFees)
+		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
-		return false // TODO - is this the correct thing to return??
+		return false // TODO - QUESTION - is this the correct thing to return?? The return is
+		// not used in this case as far as I can tell
 	})
 	// this function does not return anything
 }
