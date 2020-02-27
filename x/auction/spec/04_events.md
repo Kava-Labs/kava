@@ -25,7 +25,7 @@ The `x/auction` module emits the following events:
 | message     | module        | auction            |
 | message     | sender        | {sender address}   |
 
-## EndBlock
+## BeginBlock
 
 | Type          | Attribute Key | Attribute Value |
 |---------------|---------------|-----------------|
