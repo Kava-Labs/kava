@@ -23,7 +23,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 		// IMPLEMENT HERE FEE UPDATING
 		// call our update fees method for the risky cdps
-		k.UpdateFeesForRiskyCdps(ctx, cp)
+		err := k.UpdateFeesForRiskyCdps(ctx, cp)
 
 		err := k.LiquidateCdps(ctx, cp.MarketID, cp.Denom, cp.LiquidationRatio)
 		if err != nil {

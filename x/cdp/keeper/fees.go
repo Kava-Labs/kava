@@ -49,9 +49,11 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) 
 		// now calcuate and store additional fees
 		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, cp.Denom)
 		// now add the additional fees to the accumulated fees for the cdp
-		cdp.AccumulatedFees.Add(additionalFees)
+		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(additionalFees)
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
+		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
 	return nil
