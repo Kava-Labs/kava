@@ -39,6 +39,8 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Next we store the result of the fees in the cdp.AccumulatedFees field
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
+// TODO - this method signature should only take (ctx sdk.Context, cp params.CollateralParams) as parameters, need
+// to fix / remove others
 func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateral sdk.Coins, periods sdk.Int, denom string) {
 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
