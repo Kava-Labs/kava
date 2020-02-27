@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -34,13 +33,12 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Next we store the result of the fees in the cdp.AccumulatedFees field
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
-func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) {
+func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) sdk.Error {
 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
 	value, err := sdk.NewDecFromStr("1.1")
 	if err != nil {
-		fmt.Printf("got error: %s", err) //  TODO - QUESTION - is there another method we should use for error logging instead of
-		// just using printf?
+		return err
 	}
 	targetRatio := k.getLiquidationRatio(ctx, collateralDenom).Mul(value) // corresponds to 110% of the liquidation ratio
 
@@ -56,7 +54,7 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) 
 		cdp.FeesUpdated = ctx.BlockTime()
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
-	// this function does not return anything
+	return nil
 }
 
 // IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
