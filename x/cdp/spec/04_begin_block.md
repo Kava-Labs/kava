@@ -16,6 +16,11 @@ At the start of every block the BeginBlocker of the cdp module:
 
 ## Update risky cdps
 
+- UpdateFeesForRiskyCdps calculates fees for risky CDPs
+- Select the CDPs with 10% of the liquidation ratio - the risky CDPs
+- Calculate additional accumulated fees on each of those CDPs
+- Update the feeds updated time for the CDP to the current block time
+
 ## Liquidate CDP
 
 - Get every cdp that is under the liquidation ratio for its collateral type.
