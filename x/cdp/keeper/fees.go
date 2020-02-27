@@ -39,16 +39,17 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Next we store the result of the fees in the cdp.AccumulatedFees field
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
-// TODO - this method signature should only take (ctx sdk.Context, cp params.CollateralParams) as parameters, need
+// TODO - this method signature should only take (ctx sdk.Context, cp types.Params) as parameters, need
 // to fix / remove others
-func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateral sdk.Coins, periods sdk.Int, denom string) {
+// TODO - question - is types.CollateralParam the correct type?
+func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, cp types.CollateralParam) {
 
 	// first calculate the target ratio based on liquidation ratio plus ten percent
-	targetRatio := k.getLiquidationRatio(ctx, collateral[0].Denom) * 1.1 // corresponds to 110% of the liquidation ratio
+	targetRatio := k.getLiquidationRatio(ctx, cp.Denom) * 1.1 // corresponds to 110% of the liquidation ratio
 
 	// now iterate over all the cdps based on collateral ratio
-	k.IterateCdpsByCollateralRatio(ctx, denom, targetRatio, func(cdp types.CDP) bool {
-		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, denom)
+	k.IterateCdpsByCollateralRatio(ctx, cp.Denom, targetRatio, func(cdp types.CDP) bool {
+		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, cp.Denom)
 		cdp.AccumulatedFees.Add(additionalFees)
 		cdp.FeesUpdated = ctx.BlockTime()
 		return false // TODO - is this the correct thing to return??
