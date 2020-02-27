@@ -21,9 +21,10 @@ const (
 	CodeInvalidLotDenom                   sdk.CodeType      = 8
 	CodeBidTooSmall                       sdk.CodeType      = 9
 	CodeBidTooLarge                       sdk.CodeType      = 10
-	CodeLotTooLarge                       sdk.CodeType      = 11
-	CodeCollateralAuctionIsInReversePhase sdk.CodeType      = 12
-	CodeCollateralAuctionIsInForwardPhase sdk.CodeType      = 13
+	CodeLotTooSmall                       sdk.CodeType      = 11
+	CodeLotTooLarge                       sdk.CodeType      = 12
+	CodeCollateralAuctionIsInReversePhase sdk.CodeType      = 13
+	CodeCollateralAuctionIsInForwardPhase sdk.CodeType      = 14
 )
 
 // ErrInvalidInitialAuctionID error for when the initial auction ID hasn't been set
@@ -66,9 +67,9 @@ func ErrInvalidLotDenom(codespace sdk.CodespaceType, lotDenom string, auctionLot
 	return sdk.NewError(codespace, CodeInvalidLotDenom, fmt.Sprintf("lot denom %s doesn't match auction lot denom %s", lotDenom, auctionLotDenom))
 }
 
-// ErrBidTooSmall error for when bid is not greater than auction's last bid
-func ErrBidTooSmall(codespace sdk.CodespaceType, bid sdk.Coin, lastBid sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeBidTooSmall, fmt.Sprintf("bid %s is not greater than auction's min new bid amount %s", bid.String(), lastBid.String()))
+// ErrBidTooSmall error for when bid is not greater than auction's min bid amount
+func ErrBidTooSmall(codespace sdk.CodespaceType, bid sdk.Coin, minBid sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeBidTooSmall, fmt.Sprintf("bid %s is not greater than auction's min new bid amount %s", bid.String(), minBid.String()))
 }
 
 // ErrBidTooLarge error for when bid is larger than auction's maximum allowed bid
@@ -76,9 +77,14 @@ func ErrBidTooLarge(codespace sdk.CodespaceType, bid sdk.Coin, maxBid sdk.Coin) 
 	return sdk.NewError(codespace, CodeBidTooLarge, fmt.Sprintf("bid %s is greater than auction's max bid %s", bid.String(), maxBid.String()))
 }
 
-// ErrLotTooLarge error for when lot is not smaller than auction's last lot
-func ErrLotTooLarge(codespace sdk.CodespaceType, lot sdk.Coin, lastLot sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeLotTooLarge, fmt.Sprintf("lot %s is not less than auction's max new lot amount %s", lot.String(), lastLot.String()))
+// ErrLotToosmall error for when lot is less than zero
+func ErrLotTooSmall(codespace sdk.CodespaceType, lot sdk.Coin, minLot sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeLotTooSmall, fmt.Sprintf("lot %s is not greater than auction's min new lot amount %s", lot.String(), minLot.String()))
+}
+
+// ErrLotTooLarge error for when lot is not smaller than auction's max new lot amount
+func ErrLotTooLarge(codespace sdk.CodespaceType, lot sdk.Coin, maxLot sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeLotTooLarge, fmt.Sprintf("lot %s is greater than auction's max new lot amount %s", lot.String(), maxLot.String()))
 }
 
 // ErrCollateralAuctionIsInReversePhase error for when attempting to place a forward bid on a collateral auction in reverse phase

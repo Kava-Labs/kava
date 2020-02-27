@@ -316,6 +316,9 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	if lot.Amount.GT(maxNewLotAmt) {
 		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
 	}
+	if lot.IsNegative() {
+		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+	}
 
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid
@@ -378,6 +381,9 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
 		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+	}
+	if lot.IsNegative() {
+		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
