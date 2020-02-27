@@ -106,6 +106,9 @@ func (p Params) Validate() error {
 	if p.BidDuration > p.MaxAuctionDuration {
 		return sdk.ErrInternal("bid duration param cannot be larger than max auction duration")
 	}
+	if p.IncrementSurplus == (sdk.Dec{}) || p.IncrementDebt == (sdk.Dec{}) || p.IncrementCollateral == (sdk.Dec{}) {
+		return sdk.ErrInternal("auction increment values cannot be nil")
+	}
 	if p.IncrementSurplus.IsNegative() {
 		return sdk.ErrInternal("surplus auction increment cannot be less than zero")
 	}
