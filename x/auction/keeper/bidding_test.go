@@ -100,20 +100,9 @@ func TestAuctionBidding(t *testing.T) {
 			nil,
 			bidArgs{buyer, c("badtoken", 10)},
 			types.CodeInvalidBidDenom,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
-			false,
-		},
-		{
-			"surplus: invalid bid (equal)",
-			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
-			nil,
-			bidArgs{buyer, c("token2", 0)},
-			types.CodeBidTooSmall,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			types.DistantFuture,
+			nil, // surplus auctions are created with initial bidder as a nil address
+			c("token2", 0),
 			false,
 		},
 		{
@@ -124,12 +113,34 @@ func TestAuctionBidding(t *testing.T) {
 			types.CodeBidTooSmall,
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
-			c("token2", 10),
+			c("token2", 100),
 			false,
 		},
 		{
+			"surplus: invalid bid (equal)",
+			auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
+			nil,
+			bidArgs{buyer, c("token2", 0)},
+			types.CodeBidTooSmall,
+			types.DistantFuture,
+			nil, // surplus auctions are created with initial bidder as a nil address
+			c("token2", 0),
+			false,
+		},
+		// {
+		// 	"surplus: invalid bid (less than min increment)",
+		// 	auctionArgs{Surplus, modName, c("token1", 100), c("token2", 0), sdk.Coin{}, []sdk.AccAddress{}, []sdk.Int{}},
+		// 	[]bidArgs{{buyer, c("token2", 100)}},
+		// 	bidArgs{buyer, c("token2", 101)},
+		// 	types.CodeBidTooSmall,
+		// 	someTime.Add(types.DefaultBidDuration),
+		// 	buyer,
+		// 	c("token2", 10),
+		// 	false,
+		// },
+		{
 			"debt: normal",
-			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
+			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			nil,
 			bidArgs{buyer, c("token1", 10)},
 			sdk.CodeType(0),
@@ -140,7 +151,7 @@ func TestAuctionBidding(t *testing.T) {
 		},
 		{
 			"debt: second bidder",
-			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
+			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			[]bidArgs{{buyer, c("token1", 10)}},
 			bidArgs{secondBuyer, c("token1", 9)},
 			sdk.CodeType(0),
@@ -151,35 +162,35 @@ func TestAuctionBidding(t *testing.T) {
 		},
 		{
 			"debt: invalid lot denom",
-			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
+			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}}, // initial bid, lot
 			nil,
 			bidArgs{buyer, c("badtoken", 10)},
 			types.CodeInvalidLotDenom,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token1", 20),
+			types.DistantFuture,
+			supply.NewModuleAddress(modName),
+			c("token2", 100),
 			false,
 		},
 		{
 			"debt: invalid lot size (larger)",
-			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}},
+			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
 			bidArgs{buyer, c("token1", 21)},
 			types.CodeLotTooLarge,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token1", 20),
+			types.DistantFuture,
+			supply.NewModuleAddress(modName),
+			c("token2", 100),
 			false,
 		},
 		{
 			"debt: invalid lot size (equal)",
-			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 20), []sdk.AccAddress{}, []sdk.Int{}},
+			auctionArgs{Debt, modName, c("token1", 20), c("token2", 100), c("debt", 100), []sdk.AccAddress{}, []sdk.Int{}},
 			nil,
 			bidArgs{buyer, c("token1", 20)},
 			types.CodeLotTooLarge,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token1", 20),
+			types.DistantFuture,
+			supply.NewModuleAddress(modName),
+			c("token2", 100),
 			false,
 		},
 		{
@@ -210,9 +221,9 @@ func TestAuctionBidding(t *testing.T) {
 			nil,
 			bidArgs{buyer, c("badtoken", 10)},
 			types.CodeInvalidBidDenom,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			types.DistantFuture,
+			nil,
+			c("token2", 0),
 			false,
 		},
 		{
@@ -232,9 +243,9 @@ func TestAuctionBidding(t *testing.T) {
 			nil,
 			bidArgs{buyer, c("token2", 0)},
 			types.CodeBidTooSmall,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			types.DistantFuture,
+			nil,
+			c("token2", 0),
 			false,
 		},
 		{
@@ -243,9 +254,9 @@ func TestAuctionBidding(t *testing.T) {
 			nil,
 			bidArgs{buyer, c("token2", 101)},
 			types.CodeBidTooLarge,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			types.DistantFuture,
+			nil,
+			c("token2", 0),
 			false,
 		},
 		{
@@ -309,9 +320,9 @@ func TestAuctionBidding(t *testing.T) {
 			nil,
 			bidArgs{buyer, c("token2", 10)},
 			types.CodeAuctionHasExpired,
-			someTime.Add(types.DefaultBidDuration),
-			buyer,
-			c("token2", 10),
+			types.DistantFuture,
+			nil,
+			c("token2", 0),
 			false,
 		},
 	}
@@ -335,6 +346,7 @@ func TestAuctionBidding(t *testing.T) {
 			)
 			ctx := tApp.NewContext(false, abci.Header{})
 			keeper := tApp.GetAuctionKeeper()
+			bank := tApp.GetBankKeeper()
 
 			// Start Auction
 			var id uint64
@@ -359,24 +371,69 @@ func TestAuctionBidding(t *testing.T) {
 				ctx = ctx.WithBlockTime(types.DistantFuture.Add(1))
 			}
 
+			// Store some state for use in checks
+			oldAuction, found := keeper.GetAuction(ctx, id)
+			var oldBidder sdk.AccAddress
+			if found {
+				oldBidder = oldAuction.GetBidder()
+			}
+			oldBidderOldCoins := bank.GetCoins(ctx, oldBidder)
+			newBidderOldCoins := bank.GetCoins(ctx, tc.bidArgs.bidder)
+
 			// Place bid on auction
 			err = keeper.PlaceBid(ctx, id, tc.bidArgs.bidder, tc.bidArgs.amount)
 
 			// Check success/failure
 			if tc.expectpass {
 				require.Nil(t, err)
-				// Get auction from store
-				auction, found := keeper.GetAuction(ctx, id)
+				// Check auction was found
+				newAuction, found := keeper.GetAuction(ctx, id)
 				require.True(t, found)
 				// Check auction values
-				require.Equal(t, modName, auction.GetInitiator())
-				require.Equal(t, tc.expectedBidder, auction.GetBidder())
-				require.Equal(t, tc.expectedBid, auction.GetBid())
-				require.Equal(t, tc.expectedEndTime, auction.GetEndTime())
+				require.Equal(t, modName, newAuction.GetInitiator())
+				require.Equal(t, tc.expectedBidder, newAuction.GetBidder())
+				require.Equal(t, tc.expectedBid, newAuction.GetBid())
+				require.Equal(t, tc.expectedEndTime, newAuction.GetEndTime())
+
+				// Check coins have moved between bidder and previous bidder
+				bidAmt := tc.bidArgs.amount
+				switch tc.auctionArgs.auctionType {
+				case Debt:
+					bidAmt = oldAuction.GetBid()
+				case Collateral:
+					collatAuction, _ := oldAuction.(types.CollateralAuction)
+					if collatAuction.IsReversePhase() {
+						bidAmt = oldAuction.GetBid()
+					}
+				}
+				if oldBidder.Equals(tc.bidArgs.bidder) { // same bidder
+					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt.Sub(oldAuction.GetBid()))), bank.GetCoins(ctx, tc.bidArgs.bidder))
+				} else {
+					require.Equal(t, cs(newBidderOldCoins.Sub(cs(bidAmt))...), bank.GetCoins(ctx, tc.bidArgs.bidder)) // wrapping in cs() to avoid comparing nil and empty coins
+					if oldBidder.Equals(supply.NewModuleAddress(oldAuction.GetInitiator())) {                         // handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
+						require.Equal(t, cs(oldBidderOldCoins.Add(cs(oldAuction.GetBid()))...).Add(cs(c("debt", oldAuction.GetBid().Amount.Int64()))), bank.GetCoins(ctx, oldBidder))
+					} else {
+						require.Equal(t, cs(oldBidderOldCoins.Add(cs(oldAuction.GetBid()))...), bank.GetCoins(ctx, oldBidder))
+					}
+				}
+
 			} else {
 				// Check expected error code type
 				require.NotNil(t, err) // catch nil values before they cause a panic below
 				require.Equal(t, tc.expectedError, err.Result().Code)
+
+				// Check auction values
+				newAuction, found := keeper.GetAuction(ctx, id)
+				if found {
+					require.Equal(t, modName, newAuction.GetInitiator())
+					require.Equal(t, tc.expectedBidder, newAuction.GetBidder())
+					require.Equal(t, tc.expectedBid, newAuction.GetBid())
+					require.Equal(t, tc.expectedEndTime, newAuction.GetEndTime())
+				}
+
+				// Check coins have not moved
+				require.Equal(t, newBidderOldCoins, bank.GetCoins(ctx, tc.bidArgs.bidder))
+				require.Equal(t, oldBidderOldCoins, bank.GetCoins(ctx, oldBidder))
 			}
 		})
 	}
