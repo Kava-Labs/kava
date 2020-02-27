@@ -58,7 +58,7 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string) 
 	        k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
-	// this function does not return anything
+	return nil
 }
 
 // IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
