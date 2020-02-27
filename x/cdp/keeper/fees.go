@@ -33,6 +33,27 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // store the result of calculate fees in cdp.AccumulatedFees
 // set cdp.FeesLastUpdated to the current block time (ie. ctx.BlockTime())
 
+// UpdateFeesForRiskyCdps calculates fees for risky CDPs
+// The overall logic is first select the CDPs with 10% of the liquidation ratio
+// Then we call calculate fees on each of those CDPs
+// Next we store the result of the fees in the cdp.AccumulatedFees field
+// Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
+// is when we made the update
+func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateral sdk.Coins, periods sdk.Int, denom string) {
+
+	// first calculate the target ratio based on liquidation ratio plus ten percent
+	targetRatio := k.getLiquidationRatio(ctx, collateral[0].Denom) * 1.1 // corresponds to 110% of the liquidation ratio
+
+	// now iterate over all the cdps based on collateral ratio
+	k.IterateCdpsByCollateralRatio(ctx, denom, targetRatio, func(cdp types.CDP) bool {
+		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, denom)
+		cdp.AccumulatedFees.Add(additionalFees)
+		cdp.FeesUpdated = ctx.BlockTime()
+		return false // TODO - is this the correct thing to return??
+	})
+	// this function does not return anything
+}
+
 // IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
 func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralDenom string, principal sdk.Coins) {
 	for _, pc := range principal {
