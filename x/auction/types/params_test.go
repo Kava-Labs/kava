@@ -57,8 +57,8 @@ func TestParams_Validate(t *testing.T) {
 		{
 			"negative increment surplus",
 			Params{
-				MaxAuctionDuration:  1 * time.Hour,
-				BidDuration:         24 * time.Hour,
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         1 * time.Hour,
 				IncrementSurplus:    d("-0.05"),
 				IncrementDebt:       d("0.05"),
 				IncrementCollateral: d("0.05"),
@@ -68,8 +68,8 @@ func TestParams_Validate(t *testing.T) {
 		{
 			"negative increment debt",
 			Params{
-				MaxAuctionDuration:  1 * time.Hour,
-				BidDuration:         24 * time.Hour,
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         1 * time.Hour,
 				IncrementSurplus:    d("0.05"),
 				IncrementDebt:       d("-0.05"),
 				IncrementCollateral: d("0.05"),
@@ -79,8 +79,8 @@ func TestParams_Validate(t *testing.T) {
 		{
 			"negative increment collateral",
 			Params{
-				MaxAuctionDuration:  1 * time.Hour,
-				BidDuration:         24 * time.Hour,
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         1 * time.Hour,
 				IncrementSurplus:    d("0.05"),
 				IncrementDebt:       d("0.05"),
 				IncrementCollateral: d("-0.05"),
