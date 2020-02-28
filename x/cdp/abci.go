@@ -22,14 +22,14 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 
 		// call our update fees method for the risky cdps
-		err := k.UpdateFeesForRiskyCdps(ctx, cp.Denom)
+		err := k.UpdateFeesForRiskyCdps(ctx, cp.Denom, cp.MarketID)
 		// handle if an error is returned then propagate up
 		if err != nil {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					EventTypeBeginBlockerFatal,
 					sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
-					sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", e)),
+					sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
 				),
 			)
 		}
