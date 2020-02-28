@@ -15,6 +15,10 @@ import (
 // saving the result to a module level variable ensures the compiler doesn't optimize the test away
 var coinsResult sdk.Coins
 
+// Note - the iteration benchmarks take a long time to stabilize, to get stable results use:
+// go test -benchmem -bench ^(BenchmarkAccountIteration)$ -benchtime 60s  -timeout 2h
+// go test -benchmem -bench ^(BenchmarkCdpIteration)$ -benchtime 60s  -timeout 2h
+
 func BenchmarkAccountIteration(b *testing.B) {
 	benchmarks := []struct {
 		name           string
