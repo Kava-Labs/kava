@@ -121,7 +121,7 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
 	}
 	expectedIncomeCoins, err := sdk.ParseCoins(msg.ExpectedIncome)
 	if err != nil || expectedIncomeCoins == nil {
-		return sdk.ErrInternal(fmt.Sprintf("expected income %s must be in valid format e.g. kava10000", msg.ExpectedIncome))
+		return sdk.ErrInternal(fmt.Sprintf("expected income %s must be in valid format e.g. 10000ukava", msg.ExpectedIncome))
 	}
 	if expectedIncomeCoins.IsAnyGT(msg.Amount) {
 		return sdk.ErrInternal(fmt.Sprintf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String()))

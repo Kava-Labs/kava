@@ -28,8 +28,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return types.ErrInvalidHeightSpan(k.codespace, heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
 	}
 
-	// Validate that timestamp is within reasonable bounds
-	// Assuming a block time of 10 seconds, the timestamp must be in range [-15 mins, 30 mins] of the current time
+	// Timestamp is the self-reported kava block height at which the user hashed with the random number.
+	// Assuming a block time of 10 seconds, the timestamp must be in range [-15 mins, 30 mins] of the current block height.
 	if ctx.BlockHeight() > 1800 {
 		if timestamp > ctx.BlockHeight()-1800 || timestamp < ctx.BlockHeight()+900 {
 			return types.ErrInvalidTimestamp(k.codespace)

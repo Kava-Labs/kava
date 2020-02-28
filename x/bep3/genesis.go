@@ -14,27 +14,25 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	}
 
 	// Set each AssetSupply and store total coin count
-	totalAssetSupplyCoins := sdk.NewCoins()
+	totalGenesisCoins := sdk.NewCoins()
 	for _, asset := range gs.AssetSupplies {
 		keeper.SetAssetSupply(ctx, asset, []byte(asset.Denom))
-		totalAssetSupplyCoins.Add(sdk.NewCoins(asset))
+		totalGenesisCoins.Add(sdk.NewCoins(asset))
 	}
 
 	// Set each AtomicSwap and store total coin count
-	totalAtomicSwapCoins := sdk.NewCoins()
 	for _, swap := range gs.AtomicSwaps {
 		if swap.Validate() != nil {
 			panic(fmt.Sprintf("invalid swap %s", swap.GetSwapID()))
 		}
 		keeper.SetAtomicSwap(ctx, swap)
 		keeper.InsertIntoByBlockIndex(ctx, swap)
-		totalAtomicSwapCoins.Add(swap.GetModuleAccountCoins())
+		totalGenesisCoins.Add(swap.GetModuleAccountCoins())
 	}
 
 	keeper.SetParams(ctx, gs.Params)
 
 	// Check module coins match expected genesis coins
-	totalGenesisCoins := totalAssetSupplyCoins.Add(totalAtomicSwapCoins)
 	moduleAcc := supplyKeeper.GetModuleAccount(ctx, ModuleName)
 	if !moduleAcc.GetCoins().IsEqual(totalGenesisCoins) {
 		panic(fmt.Sprintf("total coins (%s) do not equal (%s) module account (%s) ", moduleAcc.GetCoins(), ModuleName, totalGenesisCoins))

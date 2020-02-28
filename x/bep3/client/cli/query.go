@@ -60,9 +60,9 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 // QueryCalcSwapIDCmd calculates the swapID for a random number hash, sender, and sender other chain
 func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "calc-id [randomNumberHash] [sender] [senderOtherChain]",
+		Use:     "calc-swapid [randomNumberHash] [sender] [senderOtherChain]",
 		Short:   "calculate swap ID for the given random number hash, sender, and sender other chain",
-		Example: "bep3 calc-id 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 kava15qdefkmwswysgg4qxgcqpqr35k3m49pkx2jdfnw bnb1ud3q90r98l3mhd87kswv3h8cgrymzeljct8qn7",
+		Example: "bep3 calc-swapid 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 kava15qdefkmwswysgg4qxgcqpqr35k3m49pkx2jdfnw bnb1ud3q90r98l3mhd87kswv3h8cgrymzeljct8qn7",
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -110,7 +110,6 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			// TODO: swap: null
 			// TODO: randomnumberhash: [232, 148....]
 			// Decode and print results
 			var atomicSwap types.AtomicSwap
