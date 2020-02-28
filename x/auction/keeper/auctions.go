@@ -168,8 +168,14 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 	if bid.Denom != a.Bid.Denom {
 		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
 	}
-	if !a.Bid.IsLT(bid) {
-		return a, types.ErrBidTooSmall(k.codespace, bid, a.Bid)
+	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
+		sdk.MaxInt(
+			sdk.NewInt(1),
+			sdk.NewDecFromInt(a.Bid.Amount).Mul(k.GetParams(ctx).IncrementSurplus).RoundInt(),
+		),
+	)
+	if bid.Amount.LT(minNewBidAmt) {
+		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
 	}
 
 	// New bidder pays back old bidder
@@ -225,8 +231,15 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	if a.IsReversePhase() {
 		return a, types.ErrCollateralAuctionIsInReversePhase(k.codespace, a.ID)
 	}
-	if !a.Bid.IsLT(bid) {
-		return a, types.ErrBidTooSmall(k.codespace, bid, a.Bid)
+	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
+		sdk.MaxInt(
+			sdk.NewInt(1),
+			sdk.NewDecFromInt(a.Bid.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+		),
+	)
+	minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
+	if bid.Amount.LT(minNewBidAmt) {
+		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
 	}
 	if a.MaxBid.IsLT(bid) {
 		return a, types.ErrBidTooLarge(k.codespace, bid, a.MaxBid)
@@ -294,8 +307,17 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	if !a.IsReversePhase() {
 		return a, types.ErrCollateralAuctionIsInForwardPhase(k.codespace, a.ID)
 	}
-	if !lot.IsLT(a.Lot) {
-		return a, types.ErrLotTooLarge(k.codespace, lot, a.Lot)
+	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+		sdk.MaxInt(
+			sdk.NewInt(1),
+			sdk.NewDecFromInt(a.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+		),
+	)
+	if lot.Amount.GT(maxNewLotAmt) {
+		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+	}
+	if lot.IsNegative() {
+		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
@@ -351,8 +373,17 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	if lot.Denom != a.Lot.Denom {
 		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
 	}
-	if !lot.IsLT(a.Lot) {
-		return a, types.ErrLotTooLarge(k.codespace, lot, a.Lot)
+	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+		sdk.MaxInt(
+			sdk.NewInt(1),
+			sdk.NewDecFromInt(a.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
+		),
+	)
+	if lot.Amount.GT(maxNewLotAmt) {
+		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+	}
+	if lot.IsNegative() {
+		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
