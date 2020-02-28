@@ -17,7 +17,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	totalGenesisCoins := sdk.NewCoins()
 	for _, asset := range gs.AssetSupplies {
 		keeper.SetAssetSupply(ctx, asset, []byte(asset.Denom))
-		totalGenesisCoins.Add(sdk.NewCoins(asset))
+		totalGenesisCoins = totalGenesisCoins.Add(sdk.NewCoins(asset))
 	}
 
 	// Set each AtomicSwap and store total coin count
@@ -27,7 +27,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		}
 		keeper.SetAtomicSwap(ctx, swap)
 		keeper.InsertIntoByBlockIndex(ctx, swap)
-		totalGenesisCoins.Add(swap.GetModuleAccountCoins())
+		totalGenesisCoins = totalGenesisCoins.Add(swap.GetModuleAccountCoins())
 	}
 
 	keeper.SetParams(ctx, gs.Params)
