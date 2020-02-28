@@ -34,30 +34,17 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
 func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, marketID string) sdk.Error {
-        price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err
 	}
-	// first calculate the target ratio based on liquidation ratio plus ten percent
-	value, err := sdk.NewDecFromStr("1.1")
-	if err != nil {
-		return err
-	}
-	targetRatio := k.getLiquidationRatio(ctx, collateralDenom).Mul(value) // corresponds to 110% of the liquidation ratio
-        normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio))
-        
+
+	liquidationRatio := k.getLiquidationRatio(ctx, collateralDenom)
+	// targetRatio := liquidationRatio.Mul(value) // corresponds to 110% of the liquidation ratio
+	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio))
+
 	// now iterate over all the cdps based on collateral ratio
 	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, normalizedRatio, func(cdp types.CDP) bool {
-
-	// first calculate the target ratio based on liquidation ratio plus ten percent
-	value, err := sdk.NewDecFromStr("1.1")
-	if err != nil {
-		return err
-	}
-	targetRatio := k.getLiquidationRatio(ctx, collateralDenom).Mul(value) // corresponds to 110% of the liquidation ratio
-
-	// now iterate over all the cdps based on collateral ratio
-	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, targetRatio, func(cdp types.CDP) bool {
 		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 		// now calcuate and store additional fees
