@@ -44,5 +44,5 @@ type AuctionKeeper interface {
 
 // AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
-	GetAllAccounts(ctx sdk.Context) (accounts []authexported.Account)
+	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
 }

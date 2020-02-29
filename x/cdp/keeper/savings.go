@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -24,31 +25,40 @@ func (k Keeper) ApplySavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
 	}
 	totalSupplyLessSurplus := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(totalSurplusCoins)
 	surplusDistributed := sdk.ZeroInt()
-	for _, acc := range k.accountKeeper.GetAllAccounts(ctx) {
+	var iterationErr sdk.Error
+	k.accountKeeper.IterateAccounts(ctx, func(acc authexported.Account) (stop bool) {
 		_, ok := acc.(supplyexported.ModuleAccountI)
 		if ok {
-			// don't distribute rewards to module accounts
-			continue
+			// don't distribute savings rate to module accounts
+			return false
 		}
 		debtAmount := acc.GetCoins().AmountOf(debtDenom)
-		if debtAmount.IsPositive() {
-			// (balance / totalSupply) * rewardToDisribute
-			// interest is the ratable fraction of rewards owed to that account, rounded using bankers rounding
-			interest := (sdk.NewDecFromInt(debtAmount).Quo(sdk.NewDecFromInt(totalSupplyLessSurplus.AmountOf(debtDenom)))).Mul(sdk.NewDecFromInt(surplusToDistribute)).RoundInt()
-			// sanity check, if we are going to over-distribute due to rounding, distribute only the remaining rewards that haven't been distributed.
-			if interest.GT(surplusToDistribute.Sub(surplusDistributed)) {
-				interest = surplusToDistribute.Sub(surplusDistributed)
-			}
-			// sanity check - don't send rewards if the rounded reward is zero
-			if interest.IsPositive() {
-				interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
-				err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.LiquidatorMacc, acc.GetAddress(), interestCoins)
-				if err != nil {
-					return err
-				}
-				surplusDistributed = surplusDistributed.Add(interest)
-			}
+		if !debtAmount.IsPositive() {
+			return false
 		}
+		// (balance / totalSupply) * rewardToDisribute
+		// interest is the ratable fraction of savings rate owed to that account, rounded using bankers rounding
+		// interest := (sdk.NewDecFromInt(debtAmount).Quo(sdk.NewDecFromInt(totalSupplyLessSurplus.AmountOf(debtDenom)))).Mul(sdk.NewDecFromInt(surplusToDistribute)).RoundInt()
+		interest := (sdk.NewDecFromInt(debtAmount).Mul(sdk.NewDecFromInt(surplusToDistribute))).Quo(sdk.NewDecFromInt(totalSupplyLessSurplus.AmountOf(debtDenom))).RoundInt()
+		// sanity check, if we are going to over-distribute due to rounding, distribute only the remaining savings rate that hasn't been distributed.
+		if interest.GT(surplusToDistribute.Sub(surplusDistributed)) {
+			interest = surplusToDistribute.Sub(surplusDistributed)
+		}
+		// sanity check - don't send saving rate if the rounded amount is zero
+		if !interest.IsPositive() {
+			return false
+		}
+		interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
+		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.LiquidatorMacc, acc.GetAddress(), interestCoins)
+		if err != nil {
+			iterationErr = err
+			return true
+		}
+		surplusDistributed = surplusDistributed.Add(interest)
+		return false
+	})
+	if iterationErr != nil {
+		return iterationErr
 	}
 	return nil
 }
