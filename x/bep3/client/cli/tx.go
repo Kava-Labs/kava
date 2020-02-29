@@ -38,7 +38,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [hashed-secret] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
 		Short: "create a new atomic swap",
-		Example: fmt.Sprintf("%s query %s create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A '' 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 100 100xrp 99xrp 100 true --from accA",
+		Example: fmt.Sprintf("%s tx %s create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A '' 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 100 100xrp 99xrp 100 true --from accA",
 			version.ClientName, types.ModuleName),
 		Args: cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -101,7 +101,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "claim [swap-id] [random-number]",
 		Short:   "claim coins in an atomic swap using the secret number",
-		Example: fmt.Sprintf("%s query %s claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 123456789 --from accA", version.ClientName, types.ModuleName),
+		Example: fmt.Sprintf("%s tx %s claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 123456789 --from accA", version.ClientName, types.ModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -136,7 +136,7 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "refund [swap-id]",
 		Short:   "refund the coins in an atomic swap",
-		Example: fmt.Sprintf("%s query %s refund 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af --from accA", version.ClientName, types.ModuleName),
+		Example: fmt.Sprintf("%s tx %s refund 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af --from accA", version.ClientName, types.ModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
