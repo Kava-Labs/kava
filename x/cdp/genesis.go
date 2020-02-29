@@ -22,6 +22,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 	if liqModuleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", LiquidatorMacc))
 	}
+	savingsRateMacc := sk.GetModuleAccount(ctx, SavingsRateMacc)
+	if savingsRateMacc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", SavingsRateMacc))
+	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
 	// pricefeed MUST call InitGenesis before cdp

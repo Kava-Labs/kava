@@ -75,6 +75,7 @@ var (
 		auction.ModuleName:          nil,
 		cdp.ModuleName:              {supply.Minter, supply.Burner},
 		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
+		cdp.SavingsRateMacc:         {supply.Minter},
 	}
 )
 

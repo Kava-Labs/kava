@@ -16,13 +16,14 @@ func (k Keeper) ApplySavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
 	if !found {
 		return types.ErrDebtNotSupported(k.codespace, debtDenom)
 	}
-	liquidatorMacc := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
-	totalSurplusCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, liquidatorMacc.GetCoins().AmountOf(dp.Denom)))
+	savingsRateMacc := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
 
-	surplusToDistribute := sdk.NewDecFromInt(liquidatorMacc.GetCoins().AmountOf(dp.Denom)).Mul(dp.SavingsRate).RoundInt()
+	surplusToDistribute := savingsRateMacc.GetCoins().AmountOf(dp.Denom)
 	if surplusToDistribute.IsZero() {
 		return nil
 	}
+
+	totalSurplusCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, savingsRateMacc.GetCoins().AmountOf(dp.Denom)))
 	totalSupplyLessSurplus := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(totalSurplusCoins)
 	surplusDistributed := sdk.ZeroInt()
 	var iterationErr sdk.Error
@@ -36,9 +37,8 @@ func (k Keeper) ApplySavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
 		if !debtAmount.IsPositive() {
 			return false
 		}
-		// (balance / totalSupply) * rewardToDisribute
+		// (balance * rewardToDisribute) /  totalSupply
 		// interest is the ratable fraction of savings rate owed to that account, rounded using bankers rounding
-		// interest := (sdk.NewDecFromInt(debtAmount).Quo(sdk.NewDecFromInt(totalSupplyLessSurplus.AmountOf(debtDenom)))).Mul(sdk.NewDecFromInt(surplusToDistribute)).RoundInt()
 		interest := (sdk.NewDecFromInt(debtAmount).Mul(sdk.NewDecFromInt(surplusToDistribute))).Quo(sdk.NewDecFromInt(totalSupplyLessSurplus.AmountOf(debtDenom))).RoundInt()
 		// sanity check, if we are going to over-distribute due to rounding, distribute only the remaining savings rate that hasn't been distributed.
 		if interest.GT(surplusToDistribute.Sub(surplusDistributed)) {
@@ -49,7 +49,7 @@ func (k Keeper) ApplySavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
 			return false
 		}
 		interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.LiquidatorMacc, acc.GetAddress(), interestCoins)
+		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
 		if err != nil {
 			iterationErr = err
 			return true

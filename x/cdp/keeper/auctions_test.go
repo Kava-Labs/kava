@@ -51,13 +51,13 @@ func (suite *AuctionTestSuite) TestNetDebtSurplus() {
 
 func (suite *AuctionTestSuite) TestSurplusAuction() {
 	sk := suite.app.GetSupplyKeeper()
-	err := sk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("usdx", 21000000000)))
+	err := sk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("usdx", 10000000000)))
 	suite.NoError(err)
 	err = sk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("debt", 1000000000)))
 	suite.NoError(err)
 	suite.keeper.RunSurplusAndDebtAuctions(suite.ctx)
 	acc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
-	suite.Equal(cs(c("usdx", 1000000000)), acc.GetCoins())
+	suite.Equal(cs(c("usdx", 9000000000)), acc.GetCoins())
 }
 
 func (suite *AuctionTestSuite) TestDebtAuction() {

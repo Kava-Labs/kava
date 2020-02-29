@@ -223,9 +223,8 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) sdk.Error {
 
 	for _, dp := range params.DebtParams {
 		surplus := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
-		surplusForAuction := sdk.NewDecFromInt(surplus).Mul(sdk.OneDec().Sub(dp.SavingsRate)).RoundInt()
-		if surplusForAuction.GTE(params.SurplusAuctionThreshold) {
-			surplusLot := sdk.NewCoin(dp.Denom, surplusForAuction)
+		if surplus.GTE(params.SurplusAuctionThreshold) {
+			surplusLot := sdk.NewCoin(dp.Denom, surplus)
 			_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
 			if err != nil {
 				return err

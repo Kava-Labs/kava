@@ -37,7 +37,7 @@ func (suite *SavingsTestSuite) SetupTest() {
 		NewCDPGenStateMulti(),
 	)
 	sk := tApp.GetSupplyKeeper()
-	macc := sk.GetModuleAccount(ctx, types.LiquidatorMacc)
+	macc := sk.GetModuleAccount(ctx, types.SavingsRateMacc)
 	err := sk.MintCoins(ctx, macc.GetName(), cs(c("usdx", 10000)))
 	suite.NoError(err)
 	keeper := tApp.GetCDPKeeper()
@@ -52,11 +52,14 @@ func (suite *SavingsTestSuite) TestApplySavingsRate() {
 	suite.NoError(err)
 	ak := suite.app.GetAccountKeeper()
 	acc0 := ak.GetAccount(suite.ctx, suite.addrs[0])
-	suite.Equal(cs(c("usdx", 104750)), acc0.GetCoins())
+	suite.Equal(cs(c("usdx", 105000)), acc0.GetCoins())
 	acc1 := ak.GetAccount(suite.ctx, suite.addrs[1])
-	suite.Equal(cs(c("usdx", 52375)), acc1.GetCoins())
+	suite.Equal(cs(c("usdx", 52500)), acc1.GetCoins())
 	acc2 := ak.GetAccount(suite.ctx, suite.addrs[2])
-	suite.Equal(cs(c("usdx", 52375)), acc2.GetCoins())
+	suite.Equal(cs(c("usdx", 52500)), acc2.GetCoins())
+	sk := suite.app.GetSupplyKeeper()
+	macc := sk.GetModuleAccount(suite.ctx, types.SavingsRateMacc)
+	suite.True(macc.GetCoins().AmountOf("usdx").IsZero())
 }
 
 func (suite *SavingsTestSuite) TestGetSetPreviousDistributionTime() {

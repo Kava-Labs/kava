@@ -55,6 +55,7 @@ const (
 	RestOwner                       = types.RestOwner
 	RestCollateralDenom             = types.RestCollateralDenom
 	RestRatio                       = types.RestRatio
+	SavingsRateMacc                 = types.SavingsRateMacc
 	BaseDigitFactor                 = keeper.BaseDigitFactor
 )
 
