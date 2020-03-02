@@ -95,8 +95,11 @@ func (suite *FeeTestSuite) createCdps() {
 
 }
 
+// UpdateFeesForRiskyCdpsTest tests the functionality for updating the fees for risky CDPs
 func (suite *FeeTestSuite) UpdateFeesForRiskyCdpsTest() {
-	suite.createCdps() // will create cdps with id 1 and 2 respectively, each with zero fees
+	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
+	// TODO - QUESTION - where are the id set for CDPS ? Is it by default increasing starting from 1?
+	suite.createCdps()
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
