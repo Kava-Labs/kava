@@ -109,7 +109,7 @@ func (suite *FeeTestSuite) UpdateFeesForRiskyCdpsTest() {
 	suite.T().Log(cdp1)
 
 	// cdp we expect fees to not accumulate for
-	cdp2 := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
+	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.Empty())
 
