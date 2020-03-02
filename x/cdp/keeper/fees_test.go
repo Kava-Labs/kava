@@ -113,6 +113,10 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// TODO - QUESTION - where are the id set for CDPS ? Is it by default increasing starting from 1?
 	suite.createCdps()
 
+	cdpbefore, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	// check fees
+	suite.T().Log(cdpbefore)
+
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
 	suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
@@ -120,8 +124,8 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// cdp we expect fees to accumulate for
 	cdp1, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 	// check fees are not zero
-	suite.True(cdp1.AccumulatedFees.Empty()) // TODO - QUESTION - this should be false why is it not??
 	suite.T().Log(cdp1)
+	suite.True(cdp1.AccumulatedFees.Empty()) // TODO - QUESTION - this should be false why is it not??
 
 	// cdp we expect fees to not accumulate for
 	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
