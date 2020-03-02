@@ -96,7 +96,7 @@ func (suite *FeeTestSuite) createCdps() {
 }
 
 func (suite *FeeTestSuite) UpdateFeesForRiskyCdpsTest() {
-	createCdps() // will create cdps with id 1 and 2 respectively, each with zero fees
+	suite.createCdps() // will create cdps with id 1 and 2 respectively, each with zero fees
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
