@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -22,6 +23,7 @@ type FeeTestSuite struct {
 	ctx    sdk.Context
 }
 
+// TODO - need to add a cdp here??
 func (suite *FeeTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
@@ -73,6 +75,45 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 
 		suite.True(d("0.00001").GTE(absError))
 	}
+
+}
+
+// createCdps is a helper function to create two CDPs each with zero fees
+func (suite *FeeTestSuite) createCdps() {
+
+	// create two private key pair addresses
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+
+	// now create two cdps with the addresses we just created
+	// create CDP for the first address
+	err := suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100000000)), cs(c("usdx", 10000000)))
+	suite.NoError(err) // check that no error was thrown
+
+	// create CDP for the second address
+	err = suite.keeper.AddCdp(suite.ctx, addrs[1], cs(c("xrp", 200000000)), cs(c("usdx", 5000000)))
+	suite.NoError(err) // check that no error was thrown
+
+}
+
+func (suite *FeeTestSuite) UpdateFeesForRiskyCdpsTest() {
+	createCdps() // will create cdps with id 1 and 2 respectively, each with zero fees
+
+	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
+	suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
+
+	// cdp we expect fees to accumulate for
+	cdp1, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	// check fees are not zero
+	suite.False(cdp1.AccumulatedFees.Empty())
+	suite.T().Log(cdp1)
+
+	// cdp we expect fees to not accumulate for
+	cdp2 := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
+	// check fees are zero
+	suite.True(cdp2.AccumulatedFees.Empty())
+
+	// TODO change the suite.False to suite.Equals and the expected amount of fees
 
 }
 
