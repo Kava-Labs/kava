@@ -137,6 +137,7 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.Empty())
+
 }
 
 func (suite *FeeTestSuite) TestGetSetPreviousBlockTime() {

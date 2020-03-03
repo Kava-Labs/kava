@@ -114,13 +114,15 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], cs(c("xrp", 1)), cs(c("usdx", 1)), tmtime.Canonical(time.Now()))
 	suite.keeper.SetCDP(suite.ctx, cdp)
-	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", types.DefaultCdpStartingID)
+	length := len(suite.keeper.GetAllCdps())
+
+	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", types.DefaultCdpStartingID+length)
 	suite.True(found)
 	suite.Equal(cdp, t)
-	_, found = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	_, found = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2)+length)
 	suite.False(found)
 	suite.keeper.DeleteCDP(suite.ctx, cdp)
-	_, found = suite.keeper.GetCDP(suite.ctx, "btc", types.DefaultCdpStartingID)
+	_, found = suite.keeper.GetCDP(suite.ctx, "btc", types.DefaultCdpStartingID+length)
 	suite.False(found)
 }
 
