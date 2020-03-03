@@ -112,20 +112,19 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
 	suite.createCdps()
 
-	cdpbefore, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 	// check fees
-	suite.T().Log(cdpbefore)
+	cdpbefore, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	// note - time must be moved forward by a sufficient amount in order for additional
 	// fees to accumulate, in this example 60 seconds
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 60))
-	suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
+	err := suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
+	suite.NoError(err) // check that we don't have any error
 
 	// cdp we expect fees to accumulate for
 	cdp1, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 	// check fees are not zero
-	suite.T().Log(cdp1)
 	// check that the fees have been updated
 	suite.False(cdp1.AccumulatedFees.Empty())
 	// now check that we have the correct amount of fees overall (2 USDX for this scenario)
@@ -133,7 +132,6 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 
 	// cdp we expect fees to not accumulate for
 	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
-	suite.T().Log(cdp2)
 
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.Empty())
