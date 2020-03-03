@@ -3,23 +3,28 @@ package auction
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
+
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/auction/client/cli"
 	"github.com/kava-labs/kava/x/auction/client/rest"
+	"github.com/kava-labs/kava/x/auction/simulation"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModuleSimulation{}
 )
 
 // AppModuleBasic implements the sdk.AppModuleBasic interface.
@@ -65,9 +70,32 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
+//____________________________________________________________________________
+
+// AppModuleSimulation defines the module simulation functions used by the auction module.
+type AppModuleSimulation struct{}
+
+// RegisterStoreDecoder registers a decoder for auction module's types
+func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
+}
+
+// GenerateGenesisState creates a randomized GenState of the auction module
+func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
+
+// RandomizedParams creates randomized auction param changes for the simulator.
+func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
+}
+
+//____________________________________________________________________________
+
 // AppModule implements the sdk.AppModule interface.
 type AppModule struct {
 	AppModuleBasic
+	AppModuleSimulation
 
 	keeper       Keeper
 	supplyKeeper types.SupplyKeeper

@@ -1997,17 +1997,13 @@
       properties:
         type:
           type: string
-          example: "cdp/MsgCreateCDP"
+          example: "cosmos-sdk/MsgSend"
         value:
           type: object
           properties:
             from:
               type: string
               example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq
-            collateral:
-              $ref: "#/definitions/CoinCollateral"
-            principal:
-              $ref: "#/definitions/CoinPrincipal"
     Address:
       type: string
       description: bech32 encoded address
@@ -2025,24 +2021,6 @@
         amount:
           type: string
           example: "50"
-    CoinCollateral:
-      type: object
-      properties:
-        denom:
-          type: string
-          example: bnb
-        amount:
-          type: string
-          example: "10000000000"
-    CoinPrincipal:
-      type: object
-      properties:
-        denom:
-          type: string
-          example: usdx
-        amount:
-          type: string
-          example: "10000000"
     Hash:
       type: string
       example: EE5F3404034C524501629B56E0DDC38FAD651F04

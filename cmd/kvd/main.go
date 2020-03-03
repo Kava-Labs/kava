@@ -18,9 +18,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"github.com/kava-labs/kava/app"
 )
@@ -35,6 +35,7 @@ func main() {
 
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
+	app.SetBip44CoinType(config)
 	config.Seal()
 
 	ctx := server.NewDefaultContext()

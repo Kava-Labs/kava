@@ -61,7 +61,12 @@ func TestGaiaCLIKeysAddRecover(t *testing.T) {
 
 	exitSuccess, _, _ = f.KeysAddRecover("test-recover", "dentist task convince chimney quality leave banana trade firm crawl eternal easily")
 	require.True(t, exitSuccess)
-	require.Equal(t, "kava1qcfdf69js922qrdr4yaww3ax7gjml6pd39p8lj", f.KeyAddress("test-recover").String())
+	require.Equal(t, "kava1rsjxn2e4dfl3a2qzuzzjvvgjmmate383g9q4cz", f.KeyAddress("test-recover").String())
+
+	// test old bip44 coin type
+	exitSuccess, _, _ = f.KeysAddRecover("test-recover-legacy", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", "--legacy-hd-path")
+	require.True(t, exitSuccess)
+	require.Equal(t, "kava1qcfdf69js922qrdr4yaww3ax7gjml6pd39p8lj", f.KeyAddress("test-recover-legacy").String())
 
 	// Cleanup testing directories
 	f.Cleanup()
@@ -72,16 +77,20 @@ func TestGaiaCLIKeysAddRecoverHDPath(t *testing.T) {
 	f := InitFixtures(t)
 
 	f.KeysAddRecoverHDPath("test-recoverHD1", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 0, 0)
-	require.Equal(t, "kava1qcfdf69js922qrdr4yaww3ax7gjml6pd39p8lj", f.KeyAddress("test-recoverHD1").String())
+	require.Equal(t, "kava1rsjxn2e4dfl3a2qzuzzjvvgjmmate383g9q4cz", f.KeyAddress("test-recoverHD1").String())
 
 	f.KeysAddRecoverHDPath("test-recoverH2", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 1, 5)
-	require.Equal(t, "kava1pdfav2cjhry9k79nu6r8kgknnjtq6a7rcr0qlr", f.KeyAddress("test-recoverH2").String())
+	require.Equal(t, "kava1qpj6nstqn0n5gzcsaezspuhulje6msjq5t8cq5", f.KeyAddress("test-recoverH2").String())
 
 	f.KeysAddRecoverHDPath("test-recoverH3", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 1, 17)
-	require.Equal(t, "kava1909k354n6wl8ujzu6kmh49w4d02ax7qvrrcgx5", f.KeyAddress("test-recoverH3").String())
+	require.Equal(t, "kava1vayfpstgapt7dmv7074kc3ll8xpf0rlzvh4k08", f.KeyAddress("test-recoverH3").String())
 
 	f.KeysAddRecoverHDPath("test-recoverH4", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 2, 17)
-	require.Equal(t, "kava1v9plmhvyhgxk3th9ydacm7j4z357s3nhhmy0tv", f.KeyAddress("test-recoverH4").String())
+	require.Equal(t, "kava1xvsfnksmhr887skcfrm4pe3va54tkmrtw7wyer", f.KeyAddress("test-recoverH4").String())
+
+	// test old bip44 coin type
+	f.KeysAddRecoverHDPath("test-recoverH5", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 2, 17, "--legacy-hd-path")
+	require.Equal(t, "kava1v9plmhvyhgxk3th9ydacm7j4z357s3nhhmy0tv", f.KeyAddress("test-recoverH5").String())
 
 	// Cleanup testing directories
 	f.Cleanup()
