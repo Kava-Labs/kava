@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -117,13 +116,6 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	cdpbefore, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 	// check fees
 	suite.T().Log(cdpbefore)
-
-	// x := d("1")
-	numerator := cdpbefore.Collateral.AmountOf("xrp").ToDec().Mul(d("0.25"))
-	denominator := cdpbefore.Principal.AmountOf("usdx").ToDec()
-
-	fmt.Printf("numerator: %s\n", numerator)
-	fmt.Printf("denominator: %s\n", denominator)
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	// note - time must be moved forward by a sufficient amount in order for additional
