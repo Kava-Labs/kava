@@ -23,7 +23,6 @@ type FeeTestSuite struct {
 	ctx    sdk.Context
 }
 
-// TODO - need to add a cdp here??
 func (suite *FeeTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
