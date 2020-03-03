@@ -19,15 +19,16 @@ type GenesisState struct {
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousBlockTime time.Time) GenesisState {
+func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousBlockTime time.Time, previousDistTime time.Time) GenesisState {
 	return GenesisState{
-		Params:            params,
-		CDPs:              cdps,
-		Deposits:          deposits,
-		StartingCdpID:     startingCdpID,
-		DebtDenom:         debtDenom,
-		GovDenom:          govDenom,
-		PreviousBlockTime: previousBlockTime,
+		Params:                   params,
+		CDPs:                     cdps,
+		Deposits:                 deposits,
+		StartingCdpID:            startingCdpID,
+		DebtDenom:                debtDenom,
+		GovDenom:                 govDenom,
+		PreviousBlockTime:        previousBlockTime,
+		PreviousDistributionTime: previousDistTime,
 	}
 }
 
