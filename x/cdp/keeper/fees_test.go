@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -87,6 +88,7 @@ func (suite *FeeTestSuite) createCdps() {
 	// setup the first account
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
+
 	ak.SetAccount(suite.ctx, acc)
 	// now setup the second account
 	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
@@ -110,25 +112,38 @@ func (suite *FeeTestSuite) createCdps() {
 // UpdateFeesForRiskyCdpsTest tests the functionality for updating the fees for risky CDPs
 func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
-	// TODO - QUESTION - where are the id set for CDPS ? Is it by default increasing starting from 1?
 	suite.createCdps()
 
 	cdpbefore, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 	// check fees
 	suite.T().Log(cdpbefore)
 
+	// x := d("1")
+	numerator := cdpbefore.Collateral.AmountOf("xrp").ToDec().Mul(d("0.25"))
+	denominator := cdpbefore.Principal.AmountOf("usdx").ToDec()
+
+	fmt.Printf("numerator: %s\n", numerator)
+	fmt.Printf("denominator: %s\n", denominator)
+
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
+	// note - time must be moved forward by a sufficient amount in order for additional
+	// fees to accumulate, in this example 60 seconds
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 60))
 	suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
 
 	// cdp we expect fees to accumulate for
 	cdp1, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 	// check fees are not zero
 	suite.T().Log(cdp1)
-	suite.True(cdp1.AccumulatedFees.Empty()) // TODO - QUESTION - this should be false why is it not??
+	// check that the fees have been updated
+	suite.False(cdp1.AccumulatedFees.Empty())
+	// now check that we have the correct amount of fees overall (2 USDX for this scenario)
+	suite.Equal(sdk.NewInt(2), cdp1.AccumulatedFees.AmountOf("usdx"))
 
 	// cdp we expect fees to not accumulate for
 	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
+	suite.T().Log(cdp2)
+
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.Empty())
 
