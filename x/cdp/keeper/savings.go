@@ -82,6 +82,9 @@ func (k Keeper) SetPreviousSavingsDistribution(ctx sdk.Context, distTime time.Ti
 }
 
 func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
+	// NOTE: these are the module accounts that could end up holding stable denoms at some point.
+	// Since there are currently no api methods to 'GetAllModuleAccounts', this function will need to be updated if a
+	// new module account is added which can hold stable denoms.
 	savingsRateMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc).GetCoins().AmountOf(denom)
 	cdpMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
 	auctionMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, auctiontypes.ModuleName).GetCoins().AmountOf(denom)
