@@ -20,7 +20,6 @@ type CDP struct {
 
 // NewCDP creates a new CDP object
 func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins, time time.Time) CDP {
-	// var fees sdk.Coins
 	fees := sdk.NewCoins()
 	return CDP{
 		ID:              id,
