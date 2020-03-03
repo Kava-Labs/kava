@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -35,8 +34,6 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
 // is when we made the update
 func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, marketID string) sdk.Error {
-	fmt.Printf("entering UpdateFeesForRiskyCdps\n")
-
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err
