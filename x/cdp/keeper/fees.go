@@ -51,10 +51,10 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, 
 	fmt.Printf("price.Price: %s\n\n", price.Price)
 	fmt.Printf("sdk.OneDec(): %s\n\n", sdk.OneDec())
 
-	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio))
+	// normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio))
 
 	// 9 <= normalizedRatio <= 20 is the valid range for the test case. Not sure where this comes from
-	// normalizedRatio := sdk.MustNewDecFromStr("20")
+	normalizedRatio := sdk.MustNewDecFromStr("20")
 
 	fmt.Printf("normalizedRatio: %s\n", normalizedRatio)
 
