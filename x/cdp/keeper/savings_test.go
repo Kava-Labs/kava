@@ -48,7 +48,7 @@ func (suite *SavingsTestSuite) SetupTest() {
 }
 
 func (suite *SavingsTestSuite) TestApplySavingsRate() {
-	err := suite.keeper.ApplySavingsRate(suite.ctx, "usdx")
+	err := suite.keeper.DistributeSavingsRate(suite.ctx, "usdx")
 	suite.NoError(err)
 	ak := suite.app.GetAccountKeeper()
 	acc0 := ak.GetAccount(suite.ctx, suite.addrs[0])

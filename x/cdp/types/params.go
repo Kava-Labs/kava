@@ -29,7 +29,7 @@ var (
 	DefaultDebtThreshold                = sdk.NewInt(1000000000)
 	DefaultPreviousBlockTime            = tmtime.Canonical(time.Unix(0, 0))
 	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
-	DefaultSavingsDistributionFrequency = sdk.NewInt(86400)
+	DefaultSavingsDistributionFrequency = time.Hour * 24 * 2
 	minCollateralPrefix                 = 0
 	maxCollateralPrefix                 = 255
 )
@@ -41,7 +41,7 @@ type Params struct {
 	GlobalDebtLimit              sdk.Coins        `json:"global_debt_limit" yaml:"global_debt_limit"`
 	SurplusAuctionThreshold      sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
 	DebtAuctionThreshold         sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
-	SavingsDistributionFrequency sdk.Int          `json:"savings_distribution_frequency" yaml:"savings_distribution_frequency"`
+	SavingsDistributionFrequency time.Duration    `json:"savings_distribution_frequency" yaml:"savings_distribution_frequency"`
 	CircuitBreaker               bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
 }
 
@@ -60,7 +60,7 @@ func (p Params) String() string {
 }
 
 // NewParams returns a new params object
-func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, surplusThreshold sdk.Int, debtThreshold sdk.Int, distributionFreq sdk.Int, breaker bool) Params {
+func NewParams(debtLimit sdk.Coins, collateralParams CollateralParams, debtParams DebtParams, surplusThreshold sdk.Int, debtThreshold sdk.Int, distributionFreq time.Duration, breaker bool) Params {
 	return Params{
 		GlobalDebtLimit:              debtLimit,
 		CollateralParams:             collateralParams,
@@ -245,7 +245,7 @@ func (p Params) Validate() error {
 		return fmt.Errorf("debt auction threshold should be positive, is %s", p.DebtAuctionThreshold)
 	}
 
-	if !p.SavingsDistributionFrequency.IsPositive() {
+	if p.SavingsDistributionFrequency.Seconds() <= float64(0) {
 		return fmt.Errorf("savings distribution frequency should be positive, is %s", p.SavingsDistributionFrequency)
 	}
 	return nil

@@ -12,8 +12,8 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-// ApplySavingsRate distributes surplus that has accumulated in the liquidator account to address holding stable coins according the the savings rate
-func (k Keeper) ApplySavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
+// DistributeSavingsRate distributes surplus that has accumulated in the liquidator account to address holding stable coins according the the savings rate
+func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
 	dp, found := k.GetDebtParam(ctx, debtDenom)
 	if !found {
 		return types.ErrDebtNotSupported(k.codespace, debtDenom)
