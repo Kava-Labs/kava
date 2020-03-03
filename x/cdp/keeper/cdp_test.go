@@ -116,13 +116,13 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 	suite.keeper.SetCDP(suite.ctx, cdp)
 	length := len(suite.keeper.GetAllCdps())
 
-	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", types.DefaultCdpStartingID+length)
+	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", types.DefaultCdpStartingID+uint64(length))
 	suite.True(found)
 	suite.Equal(cdp, t)
 	_, found = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2+length))
 	suite.False(found)
 	suite.keeper.DeleteCDP(suite.ctx, cdp)
-	_, found = suite.keeper.GetCDP(suite.ctx, "btc", types.DefaultCdpStartingID+length)
+	_, found = suite.keeper.GetCDP(suite.ctx, "btc", types.DefaultCdpStartingID+uint64(length))
 	suite.False(found)
 }
 
