@@ -112,9 +112,6 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
 	suite.createCdps()
 
-	// check fees
-	cdpbefore, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
-
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	// note - time must be moved forward by a sufficient amount in order for additional
 	// fees to accumulate, in this example 60 seconds
