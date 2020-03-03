@@ -44,39 +44,21 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, 
 
 	liquidationRatio := k.getLiquidationRatio(ctx, collateralDenom)
 
-	fmt.Printf("liquidationRatio: %s\n", liquidationRatio)
-
-	// targetRatio := liquidationRatio.Mul(value) // corresponds to 110% of the liquidation ratio
-
-	fmt.Printf("price.Price: %s\n\n", price.Price)
-	fmt.Printf("sdk.OneDec(): %s\n\n", sdk.OneDec())
-
+	// NOTE - we have a fixed cutoff at 110% - this may or may not be changed in the future
 	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio)).Mul(sdk.MustNewDecFromStr("1.1"))
-
-	fmt.Printf("normalizedRatio: %s\n", normalizedRatio)
 
 	// now iterate over all the cdps based on collateral ratio
 	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, normalizedRatio, func(cdp types.CDP) bool {
 
-		fmt.Printf("\n\n ENTERED IterateCdpsByCollateralRatio\n\n")
-
 		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-		fmt.Printf("\nperiods: %s\n", periods)
-		fmt.Printf("\ncollateralDenom: %s\n", collateralDenom)
-		fmt.Printf("\ncdp.Principal: %s\n", cdp.Principal)
 
 		// now calculate and store additional fees
 		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
 
 		// now add the additional fees to the accumulated fees for the cdp
 		got, _ := additionalFees.MarshalJSON()
-		fmt.Printf("\nadditionalFees: %s\n", got)
-
-		fmt.Printf("cdp.AccumulatedFees.Add(additionalFees): %s\n", cdp.AccumulatedFees.Add(additionalFees))
-		fmt.Printf("cdp.AccumulatedFees: %s\n", cdp.AccumulatedFees)
 		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(additionalFees)
-		fmt.Printf("cdp.AccumulatedFees: %s\n", cdp.AccumulatedFees)
 
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
