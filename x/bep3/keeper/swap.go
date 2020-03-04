@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -28,16 +29,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return types.ErrInvalidHeightSpan(k.codespace, heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
 	}
 
-	// Timestamp is the self-reported kava block height at which the user hashed with the random number.
-	// Assuming a block time of 10 seconds, the timestamp must be in range [-15 mins, 30 mins] of the current block height.
-	if ctx.BlockHeight() > 1800 {
-		if timestamp > ctx.BlockHeight()-1800 || timestamp < ctx.BlockHeight()+900 {
-			return types.ErrInvalidTimestamp(k.codespace)
-		}
-	} else {
-		if timestamp >= 1800 {
-			return types.ErrInvalidTimestamp(k.codespace)
-		}
+	// unix timestamp must be in range [-15 mins, 30 mins] of the current time
+	// pastTimestampLimit := time.Now().Add()
+	futureTimestampLimit := time.Now().Add(time.Duration(30) * time.Minute).Unix()
+	if timestamp >= futureTimestampLimit { // || timestamp < pastTimestampLimit
+		return types.ErrInvalidTimestamp(k.codespace)
 	}
 
 	// Sanity check on recipient address
