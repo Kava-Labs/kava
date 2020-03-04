@@ -14,5 +14,5 @@ The list of disallowed msg types is updated via a custom governance proposal and
 
 Design Alternatives:
 
-- store list of disallowed msg types in params, then don't need custom gov proposal
+- store list of disallowed msg types in params, then we don't need the custom gov proposal
 - replace the app Router with a custom one to avoid using the antehandler - can't be done with current baseapp, but v0.38.x enables this. (https://github.com/cosmos/cosmos-sdk/issues/5455)

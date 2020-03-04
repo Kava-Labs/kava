@@ -8,30 +8,28 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// CircuitBreakerDecorator needs to be combined with other standard decorators (from auth) to create the app's AnteHandler.
-
-// CircuitBreakerDecorator errors if a tx contains a disallowed msg type
-// Call next AnteHandler if all msgs are allowed
-type CircuitBreakerDecorator struct {
-	cbk keeper.Keeper
+// DisableMsgDecorator errors if a tx contains a disallowed msg type and calls the next AnteHandler if all msgs are allowed
+type DisableMsgDecorator struct {
+	shutdownKeeper keeper.Keeper
 }
 
-func NewCircuitBreakerDecorator(cbk keeper.Keeper) CircuitBreakerDecorator {
-	return CircuitBreakerDecorator{
-		cbk: cbk,
+func NewDisableMsgDecorator(shutdownKeeper keeper.Keeper) DisableMsgDecorator {
+	return DisableMsgDecorator{
+		shutdownKeeper: shutdownKeeper,
 	}
 }
 
-func (cbd CircuitBreakerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+func (dmd DisableMsgDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 
 	// get msg route, error if not allowed
-	disallowedRoutes := cbd.cbk.GetMsgRoutes(ctx)
+	disallowedRoutes := dmd.shutdownKeeper.GetMsgRoutes(ctx)
 	for _, m := range tx.GetMsgs() {
 		for _, r := range disallowedRoutes {
 			if r.Route == m.Route() && r.Msg == m.Type() {
-				return ctx, fmt.Errorf("route %s has been circuit broken, tx rejected", r)
+				return ctx, fmt.Errorf("route %s has been disabled, tx rejected", r)
 			}
 		}
 	}
+	// otherwise continue to next antehandler decorator
 	return next(ctx, tx, simulate)
 }

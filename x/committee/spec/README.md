@@ -15,7 +15,7 @@ Members vote on proposals, with just simple one vote per member, no deposits or 
 
 A permission acts as a filter for incoming gov proposals, rejecting them if they do not pass. A permission can be anything with a method `Allows(p Proposal) bool`. They reject all proposals that they don't explicitly allow.
 
-This allows permissions to be parameterized to allow fine grained control specified at runtime. For example a generic parameter permission type can exist, but then on a live chain a permission can be added to a group to allow them to only change a particular param, even restricting the range of allowed change.
+This allows permissions to be parameterized to allow fine grained control specified at runtime. For example a generic parameter permission type can allow a group to only change a particular param, or only change params within a certain percentage.
 
 Design Alternatives
 

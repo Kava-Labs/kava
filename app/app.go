@@ -4,11 +4,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/pricefeed"
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
@@ -32,6 +27,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/pricefeed"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+	shutdownAnte "github.com/kava-labs/kava/x/shutdown/ante"
+	"github.com/kava-labs/kava/x/shutdown"
 )
 
 const (
@@ -319,7 +321,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(NewAnteHandler(app.accountKeeper, app.supplyKeeper, app.shutdownKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
@@ -331,6 +333,23 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	}
 
 	return app
+}
+
+func NewAnteHandler(ak auth.AccountKeeper, supplyKeeper supply.SupplyKeeper, shutdownKeeper shutdown.Keeper, sigGasConsumer SignatureVerificationGasConsumer) sdk.AnteHandler {
+	return sdk.ChainAnteDecorators(
+		auth.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+		shutdownAnte.NewDisableMsgDecorator(shutdownKeeper)
+		auth.NewMempoolFeeDecorator(),
+		auth.NewValidateBasicDecorator(),
+		auth.NewValidateMemoDecorator(ak),
+		auth.NewConsumeGasForTxSizeDecorator(ak),
+		auth.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
+		auth.NewValidateSigCountDecorator(ak),
+		auth.NewDeductFeeDecorator(ak, supplyKeeper),
+		auth.NewSigGasConsumeDecorator(ak, sigGasConsumer),
+		auth.NewSigVerificationDecorator(ak),
+		auth.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
+	)
 }
 
 // custom tx codec
