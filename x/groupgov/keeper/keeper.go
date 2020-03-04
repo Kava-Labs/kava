@@ -8,3 +8,11 @@ type Keeper struct {
 	// Proposal router
 	router types.Router
 }
+
+/* TODO methods - should be similar to gov
+- GetGroup
+- SetGroup
+
+- AddVote
+
+*/

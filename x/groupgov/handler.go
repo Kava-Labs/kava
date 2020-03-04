@@ -50,7 +50,3 @@ func handleMsgVote(ctx sdk.Context, k Keeper, msg types.MsgVote) sdk.Result {
 	- store vote
 	*/
 }
-
-
-
-// TODO create a GroupChangeProposalHandler
