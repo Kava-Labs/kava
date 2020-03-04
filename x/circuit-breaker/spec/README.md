@@ -1,10 +1,18 @@
 
-# `groupgov`
+# `circuit-breaker`
 
 ## Table of Contents
 
 ## Overview
 
-The `x/groupgov` module is an additional governance module to `cosmos-sdk/x/gov`. It allows groups of accounts to vote on and enact proposals, mainly to allow certain proposal types to be decided on quickly in emergency situations, or to delegate low risk parameter updates to a smaller group of individuals.
+The `x/circuit-breaker` module allows certain message types to be disabled based on governance votes.
 
-Groups have permissions.
+Msgs and routes are disabled via an antehandler decorator. The decorator checks incoming all txs and rejects them if they contain a disallowed msg type.
+Disallowed msg types are stored in a circuit breaker keeper.
+
+The list of disallowed msg types is updated via a custom governance proposal and handler.
+
+Design Alternatives:
+
+- store list of disallowed msg types in params, then don't need custom gov proposal
+- replace the app Router with a custom one to avoid using the antehandler - can't be done with current baseapp, but v0.38.x enables this. (https://github.com/cosmos/cosmos-sdk/issues/5455)

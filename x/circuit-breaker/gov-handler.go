@@ -1,7 +1,15 @@
 package circuit-breaker
 
-func NewCircuitBreakerProposalHandler(k Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) sdk.Error {
+import (
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/circuit-breaker/types"
+	"github.com/kava-labs/kava/x/circuit-breaker/keeper"
+)
+
+func NewCircuitBreakerProposalHandler(k Keeper) gov.Handler {
+	return func(ctx sdk.Context, content gov.Content) sdk.Error {
 		switch c := content.(type) {
 		case types.CircuitBreakerProposal:
 			return keeper.HandleCircuitBreakerProposal(ctx, k, c)
