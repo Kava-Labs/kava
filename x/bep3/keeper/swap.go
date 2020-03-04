@@ -29,10 +29,10 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return types.ErrInvalidHeightSpan(k.codespace, heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
 	}
 
-	// unix timestamp must be in range [-15 mins, 30 mins] of the current time
-	// pastTimestampLimit := time.Now().Add()
+	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
+	pastTimestampLimit := time.Now().Add(time.Duration(-15) * time.Minute).Unix()
 	futureTimestampLimit := time.Now().Add(time.Duration(30) * time.Minute).Unix()
-	if timestamp >= futureTimestampLimit { // || timestamp < pastTimestampLimit
+	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
 		return types.ErrInvalidTimestamp(k.codespace)
 	}
 
