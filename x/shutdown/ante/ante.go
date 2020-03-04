@@ -3,7 +3,7 @@ package ante
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/circuit-breaker/keeper"
+	"github.com/kava-labs/kava/x/shutdown/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

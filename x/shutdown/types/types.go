@@ -11,33 +11,33 @@ type MsgRoute struct {
 }
 
 const (
-	ProposalTypeCircuitBreak = "CircuitBreak"
+	ProposalTypeShutdown = "Shutdown"
 )
 
-// Assert CircuitBreakProposal implements govtypes.Content at compile-time
-var _ govtypes.Content = CircuitBreakProposal{}
+// Assert ShutdownProposal implements govtypes.Content at compile-time
+var _ govtypes.Content = ShutdownProposal{}
 
-type CircuitBreakProposal struct {
+type ShutdownProposal struct {
 	Title       string
 	Description string
 	MsgRoutes   []MsgRoute
 }
 
 // GetTitle returns the title of a community pool spend proposal.
-func (cbp CircuitBreakProposal) GetTitle() string { return cbp.Title }
+func (sp ShutdownProposal) GetTitle() string { return sp.Title }
 
 // GetDescription returns the description of a community pool spend proposal.
-func (cbp CircuitBreakProposal) GetDescription() string { return cbp.Description }
+func (sp ShutdownProposal) GetDescription() string { return sp.Description }
 
 // GetDescription returns the routing key of a community pool spend proposal.
-func (cbp CircuitBreakProposal) ProposalRoute() string { return RouterKey }
+func (sp ShutdownProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool spend proposal.
-func (cbp CircuitBreakProposal) ProposalType() string { return ProposalTypeCircuitBreak }
+func (sp ShutdownProposal) ProposalType() string { return ProposalTypeShutdown }
 
 // ValidateBasic runs basic stateless validity checks
-func (cbp CircuitBreakProposal) ValidateBasic() sdk.Error {
-	err := govtypes.ValidateAbstract(DefaultCodespace, cbp)
+func (sp ShutdownProposal) ValidateBasic() sdk.Error {
+	err := govtypes.ValidateAbstract(DefaultCodespace, sp)
 	if err != nil {
 		return err
 	}
@@ -46,15 +46,16 @@ func (cbp CircuitBreakProposal) ValidateBasic() sdk.Error {
 }
 
 // String implements the Stringer interface.
-func (cbp CircuitBreakProposal) String() string {
+func (sp ShutdownProposal) String() string {
 	// TODO
+	return ""
 }
 
 const (
 	DefaultCodespace sdk.CodespaceType = ModuleName
 
 	// ModuleName is the module name constant used in many places
-	ModuleName = "circuit-breaker"
+	ModuleName = "shutdown"
 
 	// RouterKey is the message route for distribution
 	RouterKey = ModuleName

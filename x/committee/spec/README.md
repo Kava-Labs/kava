@@ -1,15 +1,15 @@
 
-# `groupgov`
+# `committee`
 
 ## Table of Contents
 
 ## Overview
 
-The `x/groupgov` module is an additional governance module to `cosmos-sdk/x/gov`.
+The `x/committee` module is an additional governance module to `cosmos-sdk/x/gov`.
 
 It allows groups of accounts to vote on and enact proposals, mainly to allow certain proposal types to be decided on quickly in emergency situations, or to delegate low risk parameter updates to a smaller group of individuals.
 
-Groups have members and permissions.
+Committees have members and permissions.
 
 Members vote on proposals, with just simple one vote per member, no deposits or slashing. More sophisticated voting could be added.
 
@@ -21,3 +21,4 @@ Design Alternatives
 
 - Should this define its own gov types, or reuse those from gov module?
 - Should we push changes to sdk gov to make it more general purpose?
+- Could use params more instead of custom gov proposals

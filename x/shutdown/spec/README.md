@@ -1,11 +1,11 @@
 
-# `circuit-breaker`
+# `shutdown`
 
 ## Table of Contents
 
 ## Overview
 
-The `x/circuit-breaker` module allows certain message types to be disabled based on governance votes.
+The `x/shutdown` module allows certain message types to be disabled based on governance votes.
 
 Msgs and routes are disabled via an antehandler decorator. The decorator checks incoming all txs and rejects them if they contain a disallowed msg type.
 Disallowed msg types are stored in a circuit breaker keeper.
