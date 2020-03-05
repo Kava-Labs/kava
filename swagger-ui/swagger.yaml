@@ -256,8 +256,8 @@
           - in: query
             name: message.sender
             type: string
-            description: "transaction tags with sender: 'GET /txs?message.action=send&message.sender=kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv'"
-            x-example: "kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv"
+            description: "transaction tags with sender: 'GET /txs?message.action=send&message.sender=kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9'"
+            x-example: "kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9"
           - in: query
             name: page
             description: Page number
@@ -382,7 +382,7 @@
             description: Account address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         responses:
           200:
             description: Account balances
@@ -407,7 +407,7 @@
             description: Account address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
           - in: body
             name: account
             description: The sender and tx information
@@ -443,7 +443,7 @@
             description: Account address
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         responses:
           200:
             description: Account information on the blockchain
@@ -476,7 +476,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Get all delegations from a delegator
         tags:
@@ -535,13 +535,13 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         - in: path
           name: validatorAddr
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Query the current delegation between a delegator and a validator
         tags:
@@ -564,7 +564,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Get all unbonding delegations from a delegator
         tags:
@@ -624,13 +624,13 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         - in: path
           name: validatorAddr
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Query all unbonding delegations between a delegator and a validator
         tags:
@@ -685,7 +685,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       post:
         summary: Submit a redelegation
         parameters:
@@ -728,7 +728,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Query all validators that a delegator is bonded to
         tags:
@@ -753,13 +753,13 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         - in: path
           name: validatorAddr
           description: Bech32 ValAddress of Delegator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Query a validator that a delegator is bonded to
         tags:
@@ -814,7 +814,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Query the information from a single validator
         tags:
@@ -837,7 +837,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Get all delegations from a validator
         tags:
@@ -862,7 +862,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Get all unbonding delegations from a validator
         tags:
@@ -1009,7 +1009,7 @@
             name: validatorAddr
             required: true
             in: path
-            x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+            x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
           - description: ""
             name: UnjailBody
             in: body
@@ -1311,7 +1311,7 @@
             name: depositor
             required: true
             in: path
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         responses:
           200:
             description: OK
@@ -1410,7 +1410,7 @@
             name: voter
             required: true
             in: path
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         responses:
           200:
             description: OK
@@ -1530,7 +1530,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava167w96tdvmazakdwkw2u57227eduula2cy572lf
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Get the total rewards balance from all delegations
         description: Get the sum of all the rewards earned by delegations by a single delegator
@@ -1581,13 +1581,13 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         - in: path
           name: validatorAddr
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Query a delegation reward
         description: Query a single delegation reward by a delegator
@@ -1640,7 +1640,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava167w96tdvmazakdwkw2u57227eduula2cy572lf
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Get the rewards withdrawal address
         description: Get the delegations' rewards withdrawal address. This is the address in which the user will receive the reward funds
@@ -1693,7 +1693,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Validator distribution information
         description: Query the distribution information of a single validator
@@ -1717,7 +1717,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Fee distribution outstanding rewards of a single validator
         tags:
@@ -1740,7 +1740,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Commission and self-delegation rewards of a single validator
         description: Query the commission and self-delegation rewards of validator.
@@ -1797,9 +1797,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/Coin"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Coin"
           500:
             description: Internal Server Error
     /distribution/parameters:
@@ -1859,7 +1864,7 @@
           200:
             description: OK
             schema:
-              type: string
+              $ref: "#/definitions/StandardResponse"
           500:
             description: Internal Server Error
     /minting/annual-provisions:
@@ -1873,7 +1878,7 @@
           200:
             description: OK
             schema:
-              type: string
+              $ref: "#/definitions/StandardResponse"
           500:
             description: Internal Server Error
     /supply/total:
@@ -1908,7 +1913,7 @@
           200:
             description: OK
             schema:
-               type: string
+              $ref: "#/definitions/StandardResponse"
           400:
             description: Invalid coin denomination
           500:
@@ -1992,8 +1997,6 @@
           type: string
     Msg:
       type: object
-      required:
-        - from
       properties:
         type:
           type: string
@@ -2007,11 +2010,11 @@
     Address:
       type: string
       description: bech32 encoded address
-      example: kava1depk54cuajgkzea6zpgkq36tnjwdzv4afc3d27
+      example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
     ValidatorAddress:
       type: string
       description: bech32 encoded address
-      example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w4n2l
+      example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
     Coin:
       type: object
       properties:
@@ -2251,7 +2254,7 @@
       properties:
         from:
           type: string
-          example: "kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc"
+          example: "kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9"
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
@@ -2540,3 +2543,10 @@
           type: array
           items:
             $ref: "#/definitions/Coin"
+    StandardResponse:
+      type: object
+      properties:
+        height:
+          type: string
+        result:
+          type: string
