@@ -1,9 +1,14 @@
 package cli
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -54,16 +59,26 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			recipientOtherChain := args[1] // same as OtherExecutor.DeputyAddress
 			senderOtherChain := args[2]
 
-			randomNumberHash, err := types.HexToBytes(args[3])
+			// TODO: make timestamp arg optional and default to time.Now().Unix()
+			// timeStamp, err := strconv.ParseInt(args[4], 10, 64)
+			// if err != nil {
+			// 	return err
+			// }
+			timeStamp := time.Now().Unix()
+
+			// Generate cryptographically strong pseudo-random number
+			randomNumber, err := generateSecureRandomNumber()
 			if err != nil {
 				return err
 			}
 
-			// TODO: make timestamp arg optional and default to time.Now().Unix()
-			timeStamp, err := strconv.ParseInt(args[4], 10, 64)
-			if err != nil {
-				return err
-			}
+			// Hash (random number, timestamp)
+			randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timeStamp)
+
+			// Print random number, timestamp, and hash to user's console
+			fmt.Printf("\nRandom number: %s\n", randomNumber.Text(16))
+			fmt.Printf("Timestamp: %d\n", timeStamp)
+			fmt.Printf("Random number hash: %s\n\n", hex.EncodeToString(randomNumberHash))
 
 			coins, err := sdk.ParseCoins(args[5])
 			if err != nil {
@@ -164,4 +179,18 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+}
+
+func generateSecureRandomNumber() (*big.Int, error) {
+	// max is a 255-bits integer, i.e 2^255 - 1
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(255), nil).Sub(max, big.NewInt(1))
+
+	// Generate number between 0 - max
+	randomNumber, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return big.NewInt(0), errors.New("random number generation error")
+	}
+
+	return randomNumber, nil
 }
