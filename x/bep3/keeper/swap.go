@@ -72,7 +72,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	// Store the details of the swap.
 	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash,
 		ctx.BlockHeight()+heightSpan, timestamp, sender, recipient,
-		senderOtherChain, 0, types.Open)
+		senderOtherChain, recipientOtherChain, 0, types.Open)
 
 	k.SetAtomicSwap(ctx, atomicSwap)
 	k.InsertIntoByBlockIndex(ctx, atomicSwap)
