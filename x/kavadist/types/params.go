@@ -30,7 +30,7 @@ type Params struct {
 type Period struct {
 	Start     time.Time `json:"start" yaml:"start"`         // example "2020-03-01T15:20:00Z"
 	End       time.Time `json:"end" yaml:"end"`             // example "2020-06-01T15:20:00Z"
-	Inflation sdk.Dec   `json:"inflation" yaml:"inflation"` // example "0.10"  - 10% inflation
+	Inflation sdk.Dec   `json:"inflation" yaml:"inflation"` // example "1.000000003022265980"  - 10% inflation
 }
 
 // String implements fmt.Stringer
