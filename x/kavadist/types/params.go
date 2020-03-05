@@ -12,11 +12,12 @@ import (
 
 // Parameter keys and default values
 var (
-	KeyActive      = []byte("Active")
-	KeyPeriods     = []byte("Periods")
-	DefaultActive  = false
-	DefaultPeriods = Periods{}
-	GovDenom       = cdptypes.DefaultGovDenom
+	KeyActive                = []byte("Active")
+	KeyPeriods               = []byte("Periods")
+	DefaultActive            = false
+	DefaultPeriods           = Periods{}
+	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
+	GovDenom                 = cdptypes.DefaultGovDenom
 )
 
 // Params governance parameters for kavadist module
