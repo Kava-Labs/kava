@@ -100,6 +100,9 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 	if err != nil {
 		return err
 	}
+	// price = $0.5
+	// liquidation ratio = 1.5
+	// normalizedRatio = (1/(0.5/1.5)) = 3
 	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio))
 	cdpsToLiquidate := k.GetAllCdpsByDenomAndRatio(ctx, denom, normalizedRatio)
 	for _, c := range cdpsToLiquidate {

@@ -22,5 +22,5 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, accountKeeper types.AccountKeep
 // ExportGenesis returns empty genesis state because auth exports all the genesis state we need.
 func ExportGenesis(ctx sdk.Context, keeper Keeper) types.GenesisState {
 	prevBlockTime := keeper.GetPreviousBlockTime(ctx)
-	return GenesisState{PreviousBlockTime: prevBlockTime}
+	return NewGenesisState(prevBlockTime)
 }

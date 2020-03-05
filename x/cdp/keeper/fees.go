@@ -27,6 +27,46 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 	return newFees
 }
 
+// UpdateFeesForRiskyCdps calculates fees for risky CDPs
+// The overall logic is first select the CDPs with 10% of the liquidation ratio
+// Then we call calculate fees on each of those CDPs
+// Next we store the result of the fees in the cdp.AccumulatedFees field
+// Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
+// is when we made the update
+func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, marketID string) sdk.Error {
+
+	
+	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		return err
+	}
+
+	liquidationRatio := k.getLiquidationRatio(ctx, collateralDenom)
+
+	// NOTE - we have a fixed cutoff at 110% - this may or may not be changed in the future
+	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio)).Mul(sdk.MustNewDecFromStr("1.1"))
+
+	// now iterate over all the cdps based on collateral ratio
+	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, normalizedRatio, func(cdp types.CDP) bool {
+
+		// get the number of periods
+		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
+
+		// now calculate and store additional fees
+		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
+
+		// now add the additional fees to the accumulated fees for the cdp
+		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(additionalFees)
+
+		// and set the fees updated time to the current block time since we just updated it
+		cdp.FeesUpdated = ctx.BlockTime()
+		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
+	})
+	return nil
+}
+
 // IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
 func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralDenom string, principal sdk.Coins) {
 	for _, pc := range principal {

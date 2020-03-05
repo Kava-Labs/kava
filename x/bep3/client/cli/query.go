@@ -60,11 +60,6 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 	}
 }
 
-// TODO:
-// kvcli q bep3 calc-swapid bd8f3e7180c3ee5d89c4c6042caf2e8aa4d15782aa924509c8646497d278c902 kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7
-// results in -> 4e864eb87be9e1e17d37ac3bd5cec13d0209230c3189531384eed676d000cccc
-// but should result in -> 573f807f005f80d22ca378cdcc1f710ec4b96e448e3ac6eda4e0c0b232afb641
-
 // QueryCalcSwapIDCmd calculates the swapID for a random number hash, sender, and sender other chain
 func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
@@ -74,6 +69,7 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
 			// Parse query params
 			randomNumberHash, err := types.HexToBytes(args[0])
 			if err != nil {

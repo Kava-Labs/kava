@@ -38,6 +38,7 @@ import (
 const (
 	appName          = "kava"
 	Bech32MainPrefix = "kava"
+	Bip44CoinType    = 459 // see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 )
 
 var (
@@ -314,6 +315,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper), // TODO how is the order be decided here? Is this order correct?
+		pricefeed.NewAppModule(app.pricefeedKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -352,10 +356,16 @@ func MakeCodec() *codec.Codec {
 	return cdc.Seal()
 }
 
+// SetBech32AddressPrefixes sets the global prefix to be used when serializing addresses to bech32 strings.
 func SetBech32AddressPrefixes(config *sdk.Config) {
 	config.SetBech32PrefixForAccount(Bech32MainPrefix, Bech32MainPrefix+sdk.PrefixPublic)
 	config.SetBech32PrefixForValidator(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
 	config.SetBech32PrefixForConsensusNode(Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus, Bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
+}
+
+// SetBip44CoinType sets the global coin type to be used in hierarchical deterministic wallets.
+func SetBip44CoinType(config *sdk.Config) {
+	config.SetCoinType(Bip44CoinType)
 }
 
 // application updates every end block

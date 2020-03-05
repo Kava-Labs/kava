@@ -114,6 +114,7 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], cs(c("xrp", 1)), cs(c("usdx", 1)), tmtime.Canonical(time.Now()))
 	suite.keeper.SetCDP(suite.ctx, cdp)
+
 	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", types.DefaultCdpStartingID)
 	suite.True(found)
 	suite.Equal(cdp, t)
