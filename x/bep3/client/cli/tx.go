@@ -59,6 +59,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
+			// TODO: make timestamp arg optional and default to time.Now().Unix()
 			timeStamp, err := strconv.ParseInt(args[4], 10, 64)
 			if err != nil {
 				return err
