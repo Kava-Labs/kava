@@ -36,15 +36,18 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryCalcRandomNumberHashCmd calculates the random number hash for a number and timestamp
 func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "calc-rnh [random-number] [timestamp]",
+		Use:     "calc-rnh [random-number] [unix-timestamp]",
 		Short:   "calculate a random number hash for given a number and timestamp",
-		Example: "bep3 calc-rnh 15 100",
+		Example: "bep3 calc-rnh d72e44cb98b1cf4e94e7f6fe3de72d9108346f8104ec9ba958f07d7b5124876f 1583358734",
 		Args:    cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Parse query params
-			randomNumber := []byte(args[0])
+			randomNumber, err := types.HexToBytes(args[1])
+			if err != nil {
+				return err
+			}
 			timestamp, err := strconv.ParseInt(args[1], 10, 64)
 			if err != nil {
 				return fmt.Errorf(fmt.Sprintf("timestamp %s could not be converted to an integer", args[1]))
@@ -57,6 +60,11 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 	}
 }
 
+// TODO:
+// kvcli q bep3 calc-swapid bd8f3e7180c3ee5d89c4c6042caf2e8aa4d15782aa924509c8646497d278c902 kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7
+// results in -> 4e864eb87be9e1e17d37ac3bd5cec13d0209230c3189531384eed676d000cccc
+// but should result in -> 573f807f005f80d22ca378cdcc1f710ec4b96e448e3ac6eda4e0c0b232afb641
+
 // QueryCalcSwapIDCmd calculates the swapID for a random number hash, sender, and sender other chain
 func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
@@ -66,7 +74,6 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
 			// Parse query params
 			randomNumberHash, err := types.HexToBytes(args[0])
 			if err != nil {

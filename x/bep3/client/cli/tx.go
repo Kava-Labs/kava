@@ -38,14 +38,14 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [hashed-secret] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
 		Short: "create a new atomic swap",
-		Example: fmt.Sprintf("%s tx %s create kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 0x9eB05a790e2De0a047a57a22199D8CccEA6d6D5A '' 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 100 100xrp 99xrp 100 true --from accA",
+		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 bd8f3e7180c3ee5d89c4c6042caf2e8aa4d15782aa924509c8646497d278c902 1583358734 100btc 99btc 360 true --from validator",
 			version.ClientName, types.ModuleName),
 		Args: cobra.ExactArgs(9),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain AtomicSwaps)
+			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain)
 			to, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
@@ -101,7 +101,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "claim [swap-id] [random-number]",
 		Short:   "claim coins in an atomic swap using the secret number",
-		Example: fmt.Sprintf("%s tx %s claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 123456789 --from accA", version.ClientName, types.ModuleName),
+		Example: fmt.Sprintf("%s tx %s claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 56f13e6a5cd397447f8b5f8c82fdb5bbf56127db75269f5cc14e50acd8ac9a4c --from accA", version.ClientName, types.ModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -117,7 +117,11 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			if len(strings.TrimSpace(args[1])) == 0 {
 				return fmt.Errorf("random-number cannot be empty")
 			}
-			randomNumber := []byte(args[1])
+
+			randomNumber, err := types.HexToBytes(args[1])
+			if err != nil {
+				return err
+			}
 
 			msg := types.NewMsgClaimAtomicSwap(from, swapID, randomNumber)
 
