@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	heightSpan := int64(1000)
 	expirationBlock := uint64(suite.ctx.BlockHeight()) + uint64(heightSpan)
-	atomicSwap := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(expirationBlock), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", 0, types.Open)
+	atomicSwap := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(expirationBlock), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", "", 0, types.Open)
 	suite.keeper.SetAtomicSwap(suite.ctx, atomicSwap)
 
 	s, found := suite.keeper.GetAtomicSwap(suite.ctx, atomicSwap.GetSwapID())
@@ -68,10 +68,10 @@ func atomicSwaps(count int) types.AtomicSwaps {
 		swapID := types.CalculateSwapID(randomNumberHashes[i], binanceAddrs[i], "")
 		swapIDs = append(swapIDs, swapID)
 	}
-	s1 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(100), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", 0, types.Open)
-	s2 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[1], int64(275), timestamps[1], binanceAddrs[1], kavaAddrs[1], "", 0, types.Open)
-	s3 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[2], int64(325), timestamps[2], binanceAddrs[2], kavaAddrs[2], "", 0, types.Open)
-	s4 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[3], int64(500), timestamps[3], binanceAddrs[3], kavaAddrs[3], "", 0, types.Open)
+	s1 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[0], int64(100), timestamps[0], binanceAddrs[0], kavaAddrs[0], "", "", 0, types.Open)
+	s2 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[1], int64(275), timestamps[1], binanceAddrs[1], kavaAddrs[1], "", "", 0, types.Open)
+	s3 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[2], int64(325), timestamps[2], binanceAddrs[2], kavaAddrs[2], "", "", 0, types.Open)
+	s4 := types.NewAtomicSwap(coinsSingle, randomNumberHashes[3], int64(500), timestamps[3], binanceAddrs[3], kavaAddrs[3], "", "", 0, types.Open)
 	atomicSwaps = append(atomicSwaps, s1, s2, s3, s4)
 	return atomicSwaps
 }
