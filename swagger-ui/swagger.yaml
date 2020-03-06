@@ -1134,8 +1134,6 @@
                   type: array
                   items:
                     $ref: "#/definitions/TextProposal"
-
-
           400:
             description: Invalid query parameters
           500:
@@ -1659,7 +1657,13 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Address"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  $ref: "#/definitions/Address"
+
           400:
             description: Invalid delegator address
           500:

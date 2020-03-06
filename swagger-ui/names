@@ -1,0 +1,257 @@
+[34minfo[39m: Tendermint RPC > /node_info > The properties of the connected node > 200 > application/json
+[33mskip[39m: GET (200) /node_info
+[33mskip[39m: GET (500) /node_info
+[34minfo[39m: Tendermint RPC > /syncing > Syncing state of node > 200 > application/json
+[33mskip[39m: GET (200) /syncing
+[33mskip[39m: GET (500) /syncing
+[34minfo[39m: Tendermint RPC > /blocks/latest > Get the latest block > 200 > application/json
+[33mskip[39m: GET (200) /blocks/latest
+[33mskip[39m: GET (500) /blocks/latest
+[34minfo[39m: Tendermint RPC > /blocks/{height} > Get a block at a certain height > 200 > application/json
+[33mskip[39m: GET (200) /blocks/1
+[33mskip[39m: GET (400) /blocks/1
+[33mskip[39m: GET (404) /blocks/1
+[33mskip[39m: GET (500) /blocks/1
+[34minfo[39m: Tendermint RPC > /validatorsets/latest > Get the latest validator set > 200 > application/json
+[33mskip[39m: GET (200) /validatorsets/latest
+[33mskip[39m: GET (500) /validatorsets/latest
+[34minfo[39m: Tendermint RPC > /validatorsets/{height} > Get a validator set a certain height > 200 > application/json
+[33mskip[39m: GET (200) /validatorsets/1
+[33mskip[39m: GET (400) /validatorsets/1
+[33mskip[39m: GET (404) /validatorsets/1
+[33mskip[39m: GET (500) /validatorsets/1
+[34minfo[39m: Transactions > /txs/{hash} > Get a Tx by hash > 200 > application/json
+[33mskip[39m: GET (200) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B
+[33mskip[39m: GET (500) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B
+[34minfo[39m: Transactions > /txs > Search transactions > 200 > application/json
+[33mskip[39m: GET (200) /txs?page=1&limit=1
+[33mskip[39m: GET (400) /txs?page=1&limit=1
+[33mskip[39m: GET (500) /txs?page=1&limit=1
+[34minfo[39m: Transactions > /txs > Broadcast a signed tx > 200 > application/json
+[33mskip[39m: POST (200) /txs
+[33mskip[39m: POST (500) /txs
+[34minfo[39m: Transactions > /txs/encode > Encode a transaction to the Amino wire format > 200 > application/json
+[33mskip[39m: POST (200) /txs/encode
+[33mskip[39m: POST (400) /txs/encode
+[33mskip[39m: POST (500) /txs/encode
+[34minfo[39m: Transactions > /txs/decode > Decode a transaction from the Amino wire format > 200 > application/json
+[33mskip[39m: POST (200) /txs/decode
+[33mskip[39m: POST (400) /txs/decode
+[33mskip[39m: POST (500) /txs/decode
+[34minfo[39m: Bank > /bank/balances/{address} > Get the account balances > 200 > application/json
+[33mskip[39m: GET (200) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (500) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[34minfo[39m: Bank > /bank/accounts/{address}/transfers > Send coins from one account to another > 202 > application/json
+[33mskip[39m: POST (202) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
+[33mskip[39m: POST (400) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
+[33mskip[39m: POST (500) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
+[34minfo[39m: Auth > /auth/accounts/{address} > Get the account information on blockchain > 200 > application/json
+[33mskip[39m: GET (200) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (500) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/delegations > Get all delegations from a delegator > 200 > application/json
+[33mskip[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/delegations > Submit delegation > 200 > application/json
+[33mskip[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[33mskip[39m: POST (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[33mskip[39m: POST (401) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[33mskip[39m: POST (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/delegations/{validatorAddr} > Query the current delegation between a delegator and a validator > 200 > application/json
+[33mskip[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/unbonding_delegations > Get all unbonding delegations from a delegator > 200 > application/json
+[33mskip[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/unbonding_delegations > Submit an unbonding delegation > 200 > application/json
+[33mskip[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[33mskip[39m: POST (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[33mskip[39m: POST (401) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[33mskip[39m: POST (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr} > Query all unbonding delegations between a delegator and a validator > 200 > application/json
+[33mskip[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Staking > /staking/redelegations{?delegator,validator_from,validator_to} > Get all redelegations (filter by query params) > 200 > application/json
+[33mskip[39m: GET (200) /staking/redelegations
+[33mskip[39m: GET (500) /staking/redelegations
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/redelegations > Submit a redelegation > 200 > application/json
+[33mskip[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations
+[33mskip[39m: POST (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations
+[33mskip[39m: POST (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/validators > Query all validators that a delegator is bonded to > 200 > application/json
+[33mskip[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
+[33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
+[33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
+[34minfo[39m: Staking > /staking/delegators/{delegatorAddr}/validators/{validatorAddr} > Query a validator that a delegator is bonded to > 200 > application/json
+[33mskip[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Staking > /staking/validators > Get all validator candidates. By default it returns only the bonded validators. > 200 > application/json
+[33mskip[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1
+[33mskip[39m: GET (500) /staking/validators?status=bonded&page=1&limit=1
+[34minfo[39m: Staking > /staking/validators/{validatorAddr} > Query the information from a single validator > 200 > application/json
+[33mskip[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Staking > /staking/validators/{validatorAddr}/delegations > Get all delegations from a validator > 200 > application/json
+[33mskip[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
+[33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
+[33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
+[34minfo[39m: Staking > /staking/validators/{validatorAddr}/unbonding_delegations > Get all unbonding delegations from a validator > 200 > application/json
+[33mskip[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
+[33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
+[33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
+[34minfo[39m: Staking > /staking/pool > Get the current state of the staking pool > 200 > application/json
+[33mskip[39m: GET (200) /staking/pool
+[33mskip[39m: GET (500) /staking/pool
+[34minfo[39m: Staking > /staking/parameters > Get the current staking parameter values > 200 > application/json
+[33mskip[39m: GET (200) /staking/parameters
+[33mskip[39m: GET (500) /staking/parameters
+[34minfo[39m: Slashing > /slashing/signing_infos > Get sign info of given all validators > 200 > application/json
+[33mskip[39m: GET (200) /slashing/signing_infos?page=1&limit=5
+[33mskip[39m: GET (400) /slashing/signing_infos?page=1&limit=5
+[33mskip[39m: GET (500) /slashing/signing_infos?page=1&limit=5
+[34minfo[39m: Slashing > /slashing/validators/{validatorAddr}/unjail > Unjail a jailed validator > 200 > application/json
+[33mskip[39m: POST (200) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail
+[33mskip[39m: POST (400) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail
+[33mskip[39m: POST (500) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail
+[34minfo[39m: Slashing > /slashing/parameters > Get the current slashing parameters > 200 > application/json
+[33mskip[39m: GET (200) /slashing/parameters
+[33mskip[39m: GET (500) /slashing/parameters
+[34minfo[39m: Governance > /gov/proposals > Submit a proposal > 200 > application/json
+[33mskip[39m: POST (200) /gov/proposals
+[33mskip[39m: POST (400) /gov/proposals
+[33mskip[39m: POST (500) /gov/proposals
+[34minfo[39m: Governance > /gov/proposals > Query proposals > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals
+[33mskip[39m: GET (400) /gov/proposals
+[33mskip[39m: GET (500) /gov/proposals
+[34minfo[39m: Governance > /gov/proposals/param_change > Generate a parameter change proposal transaction > 200 > application/json
+[33mskip[39m: POST (200) /gov/proposals/param_change
+[33mskip[39m: POST (400) /gov/proposals/param_change
+[33mskip[39m: POST (500) /gov/proposals/param_change
+[34minfo[39m: Governance > /gov/proposals/{proposalId} > Query a proposal > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2
+[33mskip[39m: GET (400) /gov/proposals/2
+[33mskip[39m: GET (500) /gov/proposals/2
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/proposer > Query proposer > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2/proposer
+[33mskip[39m: GET (400) /gov/proposals/2/proposer
+[33mskip[39m: GET (500) /gov/proposals/2/proposer
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/deposits > Query deposits > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2/deposits
+[33mskip[39m: GET (400) /gov/proposals/2/deposits
+[33mskip[39m: GET (500) /gov/proposals/2/deposits
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/deposits > Deposit tokens to a proposal > 200 > application/json
+[33mskip[39m: POST (200) /gov/proposals/2/deposits
+[33mskip[39m: POST (400) /gov/proposals/2/deposits
+[33mskip[39m: POST (401) /gov/proposals/2/deposits
+[33mskip[39m: POST (500) /gov/proposals/2/deposits
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/deposits/{depositor} > Query deposit > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (400) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (404) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (500) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/votes > Query voters > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2/votes
+[33mskip[39m: GET (400) /gov/proposals/2/votes
+[33mskip[39m: GET (500) /gov/proposals/2/votes
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/votes > Vote a proposal > 200 > application/json
+[33mskip[39m: POST (200) /gov/proposals/2/votes
+[33mskip[39m: POST (400) /gov/proposals/2/votes
+[33mskip[39m: POST (401) /gov/proposals/2/votes
+[33mskip[39m: POST (500) /gov/proposals/2/votes
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/votes/{voter} > Query vote > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (400) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (404) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[33mskip[39m: GET (500) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+[34minfo[39m: Governance > /gov/proposals/{proposalId}/tally > Get a proposal's tally result at the current time > 200 > application/json
+[33mskip[39m: GET (200) /gov/proposals/2/tally
+[33mskip[39m: GET (400) /gov/proposals/2/tally
+[33mskip[39m: GET (500) /gov/proposals/2/tally
+[34minfo[39m: Governance > /gov/parameters/deposit > Query governance deposit parameters > 200 > application/json
+[33mskip[39m: GET (200) /gov/parameters/deposit
+[33mskip[39m: GET (400) /gov/parameters/deposit
+[33mskip[39m: GET (404) /gov/parameters/deposit
+[33mskip[39m: GET (500) /gov/parameters/deposit
+[34minfo[39m: Governance > /gov/parameters/tallying > Query governance tally parameters > 200 > application/json
+[33mskip[39m: GET (200) /gov/parameters/tallying
+[33mskip[39m: GET (400) /gov/parameters/tallying
+[33mskip[39m: GET (404) /gov/parameters/tallying
+[33mskip[39m: GET (500) /gov/parameters/tallying
+[34minfo[39m: Governance > /gov/parameters/voting > Query governance voting parameters > 200 > application/json
+[33mskip[39m: GET (200) /gov/parameters/voting
+[33mskip[39m: GET (400) /gov/parameters/voting
+[33mskip[39m: GET (404) /gov/parameters/voting
+[33mskip[39m: GET (500) /gov/parameters/voting
+[34minfo[39m: Distribution > /distribution/delegators/{delegatorAddr}/rewards > Get the total rewards balance from all delegations > 200 > application/json
+[33mskip[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[33mskip[39m: GET (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[33mskip[39m: GET (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[34minfo[39m: Distribution > /distribution/delegators/{delegatorAddr}/rewards > Withdraw all the delegator's delegation rewards > 200 > application/json
+[33mskip[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
+[34minfo[39m: Distribution > /distribution/delegators/{delegatorAddr}/rewards/{validatorAddr} > Query a delegation reward > 200 > application/json
+[33mskip[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Distribution > /distribution/delegators/{delegatorAddr}/rewards/{validatorAddr} > Withdraw a delegation reward > 200 > application/json
+[33mskip[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Distribution > /distribution/delegators/{delegatorAddr}/withdraw_address > Get the rewards withdrawal address > 200 > application/json
+[33mskip[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[33mskip[39m: GET (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[33mskip[39m: GET (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[34minfo[39m: Distribution > /distribution/delegators/{delegatorAddr}/withdraw_address > Replace the rewards withdrawal address > 200 > application/json
+[33mskip[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
+[34minfo[39m: Distribution > /distribution/validators/{validatorAddr} > Validator distribution information > 200 > application/json
+[33mskip[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (400) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[33mskip[39m: GET (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+[34minfo[39m: Distribution > /distribution/validators/{validatorAddr}/outstanding_rewards > Fee distribution outstanding rewards of a single validator > 200 > application/json
+[33mskip[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/outstanding_rewards
+[33mskip[39m: GET (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/outstanding_rewards
+[34minfo[39m: Distribution > /distribution/validators/{validatorAddr}/rewards > Commission and self-delegation rewards of a single validator > 200 > application/json
+[33mskip[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[33mskip[39m: GET (400) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[33mskip[39m: GET (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[34minfo[39m: Distribution > /distribution/validators/{validatorAddr}/rewards > Withdraw the validator's rewards > 200 > application/json
+[33mskip[39m: POST (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[33mskip[39m: POST (400) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[33mskip[39m: POST (401) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[33mskip[39m: POST (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
+[34minfo[39m: Distribution > /distribution/community_pool > Community pool parameters > 200 > application/json
+[33mskip[39m: GET (200) /distribution/community_pool
+[33mskip[39m: GET (500) /distribution/community_pool
+[34minfo[39m: Distribution > /distribution/parameters > Fee distribution parameters > 200 > application/json
+[33mskip[39m: GET (200) /distribution/parameters
+[33mskip[39m: GET (500) /distribution/parameters
+[34minfo[39m: Mint > /minting/parameters > Minting module parameters > 200 > application/json
+[33mskip[39m: GET (200) /minting/parameters
+[33mskip[39m: GET (500) /minting/parameters
+[34minfo[39m: Mint > /minting/inflation > Current minting inflation value > 200 > application/json
+[33mskip[39m: GET (200) /minting/inflation
+[33mskip[39m: GET (500) /minting/inflation
+[34minfo[39m: Mint > /minting/annual-provisions > Current minting annual provisions value > 200 > application/json
+[33mskip[39m: GET (200) /minting/annual-provisions
+[33mskip[39m: GET (500) /minting/annual-provisions
+[34minfo[39m: Supply > /supply/total > Total supply of coins in the chain > 200 > application/json
+[33mskip[39m: GET (200) /supply/total
+[33mskip[39m: GET (500) /supply/total
+[34minfo[39m: Supply > /supply/total/{denomination} > Total supply of a single coin denomination > 200 > application/json
+[33mskip[39m: GET (200) /supply/total/uatom
+[33mskip[39m: GET (400) /supply/total/uatom
+[33mskip[39m: GET (500) /supply/total/uatom
+[32mcomplete[39m: 0 passing, 0 failing, 0 errors, 190 skipped, 190 total
+[32mcomplete[39m: Tests took 28ms
