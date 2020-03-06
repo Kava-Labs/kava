@@ -37,6 +37,10 @@
               {
                 "amount": "100000000000",
                 "denom": "xrp"
+              },
+              {
+                  "amount": "100000000000",
+                  "denom": "bnb"
               }
             ],
             "public_key": null,
@@ -60,6 +64,10 @@
               {
                 "amount": "100000000000",
                 "denom": "xrp"
+              },
+              {
+                  "amount": "100000000000",
+                  "denom": "bnb"
               }
             ],
             "public_key": null,
@@ -83,6 +91,10 @@
               {
                 "amount": "100000000000",
                 "denom": "xrp"
+              },
+              {
+                  "amount": "100000000000",
+                  "denom": "bnb"
               }
             ],
             "public_key": null,
@@ -296,13 +308,19 @@
     },
     "bep3": {
         "params": {
-            "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
+            "bnb_deputy_address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
             "min_block_lock": "80",
             "max_block_lock": "600",
             "supported_assets": [
                 {
                     "denom": "btc",
                     "coin_id": "0",
+                    "limit": "100000000000",
+                    "active": true
+                },
+                {
+                    "denom": "bnb",
+                    "coin_id": "714",
                     "limit": "100000000000",
                     "active": true
                 }
