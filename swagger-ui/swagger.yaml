@@ -1092,7 +1092,7 @@
                     $ref: "#/definitions/Coin"
         responses:
           200:
-            description: Tx was succesfully generated
+            description: Tx was successfully generated
             schema:
               $ref: "#/definitions/StdTx"
           400:
@@ -1126,9 +1126,16 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/TextProposal"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/TextProposal"
+
+
           400:
             description: Invalid query parameters
           500:
