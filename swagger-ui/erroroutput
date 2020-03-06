@@ -1,86 +1,86 @@
-[32mpass[39m: GET (200) /node_info duration: 79ms
+[32mpass[39m: GET (200) /node_info duration: 84ms
 [33mskip[39m: GET (500) /node_info
-[32mpass[39m: GET (200) /syncing duration: 15ms
+[32mpass[39m: GET (200) /syncing duration: 17ms
 [33mskip[39m: GET (500) /syncing
-[31mfail[39m: GET (200) /blocks/latest duration: 37ms
+[31mfail[39m: GET (200) /blocks/latest duration: 60ms
 [33mskip[39m: GET (500) /blocks/latest
-[31mfail[39m: GET (200) /blocks/1 duration: 37ms
+[31mfail[39m: GET (200) /blocks/1 duration: 41ms
 [33mskip[39m: GET (400) /blocks/1
 [33mskip[39m: GET (404) /blocks/1
 [33mskip[39m: GET (500) /blocks/1
-[32mpass[39m: GET (200) /validatorsets/latest duration: 14ms
+[32mpass[39m: GET (200) /validatorsets/latest duration: 3560ms
 [33mskip[39m: GET (500) /validatorsets/latest
-[32mpass[39m: GET (200) /validatorsets/1 duration: 15ms
+[32mpass[39m: GET (200) /validatorsets/1 duration: 20ms
 [33mskip[39m: GET (400) /validatorsets/1
 [33mskip[39m: GET (404) /validatorsets/1
 [33mskip[39m: GET (500) /validatorsets/1
-[31mfail[39m: GET (200) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B duration: 23ms
+[31mfail[39m: GET (200) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B duration: 27ms
 [33mskip[39m: GET (500) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B
-[31mfail[39m: GET (200) /txs?page=1&limit=1 duration: 23ms
+[31mfail[39m: GET (200) /txs?page=1&limit=1 duration: 28ms
 [33mskip[39m: GET (400) /txs?page=1&limit=1
 [33mskip[39m: GET (500) /txs?page=1&limit=1
-[31mfail[39m: POST (200) /txs duration: 27ms
+[31mfail[39m: POST (200) /txs duration: 30ms
 [33mskip[39m: POST (500) /txs
-[31mfail[39m: POST (200) /txs/encode duration: 12ms
+[31mfail[39m: POST (200) /txs/encode duration: 21ms
 [33mskip[39m: POST (400) /txs/encode
 [33mskip[39m: POST (500) /txs/encode
-[31mfail[39m: POST (200) /txs/decode duration: 21ms
+[31mfail[39m: POST (200) /txs/decode duration: 29ms
 [33mskip[39m: POST (400) /txs/decode
 [33mskip[39m: POST (500) /txs/decode
-[31mfail[39m: GET (200) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 14ms
+[31mfail[39m: GET (200) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 16ms
 [33mskip[39m: GET (500) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
-[31mfail[39m: POST (202) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers duration: 19ms
+[31mfail[39m: POST (202) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers duration: 20ms
 [33mskip[39m: POST (400) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
 [33mskip[39m: POST (500) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
-[32mpass[39m: GET (200) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 13ms
+[32mpass[39m: GET (200) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 14ms
 [33mskip[39m: GET (500) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 12ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 13ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
-[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 27ms
+[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 28ms
 [33mskip[39m: POST (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
 [33mskip[39m: POST (401) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
 [33mskip[39m: POST (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 33ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 19ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 13ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 14ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
-[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 18ms
+[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 19ms
 [33mskip[39m: POST (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
 [33mskip[39m: POST (401) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
 [33mskip[39m: POST (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 18ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 21ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
-[31mfail[39m: GET (200) /staking/redelegations duration: 12ms
+[31mfail[39m: GET (200) /staking/redelegations duration: 14ms
 [33mskip[39m: GET (500) /staking/redelegations
-[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations duration: 20ms
+[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations duration: 18ms
 [33mskip[39m: POST (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations
 [33mskip[39m: POST (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators duration: 14ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators duration: 15ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
 [31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 18ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
-[31mfail[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1 duration: 13ms
+[31mfail[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1 duration: 12ms
 [33mskip[39m: GET (500) /staking/validators?status=bonded&page=1&limit=1
 [31mfail[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 16ms
 [33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
-[31mfail[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations duration: 10ms
+[31mfail[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations duration: 13ms
 [33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
 [33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
 [31mfail[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations duration: 12ms
 [33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
 [33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
-[32mpass[39m: GET (200) /staking/pool duration: 11ms
+[32mpass[39m: GET (200) /staking/pool duration: 12ms
 [33mskip[39m: GET (500) /staking/pool
 [32mpass[39m: GET (200) /staking/parameters duration: 12ms
 [33mskip[39m: GET (500) /staking/parameters
-[31mfail[39m: GET (200) /slashing/signing_infos?page=1&limit=5 duration: 12ms
+[31mfail[39m: GET (200) /slashing/signing_infos?page=1&limit=5 duration: 13ms
 [33mskip[39m: GET (400) /slashing/signing_infos?page=1&limit=5
 [33mskip[39m: GET (500) /slashing/signing_infos?page=1&limit=5
 [31mfail[39m: POST (200) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail duration: 16ms
@@ -88,51 +88,51 @@
 [33mskip[39m: POST (500) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail
 [32mpass[39m: GET (200) /slashing/parameters duration: 12ms
 [33mskip[39m: GET (500) /slashing/parameters
-[31mfail[39m: POST (200) /gov/proposals duration: 16ms
+[31mfail[39m: POST (200) /gov/proposals duration: 17ms
 [33mskip[39m: POST (400) /gov/proposals
 [33mskip[39m: POST (500) /gov/proposals
-[32mpass[39m: GET (200) /gov/proposals duration: 12ms
+[32mpass[39m: GET (200) /gov/proposals duration: 13ms
 [33mskip[39m: GET (400) /gov/proposals
 [33mskip[39m: GET (500) /gov/proposals
-[31mfail[39m: POST (200) /gov/proposals/param_change duration: 15ms
+[31mfail[39m: POST (200) /gov/proposals/param_change duration: 16ms
 [33mskip[39m: POST (400) /gov/proposals/param_change
 [33mskip[39m: POST (500) /gov/proposals/param_change
-[31mfail[39m: GET (200) /gov/proposals/2 duration: 16ms
+[31mfail[39m: GET (200) /gov/proposals/2 duration: 17ms
 [33mskip[39m: GET (400) /gov/proposals/2
 [33mskip[39m: GET (500) /gov/proposals/2
-[31mfail[39m: GET (200) /gov/proposals/2/proposer duration: 21ms
+[31mfail[39m: GET (200) /gov/proposals/2/proposer duration: 20ms
 [33mskip[39m: GET (400) /gov/proposals/2/proposer
 [33mskip[39m: GET (500) /gov/proposals/2/proposer
-[31mfail[39m: GET (200) /gov/proposals/2/deposits duration: 12ms
+[31mfail[39m: GET (200) /gov/proposals/2/deposits duration: 13ms
 [33mskip[39m: GET (400) /gov/proposals/2/deposits
 [33mskip[39m: GET (500) /gov/proposals/2/deposits
 [32mpass[39m: POST (200) /gov/proposals/2/deposits duration: 15ms
 [33mskip[39m: POST (400) /gov/proposals/2/deposits
 [33mskip[39m: POST (401) /gov/proposals/2/deposits
 [33mskip[39m: POST (500) /gov/proposals/2/deposits
-[31mfail[39m: GET (200) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 16ms
+[31mfail[39m: GET (200) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 17ms
 [33mskip[39m: GET (400) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
 [33mskip[39m: GET (404) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
 [33mskip[39m: GET (500) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
 [31mfail[39m: GET (200) /gov/proposals/2/votes duration: 11ms
 [33mskip[39m: GET (400) /gov/proposals/2/votes
 [33mskip[39m: GET (500) /gov/proposals/2/votes
-[32mpass[39m: POST (200) /gov/proposals/2/votes duration: 16ms
+[32mpass[39m: POST (200) /gov/proposals/2/votes duration: 15ms
 [33mskip[39m: POST (400) /gov/proposals/2/votes
 [33mskip[39m: POST (401) /gov/proposals/2/votes
 [33mskip[39m: POST (500) /gov/proposals/2/votes
-[31mfail[39m: GET (200) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 15ms
+[31mfail[39m: GET (200) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 16ms
 [33mskip[39m: GET (400) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
 [33mskip[39m: GET (404) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
 [33mskip[39m: GET (500) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
-[31mfail[39m: GET (200) /gov/proposals/2/tally duration: 16ms
+[31mfail[39m: GET (200) /gov/proposals/2/tally duration: 14ms
 [33mskip[39m: GET (400) /gov/proposals/2/tally
 [33mskip[39m: GET (500) /gov/proposals/2/tally
-[32mpass[39m: GET (200) /gov/parameters/deposit duration: 12ms
+[32mpass[39m: GET (200) /gov/parameters/deposit duration: 13ms
 [33mskip[39m: GET (400) /gov/parameters/deposit
 [33mskip[39m: GET (404) /gov/parameters/deposit
 [33mskip[39m: GET (500) /gov/parameters/deposit
-[32mpass[39m: GET (200) /gov/parameters/tallying duration: 13ms
+[32mpass[39m: GET (200) /gov/parameters/tallying duration: 11ms
 [33mskip[39m: GET (400) /gov/parameters/tallying
 [33mskip[39m: GET (404) /gov/parameters/tallying
 [33mskip[39m: GET (500) /gov/parameters/tallying
@@ -140,10 +140,10 @@
 [33mskip[39m: GET (400) /gov/parameters/voting
 [33mskip[39m: GET (404) /gov/parameters/voting
 [33mskip[39m: GET (500) /gov/parameters/voting
-[32mpass[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards duration: 18ms
+[32mpass[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards duration: 19ms
 [33mskip[39m: GET (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
 [33mskip[39m: GET (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
-[32mpass[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards duration: 17ms
+[32mpass[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards duration: 19ms
 [33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
 [33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
 [33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards
@@ -154,10 +154,10 @@
 [33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/rewards/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
-[31mfail[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 14ms
+[32mpass[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 12ms
 [33mskip[39m: GET (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
 [33mskip[39m: GET (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
-[32mpass[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 15ms
+[32mpass[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 17ms
 [33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
 [33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
 [33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
@@ -166,30 +166,30 @@
 [33mskip[39m: GET (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
 [31mfail[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/outstanding_rewards duration: 12ms
 [33mskip[39m: GET (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/outstanding_rewards
-[31mfail[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards duration: 10ms
+[31mfail[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards duration: 11ms
 [33mskip[39m: GET (400) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
 [33mskip[39m: GET (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
-[32mpass[39m: POST (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards duration: 15ms
+[32mpass[39m: POST (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards duration: 17ms
 [33mskip[39m: POST (400) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
 [33mskip[39m: POST (401) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
 [33mskip[39m: POST (500) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards
-[32mpass[39m: GET (200) /distribution/community_pool duration: 12ms
+[32mpass[39m: GET (200) /distribution/community_pool duration: 11ms
 [33mskip[39m: GET (500) /distribution/community_pool
-[32mpass[39m: GET (200) /distribution/parameters duration: 12ms
+[32mpass[39m: GET (200) /distribution/parameters duration: 13ms
 [33mskip[39m: GET (500) /distribution/parameters
-[32mpass[39m: GET (200) /minting/parameters duration: 12ms
+[32mpass[39m: GET (200) /minting/parameters duration: 10ms
 [33mskip[39m: GET (500) /minting/parameters
-[32mpass[39m: GET (200) /minting/inflation duration: 14ms
+[32mpass[39m: GET (200) /minting/inflation duration: 15ms
 [33mskip[39m: GET (500) /minting/inflation
-[32mpass[39m: GET (200) /minting/annual-provisions duration: 14ms
+[32mpass[39m: GET (200) /minting/annual-provisions duration: 15ms
 [33mskip[39m: GET (500) /minting/annual-provisions
-[32mpass[39m: GET (200) /supply/total duration: 15ms
+[32mpass[39m: GET (200) /supply/total duration: 26ms
 [33mskip[39m: GET (500) /supply/total
-[32mpass[39m: GET (200) /supply/total/uatom duration: 14ms
+[32mpass[39m: GET (200) /supply/total/uatom duration: 15ms
 [33mskip[39m: GET (400) /supply/total/uatom
 [33mskip[39m: GET (500) /supply/total/uatom
 [34minfo[39m: Displaying failed tests...
-[31mfail[39m: GET (200) /blocks/latest duration: 37ms
+[31mfail[39m: GET (200) /blocks/latest duration: 60ms
 [31mfail[39m: body: At '/block_meta/header/height' Invalid type: string (expected number)
 body: At '/block_meta/header/num_txs' Invalid type: string (expected number)
 body: At '/block_meta/header/last_block_id/parts/total' Invalid type: string (expected number)
@@ -266,8 +266,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/BlockQuery"}],"definitions":{"Block
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529520
+    date: Fri, 06 Mar 2020 21:18:40 GMT
     connection: close
     transfer-encoding: chunked
 
@@ -276,10 +276,10 @@ body:
 {
   "block_meta": {
     "block_id": {
-      "hash": "9C58E924110AEF48E6B9D9D6082E8068728EE58CBC2063F8FBAF8C31031591CD",
+      "hash": "18F00CA26882457FAF725621351ECD9A3FC5F5E7FE8C4CFC5FCA422A2B934E72",
       "parts": {
         "total": "1",
-        "hash": "874ECBB08203AACD289154305E476F7E9254F344C6F369E56295FBD7F866D055"
+        "hash": "C6B55FC1791565F2465B77CB5300685FCB8393F1D7597576D976EF9B83E27439"
       }
     },
     "header": {
@@ -288,26 +288,26 @@ body:
         "app": "0"
       },
       "chain_id": "testing",
-      "height": "5657",
-      "time": "2020-03-06T21:01:00.013083Z",
+      "height": "41",
+      "time": "2020-03-06T21:18:33.746887Z",
       "num_txs": "0",
       "total_txs": "0",
       "last_block_id": {
-        "hash": "89E8B214F7E8F3BBD614C74D1DD9A3994C2846F44FF0488ED95B389F58CBBDAA",
+        "hash": "9589536DAC391C6D8C471E3C7135A6669FFEA2C198D5813D98EFA811EB59AA5D",
         "parts": {
           "total": "1",
-          "hash": "8BFD580135EDAF236A743277CF6ABED04DF84EAC314BCDC62F0880BADC568D83"
+          "hash": "7D60A139F6BEBB6C8E2D2B4F0F3D002552D197C6D2E1645CE45A1DEB5034C230"
         }
       },
-      "last_commit_hash": "8981653B9A7341468C0CCF46DF14D9A4D9DADC4F6B2CC767BAC17600B949866B",
+      "last_commit_hash": "A581F79573BBA61A838EA2D434A2555036664B4726A8A37FA6BA91695527E608",
       "data_hash": "",
-      "validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
-      "next_validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
+      "validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
+      "next_validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
       "consensus_hash": "048091BC7DDC283F77BFBF91D73C44DA58C3DF8A9CBC867405D8B7F3DAADA22F",
-      "app_hash": "70852CA77A1394D99B983445664639DFB218F4A2233AAD53632325D42D318694",
+      "app_hash": "88CDDF674C65D48DF9E5671E3063DE19BA0535A363A90A1A621B8C202EA4A235",
       "last_results_hash": "",
       "evidence_hash": "",
-      "proposer_address": "2B99197862C709A4A8C497031518324D9486B238"
+      "proposer_address": "4E26C342A22ED3D498CD21EDFD522C738C15A9E6"
     }
   },
   "block": {
@@ -317,26 +317,26 @@ body:
         "app": "0"
       },
       "chain_id": "testing",
-      "height": "5657",
-      "time": "2020-03-06T21:01:00.013083Z",
+      "height": "41",
+      "time": "2020-03-06T21:18:33.746887Z",
       "num_txs": "0",
       "total_txs": "0",
       "last_block_id": {
-        "hash": "89E8B214F7E8F3BBD614C74D1DD9A3994C2846F44FF0488ED95B389F58CBBDAA",
+        "hash": "9589536DAC391C6D8C471E3C7135A6669FFEA2C198D5813D98EFA811EB59AA5D",
         "parts": {
           "total": "1",
-          "hash": "8BFD580135EDAF236A743277CF6ABED04DF84EAC314BCDC62F0880BADC568D83"
+          "hash": "7D60A139F6BEBB6C8E2D2B4F0F3D002552D197C6D2E1645CE45A1DEB5034C230"
         }
       },
-      "last_commit_hash": "8981653B9A7341468C0CCF46DF14D9A4D9DADC4F6B2CC767BAC17600B949866B",
+      "last_commit_hash": "A581F79573BBA61A838EA2D434A2555036664B4726A8A37FA6BA91695527E608",
       "data_hash": "",
-      "validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
-      "next_validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
+      "validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
+      "next_validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
       "consensus_hash": "048091BC7DDC283F77BFBF91D73C44DA58C3DF8A9CBC867405D8B7F3DAADA22F",
-      "app_hash": "70852CA77A1394D99B983445664639DFB218F4A2233AAD53632325D42D318694",
+      "app_hash": "88CDDF674C65D48DF9E5671E3063DE19BA0535A363A90A1A621B8C202EA4A235",
       "last_results_hash": "",
       "evidence_hash": "",
-      "proposer_address": "2B99197862C709A4A8C497031518324D9486B238"
+      "proposer_address": "4E26C342A22ED3D498CD21EDFD522C738C15A9E6"
     },
     "data": {
       "txs": null
@@ -346,28 +346,28 @@ body:
     },
     "last_commit": {
       "block_id": {
-        "hash": "89E8B214F7E8F3BBD614C74D1DD9A3994C2846F44FF0488ED95B389F58CBBDAA",
+        "hash": "9589536DAC391C6D8C471E3C7135A6669FFEA2C198D5813D98EFA811EB59AA5D",
         "parts": {
           "total": "1",
-          "hash": "8BFD580135EDAF236A743277CF6ABED04DF84EAC314BCDC62F0880BADC568D83"
+          "hash": "7D60A139F6BEBB6C8E2D2B4F0F3D002552D197C6D2E1645CE45A1DEB5034C230"
         }
       },
       "precommits": [
         {
           "type": 2,
-          "height": "5656",
+          "height": "40",
           "round": "0",
           "block_id": {
-            "hash": "89E8B214F7E8F3BBD614C74D1DD9A3994C2846F44FF0488ED95B389F58CBBDAA",
+            "hash": "9589536DAC391C6D8C471E3C7135A6669FFEA2C198D5813D98EFA811EB59AA5D",
             "parts": {
               "total": "1",
-              "hash": "8BFD580135EDAF236A743277CF6ABED04DF84EAC314BCDC62F0880BADC568D83"
+              "hash": "7D60A139F6BEBB6C8E2D2B4F0F3D002552D197C6D2E1645CE45A1DEB5034C230"
             }
           },
-          "timestamp": "2020-03-06T21:01:00.013083Z",
-          "validator_address": "2B99197862C709A4A8C497031518324D9486B238",
+          "timestamp": "2020-03-06T21:18:33.746887Z",
+          "validator_address": "4E26C342A22ED3D498CD21EDFD522C738C15A9E6",
           "validator_index": "0",
-          "signature": "ATJ/5EN7YZzJYIOY2m3iQmsamdUyq/IgAV1FK7/NMvLdkGtrfUNJfY1RGPQAERUW5WKegynpYNhYyGyoZwfWDw=="
+          "signature": "wzAz3bKRW5pSeVoB95rs7l6FfATA2gJgqTWIdpB7zAvK+fIcVjKmnSQqRpTfzv8XdOLmtpH6cFH/Tt3dty5xAA=="
         }
       ]
     }
@@ -376,7 +376,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /blocks/1 duration: 37ms
+[31mfail[39m: GET (200) /blocks/1 duration: 41ms
 [31mfail[39m: body: At '/block_meta/header/height' Invalid type: string (expected number)
 body: At '/block_meta/header/num_txs' Invalid type: string (expected number)
 body: At '/block_meta/header/last_block_id/parts/total' Invalid type: string (expected number)
@@ -453,20 +453,20 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/BlockQuery"}],"definitions":{"Block
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529520
+    date: Fri, 06 Mar 2020 21:18:40 GMT
+    content-length: 1589
     connection: close
-    transfer-encoding: chunked
 
 bodyEncoding: utf-8
 body: 
 {
   "block_meta": {
     "block_id": {
-      "hash": "E149D789D5E3F15706C1B0B8AE67D94122A57FE2A703DB187CE07E5ED23F3B84",
+      "hash": "3AC21C874CFA3FDB12CF6D3D32F03AB2A0EFEFB2B4CC4A9D1BB44CCF6B9CCEED",
       "parts": {
         "total": "1",
-        "hash": "F62DA1F77DFD2B8C26B4B1AC36EF5B3D4D90B691239EB858663DED85E690C9CD"
+        "hash": "2758B0A89AA0754CD956C3A121B3EDD892D51224FC27F3F992E86FB8A50E1425"
       }
     },
     "header": {
@@ -476,7 +476,7 @@ body:
       },
       "chain_id": "testing",
       "height": "1",
-      "time": "2020-02-24T21:06:18.848803Z",
+      "time": "2020-03-06T21:15:08.924837Z",
       "num_txs": "0",
       "total_txs": "0",
       "last_block_id": {
@@ -488,13 +488,13 @@ body:
       },
       "last_commit_hash": "",
       "data_hash": "",
-      "validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
-      "next_validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
+      "validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
+      "next_validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
       "consensus_hash": "048091BC7DDC283F77BFBF91D73C44DA58C3DF8A9CBC867405D8B7F3DAADA22F",
       "app_hash": "",
       "last_results_hash": "",
       "evidence_hash": "",
-      "proposer_address": "2B99197862C709A4A8C497031518324D9486B238"
+      "proposer_address": "4E26C342A22ED3D498CD21EDFD522C738C15A9E6"
     }
   },
   "block": {
@@ -505,7 +505,7 @@ body:
       },
       "chain_id": "testing",
       "height": "1",
-      "time": "2020-02-24T21:06:18.848803Z",
+      "time": "2020-03-06T21:15:08.924837Z",
       "num_txs": "0",
       "total_txs": "0",
       "last_block_id": {
@@ -517,13 +517,13 @@ body:
       },
       "last_commit_hash": "",
       "data_hash": "",
-      "validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
-      "next_validators_hash": "0CEF3A6E9A525407EFD4BE6EFED3068D58A1E867901FB8CA6D20D0DCC0EBF6EB",
+      "validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
+      "next_validators_hash": "D695FE32B68E6F958F5377A55A65ACBEC0BFDF43E6EE848819A9847E9B67DAB1",
       "consensus_hash": "048091BC7DDC283F77BFBF91D73C44DA58C3DF8A9CBC867405D8B7F3DAADA22F",
       "app_hash": "",
       "last_results_hash": "",
       "evidence_hash": "",
-      "proposer_address": "2B99197862C709A4A8C497031518324D9486B238"
+      "proposer_address": "4E26C342A22ED3D498CD21EDFD522C738C15A9E6"
     },
     "data": {
       "txs": null
@@ -546,7 +546,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B duration: 23ms
+[31mfail[39m: GET (200) /txs/BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B duration: 27ms
 [31mfail[39m: statusCode: Expected status code '200', but got '404'.
 
 [32mrequest[39m: 
@@ -617,8 +617,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/TxQuery"}],"definitions":{"TxQuery"
 statusCode: 404
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 146
     connection: close
 
@@ -630,7 +630,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /txs?page=1&limit=1 duration: 23ms
+[31mfail[39m: GET (200) /txs?page=1&limit=1 duration: 28ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -710,8 +710,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/PaginatedQueryTxs"}],"definitions":
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 53
     connection: close
 
@@ -723,7 +723,7 @@ body:
 
 
 
-[31mfail[39m: POST (200) /txs duration: 27ms
+[31mfail[39m: POST (200) /txs duration: 30ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -810,8 +810,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/BroadcastTxCommitResult"}],"definit
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 40
     connection: close
 
@@ -823,7 +823,7 @@ body:
 
 
 
-[31mfail[39m: POST (200) /txs/encode duration: 12ms
+[31mfail[39m: POST (200) /txs/encode duration: 21ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -884,8 +884,8 @@ bodySchema: {"type":"object","properties":{"tx":{"type":"string","examples":["Th
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 69
     connection: close
 
@@ -897,7 +897,7 @@ body:
 
 
 
-[31mfail[39m: POST (200) /txs/decode duration: 21ms
+[31mfail[39m: POST (200) /txs/decode duration: 29ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -956,8 +956,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/StdTx"}],"definitions":{"StdTx":{"t
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 124
     connection: close
 
@@ -969,7 +969,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 14ms
+[31mfail[39m: GET (200) /bank/balances/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 16ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -1002,21 +1002,21 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Coin"},"$schema":"htt
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 38
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 27
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": []
 }
 
 
 
-[31mfail[39m: POST (202) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers duration: 19ms
+[31mfail[39m: POST (202) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers duration: 20ms
 [31mfail[39m: statusCode: Expected status code '202', but got '200'.
 
 [32mrequest[39m: 
@@ -1096,8 +1096,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/StdTx"}],"definitions":{"StdTx":{"t
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 370
     connection: close
 
@@ -1137,7 +1137,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 12ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 13ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -1175,21 +1175,21 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Delegation"},"$schema
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 38
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 27
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": []
 }
 
 
 
-[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 27ms
+[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 28ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -1268,8 +1268,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/BroadcastTxCommitResult"}],"definit
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 184
     connection: close
 
@@ -1287,7 +1287,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 33ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 19ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -1323,8 +1323,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/Delegation"}],"definitions":{"Deleg
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 117
     connection: close
 
@@ -1336,7 +1336,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 13ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 14ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -1373,21 +1373,21 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/UnbondingDelegation"}
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 38
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 27
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": []
 }
 
 
 
-[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 18ms
+[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 19ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -1463,8 +1463,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/BroadcastTxCommitResult"}],"definit
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 184
     connection: close
 
@@ -1482,7 +1482,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 18ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj duration: 21ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -1521,8 +1521,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/UnbondingDelegationPair"}],"definit
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 98
     connection: close
 
@@ -1534,7 +1534,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/redelegations duration: 12ms
+[31mfail[39m: GET (200) /staking/redelegations duration: 14ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -1571,21 +1571,21 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Redelegation"},"$sche
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 38
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 27
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": []
 }
 
 
 
-[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations duration: 20ms
+[31mfail[39m: POST (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/redelegations duration: 18ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -1663,8 +1663,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/StdTx"}],"definitions":{"StdTx":{"t
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 90
     connection: close
 
@@ -1676,7 +1676,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators duration: 14ms
+[31mfail[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators duration: 15ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -1730,15 +1730,15 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Validator"},"$schema"
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 38
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 27
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": []
 }
 
@@ -1796,8 +1796,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/Validator"}],"definitions":{"Valida
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 173
     connection: close
 
@@ -1809,7 +1809,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1 duration: 13ms
+[31mfail[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1 duration: 12ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -1863,25 +1863,25 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Validator"},"$schema"
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 918
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 845
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": [
     {
-      "operator_address": "kavavaloper1pu3rh80k2ae6d035uw2hg2yjfc9dccc9mk326h",
-      "consensus_pubkey": "kavavalconspub1zcjduepqh43ckgfcuw4y4xx7kvdxv3khe3c4c00v6egtzmlfs238727wzcts2gmtwx",
+      "operator_address": "kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0",
+      "consensus_pubkey": "kavavalconspub1zcjduepq52w048ndztzufc9nngkthtkpn8uu2wuyexpwxurd3ak00s72dghq7jd9fc",
       "jailed": false,
       "status": 2,
-      "tokens": "10000000000",
-      "delegator_shares": "10000000000.000000000000000000",
+      "tokens": "100000000",
+      "delegator_shares": "100000000.000000000000000000",
       "description": {
-        "moniker": "testnode",
+        "moniker": "vlad",
         "identity": "",
         "website": "",
         "security_contact": "",
@@ -1895,7 +1895,7 @@ body:
           "max_rate": "0.200000000000000000",
           "max_change_rate": "0.010000000000000000"
         },
-        "update_time": "2020-02-24T21:06:18.848803Z"
+        "update_time": "2020-03-06T21:15:08.924837Z"
       },
       "min_self_delegation": "1"
     }
@@ -1956,8 +1956,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/Validator"}],"definitions":{"Valida
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 110
     connection: close
 
@@ -1969,7 +1969,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations duration: 10ms
+[31mfail[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations duration: 13ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -2007,15 +2007,15 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Delegation"},"$schema
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 38
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 27
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": []
 }
 
@@ -2058,21 +2058,21 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/UnbondingDelegation"}
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 40
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 29
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": null
 }
 
 
 
-[31mfail[39m: GET (200) /slashing/signing_infos?page=1&limit=5 duration: 12ms
+[31mfail[39m: GET (200) /slashing/signing_infos?page=1&limit=5 duration: 13ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 
 [32mrequest[39m: 
@@ -2107,20 +2107,20 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/SigningInfo"},"$schem
 statusCode: 200
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
-    content-length: 289
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
+    content-length: 258
     connection: close
 
 bodyEncoding: utf-8
 body: 
 {
-  "height": "5657",
+  "height": "42",
   "result": [
     {
-      "address": "kavavalcons19wv3j7rzcuy6f2xyjup32xpjfk2gdv3cez4sp0",
+      "address": "kavavalcons1fcnvxs4z9mfafxxdy8kl653vwwxpt20xuaea02",
       "start_height": "0",
-      "index_offset": "5656",
+      "index_offset": "41",
       "jailed_until": "1970-01-01T00:00:00Z",
       "tombstoned": false,
       "missed_blocks_counter": "0"
@@ -2216,8 +2216,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/BroadcastTxCommitResult"}],"definit
 statusCode: 401
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 47
     connection: close
 
@@ -2229,7 +2229,7 @@ body:
 
 
 
-[31mfail[39m: POST (200) /gov/proposals duration: 16ms
+[31mfail[39m: POST (200) /gov/proposals duration: 17ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -2313,8 +2313,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/StdTx"}],"definitions":{"StdTx":{"t
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 116
     connection: close
 
@@ -2326,7 +2326,7 @@ body:
 
 
 
-[31mfail[39m: POST (200) /gov/proposals/param_change duration: 15ms
+[31mfail[39m: POST (200) /gov/proposals/param_change duration: 16ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -2417,8 +2417,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/StdTx"}],"definitions":{"StdTx":{"t
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528469
-    date: Fri, 06 Mar 2020 21:01:09 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 119
     connection: close
 
@@ -2430,7 +2430,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /gov/proposals/2 duration: 16ms
+[31mfail[39m: GET (200) /gov/proposals/2 duration: 17ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -2478,8 +2478,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/TextProposal"}],"definitions":{"Tex
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 89
     connection: close
 
@@ -2491,7 +2491,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /gov/proposals/2/proposer duration: 21ms
+[31mfail[39m: GET (200) /gov/proposals/2/proposer duration: 20ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -2522,8 +2522,8 @@ bodySchema: {"type":"object","properties":{"proposal_id":{"type":"string"},"prop
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 56
     connection: close
 
@@ -2535,7 +2535,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /gov/proposals/2/deposits duration: 12ms
+[31mfail[39m: GET (200) /gov/proposals/2/deposits duration: 13ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 statusCode: Expected status code '200', but got '500'.
 
@@ -2575,8 +2575,8 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Deposit"},"$schema":"
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 89
     connection: close
 
@@ -2588,7 +2588,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 16ms
+[31mfail[39m: GET (200) /gov/proposals/2/deposits/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 17ms
 [31mfail[39m: statusCode: Expected status code '200', but got '404'.
 
 [32mrequest[39m: 
@@ -2625,8 +2625,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/Deposit"}],"definitions":{"Deposit"
 statusCode: 404
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 39
     connection: close
 
@@ -2673,8 +2673,8 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Vote"},"$schema":"htt
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 89
     connection: close
 
@@ -2686,7 +2686,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 15ms
+[31mfail[39m: GET (200) /gov/proposals/2/votes/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 16ms
 [31mfail[39m: statusCode: Expected status code '200', but got '400'.
 
 [32mrequest[39m: 
@@ -2718,8 +2718,8 @@ bodySchema: {"type":"object","properties":{"voter":{"type":"string"},"proposal_i
 statusCode: 400
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 41
     connection: close
 
@@ -2731,7 +2731,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /gov/proposals/2/tally duration: 16ms
+[31mfail[39m: GET (200) /gov/proposals/2/tally duration: 14ms
 [31mfail[39m: statusCode: Expected status code '200', but got '500'.
 
 [32mrequest[39m: 
@@ -2764,8 +2764,8 @@ bodySchema: {"type":"object","properties":{"yes":{"type":"string","examples":["0
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 89
     connection: close
 
@@ -2811,8 +2811,8 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Coin"},"$schema":"htt
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529524
+    date: Fri, 06 Mar 2020 21:18:44 GMT
     content-length: 138
     connection: close
 
@@ -2820,48 +2820,6 @@ bodyEncoding: utf-8
 body: 
 {
   "error": "{\"codespace\":\"sdk\",\"code\":1,\"message\":\"validator kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj does not exist\"}"
-}
-
-
-
-[31mfail[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 14ms
-[31mfail[39m: body: At '' Invalid type: object (expected string)
-
-[32mrequest[39m: 
-method: GET
-uri: /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
-headers: 
-    Accept: application/json
-    User-Agent: Dredd/13.0.1 (Darwin 18.2.0; x64)
-
-body: 
-
-
-
-[31mexpected[39m: 
-headers: 
-    Content-Type: application/json
-
-body: 
-kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
-statusCode: 200
-bodySchema: {"type":"string","description":"bech32 encoded address","examples":["kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9"]}
-
-
-[31mactual[39m: 
-statusCode: 200
-headers: 
-    content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
-    content-length: 81
-    connection: close
-
-bodyEncoding: utf-8
-body: 
-{
-  "height": "5658",
-  "result": "kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9"
 }
 
 
@@ -2908,8 +2866,8 @@ bodySchema: {"allOf":[{"$ref":"#/definitions/ValidatorDistInfo"}],"definitions":
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529525
+    date: Fri, 06 Mar 2020 21:18:45 GMT
     content-length: 138
     connection: close
 
@@ -2955,8 +2913,8 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Coin"},"$schema":"htt
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529525
+    date: Fri, 06 Mar 2020 21:18:45 GMT
     content-length: 129
     connection: close
 
@@ -2968,7 +2926,7 @@ body:
 
 
 
-[31mfail[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards duration: 10ms
+[31mfail[39m: GET (200) /distribution/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/rewards duration: 11ms
 [31mfail[39m: body: At '' Invalid type: object (expected array)
 statusCode: Expected status code '200', but got '500'.
 
@@ -3002,8 +2960,8 @@ bodySchema: {"type":"array","items":{"$ref":"#/definitions/Coin"},"$schema":"htt
 statusCode: 500
 headers: 
     content-type: application/json
-    x-server-time: 1583528470
-    date: Fri, 06 Mar 2020 21:01:10 GMT
+    x-server-time: 1583529525
+    date: Fri, 06 Mar 2020 21:18:45 GMT
     content-length: 138
     connection: close
 
@@ -3015,5 +2973,5 @@ body:
 
 
 
-[32mcomplete[39m: 26 passing, 39 failing, 0 errors, 125 skipped, 190 total
-[32mcomplete[39m: Tests took 1173ms
+[32mcomplete[39m: 27 passing, 38 failing, 0 errors, 125 skipped, 190 total
+[32mcomplete[39m: Tests took 4784ms

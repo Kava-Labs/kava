@@ -195,7 +195,7 @@
           properties:
             from:
               type: string
-              example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq
+              example: kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
     Address:
       type: string
       description: bech32 encoded address

@@ -1704,7 +1704,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
       get:
         summary: Validator distribution information
         description: Query the distribution information of a single validator
@@ -1751,7 +1751,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
       get:
         summary: Commission and self-delegation rewards of a single validator
         description: Query the commission and self-delegation rewards of validator.
@@ -1763,9 +1763,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/Coin"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Coin"
           400:
             description: Invalid validator address
           500:
