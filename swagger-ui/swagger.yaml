@@ -1728,7 +1728,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
       get:
         summary: Fee distribution outstanding rewards of a single validator
         tags:
@@ -1739,9 +1739,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/Coin"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Coin"
           500:
             description: Internal Server Error
     /distribution/validators/{validatorAddr}/rewards:
