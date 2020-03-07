@@ -6,10 +6,16 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
+// MintPeriodRewards mints new tokens according to the inflation schedule specified in the paramters
 func (k Keeper) MintPeriodRewards(ctx sdk.Context) sdk.Error {
 	params := k.GetParams(ctx)
 	if !params.Active {
-		// TODO emit event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeKavaDist,
+				sdk.NewAttribute(types.AttributeKeyStatus, types.AttributeValueInactive),
+			),
+		)
 		return nil
 	}
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
@@ -21,7 +27,7 @@ func (k Keeper) MintPeriodRewards(ctx sdk.Context) sdk.Error {
 	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 
 	for _, p := range params.Periods {
-		if p.Start.Before(ctx.BlockTime()) && p.End.After(ctx.BlockTime()) { // TODO do we need to handle equal?
+		if p.Start.Before(ctx.BlockTime()) && (p.End.After(ctx.BlockTime()) || p.End.Equal(ctx.BlockTime())) {
 			totalSupply := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
 			scalar := sdk.NewInt(1000000000000000000)
 			inflationInt := p.Inflation.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
@@ -31,13 +37,13 @@ func (k Keeper) MintPeriodRewards(ctx sdk.Context) sdk.Error {
 			if err != nil {
 				return err
 			}
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeKavaDist,
+					sdk.NewAttribute(types.AttributeKeyInflation, amountToMint.String()),
+				),
+			)
 		}
 	}
 	return nil
 }
-
-// TEST considerations
-// Sanity checks - doesn't mint for expired (past) or upcoming (future periods) - check supply doesn't change
-// Does mint for non-expired periods - first check supply does change, next check the amount supply changes
-// Mint one year's worth of coins - is the apr ~= the spr?
-// Before merging - should be run on a local testnet, to check that the begin blocker's order is okay
