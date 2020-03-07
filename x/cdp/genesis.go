@@ -7,9 +7,24 @@ import (
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper, gs GenesisState) {
+
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
+	}
+
+	// check if the module accounts exists
+	cdpModuleAcc := sk.GetModuleAccount(ctx, ModuleName)
+	if cdpModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
+	}
+	liqModuleAcc := sk.GetModuleAccount(ctx, LiquidatorMacc)
+	if liqModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", LiquidatorMacc))
+	}
+	savingsRateMacc := sk.GetModuleAccount(ctx, SavingsRateMacc)
+	if savingsRateMacc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", SavingsRateMacc))
 	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
@@ -84,6 +99,10 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	if !found {
 		previousBlockTime = DefaultPreviousBlockTime
 	}
+	previousDistributionTime, found := k.GetPreviousSavingsDistribution(ctx)
+	if !found {
+		previousDistributionTime = DefaultPreviousDistributionTime
+	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousBlockTime)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousBlockTime, previousDistributionTime)
 }

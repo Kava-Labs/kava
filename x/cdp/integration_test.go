@@ -39,9 +39,10 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
-			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
-			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
+			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:              asset,
@@ -61,14 +62,16 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 					ReferenceAsset:   "usd",
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
 				},
 			},
 		},
-		StartingCdpID:     cdp.DefaultCdpStartingID,
-		DebtDenom:         cdp.DefaultDebtDenom,
-		GovDenom:          cdp.DefaultGovDenom,
-		CDPs:              cdp.CDPs{},
-		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -101,9 +104,10 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
-			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
-			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
+			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:              "xrp",
@@ -134,20 +138,23 @@ func NewCDPGenStateMulti() app.GenesisState {
 					ReferenceAsset:   "usd",
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
 				},
 				{
 					Denom:            "susd",
 					ReferenceAsset:   "usd",
 					ConversionFactor: i(6),
 					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
 				},
 			},
 		},
-		StartingCdpID:     cdp.DefaultCdpStartingID,
-		DebtDenom:         cdp.DefaultDebtDenom,
-		GovDenom:          cdp.DefaultGovDenom,
-		CDPs:              cdp.CDPs{},
-		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -207,6 +214,9 @@ func badGenStates() []badGenState {
 	g13 := baseGenState()
 	g13.GovDenom = ""
 
+	g14 := baseGenState()
+	g14.Params.DebtParams[0].SavingsRate = d("4.0")
+
 	return []badGenState{
 		badGenState{Genesis: g1, Reason: "duplicate collateral denom"},
 		badGenState{Genesis: g2, Reason: "duplicate collateral prefix"},
@@ -220,15 +230,17 @@ func badGenStates() []badGenState {
 		badGenState{Genesis: g11, Reason: "negative auction size"},
 		badGenState{Genesis: g12, Reason: "invalid liquidation penalty"},
 		badGenState{Genesis: g13, Reason: "gov denom not set"},
+		badGenState{Genesis: g14, Reason: "invalid savings rate"},
 	}
 }
 
 func baseGenState() cdp.GenesisState {
 	return cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:         sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
-			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
-			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
+			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:            "xrp",
@@ -264,10 +276,11 @@ func baseGenState() cdp.GenesisState {
 				},
 			},
 		},
-		StartingCdpID:     cdp.DefaultCdpStartingID,
-		DebtDenom:         cdp.DefaultDebtDenom,
-		GovDenom:          cdp.DefaultGovDenom,
-		CDPs:              cdp.CDPs{},
-		PreviousBlockTime: cdp.DefaultPreviousBlockTime,
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 }
