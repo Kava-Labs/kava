@@ -7,6 +7,7 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
+// TODO: Improve these common testing variables
 var (
 	coinsSingle  = sdk.NewCoins(sdk.NewInt64Coin("bnb", int64(50000)))
 	coinsZero    = sdk.Coins{sdk.Coin{}}
