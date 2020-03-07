@@ -12,9 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/kava-labs/kava/x/kavadist/simulation"
+	"github.com/kava-labs/kava/x/kavadist/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 var (
@@ -22,7 +22,6 @@ var (
 	_ module.AppModuleBasic      = AppModuleBasic{}
 	_ module.AppModuleSimulation = AppModuleSimulation{}
 )
-
 
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
@@ -88,8 +87,18 @@ type AppModule struct {
 	AppModuleBasic
 	AppModuleSimulation
 
-	keeper          Keeper
+	keeper       Keeper
 	supplyKeeper types.SupplyKeeper
+}
+
+// NewAppModule creates a new AppModule object
+func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
+	return AppModule{
+		AppModuleBasic:      AppModuleBasic{},
+		AppModuleSimulation: AppModuleSimulation{},
+		keeper:              keeper,
+		supplyKeeper:        supplyKeeper,
+	}
 }
 
 // Name module name
