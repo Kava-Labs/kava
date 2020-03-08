@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -67,7 +70,8 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				}
 			}
 
-			randomNumber, err := types.GenerateSecureRandomNumber()
+			// Generate cryptographically strong pseudo-random number
+			randomNumber, err := generateSecureRandomNumber()
 			if err != nil {
 				return err
 			}
@@ -178,4 +182,22 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+}
+
+func generateSecureRandomNumber() (*big.Int, error) {
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(256), nil).Sub(max, big.NewInt(1)) // 256-bits integer i.e. 2^256 - 1
+
+	// Generate number between 0 - max
+	randomNumber, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return big.NewInt(0), errors.New("random number generation error")
+	}
+
+	// Catch random numbers that encode to hexadecimal poorly
+	if len(randomNumber.Text(16)) != 64 {
+		return generateSecureRandomNumber()
+	}
+
+	return randomNumber, nil
 }

@@ -47,8 +47,6 @@ func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	suite.False(found)
 }
 
-// TODO: RemoveAtomicSwap
-
 func (suite *KeeperTestSuite) TestIterateAtomicSwaps() {
 	atomicSwaps := atomicSwaps(4)
 	for _, s := range atomicSwaps {
@@ -58,22 +56,10 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwaps() {
 	suite.Equal(4, len(res))
 }
 
-// TODO: GetAllAtomicSwaps
-
-// TODO: InsertIntoByBlockIndex
-// TODO: RemoveFromByBlockIndex
-// TODO: IterateAtomicSwapsByBlock
-
-// TODO: SetAssetSupply
-// TODO: GetAssetSupply
-// TODO: IterateAssetSupplies
-// TODO: GetAllAssetSupplies
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-// TODO: move to helper
 func atomicSwaps(count int) types.AtomicSwaps {
 	var atomicSwaps types.AtomicSwaps
 
