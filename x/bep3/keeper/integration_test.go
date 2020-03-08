@@ -9,6 +9,10 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
+func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
+
 func NewBep3GenStateMulti() app.GenesisState {
 	deputy, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 
