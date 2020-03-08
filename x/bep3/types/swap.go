@@ -18,15 +18,16 @@ type Swap interface {
 // AtomicSwap contains the information for an atomic swap
 type AtomicSwap struct {
 	Swap
-	Amount           sdk.Coins      `json:"amount"  yaml:"amount"`
-	RandomNumberHash cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
-	ExpireHeight     int64          `json:"expire_height"  yaml:"expire_height"`
-	Timestamp        int64          `json:"timestamp"  yaml:"timestamp"`
-	Sender           sdk.AccAddress `json:"sender"  yaml:"sender"`
-	Recipient        sdk.AccAddress `json:"recipient"  yaml:"recipient"`
-	SenderOtherChain string         `json:"sender_other_chain"  yaml:"sender_other_chain"`
-	ClosedBlock      int64          `json:"closed_block"  yaml:"closed_block"`
-	Status           SwapStatus     `json:"status"  yaml:"status"`
+	Amount              sdk.Coins      `json:"amount"  yaml:"amount"`
+	RandomNumberHash    cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
+	ExpireHeight        int64          `json:"expire_height"  yaml:"expire_height"`
+	Timestamp           int64          `json:"timestamp"  yaml:"timestamp"`
+	Sender              sdk.AccAddress `json:"sender"  yaml:"sender"`
+	Recipient           sdk.AccAddress `json:"recipient"  yaml:"recipient"`
+	SenderOtherChain    string         `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	RecipientOtherChain string         `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
+	ClosedBlock         int64          `json:"closed_block"  yaml:"closed_block"`
+	Status              SwapStatus     `json:"status"  yaml:"status"`
 }
 
 // GetSwapID calculates the ID of an atomic swap
@@ -58,17 +59,18 @@ func (a AtomicSwap) Validate() error {
 
 // NewAtomicSwap returns a new AtomicSwap
 func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
-	recipient sdk.AccAddress, senderOtherChain string, closedBlock int64, status SwapStatus) AtomicSwap {
+	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64, status SwapStatus) AtomicSwap {
 	return AtomicSwap{
-		Amount:           amount,
-		RandomNumberHash: randomNumberHash,
-		ExpireHeight:     expireHeight,
-		Timestamp:        timestamp,
-		Sender:           sender,
-		Recipient:        recipient,
-		SenderOtherChain: senderOtherChain,
-		ClosedBlock:      closedBlock,
-		Status:           status,
+		Amount:              amount,
+		RandomNumberHash:    randomNumberHash,
+		ExpireHeight:        expireHeight,
+		Timestamp:           timestamp,
+		Sender:              sender,
+		Recipient:           recipient,
+		SenderOtherChain:    senderOtherChain,
+		RecipientOtherChain: recipientOtherChain,
+		ClosedBlock:         closedBlock,
+		Status:              status,
 	}
 }
 

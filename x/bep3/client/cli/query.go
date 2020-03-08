@@ -36,15 +36,18 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryCalcRandomNumberHashCmd calculates the random number hash for a number and timestamp
 func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "calc-rnh [random-number] [timestamp]",
+		Use:     "calc-rnh [random-number] [unix-timestamp]",
 		Short:   "calculate a random number hash for given a number and timestamp",
-		Example: "bep3 calc-rnh 15 100",
+		Example: "bep3 calc-rnh d72e44cb98b1cf4e94e7f6fe3de72d9108346f8104ec9ba958f07d7b5124876f 1583358734",
 		Args:    cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Parse query params
-			randomNumber := []byte(args[0])
+			randomNumber, err := types.HexToBytes(args[1])
+			if err != nil {
+				return err
+			}
 			timestamp, err := strconv.ParseInt(args[1], 10, 64)
 			if err != nil {
 				return fmt.Errorf(fmt.Sprintf("timestamp %s could not be converted to an integer", args[1]))
