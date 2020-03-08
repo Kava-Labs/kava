@@ -1,13 +1,14 @@
 package cli
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -17,6 +18,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/kava-labs/kava/x/bep3/types"
+	"github.com/spf13/cobra"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -59,7 +62,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			// Timestamp defaults to time.Now() unless it's explicitly set
 			var timestamp int64
 			if strings.Compare(args[3], "now") == 0 {
-				timestamp = time.Now().Unix()
+				timestamp = tmtime.Now().Unix()
 			} else {
 				timestamp, err = strconv.ParseInt(args[3], 10, 64)
 				if err != nil {
@@ -178,4 +181,22 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+}
+
+func generateSecureRandomNumber() (*big.Int, error) {
+	max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(256), nil).Sub(max, big.NewInt(1)) // 256-bits integer i.e. 2^256 - 1
+
+	// Generate number between 0 - max
+	randomNumber, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return big.NewInt(0), errors.New("random number generation error")
+	}
+
+	// Catch random numbers that encode to hexadecimal poorly
+	if len(randomNumber.Text(16)) != 64 {
+		return generateSecureRandomNumber()
+	}
+
+	return randomNumber, nil
 }

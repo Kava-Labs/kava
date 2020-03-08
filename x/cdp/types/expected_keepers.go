@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -21,6 +22,7 @@ type SupplyKeeper interface {
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) sdk.Error
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) sdk.Error
+	GetSupply(ctx sdk.Context) (supply supplyexported.SupplyI)
 }
 
 // PricefeedKeeper defines the expected interface for the pricefeed
@@ -38,4 +40,9 @@ type AuctionKeeper interface {
 	StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error)
 	StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, sdk.Error)
 	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, sdk.Error)
+}
+
+// AccountKeeper expected interface for the account keeper (noalias)
+type AccountKeeper interface {
+	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
 }

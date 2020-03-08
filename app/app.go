@@ -78,6 +78,7 @@ var (
 		auction.ModuleName:          nil,
 		cdp.ModuleName:              {supply.Minter, supply.Burner},
 		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
+		cdp.SavingsRateMacc:         {supply.Minter},
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 	}
 )
@@ -246,6 +247,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 		app.supplyKeeper,
+		app.accountKeeper,
 		cdp.DefaultCodespace)
 	app.bep3Keeper = bep3.NewKeeper(
 		app.cdc,
@@ -274,7 +276,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.supplyKeeper),
 	)
@@ -315,7 +317,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper), // TODO how is the order be decided here? Is this order correct?
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 	)
