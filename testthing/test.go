@@ -8,9 +8,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkrest "github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/kava-labs/kava/app"
 )
@@ -47,13 +49,43 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	all, err := keybase.List()
-	fmt.Printf("Keys: %s", all)
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
 	if err != nil {
 		panic(err)
 	}
 
-	txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").WithKeybase(keybase)
+	// we need to setup the account number and sequence in order to have a valid transaction
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+	resp, err := http.Get("http://localhost:1317/auth/accounts/" + address)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Resp: %s\n", resp)
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var bodyUnmarshalled sdkrest.ResponseWithHeight
+	err = cdc.UnmarshalJSON(body, &bodyUnmarshalled)
+	if err != nil {
+		panic(err)
+	}
+
+	var account authexported.Account
+	err = cdc.UnmarshalJSON(bodyUnmarshalled.Result, &account)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("\n\naccount: %s\n\n", account)
+
+	txBldr := auth.NewTxBuilderFromCLI().
+		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
+		WithKeybase(keybase).WithAccountNumber(account.GetAccountNumber()).
+		WithSequence(account.GetSequence())
 
 	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
@@ -80,13 +112,13 @@ func main() {
 	}
 	fmt.Println("post body: ", string(jsonBytes))
 
-	resp, err := http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
+	resp, err = http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
 	if err != nil {
 		panic(err)
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
