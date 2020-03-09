@@ -34,7 +34,7 @@ func main() {
 	// create a message to send to the blockchain
 	msg := gov.NewMsgSubmitProposal(
 		proposalContent,
-		sdk.NewCoins(sdk.NewInt64Coin("kava", 1000)),
+		sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
 		addr,
 	)
 
