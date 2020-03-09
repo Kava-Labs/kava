@@ -1,7 +1,6 @@
 package types
 
 import (
-	cmm "github.com/tendermint/tendermint/libs/common"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -16,7 +15,7 @@ const (
 
 // QueryAtomicSwapByID contains the params for query 'custom/bep3/swap'
 type QueryAtomicSwapByID struct {
-	SwapID cmm.HexBytes
+	SwapID cmn.HexBytes
 }
 
 // NewQueryAtomicSwapByID creates a new QueryAtomicSwapByID
