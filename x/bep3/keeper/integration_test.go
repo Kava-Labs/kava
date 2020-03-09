@@ -9,6 +9,10 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
+var (
+	BNB_SUPPLY_LIMIT = i(100000000000)
+)
+
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
@@ -25,8 +29,14 @@ func NewBep3GenStateMulti() app.GenesisState {
 				types.AssetParam{
 					Denom:  "bnb",
 					CoinID: "714",
-					Limit:  sdk.NewInt(100000000000),
+					Limit:  BNB_SUPPLY_LIMIT,
 					Active: true,
+				},
+				types.AssetParam{
+					Denom:  "inc",
+					CoinID: "9999",
+					Limit:  i(100),
+					Active: false,
 				},
 			},
 		},
