@@ -15,7 +15,8 @@ import (
 	"github.com/kava-labs/kava/app"
 )
 
-func main() {
+// TODO - NOTE should rename to 'main()' if you want to use this instead of 'main_hooks()'
+func main_hooks() {
 	h := hooks.NewHooks()
 	server := hooks.NewServer(hooks.NewHooksRunner(h))
 	h.BeforeAll(func(t []*trans.Transaction) {
