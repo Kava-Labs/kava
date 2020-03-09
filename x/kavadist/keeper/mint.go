@@ -6,8 +6,8 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// MintPeriodRewards mints new tokens according to the inflation schedule specified in the paramters
-func (k Keeper) MintPeriodRewards(ctx sdk.Context) sdk.Error {
+// MintPeriodInflation mints new tokens according to the inflation schedule specified in the paramters
+func (k Keeper) MintPeriodInflation(ctx sdk.Context) sdk.Error {
 	params := k.GetParams(ctx)
 	if !params.Active {
 		ctx.EventManager().EmitEvent(
@@ -24,26 +24,64 @@ func (k Keeper) MintPeriodRewards(ctx sdk.Context) sdk.Error {
 		k.SetPreviousBlockTime(ctx, previousBlockTime)
 		return nil
 	}
-	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
-
-	for _, p := range params.Periods {
-		if p.Start.Before(ctx.BlockTime()) && (p.End.After(ctx.BlockTime()) || p.End.Equal(ctx.BlockTime())) {
-			totalSupply := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
-			scalar := sdk.NewInt(1000000000000000000)
-			inflationInt := p.Inflation.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
-			accumulator := sdk.NewDecFromInt(cdptypes.RelativePow(inflationInt, timeElapsed, scalar)).Mul(sdk.SmallestDec())
-			amountToMint := (sdk.NewDecFromInt(totalSupply).Mul(accumulator)).Sub(sdk.NewDecFromInt(totalSupply)).TruncateInt()
-			err := k.supplyKeeper.MintCoins(ctx, types.KavaDistMacc, sdk.NewCoins(sdk.NewCoin(types.GovDenom, amountToMint)))
+	for _, period := range params.Periods {
+		// Case 1 - period is fully expired
+		if period.End.Before(previousBlockTime) {
+			continue
+		}
+		// Case 2 - period has ended since the previous block time
+		if period.End.After(previousBlockTime) && period.End.Before(ctx.BlockTime()) {
+			// calculate time elapsed relative to the periods end time
+			timeElapsed := sdk.NewInt(period.End.Unix() - previousBlockTime.Unix())
+			err := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 			if err != nil {
 				return err
 			}
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeKavaDist,
-					sdk.NewAttribute(types.AttributeKeyInflation, amountToMint.String()),
-				),
-			)
+			// update the value of previousBlockTime so that the next period starts from the end of the last
+			// period and not the original value of previousBlockTime
+			previousBlockTime = period.End
+		}
+		// Case 3 - period is ongoing
+		if (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()) {
+			// calculate time elapsed relative to the current block time
+			timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+			err := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
+			if err != nil {
+				return err
+			}
+		}
+		// Case 4 - period hasn't started
+		if period.Start.After(ctx.BlockTime()) || period.Start.Equal(ctx.BlockTime()) {
+			continue
 		}
 	}
+	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
+	return nil
+}
+
+func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, timePeriods sdk.Int, denom string) sdk.Error {
+	totalSupply := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom)
+	// used to scale accumulator calculations by 10^18
+	scalar := sdk.NewInt(1000000000000000000)
+	// convert inflation rate to integer
+	inflationInt := inflationRate.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
+	// calculate the multiplier (amount to multiply the total supply by to achieve the desired inflation)
+	// multiply the result by 10^-18 because RelativePow returns the result scaled by 10^18
+	accumulator := sdk.NewDecFromInt(cdptypes.RelativePow(inflationInt, timePeriods, scalar)).Mul(sdk.SmallestDec())
+	// calculate the number of coins to mint
+	amountToMint := (sdk.NewDecFromInt(totalSupply).Mul(accumulator)).Sub(sdk.NewDecFromInt(totalSupply)).TruncateInt()
+	if amountToMint.IsZero() {
+		return nil
+	}
+	err := k.supplyKeeper.MintCoins(ctx, types.KavaDistMacc, sdk.NewCoins(sdk.NewCoin(denom, amountToMint)))
+	if err != nil {
+		return err
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeKavaDist,
+			sdk.NewAttribute(types.AttributeKeyInflation, amountToMint.String()),
+		),
+	)
 	return nil
 }

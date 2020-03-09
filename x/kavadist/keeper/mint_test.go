@@ -62,7 +62,8 @@ func (suite *MintTestSuite) TestMintExpiredPeriod() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)) })
 	ctx := suite.ctx.WithBlockTime(time.Date(2022, 1, 1, 0, 7, 0, 0, time.UTC))
-	suite.keeper.MintPeriodRewards(ctx)
+	err := suite.keeper.MintPeriodInflation(ctx)
+	suite.NoError(err)
 	finalSupply := suite.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.Equal(initialSupply, finalSupply)
 }
@@ -71,18 +72,20 @@ func (suite *MintTestSuite) TestMintPeriodNotStarted() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)) })
 	ctx := suite.ctx.WithBlockTime(time.Date(2019, 1, 1, 0, 7, 0, 0, time.UTC))
-	suite.keeper.MintPeriodRewards(ctx)
+	err := suite.keeper.MintPeriodInflation(ctx)
+	suite.NoError(err)
 	finalSupply := suite.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.Equal(initialSupply, finalSupply)
 }
 
-func (suite *MintTestSuite) TestMint() {
+func (suite *MintTestSuite) TestMintOngoingPeriod() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.NotPanics(func() {
 		suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
 	})
 	ctx := suite.ctx.WithBlockTime(time.Date(2021, 2, 28, 23, 59, 59, 0, time.UTC))
-	suite.keeper.MintPeriodRewards(ctx)
+	err := suite.keeper.MintPeriodInflation(ctx)
+	suite.NoError(err)
 	finalSupply := suite.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.True(finalSupply.GT(initialSupply))
 	mAcc := suite.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
@@ -92,6 +95,31 @@ func (suite *MintTestSuite) TestMint() {
 	expectedSupply := sdk.NewDecFromInt(initialSupply).Mul(sdk.MustNewDecFromStr("1.1"))
 	supplyError := sdk.OneDec().Sub((sdk.NewDecFromInt(finalSupply).Quo(expectedSupply))).Abs()
 	suite.True(supplyError.LTE(sdk.MustNewDecFromStr("0.001")))
+}
+
+func (suite *MintTestSuite) TestMintPeriodTransition() {
+	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
+	params := suite.keeper.GetParams(suite.ctx)
+	periods := types.Periods{
+		p[0],
+		types.Period{
+			Start:     time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
+			End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
+			Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+		},
+	}
+	params.Periods = periods
+	suite.NotPanics(func() {
+		suite.keeper.SetParams(suite.ctx, params)
+	})
+	suite.NotPanics(func() {
+		suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
+	})
+	ctx := suite.ctx.WithBlockTime(time.Date(2021, 3, 10, 0, 0, 0, 0, time.UTC))
+	err := suite.keeper.MintPeriodInflation(ctx)
+	suite.NoError(err)
+	finalSupply := suite.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
+	suite.True(finalSupply.GT(initialSupply))
 }
 
 func (suite *MintTestSuite) TestMintNotActive() {
@@ -105,7 +133,8 @@ func (suite *MintTestSuite) TestMintNotActive() {
 		suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
 	})
 	ctx := suite.ctx.WithBlockTime(time.Date(2021, 2, 28, 23, 59, 59, 0, time.UTC))
-	suite.keeper.MintPeriodRewards(ctx)
+	err := suite.keeper.MintPeriodInflation(ctx)
+	suite.NoError(err)
 	finalSupply := suite.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.Equal(initialSupply, finalSupply)
 }
