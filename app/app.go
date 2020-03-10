@@ -30,10 +30,9 @@ import (
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
-	shutdownAnte "github.com/kava-labs/kava/x/shutdown/ante"
-	"github.com/kava-labs/kava/x/shutdown"
 )
 
 const (
@@ -64,6 +63,7 @@ var (
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
+		committee.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -107,6 +107,7 @@ type App struct {
 	auctionKeeper   auction.Keeper
 	cdpKeeper       cdp.Keeper
 	pricefeedKeeper pricefeed.Keeper
+	committeeKeeper committee.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -130,7 +131,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, validatorvesting.StoreKey,
-		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
+		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey, committee.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -245,6 +246,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.auctionKeeper,
 		app.supplyKeeper,
 		cdp.DefaultCodespace)
+	app.committeeKeeper = committee.NewKeeper(
+		app.cdc,
+		keys[committee.StoreKey],
+		// TODO blacklist module addresses?
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -268,6 +274,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
+		committee.NewAppModule(app.committeeKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -287,7 +294,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, committee.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -310,6 +317,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
+		// TODO committee
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -321,7 +329,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(NewAnteHandler(app.accountKeeper, app.supplyKeeper, app.shutdownKeeper, auth.DefaultSigVerificationGasConsumer))
+	// app.SetAnteHandler(NewAnteHandler(app.accountKeeper, app.supplyKeeper, app.shutdownKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
@@ -335,22 +343,22 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	return app
 }
 
-func NewAnteHandler(ak auth.AccountKeeper, supplyKeeper supply.SupplyKeeper, shutdownKeeper shutdown.Keeper, sigGasConsumer SignatureVerificationGasConsumer) sdk.AnteHandler {
-	return sdk.ChainAnteDecorators(
-		auth.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-		shutdownAnte.NewDisableMsgDecorator(shutdownKeeper)
-		auth.NewMempoolFeeDecorator(),
-		auth.NewValidateBasicDecorator(),
-		auth.NewValidateMemoDecorator(ak),
-		auth.NewConsumeGasForTxSizeDecorator(ak),
-		auth.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
-		auth.NewValidateSigCountDecorator(ak),
-		auth.NewDeductFeeDecorator(ak, supplyKeeper),
-		auth.NewSigGasConsumeDecorator(ak, sigGasConsumer),
-		auth.NewSigVerificationDecorator(ak),
-		auth.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
-	)
-}
+// func NewAnteHandler(ak auth.AccountKeeper, supplyKeeper supply.Keeper, shutdownKeeper shutdown.Keeper, sigGasConsumer SignatureVerificationGasConsumer) sdk.AnteHandler {
+// 	return sdk.ChainAnteDecorators(
+// 		auth.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
+// 		shutdownAnte.NewDisableMsgDecorator(shutdownKeeper),
+// 		auth.NewMempoolFeeDecorator(),
+// 		auth.NewValidateBasicDecorator(),
+// 		auth.NewValidateMemoDecorator(ak),
+// 		auth.NewConsumeGasForTxSizeDecorator(ak),
+// 		auth.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
+// 		auth.NewValidateSigCountDecorator(ak),
+// 		auth.NewDeductFeeDecorator(ak, supplyKeeper),
+// 		auth.NewSigGasConsumeDecorator(ak, sigGasConsumer),
+// 		auth.NewSigVerificationDecorator(ak),
+// 		auth.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
+// 	)
+// }
 
 // custom tx codec
 func MakeCodec() *codec.Codec {

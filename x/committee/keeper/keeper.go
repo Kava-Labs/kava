@@ -1,17 +1,27 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	//govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
 type Keeper struct {
-	// TODO other stuff as needed
+	cdc      *codec.Codec
+	storeKey sdk.StoreKey
 
-	// Proposal router
-	router govtypes.Router
+	// TODO Proposal router
+	//router govtypes.Router
+}
+
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey) Keeper {
+	return Keeper{
+		cdc:      cdc,
+		storeKey: storeKey,
+	}
 }
 
 /* TODO keeper methods - very similar to gov
