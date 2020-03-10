@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(2)
 }
 
-func (suite *KeeperTestSuite) TestGetSetCommittee() {
+func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	// test setup
 	com := types.Committee{
 		ID: 12,
@@ -45,6 +45,13 @@ func (suite *KeeperTestSuite) TestGetSetCommittee() {
 	// check before and after match
 	suite.True(found)
 	suite.Equal(com, readCommittee)
+
+	// delete from store
+	suite.keeper.DeleteCommittee(suite.ctx, com.ID)
+
+	// check does not exist
+	_, found = suite.keeper.GetCommittee(suite.ctx, com.ID)
+	suite.False(found)
 }
 
 func (suite *KeeperTestSuite) TestGetSetProposal() {
@@ -61,6 +68,13 @@ func (suite *KeeperTestSuite) TestGetSetProposal() {
 	// check before and after match
 	suite.True(found)
 	suite.Equal(prop, readProposal)
+
+	// delete from store
+	suite.keeper.DeleteProposal(suite.ctx, prop.ID)
+
+	// check does not exist
+	_, found = suite.keeper.GetProposal(suite.ctx, prop.ID)
+	suite.False(found)
 }
 
 func (suite *KeeperTestSuite) TestGetSetVote() {
@@ -78,6 +92,13 @@ func (suite *KeeperTestSuite) TestGetSetVote() {
 	// check before and after match
 	suite.True(found)
 	suite.Equal(vote, readVote)
+
+	// delete from store
+	suite.keeper.DeleteVote(suite.ctx, vote.ProposalID, vote.Voter)
+
+	// check does not exist
+	_, found = suite.keeper.GetVote(suite.ctx, vote.ProposalID, vote.Voter)
+	suite.False(found)
 }
 
 func TestKeeperTestSuite(t *testing.T) {

@@ -71,6 +71,7 @@ func (k Keeper) AddVote(ctx sdk.Context, msg types.MsgVote) sdk.Error {
 	return nil
 }
 
+// GetCommittee gets a committee from the store.
 func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committee, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
 	bz := store.Get(types.GetKeyFromID(committeeID))
@@ -82,12 +83,20 @@ func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committ
 	return committee, true
 }
 
+// SetCommittee puts a committee into the store.
 func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(committee)
 	store.Set(types.GetKeyFromID(committee.ID), bz)
 }
 
+// DeleteCommittee removes a committee from the store.
+func (k Keeper) DeleteCommittee(ctx sdk.Context, committeeID uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
+	store.Delete(types.GetKeyFromID(committeeID))
+}
+
+// GetProposal gets a proposal from the store.
 func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
 	bz := store.Get(types.GetKeyFromID(proposalID))
@@ -99,12 +108,20 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal,
 	return proposal, true
 }
 
+// SetProposal puts a proposal into the store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(proposal)
 	store.Set(types.GetKeyFromID(proposal.ID), bz)
 }
 
+// DeleteProposal removes a proposal from the store.
+func (k Keeper) DeleteProposal(ctx sdk.Context, proposalID uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
+	store.Delete(types.GetKeyFromID(proposalID))
+}
+
+// GetVote gets a vote from the store.
 func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) (types.Vote, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
 	bz := store.Get(types.GetVoteKey(proposalID, voter))
@@ -116,8 +133,15 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	return vote, true
 }
 
+// SetVote puts a vote into the store.
 func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(vote)
 	store.Set(types.GetVoteKey(vote.ProposalID, vote.Voter), bz)
+}
+
+// DeleteVote removes a Vote from the store.
+func (k Keeper) DeleteVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
+	store.Delete(types.GetVoteKey(proposalID, voter))
 }
