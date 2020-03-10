@@ -41,18 +41,10 @@ func main() {
 		addr,
 	)
 
-	// create a vote on a proposal to send to the blockchain
-	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes)
-	fmt.Printf("\nvote:%s\n", vote)
-
-	// creating a transaction
-	//	tx := authtypes.NewStdTx([]sdk.Msg{msg}, authtypes.StdFee{}, []authtypes.StdSignature{}, "a test memo")
-
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
-	// transaction builder
-	// create a keybase
 
+	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
@@ -64,17 +56,37 @@ func main() {
 		panic(err)
 	}
 
-	// the test address
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+	// SEND THE PROPOSAL
 
+	// get the account number and sequence number
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 	// cast to the generic msg type
 	msgToSend := []sdk.Msg{msg}
 	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
 	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
+	// send the PROPOSAL message to the blockchain
 	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, msgToSend, keybase)
+
+	// NOW SEND THE DEPOSIT
+
+	// create a deposit transaction to send to the proposal
+	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 600))
+	deposit := gov.NewMsgDeposit(addr, 1, amount)
+	depositToSend := []sdk.Msg{deposit}
+
+	// send the deposit to the blockchain
+	accountNumber, sequenceNumber = getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, depositToSend, keybase)
+
+	// NOW SEND THE VOTE
+
+	// create a vote on a proposal to send to the blockchain
+	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes)
+	fmt.Printf("\nvote:%s\n", vote)
 
 	// send a vote to the blockchain
 	voteToSend := []sdk.Msg{vote}
