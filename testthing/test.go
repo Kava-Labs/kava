@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkrest "github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -51,6 +52,8 @@ func main() {
 	cdc := app.MakeCodec() // make codec for the app
 	// transaction builder
 	// create a keybase
+
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
 		panic(err)
@@ -66,15 +69,27 @@ func main() {
 
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, msgToSend, keybase)
+
+}
+
+// sendMsgToBlockchain sends a message to the blockchain via the rest api
+func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber uint64, keyname string,
+	password string, msg []sdk.Msg, keybase crkeys.Keybase) {
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
 		WithSequence(sequenceNumber)
 
-	// build and sign the transaction
+		// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
 	// fmt.Printf("%+v", txBldr.Keybase())
-	txBytes, err := txBldr.BuildAndSign("vlad", "password", []sdk.Msg{msg})
+	txBytes, err := txBldr.BuildAndSign("vlad", "password", msg)
 	if err != nil {
 		panic(err)
 	}
@@ -108,10 +123,6 @@ func main() {
 	}
 
 	// fmt.Println(string(body))
-}
-
-// sendMsgToBlockchain sends a message to the blockchain via the rest api
-func sendMsgToBlockchain() {
 
 }
 
