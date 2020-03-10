@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	//govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -70,25 +71,53 @@ func (k Keeper) AddVote(ctx sdk.Context, msg types.MsgVote) sdk.Error {
 	return nil
 }
 
-// --------------------
-
 func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committee, bool) {
-	return types.Committee{}, false
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
+	bz := store.Get(types.GetKeyFromID(committeeID))
+	if bz == nil {
+		return types.Committee{}, false
+	}
+	var committee types.Committee
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &committee)
+	return committee, true
 }
+
 func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
-
-}
-
-func (k Keeper) GetVote(ctx sdk.Context, voteID uint64) (types.Vote, bool) {
-	return types.Vote{}, false
-}
-func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
-
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(committee)
+	store.Set(types.GetKeyFromID(committee.ID), bz)
 }
 
 func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
-	return types.Proposal{}, false
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
+	bz := store.Get(types.GetKeyFromID(proposalID))
+	if bz == nil {
+		return types.Proposal{}, false
+	}
+	var proposal types.Proposal
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposal)
+	return proposal, true
 }
-func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 
+func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(proposal)
+	store.Set(types.GetKeyFromID(proposal.ID), bz)
+}
+
+func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) (types.Vote, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
+	bz := store.Get(types.GetVoteKey(proposalID, voter))
+	if bz == nil {
+		return types.Vote{}, false
+	}
+	var vote types.Vote
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &vote)
+	return vote, true
+}
+
+func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(vote)
+	store.Set(types.GetVoteKey(vote.ProposalID, vote.Voter), bz)
 }

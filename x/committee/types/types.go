@@ -7,6 +7,7 @@ import (
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
+	ID          uint64 // TODO or a name?
 	Members     []sdk.AccAddress
 	Permissions []Permission
 }
