@@ -61,7 +61,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Resp: %s\n", resp)
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
