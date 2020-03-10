@@ -1,13 +1,14 @@
 package committee
 
 // committee, subcommittee, council, caucus, commission, synod, board
-
+/*
 import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/committee/keeper"
+
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
@@ -45,3 +46,4 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Resu
 
 	return sdk.Result{}
 }
+*/

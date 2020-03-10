@@ -11,10 +11,10 @@ import (
 // Allow only changes to inflation_rate
 type InflationRateChangePermission struct{}
 
-var _ types.Permission = InflationRateChangePermission
+var _ Permission = InflationRateChangePermission{}
 
-func (InflationRateChangePermission) Allows(p gov.Proposal) bool {
-	pcp, ok := p.Content.(params.ParameterChangeProposal)
+func (InflationRateChangePermission) Allows(p gov.Content) bool {
+	pcp, ok := p.(params.ParameterChangeProposal)
 	if !ok {
 		return false
 	}
@@ -29,7 +29,7 @@ func (InflationRateChangePermission) Allows(p gov.Proposal) bool {
 // Allow only shutdown of the CDP Deposit msg
 type ShutdownCDPDepsitPermission struct{}
 
-var _ types.Permission = ShutdownCDPDepsitPermission
+var _ Permission = ShutdownCDPDepsitPermission{}
 
 func (ShutdownCDPDepsitPermission) Allows(p gov.Content) bool {
 	sdp, ok := p.(sdtypes.ShutdownProposal)
@@ -46,13 +46,13 @@ func (ShutdownCDPDepsitPermission) Allows(p gov.Content) bool {
 
 // Same as above but the route isn't static
 type GeneralShutdownPermission struct {
-	MsgRoute cbtypes.MsgRoute
+	MsgRoute sdtypes.MsgRoute
 }
 
-var _ types.Permission = GeneralShutdownPermission
+var _ Permission = GeneralShutdownPermission{}
 
 func (perm GeneralShutdownPermission) Allows(p gov.Content) bool {
-	sdp, ok := p.Content.(sdtypes.ShutdownProposal)
+	sdp, ok := p.(sdtypes.ShutdownProposal)
 	if !ok {
 		return false
 	}

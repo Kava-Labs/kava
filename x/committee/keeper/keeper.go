@@ -1,4 +1,4 @@
-package types
+package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,20 +29,20 @@ type Keeper struct {
 
 */
 
-func (k Keeper) SubmitProposal(ctx sdk.Context, msg types.MsgSubmitProposal) sdk.Error {
+func (k Keeper) SubmitProposal(ctx sdk.Context, proposal types.Proposal) sdk.Error {
 	// TODO Limit proposals to only be submitted by group members
 
 	// Check group has permissions to enact proposal. As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
-	committee, _ := k.GetCommittee(ctx, msg.CommitteeID)
+	committee, _ := k.GetCommittee(ctx, proposal.CommitteeID)
 	hasPermissions := false
 	for _, p := range committee.Permissions {
-		if p.Allows(msg.Proposal) {
+		if p.Allows(proposal) {
 			hasPermissions = true
 			break
 		}
 	}
 	if !hasPermissions {
-		return sdk.ErrInternal("committee does not have permissions to enact proposal").Result()
+		return sdk.ErrInternal("committee does not have permissions to enact proposal")
 	}
 
 	// TODO validate proposal by running it with cached context like how gov does it
@@ -58,4 +58,27 @@ func (k Keeper) AddVote(ctx sdk.Context, msg types.MsgVote) sdk.Error {
 	- store vote
 	*/
 	return nil
+}
+
+// --------------------
+
+func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committee, bool) {
+	return types.Committee{}, false
+}
+func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
+
+}
+
+func (k Keeper) GetVote(ctx sdk.Context, voteID uint64) (types.Vote, bool) {
+	return types.Vote{}, false
+}
+func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
+
+}
+
+func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal, bool) {
+	return types.Proposal{}, false
+}
+func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
+
 }

@@ -22,8 +22,9 @@ type Permission interface {
 type Proposal struct {
 	gov.Content
 	ID          uint64
-	committeeID uint64
+	CommitteeID uint64
 	// TODO
+	// could store votes on the proposal object
 }
 
 type Vote struct {
@@ -31,3 +32,7 @@ type Vote struct {
 	Voter      sdk.AccAddress
 	Option     byte
 }
+
+// Genesis -------------------
+// Ok just to dump everything to json and reload - if time involved then begin blocker will take care of closing expired proposals. And it won't enact proposals because they would've been immediately enacted before the halt if they passed.
+// committee, proposals, votes
