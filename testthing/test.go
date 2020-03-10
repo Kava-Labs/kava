@@ -42,7 +42,7 @@ func main() {
 	)
 
 	// create a vote on a proposal to send to the blockchain
-	vote := gov.NewMsgVote(addr, uint64(0), types.OptionYes)
+	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes)
 	fmt.Printf("\nvote:%s\n", vote)
 
 	// creating a transaction
@@ -75,6 +75,11 @@ func main() {
 	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, msgToSend, keybase)
+
+	// send a vote to the blockchain
+	voteToSend := []sdk.Msg{vote}
+	accountNumber, sequenceNumber = getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, voteToSend, keybase)
 
 }
 
@@ -117,12 +122,13 @@ func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber 
 	}
 
 	defer resp.Body.Close()
-	_, err = ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
 
-	// fmt.Println(string(body))
+	fmt.Println("\n\nBody:\n")
+	fmt.Println(string(body))
 
 }
 
