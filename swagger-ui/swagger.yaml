@@ -1247,9 +1247,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/Deposit"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Deposit"
           400:
             description: Invalid proposal id
           500:
