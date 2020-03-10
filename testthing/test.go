@@ -74,7 +74,7 @@ func main() {
 	// NOW SEND THE DEPOSIT
 
 	// create a deposit transaction to send to the proposal
-	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 600))
+	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000))
 	deposit := gov.NewMsgDeposit(addr, 1, amount)
 	depositToSend := []sdk.Msg{deposit}
 
