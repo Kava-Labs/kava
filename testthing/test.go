@@ -14,6 +14,7 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/kava-labs/kava/app"
 )
 
@@ -37,6 +38,10 @@ func main() {
 		sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
 		addr,
 	)
+
+	// create a vote on a proposal to send to the blockchain
+	vote := gov.NewMsgVote(addr, uint64(0), types.OptionYes)
+	fmt.Printf("\nvote:%s\n", vote)
 
 	// creating a transaction
 	//	tx := authtypes.NewStdTx([]sdk.Msg{msg}, authtypes.StdFee{}, []authtypes.StdSignature{}, "a test memo")
@@ -79,7 +84,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("\n\naccount: %s\n\n", account)
+	// fmt.Printf("\n\naccount: %s\n\n", account)
 
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
@@ -88,12 +93,12 @@ func main() {
 
 	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
-	fmt.Printf("%+v", txBldr.Keybase())
+	// fmt.Printf("%+v", txBldr.Keybase())
 	txBytes, err := txBldr.BuildAndSign("vlad", "password", []sdk.Msg{msg})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("txBytes: %s", txBytes)
+	// fmt.Printf("txBytes: %s", txBytes)
 
 	// need to convert the Amino encoded version back to an actual go struct
 	var tx auth.StdTx
@@ -109,7 +114,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("post body: ", string(jsonBytes))
+	// fmt.Println("post body: ", string(jsonBytes))
 
 	resp, err = http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
 	if err != nil {
@@ -122,5 +127,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(string(body))
+	// fmt.Println(string(body))
 }

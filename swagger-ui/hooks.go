@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/kava-labs/kava/app"
 
 	sdkrest "github.com/cosmos/cosmos-sdk/types/rest"
@@ -93,6 +94,10 @@ func doAll() {
 		sdk.NewCoins(sdk.NewInt64Coin("stake", 1000)),
 		addr,
 	)
+
+	// create a vote on a proposal to send to the blockchain
+	vote := gov.NewMsgVote(addr, uint64(0), types.OptionYes)
+	fmt.Printf("\nvote:%s\n", vote)
 
 	// creating a transaction
 	//	tx := authtypes.NewStdTx([]sdk.Msg{msg}, authtypes.StdFee{}, []authtypes.StdSignature{}, "a test memo")
