@@ -223,6 +223,7 @@
         "surplus_auction_threshold": "1000000000"
       },
       "previous_block_time": "1970-01-01T00:00:00Z",
+      "previous_distribution_time": "1970-01-01T00:00:00Z",
       "starting_cdp_id": "1"
     },
     "gov": {
@@ -328,54 +329,7 @@
         }
     },
     "genutil": {
-      "gentxs": [
-        {
-          "type": "cosmos-sdk/StdTx",
-          "value": {
-            "msg": [
-              {
-                "type": "cosmos-sdk/MsgCreateValidator",
-                "value": {
-                  "description": {
-                    "moniker": "validator",
-                    "identity": "",
-                    "website": "",
-                    "security_contact": "",
-                    "details": ""
-                  },
-                  "commission": {
-                    "rate": "0.100000000000000000",
-                    "max_rate": "0.200000000000000000",
-                    "max_change_rate": "0.010000000000000000"
-                  },
-                  "min_self_delegation": "1",
-                  "delegator_address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-                  "validator_address": "kavavaloper15qdefkmwswysgg4qxgqpqr35k3m49pkx8yhpte",
-                  "pubkey": "kavavalconspub1zcjduepqvw905dl40jq8z2z2fttl6lr7ku3vlttxhk8yyfhptpdjfs77g8nsch6emp",
-                  "value": {
-                    "denom": "ukava",
-                    "amount": "100000000"
-                  }
-                }
-              }
-            ],
-            "fee": {
-              "amount": [],
-              "gas": "200000"
-            },
-            "signatures": [
-              {
-                "pub_key": {
-                  "type": "tendermint/PubKeySecp256k1",
-                  "value": "Az740XKIPCJtnZLmJfktTfhsEStEJE3n2iRVyJ3wko43"
-                },
-                "signature": "fBNc0kdZnZ4UWJxb2BXXEpfNEyZglwWJJWy2nsQe969k6EuMe4vH1eD+gNJZNiNASl524HwvcFER7ZdDp/C4GQ=="
-              }
-            ],
-            "memo": "b62c0f3604faf46b94c37a56c143a6abde9c6c8e@192.168.86.23:26656"
-          }
-        }
-      ]
+      "gentxs": []
     },
     "validatorvesting": {
       "previous_block_time": "1970-01-01T00:00:00Z"
