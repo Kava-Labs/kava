@@ -2,9 +2,9 @@
 
 `./startchain.sh`
 
-1) Build the hooks file by running the following from the `testthing` folder:
+1) Build the hooks file by running the following from the `swagger-ui` folder:
 
-`rm testthing`
+`rm hooks`
 `go build`
 
 2) Then start the chain:
@@ -21,4 +21,7 @@
 to the blockchain so some tests may erroneously fail. When you run the script a second time 
 they should pass.
 
-`dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=testthing --language=go --loglevel=debug`
+`dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
+
+If you run into `dredd` timeout issues you can try:
+`dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="300000"`
