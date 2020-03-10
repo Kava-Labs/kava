@@ -1,3 +1,7 @@
+0) Create the genesis state for the blockchain by running the following from the `swagger-ui` directory:
+
+`./startchain.sh`
+
 1) Build the hooks file by running the following from the `testthing` folder:
 
 `rm testthing`
