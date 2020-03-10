@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/kava-labs/kava/app"
+	"github.com/tendermint/go-amino"
 )
 
 func init() {
@@ -60,36 +61,15 @@ func main() {
 		panic(err)
 	}
 
-	// we need to setup the account number and sequence in order to have a valid transaction
+	// the test address
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
-	resp, err := http.Get("http://localhost:1317/auth/accounts/" + address)
-	if err != nil {
-		panic(err)
-	}
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	var bodyUnmarshalled sdkrest.ResponseWithHeight
-	err = cdc.UnmarshalJSON(body, &bodyUnmarshalled)
-	if err != nil {
-		panic(err)
-	}
-
-	var account authexported.Account
-	err = cdc.UnmarshalJSON(bodyUnmarshalled.Result, &account)
-	if err != nil {
-		panic(err)
-	}
-	// fmt.Printf("\n\naccount: %s\n\n", account)
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
-		WithKeybase(keybase).WithAccountNumber(account.GetAccountNumber()).
-		WithSequence(account.GetSequence())
+		WithKeybase(keybase).WithAccountNumber(accountNumber).
+		WithSequence(sequenceNumber)
 
 	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
@@ -116,16 +96,53 @@ func main() {
 	}
 	// fmt.Println("post body: ", string(jsonBytes))
 
-	resp, err = http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
+	resp, err := http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
 	if err != nil {
 		panic(err)
 	}
 
 	defer resp.Body.Close()
-	body, err = ioutil.ReadAll(resp.Body)
+	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	// fmt.Println(string(body))
+}
+
+// sendMsgToBlockchain sends a message to the blockchain via the rest api
+func sendMsgToBlockchain() {
+
+}
+
+// getAccountNumberAndSequenceNumber gets an account number and sequence number from the blockchain
+func getAccountNumberAndSequenceNumber(cdc *amino.Codec, address string) (accountNumber uint64, sequenceNumber uint64) {
+
+	// we need to setup the account number and sequence in order to have a valid transaction
+	resp, err := http.Get("http://localhost:1317/auth/accounts/" + address)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var bodyUnmarshalled sdkrest.ResponseWithHeight
+	err = cdc.UnmarshalJSON(body, &bodyUnmarshalled)
+	if err != nil {
+		panic(err)
+	}
+
+	var account authexported.Account
+	err = cdc.UnmarshalJSON(bodyUnmarshalled.Result, &account)
+	if err != nil {
+		panic(err)
+	}
+	// fmt.Printf("\n\naccount: %s\n\n", account)
+
+	return account.GetAccountNumber(), account.GetSequence()
+
 }
