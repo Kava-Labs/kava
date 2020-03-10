@@ -37,11 +37,30 @@ func main() {
 	h.BeforeEach(func(t *trans.Transaction) {
 		fmt.Println("before each modification")
 	})
-	h.Before("Governance > /gov/proposals > Query proposals > 200 > application/json", func(t *trans.Transaction) {
-
+	h.Before("Governance > /gov/proposals/{proposalId} > Query a proposal > 200 > application/json", func(t *trans.Transaction) {
 		doAll()
-
 	})
+
+	h.Before("Governance > /gov/proposals/{proposalId}/proposer > Query proposer > 200 > application/json", func(t *trans.Transaction) {
+		doAll()
+	})
+
+	h.Before("Governance > /gov/proposals/{proposalId}/tally > Get a proposal's tally result at the current time > 200 > application/json", func(t *trans.Transaction) {
+		doAll()
+	})
+
+	// GET (200) /gov/proposals/2
+
+	// Governance > /gov/proposals/{proposalId} > Query a proposal > 200 > application/json
+
+	// GET (200) /gov/proposals/2/proposer
+
+	// Governance > /gov/proposals/{proposalId}/proposer > Query proposer > 200 > application/json
+
+	// GET (200) /gov/proposals/2/tally
+
+	// Governance > /gov/proposals/{proposalId}/tally > Get a proposal's tally result at the current time > 200 > application/json
+
 	h.BeforeEachValidation(func(t *trans.Transaction) {
 		fmt.Println("before each validation modification")
 	})
