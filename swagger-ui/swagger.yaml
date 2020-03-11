@@ -487,9 +487,13 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/Delegation"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items: 
+                    $ref: "#/definitions/Delegation"
           400:
             description: Invalid delegator address
           500:
@@ -678,9 +682,13 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/Redelegation"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/Redelegation"
           500:
             description: Internal Server Error
     /staking/delegators/{delegatorAddr}/redelegations:
