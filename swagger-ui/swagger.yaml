@@ -814,7 +814,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
       get:
         summary: Query the information from a single validator
         tags:
@@ -825,7 +825,14 @@
           200:
             description: OK
             schema:
-              $ref: "#/definitions/Validator"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  # type: array // TODO what if there are multiple validators? should it be an array?
+                  items:
+                    $ref: "#/definitions/Validator"
           400:
             description: Invalid validator address
           500:
@@ -1079,8 +1086,10 @@
                   $ref: "#/definitions/BaseReq"
                 title:
                   type: string
+                  x-example: "Test title"
                 description:
                   type: string
+                  example: "my test description"
                 proposal_type:
                   type: string
                   example: "text"
@@ -1160,10 +1169,10 @@
                   $ref: "#/definitions/BaseReq"
                 title:
                   type: string
-                  x-example: "Param Change"
+                  example: Param_Change
                 description:
                   type: string
-                  x-example: "Update max validators"
+                  example: Update_max_validators
                 proposer:
                   $ref: "#/definitions/Address"
                 deposit:
@@ -1176,7 +1185,7 @@
                     $ref: "#/definitions/ParamChange"
         responses:
           200:
-            description: The transaction was succesfully generated
+            description: The transaction was successfully generated
             schema:
               $ref: "#/definitions/StdTx"
           400:
