@@ -22,7 +22,7 @@ var (
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
 
-// Name get module name
+// Name gets the module name
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
@@ -34,19 +34,17 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 
 // DefaultGenesis default genesis state
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	//return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
-	return nil
+	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis module validate genesis
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	// var gs GenesisState
-	// err := ModuleCdc.UnmarshalJSON(bz, &gs)
-	// if err != nil {
-	// 	return err
-	// }
-	// return gs.Validate()
-	return nil
+	var gs GenesisState
+	err := ModuleCdc.UnmarshalJSON(bz, &gs)
+	if err != nil {
+		return err
+	}
+	return gs.Validate()
 }
 
 // RegisterRESTRoutes registers the REST routes for the module.
@@ -137,18 +135,17 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // InitGenesis module init-genesis
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	// var genesisState GenesisState
-	// ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	// InitGenesis(ctx, am.keeper, am.pricefeedKeeper, genesisState)
+	var genesisState GenesisState
+	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis module export genesis
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	// gs := ExportGenesis(ctx, am.keeper)
-	// return ModuleCdc.MustMarshalJSON(gs)
-	return nil
+	gs := ExportGenesis(ctx, am.keeper)
+	return ModuleCdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock module begin-block

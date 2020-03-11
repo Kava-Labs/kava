@@ -8,29 +8,43 @@ import (
 )
 
 const (
-	ModuleName = types.ModuleName
-	StoreKey   = types.StoreKey
+	DefaultNextProposalID = types.DefaultNextProposalID
+	ModuleName            = types.ModuleName
+	StoreKey              = types.StoreKey
 )
 
 var (
 	// function aliases
-	NewKeeper     = keeper.NewKeeper
-	RegisterCodec = types.RegisterCodec
+	NewKeeper           = keeper.NewKeeper
+	DefaultGenesisState = types.DefaultGenesisState
+	GetKeyFromID        = types.GetKeyFromID
+	GetVoteKey          = types.GetVoteKey
+	NewGenesisState     = types.NewGenesisState
+	RegisterCodec       = types.RegisterCodec
+	Uint64FromBytes     = types.Uint64FromBytes
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
+	CommitteeKeyPrefix = types.CommitteeKeyPrefix
+	ModuleCdc          = types.ModuleCdc
+	NextProposalIDKey  = types.NextProposalIDKey
+	ProposalKeyPrefix  = types.ProposalKeyPrefix
+	VoteKeyPrefix      = types.VoteKeyPrefix
+	VoteThreshold      = types.VoteThreshold
 )
 
 type (
 	Keeper                        = keeper.Keeper
 	Committee                     = types.Committee
 	GeneralShutdownPermission     = types.GeneralShutdownPermission
+	GenesisState                  = types.GenesisState
+	GodPermission                 = types.GodPermission
 	GroupChangeProposal           = types.GroupChangeProposal
 	InflationRateChangePermission = types.InflationRateChangePermission
 	MsgSubmitProposal             = types.MsgSubmitProposal
 	MsgVote                       = types.MsgVote
 	Permission                    = types.Permission
 	Proposal                      = types.Proposal
+	PubProposal                   = types.PubProposal
 	ShutdownCDPDepsitPermission   = types.ShutdownCDPDepsitPermission
 	Vote                          = types.Vote
 )

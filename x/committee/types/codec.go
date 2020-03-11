@@ -1,6 +1,8 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/codec"
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+)
 
 // ModuleCdc generic sealed codec to be used throughout module
 var ModuleCdc *codec.Codec
@@ -13,10 +15,10 @@ func init() {
 
 // RegisterCodec registers the necessary types for the module
 func RegisterCodec(cdc *codec.Codec) {
-	// TODO
-	// cdc.RegisterConcrete(MsgCreateCDP{}, "cdp/MsgCreateCDP", nil)
-	// cdc.RegisterConcrete(MsgDeposit{}, "cdp/MsgDeposit", nil)
-	// cdc.RegisterConcrete(MsgWithdraw{}, "cdp/MsgWithdraw", nil)
-	// cdc.RegisterConcrete(MsgDrawDebt{}, "cdp/MsgDrawDebt", nil)
-	// cdc.RegisterConcrete(MsgRepayDebt{}, "cdp/MsgRepayDebt", nil)
+
+	// TODO need to register Content interface, however amino panics if you try and register it twice and helpfully doesn't provide a way to query registered types
+	//cdc.RegisterInterface((*gov.Content)(nil), nil)
+
+	cdc.RegisterInterface((*Permission)(nil), nil)
+	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
 }

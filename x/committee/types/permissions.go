@@ -8,6 +8,10 @@ import (
 
 // EXAMPLE PERMISSIONS ------------------------------
 
+type GodPermission struct{}
+
+func (GodPermission) Allows(gov.Content) bool { return true }
+
 // Allow only changes to inflation_rate
 type InflationRateChangePermission struct{}
 

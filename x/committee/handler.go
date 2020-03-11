@@ -40,6 +40,16 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Result {
 	err := keeper.AddVote(ctx, msg)
 
+	// Try closing proposal
+	_ = k.CloseOutProposal(ctx, proposalID)
+
+	// if err.Error() == "note enough votes to close proposal" { // TODO
+	// 	return nil // This is not a reason to error
+	// }
+	// if err != nil {
+	// 	return err
+	// }
+
 	if err != nil {
 		return err.Result()
 	}

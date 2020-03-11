@@ -5,6 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 )
 
+var VoteThreshold sdk.Dec = sdk.MustNewDecFromStr("0.75")
+
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
 	ID          uint64 // TODO or a name?
@@ -39,10 +41,12 @@ type Permission interface {
 // GOV STUFF --------------------------
 // Should be much the same as in gov module, except Proposals are linked to a committee ID.
 
-var _ gov.Content = Proposal{}
+// TODO not needed? var _ gov.Content = Proposal{}
+
+type PubProposal = gov.Content // TODO better name
 
 type Proposal struct {
-	gov.Content
+	PubProposal
 	ID          uint64
 	CommitteeID uint64
 	// TODO

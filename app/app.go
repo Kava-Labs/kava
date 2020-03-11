@@ -249,6 +249,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.committeeKeeper = committee.NewKeeper(
 		app.cdc,
 		keys[committee.StoreKey],
+		govRouter,
 		// TODO blacklist module addresses?
 	)
 
