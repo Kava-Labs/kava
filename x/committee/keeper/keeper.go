@@ -25,49 +25,51 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey) Keeper {
 	}
 }
 
-/* TODO keeper methods - very similar to gov
-
-- SubmitProposal validate and store a proposal, additionally setting things like timeout
-- GetProposal
-- SetProposal
-
-- AddVote - add a vote to a particular proposal from a member
-- GetVote
-- SetVote
-
-- GetCommittee
-- SetCommittee
-
-*/
-
-func (k Keeper) SubmitProposal(ctx sdk.Context, proposal types.Proposal) sdk.Error {
-	// TODO Limit proposals to only be submitted by group members
-
-	// Check group has permissions to enact proposal. As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
-	committee, _ := k.GetCommittee(ctx, proposal.CommitteeID)
-	hasPermissions := false
-	for _, p := range committee.Permissions {
-		if p.Allows(proposal) {
-			hasPermissions = true
-			break
-		}
+func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, proposal types.Proposal) (uint64, sdk.Error) {
+	// Limit proposals to only be submitted by committee members
+	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
+	if !found {
+		return 0, sdk.ErrInternal("committee doesn't exist")
 	}
-	if !hasPermissions {
-		return sdk.ErrInternal("committee does not have permissions to enact proposal")
+	if !com.HasMember(proposer) {
+		return 0, sdk.ErrInternal("only member can propose proposals")
+	}
+
+	// Check proposal is valid
+	if err := proposal.ValidateBasic(); err != nil {
+		return 0, err
+	}
+
+	// Check group has permissions to enact proposal.
+	if !com.HasPermissionsFor(proposal) {
+		return 0, sdk.ErrInternal("committee does not have permissions to enact proposal")
 	}
 
 	// TODO validate proposal by running it with cached context like how gov does it
+	// what if it's not valid now but will be in the future?
 
-	// TODO store the proposal, probably put it in a queue
-
-	return nil
+	// Get a new ID and store the proposal
+	return k.StoreNewProposal(ctx, proposal)
 }
 
-func (k Keeper) AddVote(ctx sdk.Context, msg types.MsgVote) sdk.Error {
-	/* TODO
-	- validate vote
-	- store vote
-	*/
+func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) sdk.Error {
+	// Validate
+	proposal, found := k.GetProposal(ctx, proposalID)
+	if !found {
+		return sdk.ErrInternal("proposal not found")
+	}
+	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
+	if !found {
+		return sdk.ErrInternal("committee disbanded")
+	}
+	if !com.HasMember(voter) {
+		return sdk.ErrInternal("not authorized to vote on proposal")
+	}
+
+	// Store vote, overwriting any prior vote
+	k.SetVote(ctx, types.Vote{ProposalID: proposalID, Voter: voter})
+
+	// TODO close vote if tally has been reached
 	return nil
 }
 
@@ -94,6 +96,49 @@ func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
 func (k Keeper) DeleteCommittee(ctx sdk.Context, committeeID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
 	store.Delete(types.GetKeyFromID(committeeID))
+}
+
+// SetNextProposalID stores an ID to be used for the next created proposal
+func (k Keeper) SetNextProposalID(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.NextProposalIDKey, types.GetKeyFromID(id))
+}
+
+// GetNextProposalID reads the next available global ID from store
+func (k Keeper) GetNextProposalID(ctx sdk.Context) (uint64, sdk.Error) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.NextProposalIDKey)
+	if bz == nil {
+		return 0, sdk.ErrInternal("proposal ID not set at genesis")
+	}
+	return types.Uint64FromBytes(bz), nil
+}
+
+// IncrementNextProposalID increments the next proposal ID in the store by 1.
+func (k Keeper) IncrementNextProposalID(ctx sdk.Context) sdk.Error {
+	id, err := k.GetNextProposalID(ctx)
+	if err != nil {
+		return err
+	}
+	k.SetNextProposalID(ctx, id+1)
+	return nil
+}
+
+// StoreNewProposal stores a proposal, adding a new ID
+func (k Keeper) StoreNewProposal(ctx sdk.Context, proposal types.Proposal) (uint64, sdk.Error) {
+	newProposalID, err := k.GetNextProposalID(ctx)
+	if err != nil {
+		return 0, err
+	}
+	proposal.ID = newProposalID
+
+	k.SetProposal(ctx, proposal)
+
+	err = k.IncrementNextProposalID(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return newProposalID, nil
 }
 
 // GetProposal gets a proposal from the store.

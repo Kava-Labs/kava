@@ -24,15 +24,60 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
 	suite.ctx = suite.app.NewContext(true, abci.Header{})
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(2)
 }
 
+func (suite *KeeperTestSuite) TestSubmitProposal() {
+	testcases := []struct {
+		name       string
+		proposal   types.Proposal
+		proposer   sdk.AccAddress
+		expectPass bool
+	}{
+		{name: "empty proposal", proposer: suite.addresses[0], expectPass: false},
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			_, err := suite.keeper.SubmitProposal(suite.ctx, tc.proposer, tc.proposal)
+			if tc.expectPass {
+				suite.NoError(err)
+				// TODO suite.keeper.GetProposal(suite.ctx, tc.proposal.ID)
+			} else {
+				suite.NotNil(err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestAddVote() {
+	testcases := []struct {
+		name       string
+		proposalID uint64
+		voter      sdk.AccAddress
+		expectPass bool
+	}{
+		{name: "no proposal", proposalID: 9999999, voter: suite.addresses[0], expectPass: false},
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			err := suite.keeper.AddVote(suite.ctx, tc.proposalID, tc.voter)
+			if tc.expectPass {
+				suite.NoError(err)
+				// TODO GetVote
+			} else {
+				suite.NotNil(err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
-	// test setup
+	// setup test
 	com := types.Committee{
 		ID: 12,
 		// TODO other fields

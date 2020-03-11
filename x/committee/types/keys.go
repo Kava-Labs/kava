@@ -32,7 +32,7 @@ var (
 	VoteKeyPrefix      = []byte{0x02} // prefix for keys that store votes
 	//AuctionByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the auctionsByTime index
 
-	//NextAuctionIDKey = []byte{0x02} // key for the next auction id
+	NextProposalIDKey = []byte{0x03} // key for the next proposal id
 )
 
 // GetKeyFromID returns the bytes to use as a key for a uint64 id
@@ -57,6 +57,6 @@ func uint64ToBytes(id uint64) []byte {
 }
 
 // Uint64FromBytes converts some fixed length bytes back into a uint64.
-func uint64FromBytes(bz []byte) uint64 {
+func Uint64FromBytes(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
