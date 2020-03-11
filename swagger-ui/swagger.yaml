@@ -1086,10 +1086,10 @@
                   $ref: "#/definitions/BaseReq"
                 title:
                   type: string
-                  x-example: "Test title"
+                  example: Test_title
                 description:
                   type: string
-                  example: "my test description"
+                  example: my_test_description
                 proposal_type:
                   type: string
                   example: "text"
