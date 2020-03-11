@@ -998,9 +998,14 @@
           200:
             description: OK
             schema:
-              type: array
               items:
-                $ref: "#/definitions/SigningInfo"
+                type: object
+                properties:
+                  height:
+                    type: string
+                  result:
+                    items:
+                      $ref: "#/definitions/SigningInfo"
           400:
             description: Invalid validator public key for one of the validators
           500:
