@@ -22,8 +22,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Check proposal is valid
-	// TODO what if it's not valid now but will be in the future?
-	// TODO does this need to be before permission check?
 	if err := k.ValidatePubProposal(ctx, pubProposal); err != nil {
 		return 0, err
 	}
@@ -92,7 +90,6 @@ func (k Keeper) CloseOutProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 }
 
 func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) sdk.Error {
-	// TODO not sure if the basic validation is required - should be run in msg.ValidateBasic
 	if pubProposal == nil {
 		return sdk.ErrInternal("proposal is empty")
 	}

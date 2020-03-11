@@ -19,18 +19,23 @@ type Keeper struct {
 }
 
 func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router) Keeper {
-	// It is vital to seal the governance proposal router here as to not allow
-	// further handlers to be registered after the keeper is created since this
-	// could create invalid or non-deterministic behavior.
-	// TODO why?
-	// Not sealing the router because for some reason the function panics if it has already been sealed and there is no way to tell if has already been called.
-	// router.Seal()
+	// Logic in the keeper methods assume the set of gov handlers is fixed.
+	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
+	// Note: for some reason the gov router panics if it has already been sealed, so a helper func is used to make sealing idempotent.
+	sealGovRouterIdempotently(router)
 
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
 		router:   router,
 	}
+}
+
+func sealGovRouterIdempotently(router govtypes.Router) {
+	defer func() {
+		recover()
+	}()
+	router.Seal()
 }
 
 // ---------- Committees ----------
