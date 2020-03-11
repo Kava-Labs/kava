@@ -57,6 +57,15 @@ func main() {
 		sendVote()
 	})
 
+	// example of how to UNSKIP a test (all non 2XX http responses are skipped by default)
+	h.Before("GET (500) /supply/total/uatom", func(t *trans.Transaction) {
+		t.Skip = false
+	})
+
+	h.Before("GET (400) /gov/proposals", func(t *trans.Transaction) {
+		t.Skip = false
+	})
+
 	// h.Before("Governance > /gov/proposals/{proposalId}/proposer > Query proposer > 200 > application/json", func(t *trans.Transaction) {
 	// 	doAll()
 	// })
