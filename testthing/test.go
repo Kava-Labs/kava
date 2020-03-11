@@ -139,7 +139,7 @@ func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber 
 		panic(err)
 	}
 
-	fmt.Println("\n\nBody:\n")
+	fmt.Printf("\n\nBody:\n\n")
 	fmt.Println(string(body))
 
 }
