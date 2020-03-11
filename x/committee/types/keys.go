@@ -30,7 +30,6 @@ var (
 	CommitteeKeyPrefix = []byte{0x00} // prefix for keys that store committees
 	ProposalKeyPrefix  = []byte{0x01} // prefix for keys that store proposals
 	VoteKeyPrefix      = []byte{0x02} // prefix for keys that store votes
-	//AuctionByTimeKeyPrefix = []byte{0x01} // prefix for keys that are part of the auctionsByTime index
 
 	NextProposalIDKey = []byte{0x03} // key for the next proposal id
 )
@@ -43,11 +42,6 @@ func GetKeyFromID(id uint64) []byte {
 func GetVoteKey(proposalID uint64, voter sdk.AccAddress) []byte {
 	return append(GetKeyFromID(proposalID), voter.Bytes()...)
 }
-
-// // GetAuctionByTimeKey returns the key for iterating auctions by time
-// func GetAuctionByTimeKey(endTime time.Time, auctionID uint64) []byte {
-// 	return append(sdk.FormatTimeBytes(endTime), Uint64ToBytes(auctionID)...)
-// }
 
 // Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.
 func uint64ToBytes(id uint64) []byte {
