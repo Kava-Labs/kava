@@ -575,9 +575,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/UnbondingDelegation"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/UnbondingDelegation"
+
           400:
             description: Invalid delegator address
           500:
@@ -624,13 +629,13 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
         - in: path
           name: validatorAddr
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
       get:
         summary: Query all unbonding delegations between a delegator and a validator
         tags:
