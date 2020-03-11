@@ -5,7 +5,7 @@
 1) Build the hooks file by running the following from the `swagger-ui` folder:
 
 `rm hooks`
-`go build`
+`go build hooks.go`
 
 2) Then start the chain:
 
@@ -16,7 +16,7 @@
 
 `kvcli rest-server --laddr tcp://127.0.0.1:1317`
 
-4) Then run the following command from the `testthing` folder to run the `dredd` tests:
+4) Then run the following command from the `swagger-ui` folder to run the `dredd` tests:
 **IMPORTANT NOTE**: Sometimes the first time you run the file the transactions may not have posted
 to the blockchain so some tests may erroneously fail. When you run the script a second time 
 they should pass.
@@ -24,4 +24,4 @@ they should pass.
 `dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
 
 If you run into `dredd` timeout issues you can try:
-`dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="300000"`
+`dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="300000"`
