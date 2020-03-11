@@ -893,9 +893,13 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: "#/definitions/UnbondingDelegation"
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/UnbondingDelegation"
           400:
             description: Invalid validator address
           500:
