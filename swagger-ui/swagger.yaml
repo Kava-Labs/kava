@@ -716,7 +716,7 @@
                   $ref: "#/definitions/BaseReq"
                 delegator_address:
                   $ref: "#/definitions/Address"
-                validator_src_addressess:
+                validator_src_addresses:
                   $ref: "#/definitions/ValidatorAddress"
                 validator_dst_address:
                   $ref: "#/definitions/ValidatorAddress"
