@@ -1,12 +1,13 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
-	cmm "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 	}
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(100)
-	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
+	randomNumberHash  = types.CalculateRandomHash(randomNumberBytes, timestampInt64)
 )
 
 func TestMsgCreateAtomicSwap(t *testing.T) {
@@ -32,7 +33,7 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    cmm.HexBytes
+		randomNumberHash    cmn.HexBytes
 		timestamp           int64
 		amount              sdk.Coins
 		expectedIncome      string
@@ -48,7 +49,7 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgCreateAtomicSwap(
+		msg := types.NewMsgCreateAtomicSwap(
 			tc.from,
 			tc.to,
 			tc.recipientOtherChain,
@@ -69,20 +70,20 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 }
 
 func TestMsgClaimAtomicSwap(t *testing.T) {
-	swapID := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := types.CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description  string
 		from         sdk.AccAddress
-		swapID       cmm.HexBytes
-		randomNumber cmm.HexBytes
+		swapID       cmn.HexBytes
+		randomNumber cmn.HexBytes
 		expectPass   bool
 	}{
 		{"normal", binanceAddrs[0], swapID, randomNumberHash, true},
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgClaimAtomicSwap(
+		msg := types.NewMsgClaimAtomicSwap(
 			tc.from,
 			tc.swapID,
 			tc.randomNumber,
@@ -96,19 +97,19 @@ func TestMsgClaimAtomicSwap(t *testing.T) {
 }
 
 func TestMsgRefundAtomicSwap(t *testing.T) {
-	swapID := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := types.CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      cmm.HexBytes
+		swapID      cmn.HexBytes
 		expectPass  bool
 	}{
 		{"normal", binanceAddrs[0], swapID, true},
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgRefundAtomicSwap(
+		msg := types.NewMsgRefundAtomicSwap(
 			tc.from,
 			tc.swapID,
 		)
