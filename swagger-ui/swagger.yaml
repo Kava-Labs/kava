@@ -1063,10 +1063,10 @@
               type: object
               properties:
                 base_req:
-                  $ref: "#/definitions/StdTx"
+                  $ref: "#/definitions/BaseReq"
         responses:
           200:
-            description: Tx was succesfully generated
+            description: Tx was successfully generated
             schema:
               $ref: "#/definitions/BroadcastTxCommitResult"
           400:
@@ -2341,7 +2341,7 @@
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
-          example: "Sent via Cosmos Voyager 🚀"
+          example: Sent_via_Kava
         chain_id:
           type: string
           example: "Cosmos-Hub"
