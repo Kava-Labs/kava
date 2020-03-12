@@ -426,8 +426,8 @@
                   items:
                     $ref: "#/definitions/Coin"
         responses:
-          202:
-            description: Tx was succesfully generated
+          200:
+            description: Tx was successfully generated
             schema:
               $ref: "#/definitions/StdTx"
           400:
