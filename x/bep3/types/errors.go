@@ -26,33 +26,27 @@ const (
 	CodeAtomicSwapAlreadyExists CodeType          = 10
 	CodeAtomicSwapNotFound      CodeType          = 11
 	CodeSwapNotRefundable       CodeType          = 12
-	CodeSwapNotOpen             CodeType          = 13
-	CodeAtomicSwapHasExpired    CodeType          = 14
+	CodeSwapNotClaimable        CodeType          = 13
 )
 
-// ErrAtomicSwapNotFound error for when an atomic swap is not found
-func ErrAtomicSwapNotFound(codespace sdk.CodespaceType, id []byte) sdk.Error {
-	return sdk.NewError(codespace, CodeAtomicSwapNotFound, fmt.Sprintf("AtomicSwap %s was not found", hex.EncodeToString(id)))
+// ErrConversionToBytesFailed error for when a hex encoded string can't be converted to bytes
+func ErrConversionToBytesFailed(codespace sdk.CodespaceType, hexEncodedValue string) sdk.Error {
+	return sdk.NewError(codespace, CodeConversionToBytesFailed, fmt.Sprintf("couldn't convert hex encoded %s to bytes", hexEncodedValue))
+}
+
+// ErrInvalidTimestamp error for when an timestamp is outside of bounds. Assumes block time of 10 seconds.
+func ErrInvalidTimestamp(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidTimestamp, fmt.Sprintf("Timestamp can neither be 15 minutes ahead of the current time, nor 30 minutes later"))
+}
+
+// ErrInvalidHeightSpan error a proposed height span is outside of lock time range
+func ErrInvalidHeightSpan(codespace sdk.CodespaceType, heightspan int64, minLockTime int64, maxLockTime int64) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidHeightSpan, fmt.Sprintf("height span %d is outside acceptable range %d - %d", heightspan, minLockTime, maxLockTime))
 }
 
 // ErrAmountTooSmall error for when a coin amount is 0
 func ErrAmountTooSmall(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
 	return sdk.NewError(codespace, CodeAmountTooSmall, fmt.Sprintf("coin %s amount is below the limit for this operation", coin))
-}
-
-// ErrAtomicSwapAlreadyExists error for when an AtomicSwap with this swapID already exists
-func ErrAtomicSwapAlreadyExists(codespace sdk.CodespaceType, swapID cmn.HexBytes) sdk.Error {
-	return sdk.NewError(codespace, CodeAtomicSwapAlreadyExists, fmt.Sprintf("atomic swap %s already exists", swapID))
-}
-
-// ErrInvalidClaimSecret error when a submitted secret doesn't match an AtomicSwap's swapID
-func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret []byte, swapID []byte) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidClaimSecret,
-		fmt.Sprintf("hashed claim attempt %s does not match %s",
-			hex.EncodeToString(submittedSecret),
-			hex.EncodeToString(swapID),
-		),
-	)
 }
 
 // ErrAssetNotSupported error for when an asset is not supported
@@ -63,21 +57,6 @@ func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
 // ErrAssetNotActive error for when an asset is currently inactive
 func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
 	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is current inactive", denom))
-}
-
-// ErrInvalidHeightSpan error a proposed height span is outside of lock time range
-func ErrInvalidHeightSpan(codespace sdk.CodespaceType, heightspan int64, minLockTime int64, maxLockTime int64) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidHeightSpan, fmt.Sprintf("height span %d is outside acceptable range %d - %d", heightspan, minLockTime, maxLockTime))
-}
-
-// ErrAtomicSwapHasExpired error for when an AtomicSwap has expired and cannot be claimed
-func ErrAtomicSwapHasExpired(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeAtomicSwapHasExpired, fmt.Sprintf("atomic swap is expired"))
-}
-
-// ErrConversionToBytesFailed error for when a hex encoded string can't be converted to bytes
-func ErrConversionToBytesFailed(codespace sdk.CodespaceType, hexEncodedValue string) sdk.Error {
-	return sdk.NewError(codespace, CodeConversionToBytesFailed, fmt.Sprintf("couldn't convert hex encoded %s to bytes", hexEncodedValue))
 }
 
 // ErrAssetSupplyNotSet error for when an asset's supply has not been initialized
@@ -92,9 +71,24 @@ func ErrAboveAssetSupplyLimit(codespace sdk.CodespaceType, denom string, current
 			denom, currentSupply, proposedIncrease, supplyLimit))
 }
 
-// ErrSwapNotOpen error for when an atomic swap is not open
-func ErrSwapNotOpen(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeSwapNotOpen, fmt.Sprintf("swap is not open"))
+// ErrInvalidClaimSecret error when a submitted secret doesn't match an AtomicSwap's swapID
+func ErrInvalidClaimSecret(codespace sdk.CodespaceType, submittedSecret []byte, swapID []byte) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidClaimSecret,
+		fmt.Sprintf("hashed claim attempt %s does not match %s",
+			hex.EncodeToString(submittedSecret),
+			hex.EncodeToString(swapID),
+		),
+	)
+}
+
+// ErrAtomicSwapAlreadyExists error for when an AtomicSwap with this swapID already exists
+func ErrAtomicSwapAlreadyExists(codespace sdk.CodespaceType, swapID cmn.HexBytes) sdk.Error {
+	return sdk.NewError(codespace, CodeAtomicSwapAlreadyExists, fmt.Sprintf("atomic swap %s already exists", swapID))
+}
+
+// ErrAtomicSwapNotFound error for when an atomic swap is not found
+func ErrAtomicSwapNotFound(codespace sdk.CodespaceType, id []byte) sdk.Error {
+	return sdk.NewError(codespace, CodeAtomicSwapNotFound, fmt.Sprintf("AtomicSwap %s was not found", hex.EncodeToString(id)))
 }
 
 // ErrSwapNotRefundable error for when an AtomicSwap has not expired and cannot be refunded
@@ -102,7 +96,7 @@ func ErrSwapNotRefundable(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeSwapNotRefundable, fmt.Sprintf("atomic swap is still active and cannot be refunded"))
 }
 
-// ErrInvalidTimestamp error for when an timestamp is outside of bounds. Assumes block time of 10 seconds.
-func ErrInvalidTimestamp(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidTimestamp, fmt.Sprintf("Timestamp can neither be 15 minutes ahead of the current time, nor 30 minutes later"))
+// ErrSwapNotClaimable error for when an atomic swap is not open and cannot be claimed
+func ErrSwapNotClaimable(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeSwapNotClaimable, fmt.Sprintf("atomic swap is not claimable"))
 }
