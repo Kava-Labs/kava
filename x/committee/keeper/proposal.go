@@ -27,7 +27,8 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Get a new ID and store the proposal
-	return k.StoreNewProposal(ctx, committeeID, pubProposal)
+	deadline := ctx.BlockTime().Add(types.MaxProposalDuration)
+	return k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
 }
 
 func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) sdk.Error {
@@ -35,6 +36,9 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
 		return sdk.ErrInternal("proposal not found")
+	}
+	if pr.HasExpiredBy(ctx.BlockTime()) {
+		return sdk.ErrInternal("proposal expired")
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
@@ -65,7 +69,9 @@ func (k Keeper) CloseOutProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 		votes = append(votes, vote)
 		return false
 	})
-	if sdk.NewDec(int64(len(votes))).GTE(types.VoteThreshold.MulInt64(int64(len(com.Members)))) { // TODO move vote counting stuff to committee methods // TODO add timeout check here - close if expired regardless of votes
+	proposalPasses := sdk.NewDec(int64(len(votes))).GTE(types.VoteThreshold.MulInt64(int64(len(com.Members))))
+
+	if proposalPasses {
 		// eneact vote
 		// The proposal handler may execute state mutating logic depending
 		// on the proposal content. If the handler fails, no state mutation
@@ -77,16 +83,17 @@ func (k Keeper) CloseOutProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 			// write state to the underlying multi-store
 			writeCache()
 		} // if handler returns error, then still delete the proposal - it's still over, but send an event
+	}
+	if proposalPasses || pr.HasExpiredBy(ctx.BlockTime()) {
 
 		// delete proposal and votes
 		k.DeleteProposal(ctx, proposalID)
 		for _, v := range votes {
 			k.DeleteVote(ctx, v.ProposalID, v.Voter)
 		}
-	} else {
-		return sdk.ErrInternal("note enough votes to close proposal")
+		return nil
 	}
-	return nil
+	return sdk.ErrInternal("note enough votes to close proposal")
 }
 
 func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) sdk.Error {

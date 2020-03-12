@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -94,7 +95,7 @@ func (k Keeper) IncrementNextProposalID(ctx sdk.Context) sdk.Error {
 }
 
 // StoreNewProposal stores a proposal, adding a new ID
-func (k Keeper) StoreNewProposal(ctx sdk.Context, committeeID uint64, pubProposal types.PubProposal) (uint64, sdk.Error) {
+func (k Keeper) StoreNewProposal(ctx sdk.Context, pubProposal types.PubProposal, committeeID uint64, deadline time.Time) (uint64, sdk.Error) {
 	newProposalID, err := k.GetNextProposalID(ctx)
 	if err != nil {
 		return 0, err
@@ -103,6 +104,7 @@ func (k Keeper) StoreNewProposal(ctx sdk.Context, committeeID uint64, pubProposa
 		PubProposal: pubProposal,
 		ID:          newProposalID,
 		CommitteeID: committeeID,
+		Deadline:    deadline,
 	}
 
 	k.SetProposal(ctx, proposal)
@@ -137,6 +139,22 @@ func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 func (k Keeper) DeleteProposal(ctx sdk.Context, proposalID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
 	store.Delete(types.GetKeyFromID(proposalID))
+}
+
+// IterateProposals provides an iterator over all stored proposals.
+// For each proposal, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var proposal types.Proposal
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+
+		if cb(proposal) {
+			break
+		}
+	}
 }
 
 // ---------- Votes ----------

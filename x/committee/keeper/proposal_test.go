@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"reflect"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -89,8 +90,10 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 			if tc.expectPass {
 				suite.NoError(err)
-				_, found := keeper.GetProposal(ctx, id)
+				pr, found := keeper.GetProposal(ctx, id)
 				suite.True(found)
+				suite.Equal(tc.committeeID, pr.CommitteeID)
+				suite.Equal(ctx.BlockTime().Add(types.MaxProposalDuration), pr.Deadline)
 			} else {
 				suite.NotNil(err)
 			}
@@ -104,11 +107,13 @@ func (suite *KeeperTestSuite) TestAddVote() {
 		Members:     suite.addresses[:2],
 		Permissions: []types.Permission{types.GodPermission{}},
 	}
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
 	testcases := []struct {
 		name       string
 		proposalID uint64
 		voter      sdk.AccAddress
+		voteTime   time.Time
 		expectPass bool
 	}{
 		{
@@ -129,6 +134,13 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			voter:      suite.addresses[4],
 			expectPass: false,
 		},
+		{
+			name:       "proposal expired",
+			proposalID: types.DefaultNextProposalID,
+			voter:      normalCom.Members[0],
+			voteTime:   firstBlockTime.Add(types.MaxProposalDuration),
+			expectPass: false,
+		},
 	}
 
 	for _, tc := range testcases {
@@ -136,7 +148,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			// Create local testApp because suite doesn't run the SetupTest function for subtests, which would mean the app state is not be reset between subtests.
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
-			ctx := tApp.NewContext(true, abci.Header{})
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
 			tApp.InitializeFromGenesisStates()
 
 			// setup the committee and proposal
@@ -144,6 +156,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			_, err := keeper.SubmitProposal(ctx, normalCom.Members[0], normalCom.ID, gov.NewTextProposal("A Title", "A description of this proposal."))
 			suite.NoError(err)
 
+			ctx = ctx.WithBlockTime(tc.voteTime)
 			err = keeper.AddVote(ctx, tc.proposalID, tc.voter)
 
 			if tc.expectPass {

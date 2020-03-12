@@ -1,13 +1,19 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 )
 
-// -------- Committees --------
+// TODO move these into params
+var (
+	VoteThreshold       sdk.Dec       = sdk.MustNewDecFromStr("0.75")
+	MaxProposalDuration time.Duration = time.Hour * 24 * 7
+)
 
-var VoteThreshold sdk.Dec = sdk.MustNewDecFromStr("0.75")
+// -------- Committees --------
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
@@ -50,6 +56,13 @@ type Proposal struct {
 	PubProposal
 	ID          uint64
 	CommitteeID uint64
+	Deadline    time.Time
+}
+
+// HasExpiredBy calculates if the proposal will have expired by a certain time.
+// All votes must be cast before deadline, those cast at time == deadline are not valid
+func (p Proposal) HasExpiredBy(time time.Time) bool {
+	return !time.Before(p.Deadline)
 }
 
 type Vote struct {

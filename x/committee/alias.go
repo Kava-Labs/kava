@@ -9,27 +9,35 @@ import (
 
 const (
 	DefaultNextProposalID = types.DefaultNextProposalID
+	DefaultParamspace     = types.DefaultParamspace
 	ModuleName            = types.ModuleName
+	QuerierRoute          = types.QuerierRoute
+	RouterKey             = types.RouterKey
 	StoreKey              = types.StoreKey
+	TypeMsgSubmitProposal = types.TypeMsgSubmitProposal
+	TypeMsgVote           = types.TypeMsgVote
 )
 
 var (
 	// function aliases
-	NewKeeper           = keeper.NewKeeper
-	DefaultGenesisState = types.DefaultGenesisState
-	GetKeyFromID        = types.GetKeyFromID
-	GetVoteKey          = types.GetVoteKey
-	NewGenesisState     = types.NewGenesisState
-	RegisterCodec       = types.RegisterCodec
-	Uint64FromBytes     = types.Uint64FromBytes
+	NewKeeper            = keeper.NewKeeper
+	DefaultGenesisState  = types.DefaultGenesisState
+	GetKeyFromID         = types.GetKeyFromID
+	GetVoteKey           = types.GetVoteKey
+	NewGenesisState      = types.NewGenesisState
+	NewMsgSubmitProposal = types.NewMsgSubmitProposal
+	NewMsgVote           = types.NewMsgVote
+	RegisterCodec        = types.RegisterCodec
+	Uint64FromBytes      = types.Uint64FromBytes
 
 	// variable aliases
-	CommitteeKeyPrefix = types.CommitteeKeyPrefix
-	ModuleCdc          = types.ModuleCdc
-	NextProposalIDKey  = types.NextProposalIDKey
-	ProposalKeyPrefix  = types.ProposalKeyPrefix
-	VoteKeyPrefix      = types.VoteKeyPrefix
-	VoteThreshold      = types.VoteThreshold
+	CommitteeKeyPrefix  = types.CommitteeKeyPrefix
+	MaxProposalDuration = types.MaxProposalDuration
+	ModuleCdc           = types.ModuleCdc
+	NextProposalIDKey   = types.NextProposalIDKey
+	ProposalKeyPrefix   = types.ProposalKeyPrefix
+	VoteKeyPrefix       = types.VoteKeyPrefix
+	VoteThreshold       = types.VoteThreshold
 )
 
 type (
