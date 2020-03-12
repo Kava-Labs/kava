@@ -27,12 +27,6 @@ var (
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
 	}
-	// randomNumberHashes = []cmn.HexBytes{
-	// 	types.CalculateRandomHash([]byte("57047857647859512549395549808701232015920615785396990496251888108959386488324"), timestamps[0]),
-	// 	types.CalculateRandomHash([]byte("61225411119670325015452470011889923270088729812538562525047591229267896446077"), timestamps[1]),
-	// 	types.CalculateRandomHash([]byte("80338473265704256987314028010537813347969750625154662026470854854079495252215"), timestamps[2]),
-	// 	types.CalculateRandomHash([]byte("32833911140511546447866642984288167712598008093409038415228121205355103772318"), timestamps[3]),
-	// }
 )
 
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
@@ -77,7 +71,6 @@ func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
 	return swaps
 }
 
-// TODO: offset addresses as well
 func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 	expireOffset := int64((index * 15) + 360) // Default expire height + offet to match timestamp
 	timestamp := ts(index)                    // One minute apart

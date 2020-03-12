@@ -1,9 +1,10 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 	cmm "github.com/tendermint/tendermint/libs/common"
@@ -22,7 +23,7 @@ var (
 	}
 	randomNumberBytes = []byte{15}
 	timestampInt64    = int64(100)
-	randomNumberHash  = CalculateRandomHash(randomNumberBytes, timestampInt64)
+	randomNumberHash  = types.CalculateRandomHash(randomNumberBytes, timestampInt64)
 )
 
 func TestMsgCreateAtomicSwap(t *testing.T) {
@@ -48,7 +49,7 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgCreateAtomicSwap(
+		msg := types.NewMsgCreateAtomicSwap(
 			tc.from,
 			tc.to,
 			tc.recipientOtherChain,
@@ -69,7 +70,7 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 }
 
 func TestMsgClaimAtomicSwap(t *testing.T) {
-	swapID := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := types.CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description  string
@@ -82,7 +83,7 @@ func TestMsgClaimAtomicSwap(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgClaimAtomicSwap(
+		msg := types.NewMsgClaimAtomicSwap(
 			tc.from,
 			tc.swapID,
 			tc.randomNumber,
@@ -96,7 +97,7 @@ func TestMsgClaimAtomicSwap(t *testing.T) {
 }
 
 func TestMsgRefundAtomicSwap(t *testing.T) {
-	swapID := CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
+	swapID := types.CalculateSwapID(randomNumberHash, binanceAddrs[0], "")
 
 	tests := []struct {
 		description string
@@ -108,7 +109,7 @@ func TestMsgRefundAtomicSwap(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		msg := NewMsgRefundAtomicSwap(
+		msg := types.NewMsgRefundAtomicSwap(
 			tc.from,
 			tc.swapID,
 		)
