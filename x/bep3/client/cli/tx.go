@@ -70,7 +70,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Generate cryptographically strong pseudo-random number
-			randomNumber, err := generateSecureRandomNumber()
+			randomNumber, err := types.GenerateSecureRandomNumber()
 			if err != nil {
 				return err
 			}
