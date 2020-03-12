@@ -104,9 +104,10 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
 	}
-	// Only unexpired AtomicSwaps can be claimed
-	if atomicSwap.Status == types.Expired {
-		return types.ErrAtomicSwapHasExpired(k.codespace)
+
+	// Only open atomic swaps can be claimed
+	if atomicSwap.Status != types.Open {
+		return types.ErrSwapNotClaimable(k.codespace)
 	}
 
 	//  Calculate hashed secret using submitted number
@@ -142,15 +143,14 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		),
 	)
 
-	// Delete the swap
-	k.RemoveAtomicSwap(ctx, atomicSwap.GetSwapID())
-	k.RemoveFromByBlockIndex(ctx, atomicSwap)
+	// Update swap status to completed
+	atomicSwap.Status = types.Completed
+	k.SetAtomicSwap(ctx, atomicSwap)
 	return nil
 }
 
 // RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap
 func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) sdk.Error {
-
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
@@ -177,12 +177,15 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		),
 	)
 
-	// Delete the swap
-	k.RemoveAtomicSwap(ctx, atomicSwap.GetSwapID())
+	// Update swap status to completed
+	atomicSwap.Status = types.Completed
+	k.SetAtomicSwap(ctx, atomicSwap)
 	return nil
 }
 
-// UpdateExpiredAtomicSwaps finds all AtomicSwaps that are past (or at) their ending times and expires them.
+// UpdateExpiredAtomicSwaps finds open atomic swaps that are past (or at) their ending times and closes them,
+// updating the status of open swaps to expired. One week after a swap has been closed, it is removed from
+// the store entirely.
 func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
 	var expiredSwaps [][]byte
 	k.IterateAtomicSwapsByBlock(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
@@ -192,14 +195,23 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
 
 	// AtomicSwap refunding is in separate loops as db should not be modified during iteration
 	for _, id := range expiredSwaps {
-		// Update the AtomicSwap's status to expired
 		swap, _ := k.GetAtomicSwap(ctx, id)
-		swap.Status = types.Expired
-		swap.ClosedBlock = ctx.BlockHeight()
-		k.SetAtomicSwap(ctx, swap)
-
-		// Remove swap from block index to prevent unnecessary iteration
-		k.RemoveFromByBlockIndex(ctx, swap)
+		if swap.ClosedBlock == 0 {
+			// Only mark unclaimed swaps as expired
+			if swap.Status == types.Open {
+				swap.Status = types.Expired
+			}
+			swap.ClosedBlock = ctx.BlockHeight()
+			k.SetAtomicSwap(ctx, swap)
+		} else {
+			// Assuming block time of 7 seconds, there are 86,400 blocks in a week
+			// TODO: oneWeekBlockCount := int64(86400)
+			// Delete swaps that were closed over a week ago
+			if swap.ClosedBlock+int64(15) <= ctx.BlockHeight() {
+				k.RemoveFromByBlockIndex(ctx, swap)
+				k.RemoveAtomicSwap(ctx, swap.GetSwapID())
+			}
+		}
 	}
 	return nil
 }
