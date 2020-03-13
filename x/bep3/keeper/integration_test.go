@@ -5,12 +5,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
-	"github.com/tendermint/tendermint/crypto"
-	tmtime "github.com/tendermint/tendermint/types/time"
-
-	// TODO: update alias
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/bep3/types"
+	"github.com/tendermint/tendermint/crypto"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 var (
