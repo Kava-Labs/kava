@@ -40,7 +40,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 // ---------- Committees ----------
 
-func queryCommittees(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryCommittees(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 
 	committees := []types.Committee{}
 	keeper.IterateCommittees(ctx, func(com types.Committee) bool {

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -28,7 +30,18 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 
 	// Get a new ID and store the proposal
 	deadline := ctx.BlockTime().Add(types.MaxProposalDuration)
-	return k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
+	proposalID, err := k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
+	if err != nil {
+		return 0, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSubmitProposal,
+			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
+		),
+	)
+	return proposalID, nil
 }
 
 func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) sdk.Error {

@@ -11,6 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/kava-labs/kava/x/committee/client/cli"
 )
 
 var (
@@ -54,14 +56,12 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 
 // GetTxCmd returns the root tx command for the module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetTxCmd(cdc)
-	return nil
+	return cli.GetTxCmd(StoreKey, cdc)
 }
 
-// GetQueryCmd returns the root query command for the auction module.
+// GetQueryCmd returns the root query command for the module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetQueryCmd(StoreKey, cdc)
-	return nil
+	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
 //____________________________________________________________________________
@@ -118,8 +118,7 @@ func (AppModule) Route() string {
 
 // NewHandler module handler
 func (am AppModule) NewHandler() sdk.Handler {
-	//return NewHandler(am.keeper)
-	return nil
+	return NewHandler(am.keeper)
 }
 
 // QuerierRoute module querier route name
@@ -129,8 +128,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler module querier
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	// return NewQuerier(am.keeper)
-	return nil
+	return NewQuerier(am.keeper)
 }
 
 // InitGenesis module init-genesis

@@ -8,27 +8,40 @@ import (
 )
 
 const (
-	DefaultNextProposalID = types.DefaultNextProposalID
-	DefaultParamspace     = types.DefaultParamspace
-	ModuleName            = types.ModuleName
-	QuerierRoute          = types.QuerierRoute
-	RouterKey             = types.RouterKey
-	StoreKey              = types.StoreKey
-	TypeMsgSubmitProposal = types.TypeMsgSubmitProposal
-	TypeMsgVote           = types.TypeMsgVote
+	AttributeKeyProposalID  = types.AttributeKeyProposalID
+	DefaultNextProposalID   = types.DefaultNextProposalID
+	DefaultParamspace       = types.DefaultParamspace
+	EventTypeSubmitProposal = types.EventTypeSubmitProposal
+	ModuleName              = types.ModuleName
+	QuerierRoute            = types.QuerierRoute
+	QueryCommittee          = types.QueryCommittee
+	QueryCommittees         = types.QueryCommittees
+	QueryProposal           = types.QueryProposal
+	QueryProposals          = types.QueryProposals
+	QueryTally              = types.QueryTally
+	QueryVote               = types.QueryVote
+	QueryVotes              = types.QueryVotes
+	RouterKey               = types.RouterKey
+	StoreKey                = types.StoreKey
+	TypeMsgSubmitProposal   = types.TypeMsgSubmitProposal
+	TypeMsgVote             = types.TypeMsgVote
 )
 
 var (
 	// function aliases
-	NewKeeper            = keeper.NewKeeper
-	DefaultGenesisState  = types.DefaultGenesisState
-	GetKeyFromID         = types.GetKeyFromID
-	GetVoteKey           = types.GetVoteKey
-	NewGenesisState      = types.NewGenesisState
-	NewMsgSubmitProposal = types.NewMsgSubmitProposal
-	NewMsgVote           = types.NewMsgVote
-	RegisterCodec        = types.RegisterCodec
-	Uint64FromBytes      = types.Uint64FromBytes
+	NewKeeper               = keeper.NewKeeper
+	NewQuerier              = keeper.NewQuerier
+	DefaultGenesisState     = types.DefaultGenesisState
+	GetKeyFromID            = types.GetKeyFromID
+	GetVoteKey              = types.GetVoteKey
+	NewGenesisState         = types.NewGenesisState
+	NewMsgSubmitProposal    = types.NewMsgSubmitProposal
+	NewMsgVote              = types.NewMsgVote
+	NewQueryCommitteeParams = types.NewQueryCommitteeParams
+	NewQueryProposalParams  = types.NewQueryProposalParams
+	NewQueryVoteParams      = types.NewQueryVoteParams
+	RegisterCodec           = types.RegisterCodec
+	Uint64FromBytes         = types.Uint64FromBytes
 
 	// variable aliases
 	CommitteeKeyPrefix  = types.CommitteeKeyPrefix
@@ -53,6 +66,9 @@ type (
 	Permission                    = types.Permission
 	Proposal                      = types.Proposal
 	PubProposal                   = types.PubProposal
+	QueryCommitteeParams          = types.QueryCommitteeParams
+	QueryProposalParams           = types.QueryProposalParams
+	QueryVoteParams               = types.QueryVoteParams
 	ShutdownCDPDepsitPermission   = types.ShutdownCDPDepsitPermission
 	Vote                          = types.Vote
 )

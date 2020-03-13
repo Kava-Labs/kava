@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	TypeMsgSubmitProposal = "submit_proposal"
+	TypeMsgSubmitProposal = "submit_proposal" // TODO these are the same as the gov module, will there be collisions?
 	TypeMsgVote           = "vote"
 )
 
