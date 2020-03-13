@@ -204,6 +204,8 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
 			swap.ClosedBlock = ctx.BlockHeight()
 			k.SetAtomicSwap(ctx, swap)
 		} else {
+			// TODO: Create 'deletion' queue
+
 			// Assuming block time of 7 seconds, there are 86,400 blocks in a week
 			// TODO: oneWeekBlockCount := int64(86400)
 			// Delete swaps that were closed over a week ago
