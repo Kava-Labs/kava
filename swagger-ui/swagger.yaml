@@ -336,7 +336,7 @@
                   type: string
                   example: The base64-encoded Amino-serialized bytes for the tx
           400:
-            description: The tx was malformated
+            description: The tx was malformatted
           500:
             description: Server internal error
     /txs/decode:
@@ -2204,8 +2204,8 @@
           type: object
           properties:
             total:
-              type: number
-              example: 0
+              type: string
+              example: "0"
             hash:
               $ref: "#/definitions/Hash"
     BlockHeader:
@@ -2215,19 +2215,19 @@
           type: string
           example: kavahub-2
         height:
-          type: number
-          example: 1
+          type: string
+          example: "1"
         time:
           type: string
           example: "2017-12-30T05:53:09.287+01:00"
         num_txs:
-          type: number
-          example: 0
+          type: string
+          example: "0"
         last_block_id:
           $ref: "#/definitions/BlockID"
         total_txs:
-          type: number
-          example: 35
+          type: string
+          example: "35"
         last_commit_hash:
           $ref: "#/definitions/Hash"
         data_hash:
@@ -2260,7 +2260,7 @@
       properties:
         header:
           $ref: "#/definitions/BlockHeader"
-        txs:
+        data:
           type: array
           items:
             type: string
@@ -2284,8 +2284,8 @@
                     type: string
                     example: "0"
                   height:
-                    type: string
-                    example: "0"
+                    type: number
+                    example: 0
                   round:
                     type: string
                     example: "0"
