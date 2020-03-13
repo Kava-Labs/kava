@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -63,6 +65,21 @@ type Proposal struct {
 // All votes must be cast before deadline, those cast at time == deadline are not valid
 func (p Proposal) HasExpiredBy(time time.Time) bool {
 	return !time.Before(p.Deadline)
+}
+
+// String implements the fmt.Stringer interface, and importantly overrides the String methods inherited from the embedded PubProposal type.
+func (p Proposal) String() string {
+	return strings.TrimSpace(fmt.Sprintf(`Proposal:
+	PubProposal:
+%s
+	ID:           %d
+	Committee ID: %d
+	Deadline:     %s`,
+		p.PubProposal,
+		p.ID,
+		p.CommitteeID,
+		p.Deadline,
+	))
 }
 
 type Vote struct {

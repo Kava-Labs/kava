@@ -66,6 +66,22 @@ func (k Keeper) DeleteCommittee(ctx sdk.Context, committeeID uint64) {
 	store.Delete(types.GetKeyFromID(committeeID))
 }
 
+// IterateCommittees provides an iterator over all stored committees.
+// For each committee, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Committee) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var committee types.Committee
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &committee)
+
+		if cb(committee) {
+			break
+		}
+	}
+}
+
 // ---------- Proposals ----------
 
 // SetNextProposalID stores an ID to be used for the next created proposal
