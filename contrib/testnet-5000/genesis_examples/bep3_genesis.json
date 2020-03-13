@@ -19,89 +19,7 @@
   "app_hash": "",
   "app_state": {
     "auth": {
-      "accounts": [
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "account_number": "0",
-            "address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-            "coins": [
-              {
-                "amount": "100000000000",
-                "denom": "btc"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "ukava"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "xrp"
-              },
-              {
-                  "amount": "100000000000",
-                  "denom": "bnb"
-              }
-            ],
-            "public_key": null,
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "account_number": "0",
-            "address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
-            "coins": [
-              {
-                "amount": "100000000000",
-                "denom": "btc"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "ukava"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "xrp"
-              },
-              {
-                  "amount": "100000000000",
-                  "denom": "bnb"
-              }
-            ],
-            "public_key": null,
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "account_number": "0",
-            "address": "kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03",
-            "coins": [
-              {
-                "amount": "100000000000",
-                "denom": "btc"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "ukava"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "xrp"
-              },
-              {
-                  "amount": "100000000000",
-                  "denom": "bnb"
-              }
-            ],
-            "public_key": null,
-            "sequence": "0"
-          }
-        }
-      ],
+      "accounts": [],
       "params": {
         "max_memo_characters": "256",
         "sig_verify_cost_ed25519": "590",
@@ -109,6 +27,13 @@
         "tx_sig_limit": "7",
         "tx_size_cost_per_byte": "10"
       }
+    },
+    "kavadist": {
+      "params": {
+        "active": false,
+        "periods": []
+      },
+      "previous_block_time": "1970-01-01T00:00:00Z"
     },
     "slashing": {
       "missed_blocks": {},
@@ -281,8 +206,7 @@
             "base_asset": "xrp",
             "market_id": "xrp:usd",
             "oracles": [
-              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-              "kava1xq4cspcgl9thzmn6lkvd6dlx28wsr63zw4mlmf"
+              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
             ],
             "quote_asset": "usd"
           },
