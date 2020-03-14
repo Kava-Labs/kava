@@ -2266,13 +2266,17 @@
         header:
           $ref: "#/definitions/BlockHeader"
         data:
-          type: array
-          items:
-            type: string
+          type: object
+          properties:
+            txs: 
+              type: object
+              x-nullable: true               
         evidence:
-          type: array
-          items:
-            type: string
+          type: object
+          properties:
+            evidence:
+              type: object
+              x-nullable: true
         last_commit:
           type: object
           properties:
@@ -2289,8 +2293,8 @@
                     type: string
                     example: "0"
                   height:
-                    type: number
-                    example: 0
+                    type: string
+                    example: "2"
                   round:
                     type: string
                     example: "0"
