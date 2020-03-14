@@ -152,7 +152,7 @@
             description: Block height
             required: true
             type: number
-            x-example: 1
+            x-example: 2
         responses:
           200:
             description: The block at a specific height
@@ -507,40 +507,44 @@
             description: Invalid delegator address
           500:
             description: Internal Server Error
-      post:
-        summary: Submit delegation
-        parameters:
-          - in: body
-            name: delegation
-            description: The password of the account to remove from the KMS
-            schema:
-              type: object
-              properties:
-                base_req:
-                  $ref: "#/definitions/BaseReq"
-                delegator_address:
-                  $ref: "#/definitions/Address"
-                validator_address:
-                  $ref: "#/definitions/ValidatorAddress"
-                delegation:
-                  $ref: "#/definitions/Coin"
-        tags:
-          - Staking
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
-          400:
-            description: Invalid delegator address or delegation request body
-          401:
-            description: Key password is wrong
-          500:
-            description: Internal Server Error
+      
+      # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go      
+
+      # post:
+      #   summary: Submit delegation
+      #   parameters:
+      #     - in: body
+      #       name: delegation
+      #       description: The password of the account to remove from the KMS
+      #       schema:
+      #         type: object
+      #         properties:
+      #           base_req:
+      #             $ref: "#/definitions/BaseReq"
+      #           delegator_address:
+      #             $ref: "#/definitions/Address"
+      #           validator_address:
+      #             $ref: "#/definitions/ValidatorAddress"
+      #           delegation:
+      #             $ref: "#/definitions/Coin"
+      #   tags:
+      #     - Staking
+      #   consumes:
+      #     - application/json
+      #   produces:
+      #     - application/json
+      #   responses:
+      #     200:
+      #       description: OK
+      #       schema:
+      #         $ref: "#/definitions/BroadcastTxCommitResult"
+      #     400:
+      #       description: Invalid delegator address or delegation request body
+      #     401:
+      #       description: Key password is wrong
+      #     500:
+      #       description: Internal Server Error
     /staking/delegators/{delegatorAddr}/delegations/{validatorAddr}:
       parameters:
         - in: path
@@ -600,41 +604,45 @@
             description: Invalid delegator address
           500:
             description: Internal Server Error
-      post:
-        summary: Submit an unbonding delegation
-        parameters:
-          - in: body
-            name: delegation
-            description: The password of the account to remove from the KMS
-            schema:
-              type: object
-              properties:
-                base_req:
-                  $ref: "#/definitions/BaseReq"
-                delegator_address:
-                  $ref: "#/definitions/Address"
-                validator_address:
-                  $ref: "#/definitions/ValidatorAddress"
-                shares:
-                  type: string
-                  example: "100"
-        tags:
-          - Staking
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: "#/definitions/BroadcastTxCommitResult"
-          400:
-            description: Invalid delegator address or unbonding delegation request body
-          401:
-            description: Key password is wrong
-          500:
-            description: Internal Server Error
+
+      # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
+
+      # post:
+      #   summary: Submit an unbonding delegation
+      #   parameters:
+      #     - in: body
+      #       name: delegation
+      #       description: The password of the account to remove from the KMS
+      #       schema:
+      #         type: object
+      #         properties:
+      #           base_req:
+      #             $ref: "#/definitions/BaseReq"
+      #           delegator_address:
+      #             $ref: "#/definitions/Address"
+      #           validator_address:
+      #             $ref: "#/definitions/ValidatorAddress"
+      #           shares:
+      #             type: string
+      #             example: "100"
+      #   tags:
+      #     - Staking
+      #   consumes:
+      #     - application/json
+      #   produces:
+      #     - application/json
+      #   responses:
+      #     200:
+      #       description: OK
+      #       schema:
+      #         $ref: "#/definitions/BroadcastTxCommitResult"
+      #     400:
+      #       description: Invalid delegator address or unbonding delegation request body
+      #     401:
+      #       description: Key password is wrong
+      #     500:
+      #       description: Internal Server Error
     /staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr}:
       parameters:
         - in: path
@@ -700,49 +708,53 @@
                     $ref: "#/definitions/Redelegation"
           500:
             description: Internal Server Error
-    /staking/delegators/{delegatorAddr}/redelegations:
-      parameters:
-        - in: path
-          name: delegatorAddr
-          description: Bech32 AccAddress of Delegator
-          required: true
-          type: string
-          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
-      post:
-        summary: Submit a redelegation
-        parameters:
-          - in: body
-            name: delegation
-            description: The sender and tx information
-            schema:
-              type: object
-              properties:
-                base_req:
-                  $ref: "#/definitions/BaseReq"
-                delegator_address:
-                  $ref: "#/definitions/Address"
-                validator_src_addresses:
-                  $ref: "#/definitions/ValidatorAddress"
-                validator_dst_address:
-                  $ref: "#/definitions/ValidatorAddress"
-                shares:
-                  type: string
-                  example: "100"
-        tags:
-          - Staking
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        responses:
-          200:
-            description: Tx was successfully generated
-            schema:
-              $ref: "#/definitions/StdTx"
-          400:
-            description: Invalid delegator address or redelegation request body
-          500:
-            description: Internal Server Error
+
+    # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
+    # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
+
+    # /staking/delegators/{delegatorAddr}/redelegations:
+    #   parameters:
+    #     - in: path
+    #       name: delegatorAddr
+    #       description: Bech32 AccAddress of Delegator
+    #       required: true
+    #       type: string
+    #       x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+    #   post:
+    #     summary: Submit a redelegation
+    #     parameters:
+    #       - in: body
+    #         name: delegation
+    #         description: The sender and tx information
+    #         schema:
+    #           type: object
+    #           properties:
+    #             base_req:
+    #               $ref: "#/definitions/BaseReq"
+    #             delegator_address:
+    #               $ref: "#/definitions/Address"
+    #             validator_src_addresses:
+    #               $ref: "#/definitions/ValidatorAddress"
+    #             validator_dst_address:
+    #               $ref: "#/definitions/ValidatorAddress"
+    #             shares:
+    #               type: string
+    #               example: "100"
+    #     tags:
+    #       - Staking
+    #     consumes:
+    #       - application/json
+    #     produces:
+    #       - application/json
+    #     responses:
+    #       200:
+    #         description: Tx was successfully generated
+    #         schema:
+    #           $ref: "#/definitions/StdTx"
+    #       400:
+    #         description: Invalid delegator address or redelegation request body
+    #       500:
+    #         description: Internal Server Error
     /staking/delegators/{delegatorAddr}/validators:
       parameters:
         - in: path
@@ -2094,11 +2106,11 @@
           properties:
             from:
               type: string
-              example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq
+              example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
     Address:
       type: string
       description: bech32 encoded address
-      example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+      example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
     ValidatorAddress:
       type: string
       description: bech32 encoded address
@@ -2283,32 +2295,36 @@
             block_id:
               $ref: "#/definitions/BlockID"
             precommits:
-              type: array
-              items:
-                type: object
-                properties:
-                  validator_address:
-                    type: string
-                  validator_index:
-                    type: string
-                    example: "0"
-                  height:
-                    type: string
-                    example: "2"
-                  round:
-                    type: string
-                    example: "0"
-                  timestamp:
-                    type: string
-                    example: "2017-12-30T05:53:09.287+01:00"
-                  type:
-                    type: number
-                    example: 2
-                  block_id:
-                    $ref: "#/definitions/BlockID"
-                  signature:
-                    type: string
-                    example: "7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO4bjvuj6rwH1mTUJrRuMMZvAAqT9VjNgP0RA/TDp6u/92AqrZfXJSpBQ=="
+              # have to use an 'object' type for precommits as it is nullable
+              $ref: '#/definitions/Precommits'
+    Precommits:
+      type: array
+      items:
+        type: object
+        properties:
+          validator_address:
+            type: string
+          validator_index:
+            type: string
+            example: "0"
+          height:
+            type: string
+            example: "2"
+          round:
+            type: string
+            example: "0"
+          timestamp:
+            type: string
+            example: "2017-12-30T05:53:09.287+01:00"
+          type:
+            type: number
+            example: 2
+          block_id:
+            $ref: "#/definitions/BlockID"
+          signature:
+            type: string
+            example: "7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO4bjvuj6rwH1mTUJrRuMMZvAAqT9VjNgP0RA/TDp6u/92AqrZfXJSpBQ=="
+
     BlockQuery:
       type: object
       properties:
