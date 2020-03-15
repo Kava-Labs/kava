@@ -13,8 +13,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
 
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -35,14 +37,11 @@ func main() {
 	h := hooks.NewHooks()
 	server := hooks.NewServer(hooks.NewHooksRunner(h))
 	h.BeforeAll(func(t []*trans.Transaction) {
-		fmt.Println("before all modification")
-
-		// TODO - maybe split this up by transacton / test type in future?
-		// doAll()
+		// fmt.Println("before all modification")
 
 	})
 	h.BeforeEach(func(t *trans.Transaction) {
-		fmt.Println("before each modification")
+		// fmt.Println("before each modification")
 	})
 
 	h.Before("Governance > /gov/proposals/{proposalId} > Query a proposal > 200 > application/json", func(t *trans.Transaction) {
@@ -57,49 +56,24 @@ func main() {
 		sendVote()
 	})
 
-	// example of how to UNSKIP a test (all non 2XX http responses are skipped by default)
-	h.Before("GET (500) /supply/total/uatom", func(t *trans.Transaction) {
-		t.Skip = false
+	h.Before("Transactions > /txs/{hash} > Get a Tx by hash > 200 > application/json", func(t *trans.Transaction) {
+		sendCoinsAndDelegation()
 	})
-
-	h.Before("GET (400) /gov/proposals", func(t *trans.Transaction) {
-		t.Skip = false
-	})
-
-	// h.Before("Governance > /gov/proposals/{proposalId}/proposer > Query proposer > 200 > application/json", func(t *trans.Transaction) {
-	// 	doAll()
-	// })
-
-	// h.Before("Governance > /gov/proposals/{proposalId}/tally > Get a proposal's tally result at the current time > 200 > application/json", func(t *trans.Transaction) {
-	// 	doAll()
-	// })
-
-	// GET (200) /gov/proposals/2
-
-	// Governance > /gov/proposals/{proposalId} > Query a proposal > 200 > application/json
-
-	// GET (200) /gov/proposals/2/proposer
-
-	// Governance > /gov/proposals/{proposalId}/proposer > Query proposer > 200 > application/json
-
-	// GET (200) /gov/proposals/2/tally
-
-	// Governance > /gov/proposals/{proposalId}/tally > Get a proposal's tally result at the current time > 200 > application/json
 
 	h.BeforeEachValidation(func(t *trans.Transaction) {
-		fmt.Println("before each validation modification")
+		// fmt.Println("before each validation modification")
 	})
 	h.BeforeValidation("/message > GET", func(t *trans.Transaction) {
-		fmt.Println("before validation modification")
+		// fmt.Println("before validation modification")
 	})
 	h.After("/message > GET", func(t *trans.Transaction) {
-		fmt.Println("after modification")
+		// fmt.Println("after modification")
 	})
 	h.AfterEach(func(t *trans.Transaction) {
-		fmt.Println("after each modification")
+		// fmt.Println("after each modification")
 	})
 	h.AfterAll(func(t []*trans.Transaction) {
-		fmt.Println("after all modification")
+		// fmt.Println("after all modification")
 	})
 	server.Serve()
 	defer server.Listener.Close()
@@ -226,6 +200,67 @@ func sendVote() {
 	voteToSend := []sdk.Msg{vote}
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, voteToSend, keybase)
+
+}
+
+// this should send coins from one address to another and also a delegation
+func sendCoinsAndDelegation() {
+	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	addrTo, err := sdk.AccAddressFromBech32("kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz") // faucet
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+
+	// get the validator address for delegation
+	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
+	if err != nil {
+		panic(err)
+	}
+
+	// create delegation amount
+	delAmount := sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)
+	delegation := staking.NewMsgDelegate(addrFrom, valAddr, delAmount)
+	delegationToSend := []sdk.Msg{delegation}
+
+	// create coins
+	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 2000000))
+
+	coins := bank.NewMsgSend(addrFrom, addrTo, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
+	coinsToSend := []sdk.Msg{coins}
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	// NOW SEND THE COINS
+
+	// send the coin message to the blockchain
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, coinsToSend, keybase)
+
+	// send the delegation to the blockchain
+	accountNumber, sequenceNumber = getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, delegationToSend, keybase)
 
 }
 
