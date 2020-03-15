@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 )
 
 // DefaultNextProposalID is the starting poiint for proposal IDs.
@@ -10,18 +11,18 @@ const DefaultNextProposalID uint64 = 1
 // GenesisState is state that must be provided at chain genesis.
 type GenesisState struct {
 	NextProposalID uint64
-	Votes          []Vote
-	Proposals      []Proposal
 	Committees     []Committee
+	Proposals      []Proposal
+	Votes          []Vote
 }
 
 // NewGenesisState returns a new genesis state object for the module.
-func NewGenesisState(nextProposalID uint64, votes []Vote, proposals []Proposal, committees []Committee) GenesisState {
+func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []Proposal, votes []Vote) GenesisState {
 	return GenesisState{
 		NextProposalID: nextProposalID,
-		Votes:          votes,
-		Proposals:      proposals,
 		Committees:     committees,
+		Proposals:      proposals,
+		Votes:          votes,
 	}
 }
 
@@ -29,9 +30,9 @@ func NewGenesisState(nextProposalID uint64, votes []Vote, proposals []Proposal, 
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultNextProposalID,
-		[]Vote{},
-		[]Proposal{},
 		[]Committee{},
+		[]Proposal{},
+		[]Vote{},
 	)
 }
 
@@ -48,4 +49,62 @@ func (data GenesisState) IsEmpty() bool {
 }
 
 // Validate performs basic validation of genesis data.
-func (gs GenesisState) Validate() error { return nil }
+func (gs GenesisState) Validate() error {
+	// validate committees
+	committeeMap := make(map[uint64]bool, len(gs.Committees))
+	for _, com := range gs.Committees {
+		// check there are no duplicate IDs
+		if _, ok := committeeMap[com.ID]; ok {
+			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.ID)
+		}
+		committeeMap[com.ID] = true
+
+		// validate committee
+		if len(com.Members) == 0 {
+			return fmt.Errorf("committee %d invalid: cannot have zero members", com.ID)
+		}
+		for _, m := range com.Members {
+			if m.Empty() {
+				return fmt.Errorf("committee %d invalid: found empty member address", com.ID)
+			}
+		}
+	}
+
+	// validate proposals - pp.Val, no duplicate IDs, no ids >= nextID, committee needs to exist
+	proposalMap := make(map[uint64]bool, len(gs.Proposals))
+	for _, p := range gs.Proposals {
+		// check there are no duplicate IDs
+		if _, ok := proposalMap[p.ID]; ok {
+			return fmt.Errorf("duplicate proposal ID found in genesis state; id: %d", p.ID)
+		}
+		proposalMap[p.ID] = true
+
+		// validate next proposal ID
+		if p.ID >= gs.NextProposalID {
+			return fmt.Errorf("NextProposalID is not greater than all proposal IDs; id: %d", p.ID)
+		}
+
+		// check committee exists
+		if !committeeMap[p.CommitteeID] {
+			return fmt.Errorf("proposal refers to non existant committee; proposal: %+v", p)
+		}
+
+		// validate pubProposal
+		if err := p.PubProposal.ValidateBasic(); err != nil {
+			return fmt.Errorf("proposal %d invalid: %w", p.ID, err)
+		}
+	}
+
+	// validate votes
+	for _, v := range gs.Votes {
+		// check proposal exists
+		if !proposalMap[v.ProposalID] {
+			return fmt.Errorf("vote refers to non existant proposal; vote: %+v", v)
+		}
+		// validate address
+		if v.Voter.Empty() {
+			return fmt.Errorf("found empty voter address; vote: %+v", v)
+		}
+	}
+	return nil
+}
