@@ -14,8 +14,10 @@ import (
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
 	"github.com/tendermint/go-amino"
 )
@@ -28,6 +30,8 @@ func init() {
 }
 
 func main() {
+	sendCoins()
+
 	proposalContent := gov.ContentFromProposalType("A Test Title", "A test description on this proposal.", gov.ProposalTypeText)
 	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
@@ -70,28 +74,178 @@ func main() {
 
 	// send the PROPOSAL message to the blockchain
 	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, msgToSend, keybase)
+}
+
+func sendDeposit() {
+	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 
 	// NOW SEND THE DEPOSIT
 
 	// create a deposit transaction to send to the proposal
 	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000))
-	deposit := gov.NewMsgDeposit(addr, 1, amount)
+	deposit := gov.NewMsgDeposit(addr, 2, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
 	depositToSend := []sdk.Msg{deposit}
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// send the deposit to the blockchain
-	accountNumber, sequenceNumber = getAccountNumberAndSequenceNumber(cdc, address)
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, depositToSend, keybase)
+
+}
+
+func sendVote() {
+	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// NOW SEND THE VOTE
 
 	// create a vote on a proposal to send to the blockchain
-	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes)
+	vote := gov.NewMsgVote(addr, uint64(2), types.OptionYes) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
 	fmt.Printf("\nvote:%s\n", vote)
 
 	// send a vote to the blockchain
 	voteToSend := []sdk.Msg{vote}
-	accountNumber, sequenceNumber = getAccountNumberAndSequenceNumber(cdc, address)
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, voteToSend, keybase)
+
+}
+
+// this should send coins from one address to another
+func sendCoins() {
+	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	addrTo, err := sdk.AccAddressFromBech32("kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz") // faucet
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+
+	// create coins
+	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 2000000))
+
+	coins := bank.NewMsgSend(addrFrom, addrTo, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
+	coinsToSend := []sdk.Msg{coins}
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	fmt.Printf("\n\n\nCoins To Send\n\n\n")
+	fmt.Printf("%s", coinsToSend)
+
+	// NOW SEND THE COINS
+
+	// send the coin message to the blockchain
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, coinsToSend, keybase)
+
+}
+
+// this should send a delegation
+func sendDelegation() {
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+
+	// get the validator address for delegation
+	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
+	if err != nil {
+		panic(err)
+	}
+
+	// create delegation amount
+	delAmount := sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)
+	delegation := staking.NewMsgDelegate(addrFrom, valAddr, delAmount)
+	delegationToSend := []sdk.Msg{delegation}
+
+	// send the delegation to the blockchain
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, delegationToSend, keybase)
 
 }
 
@@ -126,7 +280,7 @@ func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber 
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println("post body: ", string(jsonBytes))
+	fmt.Println("post body: ", string(jsonBytes))
 
 	resp, err := http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
 	if err != nil {
