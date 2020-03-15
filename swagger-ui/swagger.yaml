@@ -2104,9 +2104,18 @@
         value:
           type: object
           properties:
-            from:
+            from_address:
               type: string
               example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+            to_address:
+              type: string
+              example: kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz
+            amount:
+              type: array
+              items:
+                $ref: "#/definitions/Coin"
+              
+              
     Address:
       type: string
       description: bech32 encoded address
@@ -2120,10 +2129,10 @@
       properties:
         denom:
           type: string
-          example: ukava
+          example: stake
         amount:
           type: string
-          example: "50"
+          example: "1"
     Hash:
       type: string
       example: EE5F3404034C524501629B56E0DDC38FAD651F04
@@ -2132,7 +2141,7 @@
       properties:
         signature:
           type: string
-          example: "W1HfKcc4F0rCSoxheZ7fsrB5nGK58U4gKysuzsmUwhloVnCxmbCx289uVMMvQN6tOcQsz7hMVTJrXSA1xzevvw=="
+          example: "dlC1HbNw+ux6lRrK3mNdmaH62NE3ThD8SswlDcnhFex7pKSNhaxE4m6TgDhosoK6EyU0LnOZKutXKECNSvO+WA=="
         pubkey:
           type: object
           properties:
@@ -2141,7 +2150,7 @@
               example: "tendermint/PubKeySecp256k1"
             value:
               type: string
-              example: "Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd/w09CXN"
+              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGXusb70B7"
     TxQuery:
       type: object
       properties:
@@ -2202,6 +2211,7 @@
           properties:
             gas:
               type: string
+              example: "200000"
             amount:
               type: array
               items:
