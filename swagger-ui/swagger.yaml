@@ -2218,6 +2218,7 @@
                 $ref: "#/definitions/Coin"
         memo:
           type: string
+          example: "testmemo"
         signatures:
           type: array
           items:
