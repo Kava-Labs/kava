@@ -2,6 +2,8 @@ package types
 
 import (
 	"encoding/binary"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -27,6 +29,7 @@ var (
 	ClaimPeriodKeyPrefix  = []byte{0x01} // prefix for keys that store claim periods
 	ClaimKeyPrefix        = []byte{0x02} // prefix for keys that store claims
 	NextClaimPeriodID     = []byte{0x03} // prefix for keys that store the next ID for claims periods
+	PreviousBlockTimeKey  = []byte{0x04}
 )
 
 // Keys
@@ -55,4 +58,21 @@ func GetDenomBytes(denom string) []byte {
 // GetDenomFromBytes returns the input as a string
 func GetDenomFromBytes(db []byte) string {
 	return string(db)
+}
+
+// GetClaimPeriodPrefix returns the key (denom + id) for a claim prefix
+func GetClaimPeriodPrefix(denom string, id uint64) []byte {
+	return createKey(GetDenomBytes(denom), GetIDBytes(id))
+}
+
+// GetClaimPrefix returns the key (denom + id + address) for a claim
+func GetClaimPrefix(addr sdk.AccAddress, denom string, id uint64) []byte {
+	return createKey(GetDenomBytes(denom), GetIDBytes(id), addr)
+}
+
+func createKey(bytes ...[]byte) (r []byte) {
+	for _, b := range bytes {
+		r = append(r, b...)
+	}
+	return
 }

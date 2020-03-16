@@ -10,6 +10,7 @@ import (
 type GenesisState struct {
 	Params            Params    `json:"params" yaml:"params"`
 	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
+	// TODO next claim period IDs
 }
 
 // NewGenesisState returns a new genesis state
