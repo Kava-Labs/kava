@@ -372,7 +372,7 @@
               properties:
                 tx:
                   type: string
-                  example: SvBiXe4KPqijYZoKFFHEzJ8c2HPAfv2EFUcIhx0yPagwEhTy0vPA+GGhCEslKXa4Af0uB+mfShoMCgVzdGFrZRIDMTAwEgQQwJoM
+                  example: ogEoKBapCjyoo2GaChRKWendsRagTF1ACC1nxzjVxW3xJBIU/A6hCReBn5NYI6K2dl10kCEeTfgaCgoFc3Rha2USATESEAoKCgVzdGFrZRIBMRDAmgwaQhJAdlC1HbNw+ux6lRrK3mNdmaH62NE3ThD8SswlDcnhFex7pKSNhaxE4m6TgDhosoK6EyU0LnOZKutXKECNSvO+WCIIdGVzdG1lbW8=
         responses:
           200:
             description: The tx was successfully decoded
@@ -2239,16 +2239,7 @@
           example: "cosmos-sdk/StdTx"
         value:
           type: object
-          # properties:
           $ref: "#/definitions/StdTx"           
-        # name: tx
-        # description: The tx to encode
-        # required: true
-        # schema:
-        #   type: object
-        #   properties:
-        #     tx:
-        #       $ref: "#/definitions/StdTx"
     BlockID:
       type: object
       properties:
