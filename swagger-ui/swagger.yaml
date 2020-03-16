@@ -231,7 +231,7 @@
             description: Tx hash
             required: true
             type: string
-            x-example: BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B
+            x-example: 45AE43DFCDDEC11F97D47A03EA4335173B4BE3B8DAB373E6650E4C037BFD2E02
         responses:
           200:
             description: Tx with the provided hash
@@ -2158,8 +2158,8 @@
           type: string
           example: "D085138D913993919295FF4B0A9107F1F2CDE0D37A87CE0644E217CBF3B49656"
         height:
-          type: number
-          example: 368
+          type: string
+          example: "368"
         tx:
           $ref: "#/definitions/StdTx"
         result:
