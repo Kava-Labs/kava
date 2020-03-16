@@ -322,15 +322,23 @@
         produces:
           - application/json
         parameters:
-          - in: body
-            name: tx
-            description: The tx to encode
+          - description: ""
+            name: EncodeBody
+            in: body
             required: true
             schema:
               type: object
-              properties:
-                tx:
-                  $ref: "#/definitions/StdTx"
+              $ref: "#/definitions/EncodeTx"
+          
+
+            # name: tx
+            # description: The tx to encode
+            # required: true
+            # schema:
+            #   type: object
+            #   properties:
+            #     tx:
+            #       $ref: "#/definitions/StdTx"
         responses:
           200:
             description: The tx was successfully decoded and re-encoded
@@ -2223,6 +2231,24 @@
           type: array
           items:
             $ref: "#/definitions/Signature"
+    EncodeTx:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "cosmos-sdk/StdTx"
+        value:
+          type: object
+          # properties:
+          $ref: "#/definitions/StdTx"           
+        # name: tx
+        # description: The tx to encode
+        # required: true
+        # schema:
+        #   type: object
+        #   properties:
+        #     tx:
+        #       $ref: "#/definitions/StdTx"
     BlockID:
       type: object
       properties:
