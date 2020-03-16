@@ -193,9 +193,6 @@ func sendCoins() {
 	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
 	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
-	fmt.Printf("\n\n\nCoins To Send\n\n\n")
-	fmt.Printf("%s", coinsToSend)
-
 	// NOW SEND THE COINS
 
 	// send the coin message to the blockchain
@@ -249,9 +246,60 @@ func sendDelegation() {
 
 }
 
+// this should send a MsgUndelegate
+func sendUndelegation() {
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+
+	// get the validator address for delegation
+	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
+	if err != nil {
+		panic(err)
+	}
+
+	// create delegation amount
+	undelAmount := sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)
+	undelegation := staking.NewMsgUndelegate(addrFrom, valAddr, undelAmount)
+	delegationToSend := []sdk.Msg{undelegation}
+
+	// send the delegation to the blockchain
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, delegationToSend, keybase)
+
+}
+
 // sendMsgToBlockchain sends a message to the blockchain via the rest api
 func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber uint64, keyname string,
 	password string, msg []sdk.Msg, keybase crkeys.Keybase) {
+
+	// sequenceNumber = sequenceNumber + 10
+
+	fmt.Printf("\nAccount Number:%d\n", accountNumber)
+	fmt.Printf("\nSequence Number:%d\n", sequenceNumber)
+
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
@@ -270,6 +318,8 @@ func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber 
 	var tx auth.StdTx
 	cdc.UnmarshalBinaryLengthPrefixed(txBytes, &tx) // might be unmarshal binary bare
 
+	// fmt.Printf("\n\nGOT HASH: %s\n\n", tx.)
+
 	// now we re-marshall it again into json
 	jsonBytes, err := cdc.MarshalJSON(
 		authrest.BroadcastReq{
@@ -280,7 +330,7 @@ func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber 
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("post body: ", string(jsonBytes))
+	// fmt.Println("post body: ", string(jsonBytes))
 
 	resp, err := http.Post("http://localhost:1317/txs", "application/json", bytes.NewBuffer(jsonBytes))
 	if err != nil {
