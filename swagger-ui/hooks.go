@@ -60,6 +60,14 @@ func main() {
 		sendCoins()
 	})
 
+	h.Before("Staking > /staking/delegators/{delegatorAddr}/delegations > Get all delegations from a delegator > 200 > application/json", func(t *trans.Transaction) {
+		sendDelegation()
+	})
+
+	h.Before("Staking > /staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr} > Query all unbonding delegations between a delegator and a validator > 200 > application/json", func(t *trans.Transaction) {
+		sendUndelegation()
+	})
+
 	h.BeforeEachValidation(func(t *trans.Transaction) {
 		// fmt.Println("before each validation modification")
 	})
@@ -287,6 +295,51 @@ func sendDelegation() {
 	delAmount := sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)
 	delegation := staking.NewMsgDelegate(addrFrom, valAddr, delAmount)
 	delegationToSend := []sdk.Msg{delegation}
+
+	// send the delegation to the blockchain
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, delegationToSend, keybase)
+
+}
+
+// this should send a MsgUndelegate
+func sendUndelegation() {
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	if err != nil {
+		panic(err)
+	}
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+
+	// get the validator address for delegation
+	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
+	if err != nil {
+		panic(err)
+	}
+
+	// create delegation amount
+	undelAmount := sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000)
+	undelegation := staking.NewMsgUndelegate(addrFrom, valAddr, undelAmount)
+	delegationToSend := []sdk.Msg{undelegation}
 
 	// send the delegation to the blockchain
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
