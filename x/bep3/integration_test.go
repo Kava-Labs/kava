@@ -10,6 +10,12 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
+const (
+	TestSenderOtherChain        = "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7"
+	TestRecipientOtherChain     = "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7"
+	SwapLongtermStorageDuration = 86400
+)
+
 var (
 	BNB_SUPPLY_LIMIT = i(100000000000)
 )
