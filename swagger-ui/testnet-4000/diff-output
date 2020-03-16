@@ -1,0 +1,3540 @@
+---								---
+  swagger: "2.0"					      |	  swagger: '2.0'
+  info:								  info:
+    version: "3.0"					      |	    version: '3.0'
+    title: Kava Light Client RPC				    title: Kava Light Client RPC
+    description: A REST interface for state queries, transact	    description: A REST interface for state queries, transact
+  tags:								  tags:
+    - name: Transactions					    - name: Transactions
+      description: Search, encode, or broadcast transactions.	      description: Search, encode, or broadcast transactions.
+    - name: Tendermint RPC					    - name: Tendermint RPC
+      description: Tendermint APIs, such as query blocks, tra	      description: Tendermint APIs, such as query blocks, tra
+							      >	    - name: CDP
+							      >	      description: CDP module APIs
+							      >	    - name: Auction
+							      >	      description: Auction module APIs
+							      >	    - name: Pricefeed
+							      >	      description: Auction module APIs
+    - name: Auth						    - name: Auth
+      description: Authenticate accounts			      description: Authenticate accounts
+    - name: Bank						    - name: Bank
+      description: Create and broadcast transactions		      description: Create and broadcast transactions
+    - name: Staking						    - name: Staking
+      description: Stake module APIs				      description: Stake module APIs
+    - name: Governance						    - name: Governance
+      description: Governance module APIs			      description: Governance module APIs
+    - name: Slashing						    - name: Slashing
+      description: Slashing module APIs				      description: Slashing module APIs
+    - name: Distribution					    - name: Distribution
+      description: Fee distribution module APIs			      description: Fee distribution module APIs
+    - name: Supply						    - name: Supply
+      description: Supply module APIs				      description: Supply module APIs
+    - name: version						    - name: version
+    - name: Mint						    - name: Mint
+      description: Minting module APIs				      description: Minting module APIs
+    - name: Misc						    - name: Misc
+      description: Query app version				      description: Query app version
+  schemes:							  schemes:
+    - https							    - https
+  host: data.kava.io					      |	  host: kava-testnet-4000.kava.io
+  securityDefinitions:						  securityDefinitions:
+    kms:							    kms:
+      type: basic						      type: basic
+  paths:							  paths:
+    /node_info:							    /node_info:
+      get:							      get:
+        description: Information about the connected node	        description: Information about the connected node
+        summary: The properties of the connected node		        summary: The properties of the connected node
+        tags:							        tags:
+          - Tendermint RPC					          - Tendermint RPC
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: Node status				            description: Node status
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                application_version:				                application_version:
+                  properties:					                  properties:
+                    build_tags:					                    build_tags:
+                      type: string				                      type: string
+                    client_name:				                    client_name:
+                      type: string				                      type: string
+                    commit:					                    commit:
+                      type: string				                      type: string
+                    go:						                    go:
+                      type: string				                      type: string
+                    name:					                    name:
+                      type: string				                      type: string
+                    server_name:				                    server_name:
+                      type: string				                      type: string
+                    version:					                    version:
+                      type: string				                      type: string
+                node_info:					                node_info:
+                  properties:					                  properties:
+                    id:						                    id:
+                      type: string				                      type: string
+                    moniker:					                    moniker:
+                      type: string				                      type: string
+                      example: validator-name			                      example: validator-name
+                    protocol_version:				                    protocol_version:
+                      properties:				                      properties:
+                        p2p:					                        p2p:
+                          type: string				                          type: string
+                          example: 7				                          example: 7
+                        block:					                        block:
+                          type: string				                          type: string
+                          example: 10				                          example: 10
+                        app:					                        app:
+                          type: string				                          type: string
+                          example: 0				                          example: 0
+                    network:					                    network:
+                      type: string				                      type: string
+                      example: kava-2				                      example: kava-2
+                    channels:					                    channels:
+                      type: string				                      type: string
+                    listen_addr:				                    listen_addr:
+                      type: string				                      type: string
+                      example: 192.168.56.1:26656		                      example: 192.168.56.1:26656
+                    version:					                    version:
+                      description: Tendermint version		                      description: Tendermint version
+                      type: string				                      type: string
+                      example: 0.15.0				                      example: 0.15.0
+                    other:					                    other:
+                      description: more information on versio	                      description: more information on versio
+                      type: object				                      type: object
+                      properties:				                      properties:
+                        tx_index:				                        tx_index:
+                          type: string				                          type: string
+                          example: on				                          example: on
+                        rpc_address:				                        rpc_address:
+                          type: string				                          type: string
+                          example: tcp://0.0.0.0:26657		                          example: tcp://0.0.0.0:26657
+          500:							          500:
+            description: Failed to query node status		            description: Failed to query node status
+    /syncing:							    /syncing:
+      get:							      get:
+        summary: Syncing state of node				        summary: Syncing state of node
+        tags:							        tags:
+          - Tendermint RPC					          - Tendermint RPC
+        description: Get the syncing status of the node		        description: Get the syncing status of the node
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: Node syncing status			            description: Node syncing status
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                syncing:					                syncing:
+                  type: boolean					                  type: boolean
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /blocks/latest:						    /blocks/latest:
+      get:							      get:
+        summary: Get the latest block				        summary: Get the latest block
+        tags:							        tags:
+          - Tendermint RPC					          - Tendermint RPC
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: The latest block			            description: The latest block
+            schema:						            schema:
+              $ref: "#/definitions/BlockQuery"		      |	              $ref: '#/definitions/BlockQuery'
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /blocks/{height}:						    /blocks/{height}:
+      get:							      get:
+        summary: Get a block at a certain height		        summary: Get a block at a certain height
+        tags:							        tags:
+          - Tendermint RPC					          - Tendermint RPC
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: path						          - in: path
+            name: height					            name: height
+            description: Block height				            description: Block height
+            required: true					            required: true
+            type: number					            type: number
+            x-example: 2				      |	            x-example: 1
+        responses:						        responses:
+          200:							          200:
+            description: The block at a specific height		            description: The block at a specific height
+            schema:						            schema:
+              $ref: "#/definitions/BlockQuery"		      |	              $ref: '#/definitions/BlockQuery'
+          404:							          404:
+            description: Request block height doesn't		            description: Request block height doesn't
+          400:							          400:
+            description: Invalid height				            description: Invalid height
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /validatorsets/latest:					    /validatorsets/latest:
+      get:							      get:
+        summary: Get the latest validator set			        summary: Get the latest validator set
+        tags:							        tags:
+          - Tendermint RPC					          - Tendermint RPC
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: The validator set at the latest bloc	            description: The validator set at the latest bloc
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                block_height:					                block_height:
+                  type: string					                  type: string
+                validators:					                validators:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/TendermintValidator" |	                    $ref: '#/definitions/TendermintValidator'
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /validatorsets/{height}:					    /validatorsets/{height}:
+      get:							      get:
+        summary: Get a validator set a certain height		        summary: Get a validator set a certain height
+        tags:							        tags:
+          - Tendermint RPC					          - Tendermint RPC
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: path						          - in: path
+            name: height					            name: height
+            description: Block height				            description: Block height
+            required: true					            required: true
+            type: number					            type: number
+            x-example: 1					            x-example: 1
+        responses:						        responses:
+          200:							          200:
+            description: The validator set at a specific bloc	            description: The validator set at a specific bloc
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                block_height:					                block_height:
+                  type: string					                  type: string
+                validators:					                validators:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/TendermintValidator" |	                    $ref: '#/definitions/TendermintValidator'
+          404:							          404:
+            description: Block at height not available		            description: Block at height not available
+          400:							          400:
+            description: Invalid height				            description: Invalid height
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /txs/{hash}:						    /txs/{hash}:
+      get:							      get:
+        summary: Get a Tx by hash				        summary: Get a Tx by hash
+        tags:							        tags:
+          - Transactions					          - Transactions
+        description: Retrieve a transaction using its hash.	        description: Retrieve a transaction using its hash.
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: path						          - in: path
+            name: hash						            name: hash
+            description: Tx hash				            description: Tx hash
+            required: true					            required: true
+            type: string					            type: string
+            x-example: BCBE20E8D46758B96AE5883B792858296AC06E	            x-example: BCBE20E8D46758B96AE5883B792858296AC06E
+        responses:						        responses:
+          200:							          200:
+            description: Tx with the provided hash		            description: Tx with the provided hash
+            schema:						            schema:
+              $ref: "#/definitions/TxQuery"		      |	              $ref: '#/definitions/TxQuery'
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /txs:							    /txs:
+      get:							      get:
+        tags:							        tags:
+          - Transactions					          - Transactions
+        summary: Search transactions				        summary: Search transactions
+        description: Search transactions by events.		        description: Search transactions by events.
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: query						          - in: query
+            name: message.action				            name: message.action
+            type: string					            type: string
+            description: "transaction events such as 'message	            description: "transaction events such as 'message
+            x-example: "send"				      |	            x-example: 'send'
+          - in: query						          - in: query
+            name: message.sender				            name: message.sender
+            type: string					            type: string
+            description: "transaction tags with sender: 'GET  |	            description: "transaction tags with sender: 'GET 
+            x-example: "kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4 |	            x-example: 'kava16xyempempp92x9hyzz9wrgf94r6j9h5f
+          - in: query						          - in: query
+            name: page						            name: page
+            description: Page number				            description: Page number
+            type: integer					            type: integer
+            x-example: 1					            x-example: 1
+          - in: query						          - in: query
+            name: limit						            name: limit
+            description: Maximum number of items per page	            description: Maximum number of items per page
+            type: integer					            type: integer
+            x-example: 1					            x-example: 1
+          - in: query					      <
+            name: txheight # this should actually be tx.heigh <
+            description: Transaction height		      <
+            type: integer				      <
+            x-example: 1				      <
+        responses:						        responses:
+          200:							          200:
+            description: All txs matching the provided events	            description: All txs matching the provided events
+            schema:						            schema:
+              $ref: "#/definitions/PaginatedQueryTxs"	      |	              $ref: '#/definitions/PaginatedQueryTxs'
+          400:							          400:
+            description: Invalid search events			            description: Invalid search events
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        tags:							        tags:
+          - Transactions					          - Transactions
+        summary: Broadcast a signed tx				        summary: Broadcast a signed tx
+        description: Broadcast a signed tx to a full node	        description: Broadcast a signed tx to a full node
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: txBroadcast					            name: txBroadcast
+            description: The tx must be a signed StdTx. The s	            description: The tx must be a signed StdTx. The s
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                tx:						                tx:
+                  $ref: "#/definitions/StdTx"		      |	                  $ref: '#/definitions/StdTx'
+                mode:						                mode:
+                  type: string					                  type: string
+                  example: sync					                  example: sync
+        responses:						        responses:
+          200:							          200:
+            description: Tx broadcasting result			            description: Tx broadcasting result
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /txs/encode:						    /txs/encode:
+      post:							      post:
+        tags:							        tags:
+          - Transactions					          - Transactions
+        summary: Encode a transaction to the Amino wire forma	        summary: Encode a transaction to the Amino wire forma
+        description: Encode a transaction (signed or not) fro	        description: Encode a transaction (signed or not) fro
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: tx						            name: tx
+            description: The tx to encode			            description: The tx to encode
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                tx:						                tx:
+                  $ref: "#/definitions/StdTx"		      |	                  $ref: '#/definitions/StdTx'
+        responses:						        responses:
+          200:							          200:
+            description: The tx was successfully decoded and 	            description: The tx was successfully decoded and 
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                tx:						                tx:
+                  type: string					                  type: string
+                  example: The base64-encoded Amino-serialize	                  example: The base64-encoded Amino-serialize
+          400:							          400:
+            description: The tx was malformatted	      |	            description: The tx was malformated
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /txs/decode:						    /txs/decode:
+      post:							      post:
+        tags:							        tags:
+          - Transactions					          - Transactions
+        summary: Decode a transaction from the Amino wire for	        summary: Decode a transaction from the Amino wire for
+        description: Decode a transaction (signed or not) fro	        description: Decode a transaction (signed or not) fro
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: tx						            name: tx
+            description: The tx to decode			            description: The tx to decode
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                tx:						                tx:
+                  type: string					                  type: string
+                  example: SvBiXe4KPqijYZoKFFHEzJ8c2HPAfv2EFU	                  example: SvBiXe4KPqijYZoKFFHEzJ8c2HPAfv2EFU
+        responses:						        responses:
+          200:							          200:
+            description: The tx was successfully decoded	            description: The tx was successfully decoded
+            schema:						            schema:
+              $ref: "#/definitions/StdTx"		      |	              $ref: '#/definitions/StdTx'
+          400:							          400:
+            description: The tx was malformated			            description: The tx was malformated
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+							      >	    /cdp:
+							      >	      post:
+							      >	        summary: Create a cdp transaction
+							      >	        tags:
+							      >	          - CDP
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - description: create cdp post parameters
+							      >	            name: post_cdp_req
+							      >	            in: body
+							      >	            required: true
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                owner:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                collateral:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinCollateral'
+							      >	                principal:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinPrincipal'
+							      >	        responses:
+							      >	          200:
+							      >	            description: Tx was successfully generated
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/{owner}/{denom}/deposits:
+							      >	      post:
+							      >	        summary: Create a deposit to cdp transaction
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: owner
+							      >	            description: Owner address in bech32 format
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	          - description: deposit cdp post parameters
+							      >	            name: post_deposit_req
+							      >	            in: body
+							      >	            required: true
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                owner:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                depositor:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                collateral:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinCollateral'
+							      >	        responses:
+							      >	          200:
+							      >	            description: Tx was successfully generated
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/{owner}/{denom}/withdraw:
+							      >	      post:
+							      >	        summary: create a withdraw collateral transaction
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: owner
+							      >	            description: Owner address in bech32 format
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	          - description: withdraw cdp post parameters
+							      >	            name: post_withdraw_req
+							      >	            in: body
+							      >	            required: true
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                owner:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                depositor:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                collateral:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinCollateral'
+							      >	        responses:
+							      >	          200:
+							      >	            description: Tx was successfully generated
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/{owner}/{denom}/draw:
+							      >	      post:
+							      >	        summary: Create a draw debt transaction
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: owner
+							      >	            description: Owner address in bech32 format
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	          - description: draw cdp post parameters
+							      >	            name: post_draw_req
+							      >	            in: body
+							      >	            required: true
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                owner:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                principal:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinPrincipal'
+							      >	        responses:
+							      >	          200:
+							      >	            description: Tx was successfully generated
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/{owner}/{denom}/repay:
+							      >	      post:
+							      >	        summary: Repay debt from a CDP
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: owner
+							      >	            description: Owner address in bech32 format
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	          - description: repay cdp post parameters
+							      >	            name: post_repay_req
+							      >	            in: body
+							      >	            required: true
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                owner:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                payment:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinPrincipal'
+							      >	        responses:
+							      >	          200:
+							      >	            description: Tx was successfully generated
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/parameters:
+							      >	      get:
+							      >	        summary: Get the parameters of the cdp module
+							      >	        tags:
+							      >	          - CDP
+							      >	        produces:
+							      >	          - application/json
+							      >	        responses:
+							      >	          200:
+							      >	            description: The parameters of the cdp module
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                collateral_params:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CollateralParam'
+							      >	                debt_params:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/DebtParam'
+							      >	                global_debt_limit:
+							      >	                  type: array
+							      >	                  items:
+							      >	                    $ref: '#/definitions/CoinCollateral'
+							      >	                surplus_auction_threshold:
+							      >	                  type: string
+							      >	                  example: '1000000000'
+							      >	                debt_auction_threshold:
+							      >	                  type: string
+							      >	                  example: '1000000000'
+							      >	                circuit_breaker:
+							      >	                  type: boolean
+							      >	                  example: false
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/cdps/cdp/{owner}/{denom}:
+							      >	      get:
+							      >	        summary: Get the cdp associated with the input owner 
+							      >	        tags:
+							      >	          - CDP
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: owner
+							      >	            description: Owner address in bech32 format
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	        responses:
+							      >	          200:
+							      >	            description: CDP associated with owner
+							      >	            schema:
+							      >	              $ref: '#/definitions/CdpResponse'
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/cdps/denom/{denom}:
+							      >	      get:
+							      >	        summary: Get all cdps with collateral type equal to t
+							      >	        tags:
+							      >	          - CDP
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	        responses:
+							      >	          200:
+							      >	            description: All CDPs with the input collateral d
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/CdpResponse'
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/cdps/ratio/{denom}/{ratio}:
+							      >	      get:
+							      >	        summary: Get all cdps with collateral type equal to t
+							      >	        tags:
+							      >	          - CDP
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	          - in: path
+							      >	            name: ratio
+							      >	            description: Collateralization ratio
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: 2.0
+							      >	        responses:
+							      >	          200:
+							      >	            description: All CDPs with the input collateral d
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/CdpResponse'
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /cdp/cdps/cdp/deposits/{owner}/{denom}:
+							      >	      get:
+							      >	        summary: Get the deposits associated with the cdp own
+							      >	        tags:
+							      >	          - CDP
+							      >	        produces:
+							      >	          - application/json
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: owner
+							      >	            description: Owner address in bech32 format
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+							      >	          - in: path
+							      >	            name: denom
+							      >	            description: Collateral denom
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: xrp
+							      >	        responses:
+							      >	          200:
+							      >	            description: Deposits associated with the cdp
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/CdpDepositResponse'
+							      >	          500:
+							      >	            description: Server internal error
+							      >	    /auction/auctions/{id}/bids:
+							      >	      post:
+							      >	        summary: Generate a place bid transaction
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Auction
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: id
+							      >	            description: Auction id
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: 1
+							      >	        responses:
+							      >	          200:
+							      >	            description: The transaction was successfully gen
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Internal server error
+							      >	    /auction/parameters:
+							      >	      get:
+							      >	        summary: Query auction parameters
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Auction
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              $ref: '#/definitions/AuctionParameters'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /auction/auctions:
+							      >	      get:
+							      >	        summary: Query auctions
+							      >	        description: Query all ongoing auctions
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Auction
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/AuctionResponse'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /auction/auctions/{id}:
+							      >	      get:
+							      >	        summary: Query auction
+							      >	        description: Query auction by id
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Auction
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: id
+							      >	            description: Auction id
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: 2
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              $ref: '#/definitions/AuctionResponse'
+							      >	          400:
+							      >	            description: invalid auction id
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /pricefeed/postprice:
+							      >	      put:
+							      >	        summary: Generate post price transaction
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Pricefeed
+							      >	        parameters:
+							      >	          - description: post price request
+							      >	            name: post_price_req
+							      >	            in: body
+							      >	            required: true
+							      >	            schema:
+							      >	              type: object
+							      >	              properties:
+							      >	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                market_id:
+							      >	                  type: string
+							      >	                  example: 'xrp:usd'
+							      >	                price:
+							      >	                  type: string
+							      >	                  example: '0.298464000000000007'
+							      >	                expiry:
+							      >	                  type: string
+							      >	                  example: '2020-02-12T23:20:00Z'
+							      >	        responses:
+							      >	          200:
+							      >	            description: The transaction was successfully gen
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid request
+							      >	          500:
+							      >	            description: Internal server error
+							      >	    /pricefeed/parameters:
+							      >	      get:
+							      >	        summary: Query pricefeed parameters
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Pricefeed
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              $ref: '#/definitions/PricefeedParameters'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /pricefeed/markets:
+							      >	      get:
+							      >	        summary: Query markets in the pricefeed
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Pricefeed
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/Market'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /pricefeed/oracles/{market_id}:
+							      >	      get:
+							      >	        summary: Query markets in the pricefeed
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Pricefeed
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: market_id
+							      >	            description: the market id of the market
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: 'xrp:usd'
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/Address'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /pricefeed/rawprices/{market_id}:
+							      >	      get:
+							      >	        summary: Query markets in the pricefeed
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Pricefeed
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: market_id
+							      >	            description: the market id of the market
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: 'xrp:usd'
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/PostedPrice'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /pricefeed/price/{market_id}:
+							      >	      get:
+							      >	        summary: Query markets in the pricefeed
+							      >	        produces:
+							      >	          - application/json
+							      >	        tags:
+							      >	          - Pricefeed
+							      >	        parameters:
+							      >	          - in: path
+							      >	            name: market_id
+							      >	            description: the market id of the market
+							      >	            required: true
+							      >	            type: string
+							      >	            x-example: 'xrp:usd'
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              $ref: '#/definitions/Prices'
+							      >	          500:
+							      >	            description: Internal Server Error
+    /bank/balances/{address}:					    /bank/balances/{address}:
+      get:							      get:
+        summary: Get the account balances			        summary: Get the account balances
+        tags:							        tags:
+          - Bank						          - Bank
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: path						          - in: path
+            name: address					            name: address
+            description: Account address in bech32 format	            description: Account address in bech32 format
+            required: true					            required: true
+            type: string					            type: string
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0 |	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+        responses:						        responses:
+          200:							          200:
+            description: Account balances			            description: Account balances
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Coin'
+                  type: string				      <
+                result:					      <
+                  items:                    		      <
+                    $ref: "#/definitions/Coin"		      <
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /bank/accounts/{address}/transfers:				    /bank/accounts/{address}/transfers:
+      post:							      post:
+        summary: Send coins from one account to another		        summary: Send coins from one account to another
+        tags:							        tags:
+          - Bank						          - Bank
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: path						          - in: path
+            name: address					            name: address
+            description: Account address in bech32 format	            description: Account address in bech32 format
+            required: true					            required: true
+            type: string					            type: string
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4c |	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+          - in: body						          - in: body
+            name: account					            name: account
+            description: The sender and tx information		            description: The sender and tx information
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+                amount:						                amount:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/Coin"		      |	                    $ref: '#/definitions/Coin'
+        responses:						        responses:
+          200:						      |	          202:
+            description: Tx was successfully generated		            description: Tx was successfully generated
+            schema:						            schema:
+              $ref: "#/definitions/StdTx"		      |	              $ref: '#/definitions/StdTx'
+          400:							          400:
+            description: Invalid request			            description: Invalid request
+          500:							          500:
+            description: Server internal error			            description: Server internal error
+    /auth/accounts/{address}:					    /auth/accounts/{address}:
+      get:							      get:
+        summary: Get the account information on blockchain	        summary: Get the account information on blockchain
+        tags:							        tags:
+          - Auth						          - Auth
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: path						          - in: path
+            name: address					            name: address
+            description: Account address			            description: Account address
+            required: true					            required: true
+            type: string					            type: string
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4c |	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+        responses:						        responses:
+          200:							          200:
+            description: Account information on the blockchai	            description: Account information on the blockchai
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                type:						                type:
+                  type: string					                  type: string
+                value:						                value:
+                  type: object					                  type: object
+                  properties:					                  properties:
+                    account_number:				                    account_number:
+                      type: string				                      type: string
+                    address:					                    address:
+                      type: string				                      type: string
+                    coins:					                    coins:
+                      type: array				                      type: array
+                      items:					                      items:
+                        $ref: "#/definitions/Coin"	      |	                        $ref: '#/definitions/Coin'
+                    public_key:					                    public_key:
+                      $ref: "#/definitions/PublicKey"	      |	                      $ref: '#/definitions/PublicKey'
+                    sequence:					                    sequence:
+                      type: string				                      type: string
+          500:							          500:
+            description: Server internel error			            description: Server internel error
+    /staking/delegators/{delegatorAddr}/delegations:		    /staking/delegators/{delegatorAddr}/delegations:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyc |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+      get:							      get:
+        summary: Get all delegations from a delegator		        summary: Get all delegations from a delegator
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/Delegation'
+							      >	          400:
+							      >	            description: Invalid delegator address
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	      post:
+							      >	        summary: Submit delegation
+							      >	        parameters:
+							      >	          - in: body
+							      >	            name: delegation
+							      >	            description: The password of the account to remov
+							      >	            schema:
+              type: object					              type: object
+              properties:					              properties:
+                height:					      |	                base_req:
+                  type: string				      |	                  $ref: '#/definitions/BaseReq'
+                result:					      |	                delegator_address:
+                  items: 				      |	                  $ref: '#/definitions/Address'
+                    $ref: "#/definitions/Delegation"	      |	                validator_address:
+							      >	                  $ref: '#/definitions/ValidatorAddress'
+							      >	                delegation:
+							      >	                  $ref: '#/definitions/Coin'
+							      >	        tags:
+							      >	          - Staking
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid delegator address	      |	            description: Invalid delegator address or delegat
+							      >	          401:
+							      >	            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      							      <
+      # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE: <
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae <
+							      <
+      # post:						      <
+      #   summary: Submit delegation			      <
+      #   parameters:					      <
+      #     - in: body					      <
+      #       name: delegation				      <
+      #       description: The password of the account to rem <
+      #       schema:					      <
+      #         type: object				      <
+      #         properties:				      <
+      #           base_req:				      <
+      #             $ref: "#/definitions/BaseReq"	      <
+      #           delegator_address:			      <
+      #             $ref: "#/definitions/Address"	      <
+      #           validator_address:			      <
+      #             $ref: "#/definitions/ValidatorAddress"    <
+      #           delegation:				      <
+      #             $ref: "#/definitions/Coin"		      <
+      #   tags:						      <
+      #     - Staking					      <
+      #   consumes:					      <
+      #     - application/json				      <
+      #   produces:					      <
+      #     - application/json				      <
+      #   responses:					      <
+      #     200:					      <
+      #       description: OK				      <
+      #       schema:					      <
+      #         $ref: "#/definitions/BroadcastTxCommitResult" <
+      #     400:					      <
+      #       description: Invalid delegator address or deleg <
+      #     401:					      <
+      #       description: Key password is wrong	      <
+      #     500:					      <
+      #       description: Internal Server Error	      <
+    /staking/delegators/{delegatorAddr}/delegations/{validato	    /staking/delegators/{delegatorAddr}/delegations/{validato
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2 |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Query the current delegation between a deleg	        summary: Query the current delegation between a deleg
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/Delegation"		      |	              $ref: '#/definitions/Delegation'
+          400:							          400:
+            description: Invalid delegator address or validat	            description: Invalid delegator address or validat
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/delegators/{delegatorAddr}/unbonding_delegations	    /staking/delegators/{delegatorAddr}/unbonding_delegations
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyc |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+      get:							      get:
+        summary: Get all unbonding delegations from a delegat	        summary: Get all unbonding delegations from a delegat
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/UnbondingDelegation'
+							      >	          400:
+							      >	            description: Invalid delegator address
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	      post:
+							      >	        summary: Submit an unbonding delegation
+							      >	        parameters:
+							      >	          - in: body
+							      >	            name: delegation
+							      >	            description: The password of the account to remov
+							      >	            schema:
+              type: object					              type: object
+              properties:					              properties:
+                height:					      |	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                delegator_address:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                validator_address:
+							      >	                  $ref: '#/definitions/ValidatorAddress'
+							      >	                shares:
+                  type: string					                  type: string
+                result:					      |	                  example: '100'
+                  items:				      |	        tags:
+                    $ref: "#/definitions/UnbondingDelegation" |	          - Staking
+							      |	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        responses:
+							      >	          200:
+							      >	            description: OK
+							      >	            schema:
+							      >	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid delegator address	      |	            description: Invalid delegator address or unbondi
+							      >	          401:
+							      >	            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+							      <
+      # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE: <
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae <
+							      <
+      # post:						      <
+      #   summary: Submit an unbonding delegation	      <
+      #   parameters:					      <
+      #     - in: body					      <
+      #       name: delegation				      <
+      #       description: The password of the account to rem <
+      #       schema:					      <
+      #         type: object				      <
+      #         properties:				      <
+      #           base_req:				      <
+      #             $ref: "#/definitions/BaseReq"	      <
+      #           delegator_address:			      <
+      #             $ref: "#/definitions/Address"	      <
+      #           validator_address:			      <
+      #             $ref: "#/definitions/ValidatorAddress"    <
+      #           shares:				      <
+      #             type: string			      <
+      #             example: "100"			      <
+      #   tags:						      <
+      #     - Staking					      <
+      #   consumes:					      <
+      #     - application/json				      <
+      #   produces:					      <
+      #     - application/json				      <
+      #   responses:					      <
+      #     200:					      <
+      #       description: OK				      <
+      #       schema:					      <
+      #         $ref: "#/definitions/BroadcastTxCommitResult" <
+      #     400:					      <
+      #       description: Invalid delegator address or unbon <
+      #     401:					      <
+      #       description: Key password is wrong	      <
+      #     500:					      <
+      #       description: Internal Server Error	      <
+    /staking/delegators/{delegatorAddr}/unbonding_delegations	    /staking/delegators/{delegatorAddr}/unbonding_delegations
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2 |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Query all unbonding delegations between a de	        summary: Query all unbonding delegations between a de
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/UnbondingDelegationPair"   |	              $ref: '#/definitions/UnbondingDelegationPair'
+          400:							          400:
+            description: Invalid delegator address or validat	            description: Invalid delegator address or validat
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/redelegations:					    /staking/redelegations:
+      parameters:						      parameters:
+        - in: query						        - in: query
+          name: delegator					          name: delegator
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: false					          required: false
+          type: string						          type: string
+        - in: query						        - in: query
+          name: validator_from					          name: validator_from
+          description: Bech32 ValAddress of SrcValidator	          description: Bech32 ValAddress of SrcValidator
+          required: false					          required: false
+          type: string						          type: string
+        - in: query						        - in: query
+          name: validator_to					          name: validator_to
+          description: Bech32 ValAddress of DstValidator	          description: Bech32 ValAddress of DstValidator
+          required: false					          required: false
+          type: string						          type: string
+      get:							      get:
+        summary: Get all redelegations (filter by query param	        summary: Get all redelegations (filter by query param
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+							      >	              type: array
+							      >	              items:
+							      >	                $ref: '#/definitions/Redelegation'
+							      >	          500:
+							      >	            description: Internal Server Error
+							      >	    /staking/delegators/{delegatorAddr}/redelegations:
+							      >	      parameters:
+							      >	        - in: path
+							      >	          name: delegatorAddr
+							      >	          description: Bech32 AccAddress of Delegator
+							      >	          required: true
+							      >	          type: string
+							      >	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+							      >	      post:
+							      >	        summary: Submit a redelegation
+							      >	        parameters:
+							      >	          - in: body
+							      >	            name: delegation
+							      >	            description: The sender and tx information
+							      >	            schema:
+              type: object					              type: object
+              properties:					              properties:
+                height:					      |	                base_req:
+							      >	                  $ref: '#/definitions/BaseReq'
+							      >	                delegator_address:
+							      >	                  $ref: '#/definitions/Address'
+							      >	                validator_src_addressess:
+							      >	                  $ref: '#/definitions/ValidatorAddress'
+							      >	                validator_dst_address:
+							      >	                  $ref: '#/definitions/ValidatorAddress'
+							      >	                shares:
+                  type: string					                  type: string
+                result:					      |	                  example: '100'
+                  items:				      |	        tags:
+                    $ref: "#/definitions/Redelegation"	      |	          - Staking
+							      >	        consumes:
+							      >	          - application/json
+							      >	        produces:
+							      >	          - application/json
+							      >	        responses:
+							      >	          200:
+							      >	            description: Tx was successfully generated
+							      >	            schema:
+							      >	              $ref: '#/definitions/StdTx'
+							      >	          400:
+							      >	            description: Invalid delegator address or redeleg
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+							      <
+    # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:   <
+    # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae18 <
+							      <
+    # /staking/delegators/{delegatorAddr}/redelegations:      <
+    #   parameters:					      <
+    #     - in: path					      <
+    #       name: delegatorAddr				      <
+    #       description: Bech32 AccAddress of Delegator	      <
+    #       required: true				      <
+    #       type: string				      <
+    #       x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0 <
+    #   post:						      <
+    #     summary: Submit a redelegation		      <
+    #     parameters:					      <
+    #       - in: body					      <
+    #         name: delegation				      <
+    #         description: The sender and tx information      <
+    #         schema:					      <
+    #           type: object				      <
+    #           properties:				      <
+    #             base_req:				      <
+    #               $ref: "#/definitions/BaseReq"	      <
+    #             delegator_address:			      <
+    #               $ref: "#/definitions/Address"	      <
+    #             validator_src_addresses:		      <
+    #               $ref: "#/definitions/ValidatorAddress"    <
+    #             validator_dst_address:		      <
+    #               $ref: "#/definitions/ValidatorAddress"    <
+    #             shares:				      <
+    #               type: string			      <
+    #               example: "100"			      <
+    #     tags:						      <
+    #       - Staking					      <
+    #     consumes:					      <
+    #       - application/json				      <
+    #     produces:					      <
+    #       - application/json				      <
+    #     responses:					      <
+    #       200:					      <
+    #         description: Tx was successfully generated      <
+    #         schema:					      <
+    #           $ref: "#/definitions/StdTx"		      <
+    #       400:					      <
+    #         description: Invalid delegator address or redel <
+    #       500:					      <
+    #         description: Internal Server Error	      <
+    /staking/delegators/{delegatorAddr}/validators:		    /staking/delegators/{delegatorAddr}/validators:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyc |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+      get:							      get:
+        summary: Query all validators that a delegator is bon	        summary: Query all validators that a delegator is bon
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Validator'
+                  type: string				      <
+                result:					      <
+                  items:				      <
+                    $ref: "#/definitions/Validator"	      <
+          400:							          400:
+            description: Invalid delegator address		            description: Invalid delegator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/delegators/{delegatorAddr}/validators/{validator	    /staking/delegators/{delegatorAddr}/validators/{validator
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2 |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 ValAddress of Delegator		          description: Bech32 ValAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Query a validator that a delegator is bonded	        summary: Query a validator that a delegator is bonded
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/Validator"		      |	              $ref: '#/definitions/Validator'
+          400:							          400:
+            description: Invalid delegator address or validat	            description: Invalid delegator address or validat
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/validators:					    /staking/validators:
+      get:							      get:
+        summary: Get all validator candidates. By default it 	        summary: Get all validator candidates. By default it 
+        parameters:						        parameters:
+          - in: query						          - in: query
+            name: status					            name: status
+            type: string					            type: string
+            description: The validator bond status. Must be e	            description: The validator bond status. Must be e
+            x-example: bonded					            x-example: bonded
+          - in: query						          - in: query
+            name: page						            name: page
+            description: The page number.			            description: The page number.
+            type: integer					            type: integer
+            x-example: 1					            x-example: 1
+          - in: query						          - in: query
+            name: limit						            name: limit
+            description: The maximum number of items per page	            description: The maximum number of items per page
+            type: integer					            type: integer
+            x-example: 1					            x-example: 1
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Validator'
+                  type: string				      <
+                result:					      <
+                  items:				      <
+                    $ref: "#/definitions/Validator"	      <
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/validators/{validatorAddr}:			    /staking/validators/{validatorAddr}:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Query the information from a single validato	        summary: Query the information from a single validato
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              $ref: '#/definitions/Validator'
+              properties:				      <
+                height:					      <
+                  type: string				      <
+                result:					      <
+                  # type: array // TODO what if there are mul <
+                  items:				      <
+                    $ref: "#/definitions/Validator"	      <
+          400:							          400:
+            description: Invalid validator address		            description: Invalid validator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/validators/{validatorAddr}/delegations:		    /staking/validators/{validatorAddr}/delegations:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpz |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Get all delegations from a validator		        summary: Get all delegations from a validator
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Delegation'
+                  type: string				      <
+                result:					      <
+                  items:				      <
+                    $ref: "#/definitions/Delegation"	      <
+          400:							          400:
+            description: Invalid validator address		            description: Invalid validator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/validators/{validatorAddr}/unbonding_delegations	    /staking/validators/{validatorAddr}/unbonding_delegations
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpz |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Get all unbonding delegations from a validat	        summary: Get all unbonding delegations from a validat
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/UnbondingDelegation'
+                  type: string				      <
+                result:					      <
+                  items:				      <
+                    $ref: "#/definitions/UnbondingDelegation" <
+          400:							          400:
+            description: Invalid validator address		            description: Invalid validator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/pool:						    /staking/pool:
+      get:							      get:
+        summary: Get the current state of the staking pool	        summary: Get the current state of the staking pool
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                loose_tokens:					                loose_tokens:
+                  type: string					                  type: string
+                bonded_tokens:					                bonded_tokens:
+                  type: string					                  type: string
+                inflation_last_time:				                inflation_last_time:
+                  type: string					                  type: string
+                inflation:					                inflation:
+                  type: string					                  type: string
+                date_last_commission_reset:			                date_last_commission_reset:
+                  type: string					                  type: string
+                prev_bonded_shares:				                prev_bonded_shares:
+                  type: string					                  type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /staking/parameters:					    /staking/parameters:
+      get:							      get:
+        summary: Get the current staking parameter values	        summary: Get the current staking parameter values
+        tags:							        tags:
+          - Staking						          - Staking
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                inflation_rate_change:				                inflation_rate_change:
+                  type: string					                  type: string
+                inflation_max:					                inflation_max:
+                  type: string					                  type: string
+                inflation_min:					                inflation_min:
+                  type: string					                  type: string
+                goal_bonded:					                goal_bonded:
+                  type: string					                  type: string
+                unbonding_time:					                unbonding_time:
+                  type: string					                  type: string
+                max_validators:					                max_validators:
+                  type: integer					                  type: integer
+                bond_denom:					                bond_denom:
+                  type: string					                  type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    # TODO: We need to either fix this route when the validat	    # TODO: We need to either fix this route when the validat
+    #  /slashing/validators/{validatorPubKey}/signing_info:	    #  /slashing/validators/{validatorPubKey}/signing_info:
+    #    get:							    #    get:
+    #      summary: Get sign info of given validator		    #      summary: Get sign info of given validator
+    #      description: Get sign info of given validator	    #      description: Get sign info of given validator
+    #      produces:						    #      produces:
+    #        - application/json					    #        - application/json
+    #      tags:						    #      tags:
+    #        - Slashing						    #        - Slashing
+    #      parameters:						    #      parameters:
+    #        - type: string					    #        - type: string
+    #          description: Bech32 validator public key		    #          description: Bech32 validator public key
+    #          name: validatorPubKey				    #          name: validatorPubKey
+    #          required: true					    #          required: true
+    #          in: path						    #          in: path
+    #          x-example: kavavalconspub1zcjduepq0vu2zgkgk49e	    #          x-example: kavavalconspub1zcjduepq0vu2zgkgk49e
+    #      responses:						    #      responses:
+    #        200:						    #        200:
+    #          description: OK					    #          description: OK
+    #          schema:						    #          schema:
+    #            $ref: "#/definitions/SigningInfo"		    #            $ref: "#/definitions/SigningInfo"
+    #        400:						    #        400:
+    #          description: Invalid validator public key	    #          description: Invalid validator public key
+    #        500:						    #        500:
+    #          description: Internal Server Error		    #          description: Internal Server Error
+    /slashing/signing_infos:					    /slashing/signing_infos:
+      get:							      get:
+        summary: Get sign info of given all validators		        summary: Get sign info of given all validators
+        description: Get sign info of all validators		        description: Get sign info of all validators
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Slashing						          - Slashing
+        parameters:						        parameters:
+          - in: query						          - in: query
+            name: page						            name: page
+            description: Page number				            description: Page number
+            type: integer					            type: integer
+            required: true					            required: true
+            x-example: 1					            x-example: 1
+          - in: query						          - in: query
+            name: limit						            name: limit
+            description: Maximum number of items per page	            description: Maximum number of items per page
+            type: integer					            type: integer
+            required: true					            required: true
+            x-example: 5					            x-example: 5
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+							      >	              type: array
+              items:						              items:
+                type: object				      |	                $ref: '#/definitions/SigningInfo'
+                properties:				      <
+                  height:				      <
+                    type: string			      <
+                  result:				      <
+                    items:				      <
+                      $ref: "#/definitions/SigningInfo"	      <
+          400:							          400:
+            description: Invalid validator public key for one	            description: Invalid validator public key for one
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /slashing/validators/{validatorAddr}/unjail:		    /slashing/validators/{validatorAddr}/unjail:
+      post:							      post:
+        summary: Unjail a jailed validator			        summary: Unjail a jailed validator
+        description: Send transaction to unjail a jailed vali	        description: Send transaction to unjail a jailed vali
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Slashing						          - Slashing
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: Bech32 validator address		            description: Bech32 validator address
+            name: validatorAddr					            name: validatorAddr
+            required: true					            required: true
+            in: path						            in: path
+            x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccj |	            x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r
+          - description: ""				      |	          - description: ''
+            name: UnjailBody					            name: UnjailBody
+            in: body						            in: body
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/StdTx'
+        responses:						        responses:
+          200:							          200:
+            description: Tx was successfully generated		            description: Tx was successfully generated
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid validator address or base_re	            description: Invalid validator address or base_re
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /slashing/parameters:					    /slashing/parameters:
+      get:							      get:
+        summary: Get the current slashing parameters		        summary: Get the current slashing parameters
+        tags:							        tags:
+          - Slashing						          - Slashing
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                max_evidence_age:				                max_evidence_age:
+                  type: string					                  type: string
+                signed_blocks_window:				                signed_blocks_window:
+                  type: string					                  type: string
+                min_signed_per_window:				                min_signed_per_window:
+                  type: string					                  type: string
+                double_sign_unbond_duration:			                double_sign_unbond_duration:
+                  type: string					                  type: string
+                downtime_unbond_duration:			                downtime_unbond_duration:
+                  type: string					                  type: string
+                slash_fraction_double_sign:			                slash_fraction_double_sign:
+                  type: string					                  type: string
+                slash_fraction_downtime:			                slash_fraction_downtime:
+                  type: string					                  type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals:						    /gov/proposals:
+      post:							      post:
+        summary: Submit a proposal				        summary: Submit a proposal
+        description: Send transaction to submit a proposal	        description: Send transaction to submit a proposal
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - description: valid value of `"proposal_type"` can	          - description: valid value of `"proposal_type"` can
+            name: post_proposal_body				            name: post_proposal_body
+            in: body						            in: body
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+                title:						                title:
+                  type: string					                  type: string
+                  example: Test_title			      <
+                description:					                description:
+                  type: string					                  type: string
+                  example: my_test_description		      <
+                proposal_type:					                proposal_type:
+                  type: string					                  type: string
+                  example: "text"			      |	                  example: 'text'
+                proposer:					                proposer:
+                  $ref: "#/definitions/Address"		      |	                  $ref: '#/definitions/Address'
+                initial_deposit:				                initial_deposit:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/Coin"		      |	                    $ref: '#/definitions/Coin'
+        responses:						        responses:
+          200:							          200:
+            description: Tx was successfully generated		            description: Tx was successfully generated
+            schema:						            schema:
+              $ref: "#/definitions/StdTx"		      |	              $ref: '#/definitions/StdTx'
+          400:							          400:
+            description: Invalid proposal body			            description: Invalid proposal body
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      get:							      get:
+        summary: Query proposals				        summary: Query proposals
+        description: Query proposals information with paramet	        description: Query proposals information with paramet
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - in: query						          - in: query
+            name: voter						            name: voter
+            description: voter address				            description: voter address
+            required: false					            required: false
+            type: string					            type: string
+          - in: query						          - in: query
+            name: depositor					            name: depositor
+            description: depositor address			            description: depositor address
+            required: false					            required: false
+            type: string					            type: string
+          - in: query						          - in: query
+            name: status					            name: status
+            description: proposal status, valid values can be	            description: proposal status, valid values can be
+            required: false					            required: false
+            type: string					            type: string
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/TextProposal'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/TextProposal"	      <
+          400:							          400:
+            description: Invalid query parameters		            description: Invalid query parameters
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/param_change:				    /gov/proposals/param_change:
+      post:							      post:
+        summary: Generate a parameter change proposal transac	        summary: Generate a parameter change proposal transac
+        description: Generate a parameter change proposal tra	        description: Generate a parameter change proposal tra
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - description: The parameter change proposal body t	          - description: The parameter change proposal body t
+            name: post_proposal_body				            name: post_proposal_body
+            in: body						            in: body
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+                title:						                title:
+                  type: string					                  type: string
+                  example: Param_Change			      |	                  x-example: 'Param Change'
+                description:					                description:
+                  type: string					                  type: string
+                  example: Update_max_validators	      |	                  x-example: 'Update max validators'
+                proposer:					                proposer:
+                  $ref: "#/definitions/Address"		      |	                  $ref: '#/definitions/Address'
+                deposit:					                deposit:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/Coin"		      |	                    $ref: '#/definitions/Coin'
+                changes:					                changes:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/ParamChange"	      |	                    $ref: '#/definitions/ParamChange'
+        responses:						        responses:
+          200:							          200:
+            description: The transaction was successfully gen	            description: The transaction was successfully gen
+            schema:						            schema:
+              $ref: "#/definitions/StdTx"		      |	              $ref: '#/definitions/StdTx'
+          400:							          400:
+            description: Invalid proposal body			            description: Invalid proposal body
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}:				    /gov/proposals/{proposalId}:
+      get:							      get:
+        summary: Query a proposal				        summary: Query a proposal
+        description: Query a proposal by id			        description: Query a proposal by id
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/TextProposal"	      |	              $ref: '#/definitions/TextProposal'
+          400:							          400:
+            description: Invalid proposal id			            description: Invalid proposal id
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}/proposer:			    /gov/proposals/{proposalId}/proposer:
+      get:							      get:
+        summary: Query proposer					        summary: Query proposer
+        description: Query for the proposer for a proposal	        description: Query for the proposer for a proposal
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/Proposer"		      |	              $ref: '#/definitions/Proposer'
+          400:							          400:
+            description: Invalid proposal ID			            description: Invalid proposal ID
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}/deposits:			    /gov/proposals/{proposalId}/deposits:
+      get:							      get:
+        summary: Query deposits					        summary: Query deposits
+        description: Query deposits by proposalId		        description: Query deposits by proposalId
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Deposit'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/Deposit"	      <
+          400:							          400:
+            description: Invalid proposal id			            description: Invalid proposal id
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        summary: Deposit tokens to a proposal			        summary: Deposit tokens to a proposal
+        description: Send transaction to deposit tokens to a 	        description: Send transaction to deposit tokens to a 
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: proposal id				            description: proposal id
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+          - description: ""				      |	          - description: ''
+            name: post_deposit_body				            name: post_deposit_body
+            in: body						            in: body
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+                depositor:					                depositor:
+                  $ref: "#/definitions/Address"		      |	                  $ref: '#/definitions/Address'
+                amount:						                amount:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/Coin"		      |	                    $ref: '#/definitions/Coin'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid proposal id or deposit body	            description: Invalid proposal id or deposit body
+          401:							          401:
+            description: Key password is wrong			            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}/deposits/{depositor}:		    /gov/proposals/{proposalId}/deposits/{depositor}:
+      get:							      get:
+        summary: Query deposit					        summary: Query deposit
+        description: Query deposit by proposalId and deposito	        description: Query deposit by proposalId and deposito
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: proposal id				            description: proposal id
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+          - type: string					          - type: string
+            description: Bech32 depositor address		            description: Bech32 depositor address
+            name: depositor					            name: depositor
+            required: true					            required: true
+            in: path						            in: path
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0 |	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/Deposit"		      |	              $ref: '#/definitions/Deposit'
+          400:							          400:
+            description: Invalid proposal id or depositor add	            description: Invalid proposal id or depositor add
+          404:							          404:
+            description: Found no deposit			            description: Found no deposit
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}/votes:				    /gov/proposals/{proposalId}/votes:
+      get:							      get:
+        summary: Query voters					        summary: Query voters
+        description: Query voters information by proposalId	        description: Query voters information by proposalId
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: proposal id				            description: proposal id
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Vote'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/Vote"		      <
+          400:							          400:
+            description: Invalid proposal id			            description: Invalid proposal id
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        summary: Vote a proposal				        summary: Vote a proposal
+        description: Send transaction to vote a proposal	        description: Send transaction to vote a proposal
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: proposal id				            description: proposal id
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+          - description: valid value of `"option"` field can 	          - description: valid value of `"option"` field can 
+            name: post_vote_body				            name: post_vote_body
+            in: body						            in: body
+            required: true					            required: true
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+                voter:						                voter:
+                  $ref: "#/definitions/Address"		      |	                  $ref: '#/definitions/Address'
+                option:						                option:
+                  type: string					                  type: string
+                  example: "yes"			      |	                  example: 'yes'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid proposal id or vote body	            description: Invalid proposal id or vote body
+          401:							          401:
+            description: Key password is wrong			            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}/votes/{voter}:			    /gov/proposals/{proposalId}/votes/{voter}:
+      get:							      get:
+        summary: Query vote					        summary: Query vote
+        description: Query vote information by proposal Id an	        description: Query vote information by proposal Id an
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: proposal id				            description: proposal id
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+          - type: string					          - type: string
+            description: Bech32 voter address			            description: Bech32 voter address
+            name: voter						            name: voter
+            required: true					            required: true
+            in: path						            in: path
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0 |	            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f0
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/Vote"		      |	              $ref: '#/definitions/Vote'
+          400:							          400:
+            description: Invalid proposal id or voter address	            description: Invalid proposal id or voter address
+          404:							          404:
+            description: Found no vote				            description: Found no vote
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/proposals/{proposalId}/tally:				    /gov/proposals/{proposalId}/tally:
+      get:							      get:
+        summary: Get a proposal's tally result at the current	        summary: Get a proposal's tally result at the current
+        description: Gets a proposal's tally result at the cu	        description: Gets a proposal's tally result at the cu
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        parameters:						        parameters:
+          - type: string					          - type: string
+            description: proposal id				            description: proposal id
+            name: proposalId					            name: proposalId
+            required: true					            required: true
+            in: path						            in: path
+            x-example: "2"				      |	            x-example: '2'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/TallyResult"		      |	              $ref: '#/definitions/TallyResult'
+          400:							          400:
+            description: Invalid proposal id			            description: Invalid proposal id
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/parameters/deposit:					    /gov/parameters/deposit:
+      get:							      get:
+        summary: Query governance deposit parameters		        summary: Query governance deposit parameters
+        description: Query governance deposit parameters. The	        description: Query governance deposit parameters. The
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object					              type: object
+              properties:					              properties:
+                min_deposit:					                min_deposit:
+                  type: array					                  type: array
+                  items:					                  items:
+                    $ref: "#/definitions/Coin"		      |	                    $ref: '#/definitions/Coin'
+                max_deposit_period:				                max_deposit_period:
+                  type: string					                  type: string
+                  example: "86400000000000"		      |	                  example: '86400000000000'
+          400:							          400:
+            description: <other_path> is not a valid query re	            description: <other_path> is not a valid query re
+          404:							          404:
+            description: Found no deposit parameters		            description: Found no deposit parameters
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/parameters/tallying:					    /gov/parameters/tallying:
+      get:							      get:
+        summary: Query governance tally parameters		        summary: Query governance tally parameters
+        description: Query governance tally parameters		        description: Query governance tally parameters
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              properties:					              properties:
+                threshold:					                threshold:
+                  type: string					                  type: string
+                  example: "0.5000000000"		      |	                  example: '0.5000000000'
+                veto:						                veto:
+                  type: string					                  type: string
+                  example: "0.3340000000"		      |	                  example: '0.3340000000'
+                governance_penalty:				                governance_penalty:
+                  type: string					                  type: string
+                  example: "0.0100000000"		      |	                  example: '0.0100000000'
+          400:							          400:
+            description: <other_path> is not a valid query re	            description: <other_path> is not a valid query re
+          404:							          404:
+            description: Found no tally parameters		            description: Found no tally parameters
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /gov/parameters/voting:					    /gov/parameters/voting:
+      get:							      get:
+        summary: Query governance voting parameters		        summary: Query governance voting parameters
+        description: Query governance voting parameters. The 	        description: Query governance voting parameters. The 
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Governance						          - Governance
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              properties:					              properties:
+                voting_period:					                voting_period:
+                  type: string					                  type: string
+                  example: "86400000000000"		      |	                  example: '86400000000000'
+          400:							          400:
+            description: <other_path> is not a valid query re	            description: <other_path> is not a valid query re
+          404:							          404:
+            description: Found no voting parameters		            description: Found no voting parameters
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/delegators/{delegatorAddr}/rewards:		    /distribution/delegators/{delegatorAddr}/rewards:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2 |	          x-example: kava167w96tdvmazakdwkw2u57227eduula2cy57
+      get:							      get:
+        summary: Get the total rewards balance from all deleg	        summary: Get the total rewards balance from all deleg
+        description: Get the sum of all the rewards earned by	        description: Get the sum of all the rewards earned by
+        produces:						        produces:
+          - application/json					          - application/json
+        tags:							        tags:
+          - Distribution					          - Distribution
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/DelegatorTotalRewards"     |	              $ref: '#/definitions/DelegatorTotalRewards'
+          400:							          400:
+            description: Invalid delegator address		            description: Invalid delegator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        summary: Withdraw all the delegator's delegation rewa	        summary: Withdraw all the delegator's delegation rewa
+        description: Withdraw all the delegator's delegation 	        description: Withdraw all the delegator's delegation 
+        tags:							        tags:
+          - Distribution					          - Distribution
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: Withdraw request body				            name: Withdraw request body
+            schema:						            schema:
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid delegator address		            description: Invalid delegator address
+          401:							          401:
+            description: Key password is wrong			            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/delegators/{delegatorAddr}/rewards/{validat	    /distribution/delegators/{delegatorAddr}/rewards/{validat
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2 |	          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06p
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Query a delegation reward			        summary: Query a delegation reward
+        description: Query a single delegation reward by a de	        description: Query a single delegation reward by a de
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Coin'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/Coin"		      <
+          400:							          400:
+            description: Invalid delegator address		            description: Invalid delegator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        summary: Withdraw a delegation reward			        summary: Withdraw a delegation reward
+        description: Withdraw a delegator's delegation reward	        description: Withdraw a delegator's delegation reward
+        tags:							        tags:
+          - Distribution					          - Distribution
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: Withdraw request body				            name: Withdraw request body
+            schema:						            schema:
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid delegator address or delegat	            description: Invalid delegator address or delegat
+          401:							          401:
+            description: Key password is wrong			            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/delegators/{delegatorAddr}/withdraw_address	    /distribution/delegators/{delegatorAddr}/withdraw_address
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: delegatorAddr					          name: delegatorAddr
+          description: Bech32 AccAddress of Delegator		          description: Bech32 AccAddress of Delegator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyc |	          x-example: kava167w96tdvmazakdwkw2u57227eduula2cy57
+      get:							      get:
+        summary: Get the rewards withdrawal address		        summary: Get the rewards withdrawal address
+        description: Get the delegations' rewards withdrawal 	        description: Get the delegations' rewards withdrawal 
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              $ref: '#/definitions/Address'
+              properties:				      <
+                height:					      <
+                  type: string				      <
+                result:					      <
+                  $ref: "#/definitions/Address"		      <
+							      <
+          400:							          400:
+            description: Invalid delegator address		            description: Invalid delegator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        summary: Replace the rewards withdrawal address		        summary: Replace the rewards withdrawal address
+        description: Replace the delegations' rewards withdra	        description: Replace the delegations' rewards withdra
+        tags:							        tags:
+          - Distribution					          - Distribution
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: Withdraw request body				            name: Withdraw request body
+            schema:						            schema:
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+                withdraw_address:				                withdraw_address:
+                  $ref: "#/definitions/Address"		      |	                  $ref: '#/definitions/Address'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid delegator or withdraw addres	            description: Invalid delegator or withdraw addres
+          401:							          401:
+            description: Key password is wrong			            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/validators/{validatorAddr}:			    /distribution/validators/{validatorAddr}:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Validator distribution information		        summary: Validator distribution information
+        description: Query the distribution information of a 	        description: Query the distribution information of a 
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/ValidatorDistInfo"	      |	              $ref: '#/definitions/ValidatorDistInfo'
+          400:							          400:
+            description: Invalid validator address		            description: Invalid validator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/validators/{validatorAddr}/outstanding_rewa	    /distribution/validators/{validatorAddr}/outstanding_rewa
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Fee distribution outstanding rewards of a si	        summary: Fee distribution outstanding rewards of a si
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Coin'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/Coin"		      <
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/validators/{validatorAddr}/rewards:		    /distribution/validators/{validatorAddr}/rewards:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: validatorAddr					          name: validatorAddr
+          description: Bech32 OperatorAddress of validator	          description: Bech32 OperatorAddress of validator
+          required: true					          required: true
+          type: string						          type: string
+          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzk |	          x-example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j
+      get:							      get:
+        summary: Commission and self-delegation rewards of a 	        summary: Commission and self-delegation rewards of a 
+        description: Query the commission and self-delegation	        description: Query the commission and self-delegation
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Coin'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/Coin"		      <
+          400:							          400:
+            description: Invalid validator address		            description: Invalid validator address
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+      post:							      post:
+        summary: Withdraw the validator's rewards		        summary: Withdraw the validator's rewards
+        description: Withdraw the validator's self-delegation	        description: Withdraw the validator's self-delegation
+        tags:							        tags:
+          - Distribution					          - Distribution
+        consumes:						        consumes:
+          - application/json					          - application/json
+        produces:						        produces:
+          - application/json					          - application/json
+        parameters:						        parameters:
+          - in: body						          - in: body
+            name: Withdraw request body				            name: Withdraw request body
+            schema:						            schema:
+              properties:					              properties:
+                base_req:					                base_req:
+                  $ref: "#/definitions/BaseReq"		      |	                  $ref: '#/definitions/BaseReq'
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/BroadcastTxCommitResult"   |	              $ref: '#/definitions/BroadcastTxCommitResult'
+          400:							          400:
+            description: Invalid validator address		            description: Invalid validator address
+          401:							          401:
+            description: Key password is wrong			            description: Key password is wrong
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/community_pool:				    /distribution/community_pool:
+      get:							      get:
+        summary: Community pool parameters			        summary: Community pool parameters
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              type: object				      |	              type: array
+              properties:				      |	              items:
+                height:					      |	                $ref: '#/definitions/Coin'
+                  type: string				      <
+                result:					      <
+                  type: array				      <
+                  items:				      <
+                    $ref: "#/definitions/Coin"		      <
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /distribution/parameters:					    /distribution/parameters:
+      get:							      get:
+        summary: Fee distribution parameters			        summary: Fee distribution parameters
+        tags:							        tags:
+          - Distribution					          - Distribution
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              properties:					              properties:
+                base_proposer_reward:				                base_proposer_reward:
+                  type: string					                  type: string
+                bonus_proposer_reward:				                bonus_proposer_reward:
+                  type: string					                  type: string
+                community_tax:					                community_tax:
+                  type: string					                  type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /minting/parameters:					    /minting/parameters:
+      get:							      get:
+        summary: Minting module parameters			        summary: Minting module parameters
+        tags:							        tags:
+          - Mint						          - Mint
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              properties:					              properties:
+                mint_denom:					                mint_denom:
+                  type: string					                  type: string
+                inflation_rate_change:				                inflation_rate_change:
+                  type: string					                  type: string
+                inflation_max:					                inflation_max:
+                  type: string					                  type: string
+                inflation_min:					                inflation_min:
+                  type: string					                  type: string
+                goal_bonded:					                goal_bonded:
+                  type: string					                  type: string
+                blocks_per_year:				                blocks_per_year:
+                  type: string					                  type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /minting/inflation:						    /minting/inflation:
+      get:							      get:
+        summary: Current minting inflation value		        summary: Current minting inflation value
+        tags:							        tags:
+          - Mint						          - Mint
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/StandardResponse"	      |	              type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /minting/annual-provisions:					    /minting/annual-provisions:
+      get:							      get:
+        summary: Current minting annual provisions value	        summary: Current minting annual provisions value
+        tags:							        tags:
+          - Mint						          - Mint
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/StandardResponse"	      |	              type: string
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /supply/total:						    /supply/total:
+      get:							      get:
+        summary: Total supply of coins in the chain		        summary: Total supply of coins in the chain
+        tags:							        tags:
+          - Supply						          - Supply
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/Supply"		      |	              $ref: '#/definitions/Supply'
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+    /supply/total/{denomination}:				    /supply/total/{denomination}:
+      parameters:						      parameters:
+        - in: path						        - in: path
+          name: denomination					          name: denomination
+          description: Coin denomination			          description: Coin denomination
+          required: true					          required: true
+          type: string						          type: string
+          x-example: uatom					          x-example: uatom
+      get:							      get:
+        summary: Total supply of a single coin denomination	        summary: Total supply of a single coin denomination
+        tags:							        tags:
+          - Supply						          - Supply
+        produces:						        produces:
+          - application/json					          - application/json
+        responses:						        responses:
+          200:							          200:
+            description: OK					            description: OK
+            schema:						            schema:
+              $ref: "#/definitions/StandardResponse"	      |	              type: string
+          400:							          400:
+            description: Invalid coin denomination		            description: Invalid coin denomination
+          500:							          500:
+            description: Internal Server Error			            description: Internal Server Error
+  definitions:							  definitions:
+    CheckTxResult:						    CheckTxResult:
+      type: object						      type: object
+      properties:						      properties:
+        code:							        code:
+          type: integer						          type: integer
+        data:							        data:
+          type: string						          type: string
+        gas_used:						        gas_used:
+          type: integer						          type: integer
+        gas_wanted:						        gas_wanted:
+          type: integer						          type: integer
+        info:							        info:
+          type: string						          type: string
+        log:							        log:
+          type: string						          type: string
+        tags:							        tags:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/KVPair"		      |	            $ref: '#/definitions/KVPair'
+      example:							      example:
+        code: 0							        code: 0
+        data: data						        data: data
+        log: log						        log: log
+        gas_used: 5000						        gas_used: 5000
+        gas_wanted: 10000					        gas_wanted: 10000
+        info: info						        info: info
+        tags:							        tags:
+          - ""						      |	          - ''
+          - ""						      |	          - ''
+    DeliverTxResult:						    DeliverTxResult:
+      type: object						      type: object
+      properties:						      properties:
+        code:							        code:
+          type: integer						          type: integer
+        data:							        data:
+          type: string						          type: string
+        gas_used:						        gas_used:
+          type: integer						          type: integer
+        gas_wanted:						        gas_wanted:
+          type: integer						          type: integer
+        info:							        info:
+          type: string						          type: string
+        log:							        log:
+          type: string						          type: string
+        tags:							        tags:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/KVPair"		      |	            $ref: '#/definitions/KVPair'
+      example:							      example:
+        code: 5							        code: 5
+        data: data						        data: data
+        log: log						        log: log
+        gas_used: 5000						        gas_used: 5000
+        gas_wanted: 10000					        gas_wanted: 10000
+        info: info						        info: info
+        tags:							        tags:
+          - ""						      |	          - ''
+          - ""						      |	          - ''
+    BroadcastTxCommitResult:					    BroadcastTxCommitResult:
+      type: object						      type: object
+      properties:						      properties:
+        check_tx:						        check_tx:
+          $ref: "#/definitions/CheckTxResult"		      |	          $ref: '#/definitions/CheckTxResult'
+        deliver_tx:						        deliver_tx:
+          $ref: "#/definitions/DeliverTxResult"		      |	          $ref: '#/definitions/DeliverTxResult'
+        hash:							        hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        height:							        height:
+          type: integer						          type: integer
+    KVPair:							    KVPair:
+      type: object						      type: object
+      properties:						      properties:
+        key:							        key:
+          type: string						          type: string
+        value:							        value:
+          type: string						          type: string
+    Msg:							    Msg:
+      type: object						      type: object
+							      >	      required:
+							      >	        - from
+      properties:						      properties:
+        type:							        type:
+          type: string						          type: string
+          example: "cosmos-sdk/MsgSend"			      |	          example: 'string'
+        value:							        value:
+          type: object						          type: object
+          properties:						          properties:
+            from_address:				      |	            from:
+              type: string					              type: string
+              example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0 |	              example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl
+            to_address:					      <
+              type: string				      <
+              example: kava1ls82zzghsx0exkpr52m8vht5jqs3un0ce <
+            amount:					      <
+              type: array				      <
+              items:					      <
+                $ref: "#/definitions/Coin"		      <
+              						      <
+              						      <
+    Address:							    Address:
+      type: string						      type: string
+      description: bech32 encoded address			      description: bech32 encoded address
+      example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c    |	      example: kava1depk54cuajgkzea6zpgkq36tnjwdzv4afc3d27
+    ValidatorAddress:						    ValidatorAddress:
+      type: string						      type: string
+      description: bech32 encoded address			      description: bech32 encoded address
+      example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44j |	      example: kavavaloper16xyempempp92x9hyzz9wrgf94r6j9h5f2w
+    Coin:							    Coin:
+      type: object						      type: object
+      properties:						      properties:
+        denom:							        denom:
+          type: string						          type: string
+          example: stake				      |	          example: ukava
+							      >	        amount:
+							      >	          type: string
+							      >	          example: '50'
+							      >	    CoinCollateral:
+							      >	      type: object
+							      >	      properties:
+							      >	        denom:
+							      >	          type: string
+							      >	          example: bnb
+        amount:							        amount:
+          type: string						          type: string
+          example: "1"					      |	          example: '10000000000'
+							      >	    CoinPrincipal:
+							      >	      type: object
+							      >	      properties:
+							      >	        denom:
+							      >	          type: string
+							      >	          example: usdx
+							      >	        amount:
+							      >	          type: string
+							      >	          example: '10000000'
+    Hash:							    Hash:
+      type: string						      type: string
+      example: EE5F3404034C524501629B56E0DDC38FAD651F04		      example: EE5F3404034C524501629B56E0DDC38FAD651F04
+    Signature:							    Signature:
+      type: object						      type: object
+      properties:						      properties:
+        signature:						        signature:
+          type: string						          type: string
+          example: "dlC1HbNw+ux6lRrK3mNdmaH62NE3ThD8SswlDcnhF |	          example: 'W1HfKcc4F0rCSoxheZ7fsrB5nGK58U4gKysuzsmUw
+        pubkey:							        pubkey:
+          type: object						          type: object
+          properties:						          properties:
+            type:						            type:
+              type: string					              type: string
+              example: "tendermint/PubKeySecp256k1"	      |	              example: 'tendermint/PubKeySecp256k1'
+            value:						            value:
+              type: string					              type: string
+              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGX |	              example: 'Agey31h/NYpcy0sYm4liHMrXJMzbQUrgV4uHd
+    TxQuery:							    TxQuery:
+      type: object						      type: object
+      properties:						      properties:
+        hash:							        hash:
+          type: string						          type: string
+          example: "D085138D913993919295FF4B0A9107F1F2CDE0D37 |	          example: 'D085138D913993919295FF4B0A9107F1F2CDE0D37
+        height:							        height:
+          type: number						          type: number
+          example: 368						          example: 368
+        tx:							        tx:
+          $ref: "#/definitions/StdTx"			      |	          $ref: '#/definitions/StdTx'
+        result:							        result:
+          type: object						          type: object
+          properties:						          properties:
+            log:						            log:
+              type: string					              type: string
+            gas_wanted:						            gas_wanted:
+              type: string					              type: string
+              example: "200000"				      |	              example: '200000'
+            gas_used:						            gas_used:
+              type: string					              type: string
+              example: "26354"				      |	              example: '26354'
+            tags:						            tags:
+              type: array					              type: array
+              items:						              items:
+                $ref: "#/definitions/KVPair"		      |	                $ref: '#/definitions/KVPair'
+    PaginatedQueryTxs:						    PaginatedQueryTxs:
+      type: object						      type: object
+      properties:						      properties:
+        total_count:						        total_count:
+          type: string					      |	          type: number
+          example: "1"					      |	          example: 1
+        count:							        count:
+          type: string					      |	          type: number
+          example: "1"					      |	          example: 1
+        page_number:						        page_number:
+          type: string					      |	          type: number
+          example: "1"					      |	          example: 1
+        page_total:						        page_total:
+          type: string					      |	          type: number
+          example: "1"					      |	          example: 1
+        limit:							        limit:
+          type: string					      |	          type: number
+          example: "30"					      |	          example: 30
+        txs:							        txs:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/TxQuery"		      |	            $ref: '#/definitions/TxQuery'
+    StdTx:							    StdTx:
+      type: object						      type: object
+      properties:						      properties:
+        msg:							        msg:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Msg"			      |	            $ref: '#/definitions/Msg'
+        fee:							        fee:
+          type: object						          type: object
+          properties:						          properties:
+            gas:						            gas:
+              type: string					              type: string
+              example: "200000"				      <
+            amount:						            amount:
+              type: array					              type: array
+              items:						              items:
+                $ref: "#/definitions/Coin"		      |	                $ref: '#/definitions/Coin'
+        memo:							        memo:
+          type: string						          type: string
+          example: "testmemo"				      <
+        signatures:						        signatures:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Signature"		      |	            $ref: '#/definitions/Signature'
+    BlockID:							    BlockID:
+      type: object						      type: object
+      properties:						      properties:
+        hash:							        hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        parts:							        parts:
+          type: object						          type: object
+          properties:						          properties:
+            total:						            total:
+              type: string				      |	              type: number
+              example: "0"				      |	              example: 0
+            hash:						            hash:
+              $ref: "#/definitions/Hash"		      |	              $ref: '#/definitions/Hash'
+    BlockHeader:						    BlockHeader:
+      type: object						      type: object
+      properties:						      properties:
+        chain_id:						        chain_id:
+          type: string						          type: string
+          example: kavahub-2					          example: kavahub-2
+        height:							        height:
+          type: string					      |	          type: number
+          example: "1"					      |	          example: 1
+        time:							        time:
+          type: string						          type: string
+          example: "2017-12-30T05:53:09.287+01:00"	      |	          example: '2017-12-30T05:53:09.287+01:00'
+        num_txs:						        num_txs:
+          type: string					      |	          type: number
+          example: "0"					      |	          example: 0
+        last_block_id:						        last_block_id:
+          $ref: "#/definitions/BlockID"			      |	          $ref: '#/definitions/BlockID'
+        total_txs:						        total_txs:
+          type: string					      |	          type: number
+          example: "35"					      |	          example: 35
+        last_commit_hash:					        last_commit_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        data_hash:						        data_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        validators_hash:					        validators_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        next_validators_hash:					        next_validators_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        consensus_hash:						        consensus_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        app_hash:						        app_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        last_results_hash:					        last_results_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        evidence_hash:						        evidence_hash:
+          $ref: "#/definitions/Hash"			      |	          $ref: '#/definitions/Hash'
+        proposer_address:					        proposer_address:
+          $ref: "#/definitions/Address"			      |	          $ref: '#/definitions/Address'
+        version:						        version:
+          type: object						          type: object
+          properties:						          properties:
+            block:						            block:
+              type: string					              type: string
+              example: 10					              example: 10
+            app:						            app:
+              type: string					              type: string
+              example: 0					              example: 0
+    Block:							    Block:
+      type: object						      type: object
+      properties:						      properties:
+        header:							        header:
+          $ref: "#/definitions/BlockHeader"		      |	          $ref: '#/definitions/BlockHeader'
+        data:						      |	        txs:
+          type: object					      |	          type: array
+          properties:					      |	          items:
+            txs: 					      |	            type: string
+              type: object				      <
+              x-nullable: true               		      <
+        evidence:						        evidence:
+          type: object					      |	          type: array
+          properties:					      |	          items:
+            evidence:					      |	            type: string
+              type: object				      <
+              x-nullable: true				      <
+        last_commit:						        last_commit:
+          type: object						          type: object
+          properties:						          properties:
+            block_id:						            block_id:
+              $ref: "#/definitions/BlockID"		      |	              $ref: '#/definitions/BlockID'
+            precommits:						            precommits:
+              # have to use an 'object' type for precommits a |	              type: array
+              $ref: '#/definitions/Precommits'		      |	              items:
+    Precommits:						      |	                type: object
+      type: array					      |	                properties:
+      items:						      |	                  validator_address:
+        type: object					      |	                    type: string
+        properties:					      |	                  validator_index:
+          validator_address:				      |	                    type: string
+            type: string				      |	                    example: '0'
+          validator_index:				      |	                  height:
+            type: string				      |	                    type: string
+            example: "0"				      |	                    example: '0'
+          height:					      |	                  round:
+            type: string				      |	                    type: string
+            example: "2"				      |	                    example: '0'
+          round:					      |	                  timestamp:
+            type: string				      |	                    type: string
+            example: "0"				      |	                    example: '2017-12-30T05:53:09.287+01:00'
+          timestamp:					      |	                  type:
+            type: string				      |	                    type: number
+            example: "2017-12-30T05:53:09.287+01:00"	      |	                    example: 2
+          type:						      |	                  block_id:
+            type: number				      |	                    $ref: '#/definitions/BlockID'
+            example: 2					      |	                  signature:
+          block_id:					      |	                    type: string
+            $ref: "#/definitions/BlockID"		      |	                    example: '7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO
+          signature:					      <
+            type: string				      <
+            example: "7uTC74QlknqYWEwg7Vn6M8Om7FuZ0EO4bjvuj6r <
+							      <
+    BlockQuery:							    BlockQuery:
+      type: object						      type: object
+      properties:						      properties:
+        block_meta:						        block_meta:
+          type: object						          type: object
+          properties:						          properties:
+            header:						            header:
+              $ref: "#/definitions/BlockHeader"		      |	              $ref: '#/definitions/BlockHeader'
+            block_id:						            block_id:
+              $ref: "#/definitions/BlockID"		      |	              $ref: '#/definitions/BlockID'
+        block:							        block:
+          $ref: "#/definitions/Block"			      |	          $ref: '#/definitions/Block'
+    DelegationDelegatorReward:					    DelegationDelegatorReward:
+      type: object						      type: object
+      properties:						      properties:
+        validator_address:					        validator_address:
+          $ref: "#/definitions/ValidatorAddress"	      |	          $ref: '#/definitions/ValidatorAddress'
+        reward:							        reward:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+    DelegatorTotalRewards:					    DelegatorTotalRewards:
+      type: object						      type: object
+      properties:						      properties:
+        rewards:						        rewards:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/DelegationDelegatorReward"   |	            $ref: '#/definitions/DelegationDelegatorReward'
+        total:							        total:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+    BaseReq:							    BaseReq:
+      type: object						      type: object
+      properties:						      properties:
+        from:							        from:
+          type: string						          type: string
+          example: "kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyct |	          example: 'kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjc
+          description: Sender address or Keybase name to gene	          description: Sender address or Keybase name to gene
+        memo:							        memo:
+          type: string						          type: string
+          example: Sent_via_Kava			      |	          example: 'Sent via Cosmos Voyager 🚀'
+        chain_id:						        chain_id:
+          type: string						          type: string
+          example: "Cosmos-Hub"				      |	          example: 'kava-1'
+        account_number:						        account_number:
+          type: string						          type: string
+          example: "0"					      |	          example: '0'
+        sequence:						        sequence:
+          type: string						          type: string
+          example: "1"					      |	          example: '1'
+        gas:							        gas:
+          type: string						          type: string
+          example: "200000"				      |	          example: '200000'
+        gas_adjustment:						        gas_adjustment:
+          type: string						          type: string
+          example: "1.2"				      |	          example: '1.2'
+        fees:							        fees:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+        simulate:						        simulate:
+          type: boolean						          type: boolean
+          example: false					          example: false
+          description: Estimate gas for a transaction (cannot	          description: Estimate gas for a transaction (cannot
+    TendermintValidator:					    TendermintValidator:
+      type: object						      type: object
+      properties:						      properties:
+        address:						        address:
+          $ref: "#/definitions/ValidatorAddress"	      |	          $ref: '#/definitions/ValidatorAddress'
+        pub_key:						        pub_key:
+          type: string						          type: string
+          example: kavavalconspub1zcjduepq0vu2zgkgk49efa0nqwz	          example: kavavalconspub1zcjduepq0vu2zgkgk49efa0nqwz
+        voting_power:						        voting_power:
+          type: string						          type: string
+          example: "1000"				      |	          example: '1000'
+        proposer_priority:					        proposer_priority:
+          type: string						          type: string
+          example: "1000"				      |	          example: '1000'
+							      >	    CdpResponse:
+							      >	      type: object
+							      >	      properties:
+							      >	        id:
+							      >	          type: string
+							      >	          example: 1
+							      >	        owner:
+							      >	          type: string
+							      >	          example: kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcm
+							      >	        collateral:
+							      >	          $ref: '#/definitions/CoinCollateral'
+							      >	        principal:
+							      >	          $ref: '#/definitions/CoinPrincipal'
+							      >	        accumulated_fees:
+							      >	          $ref: '#/definitions/CoinPrincipal'
+							      >	        fees_updated:
+							      >	          type: string
+							      >	          example: '2020-02-05T23:45:55.761435272Z'
+							      >	        collateral_value:
+							      >	          $ref: '#/definitions/CoinPrincipal'
+							      >	        collateralization_ratio:
+							      >	          type: string
+							      >	          example: '2.721734157907653857'
+							      >	    CdpDepositResponse:
+							      >	      type: object
+							      >	      properties:
+							      >	        cdp_id:
+							      >	          type: string
+							      >	          example: 1
+							      >	        depositor:
+							      >	          type: string
+							      >	          example: kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcm
+							      >	        amount:
+							      >	          $ref: '#/definitions/CoinCollateral'
+							      >	    PricefeedParameters:
+							      >	      type: object
+							      >	      properties:
+							      >	        markets:
+							      >	          type: array
+							      >	          items:
+							      >	            $ref: '#/definitions/Market'
+							      >	    Price:
+							      >	      type: object
+							      >	      properties:
+							      >	        market_id:
+							      >	          type: string
+							      >	          example: 'xrp:usd'
+							      >	        price:
+							      >	          type: string
+							      >	          example: '0.298758999999999997'
+							      >	    PostedPrice:
+							      >	      type: object
+							      >	      properties:
+							      >	        market_id:
+							      >	          type: string
+							      >	          example: 'xrp:usd'
+							      >	        oracle_address:
+							      >	          type: string
+							      >	          example: kava10cw2m04528dwlc44k0myd7strj3eq5jr6s8px
+							      >	        price:
+							      >	          type: string
+							      >	          example: '0.298758999999999997'
+							      >	        expiry:
+							      >	          type: string
+							      >	          example: '2020-02-12T23:10:00Z'
+							      >	    Market:
+							      >	      type: object
+							      >	      properties:
+							      >	        market_id:
+							      >	          type: string
+							      >	          example: 'xrp:usd'
+							      >	        base_asset:
+							      >	          type: string
+							      >	          example: 'xrp'
+							      >	        quote_asset:
+							      >	          type: string
+							      >	          example: 'usd'
+							      >	        oracles:
+							      >	          type: array
+							      >	          items:
+							      >	            $ref: '#/definitions/Address'
+							      >	        active:
+							      >	          type: boolean
+							      >	          example: true
+							      >	    AuctionParameters:
+							      >	      type: object
+							      >	      properties:
+							      >	        max_auction_duration:
+							      >	          type: string
+							      >	          example: 172800000000000
+							      >	        bid_duration:
+							      >	          type: string
+							      >	          example: 600000000000
+							      >	    AuctionResponse:
+							      >	      type: object
+							      >	      properties:
+							      >	        id:
+							      >	          type: string
+							      >	          example: 1
+							      >	        initiator:
+							      >	          type: string
+							      >	          example: liquidator
+							      >	        lot:
+							      >	          $ref: '#/definitions/CoinCollateral'
+							      >	        bidder:
+							      >	          $ref: '#/definitions/Address'
+							      >	        bid:
+							      >	          $ref: '#/definitions/Coin'
+							      >	        has_received_bids:
+							      >	          type: boolean
+							      >	          example: false
+							      >	        end_time:
+							      >	          type: string
+							      >	          example: '2020-02-05T23:45:55.761435272Z'
+							      >	        max_end_time:
+							      >	          type: string
+							      >	          example: '2020-02-05T23:45:55.761435272Z'
+							      >	        type:
+							      >	          type: string
+							      >	          example: collateral
+							      >	        phase:
+							      >	          type: string
+							      >	          example: forward
+							      >	    CollateralParam:
+							      >	      type: object
+							      >	      properties:
+							      >	        denom:
+							      >	          type: string
+							      >	          example: xrp
+							      >	        liquidation_ratio:
+							      >	          type: string
+							      >	          example: '2.000000000000000000'
+							      >	        debt_limit:
+							      >	          $ref: '#/definitions/CoinPrincipal'
+							      >	        stability_fee:
+							      >	          type: string
+							      >	          example: '1.000000001547126000'
+							      >	        auction_size:
+							      >	          type: string
+							      >	          example: '5000000000'
+							      >	        liquidation_penalty:
+							      >	          type: string
+							      >	          example: '0.050000000000000000'
+							      >	        prefix:
+							      >	          type: integer
+							      >	          example: 0
+							      >	        market_id:
+							      >	          type: string
+							      >	          example: 'xrp:usd'
+							      >	        conversion_factor:
+							      >	          type: string
+							      >	          example: '6'
+							      >	    DebtParam:
+							      >	      type: object
+							      >	      properties:
+							      >	        denom:
+							      >	          type: string
+							      >	          example: usdx
+							      >	        reference_asset:
+							      >	          type: string
+							      >	          example: 'usd'
+							      >	        conversion_factor:
+							      >	          type: string
+							      >	          example: '6'
+							      >	        debt_floor:
+							      >	          type: string
+							      >	          example: '10000000'
+    TextProposal:						    TextProposal:
+      type: object						      type: object
+      properties:						      properties:
+        proposal_id:						        proposal_id:
+          type: integer						          type: integer
+        title:							        title:
+          type: string						          type: string
+        description:						        description:
+          type: string						          type: string
+        proposal_type:						        proposal_type:
+          type: string						          type: string
+        proposal_status:					        proposal_status:
+          type: string						          type: string
+        final_tally_result:					        final_tally_result:
+          $ref: "#/definitions/TallyResult"		      |	          $ref: '#/definitions/TallyResult'
+        submit_time:						        submit_time:
+          type: string						          type: string
+        total_deposit:						        total_deposit:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+        voting_start_time:					        voting_start_time:
+          type: string						          type: string
+    Proposer:							    Proposer:
+      type: object						      type: object
+      properties:						      properties:
+        proposal_id:						        proposal_id:
+          type: string						          type: string
+        proposer:						        proposer:
+          type: string						          type: string
+    Deposit:							    Deposit:
+      type: object						      type: object
+      properties:						      properties:
+        amount:							        amount:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+        proposal_id:						        proposal_id:
+          type: string						          type: string
+        depositor:						        depositor:
+          $ref: "#/definitions/Address"			      |	          $ref: '#/definitions/Address'
+    TallyResult:						    TallyResult:
+      type: object						      type: object
+      properties:						      properties:
+        yes:							        yes:
+          type: string						          type: string
+          example: "0.0000000000"			      |	          example: '0.0000000000'
+        abstain:						        abstain:
+          type: string						          type: string
+          example: "0.0000000000"			      |	          example: '0.0000000000'
+        no:							        no:
+          type: string						          type: string
+          example: "0.0000000000"			      |	          example: '0.0000000000'
+        no_with_veto:						        no_with_veto:
+          type: string						          type: string
+          example: "0.0000000000"			      |	          example: '0.0000000000'
+    Vote:							    Vote:
+      type: object						      type: object
+      properties:						      properties:
+        voter:							        voter:
+          type: string						          type: string
+        proposal_id:						        proposal_id:
+          type: string						          type: string
+        option:							        option:
+          type: string						          type: string
+    Validator:							    Validator:
+      type: object						      type: object
+      properties:						      properties:
+        operator_address:					        operator_address:
+          $ref: "#/definitions/ValidatorAddress"	      |	          $ref: '#/definitions/ValidatorAddress'
+        consensus_pubkey:					        consensus_pubkey:
+          type: string						          type: string
+          example: kavavalconspub1zcjduepq0vu2zgkgk49efa0nqwz	          example: kavavalconspub1zcjduepq0vu2zgkgk49efa0nqwz
+        jailed:							        jailed:
+          type: boolean						          type: boolean
+        status:							        status:
+          type: integer						          type: integer
+        tokens:							        tokens:
+          type: string						          type: string
+        delegator_shares:					        delegator_shares:
+          type: string						          type: string
+        description:						        description:
+          type: object						          type: object
+          properties:						          properties:
+            moniker:						            moniker:
+              type: string					              type: string
+            identity:						            identity:
+              type: string					              type: string
+            website:						            website:
+              type: string					              type: string
+            security_contact:					            security_contact:
+              type: string					              type: string
+            details:						            details:
+              type: string					              type: string
+        bond_height:						        bond_height:
+          type: string						          type: string
+          example: "0"					      |	          example: '0'
+        bond_intra_tx_counter:					        bond_intra_tx_counter:
+          type: integer						          type: integer
+          example: 0						          example: 0
+        unbonding_height:					        unbonding_height:
+          type: string						          type: string
+          example: "0"					      |	          example: '0'
+        unbonding_time:						        unbonding_time:
+          type: string						          type: string
+          example: "1970-01-01T00:00:00Z"		      |	          example: '1970-01-01T00:00:00Z'
+        commission:						        commission:
+          type: object						          type: object
+          properties:						          properties:
+            rate:						            rate:
+              type: string					              type: string
+              example: "0"				      |	              example: '0'
+            max_rate:						            max_rate:
+              type: string					              type: string
+              example: "0"				      |	              example: '0'
+            max_change_rate:					            max_change_rate:
+              type: string					              type: string
+              example: "0"				      |	              example: '0'
+            update_time:					            update_time:
+              type: string					              type: string
+              example: "1970-01-01T00:00:00Z"		      |	              example: '1970-01-01T00:00:00Z'
+    Delegation:							    Delegation:
+      type: object						      type: object
+      properties:						      properties:
+        delegator_address:					        delegator_address:
+          type: string						          type: string
+        validator_address:					        validator_address:
+          type: string						          type: string
+        shares:							        shares:
+          type: string						          type: string
+        balance:						        balance:
+          $ref: "#/definitions/Coin"			      |	          $ref: '#/definitions/Coin'
+    UnbondingDelegationPair:					    UnbondingDelegationPair:
+      type: object						      type: object
+      properties:						      properties:
+        delegator_address:					        delegator_address:
+          type: string						          type: string
+        validator_address:					        validator_address:
+          type: string						          type: string
+        entries:						        entries:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/UnbondingEntries"	      |	            $ref: '#/definitions/UnbondingEntries'
+    UnbondingEntries:						    UnbondingEntries:
+      type: object						      type: object
+      properties:						      properties:
+        initial_balance:					        initial_balance:
+          type: string						          type: string
+        balance:						        balance:
+          type: string						          type: string
+        creation_height:					        creation_height:
+          type: string						          type: string
+        min_time:						        min_time:
+          type: string						          type: string
+    UnbondingDelegation:					    UnbondingDelegation:
+      type: object						      type: object
+      properties:						      properties:
+        delegator_address:					        delegator_address:
+          type: string						          type: string
+        validator_address:					        validator_address:
+          type: string						          type: string
+        initial_balance:					        initial_balance:
+          type: string						          type: string
+        balance:						        balance:
+          type: string						          type: string
+        creation_height:					        creation_height:
+          type: integer						          type: integer
+        min_time:						        min_time:
+          type: integer						          type: integer
+    Redelegation:						    Redelegation:
+      type: object						      type: object
+      properties:						      properties:
+        delegator_address:					        delegator_address:
+          type: string						          type: string
+        validator_src_address:					        validator_src_address:
+          type: string						          type: string
+        validator_dst_address:					        validator_dst_address:
+          type: string						          type: string
+        entries:						        entries:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Redelegation"		      |	            $ref: '#/definitions/Redelegation'
+    RedelegationEntry:						    RedelegationEntry:
+      type: object						      type: object
+      properties:						      properties:
+        creation_height:					        creation_height:
+          type: integer						          type: integer
+        completion_time:					        completion_time:
+          type: integer						          type: integer
+        initial_balance:					        initial_balance:
+          type: string						          type: string
+        balance:						        balance:
+          type: string						          type: string
+        shares_dst:						        shares_dst:
+          type: string						          type: string
+    ValidatorDistInfo:						    ValidatorDistInfo:
+      type: object						      type: object
+      properties:						      properties:
+        operator_address:					        operator_address:
+          $ref: "#/definitions/ValidatorAddress"	      |	          $ref: '#/definitions/ValidatorAddress'
+        self_bond_rewards:					        self_bond_rewards:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+        val_commission:						        val_commission:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+    PublicKey:							    PublicKey:
+      type: object						      type: object
+      properties:						      properties:
+        type:							        type:
+          type: string						          type: string
+        value:							        value:
+          type: string						          type: string
+    SigningInfo:						    SigningInfo:
+      type: object						      type: object
+      properties:						      properties:
+        start_height:						        start_height:
+          type: string						          type: string
+        index_offset:						        index_offset:
+          type: string						          type: string
+        jailed_until:						        jailed_until:
+          type: string						          type: string
+        missed_blocks_counter:					        missed_blocks_counter:
+          type: string						          type: string
+    ParamChange:						    ParamChange:
+      type: object						      type: object
+      properties:						      properties:
+        subspace:						        subspace:
+          type: string						          type: string
+          example: "staking"				      |	          example: 'staking'
+        key:							        key:
+          type: string						          type: string
+          example: "MaxValidators"			      |	          example: 'MaxValidators'
+        subkey:							        subkey:
+          type: string						          type: string
+          example: ""					      |	          example: ''
+        value:							        value:
+          type: object						          type: object
+    Supply:							    Supply:
+      type: object						      type: object
+      properties:						      properties:
+        total:							        total:
+          type: array						          type: array
+          items:						          items:
+            $ref: "#/definitions/Coin"			      |	            $ref: '#/definitions/Coin'
+    StandardResponse:					      <
+      type: object					      <
+      properties:					      <
+        height:						      <
+          type: string					      <
+        result:						      <
+          type: string					      <
