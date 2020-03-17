@@ -26,6 +26,12 @@ func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
 func NewBep3GenStateMulti() app.GenesisState {
+	bep3Genesis := baseGenState()
+	return app.GenesisState{bep3.ModuleName: bep3.ModuleCdc.MustMarshalJSON(bep3Genesis)}
+}
+
+func baseGenState() bep3.GenesisState {
+	// TODO: Set deputy to a reasonable address
 	deputy, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 
 	bep3Genesis := types.GenesisState{
@@ -36,8 +42,8 @@ func NewBep3GenStateMulti() app.GenesisState {
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
-					CoinID: "714",
-					Limit:  BNB_SUPPLY_LIMIT,
+					CoinID: "714",            // TODO: This should be a number
+					Limit:  BNB_SUPPLY_LIMIT, // TODO: Change limit increment time
 					Active: true,
 				},
 				types.AssetParam{
@@ -49,6 +55,29 @@ func NewBep3GenStateMulti() app.GenesisState {
 			},
 		},
 	}
+	return bep3Genesis
+}
 
-	return app.GenesisState{bep3.ModuleName: bep3.ModuleCdc.MustMarshalJSON(bep3Genesis)}
+func atomicSwapsWithAssetSupply(addrs []sdk.AccAddress, denom string) (types.AtomicSwaps, sdk.Coin) {
+	var swaps types.AtomicSwaps
+	assetSupply := c(denom, 0)
+	for i := 0; i < len(addrs); i++ {
+		assetSupply.Add(c(denom, 50000))
+		swap := atomicSwapFromAddress(addrs[i], i)
+		swaps = append(swaps, swap)
+	}
+	return swaps, assetSupply
+}
+
+func atomicSwapFromAddress(addr sdk.AccAddress, index int) types.AtomicSwap {
+	expireOffset := int64((index * 15) + 360) // Default expire height + offet to match timestamp
+	timestamp := ts(index)                    // One minute apart
+	randomNumber, _ := types.GenerateSecureRandomNumber()
+	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+
+	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
+		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
+		TestRecipientOtherChain, 0, types.Open)
+
+	return swap
 }
