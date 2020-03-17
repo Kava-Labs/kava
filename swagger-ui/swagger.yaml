@@ -329,16 +329,6 @@
             schema:
               type: object
               $ref: "#/definitions/EncodeTx"
-          
-
-            # name: tx
-            # description: The tx to encode
-            # required: true
-            # schema:
-            #   type: object
-            #   properties:
-            #     tx:
-            #       $ref: "#/definitions/StdTx"
         responses:
           200:
             description: The tx was successfully decoded and re-encoded
