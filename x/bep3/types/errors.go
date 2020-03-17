@@ -65,10 +65,10 @@ func ErrAssetSupplyNotSet(codespace sdk.CodespaceType, denom string) sdk.Error {
 }
 
 // ErrAboveAssetSupplyLimit error for when a proposed asset supply increase would put the supply over the limit
-func ErrAboveAssetSupplyLimit(codespace sdk.CodespaceType, denom string, currentSupply, proposedIncrease, supplyLimit int64) sdk.Error {
+func ErrAboveAssetSupplyLimit(codespace sdk.CodespaceType, denom string, currentSupply, supplyLimit sdk.Int) sdk.Error {
 	return sdk.NewError(codespace, CodeAboveAssetSupplyLimit,
-		fmt.Sprintf("%s has a current supply of %d. An increase of %d would put it above supply limit %d",
-			denom, currentSupply, proposedIncrease, supplyLimit))
+		fmt.Sprintf("invalid supply increase - %s has a supply of %d and a supply limit of %d",
+			denom, currentSupply.Int64(), supplyLimit.Int64()))
 }
 
 // ErrInvalidClaimSecret error when a submitted secret doesn't match an AtomicSwap's swapID

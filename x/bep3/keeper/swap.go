@@ -14,11 +14,9 @@ import (
 // CreateAtomicSwap creates a new AtomicSwap
 func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan int64,
 	sender sdk.AccAddress, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
-	amount sdk.Coins, expectedIncome string) sdk.Error {
-
+	amount sdk.Coins, expectedIncome string, crossChain bool) sdk.Error {
+	// Confirm that this is not a duplicate swap
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
-
-	// Confirm that this swap is valid
 	_, found := k.GetAtomicSwap(ctx, swapID)
 	if found {
 		return types.ErrAtomicSwapAlreadyExists(k.codespace, swapID)
@@ -46,23 +44,25 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return sdk.ErrInternal("amount must contain exactly one coin")
 	}
 
-	// Validate that this asset is supported and active
-	err := k.ValidateActiveAsset(ctx, amount[0])
+	err := k.ValidateLiveAsset(ctx, amount[0])
 	if err != nil {
 		return err
 	}
 
-	// If this asset's supply isn't set in the store, set it to 0
-	_, assetSupplyFoundInStore := k.GetAssetSupply(ctx, []byte(amount[0].Denom))
-	if !assetSupplyFoundInStore {
-		k.SetAssetSupply(ctx, sdk.NewInt64Coin(amount[0].Denom, 0), []byte(amount[0].Denom))
+	// TODO: coin amount in all atomic swaps + coin asset supply = threshold
+	if crossChain {
+		err := k.ValidateProposedSupplyIncrease(ctx, amount[0])
+		if err != nil {
+			return err
+		}
 	}
-
-	// Validate that the proposed increase will not put asset supply over limit
-	err = k.ValidateProposedIncrease(ctx, amount[0])
-	if err != nil {
-		return err
-	}
+	// TODO: work the math out here
+	// else {
+	// 	err := k.ValidateProposedSupplyDecrease(ctx, amount[0])
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	// Transfer coins to module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
@@ -70,13 +70,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return err
 	}
 
-	// Store the details of the swap.
-	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash,
-		ctx.BlockHeight()+heightSpan, timestamp, sender, recipient,
-		senderOtherChain, recipientOtherChain, 0, types.Open)
-
-	k.SetAtomicSwap(ctx, atomicSwap)
-	k.InsertIntoByBlockIndex(ctx, atomicSwap)
+	// Store the details of the swap
+	atomicSwap := types.NewAtomicSwap(
+		amount, randomNumberHash, ctx.BlockHeight()+heightSpan, timestamp, sender,
+		recipient, senderOtherChain, recipientOtherChain, 0, types.Open, crossChain,
+	)
 
 	// Emit 'create_atomic_swap' event
 	ctx.EventManager().EmitEvent(
@@ -94,12 +92,13 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		),
 	)
 
+	k.SetAtomicSwap(ctx, atomicSwap)
+	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 	return nil
 }
 
 // ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) sdk.Error {
-
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
@@ -119,14 +118,8 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, atomicSwap.GetSwapID())
 	}
 
-	// Increment the asset's total supply (if valid)
-	err := k.IncrementAssetSupply(ctx, atomicSwap.Amount[0])
-	if err != nil {
-		return err
-	}
-
 	// Send intended recipient coins
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
 	if err != nil {
 		return err
 	}
@@ -142,10 +135,16 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 			sdk.NewAttribute(types.AttributeKeyRandomNumber, fmt.Sprintf("%s", hex.EncodeToString(randomNumber))),
 		),
 	)
-
 	// Update swap status to completed
 	atomicSwap.Status = types.Completed
 	k.SetAtomicSwap(ctx, atomicSwap)
+
+	// Increment asset supply
+	if atomicSwap.CrossChain {
+		k.IncrementAssetSupply(ctx, atomicSwap.Amount[0])
+	}
+	// TODO: else { decrement } ?
+
 	// Transition to longterm storage
 	k.RemoveFromByBlockIndex(ctx, atomicSwap)
 	k.InsertIntoLongtermStorage(ctx, atomicSwap)
@@ -154,7 +153,6 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 
 // RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap
 func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) sdk.Error {
-
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)

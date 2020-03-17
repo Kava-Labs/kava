@@ -28,6 +28,7 @@ type AtomicSwap struct {
 	RecipientOtherChain string         `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
 	ClosedBlock         int64          `json:"closed_block"  yaml:"closed_block"`
 	Status              SwapStatus     `json:"status"  yaml:"status"`
+	CrossChain          bool           `json:"cross_chain"  yaml:"cross_chain"`
 }
 
 // GetSwapID calculates the ID of an atomic swap
@@ -59,7 +60,8 @@ func (a AtomicSwap) Validate() error {
 
 // NewAtomicSwap returns a new AtomicSwap
 func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
-	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64, status SwapStatus) AtomicSwap {
+	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
+	status SwapStatus, crossChain bool) AtomicSwap {
 	return AtomicSwap{
 		Amount:              amount,
 		RandomNumberHash:    randomNumberHash,
@@ -71,6 +73,7 @@ func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight
 		RecipientOtherChain: recipientOtherChain,
 		ClosedBlock:         closedBlock,
 		Status:              status,
+		CrossChain:          crossChain,
 	}
 }
 

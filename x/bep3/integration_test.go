@@ -77,7 +77,7 @@ func atomicSwapFromAddress(addr sdk.AccAddress, index int) types.AtomicSwap {
 
 	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
-		TestRecipientOtherChain, 0, types.Open)
+		TestRecipientOtherChain, 0, types.Open, true)
 
 	return swap
 }

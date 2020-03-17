@@ -60,7 +60,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		// Create atomic swap and check err to confirm creation
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
 			suite.addrs[i], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
-			amount, amount.String())
+			amount, amount.String(), true)
 		suite.Nil(err)
 
 		// Store swap's calculated ID and secret random number

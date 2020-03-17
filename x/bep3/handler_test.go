@@ -57,7 +57,7 @@ func (suite *HandlerTestSuite) AddAtomicSwap() (cmn.HexBytes, cmn.HexBytes) {
 	// Create atomic swap and check err to confirm creation
 	err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
 		suite.addrs[0], suite.addrs[1], TestSenderOtherChain, TestRecipientOtherChain,
-		amount, amount.String())
+		amount, amount.String(), true)
 	suite.Nil(err)
 
 	swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
