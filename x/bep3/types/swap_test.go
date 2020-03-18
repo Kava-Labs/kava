@@ -77,7 +77,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 		{
 			"invalid random number hash length",
 			args{
-				amount:              cs(c("bnb", 50000)), // cs(c("bnb", 0))
+				amount:              cs(c("bnb", 50000)),
 				randomNumberHash:    suite.randomNumberHashes[1][0:20],
 				expireHeight:        int64(360),
 				timestamp:           suite.timestamps[1],

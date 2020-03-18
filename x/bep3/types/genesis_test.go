@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -14,6 +15,8 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
 	suite.swaps = atomicSwaps(10)
 	return
 }
