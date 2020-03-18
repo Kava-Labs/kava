@@ -104,18 +104,8 @@ func sendProposal() {
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
 
-	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	// TODO - QUESTION - should we read the path from a configuration file?
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
-	if err != nil {
-		panic(err)
-	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
-	if err != nil {
-		panic(err)
-	}
+	// get the keybase
+	keybase := getKeybase()
 
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
@@ -140,24 +130,14 @@ func sendDeposit() {
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
 
-	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	// TODO - QUESTION - should we read the path from a configuration file?
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
-	if err != nil {
-		panic(err)
-	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
-	if err != nil {
-		panic(err)
-	}
-
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 
 	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
 	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
+	// get the keybase
+	keybase := getKeybase()
 
 	// NOW SEND THE DEPOSIT
 
@@ -179,17 +159,8 @@ func sendVote() {
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
 
-	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
-	if err != nil {
-		panic(err)
-	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
-	if err != nil {
-		panic(err)
-	}
+	// get the keybase
+	keybase := getKeybase()
 
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
@@ -224,18 +195,8 @@ func sendCoins() {
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
 
-	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	// TODO - QUESTION - should we read the path from a configuration file?
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
-	if err != nil {
-		panic(err)
-	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
-	if err != nil {
-		panic(err)
-	}
+	// get the keybase
+	keybase := getKeybase()
 
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
@@ -268,18 +229,8 @@ func sendDelegation() {
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
 
-	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	// TODO - QUESTION - should we read the path from a configuration file?
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
-	if err != nil {
-		panic(err)
-	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
-	if err != nil {
-		panic(err)
-	}
+	// get the keybase
+	keybase := getKeybase()
 
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
@@ -313,18 +264,8 @@ func sendUndelegation() {
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
 
-	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	// TODO - QUESTION - should we read the path from a configuration file?
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
-	if err != nil {
-		panic(err)
-	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
-	if err != nil {
-		panic(err)
-	}
+	// get the keybase
+	keybase := getKeybase()
 
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
@@ -342,6 +283,24 @@ func sendUndelegation() {
 
 	// send the delegation to the blockchain
 	sendMsgToBlockchain(cdc, address, keyname, password, delegationToSend, keybase)
+
+}
+
+func getKeybase() crkeys.Keybase {
+	// create a keybase
+	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	// TODO - QUESTION - should we read the path from a configuration file?
+	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	if err != nil {
+		panic(err)
+	}
+	_, err = keybase.List()
+	// fmt.Printf("Keys: %s\n\n", all)
+	if err != nil {
+		panic(err)
+	}
+
+	return keybase
 
 }
 
