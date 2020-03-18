@@ -16,13 +16,11 @@
 
 `kvcli rest-server --laddr tcp://127.0.0.1:1317`
 
-4) Then run the following command from the `swagger-ui` folder to run the `dredd` tests:
-**IMPORTANT NOTE**: Sometimes the first time you run the dredd tests with hooks the transactions may not have posted to the blockchain so some tests may erroneously fail. When you run the script a second time 
-they should pass.
+4) Then run the below `dredd` command **TWICE** from the `swagger-ui` folder to run the `dredd` tests. The first time the hooks will send transactions to the chain but sometimes the first time you run the dredd tests with hooks the transactions may not have committed to the blockchain so some tests may erroneously fail. **When you run the script a second time all the tests should pass.**
 
-`dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
-
-If you run into `dredd` timeout issues you can try:
 `dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="3000000"`
+
+You can also run `dredd` with a lower timeout however this is **NOT** recommmended:
+`dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
 
 **IMPORTANT NOTE**: If you start getting `Validator set is different` errors then you need to try starting the chain from scratch (do NOT just use `unsafe-reset-all`, instead use `./startchain.sh`)
