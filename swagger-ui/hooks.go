@@ -122,15 +122,13 @@ func sendProposal() {
 
 	// SEND THE PROPOSAL
 
-	// get the account number and sequence number
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 	// cast to the generic msg type
 	msgToSend := []sdk.Msg{msg}
 	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
 	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// send the PROPOSAL message to the blockchain
-	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, msgToSend, keybase)
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
 }
 
 func sendDeposit() {
@@ -158,18 +156,17 @@ func sendDeposit() {
 	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
 	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 
+	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+
 	// NOW SEND THE DEPOSIT
 
 	// create a deposit transaction to send to the proposal
 	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000))
 	deposit := gov.NewMsgDeposit(addr, 2, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
 	depositToSend := []sdk.Msg{deposit}
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
-	// send the deposit to the blockchain
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, depositToSend, keybase)
+	sendMsgToBlockchain(cdc, address, keyname, password, depositToSend, keybase)
 
 }
 
@@ -208,8 +205,7 @@ func sendVote() {
 
 	// send a vote to the blockchain
 	voteToSend := []sdk.Msg{vote}
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, voteToSend, keybase)
+	sendMsgToBlockchain(cdc, address, keyname, password, voteToSend, keybase)
 
 }
 
@@ -255,8 +251,7 @@ func sendCoins() {
 	// NOW SEND THE COINS
 
 	// send the coin message to the blockchain
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, coinsToSend, keybase)
+	sendMsgToBlockchain(cdc, address, keyname, password, coinsToSend, keybase)
 
 }
 
@@ -301,8 +296,7 @@ func sendDelegation() {
 	delegationToSend := []sdk.Msg{delegation}
 
 	// send the delegation to the blockchain
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, delegationToSend, keybase)
+	sendMsgToBlockchain(cdc, address, keyname, password, delegationToSend, keybase)
 
 }
 
@@ -347,14 +341,17 @@ func sendUndelegation() {
 	delegationToSend := []sdk.Msg{undelegation}
 
 	// send the delegation to the blockchain
-	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-	sendMsgToBlockchain(cdc, accountNumber, sequenceNumber, keyname, password, delegationToSend, keybase)
+	sendMsgToBlockchain(cdc, address, keyname, password, delegationToSend, keybase)
 
 }
 
 // sendMsgToBlockchain sends a message to the blockchain via the rest api
-func sendMsgToBlockchain(cdc *amino.Codec, accountNumber uint64, sequenceNumber uint64, keyname string,
+func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 	password string, msg []sdk.Msg, keybase crkeys.Keybase) {
+
+	// get the account number and sequence number
+	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
+
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
