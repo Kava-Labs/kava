@@ -68,26 +68,16 @@ func main() {
 		sendUndelegation()
 	})
 
-	h.BeforeEachValidation(func(t *trans.Transaction) {
-		// fmt.Println("before each validation modification")
-	})
-	h.BeforeValidation("/message > GET", func(t *trans.Transaction) {
-		// fmt.Println("before validation modification")
-	})
-	h.After("/message > GET", func(t *trans.Transaction) {
-		// fmt.Println("after modification")
-	})
-	h.AfterEach(func(t *trans.Transaction) {
-		// fmt.Println("after each modification")
-	})
-	h.AfterAll(func(t []*trans.Transaction) {
-		// fmt.Println("after all modification")
-	})
 	server.Serve()
 	defer server.Listener.Close()
 }
 
 func sendProposal() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
 	proposalContent := gov.ContentFromProposalType("A Test Title", "A test description on this proposal.", gov.ProposalTypeText)
 	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
@@ -107,21 +97,21 @@ func sendProposal() {
 	// get the keybase
 	keybase := getKeybase()
 
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
-	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
-
 	// SEND THE PROPOSAL
 
 	// cast to the generic msg type
 	msgToSend := []sdk.Msg{msg}
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// send the PROPOSAL message to the blockchain
 	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
 }
 
 func sendDeposit() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
 	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
 		panic(err)
@@ -129,12 +119,6 @@ func sendDeposit() {
 
 	// helper methods for transactions
 	cdc := app.MakeCodec() // make codec for the app
-
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
-	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
-
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// get the keybase
 	keybase := getKeybase()
@@ -151,6 +135,11 @@ func sendDeposit() {
 }
 
 func sendVote() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
 	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
 		panic(err)
@@ -161,12 +150,6 @@ func sendVote() {
 
 	// get the keybase
 	keybase := getKeybase()
-
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
-	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
-
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// NOW SEND THE VOTE
 
@@ -182,6 +165,11 @@ func sendVote() {
 
 // this should send coins from one address to another
 func sendCoins() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
 	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
 		panic(err)
@@ -198,16 +186,11 @@ func sendCoins() {
 	// get the keybase
 	keybase := getKeybase()
 
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
-	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
-
 	// create coins
 	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 2000000))
 
 	coins := bank.NewMsgSend(addrFrom, addrTo, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
 	coinsToSend := []sdk.Msg{coins}
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
 
 	// NOW SEND THE COINS
 
@@ -216,10 +199,24 @@ func sendCoins() {
 
 }
 
+func getTestAddress() (address string) {
+	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	address = "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
+	return address
+}
+
+func getKeynameAndPassword() (keyname string, password string) {
+	keyname = "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password = "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	return keyname, password
+}
+
 // this should send a delegation
 func sendDelegation() {
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
 
 	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
@@ -231,9 +228,6 @@ func sendDelegation() {
 
 	// get the keybase
 	keybase := getKeybase()
-
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
-	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 
 	// get the validator address for delegation
 	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
@@ -253,8 +247,10 @@ func sendDelegation() {
 
 // this should send a MsgUndelegate
 func sendUndelegation() {
-	keyname := "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password := "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
 
 	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
 	if err != nil {
@@ -266,9 +262,6 @@ func sendUndelegation() {
 
 	// get the keybase
 	keybase := getKeybase()
-
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
-	address := "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 
 	// get the validator address for delegation
 	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
