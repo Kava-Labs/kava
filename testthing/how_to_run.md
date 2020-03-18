@@ -16,7 +16,9 @@
 
 `kvcli rest-server --laddr tcp://127.0.0.1:1317`
 
-4) Then run the below `dredd` command **TWICE** from the `swagger-ui` folder to run the `dredd` tests. The first time the hooks will send transactions to the chain but sometimes the first time you run the dredd tests with hooks the transactions may not have committed to the blockchain so some tests may erroneously fail. **When you run the script a second time all the tests should pass.**
+4) Then run the below `dredd` command **TWICE** from the `swagger-ui` folder to run the `dredd` tests. The first time the hooks will send transactions to the chain but sometimes the first time you run the dredd tests with hooks the transactions may not have committed to the blockchain so some tests may erroneously fail. **When you run the script a second time all the tests should pass.** 
+
+See `test-results` in the `swagger-ui` for what the `dredd` output should look like.
 
 `dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="3000000"`
 
