@@ -205,6 +205,22 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			},
 			false,
 		},
+		{
+			"duplicate swap",
+			currentTmTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[0],
+				timestamp:           suite.timestamps[0],
+				heightSpan:          int64(360),
+				sender:              suite.addrs[0],
+				recipient:           suite.addrs[1],
+				senderOtherChain:    binanceAddrs[0].String(),
+				recipientOtherChain: binanceAddrs[1].String(),
+				coins:               cs(c("bnb", 50000)),
+				expectedIncome:      "50000bnb",
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
