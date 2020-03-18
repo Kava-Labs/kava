@@ -36,35 +36,34 @@ func init() {
 func main() {
 	h := hooks.NewHooks()
 	server := hooks.NewServer(hooks.NewHooksRunner(h))
-	h.BeforeAll(func(t []*trans.Transaction) {
-		// fmt.Println("before all modification")
-
-	})
-	h.BeforeEach(func(t *trans.Transaction) {
-		// fmt.Println("before each modification")
-	})
 
 	h.Before("Governance > /gov/proposals/{proposalId} > Query a proposal > 200 > application/json", func(t *trans.Transaction) {
+		// send a governance proposal
 		sendProposal()
 	})
 
 	h.Before("Governance > /gov/proposals/{proposalId}/deposits > Query deposits > 200 > application/json", func(t *trans.Transaction) {
+		// send a deposit to the governance proposal
 		sendDeposit()
 	})
 
 	h.Before("Governance > /gov/proposals/{proposalId}/votes > Query voters > 200 > application/json", func(t *trans.Transaction) {
+		// vote on the governance proposal
 		sendVote()
 	})
 
 	h.Before("Transactions > /txs/{hash} > Get a Tx by hash > 200 > application/json", func(t *trans.Transaction) {
+		// send a transaction to the chain
 		sendCoins()
 	})
 
 	h.Before("Staking > /staking/delegators/{delegatorAddr}/delegations > Get all delegations from a delegator > 200 > application/json", func(t *trans.Transaction) {
+		// send a delegation message
 		sendDelegation()
 	})
 
 	h.Before("Staking > /staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr} > Query all unbonding delegations between a delegator and a validator > 200 > application/json", func(t *trans.Transaction) {
+		// send an undelegation
 		sendUndelegation()
 	})
 
@@ -72,6 +71,7 @@ func main() {
 	defer server.Listener.Close()
 }
 
+// sendProposal sends a governance proposal to the blockchain
 func sendProposal() {
 	// get the address
 	address := getTestAddress()
@@ -79,7 +79,7 @@ func sendProposal() {
 	keyname, password := getKeynameAndPassword()
 
 	proposalContent := gov.ContentFromProposalType("A Test Title", "A test description on this proposal.", gov.ProposalTypeText)
-	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +98,6 @@ func sendProposal() {
 	keybase := getKeybase()
 
 	// SEND THE PROPOSAL
-
 	// cast to the generic msg type
 	msgToSend := []sdk.Msg{msg}
 
@@ -112,7 +111,7 @@ func sendDeposit() {
 	// get the keyname and password
 	keyname, password := getKeynameAndPassword()
 
-	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	addr, err := sdk.AccAddressFromBech32(address) // validator
 	if err != nil {
 		panic(err)
 	}
@@ -140,7 +139,7 @@ func sendVote() {
 	// get the keyname and password
 	keyname, password := getKeynameAndPassword()
 
-	addr, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	addr, err := sdk.AccAddressFromBech32(address) // validator
 	if err != nil {
 		panic(err)
 	}
@@ -155,7 +154,6 @@ func sendVote() {
 
 	// create a vote on a proposal to send to the blockchain
 	vote := gov.NewMsgVote(addr, uint64(2), types.OptionYes) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
-	fmt.Printf("\nvote:%s\n", vote)
 
 	// send a vote to the blockchain
 	voteToSend := []sdk.Msg{vote}
@@ -170,12 +168,12 @@ func sendCoins() {
 	// get the keyname and password
 	keyname, password := getKeynameAndPassword()
 
-	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	addrFrom, err := sdk.AccAddressFromBech32(address) // validator
 	if err != nil {
 		panic(err)
 	}
 
-	addrTo, err := sdk.AccAddressFromBech32("kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz") // faucet
+	addrTo, err := sdk.AccAddressFromBech32("kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz") // TODO IMPORTANT this is the faucet address
 	if err != nil {
 		panic(err)
 	}
@@ -218,7 +216,7 @@ func sendDelegation() {
 	// get the keyname and password
 	keyname, password := getKeynameAndPassword()
 
-	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	addrFrom, err := sdk.AccAddressFromBech32(address) // validator
 	if err != nil {
 		panic(err)
 	}
@@ -230,7 +228,7 @@ func sendDelegation() {
 	keybase := getKeybase()
 
 	// get the validator address for delegation
-	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
+	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // **FAUCET**
 	if err != nil {
 		panic(err)
 	}
@@ -242,7 +240,6 @@ func sendDelegation() {
 
 	// send the delegation to the blockchain
 	sendMsgToBlockchain(cdc, address, keyname, password, delegationToSend, keybase)
-
 }
 
 // this should send a MsgUndelegate
@@ -252,7 +249,7 @@ func sendUndelegation() {
 	// get the keyname and password
 	keyname, password := getKeynameAndPassword()
 
-	addrFrom, err := sdk.AccAddressFromBech32("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c") // validator
+	addrFrom, err := sdk.AccAddressFromBech32(address) // validator
 	if err != nil {
 		panic(err)
 	}
@@ -264,7 +261,7 @@ func sendUndelegation() {
 	keybase := getKeybase()
 
 	// get the validator address for delegation
-	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // faucet
+	valAddr, err := sdk.ValAddressFromBech32("kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0") // **FAUCET**
 	if err != nil {
 		panic(err)
 	}
@@ -376,7 +373,6 @@ func getAccountNumberAndSequenceNumber(cdc *amino.Codec, address string) (accoun
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Printf("\n\naccount: %s\n\n", account)
 
 	return account.GetAccountNumber(), account.GetSequence()
 
