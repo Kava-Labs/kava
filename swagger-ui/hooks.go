@@ -106,6 +106,7 @@ func sendProposal() {
 
 	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	// TODO - QUESTION - should we read the path from a configuration file?
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
 		panic(err)
@@ -143,6 +144,7 @@ func sendDeposit() {
 
 	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	// TODO - QUESTION - should we read the path from a configuration file?
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
 		panic(err)
@@ -228,6 +230,7 @@ func sendCoins() {
 
 	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	// TODO - QUESTION - should we read the path from a configuration file?
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
 		panic(err)
@@ -272,6 +275,7 @@ func sendDelegation() {
 
 	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	// TODO - QUESTION - should we read the path from a configuration file?
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
 		panic(err)
@@ -317,6 +321,7 @@ func sendUndelegation() {
 
 	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
+	// TODO - QUESTION - should we read the path from a configuration file?
 	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
 	if err != nil {
 		panic(err)
