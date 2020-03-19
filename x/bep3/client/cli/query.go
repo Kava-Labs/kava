@@ -139,16 +139,16 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Execute query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
 			if err != nil {
 				return err
 			}
 
-			// TODO: randomnumberhash: [232, 148....]
-			// Decode and print results
 			var atomicSwap types.AtomicSwap
 			cdc.MustUnmarshalJSON(res, &atomicSwap)
-			return cliCtx.PrintOutput(atomicSwap)
+
+			cliCtx = cliCtx.WithHeight(height)
+			return cliCtx.PrintOutput(atomicSwap.String())
 		},
 	}
 }
@@ -175,7 +175,7 @@ func QueryGetAtomicSwapsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(atomicSwaps)
+			return cliCtx.PrintOutput(atomicSwaps.String())
 		},
 	}
 }
