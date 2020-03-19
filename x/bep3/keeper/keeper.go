@@ -133,14 +133,53 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 }
 
 // ------------------------------------------
+//		Atomic Swap Longterm Storage Index
+// TODO: make block deletion variable a param genesis value
+// ------------------------------------------
+
+// InsertIntoLongtermStorage adds a swap ID and deletion time into the longterm storage index.
+// Completed swaps are stored for 1 week.
+func (k Keeper) InsertIntoLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
+	// Assuming block time of 7 seconds, there are 86,400 blocks in a week
+	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+int64(86400), atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
+}
+
+// RemoveFromLongtermStorage removes a swap from the into the longterm storage index
+func (k Keeper) RemoveFromLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
+	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+int64(86400), atomicSwap.GetSwapID()))
+}
+
+// IterateAtomicSwapsLongtermStorage provides an iterator over AtomicSwaps ordered by deletion height.
+// For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
+func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(swapID []byte) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
+	iterator := store.Iterator(
+		nil, // start at the very start of the prefix store
+		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
+	)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+
+		id := iterator.Value()
+
+		if cb(id) {
+			break
+		}
+	}
+}
+
+// ------------------------------------------
 //				Asset Supplies
 // ------------------------------------------
 
 // SetAssetSupply updates an asset's current active supply
-func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, coinID []byte) {
+func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, denom []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
-	store.Set(coinID, bz)
+	store.Set(denom, bz)
 }
 
 // GetAssetSupply gets an asset's current supply from the store.
@@ -183,39 +222,26 @@ func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (assets []sdk.Coin) {
 }
 
 // ------------------------------------------
-//		Atomic Swap Longterm Storage Index
+//				In Swap Supply
 // ------------------------------------------
-// TODO: make block deletion variable a param genesis value
-// InsertIntoLongtermStorage adds a swap ID and deletion time into the longterm storage index.
-// Completed swaps are stored for 1 week.
-func (k Keeper) InsertIntoLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	// Assuming block time of 7 seconds, there are 86,400 blocks in a week
-	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+int64(86400), atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
+
+// SetInSwapSupply sets an asset's total supply currently in swaps from the store.
+func (k Keeper) SetInSwapSupply(ctx sdk.Context, asset sdk.Coin, denom []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InSwapSupplyKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
+	store.Set(denom, bz)
 }
 
-// RemoveFromLongtermStorage removes a swap from the into the longterm storage index
-func (k Keeper) RemoveFromLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+int64(86400), atomicSwap.GetSwapID()))
-}
+// GetInSwapSupply gets an asset's total supply currently in swaps from the store.
+func (k Keeper) GetInSwapSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
+	var asset sdk.Coin
 
-// IterateAtomicSwapsLongtermStorage provides an iterator over AtomicSwaps ordered by deletion height.
-// For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
-func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(swapID []byte) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	iterator := store.Iterator(
-		nil, // start at the very start of the prefix store
-		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
-	)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-
-		id := iterator.Value()
-
-		if cb(id) {
-			break
-		}
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InSwapSupplyKeyPrefix)
+	bz := store.Get(denom)
+	if bz == nil {
+		return sdk.Coin{}, false
 	}
+
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &asset)
+	return asset, true
 }

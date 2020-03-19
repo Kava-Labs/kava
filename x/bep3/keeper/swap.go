@@ -49,14 +49,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return err
 	}
 
-	// TODO: coin amount in all atomic swaps + coin asset supply = threshold
-	if crossChain {
-		err := k.ValidateProposedSupplyIncrease(ctx, amount[0])
-		if err != nil {
-			return err
-		}
+	// TODO: if crossChain {
+	err = k.ValidateCreateSwapAgainstSupplyLimit(ctx, amount[0])
+	if err != nil {
+		return err
 	}
-	// TODO: work the math out here
+	// }
 	// else {
 	// 	err := k.ValidateProposedSupplyDecrease(ctx, amount[0])
 	// 	if err != nil {
@@ -92,6 +90,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		),
 	)
 
+	k.IncrementInSwapSupply(ctx, amount[0])
 	k.SetAtomicSwap(ctx, atomicSwap)
 	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 	return nil
@@ -135,17 +134,18 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 			sdk.NewAttribute(types.AttributeKeyRandomNumber, fmt.Sprintf("%s", hex.EncodeToString(randomNumber))),
 		),
 	)
-	// Update swap status to completed
+
+	// TODO: if atomicSwap.CrossChain -> update supply
+	// Update supply
+	k.DecrementInSwapSupply(ctx, atomicSwap.Amount[0])
+	k.IncrementAssetSupply(ctx, atomicSwap.Amount[0])
+
+	// Complete swap
 	atomicSwap.Status = types.Completed
+	atomicSwap.ClosedBlock = ctx.BlockHeight()
 	k.SetAtomicSwap(ctx, atomicSwap)
 
-	// Increment asset supply
-	if atomicSwap.CrossChain {
-		k.IncrementAssetSupply(ctx, atomicSwap.Amount[0])
-	}
-	// TODO: else { decrement } ?
-
-	// Transition to longterm storage
+	// Remove from byBlock index and transition to longterm storage
 	k.RemoveFromByBlockIndex(ctx, atomicSwap)
 	k.InsertIntoLongtermStorage(ctx, atomicSwap)
 	return nil
@@ -179,9 +179,14 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		),
 	)
 
-	// Update swap status to completed
+	// Update supply
+	k.DecrementInSwapSupply(ctx, atomicSwap.Amount[0])
+
+	// Complete swap
 	atomicSwap.Status = types.Completed
+	atomicSwap.ClosedBlock = ctx.BlockHeight()
 	k.SetAtomicSwap(ctx, atomicSwap)
+
 	// Transition to longterm storage
 	k.InsertIntoLongtermStorage(ctx, atomicSwap)
 	return nil
@@ -219,6 +224,5 @@ func (k Keeper) DeleteClosedAtomicSwapsFromLongtermStorage(ctx sdk.Context) sdk.
 		k.RemoveAtomicSwap(ctx, swap.GetSwapID())
 		k.RemoveFromLongtermStorage(ctx, swap)
 	}
-
 	return nil
 }

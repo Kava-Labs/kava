@@ -26,6 +26,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCalcSwapIDCmd(queryRoute, cdc),
 		QueryCalcRandomNumberHashCmd(queryRoute, cdc),
 		QueryGetAtomicSwapCmd(queryRoute, cdc),
+		QueryGetAssetSupplyInfoCmd(queryRoute, cdc),
 		QueryGetAtomicSwapsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
@@ -81,6 +82,36 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Calculate swap ID and convert to human-readable string
 			swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 			return cliCtx.PrintOutput(hex.EncodeToString(swapID))
+		},
+	}
+}
+
+// QueryGetAssetSupplyInfoCmd queries as asset's current in swap supply, active, supply, and supply limit
+func QueryGetAssetSupplyInfoCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "supply [denom]",
+		Short:   "get information about an asset's supply",
+		Example: "bep3 supply bnb",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare query params
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupplyInfo(args[0]))
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAssetSupplyInfo), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var assetSupplyInfo types.AssetSupplyInfo
+			cdc.MustUnmarshalJSON(res, &assetSupplyInfo)
+			return cliCtx.PrintOutput(assetSupplyInfo)
 		},
 	}
 }

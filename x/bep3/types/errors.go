@@ -13,20 +13,21 @@ type CodeType = sdk.CodeType
 
 const (
 	// DefaultCodespace default bep3 codespace
-	DefaultCodespace            sdk.CodespaceType = ModuleName
-	CodeConversionToBytesFailed CodeType          = 1
-	CodeInvalidTimestamp        CodeType          = 2
-	CodeInvalidHeightSpan       CodeType          = 3
-	CodeAmountTooSmall          CodeType          = 4
-	CodeAssetNotSupported       CodeType          = 5
-	CodeAssetNotActive          CodeType          = 6
-	CodeAssetSupplyNotSet       CodeType          = 7
-	CodeAboveAssetSupplyLimit   CodeType          = 8
-	CodeInvalidClaimSecret      CodeType          = 9
-	CodeAtomicSwapAlreadyExists CodeType          = 10
-	CodeAtomicSwapNotFound      CodeType          = 11
-	CodeSwapNotRefundable       CodeType          = 12
-	CodeSwapNotClaimable        CodeType          = 13
+	DefaultCodespace                sdk.CodespaceType = ModuleName
+	CodeConversionToBytesFailed     CodeType          = 1
+	CodeInvalidTimestamp            CodeType          = 2
+	CodeInvalidHeightSpan           CodeType          = 3
+	CodeAmountTooSmall              CodeType          = 4
+	CodeAssetNotSupported           CodeType          = 5
+	CodeAssetNotActive              CodeType          = 6
+	CodeAssetSupplyNotSet           CodeType          = 7
+	CodeAboveTotalAssetSupplyLimit  CodeType          = 8
+	CodeAboveAssetActiveSupplyLimit CodeType          = 9
+	CodeInvalidClaimSecret          CodeType          = 10
+	CodeAtomicSwapAlreadyExists     CodeType          = 11
+	CodeAtomicSwapNotFound          CodeType          = 12
+	CodeSwapNotRefundable           CodeType          = 13
+	CodeSwapNotClaimable            CodeType          = 14
 )
 
 // ErrConversionToBytesFailed error for when a hex encoded string can't be converted to bytes
@@ -64,11 +65,18 @@ func ErrAssetSupplyNotSet(codespace sdk.CodespaceType, denom string) sdk.Error {
 	return sdk.NewError(codespace, CodeAssetSupplyNotSet, fmt.Sprintf("%s asset supply hasn't been set", denom))
 }
 
-// ErrAboveAssetSupplyLimit error for when a proposed asset supply increase would put the supply over the limit
-func ErrAboveAssetSupplyLimit(codespace sdk.CodespaceType, denom string, currentSupply, supplyLimit sdk.Int) sdk.Error {
-	return sdk.NewError(codespace, CodeAboveAssetSupplyLimit,
-		fmt.Sprintf("invalid supply increase - %s has a supply of %d and a supply limit of %d",
-			denom, currentSupply.Int64(), supplyLimit.Int64()))
+// ErrAboveTotalAssetSupplyLimit error for when a proposed swap's amount is greater than the total supply limit (amount in swaps + amount active)
+func ErrAboveTotalAssetSupplyLimit(codespace sdk.CodespaceType, denom string, supplyLimit, currAssetSupply, currInSwapSupply sdk.Int) sdk.Error {
+	return sdk.NewError(codespace, CodeAboveTotalAssetSupplyLimit,
+		fmt.Sprintf("%s proposed supply increase is over the supply limit of %d - current supply is %d, amount in active swaps is %d",
+			denom, supplyLimit.Int64(), currAssetSupply.Int64(), currInSwapSupply.Int64()))
+}
+
+// ErrAboveAssetActiveSupplyLimit error for when the swap amount of an attempted claim is greater than active supply limit
+func ErrAboveAssetActiveSupplyLimit(codespace sdk.CodespaceType, denom string, supplyLimit, currAssetSupply sdk.Int) sdk.Error {
+	return sdk.NewError(codespace, CodeAboveAssetActiveSupplyLimit,
+		fmt.Sprintf("%s proposed supply increase is over the supply limit of %d - current supply is %d",
+			denom, supplyLimit.Int64(), currAssetSupply.Int64()))
 }
 
 // ErrInvalidClaimSecret error when a submitted secret doesn't match an AtomicSwap's swapID
