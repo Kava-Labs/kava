@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // CreateAtomicSwap creates a new AtomicSwap
@@ -29,8 +28,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
-	pastTimestampLimit := tmtime.Now().Add(time.Duration(-15) * time.Minute).Unix()
-	futureTimestampLimit := tmtime.Now().Add(time.Duration(30) * time.Minute).Unix()
+	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
+	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
 	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
 		return types.ErrInvalidTimestamp(k.codespace)
 	}
