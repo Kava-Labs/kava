@@ -14,26 +14,18 @@ type CodeType = sdk.CodeType
 const (
 	// DefaultCodespace default bep3 codespace
 	DefaultCodespace                sdk.CodespaceType = ModuleName
-	CodeConversionToBytesFailed     CodeType          = 1
-	CodeInvalidTimestamp            CodeType          = 2
-	CodeInvalidHeightSpan           CodeType          = 3
-	CodeAmountTooSmall              CodeType          = 4
-	CodeAssetNotSupported           CodeType          = 5
-	CodeAssetNotActive              CodeType          = 6
-	CodeAssetSupplyNotSet           CodeType          = 7
-	CodeAboveTotalAssetSupplyLimit  CodeType          = 8
-	CodeAboveAssetActiveSupplyLimit CodeType          = 9
-	CodeInvalidClaimSecret          CodeType          = 10
-	CodeAtomicSwapAlreadyExists     CodeType          = 11
-	CodeAtomicSwapNotFound          CodeType          = 12
-	CodeSwapNotRefundable           CodeType          = 13
-	CodeSwapNotClaimable            CodeType          = 14
+	CodeInvalidTimestamp            CodeType          = 1
+	CodeInvalidHeightSpan           CodeType          = 2
+	CodeAssetNotSupported           CodeType          = 3
+	CodeAssetNotActive              CodeType          = 4
+	CodeAboveTotalAssetSupplyLimit  CodeType          = 5
+	CodeAboveAssetActiveSupplyLimit CodeType          = 6
+	CodeInvalidClaimSecret          CodeType          = 7
+	CodeAtomicSwapAlreadyExists     CodeType          = 8
+	CodeAtomicSwapNotFound          CodeType          = 9
+	CodeSwapNotRefundable           CodeType          = 10
+	CodeSwapNotClaimable            CodeType          = 11
 )
-
-// ErrConversionToBytesFailed error for when a hex encoded string can't be converted to bytes
-func ErrConversionToBytesFailed(codespace sdk.CodespaceType, hexEncodedValue string) sdk.Error {
-	return sdk.NewError(codespace, CodeConversionToBytesFailed, fmt.Sprintf("couldn't convert hex encoded %s to bytes", hexEncodedValue))
-}
 
 // ErrInvalidTimestamp error for when an timestamp is outside of bounds. Assumes block time of 10 seconds.
 func ErrInvalidTimestamp(codespace sdk.CodespaceType) sdk.Error {
@@ -45,11 +37,6 @@ func ErrInvalidHeightSpan(codespace sdk.CodespaceType, heightspan int64, minLock
 	return sdk.NewError(codespace, CodeInvalidHeightSpan, fmt.Sprintf("height span %d is outside acceptable range %d - %d", heightspan, minLockTime, maxLockTime))
 }
 
-// ErrAmountTooSmall error for when a coin amount is 0
-func ErrAmountTooSmall(codespace sdk.CodespaceType, coin sdk.Coin) sdk.Error {
-	return sdk.NewError(codespace, CodeAmountTooSmall, fmt.Sprintf("coin %s amount is below the limit for this operation", coin))
-}
-
 // ErrAssetNotSupported error for when an asset is not supported
 func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
 	return sdk.NewError(codespace, CodeAssetNotSupported, fmt.Sprintf("asset %s is not on the list of supported assets", denom))
@@ -58,11 +45,6 @@ func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
 // ErrAssetNotActive error for when an asset is currently inactive
 func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
 	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is currently inactive", denom))
-}
-
-// ErrAssetSupplyNotSet error for when an asset's supply has not been initialized
-func ErrAssetSupplyNotSet(codespace sdk.CodespaceType, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeAssetSupplyNotSet, fmt.Sprintf("%s asset supply hasn't been set", denom))
 }
 
 // ErrAboveTotalAssetSupplyLimit error for when a proposed swap's amount is greater than the total supply limit (amount in swaps + amount active)

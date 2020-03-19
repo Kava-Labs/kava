@@ -52,14 +52,14 @@ func (suite *AssetTestSuite) SetupTest() {
 	return
 }
 
-func (suite *AssetTestSuite) TestValidateActiveAsset() {
+func (suite *AssetTestSuite) TestValidateLiveAsset() {
 	// Make an atomic swap in order to set the asset supply
 	timestamp := tmtime.Now().Unix()
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 	_ = suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, int64(360), suite.addrs[0],
-		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb")
+		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb", true)
 
 	type args struct {
 		coin sdk.Coin
@@ -97,7 +97,7 @@ func (suite *AssetTestSuite) TestValidateActiveAsset() {
 	}
 
 	for _, tc := range testCases {
-		err := suite.keeper.ValidateActiveAsset(suite.ctx, tc.args.coin)
+		err := suite.keeper.ValidateLiveAsset(suite.ctx, tc.args.coin)
 
 		if tc.expectPass {
 			suite.NoError(err)
@@ -108,14 +108,14 @@ func (suite *AssetTestSuite) TestValidateActiveAsset() {
 	}
 }
 
-func (suite *AssetTestSuite) TestValidateProposedIncrease() {
+func (suite *AssetTestSuite) TestValidateCreateSwapAgainstSupplyLimit() {
 	// Make an atomic swap in order to set the asset supply
 	timestamp := tmtime.Now().Unix()
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 	_ = suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, int64(360), suite.addrs[0],
-		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb")
+		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb", true)
 
 	type args struct {
 		coin sdk.Coin
@@ -135,33 +135,17 @@ func (suite *AssetTestSuite) TestValidateProposedIncrease() {
 			true,
 		},
 		{
-			"amount too small",
-			args{
-				coin: c("bnb", 0),
-			},
-			types.CodeAmountTooSmall,
-			false,
-		},
-		{
-			"asset supply not set",
-			args{
-				coin: c("inc", 500),
-			},
-			types.CodeAssetSupplyNotSet,
-			false,
-		},
-		{
 			"above asset supply limit",
 			args{
 				coin: c("bnb", BNB_SUPPLY_LIMIT.Int64()+1),
 			},
-			types.CodeAboveAssetSupplyLimit,
+			types.CodeAboveTotalAssetSupplyLimit,
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := suite.keeper.ValidateProposedIncrease(suite.ctx, tc.args.coin)
+		err := suite.keeper.ValidateCreateSwapAgainstSupplyLimit(suite.ctx, tc.args.coin)
 
 		if tc.expectPass {
 			suite.NoError(err)
@@ -179,7 +163,7 @@ func (suite *AssetTestSuite) TestIncrementAssetSupply() {
 	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 	_ = suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, int64(360), suite.addrs[0],
-		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb")
+		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb", true)
 
 	type args struct {
 		coin sdk.Coin
@@ -200,15 +184,13 @@ func (suite *AssetTestSuite) TestIncrementAssetSupply() {
 
 	for _, tc := range testCases {
 		assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
-		err := suite.keeper.IncrementAssetSupply(suite.ctx, tc.args.coin)
+		suite.keeper.IncrementAssetSupply(suite.ctx, tc.args.coin)
 		assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
 
 		if tc.expectPass {
-			suite.NoError(err)
 			// Check asset supply changed
 			suite.Equal(assetSupplyPre.Add(tc.args.coin), assetSupplyPost)
 		} else {
-			suite.Error(err)
 			// Check asset supply hasn't changed
 			suite.Equal(assetSupplyPre, assetSupplyPost)
 		}

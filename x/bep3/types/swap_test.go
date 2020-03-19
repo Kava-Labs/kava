@@ -52,6 +52,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 		senderOtherChain    string
 		closedBlock         int64
 		status              types.SwapStatus
+		crossChain          bool
 	}
 	testCases := []struct {
 		description string
@@ -71,6 +72,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				senderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				closedBlock:         0,
 				status:              types.Open,
+				crossChain:          true,
 			},
 			true,
 		},
@@ -87,6 +89,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				senderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				closedBlock:         0,
 				status:              types.Open,
+				crossChain:          true,
 			},
 			false,
 		},
@@ -103,6 +106,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				senderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				closedBlock:         0,
 				status:              types.Open,
+				crossChain:          true,
 			},
 			false,
 		},
@@ -112,7 +116,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 		// Create atomic swap
 		swap := types.NewAtomicSwap(tc.args.amount, tc.args.randomNumberHash, tc.args.expireHeight,
 			tc.args.timestamp, tc.args.sender, tc.args.recipient, tc.args.senderOtherChain,
-			tc.args.recipientOtherChain, tc.args.closedBlock, tc.args.status)
+			tc.args.recipientOtherChain, tc.args.closedBlock, tc.args.status, tc.args.crossChain)
 
 		if tc.expectPass {
 			suite.Nil(swap.Validate())

@@ -177,7 +177,7 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 			blockCtx.BlockHeight(), timestamp, kavaAddrs[0], kavaAddrs[1],
-			binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open)
+			binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true)
 
 		// Insert into block index
 		suite.keeper.InsertIntoByBlockIndex(blockCtx, atomicSwap)

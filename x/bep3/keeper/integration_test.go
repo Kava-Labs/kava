@@ -77,7 +77,7 @@ func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 
 	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 		ctx.BlockHeight()+expireOffset, timestamp, kavaAddrs[0], kavaAddrs[1],
-		binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open)
+		binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true)
 
 	return swap
 }

@@ -86,6 +86,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 		recipientOtherChain string
 		coins               sdk.Coins
 		expectedIncome      string
+		crossChain          bool
 	}
 	testCases := []struct {
 		name          string
@@ -107,6 +108,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 50000)),
 				expectedIncome:      "50000bnb",
+				crossChain:          true,
 			},
 			true,
 			true,
@@ -124,6 +126,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("xyz", 50000)),
 				expectedIncome:      "50000xyz",
+				crossChain:          true,
 			},
 			false,
 			false,
@@ -141,6 +144,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 50000)),
 				expectedIncome:      "50000bnb",
+				crossChain:          true,
 			},
 			false,
 			false,
@@ -158,6 +162,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 50000)),
 				expectedIncome:      "50000bnb",
+				crossChain:          true,
 			},
 			false,
 			false,
@@ -175,6 +180,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 50000)),
 				expectedIncome:      "50000bnb",
+				crossChain:          true,
 			},
 			false,
 			false,
@@ -192,6 +198,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 50000)),
 				expectedIncome:      "50000bnb",
+				crossChain:          true,
 			},
 			false,
 			false,
@@ -209,6 +216,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 0)),
 				expectedIncome:      "0bnb",
+				crossChain:          true,
 			},
 			false,
 			false,
@@ -226,6 +234,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipientOtherChain: binanceAddrs[1].String(),
 				coins:               cs(c("bnb", 50000)),
 				expectedIncome:      "50000bnb",
+				crossChain:          true,
 			},
 			false,
 			true,
@@ -236,7 +245,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 		// Create atomic swap
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, tc.args.randomNumberHash, tc.args.timestamp,
 			tc.args.heightSpan, tc.args.sender, tc.args.recipient, tc.args.senderOtherChain,
-			tc.args.recipientOtherChain, tc.args.coins, tc.args.expectedIncome)
+			tc.args.recipientOtherChain, tc.args.coins, tc.args.expectedIncome, tc.args.crossChain)
 
 		// Load expected swap ID
 		expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender, tc.args.senderOtherChain)
@@ -272,6 +281,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 					RecipientOtherChain: tc.args.recipientOtherChain,
 					ClosedBlock:         0,
 					Status:              types.Open,
+					CrossChain:          tc.args.crossChain,
 				})
 			suite.Equal(expectedSwap, actualSwap)
 		} else {
@@ -351,7 +361,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
 			int64(360), suite.addrs[i], expectedRecipient, binanceAddrs[0].String(), binanceAddrs[1].String(),
-			expectedClaimAmount, expectedClaimAmount.String())
+			expectedClaimAmount, expectedClaimAmount.String(), true)
 		suite.NoError(err)
 
 		realSwapID := types.CalculateSwapID(suite.randomNumberHashes[i], suite.addrs[i], binanceAddrs[0].String())
@@ -378,36 +388,25 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 		// Attempt to claim atomic swap
 		err = suite.keeper.ClaimAtomicSwap(tc.claimCtx, expectedRecipient, claimSwapID, claimRandomNumber)
 
-		// Load sender's account at time of claim
+		// Load sender's account after attempted claim
 		ak := suite.app.GetAccountKeeper()
 		recipientAcc := ak.GetAccount(tc.claimCtx, expectedRecipient)
 
 		if tc.expectPass {
 			suite.NoError(err)
-
 			// Check coins moved
 			suite.Equal(
 				sdk.NewInt(STARING_BNB_BALANCE).Add(expectedClaimAmount[0].Amount),
 				recipientAcc.GetCoins().AmountOf("bnb"),
 			)
-
-			// Check swap not in store
-			_, found := suite.keeper.GetAtomicSwap(suite.ctx, realSwapID)
-			suite.False(found)
 		} else {
 			suite.Error(err)
-
 			// Check coins not moved
 			existingAdditionalBalance := expectedClaimAmount[0].Amount
 			suite.Equal(
 				sdk.NewInt(STARING_BNB_BALANCE).Add(existingAdditionalBalance),
 				recipientAcc.GetCoins().AmountOf("bnb"),
 			)
-
-			// Check swap still in store
-			swap, found := suite.keeper.GetAtomicSwap(suite.ctx, realSwapID)
-			suite.True(found)
-			suite.NotNil(swap)
 		}
 	}
 }
@@ -457,7 +456,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
 			int64(360), originalSender, suite.addrs[8], binanceAddrs[0].String(), binanceAddrs[1].String(),
-			expectedRefundAmount, expectedRefundAmount.String())
+			expectedRefundAmount, expectedRefundAmount.String(), true)
 		suite.NoError(err)
 
 		realSwapID := types.CalculateSwapID(suite.randomNumberHashes[i], originalSender, binanceAddrs[0].String())
@@ -476,7 +475,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 		// Attempt to refund atomic swap
 		err = suite.keeper.RefundAtomicSwap(tc.refundCtx, originalSender, refundSwapID)
 
-		// Load sender's account at time of refund
+		// Load sender's account after refund
 		ak := suite.app.GetAccountKeeper()
 		senderAcc := ak.GetAccount(tc.refundCtx, originalSender)
 
@@ -488,10 +487,6 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 				sdk.NewInt(STARING_BNB_BALANCE),
 				senderAcc.GetCoins().AmountOf("bnb"),
 			)
-
-			// Check swap not in store
-			_, found := suite.keeper.GetAtomicSwap(suite.ctx, realSwapID)
-			suite.False(found)
 		} else {
 			suite.Error(err)
 
@@ -501,11 +496,6 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 				sdk.NewInt(STARING_BNB_BALANCE).Sub(existingAdditionalBalance),
 				senderAcc.GetCoins().AmountOf("bnb"),
 			)
-
-			// Check swap still in store
-			swap, found := suite.keeper.GetAtomicSwap(suite.ctx, realSwapID)
-			suite.True(found)
-			suite.NotNil(swap)
 		}
 	}
 }
