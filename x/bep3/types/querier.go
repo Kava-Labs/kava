@@ -1,7 +1,6 @@
 package types
 
 import (
-	cmm "github.com/tendermint/tendermint/libs/common"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
@@ -30,7 +29,7 @@ func NewQueryAssetSupplyInfo(denom string) QueryAssetSupplyInfo {
 
 // QueryAtomicSwapByID contains the params for query 'custom/bep3/swap'
 type QueryAtomicSwapByID struct {
-	SwapID cmm.HexBytes `json:"swap_id" yaml:"swap_id"`
+	SwapID cmn.HexBytes `json:"swap_id" yaml:"swap_id"`
 }
 
 // NewQueryAtomicSwapByID creates a new QueryAtomicSwapByID

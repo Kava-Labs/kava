@@ -57,7 +57,7 @@ func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
 
 // ErrAssetNotActive error for when an asset is currently inactive
 func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is current inactive", denom))
+	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is currently inactive", denom))
 }
 
 // ErrAssetSupplyNotSet error for when an asset's supply has not been initialized

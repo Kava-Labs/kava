@@ -37,7 +37,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	// Sanity check on recipient address
 	if recipient.Empty() {
-		return sdk.ErrInvalidAddress("invalid (empty) bidder address")
+		return sdk.ErrInvalidAddress("invalid (empty) recipient address")
 	}
 
 	if len(amount) != 1 {

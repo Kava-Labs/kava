@@ -18,7 +18,7 @@ var (
 	AbsoluteMinimumBlockLock int64 = 50
 	DefaultMinBlockLock      int64 = 80
 	DefaultMaxBlockLock      int64 = 600
-	DefaultSupportedAssets         = AssetParams{AssetParam{Denom: "ukava", CoinID: "459", Limit: sdk.NewInt(1), Active: false}}
+	DefaultSupportedAssets         = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: sdk.NewInt(1), Active: false}}
 )
 
 // Params governance parameters for bep3 module
@@ -36,11 +36,11 @@ func (p Params) String() string {
 	Min block lock: %d,
 	Max block lock: %d,
 	Supported assets: %s`,
-		p.BnbDeputyAddress, p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
+		p.BnbDeputyAddress.String(), p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock int64, maxBlockLock int64, supportedAssets AssetParams) Params {
+func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock int64, supportedAssets AssetParams) Params {
 	return Params{
 		BnbDeputyAddress: bnbDeputyAddress,
 		MinBlockLock:     minBlockLock,
@@ -57,7 +57,7 @@ func DefaultParams() Params {
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
-	Denom  string  `json:"denom" yaml:"denom"`     // name of the asster
+	Denom  string  `json:"denom" yaml:"denom"`     // name of the asset
 	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
 	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
 	Active bool    `json:"active" yaml:"active"`   // denotes if asset is available or paused
@@ -105,15 +105,17 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
 	if p.MinBlockLock < AbsoluteMinimumBlockLock {
-		return fmt.Errorf(fmt.Sprintf("minimum block lock cannot be shorter than %d", AbsoluteMinimumBlockLock))
+		return fmt.Errorf(fmt.Sprintf("minimum block lock cannot be less than %d", AbsoluteMinimumBlockLock))
 	}
 	if p.MinBlockLock >= p.MaxBlockLock {
 		return fmt.Errorf("maximum block lock must be greater than minimum block lock")
 	}
 	if p.MaxBlockLock > AbsoluteMaximumBlockLock {
-		return fmt.Errorf(fmt.Sprintf("maximum block lock cannot be longer than %d", AbsoluteMaximumBlockLock))
+		return fmt.Errorf(fmt.Sprintf("maximum block lock cannot be greater than %d", AbsoluteMaximumBlockLock))
 	}
+
 	coinIDs := make(map[string]bool)
+	coinDenoms := make(map[string]bool)
 	for _, asset := range p.SupportedAssets {
 		if len(asset.Denom) == 0 {
 			return fmt.Errorf("asset denom cannot be empty")
@@ -121,14 +123,17 @@ func (p Params) Validate() error {
 		if len(asset.CoinID) == 0 {
 			return fmt.Errorf(fmt.Sprintf("asset %s cannot have an empty coin id", asset.Denom))
 		}
+		if !asset.Limit.IsPositive() {
+			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive supply limit", asset.Denom))
+		}
+		if coinDenoms[asset.Denom] {
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate denom", asset.Denom))
+		}
+		coinDenoms[asset.Denom] = true
 		if coinIDs[asset.CoinID] {
 			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %s", asset.Denom, asset.CoinID))
 		}
 		coinIDs[asset.CoinID] = true
-		if !asset.Limit.IsPositive() {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive limit", asset.Denom))
-		}
 	}
-
 	return nil
 }
