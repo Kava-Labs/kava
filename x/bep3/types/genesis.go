@@ -26,7 +26,6 @@ func NewGenesisState(params Params, swaps AtomicSwaps, assetSupplies []sdk.Coin)
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
-
 	return NewGenesisState(
 		DefaultParams(),
 		AtomicSwaps{},

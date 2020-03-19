@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
-	cmm "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -37,7 +37,7 @@ type MsgCreateAtomicSwap struct {
 	To                  sdk.AccAddress `json:"to"`
 	RecipientOtherChain string         `json:"recipient_other_chain"`
 	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    cmm.HexBytes   `json:"random_number_hash"`
+	RandomNumberHash    cmn.HexBytes   `json:"random_number_hash"`
 	Timestamp           int64          `json:"timestamp"`
 	Amount              sdk.Coins      `json:"amount"`
 	ExpectedIncome      string         `json:"expected_income"`
@@ -47,7 +47,7 @@ type MsgCreateAtomicSwap struct {
 
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
 func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash cmm.HexBytes, timestamp int64,
+	senderOtherChain string, randomNumberHash cmn.HexBytes, timestamp int64,
 	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
 		From:                from,
@@ -141,8 +141,8 @@ func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
 // MsgClaimAtomicSwap defines a AtomicSwap claim
 type MsgClaimAtomicSwap struct {
 	From         sdk.AccAddress `json:"from"`
-	SwapID       cmm.HexBytes   `json:"swap_id"`
-	RandomNumber cmm.HexBytes   `json:"random_number"`
+	SwapID       cmn.HexBytes   `json:"swap_id"`
+	RandomNumber cmn.HexBytes   `json:"random_number"`
 }
 
 // NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
@@ -201,7 +201,7 @@ func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
 // MsgRefundAtomicSwap defines a refund msg
 type MsgRefundAtomicSwap struct {
 	From   sdk.AccAddress `json:"from"`
-	SwapID cmm.HexBytes   `json:"swap_id"`
+	SwapID cmn.HexBytes   `json:"swap_id"`
 }
 
 // NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap
