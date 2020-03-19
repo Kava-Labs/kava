@@ -196,17 +196,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectPass:  false,
 			expectedErr: "cannot have duplicate coin id",
 		},
-		{
-			name: "invalid (empty) deputy address",
-			args: args{
-				bnbDeputyAddress: sdk.AccAddress{},
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
-				supportedAssets:  types.DefaultSupportedAssets,
-			},
-			expectPass:  false,
-			expectedErr: "deputy address expected length is 20, actual length is 0",
-		},
 	}
 
 	for _, tc := range testCases {

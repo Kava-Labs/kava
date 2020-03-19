@@ -104,9 +104,6 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	if len(p.BnbDeputyAddress) != 20 {
-		return fmt.Errorf(fmt.Sprintf("deputy address expected length is %d, actual length is %d", 20, len(p.BnbDeputyAddress)))
-	}
 	if p.MinBlockLock < AbsoluteMinimumBlockLock {
 		return fmt.Errorf(fmt.Sprintf("minimum block lock cannot be less than %d", AbsoluteMinimumBlockLock))
 	}
