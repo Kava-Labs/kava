@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/snikch/goodman/hooks"
 	trans "github.com/snikch/goodman/transaction"
@@ -280,18 +281,16 @@ func getKeybase() crkeys.Keybase {
 	// create a keybase
 	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
 	// TODO - QUESTION - should we read the path from a configuration file?
-	keybase, err := keys.NewKeyBaseFromDir("/Users/john/.kvcli/")
+	home, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
 	}
-	_, err = keybase.List()
-	// fmt.Printf("Keys: %s\n\n", all)
+	keybase, err := keys.NewKeyBaseFromDir(home + "/.kvcli/")
 	if err != nil {
 		panic(err)
 	}
 
 	return keybase
-
 }
 
 // sendMsgToBlockchain sends a message to the blockchain via the rest api
