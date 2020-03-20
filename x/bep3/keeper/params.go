@@ -34,6 +34,12 @@ func (k Keeper) GetMinBlockLock(ctx sdk.Context) int64 {
 	return params.MinBlockLock
 }
 
+// GetCompletedSwapStorageDuration returns the completed swap storage duration
+func (k Keeper) GetCompletedSwapStorageDuration(ctx sdk.Context) int64 {
+	params := k.GetParams(ctx)
+	return params.CompletedSwapStorageDuration
+}
+
 // GetAssets returns a list containing all supported assets
 func (k Keeper) GetAssets(ctx sdk.Context) (types.AssetParams, bool) {
 	params := k.GetParams(ctx)
@@ -52,7 +58,7 @@ func (k Keeper) GetAssetByDenom(ctx sdk.Context, denom string) (types.AssetParam
 }
 
 // GetAssetByCoinID returns an asset by its denom
-func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID string) (types.AssetParam, bool) {
+func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam, bool) {
 	params := k.GetParams(ctx)
 	for _, asset := range params.SupportedAssets {
 		if asset.CoinID == coinID {

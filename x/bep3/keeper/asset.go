@@ -77,19 +77,6 @@ func (k Keeper) ValidateCreateSwapAgainstSupplyLimit(ctx sdk.Context, coin sdk.C
 	return nil
 }
 
-// TODO: is this method redundant?
-// ValidateClaimSwapAgainstSupplyLimit validates a claim attempt against the asset's active supply
-// func (k Keeper) ValidateClaimSwapAgainstSupplyLimit(ctx sdk.Context, coin sdk.Coin) sdk.Error {
-// 	_, currAssetSupply := k.LoadAssetSupply(ctx, coin.Denom)
-// 	asset, _ := k.GetAssetByDenom(ctx, coin.Denom)
-// 	if currAssetSupply.Add(coin).Amount.GT(asset.Limit) {
-// 		return types.ErrAboveAssetActiveSupplyLimit(
-// 			k.codespace, coin.Denom, asset.Limit, currAssetSupply.Amount,
-// 		)
-// 	}
-// 	return nil
-// }
-
 // LoadAssetSupply loads an asset's in swap supply and its current supply.
 // If it's the first swap of this asset type, initialize both in swap supply
 // and asset supply to 0.

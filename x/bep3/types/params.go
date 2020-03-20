@@ -9,24 +9,28 @@ import (
 
 // Parameter keys
 var (
-	KeyBnbDeputyAddress = []byte("BnbDeputyAddress")
-	KeyMinBlockLock     = []byte("MinBlockLock")
-	KeyMaxBlockLock     = []byte("MaxBlockLock")
-	KeySupportedAssets  = []byte("SupportedAssets")
+	KeyBnbDeputyAddress             = []byte("BnbDeputyAddress")
+	KeyMinBlockLock                 = []byte("MinBlockLock")
+	KeyMaxBlockLock                 = []byte("MaxBlockLock")
+	KeyCompletedSwapStorageDuration = []byte("CompletedSwapStorageDuration")
+	KeySupportedAssets              = []byte("SupportedAssets")
 
-	AbsoluteMaximumBlockLock int64 = 10000
-	AbsoluteMinimumBlockLock int64 = 50
-	DefaultMinBlockLock      int64 = 80
-	DefaultMaxBlockLock      int64 = 600
-	DefaultSupportedAssets         = AssetParams{AssetParam{Denom: "kava", CoinID: "459", Limit: sdk.NewInt(1), Active: false}}
+	AbsoluteMaximumBlockLock               int64 = 10000
+	AbsoluteMinimumBlockLock               int64 = 50
+	AbsoluteMinimumLongtermStorageDuration int64 = 1000
+	DefaultMinBlockLock                    int64 = 80
+	DefaultMaxBlockLock                    int64 = 600
+	DefaultLongtermStorageDuration         int64 = 86400 // 1 week (assuming a block time of 7 seconds)
+	DefaultSupportedAssets                       = AssetParams{AssetParam{Denom: "kava", CoinID: 459, Limit: sdk.NewInt(1), Active: false}}
 )
 
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // Bnbchain deputy address
-	MinBlockLock     int64          `json:"min_block_lock" yaml:"min_block_lock"`         // AtomicSwap minimum block lock
-	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"`         // AtomicSwap maximum block lock
-	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`     // supported assets
+	BnbDeputyAddress             sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`                           // Bnbchain deputy address
+	MinBlockLock                 int64          `json:"min_block_lock" yaml:"min_block_lock"`                                   // AtomicSwap minimum block lock
+	MaxBlockLock                 int64          `json:"max_block_lock" yaml:"max_block_lock"`                                   // AtomicSwap maximum block lock
+	CompletedSwapStorageDuration int64          `json:"completed_swap_storage_duration" yaml:"completed_swap_storage_duration"` // Store completed AtomicSwaps for block count
+	SupportedAssets              AssetParams    `json:"supported_assets" yaml:"supported_assets"`                               // Supported assets
 }
 
 // String implements fmt.Stringer
@@ -35,30 +39,34 @@ func (p Params) String() string {
 	Bnbchain deputy address: %s,
 	Min block lock: %d,
 	Max block lock: %d,
+	Completed swap storage duration: %d, 
 	Supported assets: %s`,
-		p.BnbDeputyAddress.String(), p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
+		p.BnbDeputyAddress.String(), p.MinBlockLock, p.MaxBlockLock, p.CompletedSwapStorageDuration, p.SupportedAssets)
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock int64, supportedAssets AssetParams) Params {
+func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock,
+	completedSwapStorageDuration int64, supportedAssets AssetParams) Params {
 	return Params{
-		BnbDeputyAddress: bnbDeputyAddress,
-		MinBlockLock:     minBlockLock,
-		MaxBlockLock:     maxBlockLock,
-		SupportedAssets:  supportedAssets,
+		BnbDeputyAddress:             bnbDeputyAddress,
+		MinBlockLock:                 minBlockLock,
+		MaxBlockLock:                 maxBlockLock,
+		CompletedSwapStorageDuration: completedSwapStorageDuration,
+		SupportedAssets:              supportedAssets,
 	}
 }
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
 	defaultBnbDeputyAddress, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
-	return NewParams(defaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
+	return NewParams(defaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock,
+		DefaultLongtermStorageDuration, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
 	Denom  string  `json:"denom" yaml:"denom"`     // name of the asset
-	CoinID string  `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
+	CoinID int     `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
 	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
 	Active bool    `json:"active" yaml:"active"`   // denotes if asset is available or paused
 }
@@ -67,7 +75,7 @@ type AssetParam struct {
 func (ap AssetParam) String() string {
 	return fmt.Sprintf(`Asset:
 	Denom: %s
-	Coin ID: %s
+	Coin ID: %d
 	Limit: %s
 	Active: %t`,
 		ap.Denom, ap.CoinID, ap.Limit.String(), ap.Active)
@@ -98,6 +106,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		{Key: KeyBnbDeputyAddress, Value: &p.BnbDeputyAddress},
 		{Key: KeyMinBlockLock, Value: &p.MinBlockLock},
 		{Key: KeyMaxBlockLock, Value: &p.MaxBlockLock},
+		{Key: KeyCompletedSwapStorageDuration, Value: &p.CompletedSwapStorageDuration},
 		{Key: KeySupportedAssets, Value: &p.SupportedAssets},
 	}
 }
@@ -113,15 +122,18 @@ func (p Params) Validate() error {
 	if p.MaxBlockLock > AbsoluteMaximumBlockLock {
 		return fmt.Errorf(fmt.Sprintf("maximum block lock cannot be greater than %d", AbsoluteMaximumBlockLock))
 	}
-
-	coinIDs := make(map[string]bool)
+	if p.CompletedSwapStorageDuration < AbsoluteMinimumLongtermStorageDuration {
+		return fmt.Errorf(fmt.Sprintf("minimum completed swap storage duration lock cannot be less than %d",
+			AbsoluteMinimumLongtermStorageDuration))
+	}
+	coinIDs := make(map[int]bool)
 	coinDenoms := make(map[string]bool)
 	for _, asset := range p.SupportedAssets {
 		if len(asset.Denom) == 0 {
 			return fmt.Errorf("asset denom cannot be empty")
 		}
-		if len(asset.CoinID) == 0 {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have an empty coin id", asset.Denom))
+		if asset.CoinID < 0 {
+			return fmt.Errorf(fmt.Sprintf("asset %s must be a positive integer", asset.Denom))
 		}
 		if !asset.Limit.IsPositive() {
 			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive supply limit", asset.Denom))
@@ -131,7 +143,7 @@ func (p Params) Validate() error {
 		}
 		coinDenoms[asset.Denom] = true
 		if coinIDs[asset.CoinID] {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %s", asset.Denom, asset.CoinID))
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %d", asset.Denom, asset.CoinID))
 		}
 		coinIDs[asset.CoinID] = true
 	}

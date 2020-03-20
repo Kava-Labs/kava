@@ -31,24 +31,24 @@ func NewBep3GenStateMulti() app.GenesisState {
 }
 
 func baseGenState() bep3.GenesisState {
-	// TODO: Set deputy to a reasonable address
 	deputy, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
 
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress: deputy,
-			MinBlockLock:     types.DefaultMinBlockLock, // 80
-			MaxBlockLock:     types.DefaultMaxBlockLock, // 360
+			BnbDeputyAddress:             deputy,
+			MinBlockLock:                 types.DefaultMinBlockLock,            // 80
+			MaxBlockLock:                 types.DefaultMaxBlockLock,            // 360
+			CompletedSwapStorageDuration: types.DefaultLongtermStorageDuration, // 86400
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
-					CoinID: "714",            // TODO: This should be a number
-					Limit:  BNB_SUPPLY_LIMIT, // TODO: Change limit increment time
+					CoinID: 714,
+					Limit:  BNB_SUPPLY_LIMIT,
 					Active: true,
 				},
 				types.AssetParam{
 					Denom:  "inc",
-					CoinID: "9999",
+					CoinID: 9999,
 					Limit:  i(100),
 					Active: false,
 				},
@@ -56,17 +56,6 @@ func baseGenState() bep3.GenesisState {
 		},
 	}
 	return bep3Genesis
-}
-
-func atomicSwapsWithAssetSupply(addrs []sdk.AccAddress, denom string) (types.AtomicSwaps, sdk.Coin) {
-	var swaps types.AtomicSwaps
-	assetSupply := c(denom, 0)
-	for i := 0; i < len(addrs); i++ {
-		assetSupply.Add(c(denom, 50000))
-		swap := atomicSwapFromAddress(addrs[i], i)
-		swaps = append(swaps, swap)
-	}
-	return swaps, assetSupply
 }
 
 func atomicSwapFromAddress(addr sdk.AccAddress, index int) types.AtomicSwap {
