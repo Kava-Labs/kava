@@ -5,15 +5,15 @@ type AssetSupplyInfo struct {
 	Denom        string `json:"denom"  yaml:"denom"`
 	InSwapSupply int64  `json:"in_swap_supply"  yaml:"in_swap_supply"`
 	AssetSupply  int64  `json:"asset_supply"  yaml:"asset_supply"`
-	AssetLimit   int64  `json:"asset_limit"  yaml:"asset_limit"`
+	SupplyLimit  int64  `json:"supply_limit"  yaml:"supply_limit"`
 }
 
 // NewAssetSupplyInfo initializes a new AssetSupplyInfo
-func NewAssetSupplyInfo(denom string, inSwapSupply, assetSupply, assetLimit int64) AssetSupplyInfo {
+func NewAssetSupplyInfo(denom string, inSwapSupply, assetSupply, supplyLimit int64) AssetSupplyInfo {
 	return AssetSupplyInfo{
 		Denom:        denom,
 		InSwapSupply: inSwapSupply,
 		AssetSupply:  assetSupply,
-		AssetLimit:   assetLimit,
+		SupplyLimit:  supplyLimit,
 	}
 }

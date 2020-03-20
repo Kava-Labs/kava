@@ -196,8 +196,8 @@ func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
 	return asset, true
 }
 
-// IterateAssetSupplies provides an iterator over all stored AssetSupplies.
-// For each AssetSupply, cb will be called. If cb returns true, the iterator will close and stop.
+// IterateAssetSupplies provides an iterator over current asset supplies.
+// For each asset supply, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (stop bool)) {
 	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
 
@@ -212,7 +212,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (s
 	}
 }
 
-// GetAllAssetSupplies returns all asset supplies from the store as an array of sdk.Coin
+// GetAllAssetSupplies returns current asset supplies from the store as an array of sdk.Coin
 func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (assets []sdk.Coin) {
 	k.IterateAssetSupplies(ctx, func(asset sdk.Coin) bool {
 		assets = append(assets, asset)
@@ -244,4 +244,29 @@ func (k Keeper) GetInSwapSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) 
 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &asset)
 	return asset, true
+}
+
+// IterateInSwapSupplies provides an iterator over asset supplies currently in swaps.
+// For each in swap supply, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateInSwapSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.InSwapSupplyKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var asset sdk.Coin
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &asset)
+
+		if cb(asset) {
+			break
+		}
+	}
+}
+
+// GetAllInSwapSupplies returns all asset supplies currently in swaps as an array of sdk.Coin
+func (k Keeper) GetAllInSwapSupplies(ctx sdk.Context) (assets []sdk.Coin) {
+	k.IterateInSwapSupplies(ctx, func(asset sdk.Coin) bool {
+		assets = append(assets, asset)
+		return false
+	})
+	return
 }

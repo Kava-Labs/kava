@@ -5,9 +5,10 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
+// TODO: Consider gov proposal to remove asset - must clear out asset supply amounts?
+
 // GetAssetSupplyInfo builds a new AssetSupplyInfo from data in the store
 func (k Keeper) GetAssetSupplyInfo(ctx sdk.Context, denom string) (types.AssetSupplyInfo, sdk.Error) {
-	// TODO: on gov proposal to remove asset, must clear out supply amounts
 	asset, found := k.GetAssetByDenom(ctx, denom)
 	if !found {
 		return types.AssetSupplyInfo{}, types.ErrAssetNotSupported(k.codespace, denom)
@@ -38,9 +39,13 @@ func (k Keeper) IncrementAssetSupply(ctx sdk.Context, coin sdk.Coin) {
 }
 
 // DecrementAssetSupply decrement an asset's supply by the coin
-func (k Keeper) DecrementAssetSupply(ctx sdk.Context, coin sdk.Coin) {
+func (k Keeper) DecrementAssetSupply(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 	currSupply, _ := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	if !currSupply.Amount.Sub(coin.Amount).GTE(sdk.NewInt(0)) {
+		return sdk.ErrInternal("cannot decrement asset's supply such that it results in a negative amount")
+	}
 	k.SetAssetSupply(ctx, currSupply.Sub(coin), []byte(coin.Denom))
+	return nil
 }
 
 // IncrementInSwapSupply increments an asset's in swap supply by the coin
@@ -50,9 +55,13 @@ func (k Keeper) IncrementInSwapSupply(ctx sdk.Context, coin sdk.Coin) {
 }
 
 // DecrementInSwapSupply decrement an asset's in swap supply by the coin
-func (k Keeper) DecrementInSwapSupply(ctx sdk.Context, coin sdk.Coin) {
+func (k Keeper) DecrementInSwapSupply(ctx sdk.Context, coin sdk.Coin) sdk.Error {
 	currInSwapSupply, _ := k.GetInSwapSupply(ctx, []byte(coin.Denom))
+	if !currInSwapSupply.Amount.Sub(coin.Amount).GTE(sdk.NewInt(0)) {
+		return sdk.ErrInternal("cannot decrement asset's in swap supply such that it results in a negative amount")
+	}
 	k.SetInSwapSupply(ctx, currInSwapSupply.Sub(coin), []byte(coin.Denom))
+	return nil
 }
 
 // ValidateCreateSwapAgainstSupplyLimit validates the proposed swap's amount against the asset's total supply limit
@@ -70,25 +79,12 @@ func (k Keeper) ValidateCreateSwapAgainstSupplyLimit(ctx sdk.Context, coin sdk.C
 
 // TODO: is this method redundant?
 // ValidateClaimSwapAgainstSupplyLimit validates a claim attempt against the asset's active supply
-func (k Keeper) ValidateClaimSwapAgainstSupplyLimit(ctx sdk.Context, coin sdk.Coin) sdk.Error {
-	_, currAssetSupply := k.LoadAssetSupply(ctx, coin.Denom)
-	asset, _ := k.GetAssetByDenom(ctx, coin.Denom)
-	if currAssetSupply.Add(coin).Amount.GT(asset.Limit) {
-		return types.ErrAboveAssetActiveSupplyLimit(
-			k.codespace, coin.Denom, asset.Limit, currAssetSupply.Amount,
-		)
-	}
-	return nil
-}
-
-// ValidateProposedSupplyDecrease checks if the proposed asset amount decrease is greater than 0
-// func (k Keeper) ValidateProposedSupplyDecrease(ctx sdk.Context, coin sdk.Coin) sdk.Error {
-// 	currSupply := k.LoadAssetSupply(ctx, coin.Denom)
+// func (k Keeper) ValidateClaimSwapAgainstSupplyLimit(ctx sdk.Context, coin sdk.Coin) sdk.Error {
+// 	_, currAssetSupply := k.LoadAssetSupply(ctx, coin.Denom)
 // 	asset, _ := k.GetAssetByDenom(ctx, coin.Denom)
-// 	if currSupply.Sub(coin).Amount.IsPositive() {
-// 		// TODO:
-// 		return types.ErrAboveAssetSupplyLimit(
-// 			k.codespace, coin.Denom, currSupply.Add(coin).Amount, asset.Limit,
+// 	if currAssetSupply.Add(coin).Amount.GT(asset.Limit) {
+// 		return types.ErrAboveAssetActiveSupplyLimit(
+// 			k.codespace, coin.Denom, asset.Limit, currAssetSupply.Amount,
 // 		)
 // 	}
 // 	return nil

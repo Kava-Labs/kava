@@ -52,15 +52,66 @@ func (suite *AssetTestSuite) SetupTest() {
 	return
 }
 
+func (suite *AssetTestSuite) TestGetAssetSupplyInfo() {
+	type args struct {
+		denom        string
+		inSwapSupply int64
+		assetSupply  int64
+	}
+	testCases := []struct {
+		name       string
+		args       args
+		expectPass bool
+	}{
+		{
+			"normal",
+			args{
+				denom:        "bnb",
+				inSwapSupply: 10000,
+				assetSupply:  50000,
+			},
+			true,
+		},
+		{
+			"unsupported asset",
+			args{
+				denom:        "xyz",
+				inSwapSupply: 10000,
+				assetSupply:  50000,
+			},
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		_, _ = suite.keeper.LoadAssetSupply(suite.ctx, tc.args.denom)
+
+		// Set in swap supply and asset supply
+		suite.keeper.IncrementInSwapSupply(suite.ctx, c(tc.args.denom, tc.args.inSwapSupply))
+		suite.keeper.IncrementAssetSupply(suite.ctx, c(tc.args.denom, tc.args.assetSupply))
+
+		// Attempt to get information about this asset's supply
+		assetSupplyInfo, err := suite.keeper.GetAssetSupplyInfo(suite.ctx, tc.args.denom)
+		assetParam, found := suite.keeper.GetAssetByDenom(suite.ctx, tc.args.denom)
+		if tc.expectPass {
+			suite.NoError(err)
+			suite.True(found)
+
+			// Confirm contents
+			expectedAssetSupplyInfo := types.AssetSupplyInfo{
+				Denom:        tc.args.denom,
+				InSwapSupply: tc.args.inSwapSupply,
+				AssetSupply:  tc.args.assetSupply,
+				SupplyLimit:  assetParam.Limit.Int64(),
+			}
+			suite.Equal(expectedAssetSupplyInfo, assetSupplyInfo)
+		} else {
+			suite.Error(err)
+			suite.False(found)
+		}
+	}
+}
+
 func (suite *AssetTestSuite) TestValidateLiveAsset() {
-	// Make an atomic swap in order to set the asset supply
-	timestamp := tmtime.Now().Unix()
-	randomNumber, _ := types.GenerateSecureRandomNumber()
-	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-
-	_ = suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, int64(360), suite.addrs[0],
-		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb", true)
-
 	type args struct {
 		coin sdk.Coin
 	}
@@ -108,14 +159,173 @@ func (suite *AssetTestSuite) TestValidateLiveAsset() {
 	}
 }
 
-func (suite *AssetTestSuite) TestValidateCreateSwapAgainstSupplyLimit() {
-	// Make an atomic swap in order to set the asset supply
-	timestamp := tmtime.Now().Unix()
-	randomNumber, _ := types.GenerateSecureRandomNumber()
-	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+func (suite *AssetTestSuite) TestIncrementAssetSupply() {
+	// Initialize asset 'bnb' asset supply
+	_, _ = suite.keeper.LoadAssetSupply(suite.ctx, "bnb")
 
-	_ = suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, int64(360), suite.addrs[0],
-		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb", true)
+	type args struct {
+		coin sdk.Coin
+	}
+	testCases := []struct {
+		name       string
+		args       args
+		expectPass bool
+	}{
+		{
+			"normal",
+			args{
+				coin: c("bnb", 10000),
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
+		suite.keeper.IncrementAssetSupply(suite.ctx, tc.args.coin)
+		assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
+
+		if tc.expectPass {
+			// Check asset supply changed
+			suite.Equal(assetSupplyPre.Add(tc.args.coin), assetSupplyPost)
+		} else {
+			// Check asset supply hasn't changed
+			suite.Equal(assetSupplyPre, assetSupplyPost)
+		}
+	}
+}
+
+func (suite *AssetTestSuite) TestDecrementAssetSupply() {
+	// Initialize asset 'bnb' asset supply
+	_, _ = suite.keeper.LoadAssetSupply(suite.ctx, "bnb")
+
+	type args struct {
+		coin sdk.Coin
+	}
+	testCases := []struct {
+		name       string
+		args       args
+		expectPass bool
+	}{
+		{
+			"normal",
+			args{
+				coin: c("bnb", 450),
+			},
+			true,
+		},
+		{
+			"negative asset supply",
+			args{
+				coin: c("bnb", 1450),
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.keeper.IncrementAssetSupply(suite.ctx, c("bnb", 1000))
+		assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
+		err := suite.keeper.DecrementAssetSupply(suite.ctx, tc.args.coin)
+		assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
+
+		if tc.expectPass {
+			suite.Nil(err)
+			// Check asset supply changed
+			suite.Equal(assetSupplyPre.Sub(tc.args.coin), assetSupplyPost)
+		} else {
+			suite.NotNil(err)
+			// Check asset supply hasn't changed
+			suite.Equal(assetSupplyPre, assetSupplyPost)
+		}
+	}
+}
+
+func (suite *AssetTestSuite) TestIncrementInSwapSupply() {
+	// Initialize asset 'bnb' in swap supply
+	_, _ = suite.keeper.LoadAssetSupply(suite.ctx, "bnb")
+
+	type args struct {
+		coin sdk.Coin
+	}
+	testCases := []struct {
+		name       string
+		args       args
+		expectPass bool
+	}{
+		{
+			"normal",
+			args{
+				coin: c("bnb", 10000),
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		inSwapSupplyPre, _ := suite.keeper.GetInSwapSupply(suite.ctx, []byte(tc.args.coin.Denom))
+		suite.keeper.IncrementInSwapSupply(suite.ctx, tc.args.coin)
+		inSwapSupplyPost, _ := suite.keeper.GetInSwapSupply(suite.ctx, []byte(tc.args.coin.Denom))
+
+		if tc.expectPass {
+			// Check asset supply changed
+			suite.Equal(inSwapSupplyPre.Add(tc.args.coin), inSwapSupplyPost)
+		} else {
+			// Check asset supply hasn't changed
+			suite.Equal(inSwapSupplyPre, inSwapSupplyPost)
+		}
+	}
+}
+
+func (suite *AssetTestSuite) TestDecrementInSwapSupply() {
+	// Initialize asset 'bnb' in swap supply
+	_, _ = suite.keeper.LoadAssetSupply(suite.ctx, "bnb")
+
+	type args struct {
+		coin sdk.Coin
+	}
+	testCases := []struct {
+		name       string
+		args       args
+		expectPass bool
+	}{
+		{
+			"normal",
+			args{
+				coin: c("bnb", 500),
+			},
+			true,
+		},
+		{
+			"negative in swap supply",
+			args{
+				coin: c("bnb", 5000),
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.keeper.IncrementInSwapSupply(suite.ctx, c("bnb", 1000))
+		inSwapSupplyPre, _ := suite.keeper.GetInSwapSupply(suite.ctx, []byte(tc.args.coin.Denom))
+		err := suite.keeper.DecrementInSwapSupply(suite.ctx, tc.args.coin)
+		inSwapSupplyPost, _ := suite.keeper.GetInSwapSupply(suite.ctx, []byte(tc.args.coin.Denom))
+
+		if tc.expectPass {
+			suite.Nil(err)
+			// Check asset supply changed
+			suite.Equal(inSwapSupplyPre.Sub(tc.args.coin), inSwapSupplyPost)
+		} else {
+			suite.NotNil(err)
+			// Check asset supply hasn't changed
+			suite.Equal(inSwapSupplyPre, inSwapSupplyPost)
+		}
+	}
+}
+
+func (suite *AssetTestSuite) TestValidateCreateSwapAgainstSupplyLimit() {
+	// Initialize asset 'bnb' asset supply and in swap supply
+	_, _ = suite.keeper.LoadAssetSupply(suite.ctx, "bnb")
 
 	type args struct {
 		coin sdk.Coin
@@ -152,47 +362,6 @@ func (suite *AssetTestSuite) TestValidateCreateSwapAgainstSupplyLimit() {
 		} else {
 			suite.Error(err)
 			suite.Equal(tc.expectedError, err.Result().Code)
-		}
-	}
-}
-
-func (suite *AssetTestSuite) TestIncrementAssetSupply() {
-	// Make an atomic swap in order to set the asset supply
-	timestamp := tmtime.Now().Unix()
-	randomNumber, _ := types.GenerateSecureRandomNumber()
-	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-
-	_ = suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, int64(360), suite.addrs[0],
-		suite.addrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), cs(c("bnb", 1)), "1bnb", true)
-
-	type args struct {
-		coin sdk.Coin
-	}
-	testCases := []struct {
-		name       string
-		args       args
-		expectPass bool
-	}{
-		{
-			"normal",
-			args{
-				coin: c("bnb", 500),
-			},
-			true,
-		},
-	}
-
-	for _, tc := range testCases {
-		assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
-		suite.keeper.IncrementAssetSupply(suite.ctx, tc.args.coin)
-		assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(tc.args.coin.Denom))
-
-		if tc.expectPass {
-			// Check asset supply changed
-			suite.Equal(assetSupplyPre.Add(tc.args.coin), assetSupplyPost)
-		} else {
-			// Check asset supply hasn't changed
-			suite.Equal(assetSupplyPre, assetSupplyPost)
 		}
 	}
 }
