@@ -48,18 +48,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return err
 	}
 
-	// TODO: if crossChain {
+	// TODO: if crossChain {...}
 	err = k.ValidateCreateSwapAgainstSupplyLimit(ctx, amount[0])
 	if err != nil {
 		return err
 	}
-	// }
-	// else {
-	// 	err := k.ValidateProposedSupplyDecrease(ctx, amount[0])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	// Transfer coins to module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
@@ -134,7 +127,6 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		),
 	)
 
-	// TODO: if atomicSwap.CrossChain -> update supply
 	// Update supply
 	k.DecrementInSwapSupply(ctx, atomicSwap.Amount[0])
 	k.IncrementAssetSupply(ctx, atomicSwap.Amount[0])

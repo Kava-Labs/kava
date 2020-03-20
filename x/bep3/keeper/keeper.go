@@ -134,7 +134,6 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 
 // ------------------------------------------
 //		Atomic Swap Longterm Storage Index
-// TODO: make block deletion variable a param genesis value
 // ------------------------------------------
 
 // InsertIntoLongtermStorage adds a swap ID and deletion time into the longterm storage index.

@@ -70,7 +70,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 	}
 }
 
-func (suite *ABCITestSuite) TestBeginBlocker() {
+func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 	testCases := []struct {
 		name            string
 		firstCtx        sdk.Context
@@ -138,6 +138,96 @@ func (suite *ABCITestSuite) TestBeginBlocker() {
 				suite.False(found)
 			}
 			suite.Equal(tc.expectedStatus, storedSwap.Status)
+		}
+	}
+}
+
+func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongtermStorage() {
+	type Action int
+	const (
+		NULL   Action = 0x00
+		Refund Action = 0x01
+		Claim  Action = 0x02
+	)
+
+	testCases := []struct {
+		name            string
+		firstCtx        sdk.Context
+		action          Action
+		secondCtx       sdk.Context
+		expectInStorage bool
+	}{
+		{
+			name:            "no action with long storage duration",
+			firstCtx:        suite.ctx,
+			action:          NULL,
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + types.DefaultLongtermStorageDuration),
+			expectInStorage: true,
+		},
+		{
+			name:            "claim with short storage duration",
+			firstCtx:        suite.ctx,
+			action:          Claim,
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 5000),
+			expectInStorage: true,
+		},
+		{
+			name:            "claim with long storage duration",
+			firstCtx:        suite.ctx,
+			action:          Claim,
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + types.DefaultLongtermStorageDuration),
+			expectInStorage: false,
+		},
+		{
+			name:            "refund with short storage duration",
+			firstCtx:        suite.ctx,
+			action:          Refund,
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 5000),
+			expectInStorage: true,
+		},
+		{
+			name:            "refund with long storage duration",
+			firstCtx:        suite.ctx,
+			action:          Refund,
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + types.DefaultLongtermStorageDuration),
+			expectInStorage: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		// Reset keeper and run the initial begin blocker
+		suite.ResetKeeper()
+		bep3.BeginBlocker(tc.firstCtx, suite.keeper)
+
+		switch tc.action {
+		case Claim:
+			for i, swapID := range suite.swapIDs {
+				err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
+				suite.Nil(err)
+			}
+		case Refund:
+			for _, swapID := range suite.swapIDs {
+				swap, _ := suite.keeper.GetAtomicSwap(tc.firstCtx, swapID)
+				refundCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + swap.ExpireHeight)
+				bep3.BeginBlocker(refundCtx, suite.keeper)
+				err := suite.keeper.RefundAtomicSwap(refundCtx, suite.addrs[10], swapID)
+				suite.Nil(err)
+				// Add expire height to second ctx block height
+				tc.secondCtx = tc.secondCtx.WithBlockHeight(tc.secondCtx.BlockHeight() + swap.ExpireHeight)
+			}
+		}
+
+		// Run the second begin blocker
+		bep3.BeginBlocker(tc.secondCtx, suite.keeper)
+
+		// Check each swap's availibility and status
+		for _, swapID := range suite.swapIDs {
+			_, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
+			if tc.expectInStorage {
+				suite.True(found)
+			} else {
+				suite.False(found)
+			}
 		}
 	}
 }
