@@ -28,7 +28,7 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 
 // SendCoinsFromModuleToVestingAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account, it is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
 func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) sdk.Error {
-	// TODO
+	// TODO verify balance
 
 	// 0. Get the account from the account keeper and do a type switch, throw if it's a validator vesting account (can TODO and make this work later if necessary)
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)

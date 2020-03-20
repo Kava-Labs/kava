@@ -25,18 +25,18 @@ const (
 
 // Key Prefixes
 var (
-	RewardPeriodKeyPrefix = []byte{0x00} // prefix for keys that store reward periods
-	ClaimPeriodKeyPrefix  = []byte{0x01} // prefix for keys that store claim periods
-	ClaimKeyPrefix        = []byte{0x02} // prefix for keys that store claims
-	NextClaimPeriodID     = []byte{0x03} // prefix for keys that store the next ID for claims periods
-	PreviousBlockTimeKey  = []byte{0x04}
+	RewardPeriodKeyPrefix   = []byte{0x00} // prefix for keys that store reward periods
+	ClaimPeriodKeyPrefix    = []byte{0x01} // prefix for keys that store claim periods
+	ClaimKeyPrefix          = []byte{0x02} // prefix for keys that store claims
+	NextClaimPeriodIDPrefix = []byte{0x03} // prefix for keys that store the next ID for claims periods
+	PreviousBlockTimeKey    = []byte{0x04}
 )
 
 // Keys
 // 0x00:Denom <> RewardPeriod the current active reward period (max 1 reward period per denom)
 // 0x01:Denom:ID <> ClaimPeriod object for that ID, indexed by denom and ID
 // 0x02:Denom:ID:Owner <> Claim object, indexed by Denom, ID and owner
-// 0x03:Denom <> NextClaimPeriodID the ID of the next claim period, indexed by denom
+// 0x03:Denom <> NextClaimPeriodIDPrefix the ID of the next claim period, indexed by denom
 
 // GetIDBytes returns the input as a fixed length byte array
 func GetIDBytes(id uint64) []byte {
@@ -48,6 +48,11 @@ func Uint64ToBytes(id uint64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(id))
 	return bz
+}
+
+// BytesToUint64 returns uint64 format from a byte array
+func BytesToUint64(bz []byte) uint64 {
+	return binary.BigEndian.Uint64(bz)
 }
 
 // GetDenomBytes returns the input as a byte slice

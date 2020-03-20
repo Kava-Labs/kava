@@ -123,18 +123,31 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 	})
 }
 
+// IterateClaimPeriodIDKeysAndValues iterates over the claim period id (value) and denom (key) of each claim period id in the store and performs a callback function
+func (k Keeper) IterateClaimPeriodIDKeysAndValues(ctx sdk.Context, cb func(denom string, id uint64) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		id := types.BytesToUint64(iterator.Value())
+		denom := types.GetDenomFromBytes(iterator.Key())
+		if cb(denom, id) {
+			break
+		}
+	}
+}
+
 // GetNextClaimPeriodID returns the highest claim period id in the store for the input denom
 func (k Keeper) GetNextClaimPeriodID(ctx sdk.Context, denom string) uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
-	var id uint64
+	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
 	bz := store.Get(types.GetDenomBytes(denom))
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &id)
+	id := types.BytesToUint64(bz)
 	return id
 }
 
 // SetNextClaimPeriodID sets the highest claim period id in the store for the input denom
 func (k Keeper) SetNextClaimPeriodID(ctx sdk.Context, denom string, id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
 	store.Set(types.GetDenomBytes(denom), types.GetIDBytes(id))
 }
 
@@ -145,6 +158,20 @@ func (k Keeper) CreateClaimPeriod(ctx sdk.Context, denom string, end time.Time, 
 	// TODO could check if that period already exists and error/panic
 	k.SetClaimPeriod(ctx, claimPeriod)
 	k.SetNextClaimPeriodID(ctx, denom, id+1)
+}
+
+// IterateClaimPeriods iterates over all claim period objects in the store and preforms a callback function
+func (k Keeper) IterateClaimPeriods(ctx sdk.Context, cb func(cp types.ClaimPeriod) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var cp types.ClaimPeriod
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &cp)
+		if cb(cp) {
+			break
+		}
+	}
 }
 
 // GetClaimPeriod returns claim period in the store for the input ID and denom and a boolean for if it was found
@@ -172,6 +199,20 @@ func (k Keeper) DeleteClaimPeriod(ctx sdk.Context, id uint64, denom string) {
 	store.Delete(types.GetClaimPeriodPrefix(denom, id))
 }
 
+// IterateClaims iterates over all claim  objects in the store and preforms a callback function
+func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.Claim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.Claim
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &c)
+		if cb(c) {
+			break
+		}
+	}
+}
+
 // GetClaim returns the claim in the store corresponding the the input address denom and id and a boolean for if the claim was found
 func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64) (types.Claim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
@@ -185,22 +226,23 @@ func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id 
 }
 
 // SetClaim sets the claim in the store corresponding to the input address, denom, and id
-func (k Keeper) SetClaim(ctx sdk.Context, denom string, c types.Claim) {
+func (k Keeper) SetClaim(ctx sdk.Context, c types.Claim) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(c)
-	store.Set(types.GetClaimPrefix(c.Owner, denom, c.ID), bz)
+	store.Set(types.GetClaimPrefix(c.Owner, c.Denom, c.ID), bz)
 
 }
 
+// AddToClaim adds the amount to an existing claim or creates a new on for that amount
 func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64, amount sdk.Coin) {
 	claim, found := k.GetClaim(ctx, addr, denom, id)
 	if found {
 		claim.Reward = claim.Reward.Add(amount)
-		k.SetClaim(ctx, denom, claim)
+		k.SetClaim(ctx, claim)
 		return
 	}
-	claim = types.NewClaim(addr, amount, id)
-	k.SetClaim(ctx, denom, claim)
+	claim = types.NewClaim(addr, amount, denom, id)
+	k.SetClaim(ctx, claim)
 }
 
 // DeleteClaim deletes the claim in the store corresponding to the input address, denom, and id

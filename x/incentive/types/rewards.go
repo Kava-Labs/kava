@@ -28,6 +28,9 @@ func NewRewardPeriod(denom string, start time.Time, end time.Time, reward sdk.Co
 	}
 }
 
+// RewardPeriods array of RewardPeriod
+type RewardPeriods []RewardPeriod
+
 // ClaimPeriod stores the state of an ongoing claim period
 type ClaimPeriod struct {
 	Denom    string        `json:"denom" yaml:"denom"`
@@ -46,18 +49,26 @@ func NewClaimPeriod(denom string, id uint64, end time.Time, timeLock time.Durati
 	}
 }
 
+// ClaimPeriods array of ClaimPeriod
+type ClaimPeriods []ClaimPeriod
+
 // Claim stores the rewards that can be claimed by owner
 type Claim struct {
 	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
 	Reward sdk.Coin       `json:"reward" yaml:"reward"`
+	Denom  string         `json:"denom" yaml:"denom"`
 	ID     uint64         `json:"id" yaml:"id"`
 }
 
 // NewClaim returns a new Claim
-func NewClaim(owner sdk.AccAddress, reward sdk.Coin, id uint64) Claim {
+func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, id uint64) Claim {
 	return Claim{
 		Owner:  owner,
 		Reward: reward,
+		Denom:  denom,
 		ID:     id,
 	}
 }
+
+// Claims array of Claim
+type Claims []Claim

@@ -64,7 +64,26 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	// TODO param validation
+	rewardDenoms := make(map[string]bool)
+
+	for _, reward := range p.Rewards {
+		if rewardDenoms[reward.Denom] {
+			return fmt.Errorf("cannot have duplicate reward denoms: %s", reward.Denom)
+		}
+		rewardDenoms[reward.Denom] = true
+		if !reward.Reward.IsPositive() {
+			return fmt.Errorf("reward must be positive, is %s for %s", reward.Reward, reward.Denom)
+		}
+		if int(reward.Duration.Seconds()) < 0 {
+			return fmt.Errorf("reward duration must be non-negative, is %s for %s", reward.Duration.String(), reward.Denom)
+		}
+		if int(reward.TimeLock.Seconds()) < 0 {
+			return fmt.Errorf("reward timelock must be non-negative, is %s for %s", reward.TimeLock.String(), reward.Denom)
+		}
+		if int(reward.ClaimDuration.Seconds()) <= 0 {
+			return fmt.Errorf("reward timelock must be positive, is %s for %s", reward.ClaimDuration.String(), reward.Denom)
+		}
+	}
 	return nil
 }
 
