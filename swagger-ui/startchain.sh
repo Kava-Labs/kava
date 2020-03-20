@@ -16,15 +16,20 @@ faucet="chief access utility giant burger winner jar false naive mobile often pe
 # Remove any existing data directory
 rm -rf ~/.kvd
 rm -rf ~/.kvcli
+
+# create validator key
+printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover
+# create faucet key
+printf "$password\n$faucet\n" | kvcli keys add faucet --recover
+
+
 # Create new data directory
 kvd init --chain-id=testing vlad # doesn't need to be the same as the validator
 kvcli config chain-id testing # or set trust-node true
 
-# Create validator keys and add account to genesis
-printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover
+# add validator account to genesis
 kvd add-genesis-account $(kvcli keys show vlad -a) 10000000000000stake
-# Create faucet keys and add account to genesis
-printf "$password\n$faucet\n" | kvcli keys add faucet --recover
+# add faucet account to genesis
 kvd add-genesis-account $(kvcli keys show faucet -a) 10000000000000stake,1000000000000xrp,100000000000btc
 
 # Create a delegation tx for the validator and add to genesis
