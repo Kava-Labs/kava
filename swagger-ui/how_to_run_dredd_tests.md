@@ -13,7 +13,7 @@ Instructions on how to run the `dredd` tests
 
 See `test-results` in the `swagger-ui` for what the `dredd` output should look like.
 
-`dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="3000000"`
+`dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="30000000"`
 
 You can also run `dredd` with a lower timeout however this is **NOT** recommmended:
 `dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
