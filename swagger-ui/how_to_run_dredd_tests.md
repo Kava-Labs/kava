@@ -12,8 +12,7 @@ Instructions on how to run the `dredd` tests
 3) Then run the below `dredd` command **TWICE** from the `swagger-ui` folder to run the `dredd` tests, ignore the output from the first run. The first time the hooks will send transactions to the chain but sometimes the first time you run the dredd tests with hooks the transactions may not have committed to the blockchain so some tests may erroneously fail. **When you run the script a second time all the tests should pass.** 
 
 See `test-results` in the `swagger-ui` for what the `dredd` output should look like.
-
-`dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="30000000"`
+`dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="300000000"`
 
 You can also run `dredd` with a lower timeout however this is **NOT** recommmended:
 `dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
