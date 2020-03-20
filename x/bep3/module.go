@@ -25,8 +25,6 @@ var (
 // AppModuleBasic defines the basic application module used by the bep3 module.
 type AppModuleBasic struct{}
 
-var _ module.AppModuleBasic = AppModuleBasic{}
-
 // Name returns the bep3 module's name.
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
