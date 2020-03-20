@@ -14,30 +14,38 @@ faucet="chief access utility giant burger winner jar false naive mobile often pe
 # address: kavavaloper1ls82zzghsx0exkpr52m8vht5jqs3un0c5j2c04
 
 # Remove any existing data directory
-rm -rf ~/.kvd
-rm -rf ~/.kvcli
+# rm -rf ~/.kvd
+# rm -rf ~/.kvcli
+
+rm -rf ~/kavatmp
 
 # create validator key
-printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover
+printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home ~/kavatmp
 # create faucet key
-printf "$password\n$faucet\n" | kvcli keys add faucet --recover
+printf "$password\n$faucet\n" | kvcli --home ~/kavatmp keys add faucet --recover --home ~/kavatmp
 
 
 # Create new data directory
-kvd init --chain-id=testing vlad # doesn't need to be the same as the validator
-kvcli config chain-id testing # or set trust-node true
+kvd --home ~/kavatmp init --chain-id=testing vlad # doesn't need to be the same as the validator
+kvcli --home ~/kavatmp config chain-id testing # or set trust-node true
 
 # add validator account to genesis
-kvd add-genesis-account $(kvcli keys show vlad -a) 10000000000000stake
+kvd --home ~/kavatmp add-genesis-account $(kvcli --home ~/kavatmp keys show vlad -a) 10000000000000stake
 # add faucet account to genesis
-kvd add-genesis-account $(kvcli keys show faucet -a) 10000000000000stake,1000000000000xrp,100000000000btc
+kvd --home ~/kavatmp add-genesis-account $(kvcli --home ~/kavatmp keys show faucet -a) 10000000000000stake,1000000000000xrp,100000000000btc
 
 # Create a delegation tx for the validator and add to genesis
-printf "$password\n" | kvd gentx --name vlad
-kvd collect-gentxs
+printf "$password\n" | kvd --home ~/kavatmp gentx --name vlad --home-client ~/kavatmp
+kvd --home ~/kavatmp collect-gentxs
+
+# # start the blockchain in the background, record the process id so that it can be stopped, wait until it starts making blocks
+# kvd --home ~/kavatmp start &
+# sleep 10
+# # start the rest server. Ctrl-C  will stop both rest server and the blockchain (on crtl-c the kill thing runs and stops the blockchain process)
+# kvcli --home ~/kavatmp rest-server ; kill $(pgrep kvd)
 
 # start the blockchain in the background, record the process id so that it can be stopped, wait until it starts making blocks
-kvd start & kvdPid="$!"
+kvd start --home ~/kavatmp & kvdPid="$!"
 sleep 10
 # start the rest server. Ctrl-C  will stop both rest server and the blockchain (on crtl-c the kill thing runs and stops the blockchain process)
-kvcli rest-server ; kill $kvdPid
+kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavatmp ; kill $kvdPid
