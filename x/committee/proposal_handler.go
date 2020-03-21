@@ -24,7 +24,7 @@ func NewProposalHandler(k Keeper) govtypes.Handler {
 
 func handleCommitteeChangeProposal(ctx sdk.Context, k Keeper, committeeProposal CommitteeChangeProposal) sdk.Error {
 	if err := committeeProposal.ValidateBasic(); err != nil {
-		return err
+		return sdk.ErrInternal(err.Error())
 	}
 
 	// Remove all committee's ongoing proposals
@@ -46,7 +46,7 @@ func handleCommitteeChangeProposal(ctx sdk.Context, k Keeper, committeeProposal 
 
 func handleCommitteeDeleteProposal(ctx sdk.Context, k Keeper, committeeProposal CommitteeDeleteProposal) sdk.Error {
 	if err := committeeProposal.ValidateBasic(); err != nil {
-		return err
+		return sdk.ErrInternal(err.Error())
 	}
 
 	// Remove all committee's ongoing proposals

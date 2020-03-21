@@ -44,16 +44,24 @@ func (c Committee) HasPermissionsFor(proposal PubProposal) bool {
 	return false
 }
 
-func (c Committee) Validate() sdk.Error {
-	// check for duplicate addresses
+func (c Committee) Validate() error {
+
 	addressMap := make(map[string]bool, len(c.Members))
 	for _, m := range c.Members {
 		// check there are no duplicate members
 		if _, ok := addressMap[m.String()]; ok {
-			return sdk.ErrInternal(fmt.Sprintf("duplicate member found in committee, %s", m))
+			return fmt.Errorf("duplicate member found in committee, %s", m)
+		}
+		// check for valid addresses
+		if m.Empty() {
+			return fmt.Errorf("committee %d invalid: found empty member address", c.ID)
 		}
 		addressMap[m.String()] = true
 
+	}
+
+	if len(c.Members) == 0 {
+		return fmt.Errorf("committee %d invalid: cannot have zero members", c.ID)
 	}
 	return nil
 }

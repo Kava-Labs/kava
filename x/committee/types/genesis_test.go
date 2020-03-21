@@ -2,22 +2,148 @@ package types
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 func TestGenesisState_Validate(t *testing.T) {
+	testTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
+		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest5"))),
+	}
+	testGenesis := GenesisState{
+		NextProposalID: 2,
+		Committees: []Committee{
+			{
+				ID:          1,
+				Members:     addresses[:3],
+				Permissions: []Permission{GodPermission{}},
+			},
+			{
+				ID:          2,
+				Members:     addresses[2:],
+				Permissions: nil,
+			},
+		},
+		Proposals: []Proposal{
+			{ID: 1, CommitteeID: 1, PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
+		},
+		Votes: []Vote{
+			{ProposalID: 1, Voter: addresses[0]},
+			{ProposalID: 1, Voter: addresses[1]},
+		},
+	}
+
 	testCases := []struct {
 		name       string
 		genState   GenesisState
 		expectPass bool
 	}{
 		{
-			name:       "normal",
+			name:       "default",
 			genState:   DefaultGenesisState(),
 			expectPass: true,
 		},
-		// TODO test failure cases
+		{
+			name:       "normal",
+			genState:   testGenesis,
+			expectPass: true,
+		},
+		{
+			name: "duplicate committee IDs",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID,
+				Committees:     append(testGenesis.Committees, testGenesis.Committees[0]),
+				Proposals:      testGenesis.Proposals,
+				Votes:          testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "invalid committee",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID,
+				Committees:     append(testGenesis.Committees, Committee{}),
+				Proposals:      testGenesis.Proposals,
+				Votes:          testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "duplicate proposal IDs",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID,
+				Committees:     testGenesis.Committees,
+				Proposals:      append(testGenesis.Proposals, testGenesis.Proposals[0]),
+				Votes:          testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "invalid NextProposalID",
+			genState: GenesisState{
+				NextProposalID: 0,
+				Committees:     testGenesis.Committees,
+				Proposals:      testGenesis.Proposals,
+				Votes:          testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "proposal without committee",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID + 1,
+				Committees:     testGenesis.Committees,
+				Proposals: append(
+					testGenesis.Proposals,
+					Proposal{
+						ID:          testGenesis.NextProposalID,
+						PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+						CommitteeID: 247, // doesn't exist
+					}),
+				Votes: testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "invalid proposal",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID,
+				Committees:     testGenesis.Committees,
+				Proposals:      append(testGenesis.Proposals, Proposal{}),
+				Votes:          testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "vote without proposal",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID,
+				Committees:     testGenesis.Committees,
+				Proposals:      nil,
+				Votes:          testGenesis.Votes,
+			},
+			expectPass: false,
+		},
+		{
+			name: "invalid vote",
+			genState: GenesisState{
+				NextProposalID: testGenesis.NextProposalID,
+				Committees:     testGenesis.Committees,
+				Proposals:      testGenesis.Proposals,
+				Votes:          append(testGenesis.Votes, Vote{}),
+			},
+			expectPass: false,
+		},
 	}
 
 	for _, tc := range testCases {

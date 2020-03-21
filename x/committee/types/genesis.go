@@ -60,13 +60,8 @@ func (gs GenesisState) Validate() error {
 		committeeMap[com.ID] = true
 
 		// validate committee
-		if len(com.Members) == 0 {
-			return fmt.Errorf("committee %d invalid: cannot have zero members", com.ID)
-		}
-		for _, m := range com.Members {
-			if m.Empty() {
-				return fmt.Errorf("committee %d invalid: found empty member address", com.ID)
-			}
+		if err := com.Validate(); err != nil {
+			return err
 		}
 	}
 
