@@ -239,12 +239,6 @@
             "completed_swap_storage_duration": "86400",
             "supported_assets": [
                 {
-                    "denom": "btc",
-                    "coin_id": "0",
-                    "limit": "100000000000",
-                    "active": true
-                },
-                {
                     "denom": "bnb",
                     "coin_id": "714",
                     "limit": "100000000000",
