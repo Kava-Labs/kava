@@ -14,9 +14,9 @@ const (
 
 // CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
 type CommitteeChangeProposal struct {
-	Title        string
-	Description  string
-	NewCommittee Committee
+	Title        string    `json:"title" yaml:"title"`
+	Description  string    `json:"description" yaml:"description"`
+	NewCommittee Committee `json:"new_committee" yaml:"new_committee"`
 }
 
 var _ govtypes.Content = CommitteeChangeProposal{}
@@ -69,9 +69,9 @@ func (ccp CommitteeChangeProposal) String() string {
 
 // CommitteeDeleteProposal is a gov proposal for removing a committee.
 type CommitteeDeleteProposal struct {
-	Title       string
-	Description string
-	CommitteeID uint64
+	Title       string `json:"title" yaml:"title"`
+	Description string `json:"description" yaml:"description"`
+	CommitteeID uint64 `json:"committee_id" yaml:"committee_id"`
 }
 
 var _ govtypes.Content = CommitteeDeleteProposal{}

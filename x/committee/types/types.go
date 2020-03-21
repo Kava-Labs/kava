@@ -19,9 +19,9 @@ var (
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
-	ID          uint64 // TODO or a name?
-	Members     []sdk.AccAddress
-	Permissions []Permission
+	ID          uint64           `json:"id" yaml:"id"` // TODO or a name?
+	Members     []sdk.AccAddress `json:"members" yaml:"members"`
+	Permissions []Permission     `json:"permissions" yaml:"permissions"`
 }
 
 func (c Committee) HasMember(addr sdk.AccAddress) bool {
@@ -77,10 +77,10 @@ type Permission interface {
 type PubProposal = gov.Content // TODO find a better name
 
 type Proposal struct {
-	PubProposal
-	ID          uint64
-	CommitteeID uint64
-	Deadline    time.Time
+	PubProposal `json:"pub_proposal" yaml:"pub_proposal"`
+	ID          uint64    `json:"id" yaml:"id"`
+	CommitteeID uint64    `json:"committee_id" yaml:"committee_id"`
+	Deadline    time.Time `json:"deadline" yaml:"deadline"`
 }
 
 // HasExpiredBy calculates if the proposal will have expired by a certain time.
@@ -105,7 +105,7 @@ func (p Proposal) String() string {
 }
 
 type Vote struct {
-	ProposalID uint64
-	Voter      sdk.AccAddress
+	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
+	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
 	// Option     byte // TODO for now don't need more than just a yes as options
 }

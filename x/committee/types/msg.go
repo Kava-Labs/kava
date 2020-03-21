@@ -15,7 +15,7 @@ var _, _ sdk.Msg = MsgSubmitProposal{}, MsgVote{}
 type MsgSubmitProposal struct {
 	PubProposal PubProposal    `json:"pub_proposal" yaml:"pub_proposal"`
 	Proposer    sdk.AccAddress `json:"proposer" yaml:"proposer"`
-	CommitteeID uint64
+	CommitteeID uint64         `json:"committee_id" yaml:"committee_id"`
 }
 
 // NewMsgSubmitProposal creates a new MsgSubmitProposal instance

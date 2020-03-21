@@ -50,7 +50,7 @@ func (ShutdownCDPDepsitPermission) Allows(p gov.Content) bool {
 
 // Same as above but the route isn't static
 type GeneralShutdownPermission struct {
-	MsgRoute sdtypes.MsgRoute
+	MsgRoute sdtypes.MsgRoute `json:"msg_route" yaml:"msg_route"`
 }
 
 var _ Permission = GeneralShutdownPermission{}

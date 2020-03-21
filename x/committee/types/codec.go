@@ -37,4 +37,7 @@ func RegisterCodec(cdc *codec.Codec) {
 
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
+
+	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
+	cdc.RegisterConcrete(MsgVote{}, "kava/MsgVote", nil)
 }

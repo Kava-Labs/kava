@@ -17,7 +17,7 @@ const (
 )
 
 type QueryCommitteeParams struct {
-	CommitteeID uint64
+	CommitteeID uint64 `json:"committee_id" yaml:"committee_id"`
 }
 
 func NewQueryCommitteeParams(committeeID uint64) QueryCommitteeParams {
@@ -27,7 +27,7 @@ func NewQueryCommitteeParams(committeeID uint64) QueryCommitteeParams {
 }
 
 type QueryProposalParams struct {
-	ProposalID uint64
+	ProposalID uint64 `json:"proposal_id" yaml:"proposal_id"`
 }
 
 func NewQueryProposalParams(proposalID uint64) QueryProposalParams {
@@ -37,8 +37,8 @@ func NewQueryProposalParams(proposalID uint64) QueryProposalParams {
 }
 
 type QueryVoteParams struct {
-	ProposalID uint64
-	Voter      sdk.AccAddress
+	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
+	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
 }
 
 func NewQueryVoteParams(proposalID uint64, voter sdk.AccAddress) QueryVoteParams {

@@ -10,10 +10,10 @@ const DefaultNextProposalID uint64 = 1
 
 // GenesisState is state that must be provided at chain genesis.
 type GenesisState struct {
-	NextProposalID uint64
-	Committees     []Committee
-	Proposals      []Proposal
-	Votes          []Vote
+	NextProposalID uint64      `json:"next_proposal_id" yaml:"next_proposal_id"`
+	Committees     []Committee `json:"committees" yaml:"committees"`
+	Proposals      []Proposal  `json:"proposals" yaml:"proposals"`
+	Votes          []Vote      `json:"votes" yaml:"votes"`
 }
 
 // NewGenesisState returns a new genesis state object for the module.
