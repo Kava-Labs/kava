@@ -256,7 +256,7 @@ func getKeybase() crkeys.Keybase {
 	if err != nil {
 		panic(err)
 	}
-	keybase, err := keys.NewKeyBaseFromDir(home + "/.kvcli/")
+	keybase, err := keys.NewKeyBaseFromDir(home + "/kavatmp/")
 	if err != nil {
 		panic(err)
 	}
