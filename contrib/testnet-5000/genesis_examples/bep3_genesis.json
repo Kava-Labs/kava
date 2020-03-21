@@ -233,9 +233,10 @@
     },
     "bep3": {
         "params": {
-            "bnb_deputy_address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
+            "bnb_deputy_address": "kava15wmww3chakqllq4n3ksm37lx36qz067gxe6f0k",
             "min_block_lock": "80",
             "max_block_lock": "600",
+            "completed_swap_storage_duration": "86400",
             "supported_assets": [
                 {
                     "denom": "btc",
