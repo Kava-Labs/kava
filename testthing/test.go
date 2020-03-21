@@ -1,3 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////
+////
+//// **IMPORTANT NOTE FOR CODE REVIEW**
+////
+//// This file is used for testing and debugging. Much of the code it contains
+//// is similar or the same to the `hooks.go` file. This file is not used
+//// when you run the `dredd` tests. It is used to test the functionality
+//// that goes into the `hooks.go` file. We have this as a separeate file
+//// to make it easier to test and debug.
+////
+////////////////////////////////////////////////////////////////////////////////
+
 package main
 
 import (
