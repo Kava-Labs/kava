@@ -8,40 +8,45 @@ import (
 )
 
 const (
-	AttributeKeyProposalID  = types.AttributeKeyProposalID
-	DefaultNextProposalID   = types.DefaultNextProposalID
-	DefaultParamspace       = types.DefaultParamspace
-	EventTypeSubmitProposal = types.EventTypeSubmitProposal
-	ModuleName              = types.ModuleName
-	QuerierRoute            = types.QuerierRoute
-	QueryCommittee          = types.QueryCommittee
-	QueryCommittees         = types.QueryCommittees
-	QueryProposal           = types.QueryProposal
-	QueryProposals          = types.QueryProposals
-	QueryTally              = types.QueryTally
-	QueryVote               = types.QueryVote
-	QueryVotes              = types.QueryVotes
-	RouterKey               = types.RouterKey
-	StoreKey                = types.StoreKey
-	TypeMsgSubmitProposal   = types.TypeMsgSubmitProposal
-	TypeMsgVote             = types.TypeMsgVote
+	AttributeKeyProposalID      = types.AttributeKeyProposalID
+	DefaultCodespace            = types.DefaultCodespace
+	DefaultNextProposalID       = types.DefaultNextProposalID
+	DefaultParamspace           = types.DefaultParamspace
+	EventTypeSubmitProposal     = types.EventTypeSubmitProposal
+	ModuleName                  = types.ModuleName
+	ProposalTypeCommitteeChange = types.ProposalTypeCommitteeChange
+	ProposalTypeCommitteeDelete = types.ProposalTypeCommitteeDelete
+	QuerierRoute                = types.QuerierRoute
+	QueryCommittee              = types.QueryCommittee
+	QueryCommittees             = types.QueryCommittees
+	QueryProposal               = types.QueryProposal
+	QueryProposals              = types.QueryProposals
+	QueryTally                  = types.QueryTally
+	QueryVote                   = types.QueryVote
+	QueryVotes                  = types.QueryVotes
+	RouterKey                   = types.RouterKey
+	StoreKey                    = types.StoreKey
+	TypeMsgSubmitProposal       = types.TypeMsgSubmitProposal
+	TypeMsgVote                 = types.TypeMsgVote
 )
 
 var (
 	// function aliases
-	NewKeeper               = keeper.NewKeeper
-	NewQuerier              = keeper.NewQuerier
-	DefaultGenesisState     = types.DefaultGenesisState
-	GetKeyFromID            = types.GetKeyFromID
-	GetVoteKey              = types.GetVoteKey
-	NewGenesisState         = types.NewGenesisState
-	NewMsgSubmitProposal    = types.NewMsgSubmitProposal
-	NewMsgVote              = types.NewMsgVote
-	NewQueryCommitteeParams = types.NewQueryCommitteeParams
-	NewQueryProposalParams  = types.NewQueryProposalParams
-	NewQueryVoteParams      = types.NewQueryVoteParams
-	RegisterCodec           = types.RegisterCodec
-	Uint64FromBytes         = types.Uint64FromBytes
+	NewKeeper                  = keeper.NewKeeper
+	NewQuerier                 = keeper.NewQuerier
+	DefaultGenesisState        = types.DefaultGenesisState
+	GetKeyFromID               = types.GetKeyFromID
+	GetVoteKey                 = types.GetVoteKey
+	NewCommitteeChangeProposal = types.NewCommitteeChangeProposal
+	NewCommitteeDeleteProposal = types.NewCommitteeDeleteProposal
+	NewGenesisState            = types.NewGenesisState
+	NewMsgSubmitProposal       = types.NewMsgSubmitProposal
+	NewMsgVote                 = types.NewMsgVote
+	NewQueryCommitteeParams    = types.NewQueryCommitteeParams
+	NewQueryProposalParams     = types.NewQueryProposalParams
+	NewQueryVoteParams         = types.NewQueryVoteParams
+	RegisterCodec              = types.RegisterCodec
+	Uint64FromBytes            = types.Uint64FromBytes
 
 	// variable aliases
 	CommitteeKeyPrefix  = types.CommitteeKeyPrefix
@@ -56,10 +61,11 @@ var (
 type (
 	Keeper                        = keeper.Keeper
 	Committee                     = types.Committee
+	CommitteeChangeProposal       = types.CommitteeChangeProposal
+	CommitteeDeleteProposal       = types.CommitteeDeleteProposal
 	GeneralShutdownPermission     = types.GeneralShutdownPermission
 	GenesisState                  = types.GenesisState
 	GodPermission                 = types.GodPermission
-	GroupChangeProposal           = types.GroupChangeProposal
 	InflationRateChangePermission = types.InflationRateChangePermission
 	MsgSubmitProposal             = types.MsgSubmitProposal
 	MsgVote                       = types.MsgVote

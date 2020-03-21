@@ -44,6 +44,20 @@ func (c Committee) HasPermissionsFor(proposal PubProposal) bool {
 	return false
 }
 
+func (c Committee) Validate() sdk.Error {
+	// check for duplicate addresses
+	addressMap := make(map[string]bool, len(c.Members))
+	for _, m := range c.Members {
+		// check there are no duplicate members
+		if _, ok := addressMap[m.String()]; ok {
+			return sdk.ErrInternal(fmt.Sprintf("duplicate member found in committee, %s", m))
+		}
+		addressMap[m.String()] = true
+
+	}
+	return nil
+}
+
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
 type Permission interface {
 	Allows(PubProposal) bool

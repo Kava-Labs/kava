@@ -99,11 +99,7 @@ func (k Keeper) CloseOutProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 	}
 	if proposalPasses || pr.HasExpiredBy(ctx.BlockTime()) {
 
-		// delete proposal and votes
-		k.DeleteProposal(ctx, proposalID)
-		for _, v := range votes {
-			k.DeleteVote(ctx, v.ProposalID, v.Voter)
-		}
+		k.DeleteProposalAndVotes(ctx, proposalID)
 		return nil
 	}
 	return sdk.ErrInternal("note enough votes to close proposal")
@@ -131,4 +127,17 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 	}
 
 	return nil
+}
+
+func (k Keeper) DeleteProposalAndVotes(ctx sdk.Context, proposalID uint64) {
+	var votes []types.Vote
+	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
+		votes = append(votes, vote)
+		return false
+	})
+
+	k.DeleteProposal(ctx, proposalID)
+	for _, v := range votes {
+		k.DeleteVote(ctx, v.ProposalID, v.Voter)
+	}
 }
