@@ -17,7 +17,7 @@ var (
 	KeyRewards               = []byte("Rewards")
 	DefaultActive            = false
 	DefaultRewards           = Rewards{}
-	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0)) // TODO do I need this
+	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
 	GovDenom                 = cdptypes.DefaultGovDenom
 	PrincipalDenom           = "usdx"
 	IncentiveMacc            = kavadistTypes.ModuleName
@@ -90,7 +90,7 @@ func (p Params) Validate() error {
 // Reward stores the specified state for a single reward period.
 type Reward struct {
 	Active        bool          `json:"active" yaml:"actlive"`                // governance switch to disable a period
-	Denom         string        `json:"denom" yaml:"denom"`                   // the collateral denom rewards apply to, must be found in the cdp collaters
+	Denom         string        `json:"denom" yaml:"denom"`                   // the collateral denom rewards apply to, must be found in the cdp collaterals
 	Reward        sdk.Coin      `json:"reward" yaml:"reward"`                 // the total amount of coins distributed per period
 	Duration      time.Duration `json:"duration" yaml:"duration"`             // the duration of the period
 	TimeLock      time.Duration `json:"time_lock" yaml:"time_lock"`           // how long rewards for this period are timelocked

@@ -24,15 +24,10 @@ func (k Keeper) IterateRewardPeriods(ctx sdk.Context, cb func(rp types.RewardPer
 }
 
 // HandleRewardPeriodExpiry deletes expired RewardPeriods from the store and creates a ClaimPeriod in the store for each expired RewardPeriod
-func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context) {
+func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod) {
+	k.CreateClaimPeriod(ctx, rp.Denom, rp.ClaimEnd, rp.ClaimTimeLock)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	k.IterateRewardPeriods(ctx, func(rp types.RewardPeriod) bool {
-		if rp.End.After(ctx.BlockTime()) {
-			k.CreateClaimPeriod(ctx, rp.Denom, rp.ClaimEnd, rp.ClaimTimeLock)
-			store.Delete(types.GetDenomBytes(rp.Denom))
-		}
-		return false
-	})
+	store.Delete(types.GetDenomBytes(rp.Denom))
 	return
 }
 
@@ -103,10 +98,15 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 		return
 	}
 	k.IterateRewardPeriods(ctx, func(rp types.RewardPeriod) bool {
+		expired := false
 		// the total amount of usdx created with the collateral type being incentivized
 		totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, rp.Denom, types.PrincipalDenom)
 		// the number of seconds since last payout
 		timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+		if rp.End.After(ctx.BlockTime()) {
+			timeElapsed = sdk.NewInt(rp.End.Unix() - previousBlockTime.Unix())
+			expired = true
+		}
 		// the amount of rewards to pay (rewardAmount * timeElapsed)
 		rewardsThisPeriod := rp.Reward.Amount.Mul(timeElapsed)
 		id := k.GetNextClaimPeriodID(ctx, rp.Denom)
@@ -119,6 +119,9 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 			k.AddToClaim(ctx, cdp.Owner, types.GovDenom, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
 			return false
 		})
+		if expired {
+			k.HandleRewardPeriodExpiry(ctx, rp)
+		}
 		return false
 	})
 }
@@ -153,9 +156,9 @@ func (k Keeper) SetNextClaimPeriodID(ctx sdk.Context, denom string, id uint64) {
 
 // CreateClaimPeriod creates a new claim period in the store and updates the highest claim period id
 func (k Keeper) CreateClaimPeriod(ctx sdk.Context, denom string, end time.Time, timeLock time.Duration) {
+	// could call this CreateUniquePeriod, since it's a wrapper around NewClaimPeriod that ensures uniqueness
 	id := k.GetNextClaimPeriodID(ctx, denom)
 	claimPeriod := types.NewClaimPeriod(denom, id, end, timeLock)
-	// TODO could check if that period already exists and error/panic
 	k.SetClaimPeriod(ctx, claimPeriod)
 	k.SetNextClaimPeriodID(ctx, denom, id+1)
 }

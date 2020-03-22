@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/kava-labs/kava/x/incentive/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -12,30 +15,44 @@ import (
 func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64) sdk.Error {
 	claim, found := k.GetClaim(ctx, addr, denom, id)
 	if !found {
-		return sdk.ErrInternal("msg string") // TODO ErrClaimNotFound
+		return types.ErrClaimNotFound(k.codespace, addr, denom, id)
 	}
 	claimPeriod, found := k.GetClaimPeriod(ctx, id, denom)
 	if !found {
-		return sdk.ErrInternal("msg string") // TODO ErrClaimPeriodNotFound
+		return types.ErrClaimPeriodNotFound(k.codespace, denom, id)
 	}
 	err := k.SendCoinsFromModuleToVestingAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
 	if err != nil {
 		return err
 	}
-	return nil
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaim,
+			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", addr)),
+		),
+	)
+	return nil
 }
 
 // SendCoinsFromModuleToVestingAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account, it is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
 func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) sdk.Error {
-	// TODO verify balance
+	macc := k.supplyKeeper.GetModuleAccount(ctx, senderModule)
+	if !macc.GetCoins().IsAllGTE(amt) {
+		return types.ErrInsufficientModAccountBalance(k.codespace, senderModule)
+	}
 
-	// 0. Get the account from the account keeper and do a type switch, throw if it's a validator vesting account (can TODO and make this work later if necessary)
+	// 0. Get the account from the account keeper and do a type switch, error if it's a validator vesting account or module account (can make this work for validator vesting later if necessary)
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
 
-	_, ok := acc.(validatorvesting.ValidatorVestingAccount)
+	vva, ok := acc.(validatorvesting.ValidatorVestingAccount)
 	if ok {
-		return sdk.ErrInternal("msg string") // TODO ErrInvalidAccountType
+		return types.ErrInvalidAccountType(k.codespace, vva)
+	}
+
+	invalidMacc, ok := acc.(supplyExported.ModuleAccountI)
+	if ok {
+		return types.ErrInvalidAccountType(k.codespace, invalidMacc)
 	}
 	// 1. Transfer coins using regular supply keeper module account to account method. This will update the Coins field on the account
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
@@ -60,7 +77,7 @@ func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModul
 			// need to update the end time as well so that the sum of all period lengths equals endTime - startTime
 			vacc.EndTime = proposedEndTime
 		} else {
-			// In the case that the proposed length is lessthan or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
+			// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
 			// EXAMPLE (l is length, a is amount)
 			// Original Periods: {[l: 1 a: 1], [l: 2, a: 1], [l:8, a:3], [l: 5, a: 3]}
 			// Period we want to insert [l: 5, a: x]
@@ -96,7 +113,7 @@ func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModul
 			}
 		}
 	} else {
-		// 3b. If it's not a periodic vesting account (TODO make sure that we will have already thrown if the input account is a module account), transition the account to a periodic vesting account:
+		// 3b. If it's not a periodic vesting account, transition the account to a periodic vesting account:
 		bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 		newPeriods := vesting.Periods{
 			vesting.Period{
@@ -106,10 +123,16 @@ func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModul
 		}
 		bva, err := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
 		if err != nil {
-			return sdk.ErrInternal(err.Error()) // TODO
+			return sdk.ErrInternal(sdk.AppendMsgToErr("error converting account to vesting account", err.Error()))
 		}
 		pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
-		k.accountKeeper.SetAccount(ctx, pva) // TODO does this actually replace the account (ie it saves to the same key)?
+		k.accountKeeper.SetAccount(ctx, pva)
+		// sanity check that the account is now a periodic vesting account
+		accCheck := k.accountKeeper.GetAccount(ctx, recipientAddr)
+		_, ok := accCheck.(vesting.PeriodicVestingAccount)
+		if !ok {
+			panic("account must be a periodic vesting account at this point")
+		}
 
 	}
 

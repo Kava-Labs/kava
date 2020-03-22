@@ -12,8 +12,7 @@ func init() {
 	ModuleCdc = cdc.Seal()
 }
 
-// RegisterCodec registers the necessary types for cdp module
+// RegisterCodec registers the necessary types for incentive module
 func RegisterCodec(cdc *codec.Codec) {
-
-	// TODO add messages
+	cdc.RegisterConcrete(MsgClaimReward{}, "incentive/MsgClaimReward", nil)
 }

@@ -35,6 +35,10 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 	}
 }
 
+func (k Keeper) Codespace() sdk.CodespaceType {
+	return k.codespace
+}
+
 // GetPreviousBlockTime get the blocktime for the previous block
 func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)

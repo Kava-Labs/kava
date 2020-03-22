@@ -5,7 +5,7 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-// DecodeStore unmarshals the KVPair's Value to the corresponding cdp type
+// DecodeStore unmarshals the KVPair's Value to the corresponding incentive type
 func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
 	// TODO implement this
 	return ""

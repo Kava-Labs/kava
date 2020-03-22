@@ -21,26 +21,26 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the bep3 module.
+// AppModuleBasic defines the basic application module used by the incentive module.
 type AppModuleBasic struct{}
 
-// Name returns the bep3 module's name.
+// Name returns the incentive module's name.
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterCodec registers the bep3 module's types for the given codec.
+// RegisterCodec registers the incentive module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	types.RegisterCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the bep3
+// DefaultGenesis returns default genesis state as raw bytes for the incentive
 // module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the bep3 module.
+// ValidateGenesis performs genesis state validation for the incentive module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	var gs types.GenesisState
 	err := types.ModuleCdc.UnmarshalJSON(bz, &gs)
@@ -50,12 +50,12 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	return gs.Validate()
 }
 
-// RegisterRESTRoutes registers the REST routes for the bep3 module.
+// RegisterRESTRoutes registers the REST routes for the incentive module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the bep3 module.
+// GetTxCmd returns the root tx command for the incentive module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(cdc)
 }
@@ -90,28 +90,27 @@ func (AppModule) Name() string {
 	return types.ModuleName
 }
 
-// RegisterInvariants registers the bep3 module invariants.
+// RegisterInvariants registers the incentive module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the bep3 module.
+// Route returns the message routing key for the incentive module.
 func (AppModule) Route() string {
 	return types.RouterKey
 }
 
-// NewHandler returns an sdk.Handler for the bep3 module.
+// NewHandler returns an sdk.Handler for the incentive module.
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-// QuerierRoute returns the bep3 module's querier route name.
+// QuerierRoute returns the incentive module's querier route name.
 func (AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
 
-// NewQuerierHandler returns the bep3 module sdk.Querier.
+// NewQuerierHandler returns the incentive module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	// TODO
-	return nil
+	return keeper.NewQuerier(am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the incentive module. It returns no validator updates.
@@ -128,12 +127,12 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	return types.ModuleCdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock returns the begin blocker for the bep3 module.
+// BeginBlock returns the begin blocker for the incentive module.
 func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	// TODO
+	BeginBlocker(ctx, am.keeper)
 }
 
-// EndBlock returns the end blocker for the bep3 module. It returns no validator updates.
+// EndBlock returns the end blocker for the incentive module. It returns no validator updates.
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
