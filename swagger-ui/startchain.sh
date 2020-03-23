@@ -42,16 +42,15 @@ printf "$password\n" | kvd --home ~/kavatmp gentx --name vlad --home-client ~/ka
 kvd --home ~/kavatmp collect-gentxs
 } > /dev/null 2>&1
 
-# # start the blockchain in the background, record the process id so that it can be stopped, wait until it starts making blocks
-# kvd --home ~/kavatmp start &
-# sleep 10
-# # start the rest server. Ctrl-C  will stop both rest server and the blockchain (on crtl-c the kill thing runs and stops the blockchain process)
-# kvcli --home ~/kavatmp rest-server ; kill $(pgrep kvd)
-
-# start the blockchain in the background, record the process id so that it can be stopped, wait until it starts making blocks
+# start the blockchain in the background, wait until it starts making blocks
+{
 kvd start --home ~/kavatmp & kvdPid="$!"
+} > /dev/null 2>&1
 sleep 10
-# start the rest server. Ctrl-C  will stop both rest server and the blockchain (on crtl-c the kill thing runs and stops the blockchain process)
+# start the rest server. Use ./stopchain.sh to stop both rest server and the blockchain
+{
 kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavatmp & kvcliPid="$!"
+} > /dev/null 2>&1
 sleep 10
+# run the go code to send transactions to the chain and set it up correctly
 ../debugging_tools/./test
