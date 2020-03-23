@@ -1,15 +1,19 @@
 Instructions on how to run the `dredd` tests
 
-1) Create the genesis state for the blockchain, start the blockchain and the rest server by running the following from the `swagger-ui` directory (`ctrc-c` to stop both the blockchain and the rest server):
+1) Make sure that you have the latest versions of `node` and `npm` and `npx` installed. Then install `dredd` globally using the following command:
+
+`npm install dredd --global`
+
+2) Create the genesis state for the blockchain, start the blockchain and the rest server by running the following from the `swagger-ui` directory (`ctrc-c` to stop both the blockchain and the rest server):
 
 `./startchain.sh`
 
-2) In a separate terminal, build the hooks file by running the following from the `swagger-ui` folder:
+3) In a separate terminal, build the hooks file by running the following from the `swagger-ui` folder:
 
 `rm hooks`
 `go build hooks.go`
 
-3) Then run the below `dredd` command **TWICE** from the `swagger-ui` folder to run the `dredd` tests, ignore the output from the first run. The first time the hooks will send transactions to the chain but sometimes the first time you run the dredd tests with hooks the transactions may not have committed to the blockchain so some tests may erroneously fail. **When you run the script a second time all the tests should pass.** 
+4) Then run the below `dredd` command **TWICE** from the `swagger-ui` folder to run the `dredd` tests, ignore the output from the first run. The first time the hooks will send transactions to the chain but sometimes the first time you run the dredd tests with hooks the transactions may not have committed to the blockchain so some tests may erroneously fail. **When you run the script a second time all the tests should pass.** 
 
 See `test-results` in the `swagger-ui` for what the `dredd` output should look like.
 `dredd swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug --hooks-worker-connect-timeout="300000000"`
