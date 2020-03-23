@@ -231,7 +231,7 @@
             description: Tx hash
             required: true
             type: string
-            x-example: 45AE43DFCDDEC11F97D47A03EA4335173B4BE3B8DAB373E6650E4C037BFD2E02
+            x-example: B901DB8552BC5F5F82E5709EC37AAD8C0F8005CDB3608E5580055CC4D0D9B275
         responses:
           200:
             description: Tx with the provided hash
