@@ -24,6 +24,14 @@ type Committee struct {
 	Permissions []Permission     `json:"permissions" yaml:"permissions"`
 }
 
+func NewCommittee(id uint64, members []sdk.AccAddress, permissions []Permission) Committee {
+	return Committee{
+		ID:          id,
+		Members:     members,
+		Permissions: permissions,
+	}
+}
+
 func (c Committee) HasMember(addr sdk.AccAddress) bool {
 	for _, m := range c.Members {
 		if m.Equals(addr) {

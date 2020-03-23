@@ -16,12 +16,7 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router /*, phs []ProposalRESTHandler*/) {
-	// propSubRtr := r.PathPrefix("/gov/proposals").Subrouter()
-	// for _, ph := range phs {
-	// 	propSubRtr.HandleFunc(fmt.Sprintf("/%s", ph.SubRoute), ph.Handler).Methods("POST")
-	// }
-
+func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/committees/{%s}/proposals", types.ModuleName, RestCommitteeID), postProposalHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/votes", types.ModuleName, RestProposalID), postVoteHandlerFn(cliCtx)).Methods("POST")
 }

@@ -22,8 +22,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/proposer", types.ModuleName, RestProposalID), queryProposerHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/tally", types.ModuleName, RestProposalID), queryTallyOnProposalHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/votes", types.ModuleName, RestProposalID), queryVotesOnProposalHandlerFn(cliCtx)).Methods("GET")
-	//r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/votes/{%s}", types.ModuleName, RestProposalID, RestVoter), queryVoteHandlerFn(cliCtx)).Methods("GET")
-	//r.HandleFunc(fmt.Sprintf("/%s/parameters/{%s}", types.ModuleName, RestParamsType), queryParamsHandlerFn(cliCtx)).Methods("GET")
+	// TODO r.HandleFunc(fmt.Sprintf("/%s/parameters/{%s}", types.ModuleName, RestParamsType), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 // ---------- Committees ----------
@@ -68,7 +67,7 @@ func queryCommitteeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryProposalParams(committeeID))
+		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -108,7 +107,7 @@ func queryProposalsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryProposalParams(committeeID))
+		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -153,7 +152,7 @@ func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Query
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryProposals), bz)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryProposal), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -253,88 +252,6 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-// func queryVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		vars := mux.Vars(r)
-// 		strProposalID := vars[RestProposalID]
-// 		bechVoterAddr := vars[RestVoter]
-
-// 		if len(strProposalID) == 0 {
-// 			err := errors.New("proposalId required but not specified")
-// 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-// 			return
-// 		}
-
-// 		proposalID, ok := rest.ParseUint64OrReturnBadRequest(w, strProposalID)
-// 		if !ok {
-// 			return
-// 		}
-
-// 		if len(bechVoterAddr) == 0 {
-// 			err := errors.New("voter address required but not specified")
-// 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-// 			return
-// 		}
-
-// 		voterAddr, err := sdk.AccAddressFromBech32(bechVoterAddr)
-// 		if err != nil {
-// 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-// 			return
-// 		}
-
-// 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-// 		if !ok {
-// 			return
-// 		}
-
-// 		params := types.NewQueryVoteParams(proposalID, voterAddr)
-
-// 		bz, err := cliCtx.Codec.MarshalJSON(params)
-// 		if err != nil {
-// 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-// 			return
-// 		}
-
-// 		res, _, err := cliCtx.QueryWithData("custom/gov/vote", bz)
-// 		if err != nil {
-// 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-// 			return
-// 		}
-
-// 		var vote types.Vote
-// 		if err := cliCtx.Codec.UnmarshalJSON(res, &vote); err != nil {
-// 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-// 			return
-// 		}
-
-// 		// For an empty vote, either the proposal does not exist or is inactive in
-// 		// which case the vote would be removed from state and should be queried for
-// 		// directly via a txs query.
-// 		if vote.Empty() {
-// 			bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryProposalParams(proposalID))
-// 			if err != nil {
-// 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-// 				return
-// 			}
-
-// 			res, _, err = cliCtx.QueryWithData("custom/gov/proposal", bz)
-// 			if err != nil || len(res) == 0 {
-// 				err := fmt.Errorf("proposalID %d does not exist", proposalID)
-// 				rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-// 				return
-// 			}
-
-// 			res, err = gcutils.QueryVoteByTxQuery(cliCtx, params)
-// 			if err != nil {
-// 				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-// 				return
-// 			}
-// 		}
-
-// 		rest.PostProcessResponse(w, cliCtx, res)
-// 	}
-// }
-
 func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Parse the query height
@@ -375,6 +292,7 @@ func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 // ---------- Params ----------
 
+// TODO
 // func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 // 	return func(w http.ResponseWriter, r *http.Request) {
 // 		vars := mux.Vars(r)

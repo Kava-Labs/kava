@@ -11,49 +11,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-// // Proposal flags
-// const (
-// 	FlagTitle        = "title"
-// 	FlagDescription  = "description"
-// 	flagProposalType = "type"
-// 	FlagDeposit      = "deposit"
-// 	flagVoter        = "voter"
-// 	flagDepositor    = "depositor"
-// 	flagStatus       = "status"
-// 	flagNumLimit     = "limit"
-// 	FlagProposal     = "proposal"
-// )
-
-// type proposal struct {
-// 	Title       string
-// 	Description string
-// 	Type        string
-// 	Deposit     string
-// }
-
-// // ProposalFlags defines the core required fields of a proposal. It is used to
-// // verify that these values are not provided in conjunction with a JSON proposal
-// // file.
-// var ProposalFlags = []string{
-// 	FlagTitle,
-// 	FlagDescription,
-// 	flagProposalType,
-// 	FlagDeposit,
-// }
-
-// GetTxCmd returns the transaction commands for this module
-// governance ModuleClient is slightly different from other ModuleClients in that
-// it contains a slice of "proposal" child commands. These commands are respective
-// to proposal type handlers that are implemented in other modules but are mounted
-// under the governance CLI (eg. parameter change proposals).
-func GetTxCmd(storeKey string, cdc *codec.Codec /*, pcmds []*cobra.Command*/) *cobra.Command { // TODO why is storeKey here?
+func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "committee governance transactions subcommands",
@@ -62,39 +30,27 @@ func GetTxCmd(storeKey string, cdc *codec.Codec /*, pcmds []*cobra.Command*/) *c
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmdSubmitProp := GetCmdSubmitProposal(cdc)
-	// for _, pcmd := range pcmds {
-	// 	cmdSubmitProp.AddCommand(client.PostCommands(pcmd)[0])
-	// }
-
 	txCmd.AddCommand(client.PostCommands(
 		GetCmdVote(cdc),
-		cmdSubmitProp,
+		GetCmdSubmitProposal(cdc),
 	)...)
 
 	return txCmd
 }
 
-// // GetCmdSubmitProposal is the root command on which commands for submitting proposals are registered.
-// func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
-// 	cmd := &cobra.Command{
-// 		Use:                        "submit-proposal [committee-id]",
-// 		Short:                      "Submit a governance proposal to a particular committee.", // TODO
-// 		DisableFlagParsing:         true,
-// 		SuggestionsMinimumDistance: 2,
-// 		RunE:                       client.ValidateCmd,
-// 	}
-
-// 	return cmd
-// }
-
-// GetCmdSubmitProposal
+// GetCmdSubmitProposal returns the command to submit a proposal to a committee
 func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit-proposal [committee-id] [proposal-file]",
-		Short: "Submit a governance proposal to a particular committee.",
-		Long:  "", // TODO
-		Args:  cobra.ExactArgs(2),
+		Short: "Submit a governance proposal to a particular committee",
+		Long: fmt.Sprintf(`Submit a proposal to a committee so they can vote on it.
+
+The proposal file must be the json encoded forms of the proposal type you want to submit.
+For example:
+%s
+`, mustGetExampleParameterChangeProposal(cdc)),
+		Args:    cobra.ExactArgs(2),
+		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -136,22 +92,14 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// GetCmdVote implements creating a new vote command.
+// GetCmdVote returns the command to vote on a proposal.
 func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "vote [proposal-id]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Vote for an active proposal", // TODO
-		// 		Long: strings.TrimSpace(
-		// 			fmt.Sprintf(`Submit a vote for an active proposal. You can
-		// find the proposal-id by running "%s query gov proposals".
-
-		// Example:
-		// $ %s tx gov vote 1 yes --from mykey
-		// `,
-		// 				version.ClientName, version.ClientName,
-		// 			),
-		// 		),
+		Use:     "vote [proposal-id]",
+		Args:    cobra.ExactArgs(1),
+		Short:   "Vote for an active proposal",
+		Long:    "Submit a yes vote for the proposal with id [proposal-id].",
+		Example: fmt.Sprintf("%s tx %s vote 2", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -177,14 +125,23 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// TODO this could replace the whole gov submit-proposal cmd, remove and replace the gov cmd in kvcli main.go
-// would want the documentation/examples though
+// TODO This could replace the whole gov submit-proposal cmd. It would align how it works with how submiting proposal to committees works.
+// Requires removing and replacing the gov cmd in kvcli main.go
+// GetGovCmdSubmitProposal returns a command to submit a proposal to the gov module. It is passed to the gov module for use on its command subtree.
 func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "committee [proposal-file] [deposit]",
 		Short: "Submit a governance proposal to change a committee.",
-		Long:  "This command will work with either CommitteeChange proposals or CommitteeDelete proposals.", // TODO
-		Args:  cobra.ExactArgs(2),
+		Long: fmt.Sprintf(`Submit a governance proposal to create, alter, or delete a committee.
+
+The proposal file must be the json encoded form of the proposal type you want to submit.
+For example, to create or update a committee:
+%s
+
+and to delete a committee:
+%s
+`, mustGetExampleCommitteeChangeProposal(cdc), mustGetExampleCommitteeDeleteProposal(cdc)),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -193,7 +150,7 @@ func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 			proposer := cliCtx.GetFromAddress()
 
 			// Get the deposit
-			deposit, err := sdk.ParseCoins(args[0])
+			deposit, err := sdk.ParseCoins(args[1])
 			if err != nil {
 				return err
 			}
@@ -223,4 +180,50 @@ func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+// mustGetExampleCommitteeChangeProposal is a helper function to return an example json proposal
+func mustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
+	exampleChangeProposal := types.NewCommitteeChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		types.NewCommittee(
+			1,
+			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddres")))},
+			[]types.Permission{}, // TODO permissions
+		),
+	)
+	exampleChangeProposalBz, err := cdc.MarshalJSONIndent(exampleChangeProposal, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(exampleChangeProposalBz)
+}
+
+// mustGetExampleCommitteeDeleteProposal is a helper function to return an example json proposal
+func mustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
+	exampleDeleteProposal := types.NewCommitteeDeleteProposal(
+		"A Title",
+		"A description of this proposal.",
+		1,
+	)
+	exampleDeleteProposalBz, err := cdc.MarshalJSONIndent(exampleDeleteProposal, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(exampleDeleteProposalBz)
+}
+
+// mustGetExampleParameterChangeProposal is a helper function to return an example json proposal
+func mustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+	exampleParameterChangeProposal := params.NewParameterChangeProposal(
+		"A Title",
+		"A description of this proposal.",
+		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", "1000000000")},
+	)
+	exampleParameterChangeProposalBz, err := cdc.MarshalJSONIndent(exampleParameterChangeProposal, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	return string(exampleParameterChangeProposalBz)
 }
