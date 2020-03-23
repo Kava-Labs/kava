@@ -26,7 +26,9 @@ printf "$password\n$faucet\n" | kvcli --home ~/kavatmp keys add faucet --recover
 
 
 # Create new data directory
+{
 kvd --home ~/kavatmp init --chain-id=testing vlad # doesn't need to be the same as the validator
+} > /dev/null 2>&1
 kvcli --home ~/kavatmp config chain-id testing # or set trust-node true
 
 # add validator account to genesis
