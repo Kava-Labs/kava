@@ -69,7 +69,8 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID: 34,
+					ID:      34,
+					Members: suite.addresses[:1],
 				},
 			),
 			expectPass: true,

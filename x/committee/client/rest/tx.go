@@ -10,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	govrest "github.com/cosmos/cosmos-sdk/x/gov/client/rest"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -101,6 +103,49 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Create and return a StdTx
 		msg := types.NewMsgVote(req.Voter, proposalID)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+// -------- --------
+// TODO this could replace the POST gov/proposals endpoint, would need to overwrite routes in kvcli main, hacky
+type PostGovProposalReq struct {
+	BaseReq  rest.BaseReq     `json:"base_req" yaml:"base_req"`
+	Content  govtypes.Content `json:"content" yaml:"content"` //TODO use same PubProposal name?
+	Proposer sdk.AccAddress   `json:"proposer" yaml:"proposer"`
+	Deposit  sdk.Coins        `json:"deposit" yaml:"deposit"`
+}
+
+func ProposalRESTHandler(cliCtx context.CLIContext) govrest.ProposalRESTHandler {
+	return govrest.ProposalRESTHandler{
+		SubRoute: "committee",
+		Handler:  postGovProposalHandlerFn(cliCtx),
+	}
+}
+
+func postGovProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		// Parse and validate http request body
+		var req PostGovProposalReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+		if err := req.Content.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// Create and return a StdTx
+		msg := govtypes.NewMsgSubmitProposal(req.Content, req.Deposit, req.Proposer)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

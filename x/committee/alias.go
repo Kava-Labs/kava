@@ -3,6 +3,7 @@
 package committee
 
 import (
+	"github.com/kava-labs/kava/x/committee/client"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -49,6 +50,7 @@ var (
 	Uint64FromBytes            = types.Uint64FromBytes
 
 	// variable aliases
+	ProposalHandler     = client.ProposalHandler
 	CommitteeKeyPrefix  = types.CommitteeKeyPrefix
 	MaxProposalDuration = types.MaxProposalDuration
 	ModuleCdc           = types.ModuleCdc

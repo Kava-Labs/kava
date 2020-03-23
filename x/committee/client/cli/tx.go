@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -139,7 +140,7 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "vote [proposal-id]",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		Short: "Vote for an active proposal", // TODO
 		// 		Long: strings.TrimSpace(
 		// 			fmt.Sprintf(`Submit a vote for an active proposal. You can
@@ -174,4 +175,52 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+}
+
+// TODO this could replace the whole gov submit-proposal cmd, remove and replace the gov cmd in kvcli main.go
+// would want the documentation/examples though
+func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "committee [proposal-file] [deposit]",
+		Short: "Submit a governance proposal to change a committee.",
+		Long:  "This command will work with either CommitteeChange proposals or CommitteeDelete proposals.", // TODO
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Get proposing address
+			proposer := cliCtx.GetFromAddress()
+
+			// Get the deposit
+			deposit, err := sdk.ParseCoins(args[0])
+			if err != nil {
+				return err
+			}
+
+			// Get the proposal
+			bz, err := ioutil.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+			var content govtypes.Content
+			if err := cdc.UnmarshalJSON(bz, &content); err != nil {
+				return err
+			}
+			if err = content.ValidateBasic(); err != nil {
+				return err
+			}
+
+			// Build message and run basic validation
+			msg := govtypes.NewMsgSubmitProposal(content, deposit, proposer)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			// Sign and broadcast message
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
 }

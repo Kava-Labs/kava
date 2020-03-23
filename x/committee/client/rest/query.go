@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	"github.com/kava-labs/kava/x/committee/client"
+	"github.com/kava-labs/kava/x/committee/client/common"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
@@ -181,7 +181,7 @@ func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Query
-		res, err := client.QueryProposer(cliCtx, proposalID)
+		res, err := common.QueryProposer(cliCtx, proposalID)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return

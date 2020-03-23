@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	comclient "github.com/kava-labs/kava/x/committee/client"
+	"github.com/kava-labs/kava/x/committee/client/common"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
@@ -381,7 +381,7 @@ func GetCmdQueryProposer(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("proposal-id %s is not a valid uint", args[0])
 			}
 
-			prop, err := comclient.QueryProposer(cliCtx, proposalID)
+			prop, err := common.QueryProposer(cliCtx, proposalID)
 			if err != nil {
 				return err
 			}

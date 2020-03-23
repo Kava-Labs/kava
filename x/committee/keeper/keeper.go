@@ -22,21 +22,13 @@ type Keeper struct {
 func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
-	// Note: for some reason the gov router panics if it has already been sealed, so a helper func is used to make sealing idempotent.
-	sealGovRouterIdempotently(router)
+	router.Seal()
 
 	return Keeper{
 		cdc:      cdc,
 		storeKey: storeKey,
 		router:   router,
 	}
-}
-
-func sealGovRouterIdempotently(router govtypes.Router) {
-	defer func() {
-		recover()
-	}()
-	router.Seal()
 }
 
 // ---------- Committees ----------
