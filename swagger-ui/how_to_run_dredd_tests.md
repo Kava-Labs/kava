@@ -1,3 +1,12 @@
+/////////////////////////////////////////////////
+///////
+/////// TODO - UPDATE THESE INSTRUCTIONS FOR THE NEW WORKFLOW TO GET THE TESTS TO RUN FIRST TIME
+///////
+///////
+///////
+///////
+/////////////////////////////////////////////////
+
 Instructions on how to run the `dredd` tests
 
 1) Make sure that you have the latest versions of `node` and `npm` and `npx` installed. Then install `dredd` globally using the following command:
@@ -22,3 +31,5 @@ You can also run `dredd` with a lower timeout however this is **NOT** recommmend
 `dredd ../swagger-ui/swagger.yaml localhost:1317 --hookfiles=hooks --language=go --loglevel=debug`
 
 **IMPORTANT NOTE**: If you start getting `Validator set is different` errors then you need to try starting the chain from scratch (do NOT just use `unsafe-reset-all`, instead use `./startchain.sh`)
+
+
