@@ -37,10 +37,9 @@ func NewBep3GenStateMulti() app.GenesisState {
 
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress:             deputy,
-			MinBlockLock:                 types.DefaultMinBlockLock,            // 80
-			MaxBlockLock:                 types.DefaultMaxBlockLock,            // 360
-			CompletedSwapStorageDuration: types.DefaultLongtermStorageDuration, // 86400
+			BnbDeputyAddress: deputy,
+			MinBlockLock:     types.DefaultMinBlockLock, // 80
+			MaxBlockLock:     types.DefaultMaxBlockLock, // 360
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",

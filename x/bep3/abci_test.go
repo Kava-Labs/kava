@@ -102,7 +102,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 		{
 			name:            "after deletion",
 			firstCtx:        suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400),
-			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400 + SwapLongtermStorageDuration),
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400 + types.DefaultLongtermStorageDuration),
 			expectedStatus:  types.NULL,
 			expectInStorage: false,
 		},

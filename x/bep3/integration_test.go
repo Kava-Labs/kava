@@ -11,9 +11,8 @@ import (
 )
 
 const (
-	TestSenderOtherChain        = "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7"
-	TestRecipientOtherChain     = "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7"
-	SwapLongtermStorageDuration = 86400
+	TestSenderOtherChain    = "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7"
+	TestRecipientOtherChain = "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7"
 )
 
 var (
@@ -35,10 +34,9 @@ func baseGenState() bep3.GenesisState {
 
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress:             deputy,
-			MinBlockLock:                 types.DefaultMinBlockLock,            // 80
-			MaxBlockLock:                 types.DefaultMaxBlockLock,            // 360
-			CompletedSwapStorageDuration: types.DefaultLongtermStorageDuration, // 86400
+			BnbDeputyAddress: deputy,
+			MinBlockLock:     types.DefaultMinBlockLock, // 80
+			MaxBlockLock:     types.DefaultMaxBlockLock, // 360
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",

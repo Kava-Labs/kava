@@ -22,6 +22,9 @@ const (
 	DefaultParamspace = ModuleName
 )
 
+// DefaultLongtermStorageDuration is 1 week (assuming a block time of 7 seconds)
+const DefaultLongtermStorageDuration int64 = 86400
+
 // Key prefixes
 var (
 	AtomicSwapKeyPrefix             = []byte{0x00} // prefix for keys that store AtomicSwaps

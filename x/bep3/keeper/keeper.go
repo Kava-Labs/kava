@@ -140,19 +140,21 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 // Completed swaps are stored for 1 week.
 func (k Keeper) InsertIntoLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	// Assuming block time of 7 seconds, there are 86,400 blocks in a week
-	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+int64(86400), atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
+	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+types.DefaultLongtermStorageDuration,
+		atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
 }
 
 // RemoveFromLongtermStorage removes a swap from the into the longterm storage index
 func (k Keeper) RemoveFromLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+int64(86400), atomicSwap.GetSwapID()))
+	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+types.DefaultLongtermStorageDuration,
+		atomicSwap.GetSwapID()))
 }
 
 // IterateAtomicSwapsLongtermStorage provides an iterator over AtomicSwaps ordered by deletion height.
 // For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
-func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCutoffTime uint64, cb func(swapID []byte) (stop bool)) {
+func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCutoffTime uint64,
+	cb func(swapID []byte) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store

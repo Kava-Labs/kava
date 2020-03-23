@@ -59,14 +59,6 @@ func (suite *ParamsTestSuite) TestGetMinBlockLock() {
 	suite.Equal(minBlockLock, res)
 }
 
-func (suite *ParamsTestSuite) TestGetCompletedSwapStorageDuration() {
-	params := suite.keeper.GetParams(suite.ctx)
-	completedSwapStorageDuration := params.CompletedSwapStorageDuration
-
-	res := suite.keeper.GetCompletedSwapStorageDuration(suite.ctx)
-	suite.Equal(completedSwapStorageDuration, res)
-}
-
 func (suite *ParamsTestSuite) TestGetAssets() {
 	params := suite.keeper.GetParams(suite.ctx)
 	assets := params.SupportedAssets
