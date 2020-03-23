@@ -43,8 +43,24 @@ func init() {
 }
 
 func main() {
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
 	sendCoins()
 
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
+
+	sendCoins()
+
+}
+
+func sendProposal() {
 	// get the address
 	address := getTestAddress()
 	// get the keyname and password
@@ -75,6 +91,7 @@ func main() {
 
 	// send the PROPOSAL message to the blockchain
 	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
+
 }
 
 func sendDeposit() {
