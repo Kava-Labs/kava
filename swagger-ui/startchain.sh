@@ -52,4 +52,6 @@ kvd --home ~/kavatmp collect-gentxs
 kvd start --home ~/kavatmp & kvdPid="$!"
 sleep 10
 # start the rest server. Ctrl-C  will stop both rest server and the blockchain (on crtl-c the kill thing runs and stops the blockchain process)
-kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavatmp ; kill $kvdPid
+kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavatmp & kvcliPid="$!"
+sleep 10
+../debugging_tools/./test
