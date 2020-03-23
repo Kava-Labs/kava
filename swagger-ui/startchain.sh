@@ -36,7 +36,9 @@ kvd --home ~/kavatmp add-genesis-account $(kvcli --home ~/kavatmp keys show fauc
 
 # Create a delegation tx for the validator and add to genesis
 printf "$password\n" | kvd --home ~/kavatmp gentx --name vlad --home-client ~/kavatmp
+{
 kvd --home ~/kavatmp collect-gentxs
+} > /dev/null 2>&1
 
 # # start the blockchain in the background, record the process id so that it can be stopped, wait until it starts making blocks
 # kvd --home ~/kavatmp start &
