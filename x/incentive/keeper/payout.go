@@ -64,54 +64,81 @@ func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModul
 	vacc, ok := acc.(vesting.PeriodicVestingAccount)
 	if ok {
 		// 2a. If it's a periodic vesting account, update the account:
-		proposedEndTime := ctx.BlockTime().Unix() + length
-		// 2a2. Update the original vesting coins. TODO Do I need to remove the coins from the 'Coins' field?
+		// 2a1. Add the new vesting coins to OriginalVesting
 		vacc.OriginalVesting = vacc.OriginalVesting.Add(amt)
-		// 2a3. Update the periods
-		totalPeriodLength := types.GetTotalVestingPeriodLength(vacc.VestingPeriods)
-		// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
-		if totalPeriodLength < length {
-			newPeriodLength := length - totalPeriodLength
-			newPeriod := vesting.Period{Amount: amt, Length: newPeriodLength}
+		// 2a2. Update the periods
+		insertPeriod := true
+		if vacc.EndTime < ctx.BlockTime().Unix() {
+			//case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
+			// append a new period to the vesting account and update the end time
+			newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length
+			newPeriod := vesting.Period{Amount: amt, Length: newPeriodLength} // TODO add NewPeriod method?
 			vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
-			// need to update the end time as well so that the sum of all period lengths equals endTime - startTime
-			vacc.EndTime = proposedEndTime
-		} else {
-			// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
-			// EXAMPLE (l is length, a is amount)
-			// Original Periods: {[l: 1 a: 1], [l: 2, a: 1], [l:8, a:3], [l: 5, a: 3]}
-			// Period we want to insert [l: 5, a: x]
-			// Expected result:
-			// {[l: 1, a: 1], [l:2, a: 1], [l:2, a:x], [l:6, a:3], [l:5, a:3]}
-			newPeriods := vesting.Periods{}
-			lengthCounter := int64(0)
-			appendRemaining := false
+			vacc.EndTime = ctx.BlockTime().Unix() + length
+			insertPeriod = false
+		} else if vacc.StartTime > ctx.BlockTime().Unix() {
+			// case two - the vesting account's start time is in the future (all periods have not started)
+			// update the start time to now and adjust the period lengths accordingly
+			updatedPeriods := vesting.Periods{}
 			for _, period := range vacc.VestingPeriods {
-				if appendRemaining {
-					newPeriods = append(newPeriods, period)
-					continue
-				}
-				lengthCounter += period.Length
-				if lengthCounter < length {
-					newPeriods = append(newPeriods, period)
-				} else if lengthCounter == length {
-					newPeriod := vesting.Period{Length: period.Length, Amount: period.Amount.Add(amt)}
-					newPeriods = append(newPeriods, newPeriod)
-					appendRemaining = true
-				} else {
-					newPeriod := vesting.Period{
-						Length: length - types.GetTotalVestingPeriodLength(newPeriods),
-						Amount: amt,
+				updatedPeriod := vesting.Period{Amount: period.Amount, Length: (vacc.StartTime - ctx.BlockTime().Unix()) + period.Length}
+				updatedPeriods = append(updatedPeriods, updatedPeriod)
+			}
+			vacc.VestingPeriods = updatedPeriods
+			vacc.StartTime = ctx.BlockTime().Unix()
+		}
+		totalPeriodLength := types.GetTotalVestingPeriodLength(vacc.VestingPeriods)
+		proposedEndTime := ctx.BlockTime().Unix() + length
+
+		if insertPeriod {
+			// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
+			if totalPeriodLength < length {
+				newPeriodLength := length - totalPeriodLength
+				newPeriod := vesting.Period{Amount: amt, Length: newPeriodLength}
+				vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
+				// need to update the end time as well so that the sum of all period lengths equals endTime - startTime
+				vacc.EndTime = proposedEndTime
+			} else {
+				// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
+				// EXAMPLE (l is length, a is amount)
+				// Original Periods: {[l: 1 a: 1], [l: 2, a: 1], [l:8, a:3], [l: 5, a: 3]}
+				// Period we want to insert [l: 5, a: x]
+				// Expected result:
+				// {[l: 1, a: 1], [l:2, a: 1], [l:2, a:x], [l:6, a:3], [l:5, a:3]}
+				// Example 2
+				// Original: {}
+				newPeriods := vesting.Periods{}
+				lengthCounter := int64(0)
+				appendRemaining := false
+				for _, period := range vacc.VestingPeriods {
+					if appendRemaining {
+						newPeriods = append(newPeriods, period)
+						continue
 					}
-					previousPeriod := vesting.Period{
-						Length: period.Length - newPeriod.Length,
-						Amount: period.Amount,
+					lengthCounter += period.Length
+					if lengthCounter < length {
+						newPeriods = append(newPeriods, period)
+					} else if lengthCounter == length {
+						newPeriod := vesting.Period{Length: period.Length, Amount: period.Amount.Add(amt)}
+						newPeriods = append(newPeriods, newPeriod)
+						appendRemaining = true
+					} else {
+						newPeriod := vesting.Period{
+							Length: length - types.GetTotalVestingPeriodLength(newPeriods),
+							Amount: amt,
+						}
+						previousPeriod := vesting.Period{
+							Length: period.Length - newPeriod.Length,
+							Amount: period.Amount,
+						}
+						newPeriods = append(newPeriods, newPeriod, previousPeriod)
+						appendRemaining = true
 					}
-					newPeriods = append(newPeriods, newPeriod, previousPeriod)
-					appendRemaining = true
 				}
 			}
 		}
+		// update the account in the store
+		k.accountKeeper.SetAccount(ctx, vacc)
 	} else {
 		// 3b. If it's not a periodic vesting account, transition the account to a periodic vesting account:
 		bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
