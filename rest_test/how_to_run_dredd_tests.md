@@ -8,19 +8,14 @@ Instructions on how to run the `dredd` tests
 
 `npm install dredd --global`
 
-2) Build the test file by running the following from the `debugging_tools` folder:
-
-`rm test`
-`go build test.go`
-
-3) Now create the genesis state for the blockchain, start the blockchain, start the rest 
-server, send the required transactions to the blockchain by running the following from the `swagger-ui` 
-directory. 
+2) Run the `startchain.sh` script from the `swagger-ui` directory. This builds the `test.go` 
+file, creates the genesis state for the blockchain, starts the blockchain, starts the rest 
+server and sends the required transactions to the blockchain. 
 **IMPORTANT** - Wait until the script completes before proceeding (takes about 1-2 minutes):
 
 `./startchain.sh`
 
-4) Then run the below `dredd` command from the `swagger-ui` folder to run the `dredd` tests.
+3) Then run the below `dredd` command from the `swagger-ui` folder to run the `dredd` tests.
 **When you run the script 62 tests should pass and zero should fail** 
 
 (See `test-results` in the `swagger-ui` for what the `dredd` output should look like.)
@@ -31,7 +26,7 @@ If you want to run with the debug logs printed out use the following command:
 
 `dredd swagger.yaml localhost:1317 --loglevel=debug`
 
-5) Finally stop the blockchain and rest server using the following script:
+4) Finally stop the blockchain and rest server using the following script:
 
 `./stopchain.sh`
 
