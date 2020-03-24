@@ -43,7 +43,7 @@ showLoading() {
     sleep 0.5
   done
 
-  echo "$loadingText...FINISHED"
+  echo "$loadingText...finished"
 }
 
 
@@ -71,15 +71,17 @@ kvd start --home ~/kavatmp & kvdPid="$!"
 } > /dev/null 2>&1
 
 printf "\n"
-sleep 10 & showLoading "STARTING REST SERVER, PLEASE WAIT"
+sleep 10 & showLoading "Starting rest server, please wait"
 # start the rest server. Use ./stopchain.sh to stop both rest server and the blockchain
 {
 kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavatmp & kvcliPid="$!"
 } > /dev/null 2>&1
 printf "\n"
-sleep 10 & showLoading "PREPARING BLOCKCHAIN SETUP TRANSACTIONS, PLEASE WAIT"
+sleep 10 & showLoading "Preparing blockchain setup transactions, please wait"
+printf "\n"
+printf "Sending messages to blockchain..."
 # run the go code to send transactions to the chain and set it up correctly
 ../debugging_tools/./test
 printf "\n"
 printf "Blockchain setup completed"
-printf "\n"
+printf "\n\n"
