@@ -24,6 +24,29 @@ printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home 
 # create faucet key
 printf "$password\n$faucet\n" | kvcli --home ~/kavatmp keys add faucet --recover --home ~/kavatmp
 
+# function used to show that it is still loading
+showLoading() {
+  mypid=$!
+  loadingText=$1
+
+  echo -ne "$loadingText\r"
+
+  while kill -0 $mypid 2>/dev/null; do
+    echo -ne "$loadingText.\r"
+    sleep 0.5
+    echo -ne "$loadingText..\r"
+    sleep 0.5
+    echo -ne "$loadingText...\r"
+    sleep 0.5
+    echo -ne "\r\033[K"
+    echo -ne "$loadingText\r"
+    sleep 0.5
+  done
+
+  echo "$loadingText...FINISHED"
+}
+
+
 
 # Create new data directory
 {
@@ -46,11 +69,17 @@ kvd --home ~/kavatmp collect-gentxs
 {
 kvd start --home ~/kavatmp & kvdPid="$!"
 } > /dev/null 2>&1
-sleep 10
+
+printf "\n"
+sleep 10 & showLoading "STARTING REST SERVER, PLEASE WAIT"
 # start the rest server. Use ./stopchain.sh to stop both rest server and the blockchain
 {
 kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavatmp & kvcliPid="$!"
 } > /dev/null 2>&1
-sleep 10
+printf "\n"
+sleep 10 & showLoading "PREPARING BLOCKCHAIN SETUP TRANSACTIONS, PLEASE WAIT"
 # run the go code to send transactions to the chain and set it up correctly
 ../debugging_tools/./test
+printf "\n"
+printf "Blockchain setup completed"
+printf "\n"
