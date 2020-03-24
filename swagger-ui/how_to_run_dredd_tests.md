@@ -4,7 +4,7 @@
 
 Instructions on how to run the `dredd` tests
 
-1) Make sure that you have the latest versions of `node` and `npm` and `npx` installed. Then install `dredd` globally using the following command:
+1) Make sure that you have the latest versions of `node` and `npm` and `npx` installed. Then install `dredd` globally using the following command from the `swagger-ui` folder:
 
 `npm install dredd --global`
 
@@ -13,17 +13,17 @@ Instructions on how to run the `dredd` tests
 `rm test`
 `go build test.go`
 
-3) In a separate terminal, create the genesis state for the blockchain, start the blockchain, start the rest 
+3) Now create the genesis state for the blockchain, start the blockchain, start the rest 
 server, send the required transactions to the blockchain by running the following from the `swagger-ui` 
-directory (`ctrc-c` to stop both the blockchain and the rest server). Wait until the script completes before 
-proceeding (takes about 1 minute):
+directory. 
+**IMPORTANT** - Wait until the script completes before proceeding (takes about 1-2 minutes):
 
 `./startchain.sh`
 
 4) Then run the below `dredd` command from the `swagger-ui` folder to run the `dredd` tests.
 **When you run the script 62 tests should pass and zero should fail** 
 
-See `test-results` in the `swagger-ui` for what the `dredd` output should look like.
+(See `test-results` in the `swagger-ui` for what the `dredd` output should look like.)
 
 `dredd swagger.yaml localhost:1317 --loglevel=debug`
 
