@@ -2,23 +2,17 @@
 # TODO import from development environment in envkey
 password="password"
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
-# kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
 
 #   address: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 #   address: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 
 faucet="chief access utility giant burger winner jar false naive mobile often perfect advice village love enroll embark bacon under flock harbor render father since"
-# kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj
 
 # address: kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz
 # address: kavavaloper1ls82zzghsx0exkpr52m8vht5jqs3un0c5j2c04
 
 # Remove any existing data directory
-# rm -rf ~/.kvd
-# rm -rf ~/.kvcli
-
 rm -rf ~/kavatmp
-
 
 # create validator key
 printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home ~/kavatmp
@@ -92,7 +86,7 @@ printf "\n\n"
 # Now run the dredd tests
 ############################
 
-dredd swagger.yaml localhost:1317
+dredd swagger.yaml localhost:1317 & showLoading "Running dredd tests"
 
 ########################################################
 # Now run the check the return code from the dredd command. 
@@ -102,11 +96,13 @@ dredd swagger.yaml localhost:1317
 if [ $? -eq 0 ]
 then
   echo "Success"
+  rm test & showLoading "Cleaning up go binary"
   pgrep kvd | xargs kill
   pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
   exit 0
 else
   echo "Failure" >&2
+  rm test & showLoading "Cleaning up go binary"
   pgrep kvd | xargs kill
   pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
   exit 1
