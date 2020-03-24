@@ -165,3 +165,5 @@ func (k Keeper) SendCoinsFromModuleToVestingAccount(ctx sdk.Context, senderModul
 
 	return nil
 }
+
+// TODO handle expired claim periods and delete associated claims

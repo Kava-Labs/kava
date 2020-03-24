@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,6 +15,18 @@ type RewardPeriod struct {
 	Reward        sdk.Coin      `json:"reward" yaml:"reward"` // per second reward payouts. For example, if we know from params that 10000KAVA is being paid out over 1 week (604800 rewards periods), then the value of reward would be (10000 * 1000000)/604800 = 16534ukava per second
 	ClaimEnd      time.Time     `json:"claim_end" yaml:"claim_end"`
 	ClaimTimeLock time.Duration `json:"claim_time_lock" yaml:"claim_time_lock"` // the amount of time rewards are timelocked once they are sent to users
+}
+
+// String implements fmt.Stringer
+func (rp RewardPeriod) String() string {
+	return fmt.Sprintf(`Reward Period:
+	Denom: %s,
+	Start: %s,
+	End: %s,
+	Reward: %s,
+	Claim End: %s,
+	Time Lock: %s`,
+		rp.Denom, rp.Start, rp.End, rp.Reward, rp.ClaimEnd, rp.ClaimTimeLock)
 }
 
 // NewRewardPeriod returns a new RewardPeriod

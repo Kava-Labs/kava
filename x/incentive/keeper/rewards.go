@@ -236,6 +236,12 @@ func (k Keeper) SetClaim(ctx sdk.Context, c types.Claim) {
 
 }
 
+// DeleteClaim deletes the claim in the store corresponding to the input address, denom, and id
+func (k Keeper) DeleteClaim(ctx sdk.Context, owner sdk.AccAddress, denom string, id uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
+	store.Delete(types.GetClaimPrefix(owner, denom, id))
+}
+
 // AddToClaim adds the amount to an existing claim or creates a new on for that amount
 func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64, amount sdk.Coin) {
 	claim, found := k.GetClaim(ctx, addr, denom, id)
@@ -246,10 +252,4 @@ func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, i
 	}
 	claim = types.NewClaim(addr, amount, denom, id)
 	k.SetClaim(ctx, claim)
-}
-
-// DeleteClaim deletes the claim in the store corresponding to the input address, denom, and id
-func (k Keeper) DeleteClaim(ctx sdk.Context, owner sdk.AccAddress, denom string, id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	store.Delete(types.GetClaimPrefix(owner, denom, id))
 }
