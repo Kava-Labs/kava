@@ -19,6 +19,7 @@ faucet="chief access utility giant burger winner jar false naive mobile often pe
 
 rm -rf ~/kavatmp
 
+
 # create validator key
 printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home ~/kavatmp
 # create faucet key
@@ -46,7 +47,9 @@ showLoading() {
   echo "$loadingText...finished"
 }
 
-
+# build the go setup test file
+rm test
+go build debugging_tools/test.go & showLoading "Building go test file, please wait"
 
 # Create new data directory
 {
@@ -79,9 +82,8 @@ kvcli rest-server --laddr tcp://127.0.0.1:1317 --chain-id=testing --home ~/kavat
 printf "\n"
 sleep 10 & showLoading "Preparing blockchain setup transactions, please wait"
 printf "\n"
-printf "Sending messages to blockchain..."
 # run the go code to send transactions to the chain and set it up correctly
-../debugging_tools/./test
+./test & showLoading "Sending messages to blockchain"
 printf "\n"
 printf "Blockchain setup completed"
 printf "\n\n"
