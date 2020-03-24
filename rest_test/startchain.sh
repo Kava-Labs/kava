@@ -87,3 +87,27 @@ printf "\n"
 printf "\n"
 printf "Blockchain setup completed"
 printf "\n\n"
+
+############################
+# Now run the dredd tests
+############################
+
+dredd swagger.yaml localhost:1317
+
+########################################################
+# Now run the check the return code from the dredd command. 
+# If 0 then all test passed OK, otherwise some failed and propagate the error
+########################################################
+
+if [ $? -eq 0 ]
+then
+  echo "Success"
+  pgrep kvd | xargs kill
+  pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+  exit 0
+else
+  echo "Failure" >&2
+  pgrep kvd | xargs kill
+  pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+  exit 1
+fi
