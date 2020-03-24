@@ -8,17 +8,26 @@ import (
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 type GenesisTestSuite struct {
 	suite.Suite
 
+	app    app.TestApp
 	ctx    sdk.Context
 	keeper bep3.Keeper
 }
 
-func (suite *GenesisTestSuite) TestGenesisState() {
+func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
+	suite.ctx = tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+	suite.keeper = tApp.GetBep3Keeper()
+	suite.app = tApp
+}
+
+func (suite *GenesisTestSuite) TestGenesisState() {
 
 	type GenState func() app.GenesisState
 
@@ -45,7 +54,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					swaps = append(swaps, swap)
 				}
 				gs.AtomicSwaps = swaps
-				gs.AssetSupplies = cs(c("bnb", 7654321))
+				gs.AssetSupplies = []sdk.Coin{c("bnb", 7654321)}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: true,
@@ -189,14 +198,19 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 	}
 
 	for _, tc := range testCases {
+		suite.SetupTest()
 		if tc.expectPass {
-			suite.NotPanics(func() {
-				tApp.InitializeFromGenesisStates(tc.genState())
+			suite.Run(tc.name, func() {
+				suite.NotPanics(func() {
+					suite.app.InitializeFromGenesisStates(tc.genState())
+				})
 			})
 		} else {
-			suite.Panics(func() {
-				tApp.InitializeFromGenesisStates(tc.genState())
-			}, tc.name)
+			suite.Run(tc.name, func() {
+				suite.Panics(func() {
+					suite.app.InitializeFromGenesisStates(tc.genState())
+				})
+			})
 		}
 	}
 }

@@ -13,6 +13,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
 
+	keeper.SetParams(ctx, gs.Params)
+
 	for _, swap := range gs.AtomicSwaps {
 		if swap.Validate() != nil {
 			panic(fmt.Sprintf("invalid swap %s", swap.GetSwapID()))
@@ -67,8 +69,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		keeper.SetAssetSupply(ctx, asset, []byte(asset.Denom))
 		totalAssetSupply = totalAssetSupply.Add(sdk.NewCoins(asset))
 	}
-
-	keeper.SetParams(ctx, gs.Params)
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis

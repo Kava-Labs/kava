@@ -206,7 +206,6 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 	suite.Equal(expectedSwapIDs, readSwapIDs)
 }
 
-// ----------------------------------------------------------------------------
 func (suite *KeeperTestSuite) TestInsertIntoLongtermStorage() {
 	suite.ResetChain()
 

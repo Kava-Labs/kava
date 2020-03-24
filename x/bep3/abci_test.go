@@ -111,34 +111,36 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 	for _, tc := range testCases {
 		// Reset keeper and run the initial begin blocker
 		suite.ResetKeeper()
-		bep3.BeginBlocker(tc.firstCtx, suite.keeper)
+		suite.Run(tc.name, func() {
+			bep3.BeginBlocker(tc.firstCtx, suite.keeper)
 
-		switch tc.expectedStatus {
-		case types.Completed:
-			for i, swapID := range suite.swapIDs {
-				err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
-				suite.Nil(err)
+			switch tc.expectedStatus {
+			case types.Completed:
+				for i, swapID := range suite.swapIDs {
+					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
+					suite.Nil(err)
+				}
+			case types.NULL:
+				for _, swapID := range suite.swapIDs {
+					err := suite.keeper.RefundAtomicSwap(tc.firstCtx, suite.addrs[10], swapID)
+					suite.Nil(err)
+				}
 			}
-		case types.NULL:
+
+			// Run the second begin blocker
+			bep3.BeginBlocker(tc.secondCtx, suite.keeper)
+
+			// Check each swap's availibility and status
 			for _, swapID := range suite.swapIDs {
-				err := suite.keeper.RefundAtomicSwap(tc.firstCtx, suite.addrs[10], swapID)
-				suite.Nil(err)
+				storedSwap, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
+				if tc.expectInStorage {
+					suite.True(found)
+				} else {
+					suite.False(found)
+				}
+				suite.Equal(tc.expectedStatus, storedSwap.Status)
 			}
-		}
-
-		// Run the second begin blocker
-		bep3.BeginBlocker(tc.secondCtx, suite.keeper)
-
-		// Check each swap's availibility and status
-		for _, swapID := range suite.swapIDs {
-			storedSwap, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
-			if tc.expectInStorage {
-				suite.True(found)
-			} else {
-				suite.False(found)
-			}
-			suite.Equal(tc.expectedStatus, storedSwap.Status)
-		}
+		})
 	}
 }
 
@@ -197,38 +199,40 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 	for _, tc := range testCases {
 		// Reset keeper and run the initial begin blocker
 		suite.ResetKeeper()
-		bep3.BeginBlocker(tc.firstCtx, suite.keeper)
+		suite.Run(tc.name, func() {
+			bep3.BeginBlocker(tc.firstCtx, suite.keeper)
 
-		switch tc.action {
-		case Claim:
-			for i, swapID := range suite.swapIDs {
-				err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
-				suite.Nil(err)
+			switch tc.action {
+			case Claim:
+				for i, swapID := range suite.swapIDs {
+					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
+					suite.Nil(err)
+				}
+			case Refund:
+				for _, swapID := range suite.swapIDs {
+					swap, _ := suite.keeper.GetAtomicSwap(tc.firstCtx, swapID)
+					refundCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + swap.ExpireHeight)
+					bep3.BeginBlocker(refundCtx, suite.keeper)
+					err := suite.keeper.RefundAtomicSwap(refundCtx, suite.addrs[10], swapID)
+					suite.Nil(err)
+					// Add expire height to second ctx block height
+					tc.secondCtx = tc.secondCtx.WithBlockHeight(tc.secondCtx.BlockHeight() + swap.ExpireHeight)
+				}
 			}
-		case Refund:
+
+			// Run the second begin blocker
+			bep3.BeginBlocker(tc.secondCtx, suite.keeper)
+
+			// Check each swap's availibility and status
 			for _, swapID := range suite.swapIDs {
-				swap, _ := suite.keeper.GetAtomicSwap(tc.firstCtx, swapID)
-				refundCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + swap.ExpireHeight)
-				bep3.BeginBlocker(refundCtx, suite.keeper)
-				err := suite.keeper.RefundAtomicSwap(refundCtx, suite.addrs[10], swapID)
-				suite.Nil(err)
-				// Add expire height to second ctx block height
-				tc.secondCtx = tc.secondCtx.WithBlockHeight(tc.secondCtx.BlockHeight() + swap.ExpireHeight)
+				_, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
+				if tc.expectInStorage {
+					suite.True(found)
+				} else {
+					suite.False(found)
+				}
 			}
-		}
-
-		// Run the second begin blocker
-		bep3.BeginBlocker(tc.secondCtx, suite.keeper)
-
-		// Check each swap's availibility and status
-		for _, swapID := range suite.swapIDs {
-			_, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
-			if tc.expectInStorage {
-				suite.True(found)
-			} else {
-				suite.False(found)
-			}
-		}
+		})
 	}
 }
 
