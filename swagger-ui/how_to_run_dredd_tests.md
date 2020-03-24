@@ -25,6 +25,10 @@ directory.
 
 (See `test-results` in the `swagger-ui` for what the `dredd` output should look like.)
 
+`dredd swagger.yaml localhost:1317`
+
+If you want to run with the debug logs printed out use the following command:
+
 `dredd swagger.yaml localhost:1317 --loglevel=debug`
 
 5) Finally stop the blockchain and rest server using the following script:
