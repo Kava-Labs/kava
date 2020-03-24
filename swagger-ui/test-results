@@ -1,181 +1,181 @@
-[32mpass[39m: GET (200) /node_info duration: 83ms
+[32mpass[39m: GET (200) /node_info duration: 79ms
 [33mskip[39m: GET (500) /node_info
-[32mpass[39m: GET (200) /syncing duration: 21ms
+[32mpass[39m: GET (200) /syncing duration: 16ms
 [33mskip[39m: GET (500) /syncing
-[32mpass[39m: GET (200) /blocks/latest duration: 72ms
+[32mpass[39m: GET (200) /blocks/latest duration: 56ms
 [33mskip[39m: GET (500) /blocks/latest
-[32mpass[39m: GET (200) /blocks/2 duration: 48ms
+[32mpass[39m: GET (200) /blocks/2 duration: 37ms
 [33mskip[39m: GET (400) /blocks/2
 [33mskip[39m: GET (404) /blocks/2
 [33mskip[39m: GET (500) /blocks/2
-[32mpass[39m: GET (200) /validatorsets/latest duration: 548ms
+[32mpass[39m: GET (200) /validatorsets/latest duration: 3072ms
 [33mskip[39m: GET (500) /validatorsets/latest
-[32mpass[39m: GET (200) /validatorsets/1 duration: 27ms
+[32mpass[39m: GET (200) /validatorsets/1 duration: 20ms
 [33mskip[39m: GET (400) /validatorsets/1
 [33mskip[39m: GET (404) /validatorsets/1
 [33mskip[39m: GET (500) /validatorsets/1
-[32mpass[39m: GET (200) /txs/45AE43DFCDDEC11F97D47A03EA4335173B4BE3B8DAB373E6650E4C037BFD2E02 duration: 37ms
-[33mskip[39m: GET (500) /txs/45AE43DFCDDEC11F97D47A03EA4335173B4BE3B8DAB373E6650E4C037BFD2E02
-[32mpass[39m: GET (200) /txs?page=1&limit=1&txheight=1 duration: 35ms
+[32mpass[39m: GET (200) /txs/B901DB8552BC5F5F82E5709EC37AAD8C0F8005CDB3608E5580055CC4D0D9B275 duration: 29ms
+[33mskip[39m: GET (500) /txs/B901DB8552BC5F5F82E5709EC37AAD8C0F8005CDB3608E5580055CC4D0D9B275
+[32mpass[39m: GET (200) /txs?page=1&limit=1&txheight=1 duration: 25ms
 [33mskip[39m: GET (400) /txs?page=1&limit=1&txheight=1
 [33mskip[39m: GET (500) /txs?page=1&limit=1&txheight=1
-[32mpass[39m: POST (200) /txs duration: 4991ms
+[32mpass[39m: POST (200) /txs duration: 28ms
 [33mskip[39m: POST (500) /txs
-[32mpass[39m: POST (200) /txs/encode duration: 19ms
+[32mpass[39m: POST (200) /txs/encode duration: 13ms
 [33mskip[39m: POST (400) /txs/encode
 [33mskip[39m: POST (500) /txs/encode
-[32mpass[39m: POST (200) /txs/decode duration: 27ms
+[32mpass[39m: POST (200) /txs/decode duration: 22ms
 [33mskip[39m: POST (400) /txs/decode
 [33mskip[39m: POST (500) /txs/decode
-[32mpass[39m: GET (200) /bank/balances/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c duration: 18ms
+[32mpass[39m: GET (200) /bank/balances/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c duration: 15ms
 [33mskip[39m: GET (500) /bank/balances/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-[32mpass[39m: POST (200) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers duration: 33ms
+[32mpass[39m: POST (200) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers duration: 18ms
 [33mskip[39m: POST (400) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
 [33mskip[39m: POST (500) /bank/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/transfers
-[32mpass[39m: GET (200) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 18ms
+[32mpass[39m: GET (200) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9 duration: 15ms
 [33mskip[39m: GET (500) /auth/accounts/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
-[32mpass[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 18ms
+[32mpass[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations duration: 15ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/delegations
-[32mpass[39m: GET (200) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 41ms
+[32mpass[39m: GET (200) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 24ms
 [33mskip[39m: GET (400) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: GET (500) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 20ms
+[32mpass[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations duration: 14ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/unbonding_delegations
-[32mpass[39m: GET (200) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/unbonding_delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 22ms
+[32mpass[39m: GET (200) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/unbonding_delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 18ms
 [33mskip[39m: GET (400) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/unbonding_delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: GET (500) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/unbonding_delegations/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: GET (200) /staking/redelegations duration: 17ms
+[32mpass[39m: GET (200) /staking/redelegations duration: 13ms
 [33mskip[39m: GET (500) /staking/redelegations
-[32mpass[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators duration: 22ms
+[32mpass[39m: GET (200) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators duration: 14ms
 [33mskip[39m: GET (400) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
 [33mskip[39m: GET (500) /staking/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/validators
-[32mpass[39m: GET (200) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 38ms
+[32mpass[39m: GET (200) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 18ms
 [33mskip[39m: GET (400) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: GET (500) /staking/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1 duration: 17ms
+[32mpass[39m: GET (200) /staking/validators?status=bonded&page=1&limit=1 duration: 13ms
 [33mskip[39m: GET (500) /staking/validators?status=bonded&page=1&limit=1
-[32mpass[39m: GET (200) /staking/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 18ms
+[32mpass[39m: GET (200) /staking/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 12ms
 [33mskip[39m: GET (400) /staking/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: GET (500) /staking/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations duration: 20ms
+[32mpass[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations duration: 13ms
 [33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
 [33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/delegations
-[32mpass[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations duration: 15ms
+[32mpass[39m: GET (200) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations duration: 12ms
 [33mskip[39m: GET (400) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
 [33mskip[39m: GET (500) /staking/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unbonding_delegations
-[32mpass[39m: GET (200) /staking/pool duration: 19ms
+[32mpass[39m: GET (200) /staking/pool duration: 13ms
 [33mskip[39m: GET (500) /staking/pool
-[32mpass[39m: GET (200) /staking/parameters duration: 21ms
+[32mpass[39m: GET (200) /staking/parameters duration: 11ms
 [33mskip[39m: GET (500) /staking/parameters
-[32mpass[39m: GET (200) /slashing/signing_infos?page=1&limit=5 duration: 17ms
+[32mpass[39m: GET (200) /slashing/signing_infos?page=1&limit=5 duration: 12ms
 [33mskip[39m: GET (400) /slashing/signing_infos?page=1&limit=5
 [33mskip[39m: GET (500) /slashing/signing_infos?page=1&limit=5
-[32mpass[39m: POST (200) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail duration: 22ms
+[32mpass[39m: POST (200) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail duration: 18ms
 [33mskip[39m: POST (400) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail
 [33mskip[39m: POST (500) /slashing/validators/kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj/unjail
-[32mpass[39m: GET (200) /slashing/parameters duration: 25ms
+[32mpass[39m: GET (200) /slashing/parameters duration: 12ms
 [33mskip[39m: GET (500) /slashing/parameters
-[32mpass[39m: POST (200) /gov/proposals duration: 34ms
+[32mpass[39m: POST (200) /gov/proposals duration: 16ms
 [33mskip[39m: POST (400) /gov/proposals
 [33mskip[39m: POST (500) /gov/proposals
-[32mpass[39m: GET (200) /gov/proposals duration: 18ms
+[32mpass[39m: GET (200) /gov/proposals duration: 14ms
 [33mskip[39m: GET (400) /gov/proposals
 [33mskip[39m: GET (500) /gov/proposals
-[32mpass[39m: POST (200) /gov/proposals/param_change duration: 45ms
+[32mpass[39m: POST (200) /gov/proposals/param_change duration: 16ms
 [33mskip[39m: POST (400) /gov/proposals/param_change
 [33mskip[39m: POST (500) /gov/proposals/param_change
-[32mpass[39m: GET (200) /gov/proposals/2 duration: 33ms
+[32mpass[39m: GET (200) /gov/proposals/2 duration: 17ms
 [33mskip[39m: GET (400) /gov/proposals/2
 [33mskip[39m: GET (500) /gov/proposals/2
-[32mpass[39m: GET (200) /gov/proposals/2/proposer duration: 67ms
+[32mpass[39m: GET (200) /gov/proposals/2/proposer duration: 20ms
 [33mskip[39m: GET (400) /gov/proposals/2/proposer
 [33mskip[39m: GET (500) /gov/proposals/2/proposer
-[32mpass[39m: GET (200) /gov/proposals/2/deposits duration: 23ms
+[32mpass[39m: GET (200) /gov/proposals/2/deposits duration: 13ms
 [33mskip[39m: GET (400) /gov/proposals/2/deposits
 [33mskip[39m: GET (500) /gov/proposals/2/deposits
-[32mpass[39m: POST (200) /gov/proposals/2/deposits duration: 30ms
+[32mpass[39m: POST (200) /gov/proposals/2/deposits duration: 16ms
 [33mskip[39m: POST (400) /gov/proposals/2/deposits
 [33mskip[39m: POST (401) /gov/proposals/2/deposits
 [33mskip[39m: POST (500) /gov/proposals/2/deposits
-[32mpass[39m: GET (200) /gov/proposals/2/deposits/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c duration: 28ms
+[32mpass[39m: GET (200) /gov/proposals/2/deposits/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c duration: 18ms
 [33mskip[39m: GET (400) /gov/proposals/2/deposits/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 [33mskip[39m: GET (404) /gov/proposals/2/deposits/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 [33mskip[39m: GET (500) /gov/proposals/2/deposits/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-[32mpass[39m: GET (200) /gov/proposals/2/votes duration: 19ms
+[32mpass[39m: GET (200) /gov/proposals/2/votes duration: 12ms
 [33mskip[39m: GET (400) /gov/proposals/2/votes
 [33mskip[39m: GET (500) /gov/proposals/2/votes
-[32mpass[39m: POST (200) /gov/proposals/2/votes duration: 39ms
+[32mpass[39m: POST (200) /gov/proposals/2/votes duration: 16ms
 [33mskip[39m: POST (400) /gov/proposals/2/votes
 [33mskip[39m: POST (401) /gov/proposals/2/votes
 [33mskip[39m: POST (500) /gov/proposals/2/votes
-[32mpass[39m: GET (200) /gov/proposals/2/votes/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c duration: 25ms
+[32mpass[39m: GET (200) /gov/proposals/2/votes/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c duration: 16ms
 [33mskip[39m: GET (400) /gov/proposals/2/votes/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 [33mskip[39m: GET (404) /gov/proposals/2/votes/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 [33mskip[39m: GET (500) /gov/proposals/2/votes/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-[32mpass[39m: GET (200) /gov/proposals/2/tally duration: 22ms
+[32mpass[39m: GET (200) /gov/proposals/2/tally duration: 17ms
 [33mskip[39m: GET (400) /gov/proposals/2/tally
 [33mskip[39m: GET (500) /gov/proposals/2/tally
-[32mpass[39m: GET (200) /gov/parameters/deposit duration: 16ms
+[32mpass[39m: GET (200) /gov/parameters/deposit duration: 11ms
 [33mskip[39m: GET (400) /gov/parameters/deposit
 [33mskip[39m: GET (404) /gov/parameters/deposit
 [33mskip[39m: GET (500) /gov/parameters/deposit
-[32mpass[39m: GET (200) /gov/parameters/tallying duration: 27ms
+[32mpass[39m: GET (200) /gov/parameters/tallying duration: 12ms
 [33mskip[39m: GET (400) /gov/parameters/tallying
 [33mskip[39m: GET (404) /gov/parameters/tallying
 [33mskip[39m: GET (500) /gov/parameters/tallying
-[32mpass[39m: GET (200) /gov/parameters/voting duration: 15ms
+[32mpass[39m: GET (200) /gov/parameters/voting duration: 11ms
 [33mskip[39m: GET (400) /gov/parameters/voting
 [33mskip[39m: GET (404) /gov/parameters/voting
 [33mskip[39m: GET (500) /gov/parameters/voting
-[32mpass[39m: GET (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards duration: 32ms
+[32mpass[39m: GET (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards duration: 17ms
 [33mskip[39m: GET (400) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards
 [33mskip[39m: GET (500) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards
-[32mpass[39m: POST (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards duration: 24ms
+[32mpass[39m: POST (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards duration: 17ms
 [33mskip[39m: POST (400) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards
 [33mskip[39m: POST (401) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards
 [33mskip[39m: POST (500) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards
-[32mpass[39m: GET (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 16ms
+[32mpass[39m: GET (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 12ms
 [33mskip[39m: GET (400) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: GET (500) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: POST (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 24ms
+[32mpass[39m: POST (200) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 15ms
 [33mskip[39m: POST (400) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: POST (401) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: POST (500) /distribution/delegators/kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c/rewards/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 16ms
+[32mpass[39m: GET (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 11ms
 [33mskip[39m: GET (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
 [33mskip[39m: GET (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
-[32mpass[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 32ms
+[32mpass[39m: POST (200) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address duration: 17ms
 [33mskip[39m: POST (400) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
 [33mskip[39m: POST (401) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
 [33mskip[39m: POST (500) /distribution/delegators/kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9/withdraw_address
-[32mpass[39m: GET (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 24ms
+[32mpass[39m: GET (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0 duration: 17ms
 [33mskip[39m: GET (400) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 [33mskip[39m: GET (500) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-[32mpass[39m: GET (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/outstanding_rewards duration: 17ms
+[32mpass[39m: GET (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/outstanding_rewards duration: 11ms
 [33mskip[39m: GET (500) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/outstanding_rewards
-[32mpass[39m: GET (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards duration: 15ms
+[32mpass[39m: GET (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards duration: 12ms
 [33mskip[39m: GET (400) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards
 [33mskip[39m: GET (500) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards
-[32mpass[39m: POST (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards duration: 31ms
+[32mpass[39m: POST (200) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards duration: 15ms
 [33mskip[39m: POST (400) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards
 [33mskip[39m: POST (401) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards
 [33mskip[39m: POST (500) /distribution/validators/kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0/rewards
-[32mpass[39m: GET (200) /distribution/community_pool duration: 23ms
+[32mpass[39m: GET (200) /distribution/community_pool duration: 11ms
 [33mskip[39m: GET (500) /distribution/community_pool
-[32mpass[39m: GET (200) /distribution/parameters duration: 17ms
+[32mpass[39m: GET (200) /distribution/parameters duration: 12ms
 [33mskip[39m: GET (500) /distribution/parameters
-[32mpass[39m: GET (200) /minting/parameters duration: 16ms
+[32mpass[39m: GET (200) /minting/parameters duration: 11ms
 [33mskip[39m: GET (500) /minting/parameters
-[32mpass[39m: GET (200) /minting/inflation duration: 26ms
+[32mpass[39m: GET (200) /minting/inflation duration: 15ms
 [33mskip[39m: GET (500) /minting/inflation
-[32mpass[39m: GET (200) /minting/annual-provisions duration: 19ms
+[32mpass[39m: GET (200) /minting/annual-provisions duration: 16ms
 [33mskip[39m: GET (500) /minting/annual-provisions
-[32mpass[39m: GET (200) /supply/total duration: 19ms
+[32mpass[39m: GET (200) /supply/total duration: 14ms
 [33mskip[39m: GET (500) /supply/total
-[32mpass[39m: GET (200) /supply/total/uatom duration: 20ms
+[32mpass[39m: GET (200) /supply/total/uatom duration: 14ms
 [33mskip[39m: GET (400) /supply/total/uatom
 [33mskip[39m: GET (500) /supply/total/uatom
 [32mcomplete[39m: 62 passing, 0 failing, 0 errors, 117 skipped, 179 total
-[32mcomplete[39m: Tests took 39047ms
+[32mcomplete[39m: Tests took 4181ms
