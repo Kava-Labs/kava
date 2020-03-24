@@ -11,8 +11,8 @@ import (
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
-		case types.QueryGetAssetSupplyInfo:
-			return queryAssetSupplyInfo(ctx, req, keeper)
+		case types.QueryGetAssetSupply:
+			return queryAssetSupply(ctx, req, keeper)
 		case types.QueryGetAtomicSwap:
 			return queryAtomicSwap(ctx, req, keeper)
 		case types.QueryGetAtomicSwaps:
@@ -25,21 +25,21 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryAssetSupplyInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	// Decode request
-	var requestParams types.QueryAssetSupplyInfo
+	var requestParams types.QueryAssetSupply
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 
-	assetSupplyInfo, err := keeper.GetAssetSupplyInfo(ctx, requestParams.Denom)
-	if err != nil {
-		return nil, sdk.ErrInternal(err.Error())
+	assetSupply, found := keeper.GetAssetSupply(ctx, requestParams.Denom)
+	if !found {
+		return nil, sdk.ErrInternal("Not found")
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, assetSupplyInfo)
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, assetSupply)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

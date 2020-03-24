@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	BNB_SUPPLY_LIMIT = i(100000000000)
+	StandardSupplyLimit = i(100000000000)
 )
 
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
@@ -41,7 +41,7 @@ func baseGenState() bep3.GenesisState {
 				types.AssetParam{
 					Denom:  "bnb",
 					CoinID: 714,
-					Limit:  BNB_SUPPLY_LIMIT,
+					Limit:  StandardSupplyLimit,
 					Active: true,
 				},
 				types.AssetParam{

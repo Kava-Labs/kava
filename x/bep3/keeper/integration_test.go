@@ -11,9 +11,11 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
+// TODO: Standardize naming conventions
 var (
-	BNB_SUPPLY_LIMIT = i(100000000000)
-	binanceAddrs     = []sdk.AccAddress{
+	StandardSupplyLimit = i(100000000000)
+	DenomMap            = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
+	binanceAddrs        = []sdk.AccAddress{
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
 		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest3"))),
@@ -44,7 +46,7 @@ func NewBep3GenStateMulti() app.GenesisState {
 				types.AssetParam{
 					Denom:  "bnb",
 					CoinID: 714,
-					Limit:  BNB_SUPPLY_LIMIT,
+					Limit:  StandardSupplyLimit,
 					Active: true,
 				},
 				types.AssetParam{
@@ -80,4 +82,22 @@ func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 		binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true)
 
 	return swap
+}
+
+func assetSupplies(count int) types.AssetSupplies {
+	if count > 5 { // Max 5 asset supplies
+		return types.AssetSupplies{}
+	}
+
+	var supplies types.AssetSupplies
+
+	for i := 0; i < count; i++ {
+		supply := assetSupply(DenomMap[i])
+		supplies = append(supplies, supply)
+	}
+	return supplies
+}
+
+func assetSupply(denom string) types.AssetSupply {
+	return types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 10000))
 }

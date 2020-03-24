@@ -21,13 +21,15 @@ const (
 
 type QuerierTestSuite struct {
 	suite.Suite
-	keeper   keeper.Keeper
-	app      app.TestApp
-	ctx      sdk.Context
-	querier  sdk.Querier
-	addrs    []sdk.AccAddress
-	swapIDs  []cmn.HexBytes
-	isSwapID map[string]bool
+	keeper        keeper.Keeper
+	app           app.TestApp
+	ctx           sdk.Context
+	querier       sdk.Querier
+	addrs         []sdk.AccAddress
+	supplyDenoms  []string
+	isSupplyDenom map[string]bool
+	swapIDs       []cmn.HexBytes
+	isSwapID      map[string]bool
 }
 
 func (suite *QuerierTestSuite) SetupTest() {
@@ -53,13 +55,24 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.querier = keeper.NewQuerier(suite.keeper)
 	suite.addrs = addrs
 
+	// Create asset supplies
+	suite.supplyDenoms = []string{"bnb"}
+	isSupplyDenom := make(map[string]bool)
+	for i := 0; i < len(suite.supplyDenoms); i++ {
+		denom := suite.supplyDenoms[i]
+		assetSupply := types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 100000))
+		suite.keeper.SetAssetSupply(suite.ctx, assetSupply, []byte(denom))
+		isSupplyDenom[denom] = true
+	}
+	suite.isSupplyDenom = isSupplyDenom
+
 	// Create atomic swaps and save IDs
 	var swapIDs []cmn.HexBytes
 	isSwapID := make(map[string]bool)
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
 		expireHeight := int64(360)
-		amount := cs(c("bnb", int64(50000+i*100)))
+		amount := cs(c(suite.supplyDenoms[0], int64(50000+i*100)))
 		timestamp := ts(0)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
 		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
@@ -77,6 +90,30 @@ func (suite *QuerierTestSuite) SetupTest() {
 	}
 	suite.swapIDs = swapIDs
 	suite.isSwapID = isSwapID
+}
+
+func (suite *QuerierTestSuite) TestQueryAssetSupply() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+
+	denom := cmn.HexBytes(suite.supplyDenoms[0])
+
+	// Set up request query
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAssetSupply}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupply(denom)),
+	}
+
+	// Execute query and check the []byte result
+	bz, err := suite.querier(ctx, []string{types.QueryGetAssetSupply}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	// Unmarshal the bytes into type asset supply
+	var supply types.AssetSupply
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &supply))
+
+	// Check the returned atomic swap's ID
+	suite.True(suite.isSupplyDenom[supply.Denom])
 }
 
 func (suite *QuerierTestSuite) TestQueryAtomicSwap() {

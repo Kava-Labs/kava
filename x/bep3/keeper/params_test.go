@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/keeper"
+	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -84,6 +85,57 @@ func (suite *ParamsTestSuite) TestGetAssetByCoinID() {
 	res, found := suite.keeper.GetAssetByCoinID(suite.ctx, asset.CoinID)
 	suite.True(found)
 	suite.Equal(asset, res)
+}
+
+func (suite *AssetTestSuite) TestValidateLiveAsset() {
+	type args struct {
+		coin sdk.Coin
+	}
+	testCases := []struct {
+		name          string
+		args          args
+		expectedError sdk.CodeType
+		expectPass    bool
+	}{
+		{
+			"normal",
+			args{
+				coin: c("bnb", 1),
+			},
+			sdk.CodeType(0),
+			true,
+		},
+		{
+			"asset not supported",
+			args{
+				coin: c("bad", 1),
+			},
+			types.CodeAssetNotSupported,
+			false,
+		},
+		{
+			"asset not active",
+			args{
+				coin: c("inc", 1),
+			},
+			types.CodeAssetNotActive,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.SetupTest()
+		suite.Run(tc.name, func() {
+			err := suite.keeper.ValidateLiveAsset(suite.ctx, tc.args.coin)
+
+			if tc.expectPass {
+				suite.NoError(err)
+			} else {
+				suite.Error(err)
+				suite.Equal(tc.expectedError, err.Result().Code)
+			}
+		})
+	}
 }
 
 func TestParamsTestSuite(t *testing.T) {

@@ -1,19 +1,50 @@
 package types
 
-// AssetSupplyInfo contains information about an asset's supply
-type AssetSupplyInfo struct {
-	Denom        string `json:"denom"  yaml:"denom"`
-	InSwapSupply int64  `json:"in_swap_supply"  yaml:"in_swap_supply"`
-	AssetSupply  int64  `json:"asset_supply"  yaml:"asset_supply"`
-	SupplyLimit  int64  `json:"supply_limit"  yaml:"supply_limit"`
+import (
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// AssetSupply contains information about an asset's supply
+type AssetSupply struct {
+	Denom          string   `json:"denom"  yaml:"denom"`
+	IncomingSupply sdk.Coin `json:"incoming_supply"  yaml:"incoming_supply"`
+	OutgoingSupply sdk.Coin `json:"outgoing_supply"  yaml:"outgoing_supply"`
+	CurrentSupply  sdk.Coin `json:"current_supply"  yaml:"current_supply"`
+	Limit          sdk.Coin `json:"limit"  yaml:"limit"`
 }
 
-// NewAssetSupplyInfo initializes a new AssetSupplyInfo
-func NewAssetSupplyInfo(denom string, inSwapSupply, assetSupply, supplyLimit int64) AssetSupplyInfo {
-	return AssetSupplyInfo{
-		Denom:        denom,
-		InSwapSupply: inSwapSupply,
-		AssetSupply:  assetSupply,
-		SupplyLimit:  supplyLimit,
+// NewAssetSupply initializes a new AssetSupply
+func NewAssetSupply(denom string, incomingSupply, outgoingSupply, currentSupply, limit sdk.Coin) AssetSupply {
+	return AssetSupply{
+		Denom:          denom,
+		IncomingSupply: incomingSupply,
+		OutgoingSupply: outgoingSupply,
+		CurrentSupply:  currentSupply,
+		Limit:          limit,
 	}
+}
+
+// String implements stringer
+func (a AssetSupply) String() string {
+	return fmt.Sprintf("Asset Supply"+
+		"\n    Denom:              %s"+
+		"\n    Incoming supply:    %s"+
+		"\n    Outgoing supply:    %s"+
+		"\n    Current supply:     %s"+
+		"\n    Limit:       %s"+
+		a.Denom, a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.Limit)
+}
+
+// AssetSupplies is a slice of AssetSupply
+type AssetSupplies []AssetSupply
+
+// String implements stringer
+func (supplies AssetSupplies) String() string {
+	out := ""
+	for _, supply := range supplies {
+		out += supply.String() + "\n"
+	}
+	return out
 }

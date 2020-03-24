@@ -176,97 +176,47 @@ func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCuto
 //				Asset Supplies
 // ------------------------------------------
 
-// SetAssetSupply updates an asset's current active supply
-func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, denom []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
-	store.Set(denom, bz)
-}
-
 // GetAssetSupply gets an asset's current supply from the store.
-func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
-	var asset sdk.Coin
+func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (types.AssetSupply, bool) {
+	var supply types.AssetSupply
 
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
 	bz := store.Get(denom)
 	if bz == nil {
-		return sdk.Coin{}, false
+		return types.AssetSupply{}, false
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &asset)
-	return asset, true
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &supply)
+	return supply, true
+}
+
+// SetAssetSupply updates an asset's current active supply
+func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(supply)
+	store.Set(denom, bz)
 }
 
 // IterateAssetSupplies provides an iterator over current asset supplies.
 // For each asset supply, cb will be called. If cb returns true, the iterator will close and stop.
-func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (stop bool)) {
+func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.AssetSupply) (stop bool)) {
 	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var asset sdk.Coin
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &asset)
+		var supply types.AssetSupply
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &supply)
 
-		if cb(asset) {
+		if cb(supply) {
 			break
 		}
 	}
 }
 
 // GetAllAssetSupplies returns current asset supplies from the store as an array of sdk.Coin
-func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (assets []sdk.Coin) {
-	k.IterateAssetSupplies(ctx, func(asset sdk.Coin) bool {
-		assets = append(assets, asset)
-		return false
-	})
-	return
-}
-
-// ------------------------------------------
-//				In Swap Supply
-// ------------------------------------------
-
-// SetInSwapSupply sets an asset's total supply currently in swaps from the store.
-func (k Keeper) SetInSwapSupply(ctx sdk.Context, asset sdk.Coin, denom []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.InSwapSupplyKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
-	store.Set(denom, bz)
-}
-
-// GetInSwapSupply gets an asset's total supply currently in swaps from the store.
-func (k Keeper) GetInSwapSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
-	var asset sdk.Coin
-
-	store := prefix.NewStore(ctx.KVStore(k.key), types.InSwapSupplyKeyPrefix)
-	bz := store.Get(denom)
-	if bz == nil {
-		return sdk.Coin{}, false
-	}
-
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &asset)
-	return asset, true
-}
-
-// IterateInSwapSupplies provides an iterator over asset supplies currently in swaps.
-// For each in swap supply, cb will be called. If cb returns true, the iterator will close and stop.
-func (k Keeper) IterateInSwapSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.InSwapSupplyKeyPrefix)
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var asset sdk.Coin
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &asset)
-
-		if cb(asset) {
-			break
-		}
-	}
-}
-
-// GetAllInSwapSupplies returns all asset supplies currently in swaps as an array of sdk.Coin
-func (k Keeper) GetAllInSwapSupplies(ctx sdk.Context) (assets []sdk.Coin) {
-	k.IterateInSwapSupplies(ctx, func(asset sdk.Coin) bool {
-		assets = append(assets, asset)
+func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
+	k.IterateAssetSupplies(ctx, func(supply types.AssetSupply) bool {
+		supplies = append(supplies, supply)
 		return false
 	})
 	return

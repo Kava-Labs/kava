@@ -26,7 +26,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCalcSwapIDCmd(queryRoute, cdc),
 		QueryCalcRandomNumberHashCmd(queryRoute, cdc),
 		QueryGetAtomicSwapCmd(queryRoute, cdc),
-		QueryGetAssetSupplyInfoCmd(queryRoute, cdc),
+		QueryGetAssetSupplyCmd(queryRoute, cdc),
 		QueryGetAtomicSwapsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
@@ -86,8 +86,8 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// QueryGetAssetSupplyInfoCmd queries as asset's current in swap supply, active, supply, and supply limit
-func QueryGetAssetSupplyInfoCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryGetAssetSupplyCmd queries as asset's current in swap supply, active, supply, and supply limit
+func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:     "supply [denom]",
 		Short:   "get information about an asset's supply",
@@ -96,22 +96,26 @@ func QueryGetAssetSupplyInfoCmd(queryRoute string, cdc *codec.Codec) *cobra.Comm
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
+			denom, err := types.HexToBytes(args[0])
+			if err != nil {
+				return err
+			}
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupplyInfo(args[0]))
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply(denom))
 			if err != nil {
 				return err
 			}
 
 			// Execute query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAssetSupplyInfo), bz)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAssetSupply), bz)
 			if err != nil {
 				return err
 			}
 
 			// Decode and print results
-			var assetSupplyInfo types.AssetSupplyInfo
-			cdc.MustUnmarshalJSON(res, &assetSupplyInfo)
-			return cliCtx.PrintOutput(assetSupplyInfo)
+			var assetSupply types.AssetSupply
+			cdc.MustUnmarshalJSON(res, &assetSupply)
+			return cliCtx.PrintOutput(assetSupply)
 		},
 	}
 }

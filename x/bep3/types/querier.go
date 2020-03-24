@@ -5,24 +5,24 @@ import (
 )
 
 const (
-	// QueryGetAssetSupplyInfo command for getting info about an Asset's supply
-	QueryGetAssetSupplyInfo = "supply"
-	// QueryGetAtomicSwap command for getting info about an AtomicSwap
+	// QueryGetAssetSupply command for getting info about an asset's supply
+	QueryGetAssetSupply = "supply"
+	// QueryGetAtomicSwap command for getting info about an atomic swap
 	QueryGetAtomicSwap = "swap"
-	// QueryGetAtomicSwaps command for getting a list of AtomicSwaps
+	// QueryGetAtomicSwaps command for getting a list of atomic swaps
 	QueryGetAtomicSwaps = "swaps"
 	// QueryGetParams command for getting module params
 	QueryGetParams = "params"
 )
 
-// QueryAssetSupplyInfo contains the params for query 'custom/bep3/supply'
-type QueryAssetSupplyInfo struct {
-	Denom string `json:"denom" yaml:"denom"`
+// QueryAssetSupply contains the params for query 'custom/bep3/supply'
+type QueryAssetSupply struct {
+	Denom cmn.HexBytes `json:"denom" yaml:"denom"`
 }
 
-// NewQueryAssetSupplyInfo creates a new QueryAssetSupplyInfo
-func NewQueryAssetSupplyInfo(denom string) QueryAssetSupplyInfo {
-	return QueryAssetSupplyInfo{
+// NewQueryAssetSupply creates a new QueryAssetSupply
+func NewQueryAssetSupply(denom cmn.HexBytes) QueryAssetSupply {
+	return QueryAssetSupply{
 		Denom: denom,
 	}
 }

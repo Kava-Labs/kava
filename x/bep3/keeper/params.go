@@ -61,3 +61,15 @@ func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam,
 	}
 	return types.AssetParam{}, false
 }
+
+// ValidateLiveAsset checks if an asset is both supported and active
+func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) sdk.Error {
+	asset, found := k.GetAssetByDenom(ctx, coin.Denom)
+	if !found {
+		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+	}
+	if !asset.Active {
+		return types.ErrAssetNotActive(k.codespace, asset.Denom)
+	}
+	return nil
+}

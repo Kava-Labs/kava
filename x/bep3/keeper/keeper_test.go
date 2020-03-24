@@ -305,18 +305,19 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
 	suite.ResetChain()
 
-	// Set new asset supply
-	asset := c("bnb", 50000)
-	suite.keeper.SetAssetSupply(suite.ctx, asset, []byte(asset.Denom))
+	denom := "bnb"
+	// Put asset supply in store
+	assetSupply := types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 100000))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, []byte(denom))
 
 	// Check asset in store
-	assetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(asset.Denom))
+	storedAssetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(denom))
 	suite.True(found)
-	suite.Equal(asset, assetSupply)
+	suite.Equal(assetSupply, storedAssetSupply)
 
-	// Check fake asset not in store
-	fakeAsset := c("xyz", 50000)
-	_, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(fakeAsset.Denom))
+	// Check fake asset supply not in store
+	fakeDenom := "xyz"
+	_, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(fakeDenom))
 	suite.False(found)
 }
 
@@ -324,86 +325,42 @@ func (suite *KeeperTestSuite) TestIterateAssetSupplies() {
 	suite.ResetChain()
 
 	// Set asset supplies
-	assetSupplies := []sdk.Coin{c("test1", 25000), c("test2", 50000), c("test3", 100000)}
-	for _, asset := range assetSupplies {
-		suite.keeper.SetAssetSupply(suite.ctx, asset, []byte(asset.Denom))
+	supplies := assetSupplies(5)
+	for _, supply := range supplies {
+		suite.keeper.SetAssetSupply(suite.ctx, supply, []byte(supply.Denom))
 	}
 
 	// Read each asset supply from the store
-	var readAssetSupplies []sdk.Coin
-	suite.keeper.IterateAssetSupplies(suite.ctx, func(c sdk.Coin) bool {
-		readAssetSupplies = append(readAssetSupplies, c)
+	var readSupplies types.AssetSupplies
+	suite.keeper.IterateAssetSupplies(suite.ctx, func(a types.AssetSupply) bool {
+		readSupplies = append(readSupplies, a)
 		return false
 	})
 
 	// Check expected values
-	suite.Equal(assetSupplies, readAssetSupplies)
+	for i := 0; i < len(supplies); i++ {
+		suite.Contains(readSupplies, supplies[i])
+	}
 }
 
 func (suite *KeeperTestSuite) TestGetAllAssetSupplies() {
 	suite.ResetChain()
 
 	// Set asset supplies
-	assetSupplies := []sdk.Coin{c("test1", 25000), c("test2", 50000), c("test3", 100000)}
-	for _, asset := range assetSupplies {
-		suite.keeper.SetAssetSupply(suite.ctx, asset, []byte(asset.Denom))
+	count := 3
+	supplies := assetSupplies(count)
+	for _, supply := range supplies {
+		suite.keeper.SetAssetSupply(suite.ctx, supply, []byte(supply.Denom))
 	}
 
 	// Get all asset supplies
-	res := suite.keeper.GetAllAssetSupplies(suite.ctx)
-	suite.Equal(3, len(res))
-}
-
-func (suite *KeeperTestSuite) TestGetSetInSwapSupply() {
-	suite.ResetChain()
-
-	// Set new asset supply
-	asset := c("bnb", 50000)
-	suite.keeper.SetInSwapSupply(suite.ctx, asset, []byte(asset.Denom))
-
-	// Check in swap supply in store
-	inSwapSupply, found := suite.keeper.GetInSwapSupply(suite.ctx, []byte(asset.Denom))
-	suite.True(found)
-	suite.Equal(asset, inSwapSupply)
-
-	// Check fake asset not in store
-	fakeAsset := c("xyz", 50000)
-	_, found = suite.keeper.GetInSwapSupply(suite.ctx, []byte(fakeAsset.Denom))
-	suite.False(found)
-}
-
-func (suite *KeeperTestSuite) TestIterateInSwapSupplies() {
-	suite.ResetChain()
-
-	// Set in swap supplies
-	inSwapSupplies := []sdk.Coin{c("test1", 25000), c("test2", 50000), c("test3", 100000)}
-	for _, asset := range inSwapSupplies {
-		suite.keeper.SetInSwapSupply(suite.ctx, asset, []byte(asset.Denom))
-	}
-
-	// Read each in swap supply from the store
-	var readInSwapSupplies []sdk.Coin
-	suite.keeper.IterateInSwapSupplies(suite.ctx, func(c sdk.Coin) bool {
-		readInSwapSupplies = append(readInSwapSupplies, c)
-		return false
-	})
+	readSupplies := suite.keeper.GetAllAssetSupplies(suite.ctx)
+	suite.Equal(count, len(readSupplies))
 
 	// Check expected values
-	suite.Equal(inSwapSupplies, readInSwapSupplies)
-}
-
-func (suite *KeeperTestSuite) TestGetAllInSwapSupplies() {
-	suite.ResetChain()
-
-	// Set in swap supplies
-	inSwapSupplies := []sdk.Coin{c("test1", 25000), c("test2", 50000), c("test3", 100000)}
-	for _, asset := range inSwapSupplies {
-		suite.keeper.SetInSwapSupply(suite.ctx, asset, []byte(asset.Denom))
+	for i := 0; i < count; i++ {
+		suite.Contains(readSupplies, supplies[i])
 	}
-
-	// Get all in swap supplies
-	res := suite.keeper.GetAllInSwapSupplies(suite.ctx)
-	suite.Equal(3, len(res))
 }
 
 func TestKeeperTestSuite(t *testing.T) {

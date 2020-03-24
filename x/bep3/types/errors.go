@@ -13,18 +13,22 @@ type CodeType = sdk.CodeType
 
 const (
 	// DefaultCodespace default bep3 codespace
-	DefaultCodespace                sdk.CodespaceType = ModuleName
-	CodeInvalidTimestamp            CodeType          = 1
-	CodeInvalidHeightSpan           CodeType          = 2
-	CodeAssetNotSupported           CodeType          = 3
-	CodeAssetNotActive              CodeType          = 4
-	CodeAboveTotalAssetSupplyLimit  CodeType          = 5
-	CodeAboveAssetActiveSupplyLimit CodeType          = 6
-	CodeInvalidClaimSecret          CodeType          = 7
-	CodeAtomicSwapAlreadyExists     CodeType          = 8
-	CodeAtomicSwapNotFound          CodeType          = 9
-	CodeSwapNotRefundable           CodeType          = 10
-	CodeSwapNotClaimable            CodeType          = 11
+	DefaultCodespace            sdk.CodespaceType = ModuleName
+	CodeInvalidTimestamp        CodeType          = 1
+	CodeInvalidHeightSpan       CodeType          = 2
+	CodeAssetNotSupported       CodeType          = 3
+	CodeAssetNotActive          CodeType          = 4
+	CodeAssetSupplyNotFound     CodeType          = 5
+	CodeExceedsSupplyLimit      CodeType          = 6
+	CodeExceedsAvailableSupply  CodeType          = 7
+	CodeInvalidCurrentSupply    CodeType          = 8
+	CodeInvalidIncomingSupply   CodeType          = 9
+	CodeInvalidOutgoingSupply   CodeType          = 10
+	CodeInvalidClaimSecret      CodeType          = 11
+	CodeAtomicSwapAlreadyExists CodeType          = 12
+	CodeAtomicSwapNotFound      CodeType          = 13
+	CodeSwapNotRefundable       CodeType          = 14
+	CodeSwapNotClaimable        CodeType          = 15
 )
 
 // ErrInvalidTimestamp error for when an timestamp is outside of bounds. Assumes block time of 10 seconds.
@@ -47,18 +51,40 @@ func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
 	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is currently inactive", denom))
 }
 
-// ErrAboveTotalAssetSupplyLimit error for when a proposed swap's amount is greater than the total supply limit (amount in swaps + amount active)
-func ErrAboveTotalAssetSupplyLimit(codespace sdk.CodespaceType, denom string, supplyLimit, currAssetSupply, currInSwapSupply sdk.Int) sdk.Error {
-	return sdk.NewError(codespace, CodeAboveTotalAssetSupplyLimit,
-		fmt.Sprintf("%s proposed supply increase is over the supply limit of %d - current supply is %d, amount in active swaps is %d",
-			denom, supplyLimit.Int64(), currAssetSupply.Int64(), currInSwapSupply.Int64()))
+// ErrAssetSupplyNotFound error for when an asset's supply is not found in the store
+func ErrAssetSupplyNotFound(codespace sdk.CodespaceType, denom string) sdk.Error {
+	return sdk.NewError(codespace, CodeAssetSupplyNotFound, fmt.Sprintf("%s asset supply not found in store", denom))
 }
 
-// ErrAboveAssetActiveSupplyLimit error for when the swap amount of an attempted claim is greater than active supply limit
-func ErrAboveAssetActiveSupplyLimit(codespace sdk.CodespaceType, denom string, supplyLimit, currAssetSupply sdk.Int) sdk.Error {
-	return sdk.NewError(codespace, CodeAboveAssetActiveSupplyLimit,
-		fmt.Sprintf("%s proposed supply increase is over the supply limit of %d - current supply is %d",
-			denom, supplyLimit.Int64(), currAssetSupply.Int64()))
+// ErrExceedsSupplyLimit error for when the proposed supply increase would put the supply above limit
+func ErrExceedsSupplyLimit(codespace sdk.CodespaceType, increase, current, limit sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeExceedsSupplyLimit,
+		fmt.Sprintf("a supply increase of %s puts current asset supply %s over supply limit %s", increase, current, limit))
+}
+
+// ErrExceedsAvailableSupply error for when the proposed outgoing amount exceeds the total available supply
+func ErrExceedsAvailableSupply(codespace sdk.CodespaceType, increase sdk.Coin, available sdk.Int) sdk.Error {
+	return sdk.NewError(codespace, CodeExceedsAvailableSupply,
+		fmt.Sprintf("an outgoing swap with amount %s exceeds total available supply %s",
+			increase, sdk.NewCoin(increase.Denom, available)))
+}
+
+// ErrInvalidCurrentSupply error for when the proposed decrease would result in a negative current supply
+func ErrInvalidCurrentSupply(codespace sdk.CodespaceType, decrease, current sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidCurrentSupply,
+		fmt.Sprintf("a supply decrease of %s puts current asset supply %s below 0", decrease, current))
+}
+
+// ErrInvalidIncomingSupply error for when the proposed decrease would result in a negative incoming supply
+func ErrInvalidIncomingSupply(codespace sdk.CodespaceType, decrease, incoming sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidIncomingSupply,
+		fmt.Sprintf("a supply decrease of %s puts incoming asset supply %s below 0", decrease, incoming))
+}
+
+// ErrInvalidOutgoingSupply error for when the proposed decrease would result in a negative outgoing supply
+func ErrInvalidOutgoingSupply(codespace sdk.CodespaceType, decrease, outgoing sdk.Coin) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidOutgoingSupply,
+		fmt.Sprintf("a supply decrease of %s puts outgoing asset supply %s below 0", decrease, outgoing))
 }
 
 // ErrInvalidClaimSecret error when a submitted secret doesn't match an AtomicSwap's swapID
