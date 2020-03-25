@@ -96,12 +96,8 @@ func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			denom, err := types.HexToBytes(args[0])
-			if err != nil {
-				return err
-			}
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply(denom))
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply([]byte(args[0])))
 			if err != nil {
 				return err
 			}

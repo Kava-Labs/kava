@@ -36,7 +36,7 @@ func (suite *ABCITestSuite) SetupTest() {
 	}
 	authGS := app.NewAuthGenState(addrs, coins)
 	// Initialize test app
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti())
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[0]))
 
 	suite.ctx = ctx
 	suite.app = tApp
@@ -52,22 +52,24 @@ func (suite *ABCITestSuite) ResetKeeper() {
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
 		expireHeight := int64(360)
-		amount := cs(c("bnb", int64(50000+i*100)))
-		timestamp := ts(0)
+		amount := cs(c("bnb", int64(100)))
+		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
 		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 		// Create atomic swap and check err to confirm creation
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			suite.addrs[i], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
+			suite.addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
 			amount, amount.String(), true)
 		suite.Nil(err)
 
 		// Store swap's calculated ID and secret random number
-		swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[i], TestSenderOtherChain)
-		suite.swapIDs = append(swapIDs, swapID)
-		suite.randomNumbers = append(randomNumbers, randomNumber.Bytes())
+		swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
+		swapIDs = append(swapIDs, swapID)
+		randomNumbers = append(randomNumbers, randomNumber.Bytes())
 	}
+	suite.swapIDs = swapIDs
+	suite.randomNumbers = randomNumbers
 }
 
 func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
@@ -117,12 +119,12 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 			switch tc.expectedStatus {
 			case types.Completed:
 				for i, swapID := range suite.swapIDs {
-					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
+					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
 					suite.Nil(err)
 				}
 			case types.NULL:
 				for _, swapID := range suite.swapIDs {
-					err := suite.keeper.RefundAtomicSwap(tc.firstCtx, suite.addrs[10], swapID)
+					err := suite.keeper.RefundAtomicSwap(tc.firstCtx, suite.addrs[5], swapID)
 					suite.Nil(err)
 				}
 			}
@@ -205,7 +207,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			switch tc.action {
 			case Claim:
 				for i, swapID := range suite.swapIDs {
-					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[10], swapID, suite.randomNumbers[i])
+					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
 					suite.Nil(err)
 				}
 			case Refund:
@@ -213,7 +215,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 					swap, _ := suite.keeper.GetAtomicSwap(tc.firstCtx, swapID)
 					refundCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + swap.ExpireHeight)
 					bep3.BeginBlocker(refundCtx, suite.keeper)
-					err := suite.keeper.RefundAtomicSwap(refundCtx, suite.addrs[10], swapID)
+					err := suite.keeper.RefundAtomicSwap(refundCtx, suite.addrs[5], swapID)
 					suite.Nil(err)
 					// Add expire height to second ctx block height
 					tc.secondCtx = tc.secondCtx.WithBlockHeight(tc.secondCtx.BlockHeight() + swap.ExpireHeight)

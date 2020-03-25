@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	suite.Equal(atomicSwap, s)
 
 	// Check fake atomic swap not in store
-	fakeSwapID := types.CalculateSwapID(atomicSwap.RandomNumberHash, kavaAddrs[1], "otheraddress")
+	fakeSwapID := types.CalculateSwapID(atomicSwap.RandomNumberHash, TestUser2, "otheraddress")
 	_, found = suite.keeper.GetAtomicSwap(suite.ctx, fakeSwapID)
 	suite.False(found)
 }
@@ -178,8 +178,9 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-			blockCtx.BlockHeight(), timestamp, kavaAddrs[0], kavaAddrs[1],
-			binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true)
+			blockCtx.BlockHeight(), timestamp, TestUser1, TestUser2,
+			TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open,
+			true, types.Incoming)
 
 		// Insert into block index
 		suite.keeper.InsertIntoByBlockIndex(blockCtx, atomicSwap)
@@ -268,8 +269,9 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-			suite.ctx.BlockHeight(), timestamp, kavaAddrs[0], kavaAddrs[1],
-			binanceAddrs[0].String(), binanceAddrs[1].String(), 100, types.Open, true)
+			suite.ctx.BlockHeight(), timestamp, TestUser1, TestUser2,
+			TestSenderOtherChain, TestRecipientOtherChain, 100, types.Open,
+			true, types.Incoming)
 
 		// Set closed block staggered by 100 blocks and insert into longterm storage
 		atomicSwap.ClosedBlock = int64(i) * 100

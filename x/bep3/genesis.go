@@ -15,59 +15,102 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 
 	keeper.SetParams(ctx, gs.Params)
 
+	// Initialize supported assets
+	for _, asset := range gs.Params.SupportedAssets {
+		zeroCoin := sdk.NewCoin(asset.Denom, sdk.NewInt(0))
+		supply := types.NewAssetSupply(asset.Denom, zeroCoin, zeroCoin, zeroCoin, sdk.NewCoin(asset.Denom, asset.Limit))
+		keeper.SetAssetSupply(ctx, supply, []byte(asset.Denom))
+	}
+
+	// Increment an asset's incoming, current, and outgoing supply
+	// It it required that assets are supported but they do not have to be active
+	for _, supply := range gs.AssetSupplies {
+		// Asset must be supported but does not have to be active
+		coin, found := keeper.GetAssetByDenom(ctx, supply.Denom)
+		if !found {
+			panic(fmt.Sprintf("invalid asset supply: %s is not a supported asset", coin.Denom))
+		}
+		if !coin.Limit.Equal(supply.Limit.Amount) {
+			panic(fmt.Sprintf("supported asset limit %s does not equal asset supply %s", coin.Limit, supply.Limit.Amount))
+		}
+
+		// Increment current, incoming, and outgoing asset supplies
+		err := keeper.IncrementCurrentAssetSupply(ctx, supply.CurrentSupply)
+		if err != nil {
+			panic(err)
+		}
+		err = keeper.IncrementIncomingAssetSupply(ctx, supply.IncomingSupply)
+		if err != nil {
+			panic(err)
+		}
+		err = keeper.IncrementOutgoingAssetSupply(ctx, supply.OutgoingSupply)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	var incomingSupplies sdk.Coins
+	var outgoingSupplies sdk.Coins
 	for _, swap := range gs.AtomicSwaps {
 		if swap.Validate() != nil {
 			panic(fmt.Sprintf("invalid swap %s", swap.GetSwapID()))
 		}
 
-		// Confirm that the asset is supported and active
+		// Atomic swap assets must be both supported and active
 		err := keeper.ValidateLiveAsset(ctx, swap.Amount[0])
-		if err != nil {
-			panic(err)
-		}
-
-		// Validate that this amount is within supply limits
-		err = keeper.ValidateCreateSwapAgainstSupplyLimit(ctx, swap.Amount[0])
 		if err != nil {
 			panic(err)
 		}
 
 		keeper.SetAtomicSwap(ctx, swap)
 
-		// Add swap to correct storage indexes and/or increment in swap supply based on status
-		switch swap.Status {
-		case types.Open:
-			keeper.IncrementInSwapSupply(ctx, swap.Amount[0])
-			keeper.InsertIntoByBlockIndex(ctx, swap) // used to expire swaps
-		case types.Expired:
-			keeper.IncrementInSwapSupply(ctx, swap.Amount[0])
-		case types.Completed:
-			keeper.InsertIntoLongtermStorage(ctx, swap) // used to delete swaps
+		// Add swap to block index or longterm storage based on swap.Status
+		// Increment incoming or outgoing supply based on swap.Direction
+		switch swap.Direction {
+		case types.Incoming:
+			switch swap.Status {
+			case types.Open:
+				// This index expires unclaimed swaps
+				keeper.InsertIntoByBlockIndex(ctx, swap)
+				incomingSupplies = incomingSupplies.Add(swap.Amount)
+			case types.Expired:
+				incomingSupplies = incomingSupplies.Add(swap.Amount)
+			case types.Completed:
+				// This index stores swaps until deletion
+				keeper.InsertIntoLongtermStorage(ctx, swap)
+			default:
+				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
+			}
+		case types.Outgoing:
+			switch swap.Status {
+			case types.Open:
+				keeper.InsertIntoByBlockIndex(ctx, swap)
+				outgoingSupplies = outgoingSupplies.Add(swap.Amount)
+			case types.Expired:
+				outgoingSupplies = outgoingSupplies.Add(swap.Amount)
+			case types.Completed:
+				keeper.InsertIntoLongtermStorage(ctx, swap)
+			default:
+				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
+			}
 		default:
-			panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
+			panic(fmt.Sprintf("swap %s has invalid direction %s", swap.GetSwapID(), swap.Direction.String()))
 		}
 	}
 
-	// Build map for assets in swap supplies
-	inSwapSupplyMap := make(map[string]sdk.Int)
-	inSwapSupplies := keeper.GetAllInSwapSupplies(ctx)
-	for _, swapSupply := range inSwapSupplies {
-		inSwapSupplyMap[swapSupply.Denom] = swapSupply.Amount
-	}
-
-	// Set each asset supply after validating that it is supported and within valid
-	// supply limits. Assets must be supported but do not have to be active.
-	var totalAssetSupply sdk.Coins
-	for _, asset := range gs.AssetSupplies {
-		coin, found := keeper.GetAssetByDenom(ctx, asset.Denom)
-		if !found {
-			panic(fmt.Sprintf("invalid asset supply: %s is not a supported asset", coin.Denom))
+	// Asset's given incoming/outgoing supply much match the amount of coins in incoming/outgoing atomic swaps
+	supplies := keeper.GetAllAssetSupplies(ctx)
+	for _, supply := range supplies {
+		incomingSupply := incomingSupplies.AmountOf(supply.Denom)
+		if !supply.IncomingSupply.Amount.Equal(incomingSupply) {
+			panic(fmt.Sprintf("asset's incoming supply %s does not match amount %s in incoming atomic swaps",
+				supply.IncomingSupply, incomingSupply))
 		}
-		if asset.Amount.Add(inSwapSupplyMap[asset.Denom]).GT(coin.Limit) {
-			panic(fmt.Sprintf("invalid asset supply: %s has a supply limit of %s", coin.Denom, coin.Limit))
+		outgoingSupply := outgoingSupplies.AmountOf(supply.Denom)
+		if !supply.OutgoingSupply.Amount.Equal(outgoingSupply) {
+			panic(fmt.Sprintf("asset's outgoing supply %s does not match amount %s in outgoing atomic swaps",
+				supply.OutgoingSupply, outgoingSupply))
 		}
-		keeper.SetAssetSupply(ctx, asset, []byte(asset.Denom))
-		totalAssetSupply = totalAssetSupply.Add(sdk.NewCoins(asset))
 	}
 }
 

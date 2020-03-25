@@ -38,7 +38,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
 	}
 	authGS := app.NewAuthGenState(addrs, coins)
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti())
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[0]))
 
 	suite.addrs = addrs
 	suite.handler = bep3.NewHandler(keeper)

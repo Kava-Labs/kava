@@ -9,11 +9,10 @@ import (
 
 // Parameter keys
 var (
-	KeyBnbDeputyAddress             = []byte("BnbDeputyAddress")
-	KeyMinBlockLock                 = []byte("MinBlockLock")
-	KeyMaxBlockLock                 = []byte("MaxBlockLock")
-	KeyCompletedSwapStorageDuration = []byte("CompletedSwapStorageDuration")
-	KeySupportedAssets              = []byte("SupportedAssets")
+	KeyBnbDeputyAddress = []byte("BnbDeputyAddress")
+	KeyMinBlockLock     = []byte("MinBlockLock")
+	KeyMaxBlockLock     = []byte("MaxBlockLock")
+	KeySupportedAssets  = []byte("SupportedAssets")
 
 	AbsoluteMaximumBlockLock int64 = 10000
 	AbsoluteMinimumBlockLock int64 = 50

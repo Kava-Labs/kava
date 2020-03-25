@@ -28,8 +28,8 @@ func atomicSwap(index int) types.AtomicSwap {
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
-	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash, expireOffset, timestamp,
-		kavaAddrs[0], kavaAddrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true)
+	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash, expireOffset, timestamp, kavaAddrs[0],
+	kavaAddrs[1], binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true, types.Incoming)
 
 	return swap
 }

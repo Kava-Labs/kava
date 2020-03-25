@@ -29,7 +29,8 @@ func (suite *AssetTestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	// Initialize genesis state
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti())
+	deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(deputy))
 
 	keeper := tApp.GetBep3Keeper()
 

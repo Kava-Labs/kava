@@ -11,20 +11,27 @@ import (
 
 type GenesisTestSuite struct {
 	suite.Suite
-	swaps types.AtomicSwaps
+	swaps    types.AtomicSwaps
+	supplies types.AssetSupplies
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
-	suite.swaps = atomicSwaps(10)
-	return
+
+	count := 10
+	suite.swaps = atomicSwaps(count)
+
+	incomingSupply := int64(count * 50000)
+	supply := types.NewAssetSupply("bnb", c("bnb", incomingSupply),
+		c("bnb", 0), c("bnb", 0), c("bnb", 100000000000))
+	suite.supplies = types.AssetSupplies{supply}
 }
 
 func (suite *GenesisTestSuite) TestValidate() {
 	type args struct {
-		swaps  types.AtomicSwaps
-		assets []sdk.Coin
+		swaps    types.AtomicSwaps
+		supplies types.AssetSupplies
 	}
 	testCases := []struct {
 		name       string
@@ -34,43 +41,61 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"default",
 			args{
-				swaps:  make(types.AtomicSwaps, 0),
-				assets: []sdk.Coin{},
+				swaps:    types.AtomicSwaps{},
+				supplies: types.AssetSupplies{},
 			},
 			true,
 		},
 		{
 			"with swaps",
 			args{
-				swaps:  suite.swaps,
-				assets: []sdk.Coin{},
+				swaps:    suite.swaps,
+				supplies: types.AssetSupplies{},
+			},
+			true,
+		},
+		{
+			"with supplies",
+			args{
+				swaps:    types.AtomicSwaps{},
+				supplies: suite.supplies,
 			},
 			true,
 		},
 		{
 			"duplicate swaps",
 			args{
-				swaps:  types.AtomicSwaps{suite.swaps[2], suite.swaps[2]},
-				assets: []sdk.Coin{},
+				swaps:    types.AtomicSwaps{suite.swaps[2], suite.swaps[2]},
+				supplies: types.AssetSupplies{},
 			},
 			false,
 		},
-	}
+		{
+			"duplicate supplies",
+			args{
+				swaps:    types.AtomicSwaps{},
+				supplies: types.AssetSupplies{suite.supplies[0], suite.supplies[0]},
+			},
+			false,
+		}}
 
 	for _, tc := range testCases {
-		var gs types.GenesisState
-		if tc.name == "default" {
-			gs = types.DefaultGenesisState()
-		} else {
-			gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.assets)
-		}
+		suite.SetupTest()
+		suite.Run(tc.name, func() {
+			var gs types.GenesisState
+			if tc.name == "default" {
+				gs = types.DefaultGenesisState()
+			} else {
+				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.supplies)
+			}
 
-		err := gs.Validate()
-		if tc.expectPass {
-			suite.Nil(err)
-		} else {
-			suite.Error(err)
-		}
+			err := gs.Validate()
+			if tc.expectPass {
+				suite.Nil(err)
+			} else {
+				suite.Error(err)
+			}
+		})
 	}
 }
 

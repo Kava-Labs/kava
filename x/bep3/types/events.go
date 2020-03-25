@@ -17,6 +17,7 @@ const (
 	AttributeKeyExpireHeight     = "expire_height"
 	AttributeKeyAmount           = "amount"
 	AttributeKeyExpectedIncome   = "expected_income"
+	AttributeKeyDirection        = "direction"
 
 	// Claim
 	AttributeKeyClaimSender  = "claim_sender"

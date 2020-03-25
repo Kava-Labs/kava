@@ -33,7 +33,7 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 
-	assetSupply, found := keeper.GetAssetSupply(ctx, requestParams.Denom)
+	assetSupply, found := keeper.GetAssetSupply(ctx, []byte(requestParams.Denom))
 	if !found {
 		return nil, sdk.ErrInternal("Not found")
 	}

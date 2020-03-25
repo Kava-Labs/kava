@@ -48,10 +48,27 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return err
 	}
 
-	// TODO: if crossChain {...}
-	err = k.ValidateCreateSwapAgainstSupplyLimit(ctx, amount[0])
-	if err != nil {
-		return err
+	var direction types.SwapDirection
+	deputy := k.GetBnbDeputyAddress(ctx)
+	if sender.Equals(deputy) {
+		direction = types.Incoming
+	} else {
+		direction = types.Outgoing
+	}
+
+	switch direction {
+	case types.Incoming:
+		err := k.IncrementIncomingAssetSupply(ctx, amount[0])
+		if err != nil {
+			return err
+		}
+	case types.Outgoing:
+		err := k.IncrementOutgoingAssetSupply(ctx, amount[0])
+		if err != nil {
+			return err
+		}
+	default:
+		return sdk.ErrInternal("invalid swap direction")
 	}
 
 	// Transfer coins to module
@@ -61,10 +78,9 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	// Store the details of the swap
-	atomicSwap := types.NewAtomicSwap(
-		amount, randomNumberHash, ctx.BlockHeight()+heightSpan, timestamp, sender,
-		recipient, senderOtherChain, recipientOtherChain, 0, types.Open, crossChain,
-	)
+	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash, ctx.BlockHeight()+heightSpan,
+		timestamp, sender, recipient, senderOtherChain, recipientOtherChain, 0, types.Open,
+		crossChain, direction)
 
 	// Emit 'create_atomic_swap' event
 	ctx.EventManager().EmitEvent(
@@ -79,10 +95,10 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			sdk.NewAttribute(types.AttributeKeyExpireHeight, fmt.Sprintf("%d", atomicSwap.ExpireHeight)),
 			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%s", atomicSwap.Amount[0].String())),
 			sdk.NewAttribute(types.AttributeKeyExpectedIncome, fmt.Sprintf("%s", expectedIncome)),
+			sdk.NewAttribute(types.AttributeKeyDirection, fmt.Sprintf("%s", atomicSwap.Direction.String())),
 		),
 	)
 
-	k.IncrementInSwapSupply(ctx, amount[0])
 	k.SetAtomicSwap(ctx, atomicSwap)
 	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 	return nil
@@ -109,6 +125,29 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, atomicSwap.GetSwapID())
 	}
 
+	switch atomicSwap.Direction {
+	case types.Incoming:
+		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+		err = k.IncrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+	case types.Outgoing:
+		err := k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+		err = k.DecrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+	default:
+		return sdk.ErrInternal("invalid swap direction")
+	}
+
 	// Send intended recipient coins
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
 	if err != nil {
@@ -126,10 +165,6 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 			sdk.NewAttribute(types.AttributeKeyRandomNumber, fmt.Sprintf("%s", hex.EncodeToString(randomNumber))),
 		),
 	)
-
-	// Update supply
-	k.DecrementInSwapSupply(ctx, atomicSwap.Amount[0])
-	k.IncrementAssetSupply(ctx, atomicSwap.Amount[0])
 
 	// Complete swap
 	atomicSwap.Status = types.Completed
@@ -153,6 +188,21 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		return types.ErrSwapNotRefundable(k.codespace)
 	}
 
+	switch atomicSwap.Direction {
+	case types.Incoming:
+		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+	case types.Outgoing:
+		err := k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+	default:
+		return sdk.ErrInternal("invalid swap direction")
+	}
+
 	// Refund coins to original swap sender
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	if err != nil {
@@ -169,9 +219,6 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
 		),
 	)
-
-	// Update supply
-	k.DecrementInSwapSupply(ctx, atomicSwap.Amount[0])
 
 	// Complete swap
 	atomicSwap.Status = types.Completed

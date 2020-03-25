@@ -11,22 +11,17 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// TODO: Standardize naming conventions
+const (
+	TestSenderOtherChain    = "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7"
+	TestRecipientOtherChain = "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7"
+	TestDeputy              = "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj"
+)
+
 var (
 	StandardSupplyLimit = i(100000000000)
 	DenomMap            = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
-	binanceAddrs        = []sdk.AccAddress{
-		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest1"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest2"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest3"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("BinanceTest4"))),
-	}
-	kavaAddrs = []sdk.AccAddress{
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest2"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest3"))),
-		sdk.AccAddress(crypto.AddressHash([]byte("KavaTest4"))),
-	}
+	TestUser1           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
+	TestUser2           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
 )
 
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
@@ -34,9 +29,7 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewBep3GenStateMulti() app.GenesisState {
-	deputy, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
-
+func NewBep3GenStateMulti(deputy sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
 			BnbDeputyAddress: deputy,
@@ -58,7 +51,6 @@ func NewBep3GenStateMulti() app.GenesisState {
 			},
 		},
 	}
-
 	return app.GenesisState{bep3.ModuleName: bep3.ModuleCdc.MustMarshalJSON(bep3Genesis)}
 }
 
@@ -77,11 +69,10 @@ func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
-	swap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-		ctx.BlockHeight()+expireOffset, timestamp, kavaAddrs[0], kavaAddrs[1],
-		binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open, true)
-
-	return swap
+	return types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
+		ctx.BlockHeight()+expireOffset, timestamp, TestUser1, TestUser2,
+		TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open, true,
+		types.Incoming)
 }
 
 func assetSupplies(count int) types.AssetSupplies {

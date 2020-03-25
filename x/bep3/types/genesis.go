@@ -48,19 +48,19 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	ids := map[string]bool{}
-	for _, a := range gs.AtomicSwaps {
-		if ids[hex.EncodeToString(a.GetSwapID())] {
-			return fmt.Errorf("found duplicate atomic swap ID %s", hex.EncodeToString(a.GetSwapID()))
-		}
-		ids[hex.EncodeToString(a.GetSwapID())] = true
-	}
 	denoms := map[string]bool{}
 	for _, a := range gs.AssetSupplies {
 		if denoms[a.Denom] {
 			return fmt.Errorf("found duplicate asset denom %s", a.Denom)
 		}
 		denoms[a.Denom] = true
+	}
+	ids := map[string]bool{}
+	for _, a := range gs.AtomicSwaps {
+		if ids[hex.EncodeToString(a.GetSwapID())] {
+			return fmt.Errorf("found duplicate atomic swap ID %s", hex.EncodeToString(a.GetSwapID()))
+		}
+		ids[hex.EncodeToString(a.GetSwapID())] = true
 	}
 	return nil
 }

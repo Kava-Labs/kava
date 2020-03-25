@@ -25,9 +25,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
-	tApp.InitializeFromGenesisStates(
-		NewBep3GenStateMulti(),
-	)
+	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(addrs[0]))
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.ctx = ctx
 	suite.addrs = addrs
@@ -35,13 +33,13 @@ func (suite *ParamsTestSuite) SetupTest() {
 
 func (suite *ParamsTestSuite) TestGetSetBnbDeputyAddress() {
 	params := suite.keeper.GetParams(suite.ctx)
-	params.BnbDeputyAddress = suite.addrs[0]
+	params.BnbDeputyAddress = suite.addrs[1]
 	suite.NotPanics(func() { suite.keeper.SetParams(suite.ctx, params) })
 
 	params = suite.keeper.GetParams(suite.ctx)
-	suite.Equal(suite.addrs[0], params.BnbDeputyAddress)
+	suite.Equal(suite.addrs[1], params.BnbDeputyAddress)
 	addr := suite.keeper.GetBnbDeputyAddress(suite.ctx)
-	suite.Equal(suite.addrs[0], addr)
+	suite.Equal(suite.addrs[1], addr)
 }
 
 func (suite *ParamsTestSuite) TestGetMaxBlockLock() {
