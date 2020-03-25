@@ -42,8 +42,8 @@ showLoading() {
 }
 
 # build the go setup test file
-rm -f rest_test/test
-go build rest_test/debugging_tools/test.go & showLoading "Building go test file, please wait"
+rm -f rest_test/setuptest
+go build rest_test/setup/setuptest.go & showLoading "Building go test file, please wait"
 
 # Create new data directory
 {
@@ -77,7 +77,7 @@ printf "\n"
 sleep 10 & showLoading "Preparing blockchain setup transactions, please wait"
 printf "\n"
 # run the go code to send transactions to the chain and set it up correctly
-./test & showLoading "Sending messages to blockchain"
+./setuptest & showLoading "Sending messages to blockchain"
 printf "\n"
 printf "Blockchain setup completed"
 printf "\n\n"
@@ -86,24 +86,28 @@ printf "\n\n"
 # Now run the dredd tests
 ############################
 
-dredd rest_test/swagger.yaml localhost:1317 & showLoading "Running dredd tests"
+dredd swagger-ui/swagger.yaml localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
 
 ########################################################
 # Now run the check the return code from the dredd command. 
 # If 0 then all test passed OK, otherwise some failed and propagate the error
 ########################################################
 
-if [ $? -eq 0 ]
+
+if [ $? -eq 0 ] 
 then
-  echo "Success"
-  rm test & showLoading "Cleaning up go binary"
-  pgrep kvd | xargs kill
-  pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
-  exit 0
-else
-  echo "Failure" >&2
-  rm test & showLoading "Cleaning up go binary"
-  pgrep kvd | xargs kill
-  pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
-  exit 1
+  if [[ $(cat output | grep "0 failing") ]]
+  then
+    echo "Success"
+    rm setuptest & showLoading "Cleaning up go binary"
+    pgrep kvd | xargs kill
+    pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+    exit 0
+  fi
 fi
+
+echo "Failure" >&2
+rm setuptest & showLoading "Cleaning up go binary"
+pgrep kvd | xargs kill
+pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+exit 1
