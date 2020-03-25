@@ -102,6 +102,7 @@ then
     rm setuptest & showLoading "Cleaning up go binary"
     pgrep kvd | xargs kill
     pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+    rm -f output
     exit 0
   fi
 fi
@@ -110,4 +111,5 @@ echo "Failure" >&2
 rm setuptest & showLoading "Cleaning up go binary"
 pgrep kvd | xargs kill
 pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+rm -f output
 exit 1
