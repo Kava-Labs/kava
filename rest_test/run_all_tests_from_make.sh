@@ -87,7 +87,7 @@ rm -f rest_test/setuptest
 go build rest_test/setup/setuptest.go & showLoading "Building go test file, please wait"
 
 # run the go code to send transactions to the chain and set it up correctly
-./setuptest & showLoading "Sending messages to blockchain"
+./setuptest $kvcliHome & showLoading "Sending messages to blockchain"
 printf "\n"
 printf "Blockchain setup completed"
 printf "\n\n"
