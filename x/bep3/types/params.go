@@ -18,7 +18,14 @@ var (
 	AbsoluteMinimumBlockLock int64 = 50
 	DefaultMinBlockLock      int64 = 80
 	DefaultMaxBlockLock      int64 = 600
-	DefaultSupportedAssets         = AssetParams{AssetParam{Denom: "kava", CoinID: 459, Limit: sdk.NewInt(1), Active: false}}
+	DefaultSupportedAssets         = AssetParams{
+		AssetParam{
+			Denom:  "bnb",
+			CoinID: 714,
+			Limit:  sdk.NewInt(100000000000),
+			Active: true,
+		},
+	}
 )
 
 // Params governance parameters for bep3 module
