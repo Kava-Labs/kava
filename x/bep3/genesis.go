@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper SupplyKeeper, gs GenesisState) {
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
@@ -18,7 +17,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	// Initialize supported assets
 	for _, asset := range gs.Params.SupportedAssets {
 		zeroCoin := sdk.NewCoin(asset.Denom, sdk.NewInt(0))
-		supply := types.NewAssetSupply(asset.Denom, zeroCoin, zeroCoin, zeroCoin, sdk.NewCoin(asset.Denom, asset.Limit))
+		supply := NewAssetSupply(asset.Denom, zeroCoin, zeroCoin, zeroCoin, sdk.NewCoin(asset.Denom, asset.Limit))
 		keeper.SetAssetSupply(ctx, supply, []byte(asset.Denom))
 	}
 
@@ -67,28 +66,28 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		// Add swap to block index or longterm storage based on swap.Status
 		// Increment incoming or outgoing supply based on swap.Direction
 		switch swap.Direction {
-		case types.Incoming:
+		case Incoming:
 			switch swap.Status {
-			case types.Open:
+			case Open:
 				// This index expires unclaimed swaps
 				keeper.InsertIntoByBlockIndex(ctx, swap)
 				incomingSupplies = incomingSupplies.Add(swap.Amount)
-			case types.Expired:
+			case Expired:
 				incomingSupplies = incomingSupplies.Add(swap.Amount)
-			case types.Completed:
+			case Completed:
 				// This index stores swaps until deletion
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:
 				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
 			}
-		case types.Outgoing:
+		case Outgoing:
 			switch swap.Status {
-			case types.Open:
+			case Open:
 				keeper.InsertIntoByBlockIndex(ctx, swap)
 				outgoingSupplies = outgoingSupplies.Add(swap.Amount)
-			case types.Expired:
+			case Expired:
 				outgoingSupplies = outgoingSupplies.Add(swap.Amount)
-			case types.Completed:
+			case Completed:
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:
 				panic(fmt.Sprintf("swap %s has invalid status %s", swap.GetSwapID(), swap.Status.String()))
@@ -115,9 +114,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 }
 
 // ExportGenesis writes the current store values to a genesis file, which can be imported again with InitGenesis
-func ExportGenesis(ctx sdk.Context, k Keeper) (data types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllAtomicSwaps(ctx)
 	assets := k.GetAllAssetSupplies(ctx)
-	return types.NewGenesisState(params, swaps, assets)
+	return NewGenesisState(params, swaps, assets)
 }

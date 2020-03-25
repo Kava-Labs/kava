@@ -3,18 +3,16 @@ package bep3
 import (
 	"encoding/json"
 
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/kava-labs/kava/x/bep3/client/cli"
 	"github.com/kava-labs/kava/x/bep3/client/rest"
-	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 var (
@@ -27,7 +25,7 @@ type AppModuleBasic struct{}
 
 // Name returns the bep3 module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
 // RegisterCodec registers the bep3 module's types for the given codec.
@@ -71,11 +69,11 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper       Keeper
-	supplyKeeper types.SupplyKeeper
+	supplyKeeper SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, supplyKeeper SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

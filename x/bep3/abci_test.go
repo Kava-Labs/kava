@@ -4,19 +4,18 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/bep3"
-	"github.com/kava-labs/kava/x/bep3/keeper"
-	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/bep3"
 )
 
 type ABCITestSuite struct {
 	suite.Suite
-	keeper        keeper.Keeper
+	keeper        bep3.Keeper
 	app           app.TestApp
 	ctx           sdk.Context
 	addrs         []sdk.AccAddress
@@ -54,8 +53,8 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		expireHeight := int64(360)
 		amount := cs(c("bnb", int64(100)))
 		timestamp := ts(i)
-		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumber, _ := bep3.GenerateSecureRandomNumber()
+		randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 		// Create atomic swap and check err to confirm creation
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
@@ -64,7 +63,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		suite.Nil(err)
 
 		// Store swap's calculated ID and secret random number
-		swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
+		swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
 		randomNumbers = append(randomNumbers, randomNumber.Bytes())
 	}
@@ -77,35 +76,35 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 		name            string
 		firstCtx        sdk.Context
 		secondCtx       sdk.Context
-		expectedStatus  types.SwapStatus
+		expectedStatus  bep3.SwapStatus
 		expectInStorage bool
 	}{
 		{
 			name:            "normal",
 			firstCtx:        suite.ctx,
 			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 10),
-			expectedStatus:  types.Open,
+			expectedStatus:  bep3.Open,
 			expectInStorage: true,
 		},
 		{
 			name:            "after expiration",
 			firstCtx:        suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400),
 			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 410),
-			expectedStatus:  types.Expired,
+			expectedStatus:  bep3.Expired,
 			expectInStorage: true,
 		},
 		{
 			name:            "after completion",
 			firstCtx:        suite.ctx,
 			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 10),
-			expectedStatus:  types.Completed,
+			expectedStatus:  bep3.Completed,
 			expectInStorage: true,
 		},
 		{
 			name:            "after deletion",
 			firstCtx:        suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400),
-			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400 + types.DefaultLongtermStorageDuration),
-			expectedStatus:  types.NULL,
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400 + bep3.DefaultLongtermStorageDuration),
+			expectedStatus:  bep3.NULL,
 			expectInStorage: false,
 		},
 	}
@@ -117,12 +116,12 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 			bep3.BeginBlocker(tc.firstCtx, suite.keeper)
 
 			switch tc.expectedStatus {
-			case types.Completed:
+			case bep3.Completed:
 				for i, swapID := range suite.swapIDs {
 					err := suite.keeper.ClaimAtomicSwap(tc.firstCtx, suite.addrs[5], swapID, suite.randomNumbers[i])
 					suite.Nil(err)
 				}
-			case types.NULL:
+			case bep3.NULL:
 				for _, swapID := range suite.swapIDs {
 					err := suite.keeper.RefundAtomicSwap(tc.firstCtx, suite.addrs[5], swapID)
 					suite.Nil(err)
@@ -165,7 +164,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			name:            "no action with long storage duration",
 			firstCtx:        suite.ctx,
 			action:          NULL,
-			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + types.DefaultLongtermStorageDuration),
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + bep3.DefaultLongtermStorageDuration),
 			expectInStorage: true,
 		},
 		{
@@ -179,7 +178,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			name:            "claim with long storage duration",
 			firstCtx:        suite.ctx,
 			action:          Claim,
-			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + types.DefaultLongtermStorageDuration),
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + bep3.DefaultLongtermStorageDuration),
 			expectInStorage: false,
 		},
 		{
@@ -193,7 +192,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			name:            "refund with long storage duration",
 			firstCtx:        suite.ctx,
 			action:          Refund,
-			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + types.DefaultLongtermStorageDuration),
+			secondCtx:       suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + bep3.DefaultLongtermStorageDuration),
 			expectInStorage: false,
 		},
 	}

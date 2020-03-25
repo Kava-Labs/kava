@@ -4,10 +4,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
-	"github.com/kava-labs/kava/x/bep3/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 const (
@@ -34,31 +34,31 @@ func NewBep3GenStateMulti(deputy sdk.AccAddress) app.GenesisState {
 }
 
 func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
-	bep3Genesis := types.GenesisState{
+	bep3Genesis := bep3.GenesisState{
 		Params: bep3.Params{
 			BnbDeputyAddress: deputy,
-			MinBlockLock:     types.DefaultMinBlockLock, // 80
-			MaxBlockLock:     types.DefaultMaxBlockLock, // 360
-			SupportedAssets: types.AssetParams{
-				types.AssetParam{
+			MinBlockLock:     bep3.DefaultMinBlockLock, // 80
+			MaxBlockLock:     bep3.DefaultMaxBlockLock, // 360
+			SupportedAssets: bep3.AssetParams{
+				bep3.AssetParam{
 					Denom:  "btc",
 					CoinID: 714,
 					Limit:  StandardSupplyLimit,
 					Active: true,
 				},
-				types.AssetParam{
+				bep3.AssetParam{
 					Denom:  "eth",
 					CoinID: 999999,
 					Limit:  StandardSupplyLimit,
 					Active: true,
 				},
-				types.AssetParam{
+				bep3.AssetParam{
 					Denom:  "bnb",
 					CoinID: 99999,
 					Limit:  StandardSupplyLimit,
 					Active: true,
 				},
-				types.AssetParam{
+				bep3.AssetParam{
 					Denom:  "inc",
 					CoinID: 9999,
 					Limit:  i(100),
@@ -70,17 +70,17 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 	return bep3Genesis
 }
 
-func loadSwapAndSupply(addr sdk.AccAddress, index int) (types.AtomicSwap, types.AssetSupply) {
+func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.AssetSupply) {
 	coin := c(DenomMap[index], 50000)
 	expireOffset := int64((index * 15) + 360) // Default expire height + offet to match timestamp
 	timestamp := ts(index)                    // One minute apart
-	randomNumber, _ := types.GenerateSecureRandomNumber()
-	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-	swap := types.NewAtomicSwap(cs(coin), randomNumberHash,
+	randomNumber, _ := bep3.GenerateSecureRandomNumber()
+	randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+	swap := bep3.NewAtomicSwap(cs(coin), randomNumberHash,
 		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
-		TestRecipientOtherChain, 0, types.Open, true, types.Incoming)
+		TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
 
-	supply := types.NewAssetSupply(coin.Denom, coin, c(coin.Denom, 0),
+	supply := bep3.NewAssetSupply(coin.Denom, coin, c(coin.Denom, 0),
 		c(coin.Denom, 0), c(coin.Denom, StandardSupplyLimit.Int64()))
 
 	return swap, supply

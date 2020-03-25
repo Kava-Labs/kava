@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/bep3"
-	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/bep3"
 )
 
 type GenesisTestSuite struct {
@@ -52,8 +52,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(3)
-				var swaps types.AtomicSwaps
-				var supplies types.AssetSupplies
+				var swaps bep3.AtomicSwaps
+				var supplies bep3.AssetSupplies
 				for i := 0; i < 3; i++ {
 					swap, supply := loadSwapAndSupply(addrs[i], i)
 					swaps = append(swaps, swap)
@@ -71,7 +71,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(1)
 				swap, _ := loadSwapAndSupply(addrs[0], 2)
-				gs.AtomicSwaps = types.AtomicSwaps{swap}
+				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
@@ -81,8 +81,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				assetParam, _ := suite.keeper.GetAssetByDenom(suite.ctx, "bnb")
-				gs.AssetSupplies = types.AssetSupplies{
-					types.AssetSupply{
+				gs.AssetSupplies = bep3.AssetSupplies{
+					bep3.AssetSupply{
 						Denom:          "bnb",
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
@@ -105,16 +105,16 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := types.GenerateSecureRandomNumber()
-				randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-				swap := types.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
+				randomNumber, _ := bep3.GenerateSecureRandomNumber()
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+				swap := bep3.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
 					int64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, types.Open, true, types.Incoming)
-				gs.AtomicSwaps = types.AtomicSwaps{swap}
+					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
+				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.AssetSupplies = types.AssetSupplies{
-					types.AssetSupply{
+				gs.AssetSupplies = bep3.AssetSupplies{
+					bep3.AssetSupply{
 						Denom:          "bnb",
 						IncomingSupply: c("bnb", assetParam.Limit.Add(i(1)).Int64()),
 						OutgoingSupply: c("bnb", 0),
@@ -138,16 +138,16 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := types.GenerateSecureRandomNumber()
-				randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-				swap := types.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
+				randomNumber, _ := bep3.GenerateSecureRandomNumber()
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+				swap := bep3.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
 					int64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, types.Open, true, types.Incoming)
-				gs.AtomicSwaps = types.AtomicSwaps{swap}
+					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
+				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.AssetSupplies = types.AssetSupplies{
-					types.AssetSupply{
+				gs.AssetSupplies = bep3.AssetSupplies{
+					bep3.AssetSupply{
 						Denom:          "bnb",
 						IncomingSupply: c("bnb", halfLimit),
 						OutgoingSupply: c("bnb", 0),
@@ -163,8 +163,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "asset supply denom is not a supported asset",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.AssetSupplies = types.AssetSupplies{
-					types.AssetSupply{
+				gs.AssetSupplies = bep3.AssetSupplies{
+					bep3.AssetSupply{
 						Denom:          "fake",
 						IncomingSupply: c("fake", 0),
 						OutgoingSupply: c("fake", 0),
@@ -182,13 +182,13 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := types.GenerateSecureRandomNumber()
-				randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-				swap := types.NewAtomicSwap(cs(c("fake", 500000)), randomNumberHash,
+				randomNumber, _ := bep3.GenerateSecureRandomNumber()
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+				swap := bep3.NewAtomicSwap(cs(c("fake", 500000)), randomNumberHash,
 					int64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, types.Open, true, types.Incoming)
+					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
 
-				gs.AtomicSwaps = types.AtomicSwaps{swap}
+				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
@@ -199,13 +199,13 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
-				randomNumber, _ := types.GenerateSecureRandomNumber()
-				randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-				swap := types.NewAtomicSwap(cs(c("bnb", 5000)), randomNumberHash,
+				randomNumber, _ := bep3.GenerateSecureRandomNumber()
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+				swap := bep3.NewAtomicSwap(cs(c("bnb", 5000)), randomNumberHash,
 					int64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
-					TestRecipientOtherChain, 0, types.NULL, true, types.Incoming)
+					TestRecipientOtherChain, 0, bep3.NULL, true, bep3.Incoming)
 
-				gs.AtomicSwaps = types.AtomicSwaps{swap}
+				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
