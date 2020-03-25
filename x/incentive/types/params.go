@@ -97,6 +97,18 @@ type Reward struct {
 	ClaimDuration time.Duration `json:"claim_duration" yaml:"claim_duration"` // how long users have after the period ends to claim their rewards
 }
 
+// NewReward returns a new Reward
+func NewReward(active bool, denom string, reward sdk.Coin, duration time.Duration, timelock time.Duration, claimDuration time.Duration) Reward {
+	return Reward{
+		Active:        active,
+		Denom:         denom,
+		Reward:        reward,
+		Duration:      duration,
+		TimeLock:      timelock,
+		ClaimDuration: claimDuration,
+	}
+}
+
 // String implements fmt.Stringer
 func (r Reward) String() string {
 	return fmt.Sprintf(`Reward Period:
