@@ -93,13 +93,15 @@ dredd swagger-ui/swagger.yaml localhost:1317 2>&1 | tee output & showLoading "Ru
 # If 0 then all test passed OK, otherwise some failed and propagate the error
 ########################################################
 
-
+# check that the error code was zero
 if [ $? -eq 0 ] 
 then
+  # check that all the tests passed (ie zero failing)
   if [[ $(cat output | grep "0 failing") ]]
   then
     echo "Success"
     rm setuptest & showLoading "Cleaning up go binary"
+    # kill the kvd and kvcli processes (blockchain and rest api)
     pgrep kvd | xargs kill
     pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
     rm -f output
@@ -107,8 +109,10 @@ then
   fi
 fi
 
+# otherwise return an error code and redirect stderr to stdout so user sees the error output
 echo "Failure" >&2
 rm setuptest & showLoading "Cleaning up go binary"
+# kill the kvd and kvcli processes (blockchain and rest api)
 pgrep kvd | xargs kill
 pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
 rm -f output
