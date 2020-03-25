@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -254,15 +255,8 @@ func sendUndelegation() {
 
 func getKeybase() crkeys.Keybase {
 	// create a keybase
-	// TODO - IMPORTANT - this needs to be set manually and does NOT work with tilde i.e. ~/ does NOT work
-	// TODO - QUESTION - should we read the path from a configuration file?
-	// home, err := os.UserHomeDir()
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// TODO - IMPORTANT - TAKE THIS FROM COMMAND LINE PARAMETER
-	keybase, err := keys.NewKeyBaseFromDir("/tmp/kvcliHome")
+	// IMPORTANT - TAKE THIS FROM COMMAND LINE PARAMETER and does NOT work with tilde i.e. ~/ does NOT work
+	keybase, err := keys.NewKeyBaseFromDir(os.Args[1])
 	if err != nil {
 		panic(err)
 	}
