@@ -2,7 +2,7 @@
 ////
 //// **IMPORTANT NOTE FOR CODE REVIEW**
 ////
-//// This file is used for testing and debugging. Much of the code it contains
+//// This file is used for testing. Much of the code it contains
 //// is similar or the same to the `hooks.go` file.
 ////
 ////////////////////////////////////////////////////////////////////////////////
