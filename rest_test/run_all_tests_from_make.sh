@@ -42,7 +42,7 @@ showLoading() {
 }
 
 # build the go setup test file
-rm rest_test/test
+rm -f rest_test/test
 go build rest_test/debugging_tools/test.go & showLoading "Building go test file, please wait"
 
 # Create new data directory
