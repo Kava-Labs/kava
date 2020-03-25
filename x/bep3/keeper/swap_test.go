@@ -43,19 +43,6 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
-	// // Generate 10 timestamps and random number hashes
-	// var timestamps []int64
-	// var randomNumbers [][]byte
-	// var randomNumberHashes []cmn.HexBytes
-	// for i := 0; i < 10; i++ {
-	// 	timestamp := ts(i)
-	// 	randomNumber, _ := types.GenerateSecureRandomNumber()
-	// 	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
-	// 	timestamps = append(timestamps, timestamp)
-	// 	randomNumbers = append(randomNumbers, randomNumber.Bytes())
-	// 	randomNumberHashes = append(randomNumberHashes, randomNumberHash)
-	// }
-
 	// Create and load 20 accounts with bnb tokens
 	coins := []sdk.Coins{}
 	for i := 0; i < 20; i++ {
@@ -72,41 +59,26 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.deputy = deputy
 	suite.addrs = addrs
-	suite.ResetKeeper()
+	suite.keeper = suite.app.GetBep3Keeper()
+	suite.GenerateSwapDetails()
 }
 
-func (suite *AtomicSwapTestSuite) ResetKeeper() {
-	suite.keeper = suite.app.GetBep3Keeper()
-
+func (suite *AtomicSwapTestSuite) GenerateSwapDetails() {
 	var timestamps []int64
 	var randomNumberHashes []cmn.HexBytes
 	var randomNumbers []cmn.HexBytes
-	var swapIDs []cmn.HexBytes
 	for i := 0; i < 10; i++ {
-		// Set up atomic swap variables
-		expireHeight := int64(360)
-		amount := cs(c("bnb", int64(100)))
+		// Set up atomic swap details
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
 		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
-		// Create atomic swap and check err to confirm creation
-		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			suite.addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
-			amount, amount.String(), true)
-		suite.Nil(err)
-
-		// Store swap's calculated ID and secret random number
-		swapID := types.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
-
 		timestamps = append(timestamps, timestamp)
 		randomNumberHashes = append(randomNumberHashes, randomNumberHash)
 		randomNumbers = append(randomNumbers, randomNumber.Bytes())
-		swapIDs = append(swapIDs, swapID)
 	}
 	suite.timestamps = timestamps
 	suite.randomNumberHashes = randomNumberHashes
-	suite.swapIDs = swapIDs
 	suite.randomNumbers = randomNumbers
 }
 
@@ -306,7 +278,6 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 	}
 
 	for _, tc := range testCases {
-		suite.ResetKeeper()
 		suite.Run(tc.name, func() {
 			// Increment current asset supply to support outgoing swaps
 			if tc.args.direction == types.Outgoing {
@@ -454,7 +425,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"wrong swap ID",
 			suite.ctx,
 			args{
-				swapID:       types.CalculateSwapID(suite.randomNumberHashes[3], suite.addrs[7], TestRecipientOtherChain),
+				swapID:       types.CalculateSwapID(suite.randomNumberHashes[3], suite.addrs[6], TestRecipientOtherChain),
 				randomNumber: []byte{},
 				direction:    types.Outgoing,
 			},
@@ -473,7 +444,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 	}
 
 	for i, tc := range testCases {
-		suite.ResetKeeper()
+		suite.GenerateSwapDetails()
 		suite.Run(tc.name, func() {
 			expectedRecipient := suite.addrs[5]
 			expectedClaimAmount := cs(c(BNB_DENOM, 50000))
@@ -538,7 +509,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 				switch tc.args.direction {
 				case types.Incoming:
 					// Check incoming supply decreased
-					suite.Equal(assetSupplyPre.IncomingSupply.Sub(expectedClaimAmount[0]), assetSupplyPost.IncomingSupply)
+					suite.True(assetSupplyPre.IncomingSupply.Amount.Sub(expectedClaimAmount[0].Amount).Equal(assetSupplyPost.IncomingSupply.Amount))
 					// Check current supply increased
 					suite.Equal(assetSupplyPre.CurrentSupply.Add(expectedClaimAmount[0]), assetSupplyPost.CurrentSupply)
 					// Check outgoing supply not changed
@@ -628,7 +599,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 	}
 
 	for i, tc := range testCases {
-		suite.ResetKeeper()
+		suite.GenerateSwapDetails()
 		suite.Run(tc.name, func() {
 			// Create atomic swap
 			expectedRefundAmount := cs(c(BNB_DENOM, 50000))
@@ -684,7 +655,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 				switch tc.args.direction {
 				case types.Incoming:
 					// Check incoming supply decreased
-					suite.Equal(assetSupplyPre.IncomingSupply.Sub(expectedRefundAmount[0]), assetSupplyPost.IncomingSupply)
+					suite.True(assetSupplyPre.IncomingSupply.Sub(expectedRefundAmount[0]).IsEqual(assetSupplyPost.IncomingSupply))
 					// Check current, outgoing supply not changed
 					suite.Equal(assetSupplyPre.CurrentSupply, assetSupplyPost.CurrentSupply)
 					suite.Equal(assetSupplyPre.OutgoingSupply, assetSupplyPost.OutgoingSupply)
