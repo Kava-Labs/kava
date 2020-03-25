@@ -83,7 +83,7 @@ func (k Keeper) CreateAndDeleteRewardPeriods(ctx sdk.Context) {
 			k.DeleteRewardPeriod(ctx, r.Denom)
 		}
 		// if a reward period for an active reward is not found, create one
-		if !found {
+		if !found && r.Active {
 			k.CreateNewRewardPeriod(ctx, r)
 		}
 	}
