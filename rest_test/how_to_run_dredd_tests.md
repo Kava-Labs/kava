@@ -15,7 +15,7 @@ down the blockchain, cleans up, and propagates up an error code if the tests do 
 **IMPORTANT** - It takes about 3 minutes for the script to run and complete:
 **When you run the script 62 tests should pass and zero should fail** 
 
-(See `test-results` in the `rest_test` for what the `dredd` output should look like.)
+[See `test-results` in the `rest_test` for what the `dredd` output should look like.]
 
 (Shutdown) If the script fails or you stop it midway using `ctrl-c` then you should manually stop the blockchain and rest server using the following script. If you let it complete
 it will automatically shut down the blockchain, rest server and clean up.
