@@ -116,13 +116,8 @@ then
       echo "Success"
       rm setuptest & showLoading "Cleaning up go binary"
       # kill the kvd and kvcli processes (blockchain and rest api)
-<<<<<<< HEAD
       # pgrep kvd | xargs kill
       # pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
-=======
-      pgrep kvd | xargs kill
-      pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
->>>>>>> develop
       rm -f output
       exit 0
     fi
@@ -133,12 +128,7 @@ fi
 echo "Failure" >&2
 rm setuptest & showLoading "Cleaning up go binary"
 # kill the kvd and kvcli processes (blockchain and rest api)
-<<<<<<< HEAD
 # pgrep kvd | xargs kill
 # pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
-=======
-pgrep kvd | xargs kill
-pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
->>>>>>> develop
 rm -f output
 exit 1
