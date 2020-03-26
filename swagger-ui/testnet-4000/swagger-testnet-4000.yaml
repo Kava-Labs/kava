@@ -1734,23 +1734,23 @@
               type: object
               properties:
                 base_req:
-                  $ref: '#/definitions/BaseReq'
+                  $ref: "#/definitions/BaseReq"
                 title:
                   type: string
-                  x-example: 'Param Change'
+                  example: Param_Change
                 description:
                   type: string
-                  x-example: 'Update max validators'
+                  example: Update_max_validators
                 proposer:
-                  $ref: '#/definitions/Address'
+                  $ref: "#/definitions/Address"
                 deposit:
                   type: array
                   items:
-                    $ref: '#/definitions/Coin'
+                    $ref: "#/definitions/Coin"
                 changes:
                   type: array
                   items:
-                    $ref: '#/definitions/ParamChange'
+                    $ref: "#/definitions/ParamChange"
         responses:
           200:
             description: The transaction was successfully generated
