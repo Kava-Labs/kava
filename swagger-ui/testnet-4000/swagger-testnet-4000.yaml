@@ -1164,13 +1164,14 @@
                 result:
                   items:
                     $ref: "#/definitions/UnbondingDelegation"
+
           400:
             description: Invalid delegator address
           500:
             description: Internal Server Error
 
-    # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
-    # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
+      # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
 
       # post:
       #   summary: Submit an unbonding delegation
@@ -1182,14 +1183,14 @@
       #         type: object
       #         properties:
       #           base_req:
-      #             $ref: '#/definitions/BaseReq'
+      #             $ref: "#/definitions/BaseReq"
       #           delegator_address:
-      #             $ref: '#/definitions/Address'
+      #             $ref: "#/definitions/Address"
       #           validator_address:
-      #             $ref: '#/definitions/ValidatorAddress'
+      #             $ref: "#/definitions/ValidatorAddress"
       #           shares:
       #             type: string
-      #             example: '100'
+      #             example: "100"
       #   tags:
       #     - Staking
       #   consumes:
@@ -1200,7 +1201,7 @@
       #     200:
       #       description: OK
       #       schema:
-      #         $ref: '#/definitions/BroadcastTxCommitResult'
+      #         $ref: "#/definitions/BroadcastTxCommitResult"
       #     400:
       #       description: Invalid delegator address or unbonding delegation request body
       #     401:
@@ -1452,7 +1453,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Get all unbonding delegations from a validator
         tags:
@@ -1463,9 +1464,13 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/UnbondingDelegation'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/UnbondingDelegation"
           400:
             description: Invalid validator address
           500:
