@@ -2490,7 +2490,7 @@
           200:
             description: OK
             schema:
-              type: string
+              $ref: "#/definitions/StandardResponse"
           400:
             description: Invalid coin denomination
           500:
@@ -3309,3 +3309,10 @@
           type: array
           items:
             $ref: '#/definitions/Coin'
+    StandardResponse:
+      type: object
+      properties:
+        height:
+          type: string
+        result:
+          type: string
