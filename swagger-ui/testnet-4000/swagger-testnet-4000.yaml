@@ -948,7 +948,7 @@
           200:
             description: OK
             schema:
-              $ref: '#/definitions/Prices'
+              $ref: '#/definitions/Price'
           500:
             description: Internal Server Error
     /bank/balances/{address}:
@@ -2577,6 +2577,8 @@
       required:
         - from
       properties:
+        from:
+          type: object
         type:
           type: string
           example: 'string'
