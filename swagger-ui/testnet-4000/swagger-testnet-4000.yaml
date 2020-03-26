@@ -2858,7 +2858,7 @@
       properties:
         from:
           type: string
-          example: 'kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc'
+          example: 'kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9'
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
@@ -2908,7 +2908,7 @@
           example: 1
         owner:
           type: string
-          example: kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc
+          example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         collateral:
           $ref: '#/definitions/CoinCollateral'
         principal:
@@ -2931,7 +2931,7 @@
           example: 1
         depositor:
           type: string
-          example: kava1g9ahr6xhht5rmqven628nklxluzyv8z9jqjcmc
+          example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         amount:
           $ref: '#/definitions/CoinCollateral'
     PricefeedParameters:
