@@ -2227,7 +2227,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava167w96tdvmazakdwkw2u57227eduula2cy572lf
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Get the rewards withdrawal address
         description: Get the delegations' rewards withdrawal address. This is the address in which the user will receive the reward funds
@@ -2611,7 +2611,7 @@
     Address:
       type: string
       description: bech32 encoded address
-      example: kava1depk54cuajgkzea6zpgkq36tnjwdzv4afc3d27
+      example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
     ValidatorAddress:
       type: string
       description: bech32 encoded address
