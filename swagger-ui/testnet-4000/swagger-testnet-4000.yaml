@@ -2186,9 +2186,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Coin'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Coin"
           400:
             description: Invalid delegator address
           500:
