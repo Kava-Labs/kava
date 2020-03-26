@@ -1,0 +1,27 @@
+{
+  "base_req": {
+    "from": "kava1sl8glhaa9f9tep0d9h8gdcfmwcatghtdrfcd2x",
+    "memo": "",
+    "chain_id": "testing",
+    "account_number": "5",
+    "sequence": "0",
+    "gas": "500000",
+    "gas_adjustment": "1.0",
+    "simulate": false
+  },
+  "from": "kava1sl8glhaa9f9tep0d9h8gdcfmwcatghtdrfcd2x",
+  "to": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
+  "recipient_other_chain": "tbnb1etjxt3t5r9899w3tf7dnktdue5ngu4ncdwckvt",
+  "sender_other_chain": "tbnb10uypsspvl6jlxcx5xse02pag39l8xpe7a3468h",
+  "random_number_hash": "e15207a1e1a158bea80d6d00e435bfc5ca27607f10304b92cd9e87ff06f56cca",
+  "timestamp": "1585205977",
+  "amount": [
+    {
+      "denom": "bnb",
+      "amount": "555555"
+    }
+  ],
+  "expected_income": "555555bnb",
+  "height_span": "360",
+  "cross_chain": true
+}

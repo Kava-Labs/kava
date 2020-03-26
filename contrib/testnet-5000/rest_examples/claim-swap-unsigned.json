@@ -1,0 +1,21 @@
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "bep3/MsgClaimAtomicSwap",
+        "value": {
+          "from": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
+          "swap_id": "8987DBA9C269CC8ACA3606FCF8FD45EB1B913A4B23F9BAAC4BA21B6C9E656C36",
+          "random_number": "9B68A1435B369F88EFEB653CC1643699926738127D78290461B2FDE6EE568B90"
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "500000"
+    },
+    "signatures": null,
+    "memo": ""
+  }
+}
