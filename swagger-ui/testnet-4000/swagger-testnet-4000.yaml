@@ -701,7 +701,7 @@
             description: Collateralization ratio
             required: true
             type: string
-            x-example: 2.0
+            x-example: "2.0"
         responses:
           200:
             description: All CDPs with the input collateral denom and collateralization ratio less than the input ratio
@@ -755,7 +755,7 @@
             description: Auction id
             required: true
             type: string
-            x-example: 1
+            x-example: "1"
         responses:
           200:
             description: The transaction was successfully generated
@@ -810,7 +810,7 @@
             description: Auction id
             required: true
             type: string
-            x-example: 2
+            x-example: "2"
         responses:
           200:
             description: OK
@@ -2672,7 +2672,7 @@
         hash:
           $ref: '#/definitions/Hash'
         height:
-          type: integer
+          type: string
     KVPair:
       type: object
       properties:
@@ -2682,20 +2682,23 @@
           type: string
     Msg:
       type: object
-      required:
-        - from
       properties:
-        from:
-          type: object
         type:
           type: string
-          example: 'string'
+          example: "cosmos-sdk/MsgSend"
         value:
           type: object
           properties:
-            from:
+            from_address:
               type: string
-              example: kava1mzqz3jfs9nzfp6v7qp647rv0afxlu2csl0txmq
+              example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+            to_address:
+              type: string
+              example: kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz
+            amount:
+              type: array
+              items:
+                $ref: "#/definitions/Coin"
     Address:
       type: string
       description: bech32 encoded address
@@ -2779,20 +2782,20 @@
       type: object
       properties:
         total_count:
-          type: number
-          example: 1
+          type: string
+          example: "1"
         count:
-          type: number
-          example: 1
+          type: string
+          example: "1"
         page_number:
-          type: number
-          example: 1
+          type: string
+          example: "1"
         page_total:
-          type: number
-          example: 1
+          type: string
+          example: "1"
         limit:
-          type: number
-          example: 30
+          type: string
+          example: "30"
         txs:
           type: array
           items:
@@ -2803,16 +2806,17 @@
         msg:
           type: array
           items:
-            $ref: '#/definitions/Msg'
+            $ref: "#/definitions/Msg"
         fee:
           type: object
           properties:
             gas:
               type: string
+              example: "200000"
             amount:
               type: array
               items:
-                $ref: '#/definitions/Coin'
+                $ref: "#/definitions/Coin"
         memo:
           type: string
         signatures:
