@@ -125,6 +125,9 @@ test-all: build
 test:
 	@go test ./...
 
+test_dredd:
+	rest_test/./run_all_tests_from_make.sh
+
 # Kick start lots of sims on an AWS cluster.
 # This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
 start-remote-sims:
