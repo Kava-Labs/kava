@@ -22,16 +22,20 @@ const (
 	DefaultParamspace = ModuleName
 )
 
+// DefaultLongtermStorageDuration is 1 week (assuming a block time of 7 seconds)
+const DefaultLongtermStorageDuration int64 = 86400
+
 // Key prefixes
 var (
-	AtomicSwapKeyPrefix     = []byte{0x00} // prefix for keys that store AtomicSwaps
-	AtomicSwapByBlockPrefix = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
-	AssetSupplyKeyPrefix    = []byte{0x02} // prefix for keys that store global asset supply counts
+	AtomicSwapKeyPrefix             = []byte{0x00} // prefix for keys that store AtomicSwaps
+	AtomicSwapByBlockPrefix         = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
+	AssetSupplyKeyPrefix            = []byte{0x02} // prefix for keys that store global asset supply counts
+	AtomicSwapLongtermStoragePrefix = []byte{0x03} // prefix for keys of the AtomicSwapLongtermStorage index
 )
 
-// GetAtomicSwapByBlockKey returns the key for iterating AtomicSwaps by block
-func GetAtomicSwapByBlockKey(expireHeight int64, swapID []byte) []byte {
-	return append(Uint64ToBytes(uint64(expireHeight)), swapID...)
+// GetAtomicSwapByHeightKey is used by the AtomicSwapByBlock index and AtomicSwapLongtermStorage index
+func GetAtomicSwapByHeightKey(height int64, swapID []byte) []byte {
+	return append(Uint64ToBytes(uint64(height)), swapID...)
 }
 
 // Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.

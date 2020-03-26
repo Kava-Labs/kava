@@ -14,7 +14,7 @@ import (
 // GenerateSecureRandomNumber generates cryptographically strong pseudo-random number
 func GenerateSecureRandomNumber() (*big.Int, error) {
 	max := new(big.Int)
-	max.Exp(big.NewInt(2), big.NewInt(256), nil).Sub(max, big.NewInt(1)) // 256-bits integer i.e. 2^256 - 1
+	max.Exp(big.NewInt(2), big.NewInt(256), nil) // 256-bits integer i.e. 2^256
 
 	// Generate number between 0 - max
 	randomNumber, err := rand.Int(rand.Reader, max)

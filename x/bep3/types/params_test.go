@@ -103,7 +103,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "",
-						CoinID: "714",
+						CoinID: 714,
 						Limit:  sdk.NewInt(100000000000),
 						Active: true,
 					},
@@ -113,7 +113,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectedErr: "asset denom cannot be empty",
 		},
 		{
-			name: "empty asset coin ID",
+			name: "negative asset coin ID",
 			args: args{
 				bnbDeputyAddress: suite.addr,
 				minBlockLock:     types.DefaultMinBlockLock,
@@ -121,14 +121,14 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
-						CoinID: "",
+						CoinID: -1,
 						Limit:  sdk.NewInt(100000000000),
 						Active: true,
 					},
 				},
 			},
 			expectPass:  false,
-			expectedErr: "cannot have an empty coin id",
+			expectedErr: "must be a positive integer",
 		},
 		{
 			name: "negative asset limit",
@@ -139,7 +139,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
-						CoinID: "714",
+						CoinID: 714,
 						Limit:  sdk.NewInt(-10000),
 						Active: true,
 					},
@@ -157,13 +157,13 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
-						CoinID: "714",
+						CoinID: 714,
 						Limit:  sdk.NewInt(100000000000),
 						Active: true,
 					},
 					types.AssetParam{
 						Denom:  "bnb",
-						CoinID: "114",
+						CoinID: 114,
 						Limit:  sdk.NewInt(500000000),
 						Active: false,
 					},
@@ -181,13 +181,13 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
-						CoinID: "714",
+						CoinID: 714,
 						Limit:  sdk.NewInt(100000000000),
 						Active: true,
 					},
 					types.AssetParam{
 						Denom:  "fake",
-						CoinID: "714",
+						CoinID: 714,
 						Limit:  sdk.NewInt(500000000),
 						Active: false,
 					},
@@ -199,10 +199,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	}
 
 	for _, tc := range testCases {
-		params := types.NewParams(
-			tc.args.bnbDeputyAddress, tc.args.minBlockLock,
-			tc.args.maxBlockLock, tc.args.supportedAssets,
-		)
+		params := types.NewParams(tc.args.bnbDeputyAddress, tc.args.minBlockLock,
+			tc.args.maxBlockLock, tc.args.supportedAssets)
 
 		err := params.Validate()
 		if tc.expectPass {

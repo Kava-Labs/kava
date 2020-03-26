@@ -10,4 +10,9 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	if err != nil {
 		panic(err)
 	}
+
+	err = k.DeleteClosedAtomicSwapsFromLongtermStorage(ctx)
+	if err != nil {
+		panic(err)
+	}
 }

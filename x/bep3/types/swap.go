@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -17,7 +18,7 @@ type Swap interface {
 
 // AtomicSwap contains the information for an atomic swap
 type AtomicSwap struct {
-	Swap
+	Swap                `json:"swap" yaml:"swap"`
 	Amount              sdk.Coins      `json:"amount"  yaml:"amount"`
 	RandomNumberHash    cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
 	ExpireHeight        int64          `json:"expire_height"  yaml:"expire_height"`
@@ -28,6 +29,28 @@ type AtomicSwap struct {
 	RecipientOtherChain string         `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
 	ClosedBlock         int64          `json:"closed_block"  yaml:"closed_block"`
 	Status              SwapStatus     `json:"status"  yaml:"status"`
+	CrossChain          bool           `json:"cross_chain"  yaml:"cross_chain"`
+	Direction           SwapDirection  `json:"direction"  yaml:"direction"`
+}
+
+// NewAtomicSwap returns a new AtomicSwap
+func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
+	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
+	status SwapStatus, crossChain bool, direction SwapDirection) AtomicSwap {
+	return AtomicSwap{
+		Amount:              amount,
+		RandomNumberHash:    randomNumberHash,
+		ExpireHeight:        expireHeight,
+		Timestamp:           timestamp,
+		Sender:              sender,
+		Recipient:           recipient,
+		SenderOtherChain:    senderOtherChain,
+		RecipientOtherChain: recipientOtherChain,
+		ClosedBlock:         closedBlock,
+		Status:              status,
+		CrossChain:          crossChain,
+		Direction:           direction,
+	}
 }
 
 // GetSwapID calculates the ID of an atomic swap
@@ -57,25 +80,40 @@ func (a AtomicSwap) Validate() error {
 	return nil
 }
 
-// NewAtomicSwap returns a new AtomicSwap
-func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
-	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64, status SwapStatus) AtomicSwap {
-	return AtomicSwap{
-		Amount:              amount,
-		RandomNumberHash:    randomNumberHash,
-		ExpireHeight:        expireHeight,
-		Timestamp:           timestamp,
-		Sender:              sender,
-		Recipient:           recipient,
-		SenderOtherChain:    senderOtherChain,
-		RecipientOtherChain: recipientOtherChain,
-		ClosedBlock:         closedBlock,
-		Status:              status,
-	}
+// String implements stringer
+func (a AtomicSwap) String() string {
+	return fmt.Sprintf("Atomic Swap"+
+		"\n    ID:                       %s"+
+		"\n    Status:                   %s"+
+		"\n    Amount:                   %s"+
+		"\n    Random number hash:       %s"+
+		"\n    Expire height:            %d"+
+		"\n    Timestamp:                %d"+
+		"\n    Sender:                   %s"+
+		"\n    Recipient:                %s"+
+		"\n    Sender other chain:       %s"+
+		"\n    Recipient other chain:    %s"+
+		"\n    Closed block:             %d"+
+		"\n    Cross chain:              %t"+
+		"\n    Direction:                %s",
+		a.GetSwapID(), a.Status.String(), a.Amount.String(),
+		hex.EncodeToString(a.RandomNumberHash), a.ExpireHeight,
+		a.Timestamp, a.Sender.String(), a.Recipient.String(),
+		a.SenderOtherChain, a.RecipientOtherChain, a.ClosedBlock,
+		a.CrossChain, a.Direction)
 }
 
 // AtomicSwaps is a slice of AtomicSwap
 type AtomicSwaps []AtomicSwap
+
+// String implements stringer
+func (swaps AtomicSwaps) String() string {
+	out := ""
+	for _, swap := range swaps {
+		out += swap.String() + "\n"
+	}
+	return out
+}
 
 // SwapStatus is the status of an AtomicSwap
 type SwapStatus byte
@@ -128,5 +166,54 @@ func (status *SwapStatus) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	*status = NewSwapStatusFromString(s)
+	return nil
+}
+
+// SwapDirection is the direction of an AtomicSwap
+type SwapDirection byte
+
+const (
+	INVALID  SwapDirection = 0x00
+	Incoming SwapDirection = 0x01
+	Outgoing SwapDirection = 0x02
+)
+
+// NewSwapDirectionFromString converts string to SwapDirection type
+func NewSwapDirectionFromString(str string) SwapDirection {
+	switch str {
+	case "Incoming", "incoming", "inc", "I", "i":
+		return Incoming
+	case "Outgoing", "outgoing", "out", "O", "o":
+		return Outgoing
+	default:
+		return INVALID
+	}
+}
+
+// String returns the string representation of a SwapDirection
+func (direction SwapDirection) String() string {
+	switch direction {
+	case Incoming:
+		return "Incoming"
+	case Outgoing:
+		return "Outgoing"
+	default:
+		return "INVALID"
+	}
+}
+
+// MarshalJSON marshals the SwapDirection
+func (direction SwapDirection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(direction.String())
+}
+
+// UnmarshalJSON unmarshals the SwapDirection
+func (direction *SwapDirection) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	*direction = NewSwapDirectionFromString(s)
 	return nil
 }
