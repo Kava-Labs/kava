@@ -1146,7 +1146,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+          x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
       get:
         summary: Get all unbonding delegations from a delegator
         tags:
@@ -1157,48 +1157,56 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/UnbondingDelegation'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/UnbondingDelegation"
           400:
             description: Invalid delegator address
           500:
             description: Internal Server Error
-      post:
-        summary: Submit an unbonding delegation
-        parameters:
-          - in: body
-            name: delegation
-            description: The password of the account to remove from the KMS
-            schema:
-              type: object
-              properties:
-                base_req:
-                  $ref: '#/definitions/BaseReq'
-                delegator_address:
-                  $ref: '#/definitions/Address'
-                validator_address:
-                  $ref: '#/definitions/ValidatorAddress'
-                shares:
-                  type: string
-                  example: '100'
-        tags:
-          - Staking
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/definitions/BroadcastTxCommitResult'
-          400:
-            description: Invalid delegator address or unbonding delegation request body
-          401:
-            description: Key password is wrong
-          500:
-            description: Internal Server Error
+
+    # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
+    # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
+
+      # post:
+      #   summary: Submit an unbonding delegation
+      #   parameters:
+      #     - in: body
+      #       name: delegation
+      #       description: The password of the account to remove from the KMS
+      #       schema:
+      #         type: object
+      #         properties:
+      #           base_req:
+      #             $ref: '#/definitions/BaseReq'
+      #           delegator_address:
+      #             $ref: '#/definitions/Address'
+      #           validator_address:
+      #             $ref: '#/definitions/ValidatorAddress'
+      #           shares:
+      #             type: string
+      #             example: '100'
+      #   tags:
+      #     - Staking
+      #   consumes:
+      #     - application/json
+      #   produces:
+      #     - application/json
+      #   responses:
+      #     200:
+      #       description: OK
+      #       schema:
+      #         $ref: '#/definitions/BroadcastTxCommitResult'
+      #     400:
+      #       description: Invalid delegator address or unbonding delegation request body
+      #     401:
+      #       description: Key password is wrong
+      #     500:
+      #       description: Internal Server Error
     /staking/delegators/{delegatorAddr}/unbonding_delegations/{validatorAddr}:
       parameters:
         - in: path
