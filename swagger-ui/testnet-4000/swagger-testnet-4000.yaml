@@ -1428,7 +1428,7 @@
           description: Bech32 OperatorAddress of validator
           required: true
           type: string
-          x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
+          x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
       get:
         summary: Get all delegations from a validator
         tags:
@@ -1439,9 +1439,13 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Delegation'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/Delegation"
           400:
             description: Invalid validator address
           500:
