@@ -26,6 +26,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCalcSwapIDCmd(queryRoute, cdc),
 		QueryCalcRandomNumberHashCmd(queryRoute, cdc),
 		QueryGetAtomicSwapCmd(queryRoute, cdc),
+		QueryGetAssetSupplyCmd(queryRoute, cdc),
 		QueryGetAtomicSwapsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
@@ -85,6 +86,36 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// QueryGetAssetSupplyCmd queries as asset's current in swap supply, active, supply, and supply limit
+func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "supply [denom]",
+		Short:   "get information about an asset's supply",
+		Example: "bep3 supply bnb",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare query params
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply([]byte(args[0])))
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAssetSupply), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var assetSupply types.AssetSupply
+			cdc.MustUnmarshalJSON(res, &assetSupply)
+			return cliCtx.PrintOutput(assetSupply)
+		},
+	}
+}
+
 // QueryGetAtomicSwapCmd queries an AtomicSwap by swapID
 func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
@@ -108,16 +139,16 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Execute query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
 			if err != nil {
 				return err
 			}
 
-			// TODO: randomnumberhash: [232, 148....]
-			// Decode and print results
 			var atomicSwap types.AtomicSwap
 			cdc.MustUnmarshalJSON(res, &atomicSwap)
-			return cliCtx.PrintOutput(atomicSwap)
+
+			cliCtx = cliCtx.WithHeight(height)
+			return cliCtx.PrintOutput(atomicSwap.String())
 		},
 	}
 }
@@ -144,7 +175,7 @@ func QueryGetAtomicSwapsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(atomicSwaps)
+			return cliCtx.PrintOutput(atomicSwaps.String())
 		},
 	}
 }

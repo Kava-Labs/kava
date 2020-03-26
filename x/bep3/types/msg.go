@@ -113,6 +113,9 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
 	}
+	if msg.Timestamp <= 0 {
+		return sdk.ErrInternal("timestamp must be positive")
+	}
 	if !msg.Amount.IsAllPositive() {
 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
 	}
@@ -125,6 +128,9 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
 	}
 	if expectedIncomeCoins.IsAnyGT(msg.Amount) {
 		return sdk.ErrInternal(fmt.Sprintf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String()))
+	}
+	if msg.HeightSpan <= 0 {
+		return sdk.ErrInternal("height span  must be positive")
 	}
 	return nil
 }

@@ -13,6 +13,8 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
+const LongtermStorageDuration = 86400
+
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -51,7 +53,7 @@ func (suite *KeeperTestSuite) TestGetSetAtomicSwap() {
 	suite.Equal(atomicSwap, s)
 
 	// Check fake atomic swap not in store
-	fakeSwapID := types.CalculateSwapID(atomicSwap.RandomNumberHash, kavaAddrs[1], "otheraddress")
+	fakeSwapID := types.CalculateSwapID(atomicSwap.RandomNumberHash, TestUser2, "otheraddress")
 	_, found = suite.keeper.GetAtomicSwap(suite.ctx, fakeSwapID)
 	suite.False(found)
 }
@@ -176,8 +178,9 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-			blockCtx.BlockHeight(), timestamp, kavaAddrs[0], kavaAddrs[1],
-			binanceAddrs[0].String(), binanceAddrs[1].String(), 0, types.Open)
+			blockCtx.BlockHeight(), timestamp, TestUser1, TestUser2,
+			TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open,
+			true, types.Incoming)
 
 		// Insert into block index
 		suite.keeper.InsertIntoByBlockIndex(blockCtx, atomicSwap)
@@ -204,21 +207,119 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 	suite.Equal(expectedSwapIDs, readSwapIDs)
 }
 
+func (suite *KeeperTestSuite) TestInsertIntoLongtermStorage() {
+	suite.ResetChain()
+
+	// Set atomic swap in longterm storage
+	atomicSwap := atomicSwap(suite.ctx, 1)
+	atomicSwap.ClosedBlock = suite.ctx.BlockHeight()
+	suite.keeper.InsertIntoLongtermStorage(suite.ctx, atomicSwap)
+
+	// Longterm storage lacks getter methods, must use iteration to get count of swaps in store
+	var swapIDs [][]byte
+	suite.keeper.IterateAtomicSwapsLongtermStorage(suite.ctx, uint64(atomicSwap.ClosedBlock+LongtermStorageDuration), func(id []byte) bool {
+		swapIDs = append(swapIDs, id)
+		return false
+	})
+	suite.Equal(len(swapIDs), 1)
+
+	// Marshal the expected swapID
+	cdc := suite.app.Codec()
+	res, _ := cdc.MarshalBinaryBare(atomicSwap.GetSwapID())
+	expectedSwapID := res[1:]
+
+	suite.Equal(expectedSwapID, swapIDs[0])
+}
+
+func (suite *KeeperTestSuite) TestRemoveFromLongtermStorage() {
+	suite.ResetChain()
+
+	// Set atomic swap in longterm storage
+	atomicSwap := atomicSwap(suite.ctx, 1)
+	atomicSwap.ClosedBlock = suite.ctx.BlockHeight()
+	suite.keeper.InsertIntoLongtermStorage(suite.ctx, atomicSwap)
+
+	// Longterm storage lacks getter methods, must use iteration to get count of swaps in store
+	var swapIDs [][]byte
+	suite.keeper.IterateAtomicSwapsLongtermStorage(suite.ctx, uint64(atomicSwap.ClosedBlock+LongtermStorageDuration), func(id []byte) bool {
+		swapIDs = append(swapIDs, id)
+		return false
+	})
+	suite.Equal(len(swapIDs), 1)
+
+	suite.keeper.RemoveFromLongtermStorage(suite.ctx, atomicSwap)
+
+	// Check stored data not in block index
+	var swapIDsPost [][]byte
+	suite.keeper.IterateAtomicSwapsLongtermStorage(suite.ctx, uint64(atomicSwap.ClosedBlock+LongtermStorageDuration), func(id []byte) bool {
+		swapIDsPost = append(swapIDsPost, id)
+		return false
+	})
+	suite.Equal(len(swapIDsPost), 0)
+}
+
+func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
+	suite.ResetChain()
+
+	// Set up atomic swaps with stagged closed blocks
+	var swaps types.AtomicSwaps
+	for i := 0; i < 8; i++ {
+		timestamp := tmtime.Now().Unix()
+		randomNumber, _ := types.GenerateSecureRandomNumber()
+		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+
+		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
+			suite.ctx.BlockHeight(), timestamp, TestUser1, TestUser2,
+			TestSenderOtherChain, TestRecipientOtherChain, 100, types.Open,
+			true, types.Incoming)
+
+		// Set closed block staggered by 100 blocks and insert into longterm storage
+		atomicSwap.ClosedBlock = int64(i) * 100
+		suite.keeper.InsertIntoLongtermStorage(suite.ctx, atomicSwap)
+		// Add to local longterm storage
+		swaps = append(swaps, atomicSwap)
+	}
+
+	// Set up the expected swap IDs for a given cutoff block.
+	cutoffBlock := int64(LongtermStorageDuration + 350)
+	var expectedSwapIDs [][]byte
+	for _, swap := range swaps {
+		if swap.ClosedBlock+LongtermStorageDuration < cutoffBlock ||
+			swap.ClosedBlock+LongtermStorageDuration == cutoffBlock {
+			expectedSwapIDs = append(expectedSwapIDs, swap.GetSwapID())
+		}
+	}
+
+	// Read the swap IDs from store for a given cutoff block
+	var readSwapIDs [][]byte
+	suite.keeper.IterateAtomicSwapsLongtermStorage(suite.ctx, uint64(cutoffBlock), func(id []byte) bool {
+		readSwapIDs = append(readSwapIDs, id)
+		return false
+	})
+
+	// At the cutoff block, iteration should return half of the swap IDs
+	suite.Equal(len(swaps)/2, len(expectedSwapIDs))
+	suite.Equal(len(swaps)/2, len(readSwapIDs))
+	// Should be the same IDs
+	suite.Equal(expectedSwapIDs, readSwapIDs)
+}
+
 func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
 	suite.ResetChain()
 
-	// Set new asset supply
-	asset := c("bnb", 50000)
-	suite.keeper.SetAssetSupply(suite.ctx, asset, []byte(asset.Denom))
+	denom := "bnb"
+	// Put asset supply in store
+	assetSupply := types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 100000))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, []byte(denom))
 
 	// Check asset in store
-	assetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(asset.Denom))
+	storedAssetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(denom))
 	suite.True(found)
-	suite.Equal(asset, assetSupply)
+	suite.Equal(assetSupply, storedAssetSupply)
 
-	// Check fake asset not in store
-	fakeAsset := c("xyz", 50000)
-	_, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(fakeAsset.Denom))
+	// Check fake asset supply not in store
+	fakeDenom := "xyz"
+	_, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(fakeDenom))
 	suite.False(found)
 }
 
@@ -226,34 +327,42 @@ func (suite *KeeperTestSuite) TestIterateAssetSupplies() {
 	suite.ResetChain()
 
 	// Set asset supplies
-	assetSupplies := []sdk.Coin{c("test1", 25000), c("test2", 50000), c("test3", 100000)}
-	for _, asset := range assetSupplies {
-		suite.keeper.SetAssetSupply(suite.ctx, asset, []byte(asset.Denom))
+	supplies := assetSupplies(5)
+	for _, supply := range supplies {
+		suite.keeper.SetAssetSupply(suite.ctx, supply, []byte(supply.Denom))
 	}
 
 	// Read each asset supply from the store
-	var readAssetSupplies []sdk.Coin
-	suite.keeper.IterateAssetSupplies(suite.ctx, func(c sdk.Coin) bool {
-		readAssetSupplies = append(readAssetSupplies, c)
+	var readSupplies types.AssetSupplies
+	suite.keeper.IterateAssetSupplies(suite.ctx, func(a types.AssetSupply) bool {
+		readSupplies = append(readSupplies, a)
 		return false
 	})
 
 	// Check expected values
-	suite.Equal(assetSupplies, readAssetSupplies)
+	for i := 0; i < len(supplies); i++ {
+		suite.Contains(readSupplies, supplies[i])
+	}
 }
 
 func (suite *KeeperTestSuite) TestGetAllAssetSupplies() {
 	suite.ResetChain()
 
 	// Set asset supplies
-	assetSupplies := []sdk.Coin{c("test1", 25000), c("test2", 50000), c("test3", 100000)}
-	for _, asset := range assetSupplies {
-		suite.keeper.SetAssetSupply(suite.ctx, asset, []byte(asset.Denom))
+	count := 3
+	supplies := assetSupplies(count)
+	for _, supply := range supplies {
+		suite.keeper.SetAssetSupply(suite.ctx, supply, []byte(supply.Denom))
 	}
 
 	// Get all asset supplies
-	res := suite.keeper.GetAllAssetSupplies(suite.ctx)
-	suite.Equal(3, len(res))
+	readSupplies := suite.keeper.GetAllAssetSupplies(suite.ctx)
+	suite.Equal(count, len(readSupplies))
+
+	// Check expected values
+	for i := 0; i < count; i++ {
+		suite.Contains(readSupplies, supplies[i])
+	}
 }
 
 func TestKeeperTestSuite(t *testing.T) {

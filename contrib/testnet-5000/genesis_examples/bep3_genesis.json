@@ -11,9 +11,7 @@
       "max_age": "1000000"
     },
     "validator": {
-      "pub_key_types": [
-        "ed25519"
-      ]
+      "pub_key_types": ["ed25519"]
     }
   },
   "app_hash": "",
@@ -205,18 +203,14 @@
             "active": true,
             "base_asset": "xrp",
             "market_id": "xrp:usd",
-            "oracles": [
-              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
-            ],
+            "oracles": ["kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"],
             "quote_asset": "usd"
           },
           {
             "active": true,
             "base_asset": "btc",
             "market_id": "btc:usd",
-            "oracles": [
-              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
-            ],
+            "oracles": ["kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"],
             "quote_asset": "usd"
           }
         ]
@@ -232,25 +226,19 @@
       }
     },
     "bep3": {
-        "params": {
-            "bnb_deputy_address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-            "min_block_lock": "80",
-            "max_block_lock": "600",
-            "supported_assets": [
-                {
-                    "denom": "btc",
-                    "coin_id": "0",
-                    "limit": "100000000000",
-                    "active": true
-                },
-                {
-                    "denom": "bnb",
-                    "coin_id": "714",
-                    "limit": "100000000000",
-                    "active": true
-                }
-            ]
-        }
+      "params": {
+        "bnb_deputy_address": "kava15wmww3chakqllq4n3ksm37lx36qz067gxe6f0k",
+        "min_block_lock": "80",
+        "max_block_lock": "600",
+        "supported_assets": [
+          {
+            "denom": "bnb",
+            "coin_id": "714",
+            "limit": "100000000000",
+            "active": true
+          }
+        ]
+      }
     },
     "genutil": {
       "gentxs": []
