@@ -8,6 +8,7 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
+// SubmitProposal adds a proposal to a committee so that it can be voted on.
 func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committeeID uint64, pubProposal types.PubProposal) (uint64, sdk.Error) {
 	// Limit proposals to only be submitted by committee members
 	com, found := k.GetCommittee(ctx, committeeID)
@@ -44,6 +45,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	return proposalID, nil
 }
 
+// AddVote submits a vote on a proposal.
 func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) sdk.Error {
 	// Validate
 	pr, found := k.GetProposal(ctx, proposalID)
@@ -67,44 +69,55 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	return nil
 }
 
-func (k Keeper) CloseOutProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
+// GetProposalResult calculates if a proposal currently has enough votes to pass.
+func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk.Error) {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return sdk.ErrInternal("proposal not found")
+		return false, sdk.ErrInternal("proposal not found")
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
-		return sdk.ErrInternal("committee disbanded")
+		return false, sdk.ErrInternal("committee disbanded")
 	}
+
+	numVotes := k.TallyVotes(ctx, proposalID)
+
+	proposalResult := sdk.NewDec(numVotes).GTE(types.VoteThreshold.MulInt64(int64(len(com.Members))))
+
+	return proposalResult, nil
+}
+
+// TallyVotes counts all the votes on a proposal
+func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
 
 	var votes []types.Vote
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
 		votes = append(votes, vote)
 		return false
 	})
-	proposalPasses := sdk.NewDec(int64(len(votes))).GTE(types.VoteThreshold.MulInt64(int64(len(com.Members))))
 
-	if proposalPasses {
-		// eneact vote
-		// The proposal handler may execute state mutating logic depending
-		// on the proposal content. If the handler fails, no state mutation
-		// is written and the error message is logged.
-		handler := k.router.GetRoute(pr.ProposalRoute())
-		cacheCtx, writeCache := ctx.CacheContext()
-		err := handler(cacheCtx, pr.PubProposal) // need to pass pubProposal as the handlers type assert it into the concrete types
-		if err == nil {
-			// write state to the underlying multi-store
-			writeCache()
-		} // if handler returns error, then still delete the proposal - it's still over, but send an event
-	}
-	if proposalPasses || pr.HasExpiredBy(ctx.BlockTime()) {
-
-		k.DeleteProposalAndVotes(ctx, proposalID)
-		return nil
-	}
-	return sdk.ErrInternal("note enough votes to close proposal")
+	return int64(len(votes))
 }
 
+// EnactProposal makes the changes proposed in a proposal.
+func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
+	pr, found := k.GetProposal(ctx, proposalID)
+	if !found {
+		return sdk.ErrInternal("proposal not found")
+	}
+
+	// Run the proposal's changes through the associated handler, but using a cached version of state to ensure changes are not permanent if an error occurs.
+	handler := k.router.GetRoute(pr.ProposalRoute())
+	cacheCtx, writeCache := ctx.CacheContext()
+	if err := handler(cacheCtx, pr.PubProposal); err != nil {
+		return err
+	}
+	// write state to the underlying multi-store
+	writeCache()
+	return nil
+}
+
+// ValidatePubProposal checks if a pubproposal is valid.
 func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) sdk.Error {
 	if pubProposal == nil {
 		return sdk.ErrInternal("proposal is empty")
@@ -117,18 +130,16 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 		return sdk.ErrInternal("no handler found for proposal")
 	}
 
-	// Execute the proposal content in a cache-wrapped context to validate the
-	// actual parameter changes before the proposal proceeds through the
-	// governance process. State is not persisted.
+	// Run the proposal's changes through the associated handler using a cached version of state to ensure changes are not permanent.
 	cacheCtx, _ := ctx.CacheContext()
 	handler := k.router.GetRoute(pubProposal.ProposalRoute())
 	if err := handler(cacheCtx, pubProposal); err != nil {
 		return err
 	}
-
 	return nil
 }
 
+// DeleteProposalAndVotes removes a proposal and its associated votes.
 func (k Keeper) DeleteProposalAndVotes(ctx sdk.Context, proposalID uint64) {
 	var votes []types.Vote
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {

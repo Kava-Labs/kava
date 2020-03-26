@@ -168,24 +168,13 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 
-	// TODO split tally and process result logic so tally logic can be used here
-	pr, found := keeper.GetProposal(ctx, params.ProposalID)
+	_, found := keeper.GetProposal(ctx, params.ProposalID)
 	if !found {
 		return nil, sdk.ErrInternal("proposal not found")
 	}
-	com, found := keeper.GetCommittee(ctx, pr.CommitteeID)
-	if !found {
-		return nil, sdk.ErrInternal("committee disbanded")
-	}
-	votes := []types.Vote{}
-	keeper.IterateVotes(ctx, params.ProposalID, func(vote types.Vote) bool {
-		votes = append(votes, vote)
-		return false
-	})
-	proposalPasses := sdk.NewDec(int64(len(votes))).GTE(types.VoteThreshold.MulInt64(int64(len(com.Members))))
-	// TODO return some kind of tally object, rather than just a bool
+	numVotes := keeper.TallyVotes(ctx, params.ProposalID)
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, proposalPasses)
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, numVotes)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

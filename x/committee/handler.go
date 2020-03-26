@@ -52,14 +52,16 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Resu
 		return err.Result()
 	}
 
-	// Try closing proposal in case enough votes have been cast
-	_ = k.CloseOutProposal(ctx, msg.ProposalID)
-	// if err.Error() == "note enough votes to close proposal" { // TODO
-	// 	return nil // This is not a reason to error
-	// }
-	// if err != nil {
-	// 	return err
-	// }
+	// Enact a proposal if it has enough votes
+	passes, err := k.GetProposalResult(ctx, msg.ProposalID)
+	if err != nil {
+		return err.Result()
+	}
+	if passes {
+		_ = k.EnactProposal(ctx, msg.ProposalID)
+		// log err
+		k.DeleteProposalAndVotes(ctx, msg.ProposalID)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

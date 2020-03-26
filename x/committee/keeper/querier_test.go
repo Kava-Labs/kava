@@ -30,17 +30,13 @@ type QuerierTestSuite struct {
 
 	querier sdk.Querier
 
-	addresses                        []sdk.AccAddress
-	committees                       []types.Committee
-	proposals                        []types.Proposal
-	votes                            map[uint64]([]types.Vote)
-	expectedTallyForTheFirstProposal bool // TODO replace once tallying has been refactored
+	addresses  []sdk.AccAddress
+	committees []types.Committee
+	proposals  []types.Proposal
+	votes      map[uint64]([]types.Vote)
 }
 
 func (suite *QuerierTestSuite) SetupTest() {
-	// SetupTest function runs before every test, but a new suite is not created every time.
-	// So be careful about modifying data on suite as data from previous tests will still be there.
-	// For example, don't append proposal to suite.proposals, initialize a new slice value.
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
 	suite.ctx = suite.app.NewContext(true, abci.Header{})
@@ -87,8 +83,6 @@ func (suite *QuerierTestSuite) SetupTest() {
 		})
 		return false
 	})
-	suite.expectedTallyForTheFirstProposal = true // TODO replace once tallying has been refactored
-
 }
 
 func (suite *QuerierTestSuite) TestQueryCommittees() {
@@ -240,12 +234,11 @@ func (suite *QuerierTestSuite) TestQueryTally() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes
-	var tally bool
+	var tally int64
 	suite.NoError(suite.cdc.UnmarshalJSON(bz, &tally))
 
 	// Check
-	expectedTally := suite.expectedTallyForTheFirstProposal
-	suite.Equal(expectedTally, tally)
+	suite.Equal(int64(len(suite.votes[propID])), tally)
 }
 func TestQuerierTestSuite(t *testing.T) {
 	suite.Run(t, new(QuerierTestSuite))

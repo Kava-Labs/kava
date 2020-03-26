@@ -4,11 +4,13 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
@@ -76,7 +78,8 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			// Create local testApp because suite doesn't run the SetupTest function for subtests, which would mean the app state is not be reset between subtests.
+			// Create local testApp because suite doesn't run the SetupTest function for subtests,
+			// which would mean the app state is not be reset between subtests.
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, abci.Header{})
@@ -170,36 +173,89 @@ func (suite *KeeperTestSuite) TestAddVote() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestCloseOutProposal() {
-	// setup test
-	suite.app.InitializeFromGenesisStates()
-	// TODO replace below with genesis state
-	normalCom := types.Committee{
-		ID:          12,
-		Members:     suite.addresses[:2],
-		Permissions: []types.Permission{types.GodPermission{}},
+func (suite *KeeperTestSuite) TestGetProposalResult() {
+	var defaultID uint64 = 1
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+
+	testcases := []struct {
+		name           string
+		committee      types.Committee
+		votes          []types.Vote
+		proposalPasses bool
+		expectPass     bool
+	}{
+		{
+			name: "enough votes",
+			committee: types.Committee{
+				ID:          12,
+				Members:     suite.addresses[:5],
+				Permissions: []types.Permission{types.GodPermission{}},
+			},
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: suite.addresses[0]},
+				{ProposalID: defaultID, Voter: suite.addresses[1]},
+				{ProposalID: defaultID, Voter: suite.addresses[2]},
+				{ProposalID: defaultID, Voter: suite.addresses[3]},
+			},
+			proposalPasses: true,
+			expectPass:     true,
+		},
+		{
+			name: "not enough votes",
+			committee: types.Committee{
+				ID:          12,
+				Members:     suite.addresses[:5],
+				Permissions: []types.Permission{types.GodPermission{}},
+			},
+			votes: []types.Vote{
+				{ProposalID: defaultID, Voter: suite.addresses[0]},
+			},
+			proposalPasses: false,
+			expectPass:     true,
+		},
 	}
-	suite.keeper.SetCommittee(suite.ctx, normalCom)
-	pprop := gov.NewTextProposal("A Title", "A description of this proposal.")
-	id, err := suite.keeper.SubmitProposal(suite.ctx, normalCom.Members[0], normalCom.ID, pprop)
-	suite.NoError(err)
-	err = suite.keeper.AddVote(suite.ctx, id, normalCom.Members[0])
-	suite.NoError(err)
-	err = suite.keeper.AddVote(suite.ctx, id, normalCom.Members[1])
-	suite.NoError(err)
 
-	// run test
-	err = suite.keeper.CloseOutProposal(suite.ctx, id)
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			// Create local testApp because suite doesn't run the SetupTest function for subtests, which would mean the app state is not be reset between subtests.
+			tApp := app.NewTestApp()
+			keeper := tApp.GetCommitteeKeeper()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
 
-	// check
-	suite.NoError(err)
-	_, found := suite.keeper.GetProposal(suite.ctx, id)
-	suite.False(found)
-	suite.keeper.IterateVotes(suite.ctx, id, func(v types.Vote) bool {
-		suite.Fail("found vote when none should exist")
-		return false
-	})
+			tApp.InitializeFromGenesisStates(
+				committeeGenState(
+					tApp.Codec(),
+					[]types.Committee{tc.committee},
+					[]types.Proposal{{
+						PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+						ID:          defaultID,
+						CommitteeID: tc.committee.ID,
+						Deadline:    firstBlockTime.Add(time.Hour * 24 * 7),
+					}},
+					tc.votes,
+				),
+			)
 
+			proposalPasses, err := keeper.GetProposalResult(ctx, defaultID)
+
+			if tc.expectPass {
+				suite.NoError(err)
+				suite.Equal(tc.proposalPasses, proposalPasses)
+			} else {
+				suite.NotNil(err)
+			}
+		})
+	}
+}
+
+func committeeGenState(cdc *codec.Codec, committees []types.Committee, proposals []types.Proposal, votes []types.Vote) app.GenesisState {
+	gs := types.NewGenesisState(
+		uint64(len(proposals)+1),
+		committees,
+		proposals,
+		votes,
+	)
+	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
 }
 
 type UnregisteredProposal struct {
