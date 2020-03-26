@@ -4,12 +4,12 @@
     "memo": "",
     "chain_id": "testing",
     "account_number": "1",
-    "sequence": "1",
+    "sequence": "0",
     "gas": "500000",
     "gas_adjustment": "1.0",
     "simulate": false
   },
   "from": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
-  "swap_id": "8987dba9c269cc8aca3606fcf8fd45eb1b913a4b23f9baac4ba21b6c9e656c36",
-  "random_number": "9b68a1435b369f88efeb653cc1643699926738127d78290461b2fde6ee568b90"
+  "swap_id": "3ca20f0152f03b0aabe73e7aa1ddf78b9048ede5a9a73846e1ef53bebbfa4185",
+  "random_number": "e3d0a98b459f72231da69c3bd771c1e721fef4be83c14b80dc805ba71019eebe"
 }

@@ -9,8 +9,8 @@
           "to": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
           "recipient_other_chain": "tbnb1etjxt3t5r9899w3tf7dnktdue5ngu4ncdwckvt",
           "sender_other_chain": "tbnb10uypsspvl6jlxcx5xse02pag39l8xpe7a3468h",
-          "random_number_hash": "E15207A1E1A158BEA80D6D00E435BFC5CA27607F10304B92CD9E87FF06F56CCA",
-          "timestamp": "1585205977",
+          "random_number_hash": "C0544B7F4B890A673EA3F61BDB4650FBFE2F3E56BDA1B397D6D592FCA7163C8C",
+          "timestamp": "1585252531",
           "amount": [
             {
               "denom": "bnb",

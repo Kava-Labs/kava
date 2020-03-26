@@ -8,9 +8,12 @@ This guide will walk you through interacting with the blockchains and transferri
 
 ### Setup
 
-TODO: Add testnet REST endpoints for [Kava] and [Bnbchain] and replace "localhost" with live endpoints.
+We'll be using Kava's CLI to build, sign, and broadcast the transactions:
 
-TODO: Steps for downloading kvcli
+```bash
+    # Download kvcli
+    make install
+```
 
 Before making a request, query account information for the signing account. Note the 'accountnumber' and 'sequence' fields, we'll need them later in order to send our request:
 
@@ -24,7 +27,7 @@ Use the example file in `rest_examples/create-swap.json` to format the request. 
 
 Next, we'll update the swap's creation parameters. For that, we need a unique random number that will be used to claim the funds.
 
-// TODO: Explain how to generate these client-side
+WARNING: Don't use `calc-rnh` for the generation of secrets in production. These values should be generated client-side for the safety of user funds.
 
 ```bash
     # Generate a sample random number, timestamp, and random number hash
@@ -36,8 +39,7 @@ Next, we'll update the swap's creation parameters. For that, we need a unique ra
     # Random number hash: 4644fc2d9a2389c60e621785b873ae187e320eaded1687edaa120961428eba9e
 ```
 
-// TODO: add limits
-In the same json file, populate each parameter within to the following limits
+In the same json file, populate each of the following parameters
 
 - from
 - to
@@ -57,30 +59,34 @@ Once each parameter is populated, it's time to create our swap:
     curl -H "Content-Type: application/json" -X POST -d @./contrib/testnet-5000/rest_examples/create-swap.json http://127.0.0.1:1317/bep3/swap/create | jq > ./contrib/testnet-5000/rest_examples/create-swap-unsigned.json
 
     # Sign the request
-    kvcli tx sign ./contrib/testnet-5000/rest_examples/create-swap-unsigned.json --from testuser --offline --chain-id testing --sequence 0 --account-number 5 | jq > ./contrib/testnet-5000/rest_examples/broadcast-create-swap.json
+    kvcli tx sign ./contrib/testnet-5000/rest_examples/create-swap-unsigned.json --from testnetdeputy --offline --chain-id testing --sequence 0 --account-number 5 | jq > ./contrib/testnet-5000/rest_examples/broadcast-create-swap.json
 
     # Broadcast the request
-    kvcli tx broadcast ./contrib/testnet-5000/broadcast-create-swap.json
+    kvcli tx broadcast ./contrib/testnet-5000/rest_examples/broadcast-create-swap.json
 ```
 
-// TODO: They need the expected bnbchain swap ID
+The tx broadcast will log information in the terminal, including the txhash. This tx hash can be used to get information about the transaction, including the swap creation event that includes the swap's ID:
+
+```bash
+    # Get information about the transaction
+    curl -H "Content-Type: application/json" -X GET http://localhost:1317/txs/81A1955216F6D985ECB4770E29B9BCED8F73A42D0C0FD566372CF673CCB81587
+```
 
 Congratulations, you've just created a swap on Kava! The swap will be automatically relayed over to Bnbchain where it it can be claimed using the secret random number from above.
 
-// TODO: Add link to a doc with steps to create, claim, and refund swaps on bnbchain
-
 # Claim swap
 
-// TODO: add link to Bnbchain document with interaction steps
+Only unexpired swaps can be claimed. To claim a swap, we'll use the secret random number that matches this swap's timestamp and random number hash.
+
 Generally, claimable swaps must be created on Bnbchain.
+// TODO: add link to Bnbchain document with interaction steps
 
 Use the example file in `rest_examples/claim-swap.json` to format the request. Again, update the header parameters 'from', 'account_number', 'sequence'. Check your account using the command from above to ensure that the parameters match the blockchain's state.
 
-// TODO: add limits
-In the same json file, populate each parameter within to the following limits:
+In the same json file, populate each listed parameter:
 
-- swap_id: only unexpired swaps can be claimed.
-- random_number:
+- swap_id
+- random_number
 
 Once the `swap_id` parameter is populated, it's time to claim our swap:
 
@@ -89,7 +95,7 @@ Once the `swap_id` parameter is populated, it's time to claim our swap:
     curl -H "Content-Type: application/json" -X POST -d @./contrib/testnet-5000/rest_examples/claim-swap.json http://127.0.0.1:1317/bep3/swap/claim | jq > ./contrib/testnet-5000/rest_examples/claim-swap-unsigned.json
 
     # Sign the request
-    kvcli tx sign ./contrib/testnet-5000/rest_examples/claim-swap-unsigned.json --from testuser --offline --chain-id testing --sequence 1 --account-number 1 | jq  > ./contrib/testnet-5000/rest_examples/broadcast-claim-swap.json
+    kvcli tx sign ./contrib/testnet-5000/rest_examples/claim-swap-unsigned.json --from user --offline --chain-id testing --sequence 0 --account-number 1 | jq  > ./contrib/testnet-5000/rest_examples/broadcast-claim-swap.json
 
     # Broadcast the request
     kvcli tx broadcast ./contrib/testnet-5000/rest_examples/broadcast-claim-swap.json
@@ -97,12 +103,13 @@ Once the `swap_id` parameter is populated, it's time to claim our swap:
 
 # Refund swap
 
+Only expired swaps may be refunded.
+
 Use the example file in `rest_examples/refund-swap.json` to format the request. Again, update the header parameters 'from', 'account_number', 'sequence'. Check your account using the command from above to ensure that the parameters match the blockchain's state.
 
-// TODO: add limits
-In the same json file, populate each parameter within to the following limits:
+In the same json file, populate each parameter:
 
-- swap_id: only expired swaps can be refunded.
+- swap_id
 
 Once the `swap_id` parameter is populated, it's time to refund our swap:
 
