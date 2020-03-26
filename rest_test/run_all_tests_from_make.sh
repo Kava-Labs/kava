@@ -14,6 +14,7 @@ faucet="chief access utility giant burger winner jar false naive mobile often pe
 # variables for home directories for kvd and kvcli
 kvdHome=/tmp/kvdHome
 kvcliHome=/tmp/kvcliHome
+swaggerFile=swagger-ui/testnet-4000/swagger-testnet-4000.yaml
 
 # Remove any existing data directory
 rm -rf $kvdHome
@@ -96,7 +97,7 @@ printf "\n\n"
 # Now run the dredd tests
 ############################
 
-dredd swagger-ui/swagger.yaml localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
+dredd $swaggerFile localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
 
 ########################################################
 # Now run the check the return code from the dredd command. 
@@ -115,8 +116,8 @@ then
       echo "Success"
       rm setuptest & showLoading "Cleaning up go binary"
       # kill the kvd and kvcli processes (blockchain and rest api)
-      pgrep kvd | xargs kill
-      pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+      # pgrep kvd | xargs kill
+      # pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
       rm -f output
       exit 0
     fi
@@ -127,7 +128,7 @@ fi
 echo "Failure" >&2
 rm setuptest & showLoading "Cleaning up go binary"
 # kill the kvd and kvcli processes (blockchain and rest api)
-pgrep kvd | xargs kill
-pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+# pgrep kvd | xargs kill
+# pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
 rm -f output
 exit 1
