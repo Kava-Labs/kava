@@ -1893,7 +1893,7 @@
             name: depositor
             required: true
             in: path
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
         responses:
           200:
             description: OK
