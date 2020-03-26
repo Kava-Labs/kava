@@ -237,12 +237,12 @@
             description: Tx hash
             required: true
             type: string
-            x-example: BCBE20E8D46758B96AE5883B792858296AC06E51435490FBDCAE25A72B3CC76B
+            x-example: B901DB8552BC5F5F82E5709EC37AAD8C0F8005CDB3608E5580055CC4D0D9B275
         responses:
           200:
             description: Tx with the provided hash
             schema:
-              $ref: '#/definitions/TxQuery'
+              $ref: "#/definitions/TxQuery"
           500:
             description: Internal Server Error
     /txs:
@@ -258,12 +258,12 @@
             name: message.action
             type: string
             description: "transaction events such as 'message.action=send' which results in the following endpoint: 'GET /txs?message.action=send'. note that each module documents its own events. look for xx_events.md in the corresponding cosmos-sdk/docs/spec directory"
-            x-example: 'send'
+            x-example: "send"
           - in: query
             name: message.sender
             type: string
-            description: "transaction tags with sender: 'GET /txs?message.action=send&message.sender=kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv'"
-            x-example: 'kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv'
+            description: "transaction tags with sender: 'GET /txs?message.action=send&message.sender=kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9'"
+            x-example: "kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9"
           - in: query
             name: page
             description: Page number
@@ -274,11 +274,16 @@
             description: Maximum number of items per page
             type: integer
             x-example: 1
+          - in: query
+            name: txheight # this should actually be tx.height but dredd doesn't handle periods in get parameter names so no period allows the test to pass
+            description: Transaction height
+            type: integer
+            x-example: 1
         responses:
           200:
             description: All txs matching the provided events
             schema:
-              $ref: '#/definitions/PaginatedQueryTxs'
+              $ref: "#/definitions/PaginatedQueryTxs"
           400:
             description: Invalid search events
           500:
@@ -301,15 +306,15 @@
               type: object
               properties:
                 tx:
-                  $ref: '#/definitions/StdTx'
+                  $ref: "#/definitions/PostStdTx"
                 mode:
                   type: string
-                  example: sync
+                  example: block
         responses:
           200:
             description: Tx broadcasting result
             schema:
-              $ref: '#/definitions/BroadcastTxCommitResult'
+              $ref: "#/definitions/BroadcastTxCommitResult"
           500:
             description: Internal Server Error
     /txs/encode:
@@ -323,15 +328,13 @@
         produces:
           - application/json
         parameters:
-          - in: body
-            name: tx
-            description: The tx to encode
+          - description: ""
+            name: EncodeBody
+            in: body
             required: true
             schema:
               type: object
-              properties:
-                tx:
-                  $ref: '#/definitions/StdTx'
+              $ref: "#/definitions/EncodeTx"
         responses:
           200:
             description: The tx was successfully decoded and re-encoded
@@ -342,7 +345,7 @@
                   type: string
                   example: The base64-encoded Amino-serialized bytes for the tx
           400:
-            description: The tx was malformated
+            description: The tx was malformatted
           500:
             description: Server internal error
     /txs/decode:
@@ -365,12 +368,12 @@
               properties:
                 tx:
                   type: string
-                  example: SvBiXe4KPqijYZoKFFHEzJ8c2HPAfv2EFUcIhx0yPagwEhTy0vPA+GGhCEslKXa4Af0uB+mfShoMCgVzdGFrZRIDMTAwEgQQwJoM
+                  example: ogEoKBapCjyoo2GaChRKWendsRagTF1ACC1nxzjVxW3xJBIU/A6hCReBn5NYI6K2dl10kCEeTfgaCgoFc3Rha2USATESEAoKCgVzdGFrZRIBMRDAmgwaQhJAdlC1HbNw+ux6lRrK3mNdmaH62NE3ThD8SswlDcnhFex7pKSNhaxE4m6TgDhosoK6EyU0LnOZKutXKECNSvO+WCIIdGVzdG1lbW8=
         responses:
           200:
             description: The tx was successfully decoded
             schema:
-              $ref: '#/definitions/StdTx'
+              $ref: "#/definitions/StdTx"
           400:
             description: The tx was malformated
           500:
@@ -943,7 +946,7 @@
             description: the market id of the market
             required: true
             type: string
-            x-example: 'xrp:usd'
+            x-example: 'stake:usd'
         responses:
           200:
             description: OK
@@ -964,14 +967,18 @@
             description: Account address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
         responses:
           200:
             description: Account balances
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Coin'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:                    
+                    $ref: "#/definitions/Coin"
           500:
             description: Server internal error
 
@@ -2821,8 +2828,8 @@
           type: object
           properties:
             total:
-              type: number
-              example: 0
+              type: string
+              example: "0"
             hash:
               $ref: '#/definitions/Hash'
     BlockHeader:
@@ -2832,19 +2839,19 @@
           type: string
           example: kavahub-2
         height:
-          type: number
-          example: 1
+          type: string
+          example: "1"
         time:
           type: string
           example: '2017-12-30T05:53:09.287+01:00'
         num_txs:
-          type: number
-          example: 0
+          type: string
+          example: "0"
         last_block_id:
           $ref: '#/definitions/BlockID'
         total_txs:
-          type: number
-          example: 35
+          type: string
+          example: "35"
         last_commit_hash:
           $ref: '#/definitions/Hash'
         data_hash:
@@ -2882,9 +2889,10 @@
           items:
             type: string
         evidence:
-          type: array
-          items:
-            type: string
+          type: object
+          # type: array
+          # items:
+          #   type: string
         last_commit:
           type: object
           properties:
@@ -2892,6 +2900,7 @@
               $ref: '#/definitions/BlockID'
             precommits:
               type: array
+              x-nullable: true
               items:
                 type: object
                 properties:
@@ -3417,3 +3426,89 @@
           type: string
         result:
           type: string
+    PostStdTx:
+      type: object
+      properties:
+        msg:
+          type: array
+          items:
+            $ref: "#/definitions/PostMsg"
+        fee:
+          type: object
+          properties:
+            gas:
+              type: string
+              example: "200000"
+            amount:
+              type: array
+              items:
+                $ref: "#/definitions/PostCoin2"
+        memo:
+          type: string
+          example: ""
+        signatures:
+          type: array
+          items:
+            $ref: "#/definitions/PostSignature"
+
+    PostMsg:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "cosmos-sdk/MsgSend"
+        value:
+          type: object
+          properties:
+            from_address:
+              type: string
+              example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+            to_address:
+              type: string
+              example: kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz
+            amount:
+              type: array
+              items:
+                $ref: "#/definitions/PostCoin1"
+    PostCoin1:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: stake
+        amount:
+          type: string
+          example: "2000000"
+    PostCoin2:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: stake
+        amount:
+          type: string
+          example: "2000"    
+    PostSignature:
+      type: object
+      properties:
+        signature:
+          type: string
+          example: "KzBeQp/2+47oiqc16BImnOYidSAesZ3kgR3S8Fy+baFlvDlDv7goU/+rm4c7+woudNte3uZAG0CuUeHsF+Ld8Q=="
+        pubkey:
+          type: object
+          properties:
+            type:
+              type: string
+              example: "tendermint/PubKeySecp256k1"
+            value:
+              type: string
+              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGXusb70B7"              
+    EncodeTx:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "cosmos-sdk/StdTx"
+        value:
+          type: object
+          $ref: "#/definitions/StdTx"   
