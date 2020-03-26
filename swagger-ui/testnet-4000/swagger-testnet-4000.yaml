@@ -1393,9 +1393,13 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Validator'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  items:
+                    $ref: "#/definitions/Validator"
           500:
             description: Internal Server Error
     /staking/validators/{validatorAddr}:
