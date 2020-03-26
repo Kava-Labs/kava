@@ -1658,20 +1658,22 @@
               type: object
               properties:
                 base_req:
-                  $ref: '#/definitions/BaseReq'
+                  $ref: "#/definitions/BaseReq"
                 title:
                   type: string
+                  example: Test_title
                 description:
                   type: string
+                  example: my_test_description
                 proposal_type:
                   type: string
-                  example: 'text'
+                  example: "text"
                 proposer:
-                  $ref: '#/definitions/Address'
+                  $ref: "#/definitions/Address"
                 initial_deposit:
                   type: array
                   items:
-                    $ref: '#/definitions/Coin'
+                    $ref: "#/definitions/Coin"
         responses:
           200:
             description: Tx was successfully generated
