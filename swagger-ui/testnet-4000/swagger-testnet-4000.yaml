@@ -2441,7 +2441,7 @@
           200:
             description: OK
             schema:
-              type: string
+              $ref: "#/definitions/StandardResponse"
           500:
             description: Internal Server Error
     /minting/annual-provisions:
