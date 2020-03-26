@@ -12,7 +12,7 @@ const (
 	// QueryGetAtomicSwaps command for getting a list of atomic swaps
 	QueryGetAtomicSwaps = "swaps"
 	// QueryGetParams command for getting module params
-	QueryGetParams = "params"
+	QueryGetParams = "parameters"
 )
 
 // QueryAssetSupply contains the params for query 'custom/bep3/supply'
