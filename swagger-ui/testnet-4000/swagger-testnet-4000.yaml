@@ -2112,7 +2112,7 @@
           description: Bech32 AccAddress of Delegator
           required: true
           type: string
-          x-example: kava167w96tdvmazakdwkw2u57227eduula2cy572lf
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
       get:
         summary: Get the total rewards balance from all delegations
         description: Get the sum of all the rewards earned by delegations by a single delegator
