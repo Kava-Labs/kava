@@ -1025,7 +1025,7 @@
             description: Account address
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         responses:
           200:
             description: Account information on the blockchain
@@ -1044,13 +1044,13 @@
                     coins:
                       type: array
                       items:
-                        $ref: '#/definitions/Coin'
+                        $ref: "#/definitions/Coin"
                     public_key:
-                      $ref: '#/definitions/PublicKey'
+                      $ref: "#/definitions/PublicKey"
                     sequence:
                       type: string
           500:
-            description: Server internel error
+            description: Server internal error
     /staking/delegators/{delegatorAddr}/delegations:
       parameters:
         - in: path
