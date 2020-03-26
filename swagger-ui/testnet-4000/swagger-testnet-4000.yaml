@@ -2124,7 +2124,12 @@
           200:
             description: OK
             schema:
-              $ref: '#/definitions/DelegatorTotalRewards'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  $ref: '#/definitions/DelegatorTotalRewards'
           400:
             description: Invalid delegator address
           500:
@@ -2332,11 +2337,16 @@
           - application/json
         responses:
           200:
-            description: OK
+            description: OK            
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Coin'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Coin'
           400:
             description: Invalid validator address
           500:
