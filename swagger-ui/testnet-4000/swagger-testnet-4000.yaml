@@ -974,6 +974,7 @@
                 $ref: '#/definitions/Coin'
           500:
             description: Server internal error
+
     /bank/accounts/{address}/transfers:
       post:
         summary: Send coins from one account to another
@@ -989,7 +990,7 @@
             description: Account address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
           - in: body
             name: account
             description: The sender and tx information
@@ -998,16 +999,16 @@
               type: object
               properties:
                 base_req:
-                  $ref: '#/definitions/BaseReq'
+                  $ref: "#/definitions/BaseReq"
                 amount:
                   type: array
                   items:
-                    $ref: '#/definitions/Coin'
+                    $ref: "#/definitions/Coin"
         responses:
-          202:
+          200:
             description: Tx was successfully generated
             schema:
-              $ref: '#/definitions/StdTx'
+              $ref: "#/definitions/StdTx"
           400:
             description: Invalid request
           500:
