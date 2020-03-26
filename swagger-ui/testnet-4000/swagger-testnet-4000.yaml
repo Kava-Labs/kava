@@ -2756,8 +2756,8 @@
           type: string
           example: 'D085138D913993919295FF4B0A9107F1F2CDE0D37A87CE0644E217CBF3B49656'
         height:
-          type: number
-          example: 368
+          type: string
+          example: "368"
         tx:
           $ref: '#/definitions/StdTx'
         result:
