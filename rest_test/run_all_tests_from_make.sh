@@ -97,11 +97,7 @@ printf "\n\n"
 # Now run the dredd tests
 ############################
 
-<<<<<<< HEAD
 dredd $swaggerFile localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
-=======
-dredd swagger-ui/swagger.yaml localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
->>>>>>> develop
 
 ########################################################
 # Now run the check the return code from the dredd command. 
