@@ -1591,8 +1591,8 @@
             name: validatorAddr
             required: true
             in: path
-            x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
-          - description: ''
+            x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+          - description: ""
             name: UnjailBody
             in: body
             required: true
@@ -1600,12 +1600,12 @@
               type: object
               properties:
                 base_req:
-                  $ref: '#/definitions/StdTx'
+                  $ref: "#/definitions/BaseReq"
         responses:
           200:
             description: Tx was successfully generated
             schema:
-              $ref: '#/definitions/BroadcastTxCommitResult'
+              $ref: "#/definitions/BroadcastTxCommitResult"
           400:
             description: Invalid validator address or base_req
           500:
