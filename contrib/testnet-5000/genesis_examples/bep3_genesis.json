@@ -19,77 +19,7 @@
   "app_hash": "",
   "app_state": {
     "auth": {
-      "accounts": [
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "account_number": "0",
-            "address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-            "coins": [
-              {
-                "amount": "100000000000",
-                "denom": "btc"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "ukava"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "xrp"
-              }
-            ],
-            "public_key": null,
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "account_number": "0",
-            "address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
-            "coins": [
-              {
-                "amount": "100000000000",
-                "denom": "btc"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "ukava"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "xrp"
-              }
-            ],
-            "public_key": null,
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "account_number": "0",
-            "address": "kava12jk3szk45afmvjc3xc6kvj4e40tuy2m8ckgs03",
-            "coins": [
-              {
-                "amount": "100000000000",
-                "denom": "btc"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "ukava"
-              },
-              {
-                "amount": "100000000000",
-                "denom": "xrp"
-              }
-            ],
-            "public_key": null,
-            "sequence": "0"
-          }
-        }
-      ],
+      "accounts": [],
       "params": {
         "max_memo_characters": "256",
         "sig_verify_cost_ed25519": "590",
@@ -97,6 +27,13 @@
         "tx_sig_limit": "7",
         "tx_size_cost_per_byte": "10"
       }
+    },
+    "kavadist": {
+      "params": {
+        "active": false,
+        "periods": []
+      },
+      "previous_block_time": "1970-01-01T00:00:00Z"
     },
     "slashing": {
       "missed_blocks": {},
@@ -211,6 +148,7 @@
         "surplus_auction_threshold": "1000000000"
       },
       "previous_block_time": "1970-01-01T00:00:00Z",
+      "previous_distribution_time": "1970-01-01T00:00:00Z",
       "starting_cdp_id": "1"
     },
     "gov": {
@@ -268,8 +206,7 @@
             "base_asset": "xrp",
             "market_id": "xrp:usd",
             "oracles": [
-              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-              "kava1xq4cspcgl9thzmn6lkvd6dlx28wsr63zw4mlmf"
+              "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw"
             ],
             "quote_asset": "usd"
           },
@@ -296,7 +233,7 @@
     },
     "bep3": {
         "params": {
-            "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
+            "bnb_deputy_address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
             "min_block_lock": "80",
             "max_block_lock": "600",
             "supported_assets": [
@@ -305,59 +242,18 @@
                     "coin_id": "0",
                     "limit": "100000000000",
                     "active": true
+                },
+                {
+                    "denom": "bnb",
+                    "coin_id": "714",
+                    "limit": "100000000000",
+                    "active": true
                 }
             ]
         }
     },
     "genutil": {
-      "gentxs": [
-        {
-          "type": "cosmos-sdk/StdTx",
-          "value": {
-            "msg": [
-              {
-                "type": "cosmos-sdk/MsgCreateValidator",
-                "value": {
-                  "description": {
-                    "moniker": "validator",
-                    "identity": "",
-                    "website": "",
-                    "security_contact": "",
-                    "details": ""
-                  },
-                  "commission": {
-                    "rate": "0.100000000000000000",
-                    "max_rate": "0.200000000000000000",
-                    "max_change_rate": "0.010000000000000000"
-                  },
-                  "min_self_delegation": "1",
-                  "delegator_address": "kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw",
-                  "validator_address": "kavavaloper15qdefkmwswysgg4qxgqpqr35k3m49pkx8yhpte",
-                  "pubkey": "kavavalconspub1zcjduepqvw905dl40jq8z2z2fttl6lr7ku3vlttxhk8yyfhptpdjfs77g8nsch6emp",
-                  "value": {
-                    "denom": "ukava",
-                    "amount": "100000000"
-                  }
-                }
-              }
-            ],
-            "fee": {
-              "amount": [],
-              "gas": "200000"
-            },
-            "signatures": [
-              {
-                "pub_key": {
-                  "type": "tendermint/PubKeySecp256k1",
-                  "value": "Az740XKIPCJtnZLmJfktTfhsEStEJE3n2iRVyJ3wko43"
-                },
-                "signature": "fBNc0kdZnZ4UWJxb2BXXEpfNEyZglwWJJWy2nsQe969k6EuMe4vH1eD+gNJZNiNASl524HwvcFER7ZdDp/C4GQ=="
-              }
-            ],
-            "memo": "b62c0f3604faf46b94c37a56c143a6abde9c6c8e@192.168.86.23:26656"
-          }
-        }
-      ]
+      "gentxs": []
     },
     "validatorvesting": {
       "previous_block_time": "1970-01-01T00:00:00Z"

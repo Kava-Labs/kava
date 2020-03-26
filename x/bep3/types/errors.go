@@ -62,7 +62,7 @@ func ErrAssetNotSupported(codespace sdk.CodespaceType, denom string) sdk.Error {
 
 // ErrAssetNotActive error for when an asset is currently inactive
 func ErrAssetNotActive(codespace sdk.CodespaceType, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is current inactive", denom))
+	return sdk.NewError(codespace, CodeAssetNotActive, fmt.Sprintf("asset %s is currently inactive", denom))
 }
 
 // ErrInvalidHeightSpan error a proposed height span is outside of lock time range
