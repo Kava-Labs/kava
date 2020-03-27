@@ -3104,6 +3104,7 @@
           example: 'usd'
         oracles:
           type: array
+          x-nullable: true
           items:
             $ref: '#/definitions/Address'
         active:
