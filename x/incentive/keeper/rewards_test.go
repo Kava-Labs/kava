@@ -6,8 +6,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -29,7 +31,7 @@ import (
 
 // GetNextClaimPeriodID/GetNextClaimPeriodID default genesis state
 
-// CreateClaimPeriod - default genesis state but need to set next claim period ID for that denom
+// CreateUniqueClaimPeriod - default genesis state but need to set next claim period ID for that denom
 
 // IterateClaimPeriodIDKeysAndValues default genesis state but needs a couple denoms with set next claim period ids
 
@@ -44,15 +46,16 @@ import (
 
 //  SetupTest - initialize empty app
 
-type RewardsTestSuite struct {
+type KeeperTestSuite struct {
 	suite.Suite
 
 	keeper keeper.Keeper
 	app    app.TestApp
 	ctx    sdk.Context
+	addrs  []sdk.AccAddress
 }
 
-func (suite *RewardsTestSuite) SetupTest() {
+func (suite *KeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates()
@@ -62,7 +65,7 @@ func (suite *RewardsTestSuite) SetupTest() {
 	suite.keeper = keeper
 }
 
-func (suite *RewardsTestSuite) TestGetSetDeleteMethods() {
+func (suite *KeeperTestSuite) TestGetSetDeleteMethods() {
 	// reward periods
 	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
 	_, found := suite.keeper.GetRewardPeriod(suite.ctx, "bnb")
@@ -123,7 +126,7 @@ func (suite *RewardsTestSuite) TestGetSetDeleteMethods() {
 	suite.False(found)
 }
 
-func (suite *RewardsTestSuite) TestIterateMethods() {
+func (suite *KeeperTestSuite) TestIterateMethods() {
 	suite.addObjectsToStore() // adds 2 objects of each type to the store
 
 	var rewardPeriods types.RewardPeriods
@@ -156,7 +159,7 @@ func (suite *RewardsTestSuite) TestIterateMethods() {
 	suite.Equal(2, len(genIDs))
 }
 
-func (suite *RewardsTestSuite) TestHelperMethods() {
+func (suite *KeeperTestSuite) TestHelperMethods() {
 	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
 	suite.keeper.SetRewardPeriod(suite.ctx, rp)
 	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
@@ -189,7 +192,7 @@ func (suite *RewardsTestSuite) TestHelperMethods() {
 
 }
 
-func (suite *RewardsTestSuite) TestCreateAndDeleteRewardsPeriods() {
+func (suite *KeeperTestSuite) TestCreateAndDeleteRewardsPeriods() {
 	reward1 := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
 	reward2 := types.NewReward(false, "xrp", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
 	params := types.NewParams(true, types.Rewards{reward1, reward2})
@@ -206,7 +209,33 @@ func (suite *RewardsTestSuite) TestCreateAndDeleteRewardsPeriods() {
 
 }
 
-func (suite *RewardsTestSuite) addObjectsToStore() {
+func (suite *KeeperTestSuite) TestApplyRewardsToCdps() {
+	suite.setupCdpChain()
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 100))
+	suite.NotPanics(func() {
+		suite.keeper.ApplyRewardsToCdps(suite.ctx)
+	})
+	claims := types.Claims{}
+	suite.keeper.IterateClaims(suite.ctx, func(c types.Claim) (stop bool) {
+		claims = append(claims, c)
+		return false
+	})
+	suite.Equal(3, len(claims))
+	_, found := suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
+	suite.False(found)
+
+	// move to the past the period expiry and check that the claim period has been created and the next claim period id has increased
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 24 * 7))
+	suite.NotPanics(func() {
+		suite.keeper.ApplyRewardsToCdps(suite.ctx)
+	})
+	_, found = suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
+	suite.True(found)
+	testID := suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
+	suite.Equal(uint64(2), testID)
+}
+
+func (suite *KeeperTestSuite) addObjectsToStore() {
 	rp1 := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
 	rp2 := types.NewRewardPeriod("xrp", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
 	suite.keeper.SetRewardPeriod(suite.ctx, rp1)
@@ -226,17 +255,110 @@ func (suite *RewardsTestSuite) addObjectsToStore() {
 	suite.keeper.SetClaim(suite.ctx, c1)
 	suite.keeper.SetClaim(suite.ctx, c2)
 
+	params := types.NewParams(
+		true, types.Rewards{types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)},
+	)
+	suite.keeper.SetParams(suite.ctx, params)
+
 }
 
-func (suite *RewardsTestSuite) setupCdpChain() {
+func (suite *KeeperTestSuite) setupCdpChain() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	// need pricefeed and cdp gen state with one collateral
-	// need kavadist module account with large balance and a helper to drain it's balance
+	pricefeedGS := pricefeed.GenesisState{
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				pricefeed.Market{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			},
+		},
+		PostedPrices: []pricefeed.PostedPrice{
+			pricefeed.PostedPrice{
+				MarketID:      "bnb:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         d("12.29"),
+				Expiry:        time.Now().Add(100000 * time.Hour),
+			},
+		},
+	}
 	// need incentive params for one collateral
+	cdpGS := cdp.GenesisState{
+		Params: cdp.Params{
+			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
+			CollateralParams: cdp.CollateralParams{
+				{
+					Denom:              "bnb",
+					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty: d("0.05"),
+					AuctionSize:        i(10000000000),
+					Prefix:             0x20,
+					MarketID:           "bnb:usd",
+					ConversionFactor:   i(8),
+				},
+			},
+			DebtParams: cdp.DebtParams{
+				{
+					Denom:            "usdx",
+					ReferenceAsset:   "usd",
+					ConversionFactor: i(6),
+					DebtFloor:        i(10000000),
+					SavingsRate:      d("0.95"),
+				},
+			},
+		},
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+	}
+	incentiveGS := types.NewGenesisState(
+		types.NewParams(
+			true, types.Rewards{types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)},
+		),
+		types.DefaultPreviousBlockTime,
+		types.RewardPeriods{types.NewRewardPeriod("bnb", ctx.BlockTime(), ctx.BlockTime().Add(time.Hour*7*24), c("ukava", 1000), ctx.BlockTime().Add(time.Hour*7*24*2), time.Hour*365*24)},
+		types.ClaimPeriods{},
+		types.Claims{},
+		types.GenesisClaimPeriodIDs{})
+	pricefeedAppGs := app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)}
+	cdpAppGs := app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGS)}
+	incentiveAppGs := app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(incentiveGS)}
+	_, addrs := app.GeneratePrivKeyAddressPairs(3)
+	authGS := app.NewAuthGenState(
+		addrs[0:3],
+		[]sdk.Coins{
+			cs(c("bnb", 10000000000)),
+			cs(c("bnb", 100000000000)),
+			cs(c("bnb", 1000000000000)),
+		})
+	tApp.InitializeFromGenesisStates(
+		authGS,
+		pricefeedAppGs,
+		incentiveAppGs,
+		cdpAppGs,
+	)
+	suite.app = tApp
+	suite.keeper = tApp.GetIncentiveKeeper()
+	suite.ctx = ctx
+	// create 3 cdps
+	cdpKeeper := tApp.GetCDPKeeper()
+	err := cdpKeeper.AddCdp(suite.ctx, addrs[0], cs(c("bnb", 10000000000)), cs(c("usdx", 10000000)))
+	suite.NoError(err)
+	err = cdpKeeper.AddCdp(suite.ctx, addrs[1], cs(c("bnb", 100000000000)), cs(c("usdx", 100000000)))
+	suite.NoError(err)
+	err = cdpKeeper.AddCdp(suite.ctx, addrs[2], cs(c("bnb", 1000000000000)), cs(c("usdx", 1000000000)))
+	suite.NoError(err)
+	// total usd is 1110
 
-	// need to create 3 cdps
-
+	// set the previous block time
+	suite.keeper.SetPreviousBlockTime(suite.ctx, suite.ctx.BlockTime())
 }
 
 // Avoid cluttering test cases with long function names
@@ -245,6 +367,6 @@ func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
-func TestRewardsTestSuite(t *testing.T) {
-	suite.Run(t, new(RewardsTestSuite))
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
 }
