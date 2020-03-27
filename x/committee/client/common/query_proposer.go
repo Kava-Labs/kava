@@ -34,7 +34,7 @@ func (p Proposer) String() string {
 func QueryProposer(cliCtx context.CLIContext, proposalID uint64) (Proposer, error) {
 	events := []string{
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgSubmitProposal),
-		fmt.Sprintf("%s.%s='%s'", types.EventTypeSubmitProposal, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
+		fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalSubmit, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
 	}
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently

@@ -9,27 +9,35 @@ import (
 )
 
 const (
-	AttributeKeyProposalID      = types.AttributeKeyProposalID
-	DefaultCodespace            = types.DefaultCodespace
-	DefaultNextProposalID       = types.DefaultNextProposalID
-	DefaultParamspace           = types.DefaultParamspace
-	EventTypeSubmitProposal     = types.EventTypeSubmitProposal
-	MaxDescriptionLength        = types.MaxDescriptionLength
-	ModuleName                  = types.ModuleName
-	ProposalTypeCommitteeChange = types.ProposalTypeCommitteeChange
-	ProposalTypeCommitteeDelete = types.ProposalTypeCommitteeDelete
-	QuerierRoute                = types.QuerierRoute
-	QueryCommittee              = types.QueryCommittee
-	QueryCommittees             = types.QueryCommittees
-	QueryProposal               = types.QueryProposal
-	QueryProposals              = types.QueryProposals
-	QueryTally                  = types.QueryTally
-	QueryVote                   = types.QueryVote
-	QueryVotes                  = types.QueryVotes
-	RouterKey                   = types.RouterKey
-	StoreKey                    = types.StoreKey
-	TypeMsgSubmitProposal       = types.TypeMsgSubmitProposal
-	TypeMsgVote                 = types.TypeMsgVote
+	AttributeKeyCommitteeID         = types.AttributeKeyCommitteeID
+	AttributeKeyProposalCloseStatus = types.AttributeKeyProposalCloseStatus
+	AttributeKeyProposalID          = types.AttributeKeyProposalID
+	AttributeValueCategory          = types.AttributeValueCategory
+	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
+	AttributeValueProposalPassed    = types.AttributeValueProposalPassed
+	AttributeValueProposalTimeout   = types.AttributeValueProposalTimeout
+	DefaultCodespace                = types.DefaultCodespace
+	DefaultNextProposalID           = types.DefaultNextProposalID
+	DefaultParamspace               = types.DefaultParamspace
+	EventTypeProposalClose          = types.EventTypeProposalClose
+	EventTypeProposalSubmit         = types.EventTypeProposalSubmit
+	EventTypeProposalVote           = types.EventTypeProposalVote
+	MaxCommitteeDescriptionLength   = types.MaxCommitteeDescriptionLength
+	ModuleName                      = types.ModuleName
+	ProposalTypeCommitteeChange     = types.ProposalTypeCommitteeChange
+	ProposalTypeCommitteeDelete     = types.ProposalTypeCommitteeDelete
+	QuerierRoute                    = types.QuerierRoute
+	QueryCommittee                  = types.QueryCommittee
+	QueryCommittees                 = types.QueryCommittees
+	QueryProposal                   = types.QueryProposal
+	QueryProposals                  = types.QueryProposals
+	QueryTally                      = types.QueryTally
+	QueryVote                       = types.QueryVote
+	QueryVotes                      = types.QueryVotes
+	RouterKey                       = types.RouterKey
+	StoreKey                        = types.StoreKey
+	TypeMsgSubmitProposal           = types.TypeMsgSubmitProposal
+	TypeMsgVote                     = types.TypeMsgVote
 )
 
 var (

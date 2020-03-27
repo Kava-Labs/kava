@@ -38,7 +38,8 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeSubmitProposal,
+			types.EventTypeProposalSubmit,
+			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.ID)),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposalID)),
 		),
 	)
@@ -66,6 +67,13 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	// Store vote, overwriting any prior vote
 	k.SetVote(ctx, types.Vote{ProposalID: proposalID, Voter: voter})
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProposalVote,
+			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.ID)),
+			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", pr.ID)),
+		),
+	)
 	return nil
 }
 

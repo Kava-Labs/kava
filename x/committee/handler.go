@@ -35,7 +35,7 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			// TODO sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Proposer.String()),
 		),
 	)
@@ -47,6 +47,12 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 }
 
 func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Result {
+	// get the proposal just to add fields to the event
+	proposal, found := k.GetProposal(ctx, msg.ProposalID)
+	if !found {
+		return sdk.ErrInternal("proposal not found").Result()
+	}
+
 	err := k.AddVote(ctx, msg.ProposalID, msg.Voter)
 	if err != nil {
 		return err.Result()
@@ -58,15 +64,27 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Resu
 		return err.Result()
 	}
 	if passes {
-		_ = k.EnactProposal(ctx, msg.ProposalID)
-		// log err
+		err = k.EnactProposal(ctx, msg.ProposalID)
+		outcome := types.AttributeValueProposalPassed
+		if err != nil {
+			outcome = types.AttributeValueProposalFailed
+		}
 		k.DeleteProposalAndVotes(ctx, msg.ProposalID)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeProposalClose,
+				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
+			),
+		)
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			// TODO sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
 		),
 	)

@@ -2,18 +2,15 @@ package types
 
 // Module event types
 const (
-	EventTypeSubmitProposal = "submit_proposal"
-	// EventTypeProposalVote     = "proposal_vote"
-	// EventTypeInactiveProposal = "inactive_proposal"
-	// EventTypeActiveProposal   = "active_proposal"
+	EventTypeProposalSubmit = "proposal_submit"
+	EventTypeProposalClose  = "proposal_close"
+	EventTypeProposalVote   = "proposal_vote"
 
-	// AttributeKeyProposalResult     = "proposal_result"
-	// AttributeKeyOption             = "option"
-	AttributeKeyProposalID = "proposal_id"
-	// AttributeKeyVotingPeriodStart  = "voting_period_start"
-	// AttributeValueCategory         = "governance"
-	// AttributeValueProposalDropped  = "proposal_dropped"  // didn't meet min deposit
-	// AttributeValueProposalPassed   = "proposal_passed"   // met vote quorum
-	// AttributeValueProposalRejected = "proposal_rejected" // didn't meet vote quorum
-	// AttributeValueProposalFailed   = "proposal_failed"   // error on proposal handler
+	AttributeValueCategory          = "committee"
+	AttributeKeyCommitteeID         = "committee_id"
+	AttributeKeyProposalID          = "proposal_id"
+	AttributeKeyProposalCloseStatus = "status"
+	AttributeValueProposalPassed    = "proposal_passed"
+	AttributeValueProposalTimeout   = "proposal_timeout"
+	AttributeValueProposalFailed    = "proposal_failed"
 )
