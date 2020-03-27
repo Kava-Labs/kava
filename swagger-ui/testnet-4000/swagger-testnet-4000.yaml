@@ -928,9 +928,15 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/PostedPrice'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/PostedPrice'
+
           500:
             description: Internal Server Error
     /pricefeed/price/{market_id}:
@@ -3073,7 +3079,7 @@
           example: '0.298758999999999997'
         expiry:
           type: string
-          example: '2020-02-12T23:10:00Z'
+          example: '2021-02-12T23:10:00Z'
     Market:
       type: object
       properties:
