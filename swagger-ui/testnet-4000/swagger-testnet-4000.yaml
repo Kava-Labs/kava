@@ -429,7 +429,7 @@
             description: Owner address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
             name: denom
             description: Collateral denom
@@ -475,7 +475,7 @@
             description: Owner address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
             name: denom
             description: Collateral denom
@@ -521,7 +521,7 @@
             description: Owner address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
             name: denom
             description: Collateral denom
@@ -565,7 +565,7 @@
             description: Owner address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
             name: denom
             description: Collateral denom
@@ -645,7 +645,7 @@
             description: Owner address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
             name: denom
             description: Collateral denom
@@ -724,7 +724,7 @@
             description: Owner address in bech32 format
             required: true
             type: string
-            x-example: kava16xyempempp92x9hyzz9wrgf94r6j9h5f06pxxv
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
             name: denom
             description: Collateral denom
@@ -1645,7 +1645,7 @@
             name: validatorAddr
             required: true
             in: path
-            x-example: kavavaloper1q53rwutgpzx7szcrgzqguxyccjpzt9j44jzrtj
+            x-example: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
           - description: ""
             name: UnjailBody
             in: body
@@ -2702,7 +2702,7 @@
     Address:
       type: string
       description: bech32 encoded address
-      example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+      example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
     ValidatorAddress:
       type: string
       description: bech32 encoded address
@@ -2721,7 +2721,7 @@
       properties:
         denom:
           type: string
-          example: bnb
+          example: "xrp"
         amount:
           type: string
           example: '10000000000'
@@ -2730,7 +2730,7 @@
       properties:
         denom:
           type: string
-          example: usdx
+          example: "usdx"
         amount:
           type: string
           example: '10000000'
@@ -2967,7 +2967,7 @@
       properties:
         from:
           type: string
-          example: 'kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9'
+          example: 'kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c'
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
