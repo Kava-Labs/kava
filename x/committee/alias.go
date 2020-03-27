@@ -38,6 +38,7 @@ var (
 	DefaultGenesisState        = types.DefaultGenesisState
 	GetKeyFromID               = types.GetKeyFromID
 	GetVoteKey                 = types.GetVoteKey
+	NewCommittee               = types.NewCommittee
 	NewCommitteeChangeProposal = types.NewCommitteeChangeProposal
 	NewCommitteeDeleteProposal = types.NewCommitteeDeleteProposal
 	NewGenesisState            = types.NewGenesisState
@@ -46,7 +47,9 @@ var (
 	NewQueryCommitteeParams    = types.NewQueryCommitteeParams
 	NewQueryProposalParams     = types.NewQueryProposalParams
 	NewQueryVoteParams         = types.NewQueryVoteParams
-	RegisterCodec              = types.RegisterCodec
+	RegisterAppCodec           = types.RegisterAppCodec
+	RegisterModuleCodec        = types.RegisterModuleCodec
+	RegisterProposalTypeCodec  = types.RegisterProposalTypeCodec
 	Uint64FromBytes            = types.Uint64FromBytes
 
 	// variable aliases
@@ -61,22 +64,23 @@ var (
 )
 
 type (
-	Keeper                        = keeper.Keeper
-	Committee                     = types.Committee
-	CommitteeChangeProposal       = types.CommitteeChangeProposal
-	CommitteeDeleteProposal       = types.CommitteeDeleteProposal
-	GeneralShutdownPermission     = types.GeneralShutdownPermission
-	GenesisState                  = types.GenesisState
-	GodPermission                 = types.GodPermission
-	InflationRateChangePermission = types.InflationRateChangePermission
-	MsgSubmitProposal             = types.MsgSubmitProposal
-	MsgVote                       = types.MsgVote
-	Permission                    = types.Permission
-	Proposal                      = types.Proposal
-	PubProposal                   = types.PubProposal
-	QueryCommitteeParams          = types.QueryCommitteeParams
-	QueryProposalParams           = types.QueryProposalParams
-	QueryVoteParams               = types.QueryVoteParams
-	ShutdownCDPDepsitPermission   = types.ShutdownCDPDepsitPermission
-	Vote                          = types.Vote
+	Keeper                  = keeper.Keeper
+	AllowedParam            = types.AllowedParam
+	AllowedParams           = types.AllowedParams
+	Committee               = types.Committee
+	CommitteeChangeProposal = types.CommitteeChangeProposal
+	CommitteeDeleteProposal = types.CommitteeDeleteProposal
+	GenesisState            = types.GenesisState
+	GodPermission           = types.GodPermission
+	MsgSubmitProposal       = types.MsgSubmitProposal
+	MsgVote                 = types.MsgVote
+	ParamChangePermission   = types.ParamChangePermission
+	Permission              = types.Permission
+	Proposal                = types.Proposal
+	PubProposal             = types.PubProposal
+	QueryCommitteeParams    = types.QueryCommitteeParams
+	QueryProposalParams     = types.QueryProposalParams
+	QueryVoteParams         = types.QueryVoteParams
+	ShutdownPermission      = types.ShutdownPermission
+	Vote                    = types.Vote
 )

@@ -19,9 +19,12 @@ var (
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
-	ID          uint64           `json:"id" yaml:"id"` // TODO or a name?
+	ID uint64 `json:"id" yaml:"id"`
+	//Description string           `json:"description" yaml:"description"`
 	Members     []sdk.AccAddress `json:"members" yaml:"members"`
 	Permissions []Permission     `json:"permissions" yaml:"permissions"`
+	// VoteThreshold       sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`
+	// MaxProposalDuration time.Duration    `json:"max_proposal_duration" yaml:"max_proposal_duration"`
 }
 
 func NewCommittee(id uint64, members []sdk.AccAddress, permissions []Permission) Committee {

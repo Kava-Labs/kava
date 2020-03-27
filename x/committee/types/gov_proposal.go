@@ -25,15 +25,6 @@ func init() {
 	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
 	govtypes.RegisterProposalType(ProposalTypeCommitteeChange)
 	govtypes.RegisterProposalTypeCodec(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal")
-	// Since these proposals include Permissions that needs to be registered as well (including the interface and concrete types)
-	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
-	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
-	// TODO register other permissions here
-
-	// TODO write these
-	//RegisterProposalType(ProposalTypeCommitteeChange)
-	//RegisterProposalTypeCodec(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal")
-	// How will we register distribution and params proposals on this codec?
 }
 
 func NewCommitteeChangeProposal(title string, description string, newCommittee Committee) CommitteeChangeProposal {
@@ -83,12 +74,9 @@ type CommitteeDeleteProposal struct {
 var _ govtypes.Content = CommitteeDeleteProposal{}
 
 func init() {
+	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
 	govtypes.RegisterProposalType(ProposalTypeCommitteeDelete)
 	govtypes.RegisterProposalTypeCodec(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal")
-	// TODO write these
-	//RegisterProposalType(ProposalTypeCommitteeDelete)
-	//RegisterProposalTypeCodec(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal")
-	// How will we register distribution and params proposals on this codec?
 }
 
 func NewCommitteeDeleteProposal(title string, description string, committeeID uint64) CommitteeDeleteProposal {
