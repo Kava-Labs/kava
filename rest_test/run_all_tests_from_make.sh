@@ -68,6 +68,9 @@ printf "$password\n" | kvd --home $kvdHome gentx --name vlad --home-client $kvcl
 kvd --home $kvdHome collect-gentxs
 } > /dev/null 2>&1
 
+# copy the config file that supports cdps and pricefeed
+cp ../contrib/genesis_examples/genesis_savings_rate.json /tmp/kvdHome/config/genesis.json
+
 # start the blockchain in the background, wait until it starts making blocks
 {
 kvd start --home $kvdHome & kvdPid="$!"
