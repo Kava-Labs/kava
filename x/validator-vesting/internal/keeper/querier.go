@@ -1,12 +1,9 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -27,8 +24,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
-	supplyDec := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001"))
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, supplyDec)
+	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
+	bz, err := keeper.cdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdk.ErrInternal(err.Error())
 	}
@@ -36,37 +33,28 @@ func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	circulatingSupply := sdk.ZeroInt()
+	circulatingSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
 	keeper.ak.IterateAccounts(ctx,
 		func(acc authexported.Account) (stop bool) {
-			// exclude module account
-			_, ok := acc.(supplyexported.ModuleAccountI)
+
+			// validator vesting account
+			vvacc, ok := acc.(*types.ValidatorVestingAccount)
 			if ok {
+				vestedBalance := vvacc.GetVestingCoins(ctx.BlockTime()).AmountOf("ukava")
+				circulatingSupply = circulatingSupply.Sub(vestedBalance)
 				return false
 			}
-
 			// periodic vesting account
-			vacc, ok := acc.(vesting.PeriodicVestingAccount)
+			pvacc, ok := acc.(*vesting.PeriodicVestingAccount)
 			if ok {
-				balance := vacc.GetCoins().AmountOf("ukava")
-				if balance.IsZero() {
-					return false
-				}
-				spendableBalance := vacc.SpendableCoins(ctx.BlockTime()).AmountOf("ukava")
-				circulatingSupply = circulatingSupply.Add(sdk.MinInt(balance, spendableBalance))
+				vestedBalance := pvacc.GetVestingCoins(ctx.BlockTime()).AmountOf("ukava")
+				circulatingSupply = circulatingSupply.Sub(vestedBalance)
 				return false
-			}
-
-			// base account
-			bacc, ok := acc.(*auth.BaseAccount)
-			if ok {
-				// add all coins
-				circulatingSupply = circulatingSupply.Add(bacc.GetCoins().AmountOf("ukava"))
 			}
 			return false
 		})
-	supplyDec := sdk.NewDecFromInt(circulatingSupply).Mul(sdk.MustNewDecFromStr("0.000001"))
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, supplyDec)
+	supplyInt := sdk.NewDecFromInt(circulatingSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
+	bz, err := keeper.cdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdk.ErrInternal(err.Error())
 	}

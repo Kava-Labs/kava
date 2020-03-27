@@ -61,7 +61,7 @@ func (a BaseAuction) GetBid() sdk.Coin { return a.Bid }
 // GetEndTime is a getter for auction end time.
 func (a BaseAuction) GetEndTime() time.Time { return a.EndTime }
 
-// GetType returns theauction type. Used to identify auctions in event attributes.
+// GetType returns the auction type. Used to identify auctions in event attributes.
 func (a BaseAuction) GetType() string { return "base" }
 
 // Validate verifies that the auction end time is before max end time

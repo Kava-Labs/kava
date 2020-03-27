@@ -1,33 +1,101 @@
 package types
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParams_Validate(t *testing.T) {
 	type fields struct {
 	}
 	testCases := []struct {
-		name               string
-		MaxAuctionDuration time.Duration
-		BidDuration        time.Duration
-		expectErr          bool
+		name string
+		Params
+		expectErr bool
 	}{
-		{"normal", 24 * time.Hour, 1 * time.Hour, false},
-		{"negativeBid", 24 * time.Hour, -1 * time.Hour, true},
-		{"negativeAuction", -24 * time.Hour, 1 * time.Hour, true},
-		{"bid>auction", 1 * time.Hour, 24 * time.Hour, true},
-		{"zeros", 0, 0, false},
+		{
+			"normal",
+			DefaultParams(),
+			false,
+		},
+		{
+			"negativeBid",
+			Params{
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         -1 * time.Hour,
+				IncrementSurplus:    d("0.05"),
+				IncrementDebt:       d("0.05"),
+				IncrementCollateral: d("0.05"),
+			},
+			true,
+		},
+		{
+			"negativeAuction",
+			Params{
+				MaxAuctionDuration:  -24 * time.Hour,
+				BidDuration:         1 * time.Hour,
+				IncrementSurplus:    d("0.05"),
+				IncrementDebt:       d("0.05"),
+				IncrementCollateral: d("0.05"),
+			},
+			true,
+		},
+		{
+			"bid>auction",
+			Params{
+				MaxAuctionDuration:  1 * time.Hour,
+				BidDuration:         24 * time.Hour,
+				IncrementSurplus:    d("0.05"),
+				IncrementDebt:       d("0.05"),
+				IncrementCollateral: d("0.05"),
+			},
+			true,
+		},
+		{
+			"negative increment surplus",
+			Params{
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         1 * time.Hour,
+				IncrementSurplus:    d("-0.05"),
+				IncrementDebt:       d("0.05"),
+				IncrementCollateral: d("0.05"),
+			},
+			true,
+		},
+		{
+			"negative increment debt",
+			Params{
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         1 * time.Hour,
+				IncrementSurplus:    d("0.05"),
+				IncrementDebt:       d("-0.05"),
+				IncrementCollateral: d("0.05"),
+			},
+			true,
+		},
+		{
+			"negative increment collateral",
+			Params{
+				MaxAuctionDuration:  24 * time.Hour,
+				BidDuration:         1 * time.Hour,
+				IncrementSurplus:    d("0.05"),
+				IncrementDebt:       d("0.05"),
+				IncrementCollateral: d("-0.05"),
+			},
+			true,
+		},
+		{
+			"zero value",
+			Params{},
+			true,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			p := Params{
-				MaxAuctionDuration: tc.MaxAuctionDuration,
-				BidDuration:        tc.BidDuration,
-			}
-			err := p.Validate()
+			err := tc.Params.Validate()
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
@@ -36,3 +104,5 @@ func TestParams_Validate(t *testing.T) {
 		})
 	}
 }
+
+func d(amount string) sdk.Dec { return sdk.MustNewDecFromStr(amount) }
