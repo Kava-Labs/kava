@@ -69,7 +69,7 @@ kvd --home $kvdHome collect-gentxs
 } > /dev/null 2>&1
 
 # copy the config file that supports cdps and pricefeed
-cp ../contrib/genesis_examples/genesis_savings_rate.json /tmp/kvdHome/config/genesis.json
+# cp contrib/testnet-4000/genesis_examples/genesis_test_rest_api_test.json /tmp/kvdHome/config/genesis.json
 
 # start the blockchain in the background, wait until it starts making blocks
 {
