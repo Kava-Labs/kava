@@ -7,6 +7,7 @@ import (
 
 // BeginBlocker runs at the start of every block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	k.CreateAndDeleteRewardPeriods(ctx)
+	k.DeleteExpiredClaimsAndClaimPeriods(ctx)
 	k.ApplyRewardsToCdps(ctx)
+	k.CreateAndDeleteRewardPeriods(ctx)
 }

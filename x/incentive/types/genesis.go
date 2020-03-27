@@ -59,8 +59,6 @@ func (gs GenesisState) Validate() error {
 	if gs.PreviousBlockTime.Equal(time.Time{}) {
 		return fmt.Errorf("previous block time not set")
 	}
-
-	// TODO check that for each reward period denom, there is a corresponding GenesisClaimPeriodID denom
 	return nil
 }
 

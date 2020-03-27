@@ -25,15 +25,15 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	Active  bool    `json:"active" yaml:"actlive"` // top level governance switch to disable all rewards
-	Rewards Rewards `json:"rewards_periods" yaml:"rewards_periods"`
+	Active  bool    `json:"active" yaml:"active"` // top level governance switch to disable all rewards
+	Rewards Rewards `json:"rewards" yaml:"rewards"`
 }
 
 // NewParams returns a new params object
-func NewParams(active bool, periods Rewards) Params {
+func NewParams(active bool, rewards Rewards) Params {
 	return Params{
 		Active:  active,
-		Rewards: periods,
+		Rewards: rewards,
 	}
 }
 
@@ -46,7 +46,7 @@ func DefaultParams() Params {
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Active: %t
-	Rewards Periods %s`, p.Active, p.Rewards)
+	Rewards: %s`, p.Active, p.Rewards)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -74,8 +74,8 @@ func (p Params) Validate() error {
 		if !reward.Reward.IsPositive() {
 			return fmt.Errorf("reward must be positive, is %s for %s", reward.Reward, reward.Denom)
 		}
-		if int(reward.Duration.Seconds()) < 0 {
-			return fmt.Errorf("reward duration must be non-negative, is %s for %s", reward.Duration.String(), reward.Denom)
+		if int(reward.Duration.Seconds()) <= 0 {
+			return fmt.Errorf("reward duration must be positive, is %s for %s", reward.Duration.String(), reward.Denom)
 		}
 		if int(reward.TimeLock.Seconds()) < 0 {
 			return fmt.Errorf("reward timelock must be non-negative, is %s for %s", reward.TimeLock.String(), reward.Denom)

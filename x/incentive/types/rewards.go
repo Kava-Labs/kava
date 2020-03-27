@@ -12,7 +12,7 @@ type RewardPeriod struct {
 	Denom         string        `json:"denom" yaml:"denom"`
 	Start         time.Time     `json:"start" yaml:"start"`
 	End           time.Time     `json:"end" yaml:"end"`
-	Reward        sdk.Coin      `json:"reward" yaml:"reward"` // per second reward payouts. For example, if we know from params that 10000KAVA is being paid out over 1 week (604800 rewards periods), then the value of reward would be (10000 * 1000000)/604800 = 16534ukava per second
+	Reward        sdk.Coin      `json:"reward" yaml:"reward"` // per second reward payouts
 	ClaimEnd      time.Time     `json:"claim_end" yaml:"claim_end"`
 	ClaimTimeLock time.Duration `json:"claim_time_lock" yaml:"claim_time_lock"` // the amount of time rewards are timelocked once they are sent to users
 }
@@ -81,6 +81,16 @@ func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, id uint64) Cl
 		Denom:  denom,
 		ID:     id,
 	}
+}
+
+// String implements fmt.Stringer
+func (c Claim) String() string {
+	return fmt.Sprintf(`Claim:
+	Owner: %s,
+	Denom: %s,
+	Reward: %s,
+	ID: %d,`,
+		c.Denom, c.Denom, c.Reward, c.ID)
 }
 
 // Claims array of Claim

@@ -17,6 +17,7 @@ const (
 	CodeClaimPeriodNotFound CodeType          = 2
 	CodeInvalidAccountType  CodeType          = 3
 	CodeNoClaimsFound       CodeType          = 4
+	CodeInsufficientBalance CodeType          = 5
 )
 
 // ErrClaimNotFound error for when a claim with a specific id and denom is not found for a particular owner
@@ -26,7 +27,7 @@ func ErrClaimNotFound(codespace sdk.CodespaceType, addr sdk.AccAddress, denom st
 
 // ErrClaimPeriodNotFound error for when a claim period with a specific id and denom is not found
 func ErrClaimPeriodNotFound(codespace sdk.CodespaceType, denom string, id uint64) sdk.Error {
-	return sdk.NewError(codespace, CodeClaimNotFound, fmt.Sprintf("no claim period with id %d and denom %s found", id, denom))
+	return sdk.NewError(codespace, CodeClaimPeriodNotFound, fmt.Sprintf("no claim period with id %d and denom %s found", id, denom))
 }
 
 // ErrInvalidAccountType error for invalid account type
@@ -36,10 +37,10 @@ func ErrInvalidAccountType(codespace sdk.CodespaceType, acc authexported.Account
 
 // ErrNoClaimsFound error for when no claims are found for the input denom and address
 func ErrNoClaimsFound(codespace sdk.CodespaceType, addr sdk.AccAddress, denom string) sdk.Error {
-	return sdk.NewError(codespace, CodeClaimNotFound, fmt.Sprintf("no claims with denom %s found for %s", denom, addr))
+	return sdk.NewError(codespace, CodeNoClaimsFound, fmt.Sprintf("no claims with denom %s found for %s", denom, addr))
 }
 
 // ErrInsufficientModAccountBalance error for when module account has insufficient balance to pay claim
 func ErrInsufficientModAccountBalance(codespace sdk.CodespaceType, name string) sdk.Error {
-	return sdk.NewError(codespace, CodeClaimNotFound, fmt.Sprintf("module account %s has insufficient balance to pay claim", name))
+	return sdk.NewError(codespace, CodeInsufficientBalance, fmt.Sprintf("module account %s has insufficient balance to pay claim", name))
 }
