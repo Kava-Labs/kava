@@ -14,6 +14,8 @@ import (
 	"github.com/kava-labs/kava/x/committee"
 )
 
+func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
+
 type ModuleTestSuite struct {
 	suite.Suite
 
@@ -35,9 +37,11 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.app.InitializeFromGenesisStates()
 	// TODO replace below with genesis state
 	normalCom := committee.Committee{
-		ID:          12,
-		Members:     suite.addresses[:2],
-		Permissions: []committee.Permission{committee.GodPermission{}},
+		ID:                  12,
+		Members:             suite.addresses[:2],
+		Permissions:         []committee.Permission{committee.GodPermission{}},
+		VoteThreshold:       d("0.8"),
+		MaxProposalDuration: time.Hour * 24 * 7,
 	}
 	suite.keeper.SetCommittee(suite.ctx, normalCom)
 
@@ -51,7 +55,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.NoError(err)
 
 	// Run BeginBlocker
-	proposalDurationLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(committee.MaxProposalDuration))
+	proposalDurationLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(normalCom.MaxProposalDuration))
 	suite.NotPanics(func() {
 		committee.BeginBlocker(proposalDurationLaterCtx, abci.RequestBeginBlock{}, suite.keeper)
 	})

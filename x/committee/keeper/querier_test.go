@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -12,6 +13,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -19,6 +21,12 @@ import (
 const (
 	custom = "custom"
 )
+
+var testTime time.Time = time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
+
+func NewCommitteeGenesisState(cdc *codec.Codec, gs committee.GenesisState) app.GenesisState {
+	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
+}
 
 type QuerierTestSuite struct {
 	suite.Suite
@@ -30,10 +38,9 @@ type QuerierTestSuite struct {
 
 	querier sdk.Querier
 
-	addresses  []sdk.AccAddress
-	committees []types.Committee
-	proposals  []types.Proposal
-	votes      map[uint64]([]types.Vote)
+	addresses   []sdk.AccAddress
+	testGenesis types.GenesisState
+	votes       map[uint64]([]types.Vote)
 }
 
 func (suite *QuerierTestSuite) SetupTest() {
@@ -44,37 +51,40 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.querier = keeper.NewQuerier(suite.keeper)
 
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
-	suite.app.InitializeFromGenesisStates()
-	// TODO replace below with genesis state
-	normalCom := types.Committee{
-		ID:          12,
-		Members:     suite.addresses[:2],
-		Permissions: []types.Permission{types.GodPermission{}},
-	}
-	suite.keeper.SetCommittee(suite.ctx, normalCom)
+	suite.testGenesis = types.NewGenesisState(
+		3,
+		[]types.Committee{
+			{
+				ID:                  1,
+				Description:         "This committee is for testing.",
+				Members:             suite.addresses[:3],
+				Permissions:         []types.Permission{types.GodPermission{}},
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
+			},
+			{
+				ID:                  2,
+				Members:             suite.addresses[2:],
+				Permissions:         nil,
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
+			},
+		},
+		[]types.Proposal{
+			{ID: 1, CommitteeID: 1, PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
+			{ID: 2, CommitteeID: 1, PubProposal: gov.NewTextProposal("Another Title", "A description of this other proposal."), Deadline: testTime.Add(21 * 24 * time.Hour)},
+		},
+		[]types.Vote{
+			{ProposalID: 1, Voter: suite.addresses[0]},
+			{ProposalID: 1, Voter: suite.addresses[1]},
+			{ProposalID: 2, Voter: suite.addresses[2]},
+		},
+	)
+	suite.app.InitializeFromGenesisStates(
+		NewCommitteeGenesisState(suite.cdc, suite.testGenesis),
+	)
 
-	pprop1 := gov.NewTextProposal("1A Title", "A description of this proposal.")
-	id1, err := suite.keeper.SubmitProposal(suite.ctx, normalCom.Members[0], normalCom.ID, pprop1)
-	suite.NoError(err)
-
-	pprop2 := gov.NewTextProposal("2A Title", "A description of this proposal.")
-	id2, err := suite.keeper.SubmitProposal(suite.ctx, normalCom.Members[0], normalCom.ID, pprop2)
-	suite.NoError(err)
-
-	err = suite.keeper.AddVote(suite.ctx, id1, normalCom.Members[0])
-	suite.NoError(err)
-	err = suite.keeper.AddVote(suite.ctx, id1, normalCom.Members[1])
-	suite.NoError(err)
-	err = suite.keeper.AddVote(suite.ctx, id2, normalCom.Members[1])
-	suite.NoError(err)
-
-	suite.committees = []types.Committee{}
-	suite.committees = []types.Committee{normalCom} // TODO
-	suite.proposals = []types.Proposal{}
-	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
-		suite.proposals = append(suite.proposals, p)
-		return false
-	})
+	// Collect up votes into a map indexed by proposalID for convenience
 	suite.votes = map[uint64]([]types.Vote){}
 	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
 		suite.keeper.IterateVotes(suite.ctx, p.ID, func(v types.Vote) bool {
@@ -102,7 +112,7 @@ func (suite *QuerierTestSuite) TestQueryCommittees() {
 	suite.NoError(suite.cdc.UnmarshalJSON(bz, &committees))
 
 	// Check
-	suite.Equal(suite.committees, committees)
+	suite.Equal(suite.testGenesis.Committees, committees)
 }
 
 func (suite *QuerierTestSuite) TestQueryCommittee() {
@@ -110,7 +120,7 @@ func (suite *QuerierTestSuite) TestQueryCommittee() {
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryCommittee}, "/"),
-		Data: suite.cdc.MustMarshalJSON(types.NewQueryCommitteeParams(suite.committees[0].ID)),
+		Data: suite.cdc.MustMarshalJSON(types.NewQueryCommitteeParams(suite.testGenesis.Committees[0].ID)),
 	}
 
 	// Execute query and check the []byte result
@@ -123,13 +133,13 @@ func (suite *QuerierTestSuite) TestQueryCommittee() {
 	suite.NoError(suite.cdc.UnmarshalJSON(bz, &committee))
 
 	// Check
-	suite.Equal(suite.committees[0], committee)
+	suite.Equal(suite.testGenesis.Committees[0], committee)
 }
 
 func (suite *QuerierTestSuite) TestQueryProposals() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
-	comID := suite.proposals[0].CommitteeID
+	comID := suite.testGenesis.Proposals[0].CommitteeID
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryProposals}, "/"),
 		Data: suite.cdc.MustMarshalJSON(types.NewQueryCommitteeParams(comID)),
@@ -146,7 +156,7 @@ func (suite *QuerierTestSuite) TestQueryProposals() {
 
 	// Check
 	expectedProposals := []types.Proposal{}
-	for _, p := range suite.proposals {
+	for _, p := range suite.testGenesis.Proposals {
 		if p.CommitteeID == comID {
 			expectedProposals = append(expectedProposals, p)
 		}
@@ -159,7 +169,7 @@ func (suite *QuerierTestSuite) TestQueryProposal() {
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryProposal}, "/"),
-		Data: suite.cdc.MustMarshalJSON(types.NewQueryProposalParams(suite.proposals[0].ID)),
+		Data: suite.cdc.MustMarshalJSON(types.NewQueryProposalParams(suite.testGenesis.Proposals[0].ID)),
 	}
 
 	// Execute query and check the []byte result
@@ -172,13 +182,13 @@ func (suite *QuerierTestSuite) TestQueryProposal() {
 	suite.NoError(suite.cdc.UnmarshalJSON(bz, &proposal))
 
 	// Check
-	suite.Equal(suite.proposals[0], proposal)
+	suite.Equal(suite.testGenesis.Proposals[0], proposal)
 }
 
 func (suite *QuerierTestSuite) TestQueryVotes() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
-	propID := suite.proposals[0].ID
+	propID := suite.testGenesis.Proposals[0].ID
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryVotes}, "/"),
 		Data: suite.cdc.MustMarshalJSON(types.NewQueryProposalParams(propID)),
@@ -200,7 +210,7 @@ func (suite *QuerierTestSuite) TestQueryVotes() {
 func (suite *QuerierTestSuite) TestQueryVote() {
 	ctx := suite.ctx.WithIsCheckTx(false) // ?
 	// Set up request query
-	propID := suite.proposals[0].ID
+	propID := suite.testGenesis.Proposals[0].ID
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryVote}, "/"),
 		Data: suite.cdc.MustMarshalJSON(types.NewQueryVoteParams(propID, suite.votes[propID][0].Voter)),
@@ -222,7 +232,7 @@ func (suite *QuerierTestSuite) TestQueryVote() {
 func (suite *QuerierTestSuite) TestQueryTally() {
 	ctx := suite.ctx.WithIsCheckTx(false) // ?
 	// Set up request query
-	propID := suite.proposals[0].ID
+	propID := suite.testGenesis.Proposals[0].ID
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryTally}, "/"),
 		Data: suite.cdc.MustMarshalJSON(types.NewQueryProposalParams(propID)),

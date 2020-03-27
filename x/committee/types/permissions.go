@@ -16,6 +16,7 @@ func init() {
 }
 
 // GodPermission allows any governance proposal. It is used mainly for testing.
+// TODO better name?
 type GodPermission struct{}
 
 var _ Permission = GodPermission{}

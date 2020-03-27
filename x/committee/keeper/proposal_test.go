@@ -16,15 +16,15 @@ import (
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
 	normalCom := types.Committee{
-		ID:          12,
-		Members:     suite.addresses[:2],
-		Permissions: []types.Permission{types.GodPermission{}},
+		ID:                  12,
+		Description:         "This committee is for testing.",
+		Members:             suite.addresses[:2],
+		Permissions:         []types.Permission{types.GodPermission{}},
+		VoteThreshold:       d("0.667"),
+		MaxProposalDuration: time.Hour * 24 * 7,
 	}
-	noPermissionsCom := types.Committee{
-		ID:          12,
-		Members:     suite.addresses[:2],
-		Permissions: []types.Permission{},
-	}
+	noPermissionsCom := normalCom
+	noPermissionsCom.Permissions = []types.Permission{}
 
 	testcases := []struct {
 		name        string
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				pr, found := keeper.GetProposal(ctx, id)
 				suite.True(found)
 				suite.Equal(tc.committeeID, pr.CommitteeID)
-				suite.Equal(ctx.BlockTime().Add(types.MaxProposalDuration), pr.Deadline)
+				suite.Equal(ctx.BlockTime().Add(tc.committee.MaxProposalDuration), pr.Deadline)
 			} else {
 				suite.NotNil(err)
 			}
@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			name:       "proposal expired",
 			proposalID: types.DefaultNextProposalID,
 			voter:      normalCom.Members[0],
-			voteTime:   firstBlockTime.Add(types.MaxProposalDuration),
+			voteTime:   firstBlockTime.Add(normalCom.MaxProposalDuration),
 			expectPass: false,
 		},
 	}
@@ -174,6 +174,14 @@ func (suite *KeeperTestSuite) TestAddVote() {
 }
 
 func (suite *KeeperTestSuite) TestGetProposalResult() {
+	normalCom := types.Committee{
+		ID:                  12,
+		Description:         "This committee is for testing.",
+		Members:             suite.addresses[:5],
+		Permissions:         []types.Permission{types.GodPermission{}},
+		VoteThreshold:       d("0.667"),
+		MaxProposalDuration: time.Hour * 24 * 7,
+	}
 	var defaultID uint64 = 1
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
 
@@ -185,12 +193,8 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 		expectPass     bool
 	}{
 		{
-			name: "enough votes",
-			committee: types.Committee{
-				ID:          12,
-				Members:     suite.addresses[:5],
-				Permissions: []types.Permission{types.GodPermission{}},
-			},
+			name:      "enough votes",
+			committee: normalCom,
 			votes: []types.Vote{
 				{ProposalID: defaultID, Voter: suite.addresses[0]},
 				{ProposalID: defaultID, Voter: suite.addresses[1]},
@@ -201,12 +205,8 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 			expectPass:     true,
 		},
 		{
-			name: "not enough votes",
-			committee: types.Committee{
-				ID:          12,
-				Members:     suite.addresses[:5],
-				Permissions: []types.Permission{types.GodPermission{}},
-			},
+			name:      "not enough votes",
+			committee: normalCom,
 			votes: []types.Vote{
 				{ProposalID: defaultID, Voter: suite.addresses[0]},
 			},

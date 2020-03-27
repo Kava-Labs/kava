@@ -38,14 +38,19 @@ func (suite *ProposalHandlerTestSuite) SetupTest() {
 		2,
 		[]committee.Committee{
 			{
-				ID:          1,
-				Members:     suite.addresses[:3],
-				Permissions: []types.Permission{types.GodPermission{}},
+				ID:                  1,
+				Description:         "This committee is for testing.",
+				Members:             suite.addresses[:3],
+				Permissions:         []types.Permission{types.GodPermission{}},
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
 			},
 			{
-				ID:          2,
-				Members:     suite.addresses[2:],
-				Permissions: nil,
+				ID:                  2,
+				Members:             suite.addresses[2:],
+				Permissions:         nil,
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
 			},
 		},
 		[]committee.Proposal{
@@ -69,8 +74,10 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID:      34,
-					Members: suite.addresses[:1],
+					ID:                  34,
+					Members:             suite.addresses[:1],
+					VoteThreshold:       d("1"),
+					MaxProposalDuration: time.Hour * 24,
 				},
 			),
 			expectPass: true,
@@ -81,9 +88,11 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID:          1,
-					Members:     suite.addresses,
-					Permissions: suite.testGenesis.Committees[0].Permissions,
+					ID:                  suite.testGenesis.Committees[0].ID,
+					Members:             suite.addresses, // add new members
+					Permissions:         suite.testGenesis.Committees[0].Permissions,
+					VoteThreshold:       suite.testGenesis.Committees[0].VoteThreshold,
+					MaxProposalDuration: suite.testGenesis.Committees[0].MaxProposalDuration,
 				},
 			),
 			expectPass: true,
@@ -93,9 +102,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			proposal: committee.NewCommitteeChangeProposal(
 				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fullfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
 				"A proposal description.",
-				committee.Committee{
-					ID: 34,
-				},
+				suite.testGenesis.Committees[0],
 			),
 			expectPass: false,
 		},
@@ -105,9 +112,11 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID:          1,
-					Members:     append(suite.addresses, suite.addresses[0]), // duplicate address
-					Permissions: suite.testGenesis.Committees[0].Permissions,
+					ID:                  suite.testGenesis.Committees[0].ID,
+					Members:             append(suite.addresses, suite.addresses[0]), // duplicate address
+					Permissions:         suite.testGenesis.Committees[0].Permissions,
+					VoteThreshold:       suite.testGenesis.Committees[0].VoteThreshold,
+					MaxProposalDuration: suite.testGenesis.Committees[0].MaxProposalDuration,
 				},
 			),
 			expectPass: false,

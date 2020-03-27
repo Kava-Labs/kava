@@ -14,6 +14,7 @@ const (
 	DefaultNextProposalID       = types.DefaultNextProposalID
 	DefaultParamspace           = types.DefaultParamspace
 	EventTypeSubmitProposal     = types.EventTypeSubmitProposal
+	MaxDescriptionLength        = types.MaxDescriptionLength
 	ModuleName                  = types.ModuleName
 	ProposalTypeCommitteeChange = types.ProposalTypeCommitteeChange
 	ProposalTypeCommitteeDelete = types.ProposalTypeCommitteeDelete
@@ -53,14 +54,12 @@ var (
 	Uint64FromBytes            = types.Uint64FromBytes
 
 	// variable aliases
-	ProposalHandler     = client.ProposalHandler
-	CommitteeKeyPrefix  = types.CommitteeKeyPrefix
-	MaxProposalDuration = types.MaxProposalDuration
-	ModuleCdc           = types.ModuleCdc
-	NextProposalIDKey   = types.NextProposalIDKey
-	ProposalKeyPrefix   = types.ProposalKeyPrefix
-	VoteKeyPrefix       = types.VoteKeyPrefix
-	VoteThreshold       = types.VoteThreshold
+	ProposalHandler    = client.ProposalHandler
+	CommitteeKeyPrefix = types.CommitteeKeyPrefix
+	ModuleCdc          = types.ModuleCdc
+	NextProposalIDKey  = types.NextProposalIDKey
+	ProposalKeyPrefix  = types.ProposalKeyPrefix
+	VoteKeyPrefix      = types.VoteKeyPrefix
 )
 
 type (

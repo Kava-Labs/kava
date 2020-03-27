@@ -2,16 +2,20 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
+
+func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
 
 type KeeperTestSuite struct {
 	suite.Suite
@@ -33,8 +37,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	// setup test
 	com := types.Committee{
-		ID: 12,
-		// TODO other fields
+		ID:                  12,
+		Description:         "This committee is for testing.",
+		Members:             suite.addresses,
+		Permissions:         []types.Permission{types.GodPermission{}},
+		VoteThreshold:       d("0.667"),
+		MaxProposalDuration: time.Hour * 24 * 7,
 	}
 
 	// write and read from store
@@ -56,8 +64,10 @@ func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 func (suite *KeeperTestSuite) TestGetSetProposal() {
 	// test setup
 	prop := types.Proposal{
-		ID: 12,
-		// TODO other fields
+		ID:          12,
+		CommitteeID: 0,
+		PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+		Deadline:    time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC),
 	}
 
 	// write and read from store
@@ -81,7 +91,6 @@ func (suite *KeeperTestSuite) TestGetSetVote() {
 	vote := types.Vote{
 		ProposalID: 12,
 		Voter:      suite.addresses[0],
-		// TODO other fields
 	}
 
 	// write and read from store

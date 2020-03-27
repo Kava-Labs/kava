@@ -30,7 +30,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Get a new ID and store the proposal
-	deadline := ctx.BlockTime().Add(types.MaxProposalDuration)
+	deadline := ctx.BlockTime().Add(com.MaxProposalDuration)
 	proposalID, err := k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
 	if err != nil {
 		return 0, err
@@ -82,7 +82,7 @@ func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk
 
 	numVotes := k.TallyVotes(ctx, proposalID)
 
-	proposalResult := sdk.NewDec(numVotes).GTE(types.VoteThreshold.MulInt64(int64(len(com.Members))))
+	proposalResult := sdk.NewDec(numVotes).GTE(com.VoteThreshold.MulInt64(int64(len(com.Members))))
 
 	return proposalResult, nil
 }

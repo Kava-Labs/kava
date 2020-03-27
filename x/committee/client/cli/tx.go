@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -189,8 +190,15 @@ func mustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 		"A description of this proposal.",
 		types.NewCommittee(
 			1,
+			"The description of this committee.",
 			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddres")))},
-			[]types.Permission{}, // TODO permissions
+			[]types.Permission{
+				types.ParamChangePermission{
+					AllowedParams: types.AllowedParams{{Subspace: "cdp", Key: "CircuitBreaker"}},
+				},
+			},
+			sdk.MustNewDecFromStr("0.8"),
+			time.Hour*24*7,
 		),
 	)
 	exampleChangeProposalBz, err := cdc.MarshalJSONIndent(exampleChangeProposal, "", "  ")

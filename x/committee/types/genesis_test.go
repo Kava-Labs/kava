@@ -11,6 +11,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
+func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
 func TestGenesisState_Validate(t *testing.T) {
 	testTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
 	addresses := []sdk.AccAddress{
@@ -24,14 +25,20 @@ func TestGenesisState_Validate(t *testing.T) {
 		NextProposalID: 2,
 		Committees: []Committee{
 			{
-				ID:          1,
-				Members:     addresses[:3],
-				Permissions: []Permission{GodPermission{}},
+				ID:                  1,
+				Description:         "This committee is for testing.",
+				Members:             addresses[:3],
+				Permissions:         []Permission{GodPermission{}},
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
 			},
 			{
-				ID:          2,
-				Members:     addresses[2:],
-				Permissions: nil,
+				ID:                  2,
+				Description:         "This committee is also for testing.",
+				Members:             addresses[2:],
+				Permissions:         nil,
+				VoteThreshold:       d("0.8"),
+				MaxProposalDuration: time.Hour * 24 * 21,
 			},
 		},
 		Proposals: []Proposal{
