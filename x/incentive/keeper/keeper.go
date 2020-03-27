@@ -161,7 +161,7 @@ func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id 
 func (k Keeper) SetClaim(ctx sdk.Context, c types.Claim) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(c)
-	store.Set(types.GetClaimPrefix(c.Owner, c.Denom, c.ID), bz)
+	store.Set(types.GetClaimPrefix(c.Owner, c.Denom, c.ClaimPeriodID), bz)
 
 }
 
