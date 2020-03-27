@@ -946,7 +946,7 @@
             description: the market id of the market
             required: true
             type: string
-            x-example: 'stake:usd'
+            x-example: 'xrp:usd'
         responses:
           200:
             description: OK
@@ -1960,7 +1960,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: "2"
           - type: string
             description: Bech32 depositor address
             name: depositor
