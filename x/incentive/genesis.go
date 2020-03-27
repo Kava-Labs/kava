@@ -23,6 +23,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 
 	k.SetParams(ctx, gs.Params)
 
+	for _, r := range gs.Params.Rewards {
+		k.SetNextClaimPeriodID(ctx, r.Denom, 1)
+	}
+
 	// only set the previous block time if it's different than default
 	if !gs.PreviousBlockTime.Equal(types.DefaultPreviousBlockTime) {
 		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)

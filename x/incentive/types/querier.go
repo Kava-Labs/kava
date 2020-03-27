@@ -10,7 +10,7 @@ const (
 	QueryGetClaims = "claims"
 	RestClaimOwner = "owner"
 	RestClaimDenom = "denom"
-	QueryGetParams = "params"
+	QueryGetParams = "parameters"
 )
 
 // QueryClaimsParams params for query /incentive/claims

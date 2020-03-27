@@ -30,7 +30,7 @@ func (msg MsgClaimReward) Type() string { return "claim_reward" }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgClaimReward) ValidateBasic() sdk.Error {
 	if msg.Sender.Empty() {
-		return sdk.ErrInvalidAddress("invalid (empty) bidder address")
+		return sdk.ErrInvalidAddress("invalid sender address")
 	}
 	if msg.Denom == "" {
 		return sdk.ErrInternal("invalid (empty) denom")
