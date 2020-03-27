@@ -73,7 +73,7 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 		// edge case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
 		// append a new period to the vesting account, update the end time, update the account in the store and return
 		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length
-		newPeriod := vesting.Period{Amount: amt, Length: newPeriodLength} // TODO add NewPeriod method?
+		newPeriod := types.NewPeriod(amt, newPeriodLength)
 		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
 		vacc.EndTime = ctx.BlockTime().Unix() + length
 		k.accountKeeper.SetAccount(ctx, vacc)
@@ -86,7 +86,7 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 		for i, period := range vacc.VestingPeriods {
 			updatedPeriod := period
 			if i == 0 {
-				updatedPeriod = vesting.Period{Amount: period.Amount, Length: (vacc.StartTime - ctx.BlockTime().Unix()) + period.Length}
+				updatedPeriod = types.NewPeriod(period.Amount, (vacc.StartTime-ctx.BlockTime().Unix())+period.Length)
 			}
 			updatedPeriods = append(updatedPeriods, updatedPeriod)
 		}
@@ -100,7 +100,7 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 	if totalPeriodLength < length {
 		// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
 		newPeriodLength := length - totalPeriodLength
-		newPeriod := vesting.Period{Amount: amt, Length: newPeriodLength}
+		newPeriod := types.NewPeriod(amt, newPeriodLength)
 		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
 		// update the end time so that the sum of all period lengths equals endTime - startTime
 		vacc.EndTime = proposedEndTime
@@ -124,18 +124,12 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 			if lengthCounter < length {
 				newPeriods = append(newPeriods, period)
 			} else if lengthCounter == length {
-				newPeriod := vesting.Period{Length: period.Length, Amount: period.Amount.Add(amt)}
+				newPeriod := types.NewPeriod(period.Amount.Add(amt), period.Length)
 				newPeriods = append(newPeriods, newPeriod)
 				appendRemaining = true
 			} else {
-				newPeriod := vesting.Period{
-					Length: length - types.GetTotalVestingPeriodLength(newPeriods),
-					Amount: amt,
-				}
-				previousPeriod := vesting.Period{
-					Length: period.Length - newPeriod.Length,
-					Amount: period.Amount,
-				}
+				newPeriod := types.NewPeriod(amt, length-types.GetTotalVestingPeriodLength(newPeriods))
+				previousPeriod := types.NewPeriod(period.Amount, period.Length-newPeriod.Length)
 				newPeriods = append(newPeriods, newPeriod, previousPeriod)
 				appendRemaining = true
 			}
@@ -155,12 +149,7 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
 	// transition the account to a periodic vesting account:
 	bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
-	newPeriods := vesting.Periods{
-		vesting.Period{
-			Length: length,
-			Amount: amt,
-		},
-	}
+	newPeriods := vesting.Periods{types.NewPeriod(amt, length)}
 	bva, err2 := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
 	if err2 != nil {
 		return sdk.ErrInternal(sdk.AppendMsgToErr("error converting account to vesting account", err2.Error()))
