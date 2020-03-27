@@ -67,19 +67,19 @@ type ClaimPeriods []ClaimPeriod
 
 // Claim stores the rewards that can be claimed by owner
 type Claim struct {
-	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
-	Reward sdk.Coin       `json:"reward" yaml:"reward"`
-	Denom  string         `json:"denom" yaml:"denom"`
-	ID     uint64         `json:"id" yaml:"id"`
+	Owner         sdk.AccAddress `json:"owner" yaml:"owner"`
+	Reward        sdk.Coin       `json:"reward" yaml:"reward"`
+	Denom         string         `json:"denom" yaml:"denom"`
+	ClaimPeriodID uint64         `json:"id" yaml:"id"`
 }
 
 // NewClaim returns a new Claim
 func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, id uint64) Claim {
 	return Claim{
-		Owner:  owner,
-		Reward: reward,
-		Denom:  denom,
-		ID:     id,
+		Owner:         owner,
+		Reward:        reward,
+		Denom:         denom,
+		ClaimPeriodID: id,
 	}
 }
 
@@ -89,8 +89,8 @@ func (c Claim) String() string {
 	Owner: %s,
 	Denom: %s,
 	Reward: %s,
-	ID: %d,`,
-		c.Denom, c.Denom, c.Reward, c.ID)
+	Caim Period ID: %d,`,
+		c.Denom, c.Denom, c.Reward, c.ClaimPeriodID)
 }
 
 // Claims array of Claim

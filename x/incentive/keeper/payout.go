@@ -164,8 +164,8 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
 		if cp.End.Before(ctx.BlockTime()) {
 			k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-				if c.Denom == cp.Denom && c.ID == cp.ID {
-					k.DeleteClaim(ctx, c.Owner, c.Denom, c.ID)
+				if c.Denom == cp.Denom && c.ClaimPeriodID == cp.ID {
+					k.DeleteClaim(ctx, c.Owner, c.Denom, c.ClaimPeriodID)
 				}
 				return false
 			})
