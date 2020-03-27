@@ -677,9 +677,15 @@
           200:
             description: All CDPs with the input collateral denom
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/CdpResponse'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/CdpResponse'
           500:
             description: Server internal error
     /cdp/cdps/ratio/{denom}/{ratio}:
@@ -706,9 +712,15 @@
           200:
             description: All CDPs with the input collateral denom and collateralization ratio less than the input ratio
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/CdpResponse'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/CdpResponse'
           500:
             description: Server internal error
     /cdp/cdps/cdp/deposits/{owner}/{denom}:
@@ -847,7 +859,7 @@
                   example: '0.298464000000000007'
                 expiry:
                   type: string
-                  example: '2020-02-12T23:20:00Z'
+                  example: '2021-02-12T23:20:00Z'
         responses:
           200:
             description: The transaction was successfully generated
@@ -3009,7 +3021,7 @@
             $ref: '#/definitions/Coin'
         simulate:
           type: boolean
-          example: false
+          example: true
           description: Estimate gas for a transaction (cannot be used in conjunction with generate_only)
     TendermintValidator:
       type: object
