@@ -905,9 +905,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Address'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Address'
           500:
             description: Internal Server Error
     /pricefeed/rawprices/{market_id}:
