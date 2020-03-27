@@ -16,6 +16,7 @@ const (
 	CodeClaimPeriodNotFound = types.CodeClaimPeriodNotFound
 	CodeInvalidAccountType  = types.CodeInvalidAccountType
 	CodeNoClaimsFound       = types.CodeNoClaimsFound
+	CodeInsufficientBalance = types.CodeInsufficientBalance
 	EventTypeClaim          = types.EventTypeClaim
 	AttributeValueCategory  = types.AttributeValueCategory
 	AttributeKeySender      = types.AttributeKeySender
@@ -54,6 +55,7 @@ var (
 	NewParams                        = types.NewParams
 	DefaultParams                    = types.DefaultParams
 	ParamKeyTable                    = types.ParamKeyTable
+	NewReward                        = types.NewReward
 	NewQueryClaimsParams             = types.NewQueryClaimsParams
 	NewRewardPeriod                  = types.NewRewardPeriod
 	NewClaimPeriod                   = types.NewClaimPeriod
