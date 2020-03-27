@@ -882,9 +882,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/Market'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Market'
           500:
             description: Internal Server Error
     /pricefeed/oracles/{market_id}:
