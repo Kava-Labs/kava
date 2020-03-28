@@ -82,15 +82,24 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) sdk.Error {
 
 // HandleNewDebt compounds the accumulated fees for the input collateral and principal coins.
 // the following operations are performed:
-// 1. mints the fee coins in the liquidator module account,
-// 2. mints the same amount of debt coins in the cdp module account
+// 1. The fees accumulated since the last block are calculated
+// 2. The fees are minted, split between the liquidator module account (surplus) and the savings rate module account (savings rate) according to the savings rate parameter.
+// 2. An equal amount of debt coins are minted in the cdp module account
 // 3. updates the total amount of principal for the input collateral type in the store,
 func (k Keeper) HandleNewDebt(ctx sdk.Context, collateralDenom string, principalDenom string, periods sdk.Int) {
+	dp, _ := k.GetDebtParam(ctx, principalDenom)
+	savingsRate := dp.SavingsRate
 	previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, principalDenom)
 	feeCoins := sdk.NewCoins(sdk.NewCoin(principalDenom, previousDebt))
 	newFees := k.CalculateFees(ctx, feeCoins, periods, collateralDenom)
+	if newFees.IsZero() {
+		return
+	}
+	newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(principalDenom)).Mul(savingsRate).RoundInt()
+	newFeesSurplus := newFees.AmountOf(principalDenom).Sub(newFeesSavings)
 	k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
-	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, newFees)
+	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSurplus)))
+	k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSavings)))
 	k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees).AmountOf(principalDenom))
 }
 
@@ -100,6 +109,9 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 	if err != nil {
 		return err
 	}
+	// price = $0.5
+	// liquidation ratio = 1.5
+	// normalizedRatio = (1/(0.5/1.5)) = 3
 	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio))
 	cdpsToLiquidate := k.GetAllCdpsByDenomAndRatio(ctx, denom, normalizedRatio)
 	for _, c := range cdpsToLiquidate {

@@ -5,7 +5,9 @@ import (
 	"os"
 
 	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 
@@ -62,6 +64,8 @@ var (
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
+		bep3.AppModuleBasic{},
+		kavadist.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -76,6 +80,9 @@ var (
 		auction.ModuleName:          nil,
 		cdp.ModuleName:              {supply.Minter, supply.Burner},
 		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
+		cdp.SavingsRateMacc:         {supply.Minter},
+		bep3.ModuleName:             {supply.Minter, supply.Burner},
+		kavadist.ModuleName:         {supply.Minter},
 	}
 )
 
@@ -105,6 +112,8 @@ type App struct {
 	auctionKeeper   auction.Keeper
 	cdpKeeper       cdp.Keeper
 	pricefeedKeeper pricefeed.Keeper
+	bep3Keeper      bep3.Keeper
+	kavadistKeeper  kavadist.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -128,7 +137,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, validatorvesting.StoreKey,
-		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
+		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey,
+		kavadist.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -153,6 +163,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
+	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
+	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -229,7 +241,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[pricefeed.StoreKey],
 		pricefeedSubspace,
 		pricefeed.DefaultCodespace)
-	// NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
@@ -242,7 +253,21 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 		app.supplyKeeper,
+		app.accountKeeper,
 		cdp.DefaultCodespace)
+	app.bep3Keeper = bep3.NewKeeper(
+		app.cdc,
+		keys[bep3.StoreKey],
+		app.supplyKeeper,
+		bep3Subspace,
+		bep3.DefaultCodespace)
+	app.kavadistKeeper = kavadist.NewKeeper(
+		app.cdc,
+		keys[kavadist.StoreKey],
+		kavadistSubspace,
+		app.supplyKeeper,
+		kavadist.DefaultCodespace,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -264,15 +289,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.supplyKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp. So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
-	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, auction.ModuleName, cdp.ModuleName)
+	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, cdp.ModuleName, bep3.ModuleName)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
 
@@ -285,7 +311,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -305,9 +331,10 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper), // TODO how is the order be decided here? Is this order correct?
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
