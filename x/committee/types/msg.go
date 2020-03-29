@@ -36,7 +36,7 @@ func (msg MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSubmitProposal) ValidateBasic() sdk.Error {
 	if msg.PubProposal == nil {
-		return sdk.ErrInternal("no proposal")
+		return ErrInvalidPubProposal(DefaultCodespace, "pub proposal cannot be nil")
 	}
 	if msg.Proposer.Empty() {
 		return sdk.ErrInvalidAddress(msg.Proposer.String())

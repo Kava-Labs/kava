@@ -50,7 +50,7 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Resu
 	// get the proposal just to add fields to the event
 	proposal, found := k.GetProposal(ctx, msg.ProposalID)
 	if !found {
-		return sdk.ErrInternal("proposal not found").Result()
+		return ErrUnknownProposal(DefaultCodespace, msg.ProposalID).Result()
 	}
 
 	err := k.AddVote(ctx, msg.ProposalID, msg.Voter)

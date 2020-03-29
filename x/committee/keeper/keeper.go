@@ -12,22 +12,24 @@ import (
 )
 
 type Keeper struct {
-	cdc      *codec.Codec
-	storeKey sdk.StoreKey
+	cdc       *codec.Codec
+	storeKey  sdk.StoreKey
+	codespace sdk.CodespaceType
 
 	// Proposal router
 	router govtypes.Router
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router, codespace sdk.CodespaceType) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
 	router.Seal()
 
 	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
-		router:   router,
+		cdc:       cdc,
+		storeKey:  storeKey,
+		codespace: codespace,
+		router:    router,
 	}
 }
 
@@ -87,7 +89,7 @@ func (k Keeper) GetNextProposalID(ctx sdk.Context) (uint64, sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextProposalIDKey)
 	if bz == nil {
-		return 0, sdk.ErrInternal("proposal ID not set at genesis")
+		return 0, types.ErrInvalidGenesis(k.codespace, "next proposal ID not set at genesis")
 	}
 	return types.Uint64FromBytes(bz), nil
 }

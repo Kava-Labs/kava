@@ -13,15 +13,15 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	// Limit proposals to only be submitted by committee members
 	com, found := k.GetCommittee(ctx, committeeID)
 	if !found {
-		return 0, sdk.ErrInternal("committee doesn't exist")
+		return 0, types.ErrUnknownCommittee(k.codespace, committeeID)
 	}
 	if !com.HasMember(proposer) {
-		return 0, sdk.ErrInternal("only member can propose proposals")
+		return 0, sdk.ErrUnauthorized("proposer not member of committee")
 	}
 
 	// Check committee has permissions to enact proposal.
 	if !com.HasPermissionsFor(pubProposal) {
-		return 0, sdk.ErrInternal("committee does not have permissions to enact proposal")
+		return 0, sdk.ErrUnauthorized("committee does not have permissions to enact proposal")
 	}
 
 	// Check proposal is valid
@@ -51,17 +51,17 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	// Validate
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return sdk.ErrInternal("proposal not found")
+		return types.ErrUnknownProposal(k.codespace, proposalID)
 	}
 	if pr.HasExpiredBy(ctx.BlockTime()) {
-		return sdk.ErrInternal("proposal expired")
+		return types.ErrProposalExpired(k.codespace, ctx.BlockTime(), pr.Deadline)
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
-		return sdk.ErrInternal("committee disbanded")
+		return types.ErrUnknownCommittee(k.codespace, pr.CommitteeID)
 	}
 	if !com.HasMember(voter) {
-		return sdk.ErrInternal("not authorized to vote on proposal")
+		return sdk.ErrUnauthorized("voter must be a member of committee")
 	}
 
 	// Store vote, overwriting any prior vote
@@ -81,11 +81,11 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk.Error) {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return false, sdk.ErrInternal("proposal not found")
+		return false, types.ErrUnknownProposal(k.codespace, proposalID)
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
-		return false, sdk.ErrInternal("committee disbanded")
+		return false, types.ErrUnknownCommittee(k.codespace, pr.CommitteeID)
 	}
 
 	numVotes := k.TallyVotes(ctx, proposalID)
@@ -111,7 +111,7 @@ func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
 func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return sdk.ErrInternal("proposal not found")
+		return types.ErrUnknownProposal(k.codespace, proposalID)
 	}
 
 	// Run the proposal's changes through the associated handler, but using a cached version of state to ensure changes are not permanent if an error occurs.
@@ -128,14 +128,14 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 // ValidatePubProposal checks if a pubproposal is valid.
 func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) sdk.Error {
 	if pubProposal == nil {
-		return sdk.ErrInternal("proposal is empty")
+		return types.ErrInvalidPubProposal(k.codespace, "pub proposal cannot be nil")
 	}
 	if err := pubProposal.ValidateBasic(); err != nil {
 		return err
 	}
 
 	if !k.router.HasRoute(pubProposal.ProposalRoute()) {
-		return sdk.ErrInternal("no handler found for proposal")
+		return types.ErrNoProposalHandlerExists(k.codespace, pubProposal)
 	}
 
 	// Run the proposal's changes through the associated handler using a cached version of state to ensure changes are not permanent.

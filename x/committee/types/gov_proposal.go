@@ -53,7 +53,7 @@ func (ccp CommitteeChangeProposal) ValidateBasic() sdk.Error {
 		return err
 	}
 	if err := ccp.NewCommittee.Validate(); err != nil {
-		return sdk.ErrInternal(err.Error())
+		return ErrInvalidCommittee(DefaultCodespace, err.Error())
 	}
 	return nil
 }

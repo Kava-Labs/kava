@@ -16,6 +16,11 @@ const (
 	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
 	AttributeValueProposalPassed    = types.AttributeValueProposalPassed
 	AttributeValueProposalTimeout   = types.AttributeValueProposalTimeout
+	CodeInvalidCommittee            = types.CodeInvalidCommittee
+	CodeInvalidGenesis              = types.CodeInvalidGenesis
+	CodeInvalidProposal             = types.CodeInvalidProposal
+	CodeProposalExpired             = types.CodeProposalExpired
+	CodeUnknownItem                 = types.CodeUnknownItem
 	DefaultCodespace                = types.DefaultCodespace
 	DefaultNextProposalID           = types.DefaultNextProposalID
 	DefaultParamspace               = types.DefaultParamspace
@@ -45,6 +50,14 @@ var (
 	NewKeeper                  = keeper.NewKeeper
 	NewQuerier                 = keeper.NewQuerier
 	DefaultGenesisState        = types.DefaultGenesisState
+	ErrInvalidCommittee        = types.ErrInvalidCommittee
+	ErrInvalidGenesis          = types.ErrInvalidGenesis
+	ErrInvalidPubProposal      = types.ErrInvalidPubProposal
+	ErrNoProposalHandlerExists = types.ErrNoProposalHandlerExists
+	ErrProposalExpired         = types.ErrProposalExpired
+	ErrUnknownCommittee        = types.ErrUnknownCommittee
+	ErrUnknownProposal         = types.ErrUnknownProposal
+	ErrUnknownVote             = types.ErrUnknownVote
 	GetKeyFromID               = types.GetKeyFromID
 	GetVoteKey                 = types.GetVoteKey
 	NewCommittee               = types.NewCommittee

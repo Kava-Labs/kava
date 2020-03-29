@@ -29,8 +29,6 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryVote(ctx, path[1:], req, keeper)
 		case types.QueryTally:
 			return queryTally(ctx, path[1:], req, keeper)
-		// case types.QueryParams:
-		// 	return queryParams(ctx, path[1:], req, keeper)
 
 		default:
 			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("unknown %s query endpoint", types.ModuleName))
@@ -64,7 +62,7 @@ func queryCommittee(ctx sdk.Context, path []string, req abci.RequestQuery, keepe
 
 	committee, found := keeper.GetCommittee(ctx, params.CommitteeID)
 	if !found {
-		return nil, sdk.ErrInternal("not found") ///types.ErrUnknownProposal(types.DefaultCodespace, params.ProposalID)
+		return nil, types.ErrUnknownCommittee(types.DefaultCodespace, params.CommitteeID)
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, committee)
@@ -107,7 +105,7 @@ func queryProposal(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 
 	proposal, found := keeper.GetProposal(ctx, params.ProposalID)
 	if !found {
-		return nil, sdk.ErrInternal("not found") // TODO types.ErrUnknownProposal(types.DefaultCodespace, params.ProposalID)
+		return nil, types.ErrUnknownProposal(types.DefaultCodespace, params.ProposalID)
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, proposal)
@@ -149,7 +147,7 @@ func queryVote(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 
 	vote, found := keeper.GetVote(ctx, params.ProposalID, params.Voter)
 	if !found {
-		return nil, sdk.ErrInternal("not found")
+		return nil, types.ErrUnknownVote(types.DefaultCodespace, params.ProposalID, params.Voter)
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, vote)
@@ -170,7 +168,7 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 
 	_, found := keeper.GetProposal(ctx, params.ProposalID)
 	if !found {
-		return nil, sdk.ErrInternal("proposal not found")
+		return nil, types.ErrUnknownProposal(types.DefaultCodespace, params.ProposalID)
 	}
 	numVotes := keeper.TallyVotes(ctx, params.ProposalID)
 
@@ -180,30 +178,3 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 	}
 	return bz, nil
 }
-
-// ---------- Params ----------
-
-// func queryParams(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-// 	switch path[0] {
-// 	case types.ParamDeposit:
-// 		bz, err := codec.MarshalJSONIndent(keeper.cdc, keeper.GetDepositParams(ctx))
-// 		if err != nil {
-// 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-// 		}
-// 		return bz, nil
-// 	case types.ParamVoting:
-// 		bz, err := codec.MarshalJSONIndent(keeper.cdc, keeper.GetVotingParams(ctx))
-// 		if err != nil {
-// 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-// 		}
-// 		return bz, nil
-// 	case types.ParamTallying:
-// 		bz, err := codec.MarshalJSONIndent(keeper.cdc, keeper.GetTallyParams(ctx))
-// 		if err != nil {
-// 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-// 		}
-// 		return bz, nil
-// 	default:
-// 		return nil, sdk.ErrUnknownRequest(fmt.Sprintf("%s is not a valid query request path", req.Path))
-// 	}
-// }
