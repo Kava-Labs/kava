@@ -2,6 +2,7 @@ package committee
 
 import (
 	"encoding/json"
+	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -10,16 +11,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/committee/client/cli"
 	"github.com/kava-labs/kava/x/committee/client/rest"
+	"github.com/kava-labs/kava/x/committee/simulation"
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-	// TODO_ module.AppModuleSimulation = AppModuleSimulation{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModuleSimulation{}
 )
 
 // AppModuleBasic app module basics object
@@ -67,31 +70,30 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 
 //____________________________________________________________________________
 
-// TODO
-// // AppModuleSimulation defines the module simulation functions used by the module.
-// type AppModuleSimulation struct{}
+// AppModuleSimulation defines the module simulation functions used by the module.
+type AppModuleSimulation struct{}
 
-// // RegisterStoreDecoder registers a decoder for the module's types
-// func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[StoreKey] = simulation.DecodeStore
-// }
+// RegisterStoreDecoder registers a decoder for the module's types
+func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
+}
 
-// // GenerateGenesisState creates a randomized GenState of the module
-// func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// GenerateGenesisState creates a randomized GenState of the module
+func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // RandomizedParams creates randomized param changes for the simulator.
-// func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// RandomizedParams creates randomized param changes for the simulator.
+func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
+}
 
 //____________________________________________________________________________
 
 // AppModule app module type
 type AppModule struct {
 	AppModuleBasic
-	// TODO AppModuleSimulation
+	AppModuleSimulation
 
 	keeper Keeper
 }
