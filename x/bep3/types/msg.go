@@ -24,10 +24,14 @@ const (
 	MaxExpectedIncomeLength = 64
 )
 
+// ensure Msg interface compliance at compile time
 var (
+	_                      sdk.Msg = &MsgCreateAtomicSwap{}
+	_                      sdk.Msg = &MsgClaimAtomicSwap{}
+	_                      sdk.Msg = &MsgRefundAtomicSwap{}
+	AtomicSwapCoinsAccAddr         = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 	// kava prefix address:  [INSERT BEP3-DEPUTY ADDRESS]
 	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
-	AtomicSwapCoinsAccAddr = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
 // MsgCreateAtomicSwap contains an AtomicSwap struct
