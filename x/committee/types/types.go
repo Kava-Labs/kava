@@ -2,11 +2,11 @@ package types
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"gopkg.in/yaml.v2"
 )
 
 const MaxCommitteeDescriptionLength int = 5000
@@ -114,17 +114,8 @@ func (p Proposal) HasExpiredBy(time time.Time) bool {
 
 // String implements the fmt.Stringer interface, and importantly overrides the String methods inherited from the embedded PubProposal type.
 func (p Proposal) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Proposal:
-	PubProposal:
-%s
-	ID:           %d
-	Committee ID: %d
-	Deadline:     %s`,
-		p.PubProposal,
-		p.ID,
-		p.CommitteeID,
-		p.Deadline,
-	))
+	bz, _ := yaml.Marshal(p)
+	return string(bz)
 }
 
 type Vote struct {

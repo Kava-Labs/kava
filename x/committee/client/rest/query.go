@@ -22,7 +22,6 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/proposer", types.ModuleName, RestProposalID), queryProposerHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/tally", types.ModuleName, RestProposalID), queryTallyOnProposalHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/votes", types.ModuleName, RestProposalID), queryVotesOnProposalHandlerFn(cliCtx)).Methods("GET")
-	// TODO r.HandleFunc(fmt.Sprintf("/%s/parameters/{%s}", types.ModuleName, RestParamsType), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 // ---------- Committees ----------
@@ -289,27 +288,3 @@ func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
-
-// ---------- Params ----------
-
-// TODO
-// func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		vars := mux.Vars(r)
-// 		paramType := vars[RestParamsType]
-
-// 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-// 		if !ok {
-// 			return
-// 		}
-
-// 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/gov/%s/%s", types.QueryParams, paramType), nil)
-// 		if err != nil {
-// 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
-// 			return
-// 		}
-
-// 		cliCtx = cliCtx.WithHeight(height)
-// 		rest.PostProcessResponse(w, cliCtx, res)
-// 	}
-// }

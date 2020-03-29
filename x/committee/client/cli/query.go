@@ -27,14 +27,13 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	govQueryCmd.AddCommand(client.GetCommands(
-		// GetCmdQueryCommittee(queryRoute, cdc), // TODO is this needed?
 		GetCmdQueryCommittees(queryRoute, cdc),
 
 		GetCmdQueryProposal(queryRoute, cdc),
 		GetCmdQueryProposals(queryRoute, cdc),
 
 		GetCmdQueryVotes(queryRoute, cdc),
-		//TODO GetCmdQueryParams(queryRoute, cdc),
+
 		GetCmdQueryProposer(queryRoute, cdc),
 		GetCmdQueryTally(queryRoute, cdc))...)
 
@@ -167,7 +166,7 @@ func GetCmdQueryVotes(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Decode and print results
-			votes := []types.Vote{} // using empty (not nil) slice so json returns [] instead of null when there's no data // TODO check
+			votes := []types.Vote{} // using empty (not nil) slice so json returns [] instead of null when there's no data
 			err = cdc.UnmarshalJSON(res, &votes)
 			if err != nil {
 				return err

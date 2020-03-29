@@ -60,7 +60,7 @@ func (ccp CommitteeChangeProposal) ValidateBasic() sdk.Error {
 
 // String implements the Stringer interface.
 func (ccp CommitteeChangeProposal) String() string {
-	bz, _ := yaml.Marshal(ccp) // TODO test
+	bz, _ := yaml.Marshal(ccp)
 	return string(bz)
 }
 
@@ -109,6 +109,6 @@ func (cdp CommitteeDeleteProposal) ValidateBasic() sdk.Error {
 
 // String implements the Stringer interface.
 func (cdp CommitteeDeleteProposal) String() string {
-	bz, _ := yaml.Marshal(cdp) // TODO test
+	bz, _ := yaml.Marshal(cdp)
 	return string(bz)
 }

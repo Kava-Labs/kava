@@ -35,7 +35,7 @@ func (suite *ModuleTestSuite) SetupTest() {
 
 func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.app.InitializeFromGenesisStates()
-	// TODO replace below with genesis state
+
 	normalCom := committee.Committee{
 		ID:                  12,
 		Members:             suite.addresses[:2],
