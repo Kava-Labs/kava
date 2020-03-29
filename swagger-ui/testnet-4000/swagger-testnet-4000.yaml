@@ -859,7 +859,7 @@
                   example: '0.298464000000000007'
                 expiry:
                   type: string
-                  example: '2021-02-12T23:20:00Z'
+                  example: '158551630291'
         responses:
           200:
             description: The transaction was successfully generated
@@ -3008,7 +3008,7 @@
           example: '0'
         sequence:
           type: string
-          example: '1'
+          example: '5'
         gas:
           type: string
           example: '200000'
