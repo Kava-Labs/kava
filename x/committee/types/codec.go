@@ -20,7 +20,7 @@ func init() {
 
 func RegisterModuleCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*gov.Content)(nil), nil) // registering the Content interface on the ModuleCdc will not conflict with gov.
-	// Ideally dist and params would register their proposals on here at their init. However can't change them so:
+	// Ideally dist and params would register their proposals on here at their init. However don't want to fork them so:
 	cdc.RegisterConcrete(distribution.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal", nil)
 	cdc.RegisterConcrete(params.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal", nil)
 	cdc.RegisterConcrete(gov.TextProposal{}, "cosmos-sdk/TextProposal", nil)

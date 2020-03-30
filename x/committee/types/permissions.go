@@ -3,16 +3,14 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	sdtypes "github.com/kava-labs/kava/x/shutdown/types"
 )
 
 func init() {
-	// Gov proposals need to be registered on gov's ModuleCdc.
-	// But since proposals contain Permissions, those types also need registering.
+	// CommitteeChange/Delete proposals need to be registered on gov's ModuleCdc.
+	// But since these proposals contain Permissions, these types also need registering:
 	gov.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
 	gov.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
 	gov.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
-	gov.RegisterProposalTypeCodec(ShutdownPermission{}, "kava/ShutdownPermission")
 }
 
 // GodPermission allows any governance proposal. It is used mainly for testing.
@@ -76,37 +74,6 @@ func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
 		}
 	}
 	return false
-}
-
-// ShutdownPermission allows certain message types to be disabled
-type ShutdownPermission struct {
-	MsgRoute sdtypes.MsgRoute `json:"msg_route" yaml:"msg_route"`
-}
-
-var _ Permission = ShutdownPermission{}
-
-func (perm ShutdownPermission) Allows(p gov.Content) bool {
-	proposal, ok := p.(sdtypes.ShutdownProposal)
-	if !ok {
-		return false
-	}
-	for _, r := range proposal.MsgRoutes {
-		if r == perm.MsgRoute {
-			return true
-		}
-	}
-	return false
-}
-
-func (perm ShutdownPermission) MarshalYAML() (interface{}, error) {
-	valueToMarshal := struct {
-		Type     string           `yaml:"type"`
-		MsgRoute sdtypes.MsgRoute `yaml:"msg_route"`
-	}{
-		Type:     "shutdown_permission",
-		MsgRoute: perm.MsgRoute,
-	}
-	return valueToMarshal, nil
 }
 
 // TODO add more permissions?
