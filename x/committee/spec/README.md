@@ -7,18 +7,20 @@
 
 The `x/committee` module is an additional governance module to `cosmos-sdk/x/gov`.
 
-It allows groups of accounts to vote on and enact proposals, mainly to allow certain proposal types to be decided on quickly in emergency situations, or to delegate low risk parameter updates to a smaller group of individuals.
+It allows groups of accounts to vote on and enact proposals without a full chain governance vote. Certain proposal types can then be decided on quickly in emergency situations, or low risk parameter updates can be delegated to a smaller group of individuals.
+
+Committees work with "proposals", using the same type from the `gov` module so they are compatible with all existing proposal types such as param changes, or community pool spend, or text proposals.
 
 Committees have members and permissions.
 
 Members vote on proposals, with just simple one vote per member, no deposits or slashing. More sophisticated voting could be added.
 
-A permission acts as a filter for incoming gov proposals, rejecting them if they do not pass. A permission can be anything with a method `Allows(p Proposal) bool`. They reject all proposals that they don't explicitly allow.
+Permissions scope the allowed set of proposals a committee can enact. For example:
 
-This allows permissions to be parameterized to allow fine grained control specified at runtime. For example a generic parameter permission type can allow a group to only change a particular param, or only change params within a certain percentage.
+- allow the committee to only change the cdp `CircuitBreaker` param.
+- allow the committee to change auction bid increments, but only within the range [0, 0.1]
+- allow the committee to only disable cdp msg types, but not staking or gov
 
-Design Alternatives
+A permission acts as a filter for incoming gov proposals, rejecting them if they do not pass. A permission can be any type with a method `Allows(p Proposal) bool`. They reject all proposals that they don't explicitly allow.
 
-- Should this define its own gov types, or reuse those from gov module?
-- Should we push changes to sdk gov to make it more general purpose?
-- Could use params more instead of custom gov proposals
+This allows permissions to be parameterized to allow fine grained control specified at runtime. For example a generic parameter permission type can allow a committee to only change a particular param, or only change params within a certain percentage.
