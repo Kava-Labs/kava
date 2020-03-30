@@ -310,6 +310,10 @@
                 {
                   "denom": "stake",
                   "amount": "10000000000000"
+                },
+                {
+                  "denom": "xrp",
+                  "amount": "1000000000000"
                 }
               ],
               "public_key": null,
