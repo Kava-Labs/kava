@@ -1,6 +1,6 @@
-# Testnet-5000
+# testnet-5000
 
-Testnet-5000 introduces transfers between Kava and Bnbchain via BEP3.
+testnet-5000 introduces transfers between Kava and Bnbchain via BEP3.
 
 This guide will walk you through interacting with the blockchains and transferring coins via the rest server. To send transactions, we'll create an unsigned request, sign it, and broadcast it to the Kava blockchain.
 
