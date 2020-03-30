@@ -20,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/tendermint/go-amino"
 )
 
@@ -31,20 +32,62 @@ func init() {
 }
 
 func main() {
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
-	sendCoins()
+	if len(os.Args) < 2 {
+		fmt.Printf("Please include the kvcli home directory as a command line argument\n")
+		fmt.Printf("For example: ./setuptest /tmp/kvcliHome\n")
+		fmt.Printf("Exiting...goodbye!\n")
+		return
+	}
 
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
+	// sendProposal()
+	// sendDeposit()
+	// sendVote()
+	// sendDelegation()
+	// sendUndelegation()
+	// sendCoins()
 
-	sendCoins()
+	// sendProposal()
+	// sendDeposit()
+	// sendVote()
+	// sendDelegation()
+	// sendUndelegation()
+
+	// sendCoins()
+
+	// create a cdp and send to blockchain
+	sendCdp()
+}
+
+func sendCdp() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
+	if err != nil {
+		panic(err)
+	}
+
+	// create a cdp message to send to the blockchain
+	// sender, collateral, principal
+	msg := cdp.NewMsgCreateCDP(
+		addr,
+		sdk.NewCoins(sdk.NewInt64Coin("xrp", 200000000)),
+		sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000)),
+	)
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// get the keybase
+	keybase := getKeybase()
+
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+
+	// send the message to the blockchain
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
 
 }
 
