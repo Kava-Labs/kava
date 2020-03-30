@@ -110,6 +110,6 @@ func (perm ShutdownPermission) MarshalYAML() (interface{}, error) {
 }
 
 // TODO add more permissions?
-// - limit parameter changes to bew withing small ranges or fixed sets
+// - limit parameter changes to be within small ranges
 // - allow community spend proposals
 // - allow committee change proposals

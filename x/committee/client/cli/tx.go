@@ -126,8 +126,6 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// TODO This could replace the whole gov submit-proposal cmd. It would align how it works with how submiting proposal to committees works.
-// Requires removing and replacing the gov cmd in kvcli main.go
 // GetGovCmdSubmitProposal returns a command to submit a proposal to the gov module. It is passed to the gov module for use on its command subtree.
 func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{

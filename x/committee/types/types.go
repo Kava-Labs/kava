@@ -11,7 +11,9 @@ import (
 
 const MaxCommitteeDescriptionLength int = 5000
 
-// -------- Committees --------
+// ------------------------------------------
+//				Committees
+// ------------------------------------------
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
@@ -94,10 +96,12 @@ type Permission interface {
 	Allows(PubProposal) bool
 }
 
-// -------- Proposals --------
+// ------------------------------------------
+//				Proposals
+// ------------------------------------------
 
 // PubProposal is an interface that all gov proposals defined in other modules must satisfy.
-type PubProposal = gov.Content // TODO find a better name
+type PubProposal = gov.Content
 
 type Proposal struct {
 	PubProposal `json:"pub_proposal" yaml:"pub_proposal"`
@@ -117,6 +121,10 @@ func (p Proposal) String() string {
 	bz, _ := yaml.Marshal(p)
 	return string(bz)
 }
+
+// ------------------------------------------
+//				Votes
+// ------------------------------------------
 
 type Vote struct {
 	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`

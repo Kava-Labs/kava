@@ -106,11 +106,10 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-// -------- --------
-// TODO this could replace the POST gov/proposals endpoint, would need to overwrite routes in kvcli main, hacky
+// This is a rest handler for for the gov module, that handles committee change/delete proposals.
 type PostGovProposalReq struct {
 	BaseReq  rest.BaseReq     `json:"base_req" yaml:"base_req"`
-	Content  govtypes.Content `json:"content" yaml:"content"` //TODO use same PubProposal name?
+	Content  govtypes.Content `json:"content" yaml:"content"`
 	Proposer sdk.AccAddress   `json:"proposer" yaml:"proposer"`
 	Deposit  sdk.Coins        `json:"deposit" yaml:"deposit"`
 }

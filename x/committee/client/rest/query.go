@@ -24,7 +24,9 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/proposals/{%s}/votes", types.ModuleName, RestProposalID), queryVotesOnProposalHandlerFn(cliCtx)).Methods("GET")
 }
 
-// ---------- Committees ----------
+// ------------------------------------------
+//				Committees
+// ------------------------------------------
 
 func queryCommitteesHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +87,9 @@ func queryCommitteeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-// ---------- Proposals ----------
+// ------------------------------------------
+//				Proposals
+// ------------------------------------------
 
 func queryProposalsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -190,7 +194,9 @@ func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-// ---------- Votes ----------
+// ------------------------------------------
+//				Votes
+// ------------------------------------------
 
 func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -223,27 +229,6 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		// TODO should add this feature back
-		// var proposal types.Proposal
-		// if err := cliCtx.Codec.UnmarshalJSON(res, &proposal); err != nil {
-		// 	rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-		// 	return
-		// }
-
-		// // For inactive proposals we must query the txs directly to get the votes
-		// // as they're no longer in state.
-		// propStatus := proposal.Status
-		// if !(propStatus == types.StatusVotingPeriod || propStatus == types.StatusDepositPeriod) {
-		// 	res, err = gcutils.QueryVotesByTxQuery(cliCtx, params)
-		// } else {
-		// 	res, _, err = cliCtx.QueryWithData("custom/gov/votes", bz)
-		// }
-
-		// if err != nil {
-		// 	rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-		// 	return
-		// }
 
 		// Write response
 		cliCtx = cliCtx.WithHeight(height)

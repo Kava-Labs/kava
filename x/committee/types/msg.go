@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	TypeMsgSubmitProposal = "submit_proposal" // TODO these are the same as the gov module, will there be collisions?
-	TypeMsgVote           = "vote"
+	TypeMsgSubmitProposal = "commmittee_submit_proposal" // 'committee' prefix appended to avoid potential conflicts with gov msg types
+	TypeMsgVote           = "committee_vote"
 )
 
 var _, _ sdk.Msg = MsgSubmitProposal{}, MsgVote{}
@@ -41,10 +41,6 @@ func (msg MsgSubmitProposal) ValidateBasic() sdk.Error {
 	if msg.Proposer.Empty() {
 		return sdk.ErrInvalidAddress(msg.Proposer.String())
 	}
-	// TODO
-	// if !IsValidProposalType(msg.Content.ProposalType()) {
-	// 	return ErrInvalidProposalType(DefaultCodespace, msg.Content.ProposalType())
-	// }
 
 	return msg.PubProposal.ValidateBasic()
 }

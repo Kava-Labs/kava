@@ -36,7 +36,9 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-// ---------- Committees ----------
+// ------------------------------------------
+//				Committees
+// ------------------------------------------
 
 func queryCommittees(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 
@@ -72,7 +74,9 @@ func queryCommittee(ctx sdk.Context, path []string, req abci.RequestQuery, keepe
 	return bz, nil
 }
 
-// ---------- Proposals ----------
+// ------------------------------------------
+//				Proposals
+// ------------------------------------------
 
 func queryProposals(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var params types.QueryCommitteeParams
@@ -115,7 +119,9 @@ func queryProposal(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 	return bz, nil
 }
 
-// ---------- Votes ----------
+// ------------------------------------------
+//				Votes
+// ------------------------------------------
 
 func queryVotes(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var params types.QueryProposalParams
@@ -157,7 +163,9 @@ func queryVote(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Kee
 	return bz, nil
 }
 
-// ---------- Tally ----------
+// ------------------------------------------
+//				Tally
+// ------------------------------------------
 
 func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 	var params types.QueryProposalParams

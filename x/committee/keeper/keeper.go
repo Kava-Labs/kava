@@ -33,7 +33,9 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router, 
 	}
 }
 
-// ---------- Committees ----------
+// ------------------------------------------
+//				Committees
+// ------------------------------------------
 
 // GetCommittee gets a committee from the store.
 func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committee, bool) {
@@ -76,7 +78,9 @@ func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Commi
 	}
 }
 
-// ---------- Proposals ----------
+// ------------------------------------------
+//				Proposals
+// ------------------------------------------
 
 // SetNextProposalID stores an ID to be used for the next created proposal
 func (k Keeper) SetNextProposalID(ctx sdk.Context, id uint64) {
@@ -167,7 +171,9 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 	}
 }
 
-// ---------- Votes ----------
+// ------------------------------------------
+//				Votes
+// ------------------------------------------
 
 // GetVote gets a vote from the store.
 func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) (types.Vote, bool) {

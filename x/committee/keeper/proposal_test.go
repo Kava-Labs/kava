@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
@@ -78,8 +79,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			// Create local testApp because suite doesn't run the SetupTest function for subtests,
-			// which would mean the app state is not be reset between subtests.
+			// Create local testApp because suite doesn't run the SetupTest function for subtests
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, abci.Header{})
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			// Create local testApp because suite doesn't run the SetupTest function for subtests, which would mean the app state is not be reset between subtests.
+			// Create local testApp because suite doesn't run the SetupTest function for subtests
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
@@ -217,7 +217,7 @@ func (suite *KeeperTestSuite) TestGetProposalResult() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			// Create local testApp because suite doesn't run the SetupTest function for subtests, which would mean the app state is not be reset between subtests.
+			// Create local testApp because suite doesn't run the SetupTest function for subtests
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
@@ -294,7 +294,21 @@ func (suite *KeeperTestSuite) TestValidatePubProposal() {
 			pubProposal: nil,
 			expectPass:  false,
 		},
-		// TODO test case when the handler fails
+		{
+			name: "invalid (proposal handler fails)",
+			pubProposal: params.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				[]params.ParamChange{{
+					Subspace: "non existant",
+					Key:      "non existant",
+					Value:    "nonsense",
+				}},
+			),
+			expectPass: false,
+		},
+		// Some proposals can cause the proposal handler to panic.
+		// However panics will be caught when the proposal is first submitted so should avoid making it onto the chain.
 	}
 
 	for _, tc := range testcases {
