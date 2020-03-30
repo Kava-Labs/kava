@@ -43,7 +43,6 @@ func RegisterAppCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
 	cdc.RegisterConcrete(ParamChangePermission{}, "kava/ParamChangePermission", nil)
-	cdc.RegisterConcrete(ShutdownPermission{}, "kava/ShutdownPermission", nil)
 
 	// Msgs
 	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
