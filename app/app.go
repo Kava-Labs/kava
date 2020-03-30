@@ -337,7 +337,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	// TODO app.SetAnteHandler(NewAnteHandler(app.accountKeeper, app.supplyKeeper, app.shutdownKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
@@ -351,23 +350,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 
 	return app
 }
-
-// func NewAnteHandler(ak auth.AccountKeeper, supplyKeeper supply.Keeper, shutdownKeeper shutdown.Keeper, sigGasConsumer SignatureVerificationGasConsumer) sdk.AnteHandler {
-// 	return sdk.ChainAnteDecorators(
-// 		auth.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-// 		shutdownAnte.NewDisableMsgDecorator(shutdownKeeper),
-// 		auth.NewMempoolFeeDecorator(),
-// 		auth.NewValidateBasicDecorator(),
-// 		auth.NewValidateMemoDecorator(ak),
-// 		auth.NewConsumeGasForTxSizeDecorator(ak),
-// 		auth.NewSetPubKeyDecorator(ak), // SetPubKeyDecorator must be called before all signature verification decorators
-// 		auth.NewValidateSigCountDecorator(ak),
-// 		auth.NewDeductFeeDecorator(ak, supplyKeeper),
-// 		auth.NewSigGasConsumeDecorator(ak, sigGasConsumer),
-// 		auth.NewSigVerificationDecorator(ak),
-// 		auth.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
-// 	)
-// }
 
 // custom tx codec
 func MakeCodec() *codec.Codec {
