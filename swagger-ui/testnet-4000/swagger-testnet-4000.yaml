@@ -2869,7 +2869,7 @@
       properties:
         chain_id:
           type: string
-          example: kavahub-2
+          example: testing
         height:
           type: string
           example: "1"
@@ -3002,7 +3002,7 @@
           example: 'Sent via Cosmos Voyager 🚀'
         chain_id:
           type: string
-          example: 'kava-1'
+          example: 'testing'
         account_number:
           type: string
           example: '0'
