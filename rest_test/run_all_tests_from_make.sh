@@ -46,7 +46,7 @@ kvd --home $kvdHome init --chain-id=testing vlad # doesn't need to be the same a
 } > /dev/null 2>&1
 kvcli --home $kvcliHome config chain-id testing # or set trust-node true
 # add validator account to genesis
-kvd --home $kvdHome add-genesis-account $(kvcli --home $kvcliHome keys show vlad -a) 10000000000000stake,1000000000000xrp
+kvd --home $kvdHome add-genesis-account $(kvcli --home $kvcliHome keys show vlad -a) 10000000000000stake,1000000000000xrp,100000000000btc
 # add faucet account to genesis
 kvd --home $kvdHome add-genesis-account $(kvcli --home $kvcliHome keys show faucet -a) 10000000000000stake,1000000000000xrp,100000000000btc
 # Create a delegation tx for the validator and add to genesis
@@ -104,8 +104,8 @@ then
       echo "Success"
       rm setuptest & showLoading "Cleaning up go binary"
       # kill the kvd and kvcli processes (blockchain and rest api)
-      pgrep kvd | xargs kill
-      pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+      # pgrep kvd | xargs kill
+      # pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
       rm -f output
       exit 0
     fi
@@ -115,7 +115,7 @@ fi
 echo "Failure" >&2
 rm setuptest & showLoading "Cleaning up go binary"
 # kill the kvd and kvcli processes (blockchain and rest api)
-pgrep kvd | xargs kill
-pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
+# pgrep kvd | xargs kill
+# pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
 rm -f output
 exit 1
