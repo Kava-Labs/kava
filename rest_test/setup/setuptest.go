@@ -39,20 +39,20 @@ func main() {
 		return
 	}
 
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
-	sendCoins()
+	// sendProposal()
+	// sendDeposit()
+	// sendVote()
+	// sendDelegation()
+	// sendUndelegation()
+	// sendCoins()
 
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
+	// sendProposal()
+	// sendDeposit()
+	// sendVote()
+	// sendDelegation()
+	// sendUndelegation()
 
-	sendCoins()
+	// sendCoins()
 
 	// create a cdp and send to blockchain
 	sendCdp()
@@ -317,7 +317,7 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
-		WithSequence(sequenceNumber)
+		WithSequence(sequenceNumber).WithGas(500000)
 
 	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
