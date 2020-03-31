@@ -39,20 +39,20 @@ func main() {
 		return
 	}
 
-	// sendProposal()
-	// sendDeposit()
-	// sendVote()
-	// sendDelegation()
-	// sendUndelegation()
-	// sendCoins()
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
+	sendCoins()
 
-	// sendProposal()
-	// sendDeposit()
-	// sendVote()
-	// sendDelegation()
-	// sendUndelegation()
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
 
-	// sendCoins()
+	sendCoins()
 
 	// create a cdp and send to blockchain
 	sendCdp()
@@ -319,7 +319,7 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
 		WithSequence(sequenceNumber)
 
-		// build and sign the transaction
+	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
 	// fmt.Printf("%+v", txBldr.Keybase())
 	txBytes, err := txBldr.BuildAndSign("vlad", "password", msg)
@@ -339,6 +339,9 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 			Mode: "block",
 		},
 	)
+
+	fmt.Printf("%s", bytes.NewBuffer(jsonBytes))
+
 	if err != nil {
 		panic(err)
 	}
