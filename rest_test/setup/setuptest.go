@@ -42,26 +42,27 @@ func main() {
 		return
 	}
 
-	// sendProposal()
-	// sendDeposit()
-	// sendVote()
-	// sendDelegation()
-	// sendUndelegation()
-	// sendCoins()
+	// setup messages send to blockchain so it is in the correct state for testing
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
+	sendCoins()
 
-	// sendProposal()
-	// sendDeposit()
-	// sendVote()
-	// sendDelegation()
-	// sendUndelegation()
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
 
-	// sendCoins()
+	sendCoins()
 
-	// // create an XRP cdp and send to blockchain
-	// sendXrpCdp()
+	// create an XRP cdp and send to blockchain
+	sendXrpCdp()
 
-	// // create a BTC cdp and send to blockchain
-	// sendBtcCdp()
+	// create a BTC cdp and send to blockchain
+	sendBtcCdp()
 
 	// reduce the price of BTC to trigger an auction
 	sendMsgPostPrice()
