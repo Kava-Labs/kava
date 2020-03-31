@@ -39,20 +39,20 @@ func main() {
 		return
 	}
 
-	// sendProposal()
-	// sendDeposit()
-	// sendVote()
-	// sendDelegation()
-	// sendUndelegation()
-	// sendCoins()
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
+	sendCoins()
 
-	// sendProposal()
-	// sendDeposit()
-	// sendVote()
-	// sendDelegation()
-	// sendUndelegation()
+	sendProposal()
+	sendDeposit()
+	sendVote()
+	sendDelegation()
+	sendUndelegation()
 
-	// sendCoins()
+	sendCoins()
 
 	// create a cdp and send to blockchain
 	sendCdp()
