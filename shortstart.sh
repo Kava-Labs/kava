@@ -1,3 +1,8 @@
+###########################################################################
+######## CODE REVIEW NOTE: THIS FILE IS JUST FOR TESTING AND MAYBE WE DO NOT NEED 
+######## TO INCLUDE IT IN THE PULL REQUEST
+###########################################################################
+
 #! /bin/bash
 
 kvdHome=/tmp/kvdHome
