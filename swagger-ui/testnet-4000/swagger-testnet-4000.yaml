@@ -747,9 +747,14 @@
           200:
             description: Deposits associated with the cdp
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/CdpDepositResponse'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CdpDepositResponse'
           500:
             description: Server internal error
     /auction/auctions/{id}/bids:
@@ -3070,7 +3075,9 @@
           type: string
           example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         amount:
-          $ref: '#/definitions/CoinCollateral'
+          type: array
+          items:
+            $ref: '#/definitions/CoinCollateral'
     PricefeedParameters:
       type: object
       properties:
