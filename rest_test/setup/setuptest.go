@@ -57,9 +57,13 @@ func main() {
 
 	// sendCoins()
 
-	// // create a cdp and send to blockchain
-	// sendCdp()
+	// // create an XRP cdp and send to blockchain
+	// sendXrpCdp()
 
+	// // create a BTC cdp and send to blockchain
+	// sendBtcCdp()
+
+	// reduce the price of BTC to trigger an auction
 	sendMsgPostPrice()
 }
 
@@ -75,7 +79,7 @@ func sendMsgPostPrice() {
 		panic(err)
 	}
 
-	price, err := sdk.NewDecFromStr("0.0001")
+	price, err := sdk.NewDecFromStr("1")
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +94,7 @@ func sendMsgPostPrice() {
 	// from, assetcode, price, expiry
 	msg := pricefeed.NewMsgPostPrice(
 		addr,
-		"xrp:usd",
+		"btc:usd",
 		price,
 		expiry,
 	)
@@ -109,7 +113,40 @@ func sendMsgPostPrice() {
 
 }
 
-func sendCdp() {
+func sendBtcCdp() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
+	if err != nil {
+		panic(err)
+	}
+
+	// create a cdp message to send to the blockchain
+	// sender, collateral, principal
+	msg := cdp.NewMsgCreateCDP(
+		addr,
+		sdk.NewCoins(sdk.NewInt64Coin("btc", 200000000)),
+		sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000)),
+	)
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// get the keybase
+	keybase := getKeybase()
+
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+
+	// send the message to the blockchain
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
+
+}
+
+func sendXrpCdp() {
 	// get the address
 	address := getTestAddress()
 	// get the keyname and password
