@@ -817,9 +817,14 @@
           200:
             description: OK
             schema:
-              type: array
-              items:
-                $ref: '#/definitions/AuctionResponse'
+              type: object
+              properties:
+                height:
+                  type: string
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/AuctionResponse'
           500:
             description: Internal Server Error
     /auction/auctions/{id}:
