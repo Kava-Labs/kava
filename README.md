@@ -19,8 +19,6 @@
 
 ### [Telegram](https://t.me/kavalabs) | [Medium](https://medium.com/kava-labs) | [Validator Chat](https://riot.im/app/#/room/#kava-validators:matrix.org)
 
-### Participate in Kava testnets and [snag a founder badge](./docs/REWARDS.md)!
-
 </div>
 
 Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using the [comsos-sdk](https://github.com/cosmos/cosmos-sdk).
