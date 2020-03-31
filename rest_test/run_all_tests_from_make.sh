@@ -1,4 +1,9 @@
 #! /bin/bash
+
+# kill kava if it is already running
+pgrep kvd | xargs kill
+pgrep kvcli | xargs kill
+
 # TODO import from development environment in envkey
 password="password"
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
