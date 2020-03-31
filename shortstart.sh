@@ -59,7 +59,7 @@ printf "\n\n"
 # Now run the dredd tests
 ############################
 
-dredd $swaggerFile localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
+# dredd $swaggerFile localhost:1317 2>&1 | tee output & showLoading "Running dredd tests"
 
 ########################################################
 # Now run the check the return code from the dredd command. 
@@ -88,7 +88,7 @@ fi
 
 # otherwise return an error code and redirect stderr to stdout so user sees the error output
 echo "Failure" >&2
-rm setuptest & showLoading "Cleaning up go binary"
+# rm setuptest & showLoading "Cleaning up go binary"
 # kill the kvd and kvcli processes (blockchain and rest api)
 # pgrep kvd | xargs kill
 # pgrep kvcli | xargs kill & showLoading "Stopping blockchain"
