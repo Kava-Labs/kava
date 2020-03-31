@@ -773,6 +773,15 @@
             required: true
             type: string
             x-example: "1"
+          - in: body
+            name: Auction bid request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                amount:
+                  $ref: '#/definitions/CoinBid'
+
         responses:
           200:
             description: The transaction was successfully generated
@@ -2767,6 +2776,15 @@
         amount:
           type: string
           example: '10000000'
+    CoinBid:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: "usdx"
+        amount:
+          type: string
+          example: '100000000'
     Hash:
       type: string
       example: EE5F3404034C524501629B56E0DDC38FAD651F04
