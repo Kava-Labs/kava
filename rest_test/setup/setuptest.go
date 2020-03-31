@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -21,7 +22,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/tendermint/go-amino"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func init() {
@@ -39,23 +42,71 @@ func main() {
 		return
 	}
 
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
-	sendCoins()
+	// sendProposal()
+	// sendDeposit()
+	// sendVote()
+	// sendDelegation()
+	// sendUndelegation()
+	// sendCoins()
 
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
+	// sendProposal()
+	// sendDeposit()
+	// sendVote()
+	// sendDelegation()
+	// sendUndelegation()
 
-	sendCoins()
+	// sendCoins()
 
-	// create a cdp and send to blockchain
-	sendCdp()
+	// // create a cdp and send to blockchain
+	// sendCdp()
+
+	sendMsgPostPrice()
+}
+
+// lower the price of xrp to trigger an auction
+func sendMsgPostPrice() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
+	if err != nil {
+		panic(err)
+	}
+
+	price, err := sdk.NewDecFromStr("0.0001")
+	if err != nil {
+		panic(err)
+	}
+	// TODO - QUESTION is the price time OK?
+	expiryInt, ok := sdk.NewIntFromString("1925744001")
+	if !ok {
+		panic(ok)
+	}
+	expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
+
+	// create a cdp message to send to the blockchain
+	// from, assetcode, price, expiry
+	msg := pricefeed.NewMsgPostPrice(
+		addr,
+		"xrp:usd",
+		price,
+		expiry,
+	)
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// get the keybase
+	keybase := getKeybase()
+
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+
+	// send the message to the blockchain
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
+
 }
 
 func sendCdp() {
