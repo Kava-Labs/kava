@@ -59,6 +59,8 @@ printf "$password\n" | kvd --home $kvdHome gentx --name vlad --home-client $kvcl
 {
 kvd --home $kvdHome collect-gentxs
 } > /dev/null 2>&1
+# set blocktime to ~1s
+jq '.app_state.mint.params.blocks_per_year = "31540000"' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
 # update pricefeed information
 jq '.app_state.pricefeed.params.markets += [{"active": true, "base_asset": "xrp", "market_id": "xrp:usd", "oracles": ["kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"], "quote_asset": "usd"}, {"active": true, "base_asset": "btc", "market_id": "btc:usd", "oracles": ["kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"], "quote_asset": "usd"}]' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
 jq '.app_state.pricefeed.posted_prices += [{"expiry": "2050-01-01T00:00:00Z", "market_id": "btc:usd", "oracle_address": "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c", "price": "8700.0"}, {"expiry": "2050-01-01T00:00:00Z", "market_id": "xrp:usd", "oracle_address": "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c", "price": "0.25"}]' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
