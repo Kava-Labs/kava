@@ -852,7 +852,7 @@
           500:
             description: Internal Server Error
     /pricefeed/postprice:
-      put:
+      post:
         summary: Generate post price transaction
         consumes:
           - application/json
