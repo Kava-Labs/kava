@@ -84,12 +84,8 @@ func sendMsgPostPrice() {
 	if err != nil {
 		panic(err)
 	}
-	// TODO - QUESTION is the price time OK?
-	expiryInt, ok := sdk.NewIntFromString("1925744001")
-	if !ok {
-		panic(ok)
-	}
-	expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
+	// set the expiry time
+	expiry := tmtime.Now().Add(time.Second * 100000)
 
 	// create a cdp message to send to the blockchain
 	// from, assetcode, price, expiry
