@@ -80,53 +80,36 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModuleSimulation defines the module simulation functions used by the auction module.
 type AppModuleSimulation struct{}
 
-// RegisterStoreDecoder registers a decoder for auction module's types
+// RegisterStoreDecoder registers a decoder for distribution module's types
 func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// GenerateGenesisState creates a randomized GenState of the auction module
-func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
-
-// RandomizedParams creates randomized auction param changes for the simulator.
-func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return simulation.ParamChanges(r)
-}
-
 // GenerateGenesisState creates a randomized GenState of the distribution module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
 	// TODO: rand seed should be specified in simuation config
 	locRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	simState.Rand = locRand
 	simulation.RandomizedGenState(simState)
 }
 
-// TODO:
-// ProposalContents returns all the distribution content functions used to
-// simulate governance proposals.
-// func (am AppModule) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return simulation.ProposalContents(am.keeper)
-// }
-
 // RandomizedParams creates randomized distribution param changes for the simulator.
-func (AppModule) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	// TODO: rand seed should be specified in simuation config
+func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	locRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return simulation.ParamChanges(locRand)
 }
 
-// RegisterStoreDecoder registers a decoder for distribution module's types
-func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
-}
-
 // TODO:
 // WeightedOperations returns the all the gov module operations with their respective weights.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+// func (am AppModuleSimulation) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 // 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc,
 // 		am.accountKeeper, am.keeper, am.stakingKeeper)
+// }
+
+// ProposalContents returns all the distribution content functions used to
+// simulate governance proposals.
+// func (am AppModuleSimulation) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+// 	return simulation.ProposalContents(am.keeper)
 // }
 
 // ----------------------------------------------
