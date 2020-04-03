@@ -9,7 +9,7 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-// DecodeStore unmarshals the KVPair's Value to the corresponding distribution type
+// DecodeStore unmarshals the KVPair's Value to the corresponding bep3 type
 func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.AtomicSwapKeyPrefix):

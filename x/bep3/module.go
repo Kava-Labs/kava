@@ -80,12 +80,12 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModuleSimulation defines the module simulation functions used by the auction module.
 type AppModuleSimulation struct{}
 
-// RegisterStoreDecoder registers a decoder for distribution module's types
+// RegisterStoreDecoder registers a decoder for bep3 module's types
 func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// GenerateGenesisState creates a randomized GenState of the distribution module.
+// GenerateGenesisState creates a randomized GenState of the bep3 module.
 func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
 	// TODO: rand seed should be specified in simuation config
 	locRand := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -93,7 +93,7 @@ func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState
 	simulation.RandomizedGenState(simState)
 }
 
-// RandomizedParams creates randomized distribution param changes for the simulator.
+// RandomizedParams creates randomized bep3 param changes for the simulator.
 func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	locRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return simulation.ParamChanges(locRand)
@@ -106,7 +106,7 @@ func (am AppModuleSimulation) WeightedOperations(simState module.SimulationState
 		am.accountKeeper, am.keeper)
 }
 
-// ProposalContents returns all the distribution content functions used to
+// ProposalContents returns all the bep3 content functions used to
 // simulate governance proposals.
 // func (am AppModuleSimulation) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
 // 	return simulation.ProposalContents(am.keeper)

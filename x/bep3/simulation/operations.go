@@ -5,13 +5,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-
-	// "github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-
-	// stk "github.com/cosmos/cosmos-sdk/x/be/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	// "github.com/cosmos/cosmos-sdk/simapp/helpers"
 
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -25,9 +23,8 @@ const (
 )
 
 // WeightedOperations returns all the operations from the module with their respective weights
-func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec,
+func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, // TODO: ak types.AccountKeeper
 	k keeper.Keeper) simulation.WeightedOperations {
-	//ak types.AccountKeeper
 
 	var (
 		weightMsgCreateAtomicSwap int
@@ -121,6 +118,7 @@ func SimulateMsgCreateAtomicSwap(k keeper.Keeper) simulation.Operation {
 		// 	simAccount.PrivKey,
 		// )
 
+		// TODO: app.Deliver(tx) is different
 		txResult := app.Deliver(tx)
 		// if err != nil {
 		// 	return simulation.NoOpMsg(types.ModuleName), nil, err
