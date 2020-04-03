@@ -101,10 +101,10 @@ func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 
 // TODO:
 // WeightedOperations returns the all the gov module operations with their respective weights.
-// func (am AppModuleSimulation) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc,
-// 		am.accountKeeper, am.keeper, am.stakingKeeper)
-// }
+func (am AppModuleSimulation) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc,
+		am.accountKeeper, am.keeper)
+}
 
 // ProposalContents returns all the distribution content functions used to
 // simulate governance proposals.
