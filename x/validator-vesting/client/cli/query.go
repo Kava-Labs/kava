@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"

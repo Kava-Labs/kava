@@ -18,8 +18,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 var (

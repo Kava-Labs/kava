@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
