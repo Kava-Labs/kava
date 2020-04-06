@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/pricefeed/types"
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 func makeTestCodec() (cdc *codec.Codec) {
@@ -26,12 +26,10 @@ func makeTestCodec() (cdc *codec.Codec) {
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
-	currentPrice := types.CurrentPrice{MarketID: "current", Price: sdk.OneDec()}
-	postedPrice := types.PostedPrice{MarketID: "posted", Price: sdk.OneDec(), Expiry: time.Now().UTC()}
+	prevBlockTime := time.Now().UTC()
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: []byte(types.CurrentPricePrefix), Value: cdc.MustMarshalBinaryBare(currentPrice)},
-		cmn.KVPair{Key: []byte(types.RawPriceFeedPrefix), Value: cdc.MustMarshalBinaryBare(postedPrice)},
+		cmn.KVPair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -39,8 +37,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"CurrentPrice", fmt.Sprintf("%v\n%v", currentPrice, currentPrice)},
-		{"PostedPrice", fmt.Sprintf("%s\n%s", postedPrice, postedPrice)},
+		{"PreviousBlockTime", fmt.Sprintf("%s\n%s", prevBlockTime, prevBlockTime)},
 		{"other", ""},
 	}
 	for i, tt := range tests {

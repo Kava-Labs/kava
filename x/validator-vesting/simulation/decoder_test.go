@@ -11,27 +11,30 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 
-	"github.com/kava-labs/kava/x/pricefeed/types"
+	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 )
 
 func makeTestCodec() (cdc *codec.Codec) {
 	cdc = codec.New()
 	sdk.RegisterCodec(cdc)
+	auth.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 	types.RegisterCodec(cdc)
+	codec.RegisterEvidences(cdc)
 	return
 }
 
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
-	currentPrice := types.CurrentPrice{MarketID: "current", Price: sdk.OneDec()}
-	postedPrice := types.PostedPrice{MarketID: "posted", Price: sdk.OneDec(), Expiry: time.Now().UTC()}
+	acc := types.ValidatorVestingAccount{SigningThreshold: 1}
+	now := time.Now().UTC()
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: []byte(types.CurrentPricePrefix), Value: cdc.MustMarshalBinaryBare(currentPrice)},
-		cmn.KVPair{Key: []byte(types.RawPriceFeedPrefix), Value: cdc.MustMarshalBinaryBare(postedPrice)},
+		cmn.KVPair{Key: types.ValidatorVestingAccountPrefix, Value: cdc.MustMarshalBinaryBare(acc)},
+		cmn.KVPair{Key: types.BlocktimeKey, Value: cdc.MustMarshalBinaryLengthPrefixed(now)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -39,8 +42,8 @@ func TestDecodeDistributionStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"CurrentPrice", fmt.Sprintf("%v\n%v", currentPrice, currentPrice)},
-		{"PostedPrice", fmt.Sprintf("%s\n%s", postedPrice, postedPrice)},
+		{"ValidatorVestingAccount", fmt.Sprintf("%v\n%v", acc, acc)},
+		{"BlockTime", fmt.Sprintf("%s\n%s", now, now)},
 		{"other", ""},
 	}
 	for i, tt := range tests {
