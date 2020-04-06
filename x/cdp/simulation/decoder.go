@@ -22,6 +22,12 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &cdpIDsB)
 		return fmt.Sprintf("%v\n%v", cdpIDsA, cdpIDsB)
 
+	case bytes.Equal(kvA.Key[:1], types.CdpKeyPrefix):
+		var cdpA, cdpB types.CDP
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &cdpA)
+		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &cdpB)
+		return fmt.Sprintf("%v\n%v", cdpA, cdpB)
+
 	case bytes.Equal(kvA.Key[:1], types.CdpIDKey),
 		bytes.Equal(kvA.Key[:1], types.CollateralRatioIndexPrefix):
 		idA := binary.BigEndian.Uint64(kvA.Value)
