@@ -60,3 +60,11 @@ Congratulations, you've just posted a current market price on Kava using the res
 ## Governance proposals
 
 Example governance proposals are located in `/proposal_examples`.
+
+## Dredd automated REST API testing
+
+To run the dredd tests to hit the endpoints and test the api run the following command from the `kava` folder:
+
+```bash
+    make test_dredd
+```

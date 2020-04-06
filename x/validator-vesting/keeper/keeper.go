@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 

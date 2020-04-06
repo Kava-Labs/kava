@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -20,7 +21,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/tendermint/go-amino"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func init() {
@@ -31,6 +35,14 @@ func init() {
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Printf("Please include the kvcli home directory as a command line argument\n")
+		fmt.Printf("For example: ./setuptest /tmp/kvcliHome\n")
+		fmt.Printf("Exiting...goodbye!\n")
+		return
+	}
+
+	// setup messages send to blockchain so it is in the correct state for testing
 	sendProposal()
 	sendDeposit()
 	sendVote()
@@ -45,6 +57,122 @@ func main() {
 	sendUndelegation()
 
 	sendCoins()
+
+	// create an XRP cdp and send to blockchain
+	sendXrpCdp()
+
+	// create a BTC cdp and send to blockchain
+	sendBtcCdp()
+
+	// reduce the price of BTC to trigger an auction
+	sendMsgPostPrice()
+}
+
+// lower the price of xrp to trigger an auction
+func sendMsgPostPrice() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
+	if err != nil {
+		panic(err)
+	}
+
+	price, err := sdk.NewDecFromStr("1")
+	if err != nil {
+		panic(err)
+	}
+	// set the expiry time
+	expiry := tmtime.Now().Add(time.Second * 100000)
+
+	// create a cdp message to send to the blockchain
+	// from, assetcode, price, expiry
+	msg := pricefeed.NewMsgPostPrice(
+		addr,
+		"btc:usd",
+		price,
+		expiry,
+	)
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// get the keybase
+	keybase := getKeybase()
+
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+
+	// send the message to the blockchain
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
+
+}
+
+func sendBtcCdp() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
+	if err != nil {
+		panic(err)
+	}
+
+	// create a cdp message to send to the blockchain
+	// sender, collateral, principal
+	msg := cdp.NewMsgCreateCDP(
+		addr,
+		sdk.NewCoins(sdk.NewInt64Coin("btc", 200000000)),
+		sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000)),
+	)
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// get the keybase
+	keybase := getKeybase()
+
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+
+	// send the message to the blockchain
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
+
+}
+
+func sendXrpCdp() {
+	// get the address
+	address := getTestAddress()
+	// get the keyname and password
+	keyname, password := getKeynameAndPassword()
+
+	addr, err := sdk.AccAddressFromBech32(address) // validator address
+	if err != nil {
+		panic(err)
+	}
+
+	// create a cdp message to send to the blockchain
+	// sender, collateral, principal
+	msg := cdp.NewMsgCreateCDP(
+		addr,
+		sdk.NewCoins(sdk.NewInt64Coin("xrp", 200000000)),
+		sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000)),
+	)
+
+	// helper methods for transactions
+	cdc := app.MakeCodec() // make codec for the app
+
+	// get the keybase
+	keybase := getKeybase()
+
+	// cast to the generic msg type
+	msgToSend := []sdk.Msg{msg}
+
+	// send the message to the blockchain
+	sendMsgToBlockchain(cdc, address, keyname, password, msgToSend, keybase)
 
 }
 
@@ -274,9 +402,9 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 	txBldr := auth.NewTxBuilderFromCLI().
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
-		WithSequence(sequenceNumber)
+		WithSequence(sequenceNumber).WithGas(500000)
 
-		// build and sign the transaction
+	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
 	// fmt.Printf("%+v", txBldr.Keybase())
 	txBytes, err := txBldr.BuildAndSign("vlad", "password", msg)
@@ -296,6 +424,9 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 			Mode: "block",
 		},
 	)
+
+	fmt.Printf("%s", bytes.NewBuffer(jsonBytes))
+
 	if err != nil {
 		panic(err)
 	}
