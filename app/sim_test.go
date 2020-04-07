@@ -36,6 +36,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
+	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
 
 // Simulation parameter constants
@@ -273,11 +274,23 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
 					func(_ *rand.Rand) {
-						v = 10000 // TODO
+						v = 100 // TODO
 					})
 				return v
 			}(nil),
 			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
+		},
+		// Pricefeed
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+					func(_ *rand.Rand) {
+						v = 10000 // TODO
+					})
+				return v
+			}(nil),
+			pricefeedsimops.SimulateMsgUpdatePrices(app.accountKeeper, app.pricefeedKeeper),
 		},
 	}
 }
