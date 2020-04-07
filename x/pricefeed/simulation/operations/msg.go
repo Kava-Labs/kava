@@ -59,6 +59,8 @@ func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, keeper keeper.Keeper
 			assetCode = "BTC"
 		}
 
+		fmt.Printf("Picked asset: %s\n", assetCode)
+
 		// Pick random price
 		got, err := sdk.NewDecFromStr("0.4")
 		if err != nil {
@@ -97,6 +99,7 @@ func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, keeper keeper.Keeper
 		}
 
 		// now we submit the pricefeed update message
+		// TODO QUESTION - this is failing for some reason? Any ideas why?
 		if ok := submitMsg(ctx, handler, msg); !ok {
 			return noOpMsg, nil, fmt.Errorf("could not submit pricefeed msg")
 		}
