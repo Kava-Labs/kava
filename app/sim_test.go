@@ -34,6 +34,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingsimops "github.com/cosmos/cosmos-sdk/x/staking/simulation/operations"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
 )
 
 // Simulation parameter constants
@@ -56,6 +58,7 @@ const (
 	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
 	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
+	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -263,6 +266,18 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				return v
 			}(nil),
 			slashingsimops.SimulateMsgUnjail(app.slashingKeeper),
+		},
+		// Auction
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+					func(_ *rand.Rand) {
+						v = 10000 // TODO
+					})
+				return v
+			}(nil),
+			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
 		},
 	}
 }
