@@ -28,12 +28,15 @@ func TestDecodeDistributionStore(t *testing.T) {
 
 	cdpIds := []uint64{1, 2, 3, 4, 5}
 	denom := "denom"
-	deposit := types.Deposit{CdpID: 1, Amount: sdk.NewCoins(sdk.NewCoin(denom, sdk.OneInt()))}
+	oneCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.OneInt()))
+	deposit := types.Deposit{CdpID: 1, Amount: oneCoins}
 	principal := sdk.OneInt()
 	prevDistTime := time.Now().UTC()
+	cdp := types.CDP{ID: 1, FeesUpdated: prevDistTime, Collateral: oneCoins, Principal: oneCoins, AccumulatedFees: oneCoins}
 
 	kvPairs := cmn.KVPairs{
 		cmn.KVPair{Key: types.CdpIDKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdpIds)},
+		cmn.KVPair{Key: types.CdpKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdp)},
 		cmn.KVPair{Key: types.CdpIDKey, Value: sdk.Uint64ToBigEndian(2)},
 		cmn.KVPair{Key: types.CollateralRatioIndexPrefix, Value: sdk.Uint64ToBigEndian(10)},
 		cmn.KVPair{Key: []byte(types.DebtDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
@@ -49,6 +52,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		expectedLog string
 	}{
 		{"CdpIDs", fmt.Sprintf("%v\n%v", cdpIds, cdpIds)},
+		{"CDP", fmt.Sprintf("%v\n%v", cdp, cdp)},
 		{"CdpID", "2\n2"},
 		{"CollateralRatioIndex", "10\n10"},
 		{"DebtDenom", fmt.Sprintf("%s\n%s", denom, denom)},
