@@ -14,7 +14,11 @@ import (
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
-var noOpMsg = simulation.NoOpMsg(auction.ModuleName)
+var (
+	noOpMsg     = simulation.NoOpMsg(auction.ModuleName)
+	govDenom    = "ukava"
+	stableDenom = "usdx"
+)
 
 func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper keeper.Keeper) simulation.Operation {
 	handler := auction.NewHandler(keeper)
@@ -34,22 +38,21 @@ func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper keeper.Keeper) si
 		})
 		// randomly pick an auction to bid on
 		if len(openAuctions) <= 0 { // protect r.Intn from panicing
-			return noOpMsg, nil, nil // don't submit a message if there are no auctions
+			return noOpMsg, nil, fmt.Errorf("TODO no auctions") // don't submit a message if there are no auctions
 		}
 		auction := openAuctions[r.Intn(len(openAuctions))]
 		// randomly pick an amount to bid
-		govDenom := "ukava"
 		bidder := accs[0].Address // TODO don't panic!
 		var amount sdk.Coin
 		switch a := auction.(type) {
 		case types.DebtAuction:
-			balance := authKeeper.GetAccount(ctx, bidder).SpendableCoins(ctx.BlockHeader().Time).AmountOf(govDenom) // TODO use GetSpendableCoins ?
-			if balance.LTE(a.Lot.Amount) {
-				return noOpMsg, nil, nil // don't place bid if account doesn't have enough coins
+			balance := authKeeper.GetAccount(ctx, bidder).SpendableCoins(ctx.BlockHeader().Time).AmountOf(stableDenom)
+			if balance.LT(a.Bid.Amount) {
+				return noOpMsg, nil, fmt.Errorf("TODO not enough coins") // don't place bid if account doesn't have enough coins
 			}
-			amt, err := randBoundedInt(r, a.Lot.Amount, balance)
+			amt, err := simulation.RandPositiveInt(r, a.Lot.Amount) // pick amount less than current lot amount
 			if err != nil {
-				return noOpMsg, nil, err
+				return noOpMsg, nil, fmt.Errorf("TODO amount picking")
 			}
 			amount = sdk.NewCoin(govDenom, amt)
 		case types.SurplusAuction:
@@ -70,6 +73,7 @@ func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper keeper.Keeper) si
 		if ok := submitMsg(ctx, handler, msg); !ok {
 			return noOpMsg, nil, fmt.Errorf("could not submit place bid msg")
 		}
+		fmt.Println("bid sumbitted!")
 		return simulation.NewOperationMsg(msg, true, "placed bid on auction"), nil, nil // TODO what should go in comment field?
 	}
 }
