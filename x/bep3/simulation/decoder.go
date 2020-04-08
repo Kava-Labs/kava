@@ -14,7 +14,7 @@ import (
 func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.AtomicSwapKeyPrefix):
-		var swapA, swapB *types.AtomicSwap
+		var swapA, swapB types.AtomicSwap
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &swapA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &swapB)
 		return fmt.Sprintf("%v\n%v", swapA, swapB)
