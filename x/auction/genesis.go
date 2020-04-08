@@ -22,7 +22,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	for _, a := range gs.Auctions {
 		keeper.SetAuction(ctx, a)
 		// find the total coins that should be present in the module account
-		totalAuctionCoins.Add(a.GetModuleAccountCoins())
+		totalAuctionCoins.Add(a.GetModuleAccountCoins()...)
 	}
 
 	// check if the module account exists

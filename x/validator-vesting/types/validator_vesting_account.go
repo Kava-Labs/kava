@@ -143,7 +143,7 @@ func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins
 		x := blockTime.Unix() - currentPeriodStartTime
 		if x >= vva.VestingPeriods[i].Length {
 			if vva.VestingPeriodProgress[i].PeriodComplete {
-				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].Amount)
+				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].Amount...)
 			}
 			currentPeriodStartTime += vva.VestingPeriods[i].Length
 		} else {
@@ -161,7 +161,7 @@ func (vva ValidatorVestingAccount) GetFailedVestedCoins() sdk.Coins {
 	for i := 0; i < numberPeriods; i++ {
 		if vva.VestingPeriodProgress[i].PeriodComplete {
 			if !vva.VestingPeriodProgress[i].VestingSuccessful {
-				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].Amount)
+				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].Amount...)
 			}
 		} else {
 			break
@@ -206,7 +206,7 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 	var pubkey string
 
 	if vva.PubKey != nil {
-		pubkey, err = sdk.Bech32ifyAccPub(vva.PubKey)
+		pubkey, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.PubKey)
 		if err != nil {
 			return nil, err
 		}

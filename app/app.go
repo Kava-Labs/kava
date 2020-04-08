@@ -63,6 +63,7 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
+		evidence.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
@@ -91,7 +92,7 @@ var (
 // Verify app interface at compile time
 var _ simapp.App = (*App)(nil)
 
-// Extended ABCI application
+// App represents an extended ABCI application
 type App struct {
 	*bam.BaseApp
 	cdc *codec.Codec
@@ -113,6 +114,7 @@ type App struct {
 	govKeeper       gov.Keeper
 	crisisKeeper    crisis.Keeper
 	paramsKeeper    params.Keeper
+	evidenceKeeper  evidence.Keeper
 	vvKeeper        validatorvesting.Keeper
 	auctionKeeper   auction.Keeper
 	cdpKeeper       cdp.Keeper
@@ -164,6 +166,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	evidenceSubspace := app.paramsKeeper.Subspace(evidence.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
 	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
@@ -176,29 +179,34 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.cdc,
 		keys[auth.StoreKey],
 		authSubspace,
-		auth.ProtoBaseAccount)
+		auth.ProtoBaseAccount,
+	)
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs())
+		app.ModuleAccountAddrs(),
+	)
 	app.supplyKeeper = supply.NewKeeper(
 		app.cdc,
 		keys[supply.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
-		mAccPerms)
+		mAccPerms,
+	)
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
 		keys[staking.StoreKey],
 		app.supplyKeeper,
-		stakingSubspace)
+		stakingSubspace,
+	)
 	app.mintKeeper = mint.NewKeeper(
 		app.cdc,
 		keys[mint.StoreKey],
 		mintSubspace,
 		&stakingKeeper,
 		app.supplyKeeper,
-		auth.FeeCollectorName)
+		auth.FeeCollectorName,
+	)
 	app.distrKeeper = distr.NewKeeper(
 		app.cdc,
 		keys[distr.StoreKey],
@@ -206,17 +214,34 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		&stakingKeeper,
 		app.supplyKeeper,
 		auth.FeeCollectorName,
-		app.ModuleAccountAddrs())
+		app.ModuleAccountAddrs(),
+	)
 	app.slashingKeeper = slashing.NewKeeper(
 		app.cdc,
 		keys[slashing.StoreKey],
 		&stakingKeeper,
-		slashingSubspace)
+		slashingSubspace,
+	)
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
 		invCheckPeriod,
 		app.supplyKeeper,
-		auth.FeeCollectorName)
+		auth.FeeCollectorName,
+	)
+
+	// create evidence keeper with router
+	evidenceKeeper := evidence.NewKeeper(
+		app.cdc,
+		keys[evidence.StoreKey],
+		evidenceSubspace,
+		&app.stakingKeeper,
+		app.slashingKeeper,
+	)
+	evidenceRouter := evidence.NewRouter()
+	// TODO: Register evidence routes.
+	evidenceKeeper.SetRouter(evidenceRouter)
+	app.evidenceKeeper = *evidenceKeeper
+
 	govRouter := gov.NewRouter()
 	govRouter.
 		AddRoute(gov.RouterKey, gov.ProposalHandler).
@@ -228,23 +253,28 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		govSubspace,
 		app.supplyKeeper,
 		&stakingKeeper,
-		govRouter)
+		govRouter,
+	)
+
 	app.vvKeeper = validatorvesting.NewKeeper(
 		app.cdc,
 		keys[validatorvesting.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		app.supplyKeeper,
-		&stakingKeeper)
+		&stakingKeeper,
+	)
 	app.pricefeedKeeper = pricefeed.NewKeeper(
 		app.cdc,
 		keys[pricefeed.StoreKey],
-		pricefeedSubspace)
+		pricefeedSubspace,
+	)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
 		app.supplyKeeper,
-		auctionSubspace)
+		auctionSubspace,
+	)
 	app.cdpKeeper = cdp.NewKeeper(
 		app.cdc,
 		keys[cdp.StoreKey],
@@ -252,12 +282,14 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 		app.supplyKeeper,
-		app.accountKeeper)
+		app.accountKeeper,
+	)
 	app.bep3Keeper = bep3.NewKeeper(
 		app.cdc,
 		keys[bep3.StoreKey],
 		app.supplyKeeper,
-		bep3Subspace)
+		bep3Subspace,
+	)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,
 		keys[kavadist.StoreKey],

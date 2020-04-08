@@ -18,7 +18,6 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
-	codespace     sdk.CodespaceType
 }
 
 // NewKeeper returns a new auction keeper.
