@@ -15,7 +15,7 @@ import (
 // 3. moves debt coins from the cdp module to the liquidator module account,
 // 4. decrements the total amount of principal outstanding for that collateral type
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
-func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) sdk.Error {
+func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 	// Update fees
@@ -104,7 +104,7 @@ func (k Keeper) HandleNewDebt(ctx sdk.Context, collateralDenom string, principal
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
-func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, liquidationRatio sdk.Dec) sdk.Error {
+func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, liquidationRatio sdk.Dec) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err

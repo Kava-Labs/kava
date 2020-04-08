@@ -38,7 +38,7 @@ func (msg MsgCreateCDP) Route() string { return RouterKey }
 func (msg MsgCreateCDP) Type() string { return "create_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgCreateCDP) ValidateBasic() sdk.Error {
+func (msg MsgCreateCDP) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
@@ -103,7 +103,7 @@ func (msg MsgDeposit) Route() string { return RouterKey }
 func (msg MsgDeposit) Type() string { return "deposit_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgDeposit) ValidateBasic() sdk.Error {
+func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Owner.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
@@ -165,7 +165,7 @@ func (msg MsgWithdraw) Route() string { return RouterKey }
 func (msg MsgWithdraw) Type() string { return "withdraw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgWithdraw) ValidateBasic() sdk.Error {
+func (msg MsgWithdraw) ValidateBasic() error {
 	if msg.Owner.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
@@ -227,7 +227,7 @@ func (msg MsgDrawDebt) Route() string { return RouterKey }
 func (msg MsgDrawDebt) Type() string { return "draw_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgDrawDebt) ValidateBasic() sdk.Error {
+func (msg MsgDrawDebt) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}
@@ -286,7 +286,7 @@ func (msg MsgRepayDebt) Route() string { return RouterKey }
 func (msg MsgRepayDebt) Type() string { return "repay_cdp" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgRepayDebt) ValidateBasic() sdk.Error {
+func (msg MsgRepayDebt) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdk.ErrInternal("invalid (empty) sender address")
 	}

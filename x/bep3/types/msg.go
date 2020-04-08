@@ -91,7 +91,7 @@ func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic validates the MsgCreateAtomicSwap
-func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
+func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -182,7 +182,7 @@ func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic validates the MsgClaimAtomicSwap
-func (msg MsgClaimAtomicSwap) ValidateBasic() sdk.Error {
+func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
@@ -237,7 +237,7 @@ func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic validates the MsgRefundAtomicSwap
-func (msg MsgRefundAtomicSwap) ValidateBasic() sdk.Error {
+func (msg MsgRefundAtomicSwap) ValidateBasic() error {
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}

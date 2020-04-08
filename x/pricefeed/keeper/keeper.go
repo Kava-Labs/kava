@@ -42,7 +42,7 @@ func (k Keeper) SetPrice(
 	oracle sdk.AccAddress,
 	marketID string,
 	price sdk.Dec,
-	expiry time.Time) (types.PostedPrice, sdk.Error) {
+	expiry time.Time) (types.PostedPrice, error) {
 	// If the expiry is less than or equal to the current blockheight, we consider the price valid
 	if expiry.After(ctx.BlockTime()) {
 		store := ctx.KVStore(k.key)
@@ -88,7 +88,7 @@ func (k Keeper) SetPrice(
 }
 
 // SetCurrentPrices updates the price of an asset to the median of all valid oracle inputs
-func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
+func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 	_, ok := k.GetMarket(ctx, marketID)
 	if !ok {
 		return types.ErrInvalidMarket(k.codespace, marketID)
@@ -176,7 +176,7 @@ func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice)
 }
 
 // GetCurrentPrice fetches the current median price of all oracles for a specific market
-func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, sdk.Error) {
+func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, error) {
 	store := ctx.KVStore(k.key)
 	bz := store.Get([]byte(types.CurrentPricePrefix + marketID))
 

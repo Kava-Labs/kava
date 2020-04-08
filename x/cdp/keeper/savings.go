@@ -13,7 +13,7 @@ import (
 )
 
 // DistributeSavingsRate distributes surplus that has accumulated in the liquidator account to address holding stable coins according the the savings rate
-func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) sdk.Error {
+func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	dp, found := k.GetDebtParam(ctx, debtDenom)
 	if !found {
 		return types.ErrDebtNotSupported(k.codespace, debtDenom)
@@ -27,7 +27,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) sdk.Err
 	modAccountCoins := k.getModuleAccountCoins(ctx, dp.Denom)
 	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
 	surplusDistributed := sdk.ZeroInt()
-	var iterationErr sdk.Error
+	var iterationErr error
 	k.accountKeeper.IterateAccounts(ctx, func(acc authexported.Account) (stop bool) {
 		_, ok := acc.(supplyexported.ModuleAccountI)
 		if ok {

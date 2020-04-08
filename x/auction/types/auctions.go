@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -191,7 +192,7 @@ func (a CollateralAuction) GetType() string { return "collateral" }
 // It is used in genesis initialize the module account correctly.
 func (a CollateralAuction) GetModuleAccountCoins() sdk.Coins {
 	// a.Bid is paid out on bids, so is never stored in the module account
-	return sdk.NewCoins(a.Lot).Add(sdk.NewCoins(a.CorrespondingDebt))
+	return sdk.NewCoins(a.Lot).Add(sdk.NewCoins(a.CorrespondingDebt)...)
 }
 
 // IsReversePhase returns whether the auction has switched over to reverse phase or not.
@@ -250,13 +251,13 @@ type WeightedAddresses struct {
 }
 
 // NewWeightedAddresses returns a new list addresses with weights.
-func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, sdk.Error) {
+func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, error) {
 	if len(addrs) != len(weights) {
-		return WeightedAddresses{}, sdk.ErrInternal("number of addresses doesn't match number of weights")
+		return WeightedAddresses{}, errors.New("number of addresses doesn't match number of weights")
 	}
 	for _, w := range weights {
 		if w.IsNegative() {
-			return WeightedAddresses{}, sdk.ErrInternal("weights contain a negative amount")
+			return WeightedAddresses{}, errors.New("weights contain a negative amount")
 		}
 	}
 	return WeightedAddresses{

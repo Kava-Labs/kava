@@ -24,7 +24,7 @@ func (k Keeper) GetMarkets(ctx sdk.Context) types.Markets {
 }
 
 // GetOracles returns the oracles in the pricefeed store
-func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, sdk.Error) {
+func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, error) {
 
 	for _, m := range k.GetMarkets(ctx) {
 		if marketID == m.MarketID {
@@ -35,7 +35,7 @@ func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, 
 }
 
 // GetOracle returns the oracle from the store or an error if not found
-func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (sdk.AccAddress, sdk.Error) {
+func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddress) (sdk.AccAddress, error) {
 	oracles, err := k.GetOracles(ctx, marketID)
 	if err != nil {
 		return sdk.AccAddress{}, types.ErrInvalidMarket(k.Codespace(), marketID)

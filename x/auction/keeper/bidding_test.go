@@ -394,7 +394,7 @@ func TestAuctionBidding(t *testing.T) {
 
 			// Start Auction
 			var id uint64
-			var err sdk.Error
+			var err error
 			switch tc.auctionArgs.auctionType {
 			case Surplus:
 				id, _ = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom)

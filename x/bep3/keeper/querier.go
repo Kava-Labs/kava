@@ -9,7 +9,7 @@ import (
 
 // NewQuerier is the module level router for state queries
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetAssetSupply:
 			return queryAssetSupply(ctx, req, keeper)
@@ -25,7 +25,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAssetSupply
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
@@ -47,7 +47,7 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 	return bz, nil
 }
 
-func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAtomicSwapByID
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
@@ -70,7 +70,7 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 	return bz, nil
 }
 
-func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
+func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
 	var swaps types.AtomicSwaps
 
 	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
@@ -87,7 +87,7 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (re
 }
 
 // query params in the bep3 store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 

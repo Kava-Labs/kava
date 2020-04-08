@@ -10,23 +10,23 @@ import (
 
 // NewHandler returns a function to handle all "auction" type messages.
 func NewHandler(keeper Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
 		case MsgPlaceBid:
 			return handleMsgPlaceBid(ctx, keeper, msg)
 		default:
-			return sdk.ErrUnknownRequest(fmt.Sprintf("Unrecognized auction msg type: %T", msg)).Result()
+			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("Unrecognized auction msg type: %T", msg)).Result()
 		}
 	}
 }
 
-func handleMsgPlaceBid(ctx sdk.Context, keeper Keeper, msg MsgPlaceBid) sdk.Result {
+func handleMsgPlaceBid(ctx sdk.Context, keeper Keeper, msg MsgPlaceBid) (*sdk.Result, error) {
 
 	err := keeper.PlaceBid(ctx, msg.AuctionID, msg.Bidder, msg.Amount)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -37,7 +37,7 @@ func handleMsgPlaceBid(ctx sdk.Context, keeper Keeper, msg MsgPlaceBid) sdk.Resu
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }

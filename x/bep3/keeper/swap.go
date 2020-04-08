@@ -13,7 +13,7 @@ import (
 // CreateAtomicSwap creates a new AtomicSwap
 func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan int64,
 	sender sdk.AccAddress, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
-	amount sdk.Coins, expectedIncome string, crossChain bool) sdk.Error {
+	amount sdk.Coins, expectedIncome string, crossChain bool) error {
 	// Confirm that this is not a duplicate swap
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
@@ -105,7 +105,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 }
 
 // ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap
-func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) sdk.Error {
+func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
@@ -178,7 +178,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 }
 
 // RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap
-func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) sdk.Error {
+func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
@@ -231,7 +231,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 }
 
 // UpdateExpiredAtomicSwaps finds all AtomicSwaps that are past (or at) their ending times and expires them.
-func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
+func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
 	var expiredSwaps [][]byte
 	k.IterateAtomicSwapsByBlock(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
 		expiredSwaps = append(expiredSwaps, id)
@@ -249,7 +249,7 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) sdk.Error {
 }
 
 // DeleteClosedAtomicSwapsFromLongtermStorage removes swaps one week after completion
-func (k Keeper) DeleteClosedAtomicSwapsFromLongtermStorage(ctx sdk.Context) sdk.Error {
+func (k Keeper) DeleteClosedAtomicSwapsFromLongtermStorage(ctx sdk.Context) error {
 	var swapsToDelete [][]byte
 	k.IterateAtomicSwapsLongtermStorage(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
 		swapsToDelete = append(swapsToDelete, id)

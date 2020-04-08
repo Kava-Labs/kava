@@ -8,7 +8,7 @@ import (
 
 // NewHandler creates an sdk.Handler for cdp messages
 func NewHandler(k Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
 		case MsgCreateCDP:
 			return handleMsgCreateCDP(ctx, k, msg)
@@ -22,15 +22,15 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgRepayDebt(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized cdp msg type: %T", msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}
 }
 
-func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) sdk.Result {
+func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Result, error) {
 	err := k.AddCdp(ctx, msg.Sender, msg.Collateral, msg.Principal)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -42,16 +42,16 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) sdk.Result 
 	)
 	id, _ := k.GetCdpID(ctx, msg.Sender, msg.Collateral[0].Denom)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Data:   GetCdpIDBytes(id),
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }
 
-func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) sdk.Result {
+func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) (*sdk.Result, error) {
 	err := k.DepositCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -61,13 +61,13 @@ func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) sdk.Result {
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) sdk.Result {
+func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) (*sdk.Result, error) {
 	err := k.WithdrawCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -77,13 +77,13 @@ func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) sdk.Result {
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) sdk.Result {
+func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) (*sdk.Result, error) {
 	err := k.AddPrincipal(ctx, msg.Sender, msg.CdpDenom, msg.Principal)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -93,13 +93,13 @@ func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) sdk.Result {
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleMsgRepayDebt(ctx sdk.Context, k Keeper, msg MsgRepayDebt) sdk.Result {
+func handleMsgRepayDebt(ctx sdk.Context, k Keeper, msg MsgRepayDebt) (*sdk.Result, error) {
 	err := k.RepayPrincipal(ctx, msg.Sender, msg.CdpDenom, msg.Payment)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -109,5 +109,5 @@ func handleMsgRepayDebt(ctx sdk.Context, k Keeper, msg MsgRepayDebt) sdk.Result 
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

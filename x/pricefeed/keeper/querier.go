@@ -13,7 +13,7 @@ import (
 
 // NewQuerier is the module level router for state queries
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryPrice:
 			return queryPrice(ctx, req, keeper)
@@ -32,7 +32,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 }
 
-func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -54,7 +54,7 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 	return bz, nil
 }
 
-func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -74,7 +74,7 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 	return bz, nil
 }
 
-func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -94,7 +94,7 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 	return bz, nil
 }
 
-func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
+func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	markets := keeper.GetMarkets(ctx)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, markets)
@@ -106,7 +106,7 @@ func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 }
 
 // query params in the pricefeed store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	params := keeper.GetParams(ctx)
 
 	// Encode results

@@ -46,7 +46,7 @@ func (k Keeper) SetNextAuctionID(ctx sdk.Context, id uint64) {
 }
 
 // GetNextAuctionID reads the next available global ID from store
-func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, sdk.Error) {
+func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextAuctionIDKey)
 	if bz == nil {
@@ -56,7 +56,7 @@ func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, sdk.Error) {
 }
 
 // IncrementNextAuctionID increments the next auction ID in the store by 1.
-func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) sdk.Error {
+func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) error {
 	id, err := k.GetNextAuctionID(ctx)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) sdk.Error {
 }
 
 // StoreNewAuction stores an auction, adding a new ID
-func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64, sdk.Error) {
+func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64, error) {
 	newAuctionID, err := k.GetNextAuctionID(ctx)
 	if err != nil {
 		return 0, err

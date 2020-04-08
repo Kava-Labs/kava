@@ -10,7 +10,7 @@ import (
 
 // NewQuerier returns a new querier function
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryCirculatingSupply:
 			return queryGetCirculatingSupply(ctx, req, keeper)
@@ -22,7 +22,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 	}
 }
 
-func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
 	bz, err := keeper.cdc.MarshalJSON(supplyInt)
@@ -32,7 +32,7 @@ func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
-func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	circulatingSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
 	keeper.ak.IterateAccounts(ctx,
 		func(acc authexported.Account) (stop bool) {

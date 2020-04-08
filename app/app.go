@@ -12,12 +12,13 @@ import (
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -26,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/evidence"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -85,6 +87,9 @@ var (
 		kavadist.ModuleName:         {supply.Minter},
 	}
 )
+
+// Verify app interface at compile time
+var _ simapp.App = (*App)(nil)
 
 // Extended ABCI application
 type App struct {
@@ -151,7 +156,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -175,7 +180,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSubspace,
-		bank.DefaultCodespace,
 		app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(
 		app.cdc,
@@ -187,8 +191,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.cdc,
 		keys[staking.StoreKey],
 		app.supplyKeeper,
-		stakingSubspace,
-		staking.DefaultCodespace)
+		stakingSubspace)
 	app.mintKeeper = mint.NewKeeper(
 		app.cdc,
 		keys[mint.StoreKey],
@@ -202,15 +205,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		distrSubspace,
 		&stakingKeeper,
 		app.supplyKeeper,
-		distr.DefaultCodespace,
 		auth.FeeCollectorName,
 		app.ModuleAccountAddrs())
 	app.slashingKeeper = slashing.NewKeeper(
 		app.cdc,
 		keys[slashing.StoreKey],
 		&stakingKeeper,
-		slashingSubspace,
-		slashing.DefaultCodespace)
+		slashingSubspace)
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
 		invCheckPeriod,
@@ -227,7 +228,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		govSubspace,
 		app.supplyKeeper,
 		&stakingKeeper,
-		gov.DefaultCodespace,
 		govRouter)
 	app.vvKeeper = validatorvesting.NewKeeper(
 		app.cdc,
@@ -239,8 +239,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.pricefeedKeeper = pricefeed.NewKeeper(
 		app.cdc,
 		keys[pricefeed.StoreKey],
-		pricefeedSubspace,
-		pricefeed.DefaultCodespace)
+		pricefeedSubspace)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
@@ -253,20 +252,17 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 		app.supplyKeeper,
-		app.accountKeeper,
-		cdp.DefaultCodespace)
+		app.accountKeeper)
 	app.bep3Keeper = bep3.NewKeeper(
 		app.cdc,
 		keys[bep3.StoreKey],
 		app.supplyKeeper,
-		bep3Subspace,
-		bep3.DefaultCodespace)
+		bep3Subspace)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,
 		keys[kavadist.StoreKey],
 		kavadistSubspace,
 		app.supplyKeeper,
-		kavadist.DefaultCodespace,
 	)
 
 	// register the staking hooks
@@ -282,11 +278,12 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
-		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper),
@@ -326,11 +323,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
@@ -354,7 +351,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	if loadLatest {
 		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 		if err != nil {
-			cmn.Exit(err.Error())
+			tmos.Exit(err.Error())
 		}
 	}
 
@@ -421,6 +418,11 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 // Codec returns the application's sealed codec.
 func (app *App) Codec() *codec.Codec {
 	return app.cdc
+}
+
+// SimulationManager implements the SimulationApp interface
+func (app *App) SimulationManager() *module.SimulationManager {
+	return app.sm
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.

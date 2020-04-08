@@ -8,7 +8,7 @@ import (
 
 // NewHandler creates an sdk.Handler for kavadist messages
 func NewHandler(k Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
 		default:
 			errMsg := fmt.Sprintf("unrecognized cdp msg type: %T", msg)

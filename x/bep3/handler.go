@@ -8,7 +8,7 @@ import (
 
 // NewHandler creates an sdk.Handler for all the bep3 type messages
 func NewHandler(k Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case MsgCreateAtomicSwap:
@@ -19,18 +19,18 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgRefundAtomicSwap(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName, msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdk.ErrUnknownRequest(errMsg)
 		}
 	}
 }
 
 // handleMsgCreateAtomicSwap handles requests to create a new AtomicSwap
-func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg MsgCreateAtomicSwap) sdk.Result {
+func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg MsgCreateAtomicSwap) (*sdk.Result, error) {
 	err := k.CreateAtomicSwap(ctx, msg.RandomNumberHash, msg.Timestamp, msg.HeightSpan, msg.From, msg.To,
 		msg.SenderOtherChain, msg.RecipientOtherChain, msg.Amount, msg.ExpectedIncome, msg.CrossChain)
 
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -41,17 +41,17 @@ func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg MsgCreateAtomicSwa
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }
 
 // handleMsgClaimAtomicSwap handles requests to claim funds in an active AtomicSwap
-func handleMsgClaimAtomicSwap(ctx sdk.Context, k Keeper, msg MsgClaimAtomicSwap) sdk.Result {
+func handleMsgClaimAtomicSwap(ctx sdk.Context, k Keeper, msg MsgClaimAtomicSwap) (*sdk.Result, error) {
 
 	err := k.ClaimAtomicSwap(ctx, msg.From, msg.SwapID, msg.RandomNumber)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -62,17 +62,17 @@ func handleMsgClaimAtomicSwap(ctx sdk.Context, k Keeper, msg MsgClaimAtomicSwap)
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }
 
 // handleMsgRefundAtomicSwap handles requests to refund an active AtomicSwap
-func handleMsgRefundAtomicSwap(ctx sdk.Context, k Keeper, msg MsgRefundAtomicSwap) sdk.Result {
+func handleMsgRefundAtomicSwap(ctx sdk.Context, k Keeper, msg MsgRefundAtomicSwap) (*sdk.Result, error) {
 
 	err := k.RefundAtomicSwap(ctx, msg.From, msg.SwapID)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -83,7 +83,7 @@ func handleMsgRefundAtomicSwap(ctx sdk.Context, k Keeper, msg MsgRefundAtomicSwa
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }

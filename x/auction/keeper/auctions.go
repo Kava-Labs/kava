@@ -10,7 +10,7 @@ import (
 )
 
 // StartSurplusAuction starts a new surplus (forward) auction.
-func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, sdk.Error) {
+func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, error) {
 
 	auction := types.NewSurplusAuction(
 		seller,
@@ -41,7 +41,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 }
 
 // StartDebtAuction starts a new debt (reverse) auction.
-func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, sdk.Error) {
+func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, error) {
 
 	auction := types.NewDebtAuction(
 		buyer,
@@ -79,7 +79,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 }
 
 // StartCollateralAuction starts a new collateral (2-phase) auction.
-func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, sdk.Error) {
+func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, error) {
 
 	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
 	if err != nil {
@@ -120,7 +120,7 @@ func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.C
 }
 
 // PlaceBid places a bid on any auction.
-func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, newAmount sdk.Coin) sdk.Error {
+func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddress, newAmount sdk.Coin) error {
 
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
@@ -133,7 +133,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	}
 
 	// move coins and return updated auction
-	var err sdk.Error
+	var err error
 	var updatedAuction types.Auction
 	switch a := auction.(type) {
 	case types.SurplusAuction:
@@ -163,7 +163,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 }
 
 // PlaceBidSurplus places a forward bid on a surplus auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, sdk.Error) {
+func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
 		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
@@ -223,7 +223,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 }
 
 // PlaceForwardBidCollateral places a forward bid on a collateral auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, sdk.Error) {
+func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
 		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
@@ -299,7 +299,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 }
 
 // PlaceReverseBidCollateral places a reverse bid on a collateral auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, sdk.Error) {
+func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
 		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
@@ -368,7 +368,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 }
 
 // PlaceBidDebt places a reverse bid on a debt auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, sdk.Error) {
+func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, error) {
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
 		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
@@ -434,7 +434,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 }
 
 // CloseAuction closes an auction and distributes funds to the highest bidder.
-func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
+func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
@@ -475,7 +475,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) sdk.Error {
 }
 
 // PayoutDebtAuction pays out the proceeds for a debt auction, first minting the coins.
-func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) sdk.Error {
+func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
 	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -494,7 +494,7 @@ func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) sdk.Erro
 }
 
 // PayoutSurplusAuction pays out the proceeds for a surplus auction.
-func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) sdk.Error {
+func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) error {
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -503,7 +503,7 @@ func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) sd
 }
 
 // PayoutCollateralAuction pays out the proceeds for a collateral auction.
-func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) sdk.Error {
+func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) error {
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -518,7 +518,7 @@ func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAucti
 }
 
 // CloseExpiredAuctions finds all auctions that are past (or at) their ending times and closes them, paying out to the highest bidder.
-func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) sdk.Error {
+func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) error {
 	var expiredAuctions []uint64
 	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id uint64) bool {
 		expiredAuctions = append(expiredAuctions, id)
@@ -542,7 +542,7 @@ func earliestTime(t1, t2 time.Time) time.Time {
 }
 
 // splitCoinIntoWeightedBuckets divides up some amount of coins according to some weights.
-func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdk.Int) ([]sdk.Coin, sdk.Error) {
+func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdk.Int) ([]sdk.Coin, error) {
 	for _, bucket := range buckets {
 		if bucket.IsNegative() {
 			return nil, sdk.ErrInternal("cannot split coin into bucket with negative weight")

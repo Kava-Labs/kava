@@ -55,7 +55,7 @@ func (msg MsgPostPrice) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgPostPrice) ValidateBasic() sdk.Error {
+func (msg MsgPostPrice) ValidateBasic() error {
 	if msg.From.Empty() {
 		return sdk.ErrInternal("invalid (empty) from address")
 	}

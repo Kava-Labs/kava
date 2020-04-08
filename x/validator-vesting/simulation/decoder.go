@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
+	"github.com/tendermint/tendermint/libs/kv"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding auth type
-func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
+func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.ValidatorVestingAccountPrefix):
 		var accA, accB exported.Account

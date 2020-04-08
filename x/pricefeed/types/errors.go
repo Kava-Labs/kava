@@ -23,26 +23,26 @@ const (
 )
 
 // ErrEmptyInput Error constructor
-func ErrEmptyInput(codespace sdk.CodespaceType) sdk.Error {
+func ErrEmptyInput(codespace sdk.CodespaceType) error {
 	return sdk.NewError(codespace, CodeEmptyInput, fmt.Sprintf("Input must not be empty."))
 }
 
 // ErrExpired Error constructor for posted price messages with expired price
-func ErrExpired(codespace sdk.CodespaceType) sdk.Error {
+func ErrExpired(codespace sdk.CodespaceType) error {
 	return sdk.NewError(codespace, CodeExpired, fmt.Sprintf("Price is expired."))
 }
 
 // ErrNoValidPrice Error constructor for posted price messages with expired price
-func ErrNoValidPrice(codespace sdk.CodespaceType) sdk.Error {
+func ErrNoValidPrice(codespace sdk.CodespaceType) error {
 	return sdk.NewError(codespace, CodeInvalidPrice, fmt.Sprintf("All input prices are expired."))
 }
 
 // ErrInvalidMarket Error constructor for posted price messages for invalid markets
-func ErrInvalidMarket(codespace sdk.CodespaceType, marketId string) sdk.Error {
+func ErrInvalidMarket(codespace sdk.CodespaceType, marketId string) error {
 	return sdk.NewError(codespace, CodeInvalidAsset, fmt.Sprintf("market %s does not exist", marketId))
 }
 
 // ErrInvalidOracle Error constructor for posted price messages for invalid oracles
-func ErrInvalidOracle(codespace sdk.CodespaceType, addr sdk.AccAddress) sdk.Error {
+func ErrInvalidOracle(codespace sdk.CodespaceType, addr sdk.AccAddress) error {
 	return sdk.NewError(codespace, CodeInvalidOracle, fmt.Sprintf("oracle %s does not exist or not authorized", addr))
 }

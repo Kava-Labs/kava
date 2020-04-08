@@ -10,7 +10,7 @@ import (
 
 // NewQuerier returns a new querier function
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetCdp:
 			return queryGetCdp(ctx, req, keeper)
@@ -29,7 +29,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 // query a specific cdp
-func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -60,7 +60,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 }
 
 // query deposits on a particular cdp
-func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpDeposits
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -88,7 +88,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 }
 
 // query cdps with matching denom and ratio LESS THAN the input ratio
-func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpsByRatioParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -121,7 +121,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 // query all cdps with matching collateral denom
-func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpsParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
@@ -149,7 +149,7 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 // query params in the cdp store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 

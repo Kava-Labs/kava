@@ -13,7 +13,7 @@ import (
 const BaseDigitFactor = 1000000000000000000
 
 // AddCdp adds a cdp for a specific owner and collateral type
-func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins) sdk.Error {
+func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins) error {
 	// validation
 	err := k.ValidateCollateral(ctx, collateral)
 	if err != nil {
@@ -98,7 +98,7 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 }
 
 // MintDebtCoins mints debt coins in the cdp module account
-func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coins) sdk.Error {
+func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coins) error {
 	coinsToMint := sdk.NewCoins()
 	for _, sc := range principalCoins {
 		coinsToMint = coinsToMint.Add(sdk.NewCoins(sdk.NewCoin(denom, sc.Amount)))
@@ -111,7 +111,7 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
-func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coins) sdk.Error {
+func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coins) error {
 	coinsToBurn := sdk.NewCoins()
 	for _, pc := range paymentCoins {
 		coinsToBurn = coinsToBurn.Add(sdk.NewCoins(sdk.NewCoin(denom, pc.Amount)))
@@ -335,7 +335,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 }
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
-func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) sdk.Error {
+func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) error {
 	if len(collateral) != 1 {
 		return types.ErrInvalidCollateralLength(k.codespace, len(collateral))
 	}
@@ -347,7 +347,7 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) sdk.Er
 }
 
 // ValidatePrincipalAdd validates that an asset is valid for use as debt when creating a new cdp
-func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.Error {
+func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) error {
 	for _, dc := range principal {
 		dp, found := k.GetDebtParam(ctx, dc.Denom)
 		if !found {
@@ -361,7 +361,7 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) sdk.E
 }
 
 // ValidatePrincipalDraw validates that an asset is valid for use as debt when drawing debt off an existing cdp
-func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.Error {
+func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) error {
 	for _, dc := range principal {
 		_, found := k.GetDebtParam(ctx, dc.Denom)
 		if !found {
@@ -372,7 +372,7 @@ func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) sdk.
 }
 
 // ValidateDebtLimit validates that the input debt amount does not exceed the global debt limit
-func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, principal sdk.Coins) sdk.Error {
+func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, principal sdk.Coins) error {
 	for _, dc := range principal {
 		totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, dc.Denom).Add(dc.Amount)
 		globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(dc.Denom)
@@ -384,7 +384,7 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 }
 
 // ValidateCollateralizationRatio validate that adding the input principal doesn't put the cdp below the liquidation ratio
-func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) sdk.Error {
+func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) error {
 	//
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, fees)
 	if err != nil {
@@ -414,7 +414,7 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 }
 
 // LoadAugmentedCDP creates a new augmented CDP from an existing CDP
-func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, sdk.Error) {
+func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, error) {
 	// calculate additional fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
@@ -446,7 +446,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
-func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, sdk.Error) {
+func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coins, principal sdk.Coins, fees sdk.Coins) (sdk.Dec, error) {
 	if collateral.IsZero() {
 		return sdk.ZeroDec(), nil
 	}
@@ -472,7 +472,7 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 }
 
 // CalculateCollateralizationRatioFromAbsoluteRatio takes a coin's denom and an absolute ratio and returns the respective collateralization ratio
-func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralDenom string, absoluteRatio sdk.Dec) (sdk.Dec, sdk.Error) {
+func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralDenom string, absoluteRatio sdk.Dec) (sdk.Dec, error) {
 	// get price collateral
 	marketID := k.getMarketID(ctx, collateralDenom)
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)

@@ -133,7 +133,7 @@ $ %s query %s cdps-by-ratio uatom 1.5
 			// Prepare params for querier
 			ratio, errSdk := sdk.NewDecFromStr(args[1])
 			if errSdk != nil {
-				return fmt.Errorf(errSdk.Error())
+				return fmt.Errorf(errerror())
 			}
 			bz, err := cdc.MarshalJSON(types.QueryCdpsByRatioParams{
 				CollateralDenom: args[0],

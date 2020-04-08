@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -31,7 +32,7 @@ func (msg MsgPlaceBid) Route() string { return RouterKey }
 func (msg MsgPlaceBid) Type() string { return "place_bid" }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
-func (msg MsgPlaceBid) ValidateBasic() sdk.Error {
+func (msg MsgPlaceBid) ValidateBasic() error {
 	if msg.Bidder.Empty() {
 		return sdk.ErrInvalidAddress("invalid (empty) bidder address")
 	}

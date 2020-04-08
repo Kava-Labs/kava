@@ -22,7 +22,7 @@ import (
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModuleSimulation{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the auth module.
@@ -66,28 +66,39 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-// AppModuleSimulation defines the module simulation functions used by the auth module.
-type AppModuleSimulation struct{}
-
 // RegisterStoreDecoder registers a decoder for auth module's types
-func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // GenerateGenesisState creates a randomized GenState of the auth module
-func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
+//____________________________________________________________________________
+
+// AppModuleSimulation functions
+
 // RandomizedParams returns nil because validatorvesting has no params.
-func (AppModuleSimulation) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
+func (AppModuleBasic) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
 	return []sim.ParamChange{}
+}
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	return nil
+}
+
+// WeightedOperations returns the all the validator vesting module operations with their respective weights.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return nil
 }
 
 // AppModule implements an application module for the validator-vesting module.
 type AppModule struct {
 	AppModuleBasic
-	AppModuleSimulation
+
 	keeper        Keeper
 	accountKeeper types.AccountKeeper
 }
@@ -95,10 +106,9 @@ type AppModule struct {
 // NewAppModule creates a new AppModule object
 func NewAppModule(keeper Keeper, ak types.AccountKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic:      AppModuleBasic{},
-		AppModuleSimulation: AppModuleSimulation{},
-		keeper:              keeper,
-		accountKeeper:       ak,
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         keeper,
+		accountKeeper:  ak,
 	}
 }
 

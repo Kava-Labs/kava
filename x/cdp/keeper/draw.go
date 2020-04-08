@@ -8,7 +8,7 @@ import (
 )
 
 // AddPrincipal adds debt to a cdp if the additional debt does not put the cdp below the liquidation ratio
-func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, principal sdk.Coins) sdk.Error {
+func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, principal sdk.Coins) error {
 	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
@@ -79,7 +79,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 
 // RepayPrincipal removes debt from the cdp
 // If all debt is repaid, the collateral is returned to depositors and the cdp is removed from the store
-func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, payment sdk.Coins) sdk.Error {
+func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string, payment sdk.Coins) error {
 	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
@@ -171,7 +171,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 }
 
 // ValidatePaymentCoins validates that the input coins are valid for repaying debt
-func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coins, debt sdk.Coins) sdk.Error {
+func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coins, debt sdk.Coins) error {
 	subset := payment.DenomsSubsetOf(cdp.Principal)
 	if !subset {
 		var paymentDenoms []string
