@@ -196,8 +196,3 @@ func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) []types.PostedPri
 	k.cdc.MustUnmarshalBinaryBare(bz, &prices)
 	return prices
 }
-
-// Codespace return the codespace for the keeper
-func (k Keeper) Codespace() sdk.CodespaceType {
-	return k.codespace
-}

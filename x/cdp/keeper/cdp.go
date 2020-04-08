@@ -101,7 +101,7 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coins) error {
 	coinsToMint := sdk.NewCoins()
 	for _, sc := range principalCoins {
-		coinsToMint = coinsToMint.Add(sdk.NewCoins(sdk.NewCoin(denom, sc.Amount)))
+		coinsToMint = coinsToMint.Add(sdk.NewCoin(denom, sc.Amount))
 	}
 	err := k.supplyKeeper.MintCoins(ctx, moduleAccount, coinsToMint)
 	if err != nil {
@@ -114,7 +114,7 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coins) error {
 	coinsToBurn := sdk.NewCoins()
 	for _, pc := range paymentCoins {
-		coinsToBurn = coinsToBurn.Add(sdk.NewCoins(sdk.NewCoin(denom, pc.Amount)))
+		coinsToBurn = coinsToBurn.Add(sdk.NewCoin(denom, pc.Amount))
 	}
 	err := k.supplyKeeper.BurnCoins(ctx, moduleAccount, coinsToBurn)
 	if err != nil {
@@ -418,8 +418,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	// calculate additional fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
-	totalFees := cdp.AccumulatedFees.Add(fees)
-
+	totalFees := cdp.AccumulatedFees.Add(fees...)
 	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, totalFees)
 	if err != nil {
@@ -431,7 +430,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	for _, principalCoin := range cdp.Principal {
 		totalDebt += principalCoin.Amount.Int64()
 	}
-	for _, feeCoin := range cdp.AccumulatedFees.Add(fees) {
+	for _, feeCoin := range cdp.AccumulatedFees.Add(fees...) {
 		totalDebt += feeCoin.Amount.Int64()
 	}
 

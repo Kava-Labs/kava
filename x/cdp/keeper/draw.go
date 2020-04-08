@@ -26,9 +26,9 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 
 	// fee calculation
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
 
-	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal), cdp.AccumulatedFees.Add(fees))
+	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal...), cdp.AccumulatedFees.Add(fees...))
 	if err != nil {
 		return err
 	}
@@ -59,19 +59,19 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	)
 
 	// remove old collateral:debt index
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
 
 	// update cdp state
-	cdp.Principal = cdp.Principal.Add(principal)
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
+	cdp.Principal = cdp.Principal.Add(principal...)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// increment total principal for the input collateral type
 	k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, principal)
 
 	// set cdp state and indexes in the store
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 
 	return nil
@@ -88,23 +88,23 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 
 	// calculate fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
-	err := k.ValidatePaymentCoins(ctx, cdp, payment, cdp.Principal.Add(cdp.AccumulatedFees).Add(fees))
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
+	err := k.ValidatePaymentCoins(ctx, cdp, payment, cdp.Principal.Add(cdp.AccumulatedFees...).Add(fees...))
 	if err != nil {
 		return err
 	}
 
 	// calculate fee and principal payment
-	feePayment, principalPayment := k.calculatePayment(ctx, cdp.Principal.Add(cdp.AccumulatedFees).Add(fees), cdp.AccumulatedFees.Add(fees), payment)
+	feePayment, principalPayment := k.calculatePayment(ctx, cdp.Principal.Add(cdp.AccumulatedFees...).Add(fees...), cdp.AccumulatedFees.Add(fees...), payment)
 
 	// send the payment from the sender to the cpd module
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, feePayment.Add(principalPayment))
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, feePayment.Add(principalPayment...))
 	if err != nil {
 		return err
 	}
 
 	// burn the payment coins
-	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, feePayment.Add(principalPayment))
+	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, feePayment.Add(principalPayment...))
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +112,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	// burn the corresponding amount of debt coins
 	cdpDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	paymentAmount := sdk.ZeroInt()
-	for _, c := range feePayment.Add(principalPayment) {
+	for _, c := range feePayment.Add(principalPayment...) {
 		paymentAmount = paymentAmount.Add(c.Amount)
 	}
 	coinsToBurn := sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), paymentAmount))
@@ -128,24 +128,24 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpRepay,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, feePayment.Add(principalPayment).String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, feePayment.Add(principalPayment...).String()),
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
 
 	// remove the old collateral:debt ratio index
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
 
 	// update cdp state
 	if !principalPayment.IsZero() {
 		cdp.Principal = cdp.Principal.Sub(principalPayment)
 	}
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees).Sub(feePayment)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...).Sub(feePayment)
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// decrement the total principal for the input collateral type
-	k.DecrementTotalPrincipal(ctx, denom, feePayment.Add(principalPayment))
+	k.DecrementTotalPrincipal(ctx, denom, feePayment.Add(principalPayment...))
 
 	// if the debt is fully paid, return collateral to depositors,
 	// and remove the cdp and indexes from the store
@@ -165,7 +165,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	}
 
 	// set cdp state and update indexes
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	return nil
 }
@@ -223,12 +223,12 @@ func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coins, fees sdk.Coins
 	for _, fc := range fees {
 		if payment.AmountOf(fc.Denom).IsPositive() {
 			if payment.AmountOf(fc.Denom).GT(fc.Amount) {
-				feePayment = feePayment.Add(sdk.NewCoins(fc))
+				feePayment = feePayment.Add(fc)
 				pc := sdk.NewCoin(fc.Denom, payment.AmountOf(fc.Denom).Sub(fc.Amount))
-				principalPayment = principalPayment.Add(sdk.NewCoins(pc))
+				principalPayment = principalPayment.Add(pc)
 			} else {
 				fc := sdk.NewCoin(fc.Denom, payment.AmountOf(fc.Denom))
-				feePayment = feePayment.Add(sdk.NewCoins(fc))
+				feePayment = feePayment.Add(fc)
 			}
 		}
 	}

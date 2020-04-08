@@ -101,12 +101,12 @@ func getRandomVestingPeriods(duration int64, r *rand.Rand, origCoins sdk.Coins) 
 	vestingCoins := sdk.NewCoins()
 	for _, ic := range origCoins {
 		amountVesting := ic.Amount.Int64() / int64(coinFraction)
-		vestingCoins = vestingCoins.Add(sdk.NewCoins(sdk.NewInt64Coin(ic.Denom, amountVesting)))
+		vestingCoins = vestingCoins.Add(sdk.NewInt64Coin(ic.Denom, amountVesting))
 	}
 	periodCoins := sdk.NewCoins()
 	for _, c := range vestingCoins {
 		amountPeriod := c.Amount.Int64() / int64(numPeriods)
-		periodCoins = periodCoins.Add(sdk.NewCoins(sdk.NewInt64Coin(c.Denom, amountPeriod)))
+		periodCoins = periodCoins.Add(sdk.NewInt64Coin(c.Denom, amountPeriod))
 	}
 
 	vestingPeriods := make([]vestingtypes.Period, numPeriods)
@@ -121,7 +121,7 @@ func getRandomVestingPeriods(duration int64, r *rand.Rand, origCoins sdk.Coins) 
 func getVestingCoins(periods vestingtypes.Periods) sdk.Coins {
 	vestingCoins := sdk.NewCoins()
 	for _, p := range periods {
-		vestingCoins = vestingCoins.Add(p.Amount)
+		vestingCoins = vestingCoins.Add(p.Amount...)
 	}
 	return vestingCoins
 }

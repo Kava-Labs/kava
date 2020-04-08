@@ -207,7 +207,7 @@ func (p Params) Validate() error {
 		if cp.DebtLimit.IsAnyNegative() {
 			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)
 		}
-		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit)
+		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit...)
 
 		for _, dc := range cp.DebtLimit {
 			_, found := debtDenoms[dc.Denom]
