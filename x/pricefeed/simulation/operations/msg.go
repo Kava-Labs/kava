@@ -47,7 +47,10 @@ func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, keeper keeper.Keeper
 		address := sdk.AccAddress("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c")
 
 		// pick a random asset out of BNB and BTC
-		assetCode := pickRandomAsset()
+		assetCode, err := pickRandomAsset(r)
+		if err != nil {
+			return noOpMsg, nil, fmt.Errorf("Error picking random asset")
+		}
 
 		fmt.Printf("Picked asset: %s\n", assetCode)
 
@@ -55,7 +58,7 @@ func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, keeper keeper.Keeper
 		currentPrice := int64(100)
 
 		// generate a new random price based off the current price
-		price, err := pickNewRandomPrice(currentPrice)
+		price, err := pickNewRandomPrice(r, currentPrice)
 		if err != nil {
 			return noOpMsg, nil, fmt.Errorf("Error picking random price")
 		}
@@ -84,11 +87,11 @@ func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, keeper keeper.Keeper
 }
 
 // pickRandomAsset picks a random asset out of BNB and BTC with equal probability
-func pickRandomAsset() (assetCode string) {
+func pickRandomAsset(r *rand.Rand) (assetCode string, err error) {
 	// randomly pick an asset
 	randomNum, err := simulation.RandPositiveInt(r, sdk.NewInt(100)) // get a random number
 	if err != nil {
-		return noOpMsg, nil, fmt.Errorf("Error picking random asset")
+		return "", err
 	}
 	// pick each asset with 50% probability
 	if randomNum.LTE(sdk.NewInt(50)) {
@@ -96,6 +99,7 @@ func pickRandomAsset() (assetCode string) {
 	} else {
 		assetCode = "BTC"
 	}
+	return assetCode, nil
 }
 
 // getExpiryTime gets a price expiry time by taking the current time and adding a delta to it
@@ -107,7 +111,7 @@ func getExpiryTime() (t time.Time) {
 // pickNewRandomPrice picks a new random price given the current price
 // It takes the current price then generates a random number to multiply it by to create variation while
 // still being in the similar range. Random walk style.
-func pickNewRandomPrice(currentPrice int64) (price sdk.Dec, err sdk.Error) {
+func pickNewRandomPrice(r *rand.Rand, currentPrice int64) (price sdk.Dec, err sdk.Error) {
 	// Pick random price
 	got, err := sdk.NewDecFromStr("0.4")
 	if err != nil {
@@ -129,7 +133,7 @@ func pickNewRandomPrice(currentPrice int64) (price sdk.Dec, err sdk.Error) {
 	randomPriceMultiplier = randomPriceMultiplier.Add(offset) // gives a result in range 0.8-1.2 inclusive
 
 	// MULTIPLY CURRENT PRICE BY RANDOM PRICE MULTIPLER
-	price := randomPriceMultiplier.Mul(sdk.NewDec(int64(currentPrice)))
+	price = randomPriceMultiplier.Mul(sdk.NewDec(int64(currentPrice)))
 	// return the price
 	return price, nil
 }
