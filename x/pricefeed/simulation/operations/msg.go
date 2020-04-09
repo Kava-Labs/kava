@@ -7,7 +7,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/pricefeed"
@@ -24,7 +23,7 @@ var (
 
 // SimulateMsgUpdatePrices updates the prices of various assets
 // TODO - MUST include BNB, USDX, BTC as HARD REQUIREMENTS - asset prices needed by CDP sims
-func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, keeper keeper.Keeper) simulation.Operation {
+func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 	// get a pricefeed handler
 	handler := pricefeed.NewHandler(keeper)
 
