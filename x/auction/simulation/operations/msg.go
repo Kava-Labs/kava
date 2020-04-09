@@ -1,9 +1,11 @@
 package operations
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"math/rand"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,48 +22,62 @@ var (
 	noOpMsg = simulation.NoOpMsg(auction.ModuleName)
 )
 
+// Return a function that runs a random state change on the module keeper.
+// There's two error paths
+// - return a OpMessage, but nil error - this will log a message but keep running the simulation
+// - return an error - this will stop the simulation
 func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper keeper.Keeper) simulation.Operation {
 	handler := auction.NewHandler(keeper)
 
-	// There's two error paths
-	// - return a OpMessage, but nil error - this will log a message but keep running the simulation
-	// - return an error - this will stop the simulation ( I think)
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// get open auctions
 		openAuctions := types.Auctions{}
-		keeper.IterateAuctions(ctx, func(a types.Auction) bool { // TODO optimize by using index rather than account objects
+		keeper.IterateAuctions(ctx, func(a types.Auction) bool {
 			openAuctions = append(openAuctions, a)
 			return false
 		})
 
-		// randomly pick an auction to bid on
-		if len(openAuctions) <= 0 { // protect r.Intn from panicing
-			return noOpMsg, nil, fmt.Errorf("TODO no auctions") // don't submit a message if there are no auctions
-		}
-		auction := openAuctions[r.Intn(len(openAuctions))]
-
-		// randomly pick bidder and amount to bid
-		bidder := authKeeper.GetAccount(ctx, accs[0].Address) // TODO don't panic!
-		amount, err := generateBidAmount(r, ctx, auction, bidder)
-		if err != nil {
-			// TODO check for not enough coins error and pick new bidder
-			return noOpMsg, nil, err
+		// shuffle auctions slice so that bids are evenly distributed across auctions
+		rand.Shuffle(len(openAuctions), func(i, j int) {
+			openAuctions[i], openAuctions[j] = openAuctions[j], openAuctions[i]
+		})
+		// TODO do the same for accounts?
+		var accounts []authexported.Account
+		for _, acc := range accs {
+			accounts = append(accounts, authKeeper.GetAccount(ctx, acc.Address))
 		}
 
-		// generate msg
+		// search through auctions and an accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
+		blockTime := ctx.BlockHeader().Time
+		bidder, auction, found := findValidAccountAuctionPair(accounts, openAuctions, func(acc authexported.Account, auc types.Auction) bool {
+			_, err := generateBidAmount(r, auc, acc, blockTime)
+			if err == ErrorNotEnoughCoins {
+				return false // keep searching
+			} else if err != nil {
+				panic(err) // raise errors
+			}
+			return true // found valid pair
+		})
+		if !found {
+			return noOpMsg, nil, nil // TODO op message?
+		}
+
+		// pick a bid amount for the chosen auction and bidder
+		amount, _ := generateBidAmount(r, auction, bidder, blockTime)
+
+		// create a msg
 		msg := types.NewMsgPlaceBid(auction.GetID(), bidder.GetAddress(), amount)
 		if err := msg.ValidateBasic(); err != nil { // don't submit errors that fail ValidateBasic, use unit tests for testing ValidateBasic
 			return noOpMsg, nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
 		}
 
 		// submit the msg
-		if ok := submitMsg(ctx, handler, msg); !ok {
-			return noOpMsg, nil, fmt.Errorf("could not submit place bid msg")
-		}
-		fmt.Println("bid sumbitted!")                                                   // FIXME
-		return simulation.NewOperationMsg(msg, true, "placed bid on auction"), nil, nil // TODO what should go in comment field?
+		ok := submitMsg(ctx, handler, msg)
+		// return an operationMsg indicating whether the msg was submitted successfully
+		comment := map[bool]string{true: "placed bid on auction", false: "place bid msg failed"} // TODO what should go in comment field?
+		return simulation.NewOperationMsg(msg, ok, comment[ok]), nil, nil
 	}
 }
 
@@ -74,41 +90,52 @@ func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) (ok bool) {
 	return ok
 }
 
-func generateBidAmount(r *rand.Rand, ctx sdk.Context, auction types.Auction, bidder authexported.Account) (sdk.Coin, error) {
-	balance := bidder.SpendableCoins(ctx.BlockHeader().Time)
+var ErrorNotEnoughCoins = errors.New("account doesn't have enough coins")
+
+func generateBidAmount(r *rand.Rand, auction types.Auction, bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
+	bidderBalance := bidder.SpendableCoins(blockTime)
 
 	switch a := auction.(type) {
 
 	case types.DebtAuction:
-		if balance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
-			return sdk.Coin{}, fmt.Errorf("account doesn't have enough coins") // don't place bid if account doesn't have enough coins
+		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
+			return sdk.Coin{}, ErrorNotEnoughCoins
 		}
-		amt, err := RandInt(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount // TODO min bid increments
+		amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount // TODO min bid increments
 		if err != nil {
-			return sdk.Coin{}, err
+			panic(err)
 		}
 		return sdk.NewCoin(a.Lot.Denom, amt), nil // gov coin
 
 	case types.SurplusAuction:
-		if balance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // gov coin // TODO account for bid increments
-			return sdk.Coin{}, fmt.Errorf("account doesn't have enough coins") // don't place bid if account doesn't have enough coins
+		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // gov coin // TODO account for bid increments
+			return sdk.Coin{}, ErrorNotEnoughCoins
 		}
-		amt, _ := RandInt(r, a.Bid.Amount, balance.AmountOf(a.Bid.Denom))
+		amt, err := RandIntInclusive(r, a.Bid.Amount, bidderBalance.AmountOf(a.Bid.Denom))
+		if err != nil {
+			panic(err)
+		}
 		return sdk.NewCoin(a.Bid.Denom, amt), nil // gov coin
 
 	case types.CollateralAuction:
-		if balance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin // TODO account for bid increments (in forward phase)
-			return sdk.Coin{}, fmt.Errorf("account doesn't have enough coins") // don't place bid if account doesn't have enough coins
+		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin // TODO account for bid increments (in forward phase)
+			return sdk.Coin{}, ErrorNotEnoughCoins
 		}
 		if a.IsReversePhase() {
-			amt, err := RandInt(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount
+			amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount
 			if err != nil {
-				return sdk.Coin{}, err
+				panic(err)
 			}
 			return sdk.NewCoin(a.Lot.Denom, amt), nil // collateral coin
 		} else {
-			amt, _ := RandInt(r, a.Bid.Amount, sdk.MinInt(balance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
-			// TODO pick the MaxBid amount often to flip the auction phase
+			amt, err := RandIntInclusive(r, a.Bid.Amount, sdk.MinInt(bidderBalance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
+			if err != nil {
+				panic(err)
+			}
+			// pick the MaxBid amount more frequently to increase chance auctions phase get into reverse phase
+			if r.Intn(10) == 0 { // 10%
+				amt = a.MaxBid.Amount
+			}
 			return sdk.NewCoin(a.Bid.Denom, amt), nil // stable coin
 		}
 
@@ -117,12 +144,32 @@ func generateBidAmount(r *rand.Rand, ctx sdk.Context, auction types.Auction, bid
 	}
 }
 
-// TODO change to inclusive bounds?
+// findValidAccountAuctionPair finds an auction and account for which the callback func returns true
+func findValidAccountAuctionPair(accounts []authexported.Account, auctions types.Auctions, cb func(authexported.Account, types.Auction) bool) (authexported.Account, types.Auction, bool) {
+	for _, auc := range auctions {
+		for _, acc := range accounts {
+			if isValid := cb(acc, auc); isValid {
+				return acc, auc, true
+			}
+
+		}
+	}
+	return nil, nil, false
+}
+
+// RandInt randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
+func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int, error) {
+	if inclusiveMin.GT(inclusiveMax) {
+		return sdk.Int{}, fmt.Errorf("min larger than max")
+	}
+	return RandInt(r, inclusiveMin, inclusiveMax.Add(sdk.OneInt()))
+}
+
 // RandInt randomly generates an sdk.Int in the range [inclusiveMin, exclusiveMax). It works for negative and positive integers.
 func RandInt(r *rand.Rand, inclusiveMin, exclusiveMax sdk.Int) (sdk.Int, error) {
 	// validate input
 	if inclusiveMin.GTE(exclusiveMax) {
-		return sdk.Int{}, fmt.Errorf("invalid bounds")
+		return sdk.Int{}, fmt.Errorf("min larger or equal to max")
 	}
 	// shift the range to start at 0
 	shiftedRange := exclusiveMax.Sub(inclusiveMin) // should always be positive given the check above
