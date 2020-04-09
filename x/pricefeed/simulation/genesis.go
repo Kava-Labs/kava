@@ -25,16 +25,25 @@ func RandomizedGenState(simState *module.SimulationState) {
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
+			// Bitcoin
 			pricefeed.PostedPrice{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("8000.00"),
+				Price:         sdk.MustNewDecFromStr("7000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
+			// Binance coin
+			pricefeed.PostedPrice{
+				MarketID:      "bnb:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("14.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+			// XRP ripple coin
 			pricefeed.PostedPrice{
 				MarketID:      "xrp:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("0.25"),
+				Price:         sdk.MustNewDecFromStr("0.2"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
 		},
@@ -42,4 +51,31 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, pricefeedGenesis))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(pricefeedGenesis)
+
+	// now go through and modify the params adding the accounts as an oracle to each of the markets
+
+	params := getPricefeedSimulationParams()
+	genPrices := []PostedPrice{}
+	for _, market := range params.Markets {
+		for _, acc := range simState.Accounts {
+			market.Oracles = append(market.Oracles, acc.Address)
+			genPrice := types.PostedPrice{market.ID, acc.Address, getInitialPrice(market.ID), simState.GenTimestamp.Add(time.Hour * 24)}
+			genPrices = append(genPrices, genPrice)
+		}
+	}
+
+}
+
+func getInitialPrice(marketId string) (price sdk.Dec) {
+	switch marketId {
+	case "btc":
+		return sdk.MustNewDecFromStr("7000") // TODO QUESTION - add some randomization?
+	case "bnb":
+		return sdk.MustNewDecFromStr("14")
+	case "xrp":
+		return sdk.MustNewDecFromStr("0.2")
+	}
+
+	return sdk.MustNewDecFromStr("0")
+
 }
