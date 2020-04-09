@@ -19,9 +19,13 @@ import (
 
 // Generate random parameters
 func GenBidDuration(r *rand.Rand) time.Duration {
+	// time.Duration is just an int64 (ie a 63 bit number with a bit for the sign)
+	// So a positive int64 number can be generated using r.Int63.
+	// should not be greater than MaxBidDuration
 	return time.Duration(r.Int63()) // TODO restrict to a range of values that increase likelihood that auctions will close during simulations
 }
 func GenMaxAuctionDuration(r *rand.Rand) time.Duration {
+	// should not be greater than the max allowable by amino
 	return time.Duration(r.Int63())
 }
 func GenIncrementCollateral(r *rand.Rand) sdk.Dec {

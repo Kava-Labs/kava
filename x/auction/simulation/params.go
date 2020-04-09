@@ -12,16 +12,19 @@ import (
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation
 func ParamChanges(r *rand.Rand) []simulation.ParamChange {
-
+	// Note: params are encoded to JSON before being stored in the param store. These param changes
+	// update the raw values in the store so values need to be JSON. This is why values that are represented
+	// as strings in JSON (such as time.Duration) have the escaped quotes.
+	// TODO should we encode the values properly with ModuleCdc.MustMarshalJSON()?
 	return []simulation.ParamChange{
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeyBidDuration), "",
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("%d", GenBidDuration(r))
+				return fmt.Sprintf("\"%d\"", GenBidDuration(r))
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeyMaxAuctionDuration), "",
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenMaxAuctionDuration(r)) // TODO why the escaped quotes?
+				return fmt.Sprintf("\"%d\"", GenMaxAuctionDuration(r))
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementCollateral), "",
