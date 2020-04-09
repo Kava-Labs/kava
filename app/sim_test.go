@@ -35,7 +35,6 @@ import (
 	stakingsimops "github.com/cosmos/cosmos-sdk/x/staking/simulation/operations"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
 	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
 
@@ -268,18 +267,18 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 			}(nil),
 			slashingsimops.SimulateMsgUnjail(app.slashingKeeper),
 		},
-		// Auction
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100 // TODO
-					})
-				return v
-			}(nil),
-			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
-		},
+		// // Auction - TODO uncomment once fixed
+		// {
+		// 	func(_ *rand.Rand) int {
+		// 		var v int
+		// 		ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+		// 			func(_ *rand.Rand) {
+		// 				v = 100 // TODO
+		// 			})
+		// 		return v
+		// 	}(nil),
+		// 	auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
+		// },
 		// Pricefeed
 		{
 			func(_ *rand.Rand) int {

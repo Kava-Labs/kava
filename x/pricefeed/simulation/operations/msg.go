@@ -112,7 +112,7 @@ func pickRandomAsset(ctx sdk.Context, keeper keeper.Keeper, r *rand.Rand) (asset
 // getExpiryTime gets a price expiry time by taking the current time and adding a delta to it
 func getExpiryTime(ctx sdk.Context) (t time.Time) {
 	// t = tmtime.Now().Add(time.Second * 10000000)
-	t = ctx.BlockTime().Add(time.Second * 10000000)
+	t = ctx.BlockTime().Add(time.Second * 1000000)
 
 	return t
 }
