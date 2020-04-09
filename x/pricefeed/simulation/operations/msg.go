@@ -53,7 +53,7 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		fmt.Printf("Picked asset: %s\n", assetCode)
 
 		// TODO QUESTION - GET THE CURRENT PRICE OF THE ASSET?? HOW TO DO THIS?
-		currentPrice := int64(100)
+		currentPrice := sdk.MustNewDecFromStr("100")
 
 		// generate a new random price based off the current price
 		price, err := pickNewRandomPrice(r, currentPrice)
@@ -109,7 +109,7 @@ func getExpiryTime() (t time.Time) {
 // pickNewRandomPrice picks a new random price given the current price
 // It takes the current price then generates a random number to multiply it by to create variation while
 // still being in the similar range. Random walk style.
-func pickNewRandomPrice(r *rand.Rand, currentPrice int64) (price sdk.Dec, err sdk.Error) {
+func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err sdk.Error) {
 	// Pick random price
 	got := sdk.MustNewDecFromStr("0.4")
 
