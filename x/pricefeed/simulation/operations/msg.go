@@ -42,8 +42,6 @@ func SimulateMsgUpdatePrices(authKeeper auth.AccountKeeper, pfk pricefeed.Keeper
 		// pick a random asset out of BNB and BTC
 		market := pickRandomMarket(ctx, pfk, r)
 
-		fmt.Printf("Picked market: %s\n", market.MarketID)
-
 		// TODO QUESTION - GET THE CURRENT PRICE OF THE ASSET?? HOW TO DO THIS?
 		currentPrice, err := pfk.GetCurrentPrice(ctx, market.MarketID)
 		if err != nil {
@@ -108,7 +106,6 @@ func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec) {
 }
 
 func getRandomOracle(r *rand.Rand, market pricefeed.Market) sdk.AccAddress {
-	fmt.Printf("picking random oracle for %v\n", market)
 	randn := simulation.RandIntBetween(r, 0, len(market.Oracles))
 	oracle := market.Oracles[randn]
 	return oracle

@@ -37,12 +37,16 @@ var GenIncrementSurplus = GenIncrementCollateral
 
 // RandomizedGenState generates a random GenesisState for auction
 func RandomizedGenState(simState *module.SimulationState) {
-
+	maxDuration := GenMaxAuctionDuration(simState.Rand)
+	bidDuration := GenBidDuration(simState.Rand)
+	for bidDuration > maxDuration {
+		bidDuration = GenBidDuration(simState.Rand)
+	}
 	auctionGenesis := types.NewGenesisState(
 		types.DefaultNextAuctionID,
 		types.NewParams(
-			GenMaxAuctionDuration(simState.Rand),
-			GenBidDuration(simState.Rand),
+			maxDuration,
+			bidDuration,
 			GenIncrementSurplus(simState.Rand),
 			GenIncrementDebt(simState.Rand),
 			GenIncrementCollateral(simState.Rand),
