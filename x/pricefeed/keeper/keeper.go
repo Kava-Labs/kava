@@ -179,12 +179,8 @@ func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice)
 func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, sdk.Error) {
 	store := ctx.KVStore(k.key)
 
-	fmt.Println("looking up price:")
+	fmt.Println("looking up price for:")
 	fmt.Print(types.CurrentPricePrefix + marketID)
-	fmt.Println()
-	fmt.Println("Have access to the following prices:")
-	fmt.Print(store.Get([]byte("pricefeed:currentprice:btc:usd")))
-	fmt.Println()
 
 	bz := store.Get([]byte(types.CurrentPricePrefix + marketID))
 
