@@ -267,18 +267,6 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 			}(nil),
 			slashingsimops.SimulateMsgUnjail(app.slashingKeeper),
 		},
-		// // Auction - TODO uncomment once fixed
-		// {
-		// 	func(_ *rand.Rand) int {
-		// 		var v int
-		// 		ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
-		// 			func(_ *rand.Rand) {
-		// 				v = 100 // TODO
-		// 			})
-		// 		return v
-		// 	}(nil),
-		// 	auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
-		// },
 		// Pricefeed
 		{
 			func(_ *rand.Rand) int {
