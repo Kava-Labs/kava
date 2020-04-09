@@ -19,7 +19,6 @@ import (
 
 var (
 	noOpMsg     = simulation.NoOpMsg(pricefeed.ModuleName) // TODO QUESTION what is the purpose of noopmsg?
-	govDenom    = "ukava"                                  // TODO QUESTION do I need these in pricefeed?
 	stableDenom = "usdx"
 )
 
