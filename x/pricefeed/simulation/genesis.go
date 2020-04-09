@@ -53,7 +53,7 @@ func getPricefeedSimulationParams() types.Params {
 			},
 		},
 
-		// TODO QUESTION - are these prices necessary? they are re-set by getInitialPrice
+		// TODO QUESTION - are these prices necessary? they are re-set by getInitialPrice. assuming the below can be deleted?
 		PostedPrices: []pricefeed.PostedPrice{
 			// Bitcoin
 			pricefeed.PostedPrice{
