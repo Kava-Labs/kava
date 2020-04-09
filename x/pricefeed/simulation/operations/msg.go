@@ -19,7 +19,7 @@ import (
 
 var (
 	noOpMsg     = simulation.NoOpMsg(pricefeed.ModuleName) // TODO QUESTION what is the purpose of noopmsg?
-	stableDenom = "usdx"
+	stableDenom = "usdx"                                   // TODO QUESTION is this necessary ?
 )
 
 // SimulateMsgUpdatePrices updates the prices of various assets
@@ -41,10 +41,6 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		// (4) MULTIPLY THE CURRENT PRICE BY THE RANDOM NUMBER
 		// (5) POST THE NEW PRICE TO THE KEEPER
 
-		// get the address for the account
-		// this address needs to be an oracle and also exist. genesis should add all the accounts as oracles.
-		address := sdk.AccAddress(accs[0].Address)
-
 		// pick a random asset out of BNB and BTC
 		assetCode := pickRandomAsset(ctx, keeper, r)
 
@@ -57,6 +53,21 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		if err != nil {
 			return noOpMsg, nil, fmt.Errorf("Error getting current price")
 		}
+
+		fmt.Println("Got oracles:")
+		oracles, err := keeper.GetOracles(ctx, marketID)
+		if err != nil {
+			return noOpMsg, nil, fmt.Errorf("Error getting oracles")
+		}
+		address := oracles[0]
+		// fmt.Print(oracles[0])
+		// fmt.Println()
+		// fmt.Print(oracles[0].String)
+		// fmt.Println()
+
+		// get the address for the account
+		// this address needs to be an oracle and also exist. genesis should add all the accounts as oracles.
+		// address := sdk.AccAddress(accs[0].Address)
 
 		// generate a new random price based off the current price
 		price, err := pickNewRandomPrice(r, currentPrice.Price)
@@ -102,7 +113,8 @@ func pickRandomAsset(ctx sdk.Context, keeper keeper.Keeper, r *rand.Rand) (asset
 
 // getExpiryTime gets a price expiry time by taking the current time and adding a delta to it
 func getExpiryTime() (t time.Time) {
-	t = tmtime.Now().Add(time.Second * 100000)
+	t = tmtime.Now().Add(time.Second * 10000000)
+
 	return t
 }
 
