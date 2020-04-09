@@ -1,9 +1,8 @@
 package bep3
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for all the bep3 type messages
@@ -18,8 +17,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case MsgRefundAtomicSwap:
 			return handleMsgRefundAtomicSwap(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s message type: %T", ModuleName, msg)
-			return nil, sdk.ErrUnknownRequest(errMsg)
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
 }

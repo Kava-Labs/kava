@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -23,7 +23,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "Querying commands for the cdp module",
 	}
 
-	cdpQueryCmd.AddCommand(client.GetCommands(
+	cdpQueryCmd.AddCommand(flags.GetCommands(
 		QueryCdpCmd(queryRoute, cdc),
 		QueryCdpsByDenomCmd(queryRoute, cdc),
 		QueryCdpsByDenomAndRatioCmd(queryRoute, cdc),

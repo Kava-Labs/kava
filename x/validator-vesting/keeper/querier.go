@@ -2,9 +2,12 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+
 	"github.com/kava-labs/kava/x/validator-vesting/types"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -17,7 +20,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryTotalSupply:
 			return queryGetTotalSupply(ctx, req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown cdp query endpoint")
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
 	}
 }
@@ -25,9 +28,9 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
-	bz, err := keeper.cdc.MarshalJSON(supplyInt)
+	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
 	if err != nil {
-		return nil, sdk.ErrInternal(err.Error())
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -54,9 +57,9 @@ func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 			return false
 		})
 	supplyInt := sdk.NewDecFromInt(circulatingSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
-	bz, err := keeper.cdc.MarshalJSON(supplyInt)
+	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
 	if err != nil {
-		return nil, sdk.ErrInternal(err.Error())
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }

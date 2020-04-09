@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -17,7 +18,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case MsgPlaceBid:
 			return handleMsgPlaceBid(ctx, keeper, msg)
 		default:
-			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("Unrecognized auction msg type: %T", msg)).Result()
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
+		}
 		}
 	}
 }

@@ -1,9 +1,8 @@
 package cdp
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler creates an sdk.Handler for cdp messages
@@ -21,8 +20,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case MsgRepayDebt:
 			return handleMsgRepayDebt(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized cdp msg type: %T", msg)
-			return nil, sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
 }

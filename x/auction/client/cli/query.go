@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/kava-labs/kava/x/auction/types"
@@ -21,7 +21,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "Querying commands for the auction module",
 	}
 
-	auctionQueryCmd.AddCommand(client.GetCommands(
+	auctionQueryCmd.AddCommand(flags.GetCommands(
 		QueryGetAuctionCmd(queryRoute, cdc),
 		QueryGetAuctionsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),

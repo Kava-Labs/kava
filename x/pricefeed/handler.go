@@ -1,9 +1,8 @@
 package pricefeed
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler handles all pricefeed type messages
@@ -13,8 +12,7 @@ func NewHandler(k Keeper) sdk.Handler {
 		case MsgPostPrice:
 			return HandleMsgPostPrice(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized pricefeed message type: %T", msg)
-			return nil, sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
 }
