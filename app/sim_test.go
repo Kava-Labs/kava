@@ -290,7 +290,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 					})
 				return v
 			}(nil),
-			pricefeedsimops.SimulateMsgUpdatePrices(app.accountKeeper, app.pricefeedKeeper),
+			pricefeedsimops.SimulateMsgUpdatePrices(app.pricefeedKeeper),
 		},
 	}
 }
