@@ -70,7 +70,7 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		// MSG POST PRICE
 		// GENERATE THE MSG TO SEND TO THE KEEPER
 		// now create the msg to post price
-		msg := types.NewMsgPostPrice(address, assetCode, price, expiry)
+		msg := types.NewMsgPostPrice(address, marketID, price, expiry)
 
 		// Perform basic validation of the msg - don't submit errors that fail ValidateBasic, use unit tests for testing ValidateBasic
 		if err := msg.ValidateBasic(); err != nil {
