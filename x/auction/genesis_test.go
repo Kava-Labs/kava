@@ -35,6 +35,7 @@ func TestInitGenesis(t *testing.T) {
 			auction.DefaultParams(),
 			auction.GenesisAuctions{testAuction},
 		)
+		// TODO need to add coins to supply keeper
 
 		// run init
 		require.NotPanics(t, func() {
@@ -59,7 +60,7 @@ func TestInitGenesis(t *testing.T) {
 			return false
 		})
 	})
-	t.Run("invalid", func(t *testing.T) {
+	t.Run("invalid (invalid nextAuctionID)", func(t *testing.T) {
 		// setup keepers
 		tApp := app.NewTestApp()
 		ctx := tApp.NewContext(true, abci.Header{})
@@ -67,6 +68,23 @@ func TestInitGenesis(t *testing.T) {
 		// create invalid genesis
 		gs := auction.NewGenesisState(
 			0, // next id < testAuction ID
+			auction.DefaultParams(),
+			auction.GenesisAuctions{testAuction},
+		)
+
+		// check init fails
+		require.Panics(t, func() { // TODO check it fails for the right reason
+			auction.InitGenesis(ctx, tApp.GetAuctionKeeper(), tApp.GetSupplyKeeper(), gs)
+		})
+	})
+	t.Run("invalid (missing mod account coins)", func(t *testing.T) {
+		// setup keepers
+		tApp := app.NewTestApp()
+		ctx := tApp.NewContext(true, abci.Header{})
+
+		// create invalid genesis
+		gs := auction.NewGenesisState(
+			1,
 			auction.DefaultParams(),
 			auction.GenesisAuctions{testAuction},
 		)

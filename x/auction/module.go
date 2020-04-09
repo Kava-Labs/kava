@@ -110,7 +110,7 @@ func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
 	}
 }
 
-// RegisterInvariants performs a no-op.
+// RegisterInvariants registers the module invariants.
 func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route module message route name
