@@ -2,6 +2,7 @@ package simulation
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -9,17 +10,45 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
+// Generate random parameters
+func GenBidDuration(r *rand.Rand) time.Duration {
+	// time.Duration is just an int64 (ie a 63 bit number with a bit for the sign)
+	// So a positive int64 number can be generated using r.Int63.
+	// should not be greater than MaxBidDuration
+	return time.Duration(r.Int63()) // TODO restrict to a range of values that increase likelihood that auctions will close during simulations
+}
+func GenMaxAuctionDuration(r *rand.Rand) time.Duration {
+	// should not be greater than the max allowable by amino
+	return time.Duration(r.Int63())
+}
+func GenIncrementCollateral(r *rand.Rand) sdk.Dec {
+	return simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1"))
+}
+
+var GenIncrementDebt = GenIncrementCollateral
+var GenIncrementSurplus = GenIncrementCollateral
+
 // RandomizedGenState generates a random GenesisState for auction
 func RandomizedGenState(simState *module.SimulationState) {
 
-	// Start wih the default genesis state
-	auctionGenesis := types.DefaultGenesisState()
+	auctionGenesis := types.NewGenesisState(
+		types.DefaultNextAuctionID,
+		types.NewParams(
+			GenMaxAuctionDuration(simState.Rand),
+			GenBidDuration(simState.Rand),
+			GenIncrementSurplus(simState.Rand),
+			GenIncrementDebt(simState.Rand),
+			GenIncrementCollateral(simState.Rand),
+		),
+		nil,
+	)
 
 	// Add auctions
 	auctions := types.GenesisAuctions{

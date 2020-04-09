@@ -175,7 +175,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 		),
 	)
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
+		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.Coin{Denom: a.Bid.Denom, Amount: minNewBidAmt}) // not using NewCoin as it can panic
 	}
 
 	// New bidder pays back old bidder
@@ -239,7 +239,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	)
 	minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
+		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.Coin{Denom: a.Bid.Denom, Amount: minNewBidAmt}) // not using NewCoin as it can panic
 	}
 	if a.MaxBid.IsLT(bid) {
 		return a, types.ErrBidTooLarge(k.codespace, bid, a.MaxBid)
@@ -314,10 +314,10 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.Coin{Denom: a.Lot.Denom, Amount: maxNewLotAmt}) // not using NewCoin as it can panic
 	}
 	if lot.IsNegative() {
-		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.Coin{Denom: a.Lot.Denom, Amount: sdk.ZeroInt()})
 	}
 
 	// New bidder pays back old bidder
@@ -380,10 +380,10 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.Coin{Denom: a.Lot.Denom, Amount: maxNewLotAmt}) // not using NewCoin as it can panic
 	}
 	if lot.IsNegative() {
-		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.Coin{Denom: a.Lot.Denom, Amount: sdk.ZeroInt()})
 	}
 
 	// New bidder pays back old bidder
