@@ -52,8 +52,10 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 
 		fmt.Printf("Picked asset: %s\n", assetCode)
 
-		// TODO QUESTION - GET THE CURRENT PRICE OF THE ASSET?? HOW TO DO THIS?
-		currentPrice := sdk.MustNewDecFromStr("100")
+		//GET THE CURRENT PRICE OF THE ASSET
+		marketID := ToLower(assetCode + ":usd") // convert to lower case
+
+		currentPrice := keeper.GetCurrentPrice(ctx, marketID)
 
 		// generate a new random price based off the current price
 		price, err := pickNewRandomPrice(r, currentPrice)
