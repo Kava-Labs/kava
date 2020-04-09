@@ -77,6 +77,8 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 			return noOpMsg, nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
 		}
 
+		fmt.Printf("Trying to submit msg: %s\n", msg)
+
 		// now we submit the pricefeed update message
 		// TODO QUESTION - this is failing for some reason? Any ideas why?
 		if ok := submitMsg(ctx, handler, msg); !ok {
@@ -130,7 +132,13 @@ func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err 
 // submitMsg submits a message to the current instance of the keeper and returns a boolean whether the operation completed successfully or not
 func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) (ok bool) {
 	ctx, write := ctx.CacheContext()
-	ok = handler(ctx, msg).IsOK()
+	got := handler(ctx, msg)
+
+	fmt.Println("Got:")
+	fmt.Print(got)
+	fmt.Println()
+
+	ok = got.IsOK()
 	if ok {
 		write()
 	}
