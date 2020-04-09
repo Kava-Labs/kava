@@ -33,7 +33,7 @@ make install
 
 ## Mainnet
 
-Note, the current recommended version of the software for mainnet is v0.3.2.
+Note, the current recommended version of the software for mainnet is v0.3.5
 
 To join the latest testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
 
