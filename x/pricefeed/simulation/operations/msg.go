@@ -42,8 +42,8 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		// (5) POST THE NEW PRICE TO THE KEEPER
 
 		// get the address for the account
-		// TODO QUESTION do we need to check if this address exists on chain or is an oracle for the price or does it not matter
-		address := sdk.AccAddress("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c")
+		// this address needs to be an oracle and also exist. genesis should add all the accounts as oracles.
+		address := sdk.AccAddress(accs[0].Address)
 
 		// pick a random asset out of BNB and BTC
 		assetCode := pickRandomAsset(ctx, keeper, r)
