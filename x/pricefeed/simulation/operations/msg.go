@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -45,17 +46,20 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		address := sdk.AccAddress("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c")
 
 		// pick a random asset out of BNB and BTC
-		assetCode := pickRandomAsset()
+		assetCode := pickRandomAsset(ctx, keeper, r)
 
 		fmt.Printf("Picked asset: %s\n", assetCode)
 
 		//GET THE CURRENT PRICE OF THE ASSET
-		marketID := ToLower(assetCode + ":usd") // convert to lower case
+		marketID := strings.ToLower(assetCode + ":usd") // convert to lower case
 
-		currentPrice := keeper.GetCurrentPrice(ctx, marketID)
+		currentPrice, err := keeper.GetCurrentPrice(ctx, marketID)
+		if err != nil {
+			return noOpMsg, nil, fmt.Errorf("Error getting current price")
+		}
 
 		// generate a new random price based off the current price
-		price, err := pickNewRandomPrice(r, currentPrice)
+		price, err := pickNewRandomPrice(r, currentPrice.Price)
 		if err != nil {
 			return noOpMsg, nil, fmt.Errorf("Error picking random price")
 		}
@@ -83,13 +87,15 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 	}
 }
 
-// pickRandomAsset picks a random asset out of BNB and BTC with equal probability
-func pickRandomAsset() (assetCode string) {
+// pickRandomAsset picks a random asset out of the assets with equal probability
+func pickRandomAsset(ctx sdk.Context, keeper keeper.Keeper, r *rand.Rand) (asset string) {
 	// get the params
-	params := keeper.GetParams()
+	params := keeper.GetParams(ctx)
 	// now pick a random asset
-	randomAsset := params.Markets[simulation.RandIntBetween(0, len(params.Markets)]
-	return randomAsset
+	randomIndex := simulation.RandIntBetween(r, 0, len(params.Markets))
+	randomAsset := params.Markets[randomIndex]
+	asset = randomAsset.BaseAsset
+	return asset
 }
 
 // getExpiryTime gets a price expiry time by taking the current time and adding a delta to it
@@ -116,7 +122,7 @@ func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err 
 	randomPriceMultiplier = randomPriceMultiplier.Add(offset) // gives a result in range 0.8-1.2 inclusive
 
 	// MULTIPLY CURRENT PRICE BY RANDOM PRICE MULTIPLER
-	price = randomPriceMultiplier.Mul(sdk.NewDec(int64(currentPrice)))
+	price = randomPriceMultiplier.Mul(currentPrice)
 	// return the price
 	return price, nil
 }

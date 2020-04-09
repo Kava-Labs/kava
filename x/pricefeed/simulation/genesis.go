@@ -7,8 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/pricefeed/types"
+	pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -54,12 +54,13 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	// now go through and modify the params adding the accounts as an oracle to each of the markets
 
-	params := getPricefeedSimulationParams()
-	genPrices := []PostedPrice{}
+	params := pricefeedGenesis.Params // TODO QUESTION? IS THIS CORRECT? NEED TO CALL ANOTHER METHOD EG getPricefeedSimulationParams() ??
+	genPrices := []pricefeed.PostedPrice{}
 	for _, market := range params.Markets {
 		for _, acc := range simState.Accounts {
 			market.Oracles = append(market.Oracles, acc.Address)
-			genPrice := types.PostedPrice{market.ID, acc.Address, getInitialPrice(market.ID), simState.GenTimestamp.Add(time.Hour * 24)}
+			// TODO QUESTION is this the right way to get market id??
+			genPrice := types.PostedPrice{market.MarketID, acc.Address, getInitialPrice(market.MarketID), simState.GenTimestamp.Add(time.Hour * 24)}
 			genPrices = append(genPrices, genPrice)
 		}
 	}
