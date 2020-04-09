@@ -111,10 +111,7 @@ func getExpiryTime() (t time.Time) {
 // still being in the similar range. Random walk style.
 func pickNewRandomPrice(r *rand.Rand, currentPrice int64) (price sdk.Dec, err sdk.Error) {
 	// Pick random price
-	got, err := sdk.NewDecFromStr("0.4")
-	if err != nil {
-		return sdk.ZeroDec(), err
-	}
+	got := sdk.MustNewDecFromStr("0.4")
 
 	randomPriceMultiplier := simulation.RandomDecAmount(r, got) // get a random number
 	if err != nil {
@@ -122,11 +119,7 @@ func pickNewRandomPrice(r *rand.Rand, currentPrice int64) (price sdk.Dec, err sd
 		// return noOpMsg, nil, fmt.Errorf("Error picking random price")
 	}
 
-	offset, err := sdk.NewDecFromStr("0.8")
-	if err != nil {
-		return sdk.ZeroDec(), err
-		// return noOpMsg, nil, fmt.Errorf("Error picking random price")
-	}
+	offset := sdk.MustNewDecFromStr("0.8")
 
 	randomPriceMultiplier = randomPriceMultiplier.Add(offset) // gives a result in range 0.8-1.2 inclusive
 
