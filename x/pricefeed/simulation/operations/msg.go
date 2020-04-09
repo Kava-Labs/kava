@@ -45,10 +45,7 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		address := sdk.AccAddress("kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c")
 
 		// pick a random asset out of BNB and BTC
-		assetCode, err := pickRandomAsset(r)
-		if err != nil {
-			return noOpMsg, nil, fmt.Errorf("Error picking random asset")
-		}
+		assetCode := pickRandomAsset()
 
 		fmt.Printf("Picked asset: %s\n", assetCode)
 
@@ -87,19 +84,12 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 }
 
 // pickRandomAsset picks a random asset out of BNB and BTC with equal probability
-func pickRandomAsset(r *rand.Rand) (assetCode string, err error) {
-	// randomly pick an asset
-	randomNum, err := simulation.RandPositiveInt(r, sdk.NewInt(100)) // get a random number
-	if err != nil {
-		return "", err
-	}
-	// pick each asset with 50% probability
-	if randomNum.LTE(sdk.NewInt(50)) {
-		assetCode = "BNB"
-	} else {
-		assetCode = "BTC"
-	}
-	return assetCode, nil
+func pickRandomAsset() (assetCode string) {
+	// get the params
+	params := keeper.GetParams()
+	// now pick a random asset
+	randomAsset := params.Markets[simulation.RandIntBetween(0, len(params.Markets)]
+	return randomAsset
 }
 
 // getExpiryTime gets a price expiry time by taking the current time and adding a delta to it
