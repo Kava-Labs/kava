@@ -53,7 +53,7 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		//GET THE CURRENT PRICE OF THE ASSET
 		marketID := strings.ToLower(assetCode + ":usd") // convert to lower case
 
-		currentPrice, err := keeper.GetCurrentPrice(ctx, marketID)
+		currentPrice, err := keeper.GetCurrentPrice(ctx, marketID) // TODO NOTE THIS IS marketID AND **NOT** THE assetcode
 		if err != nil {
 			return noOpMsg, nil, fmt.Errorf("Error getting current price")
 		}
