@@ -179,9 +179,6 @@ func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice)
 func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, sdk.Error) {
 	store := ctx.KVStore(k.key)
 
-	fmt.Println("looking up price for:")
-	fmt.Print(types.CurrentPricePrefix + marketID)
-
 	bz := store.Get([]byte(types.CurrentPricePrefix + marketID))
 
 	if bz == nil {
@@ -189,10 +186,6 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 	}
 	var price types.CurrentPrice
 	k.cdc.MustUnmarshalBinaryBare(bz, &price)
-
-	fmt.Println("Got price:")
-	fmt.Print(price)
-	fmt.Println()
 
 	if price.Price.Equal(sdk.ZeroDec()) {
 		return types.CurrentPrice{}, types.ErrNoValidPrice(k.codespace)

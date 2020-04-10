@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
@@ -15,30 +16,24 @@ import (
 
 // RandomizedGenState generates a random GenesisState for pricefeed
 func RandomizedGenState(simState *module.SimulationState) {
-
 	// get the params with xrp, btc and bnb to usd
-	// define getPricefeedSimulationParams to return params with xrp:usd, btc:usd, bnb:usd
-	params := getPricefeedSimulationParams() // TODO QUESTION? IS THIS CORRECT? NEED TO CALL ANOTHER METHOD EG getPricefeedSimulationParams() ??
-
-	// now go through and modify the params adding the accounts as an oracle to each of the markets
+	// getPricefeedSimulationParams is defined to return params with xrp:usd, btc:usd, bnb:usd
+	params := getPricefeedSimulationParams()
+	markets := []types.Market{}
 	genPrices := []types.PostedPrice{}
-	newMarkets := []types.Market{}
+	// chose one account to be the oracle
+	oracle := simState.Accounts[simulation.RandIntBetween(simState.Rand, 0, len(simState.Accounts))]
 	for _, market := range params.Markets {
-		oracles := []sdk.AccAddress{}
-		for _, acc := range simState.Accounts {
-			oracles = []sdk.AccAddress{acc.Address}
-			// define getInitialPrice to set the initial price for each market (ie a switch statement where btc:usd is ~7000, bnb:usd is 14, and xrp:usd is 0.2(
-			genPrice := types.PostedPrice{market.MarketID, acc.Address, getInitialPrice(market.MarketID), simState.GenTimestamp.Add(time.Hour * 24)}
-			genPrices = append(genPrices, genPrice)
-		}
-		newMarket := types.Market{market.MarketID, market.BaseAsset, market.QuoteAsset, oracles, market.Active}
-		newMarkets = append(newMarkets, newMarket)
+		updatedMarket := types.Market{market.MarketID, market.BaseAsset, market.QuoteAsset, []sdk.AccAddress{oracle.Address}, true}
+		markets = append(markets, updatedMarket)
+		genPrice := types.PostedPrice{market.MarketID, oracle.Address, getInitialPrice(market.MarketID), simState.GenTimestamp.Add(time.Hour * 24)}
+		genPrices = append(genPrices, genPrice)
 	}
-	params = types.NewParams(newMarkets)
+	params = types.NewParams(markets)
 	pricefeedGenesis := types.NewGenesisState(params, genPrices)
+
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, pricefeedGenesis))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(pricefeedGenesis)
-
 }
 
 // getPricefeedSimulationParams returns the params with xrp:usd, btc:usd, bnb:usd
@@ -56,17 +51,15 @@ func getPricefeedSimulationParams() types.Params {
 	return pricefeedGenesis.Params
 }
 
+// getInitialPrice gets the starting price for each of the base assets
 func getInitialPrice(marketId string) (price sdk.Dec) {
 	switch marketId {
 	case "btc:usd":
-		return sdk.MustNewDecFromStr("7000") // TODO QUESTION - add some randomization?
+		return sdk.MustNewDecFromStr("7000")
 	case "bnb:usd":
 		return sdk.MustNewDecFromStr("14")
 	case "xrp:usd":
 		return sdk.MustNewDecFromStr("0.2")
 	}
-
-	fmt.Printf("Invalid marketId in getInitialPrice: %s\n", marketId)
-	return sdk.MustNewDecFromStr("0")
-
+	panic(fmt.Sprintf("Invalid marketId in getInitialPrice: %s\n", marketId))
 }
