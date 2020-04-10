@@ -58,7 +58,7 @@ const (
 	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
 	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
-	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
+	OpWeightMsgPricefeed                               = "op_weight_msg_pricefeed"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -271,7 +271,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 		{
 			func(_ *rand.Rand) int {
 				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+				ap.GetOrGenerate(app.cdc, OpWeightMsgPricefeed, &v, nil,
 					func(_ *rand.Rand) {
 						v = 10000 // TODO
 					})
