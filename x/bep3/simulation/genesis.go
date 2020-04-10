@@ -25,13 +25,13 @@ const (
 )
 
 var (
-	MaxSupplyLimit  = sdk.NewInt(10000000000000000)
-	BondedAddresses []sdk.AccAddress
+	MaxSupplyLimit = sdk.NewInt(10000000000000000)
+	Accs           []simulation.Account
 )
 
 // GenBnbDeputyAddress randomized BnbDeputyAddress
 func GenBnbDeputyAddress(r *rand.Rand) sdk.AccAddress {
-	return BondedAddresses[r.Intn(len(BondedAddresses))]
+	return simulation.RandomAcc(r, Accs).Address
 }
 
 // GenMinBlockLock randomized MinBlockLock
@@ -73,7 +73,7 @@ func genSupportedAsset(r *rand.Rand) types.AssetParam {
 
 // RandomizedGenState generates a random GenesisState
 func RandomizedGenState(simState *module.SimulationState) {
-	BondedAddresses = loadBondedAddresses(simState)
+	Accs = simState.Accounts
 
 	bep3Genesis := loadRandomBep3GenState(simState)
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, bep3Genesis))
@@ -92,11 +92,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 }
 
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
-	var bnbDeputyAddress sdk.AccAddress
-	simState.AppParams.GetOrGenerate(
-		simState.Cdc, BnbDeputyAddress, &bnbDeputyAddress, simState.Rand,
-		func(r *rand.Rand) { bnbDeputyAddress = GenBnbDeputyAddress(r) },
-	)
+	bnbDeputyAddress := simulation.RandomAcc(simState.Rand, simState.Accounts).Address
 
 	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
 	minBlockLock := int64(types.AbsoluteMinimumBlockLock)
@@ -142,16 +138,6 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 	authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, deputy)
 
 	return authGenesis, totalCoins
-}
-
-// loadBondedAddresses loads an array of bonded account addresses
-func loadBondedAddresses(simState *module.SimulationState) []sdk.AccAddress {
-	addrs := make([]sdk.AccAddress, simState.NumBonded)
-	for i := 0; i < int(simState.NumBonded); i++ {
-		addr := simState.Accounts[i].Address
-		addrs[i] = addr
-	}
-	return addrs
 }
 
 // Return an account from a list of accounts that matches an address.
