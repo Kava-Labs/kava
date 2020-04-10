@@ -52,31 +52,6 @@ func getPricefeedSimulationParams() types.Params {
 				pricefeed.Market{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
-
-		// TODO QUESTION - are these prices necessary? they are re-set by getInitialPrice. assuming the below can be deleted?
-		PostedPrices: []pricefeed.PostedPrice{
-			// Bitcoin
-			pricefeed.PostedPrice{
-				MarketID:      "btc:usd",
-				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("7000.00"),
-				Expiry:        time.Now().Add(1 * time.Hour),
-			},
-			// Binance coin
-			pricefeed.PostedPrice{
-				MarketID:      "bnb:usd",
-				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("14.00"),
-				Expiry:        time.Now().Add(1 * time.Hour),
-			},
-			// XRP ripple coin
-			pricefeed.PostedPrice{
-				MarketID:      "xrp:usd",
-				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("0.2"),
-				Expiry:        time.Now().Add(1 * time.Hour),
-			},
-		},
 	}
 	return pricefeedGenesis.Params
 }
