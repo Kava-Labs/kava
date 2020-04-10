@@ -36,6 +36,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
+	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation/operations"
 	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
 
@@ -60,6 +61,7 @@ const (
 	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
 	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
+	OpWeightCdpMsg                                     = "op_weight_cdp_msg"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -292,6 +294,17 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 			}(nil),
 			pricefeedsimops.SimulateMsgUpdatePrices(app.accountKeeper, app.pricefeedKeeper),
 		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightCdpMsg, &v, nil,
+					func(_ *rand.Rand) {
+						v = 10000 // TODO
+					})
+				return v
+			}(nil),
+			cdpsimops.SimulateMsgCdp(app.accountKeeper, app.cdpKeeper, app.pricefeedKeeper),
+		},
 	}
 }
 
@@ -383,7 +396,6 @@ func TestFullAppSimulation(t *testing.T) {
 
 	app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, fauxMerkleModeOpt)
 	require.Equal(t, "kava", app.Name())
-
 	// Run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.sm),

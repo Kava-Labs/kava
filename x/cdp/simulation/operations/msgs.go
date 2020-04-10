@@ -13,8 +13,8 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
-// SimulateMsgCreateOrDepositCdp generates a MsgCreateCdp or MsgDepositCdp with random values.
-func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) simulation.Operation {
+// SimulateMsgCdp generates a MsgCreateCdp or MsgDepositCdp with random values.
+func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		opMsg simulation.OperationMsg, fOps []simulation.FutureOperation, err error) {
 
@@ -35,7 +35,8 @@ func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pric
 
 		price, err := pfk.GetCurrentPrice(ctx, randCollateralParam.MarketID)
 		if err != nil {
-			return simulation.NoOpMsg(cdp.ModuleName), nil, err
+			fmt.Printf("error from pricefeed: %v\n", err)
+			return simulation.NoOpMsg(cdp.ModuleName), nil, nil
 		}
 		// convert the price to the same units as the debt param
 		priceShifted := ShiftDec(price.Price, randDebtParam.ConversionFactor)
@@ -58,7 +59,6 @@ func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pric
 
 			// randomly select a collateral deposit amount
 			collateralDeposit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(minCollateralDepositRounded.Int64()), int(maxCollateralDeposit.Int64()))))
-			fmt.Printf("%s\n", collateralDeposit)
 			// calculate how much the randomly selected deposit is worth
 			collateralDepositValue := ShiftDec(sdk.NewDecFromInt(collateralDeposit), randCollateralParam.ConversionFactor.Neg()).Mul(priceShifted)
 			// calculate the max amount of debt that could be drawn for the chosen deposit
@@ -78,11 +78,12 @@ func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pric
 
 		// TODO a cdp already exists, deposit to it, draw debt from it, or repay debt to it
 		// close 25% of the time
-		if canClose(acc, existingCDP) && shouldClose(r) {
+		if canClose(acc, existingCDP, randDebtParam.Denom) && shouldClose(r) {
 			repaymentAmount := coins.AmountOf(randDebtParam.Denom)
-			msg := cdp.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, repaymentAmount)))
-			if msg.ValidateBasic() != nil {
-				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
+			msg := cdp.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, repaymentAmount)))
+			err := msg.ValidateBasic()
+			if err != nil {
+				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected repay (close) msg to pass ValidateBasic: %v", err)
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
@@ -95,8 +96,9 @@ func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pric
 		if hasCoins(acc, randCollateralParam.Denom) && shouldDeposit(r) {
 			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(acc.GetCoins().AmountOf(randCollateralParam.Denom).Int64()))))
 			msg := cdp.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, randDepositAmount)))
-			if msg.ValidateBasic() != nil {
-				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
+			err := msg.ValidateBasic()
+			if err != nil {
+				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected deposit msg to pass ValidateBasic: %v", err)
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
@@ -107,14 +109,16 @@ func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pric
 
 		// draw debt 25% of the time
 		if shouldDraw(r) {
-			collateralValue := sdk.NewDecFromInt(existingCDP.Collateral.AmountOf(randCollateralParam.Denom)).Mul(priceShifted)
+			collateralShifted := ShiftDec(sdk.NewDecFromInt(existingCDP.Collateral.AmountOf(randCollateralParam.Denom)), randCollateralParam.ConversionFactor.Neg())
+			collateralValue := collateralShifted.Mul(priceShifted)
 			debt := (existingCDP.Principal.Add(existingCDP.AccumulatedFees)).AmountOf(randDebtParam.Denom)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
 			maxDebt := maxTotalDebt.Sub(sdk.NewDecFromInt(debt)).TruncateInt().Sub(sdk.OneInt())
 			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDebt.Int64()))))
 			msg := cdp.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randDrawAmount)))
-			if msg.ValidateBasic() != nil {
-				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
+			err := msg.ValidateBasic()
+			if err != nil {
+				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected draw msg to pass ValidateBasic: %v", err)
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
@@ -127,11 +131,21 @@ func SimulateMsgCreateOrDepositCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pric
 		// repay debt 25% of the time
 		if hasCoins(acc, randDebtParam.Denom) {
 			debt := (existingCDP.Principal.Add(existingCDP.AccumulatedFees)).AmountOf(randDebtParam.Denom)
-			maxRepay := debt.Sub(randDebtParam.DebtFloor)
+			maxRepay := acc.GetCoins().AmountOf(randDebtParam.Denom)
+			payableDebt := debt.Sub(randDebtParam.DebtFloor)
+			if maxRepay.GT(payableDebt) {
+				maxRepay = payableDebt
+			}
 			randRepayAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
+			if debt.Equal(randDebtParam.DebtFloor) {
+				if acc.GetCoins().AmountOf(randDebtParam.Denom).GTE(debt) {
+					randRepayAmount = debt
+				}
+			}
 			msg := cdp.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randRepayAmount)))
-			if msg.ValidateBasic() != nil {
-				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
+			err := msg.ValidateBasic()
+			if err != nil {
+				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected repay msg to pass ValidateBasic: %s", msg.GetSignBytes())
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
@@ -149,6 +163,9 @@ func submitMsg(msg sdk.Msg, handler sdk.Handler, ctx sdk.Context) (ok bool) {
 	ok = handler(ctx, msg).IsOK()
 	if ok {
 		write()
+	} else {
+		log := handler(ctx, msg).Log
+		fmt.Println(log)
 	}
 	return ok
 }
@@ -187,9 +204,9 @@ func shouldClose(r *rand.Rand) bool {
 	return false
 }
 
-func canClose(acc authexported.Account, c cdp.CDP) bool {
-	repaymentAmount := c.Principal.Add(c.AccumulatedFees)
-	if acc.GetCoins().AmountOf(c.Principal[0].Denom).GT(repaymentAmount.AmountOf(c.Principal[0].Denom)) {
+func canClose(acc authexported.Account, c cdp.CDP, denom string) bool {
+	repaymentAmount := c.Principal.Add(c.AccumulatedFees).AmountOf(denom)
+	if acc.GetCoins().AmountOf(denom).GT(repaymentAmount) {
 		return true
 	}
 	return false
