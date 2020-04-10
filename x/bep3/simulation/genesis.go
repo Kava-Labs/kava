@@ -98,21 +98,9 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 		func(r *rand.Rand) { bnbDeputyAddress = GenBnbDeputyAddress(r) },
 	)
 
-	fmt.Println("simState:", simState.AppParams)
-	// TODO: set minBlockLock/maxBlockLock based off sim.numBlocks
+	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
 	minBlockLock := int64(types.AbsoluteMinimumBlockLock)
-	// var minBlockLock int64
-	// simState.AppParams.GetOrGenerate(
-	// 	simState.Cdc, MinBlockLock, &minBlockLock, simState.Rand,
-	// 	func(r *rand.Rand) { minBlockLock = GenMinBlockLock(r) },
-	// )
-
 	maxBlockLock := minBlockLock * 2
-	// var maxBlockLock int64
-	// simState.AppParams.GetOrGenerate(
-	// 	simState.Cdc, MaxBlockLock, &maxBlockLock, simState.Rand,
-	// 	func(r *rand.Rand) { maxBlockLock = GenMaxBlockLock(r, minBlockLock) },
-	// )
 
 	var supportedAssets types.AssetParams
 	simState.AppParams.GetOrGenerate(
@@ -156,7 +144,6 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 	return authGenesis, totalCoins
 }
 
-// TODO: This function can be refactored
 // loadBondedAddresses loads an array of bonded account addresses
 func loadBondedAddresses(simState *module.SimulationState) []sdk.AccAddress {
 	addrs := make([]sdk.AccAddress, simState.NumBonded)

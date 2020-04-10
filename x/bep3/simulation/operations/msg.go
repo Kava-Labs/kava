@@ -66,9 +66,7 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 		coins := sdk.NewCoins(coin)
 		expectedIncome := coin.String()
 
-		// minLock := int(k.GetMinBlockLock(ctx))
-		// maxLock := int(k.GetMaxBlockLock(ctx))
-		// TODO: heightSpan := int64(r.Intn(maxLock-minLock) + minLock)
+		// We're assuming that sims are run with -NumBlocks=100
 		heightSpan := int64(55)
 		crossChain := true
 
