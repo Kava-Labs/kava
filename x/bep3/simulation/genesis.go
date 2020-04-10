@@ -25,8 +25,9 @@ const (
 )
 
 var (
-	MaxSupplyLimit = sdk.NewInt(10000000000000000)
-	Accs           []simulation.Account
+	MaxSupplyLimit   = sdk.NewInt(10000000000000000)
+	Accs             []simulation.Account
+	ConsistentDenoms = [3]string{"bnb", "xrp", "btc"}
 )
 
 // GenBnbDeputyAddress randomized BnbDeputyAddress
@@ -53,14 +54,18 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 	var assets types.AssetParams
 	for i := 0; i < (r.Intn(10) + 1); i++ {
 		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		asset := genSupportedAsset(r)
+		denom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
+		asset := genSupportedAsset(r, denom)
 		assets = append(assets, asset)
 	}
+	// Add bnb, btc, or xrp as a supported asset for interactions with other modules
+	stableAsset := genSupportedAsset(r, ConsistentDenoms[r.Intn(3)])
+	assets = append(assets, stableAsset)
+
 	return assets
 }
 
-func genSupportedAsset(r *rand.Rand) types.AssetParam {
-	denom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
+func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
 	limit, _ := simulation.RandPositiveInt(r, MaxSupplyLimit)
 	return types.AssetParam{
