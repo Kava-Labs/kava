@@ -29,17 +29,22 @@ func TestInitGenesis(t *testing.T) {
 		tApp := app.NewTestApp()
 		keeper := tApp.GetAuctionKeeper()
 		ctx := tApp.NewContext(true, abci.Header{})
+		// setup module account
+		supplyKeeper := tApp.GetSupplyKeeper()
+		moduleAcc := supplyKeeper.GetModuleAccount(ctx, auction.ModuleName)
+		require.NoError(t, moduleAcc.SetCoins(testAuction.GetModuleAccountCoins()))
+		supplyKeeper.SetModuleAccount(ctx, moduleAcc)
+
 		// create genesis
 		gs := auction.NewGenesisState(
 			10,
 			auction.DefaultParams(),
 			auction.GenesisAuctions{testAuction},
 		)
-		// TODO need to add coins to supply keeper
 
 		// run init
 		require.NotPanics(t, func() {
-			auction.InitGenesis(ctx, keeper, tApp.GetSupplyKeeper(), gs)
+			auction.InitGenesis(ctx, keeper, supplyKeeper, gs)
 		})
 
 		// check state is as expected
@@ -73,7 +78,7 @@ func TestInitGenesis(t *testing.T) {
 		)
 
 		// check init fails
-		require.Panics(t, func() { // TODO check it fails for the right reason
+		require.Panics(t, func() {
 			auction.InitGenesis(ctx, tApp.GetAuctionKeeper(), tApp.GetSupplyKeeper(), gs)
 		})
 	})
@@ -84,10 +89,11 @@ func TestInitGenesis(t *testing.T) {
 
 		// create invalid genesis
 		gs := auction.NewGenesisState(
-			1,
+			10,
 			auction.DefaultParams(),
 			auction.GenesisAuctions{testAuction},
 		)
+		// invalid as there is no module account setup
 
 		// check init fails
 		require.Panics(t, func() {
