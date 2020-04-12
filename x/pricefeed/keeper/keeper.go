@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
@@ -41,54 +41,57 @@ func (k Keeper) SetPrice(
 	price sdk.Dec,
 	expiry time.Time) (types.PostedPrice, error) {
 	// If the expiry is less than or equal to the current blockheight, we consider the price valid
-	if expiry.After(ctx.BlockTime()) {
-		store := ctx.KVStore(k.key)
-		prices := k.GetRawPrices(ctx, marketID)
-		var index int
-		found := false
-		for i := range prices {
-			if prices[i].OracleAddress.Equals(oracle) {
-				index = i
-				found = true
-				break
-			}
-		}
-		// set the price for that particular oracle
-		if found {
-			prices[index] = types.PostedPrice{
-				MarketID: marketID, OracleAddress: oracle,
-				Price: price, Expiry: expiry}
-		} else {
-			prices = append(prices, types.PostedPrice{
-				MarketID: marketID, OracleAddress: oracle,
-				Price: price, Expiry: expiry})
-			index = len(prices) - 1
-		}
-
-		// Emit an event containing the oracle's new price
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeOracleUpdatedPrice,
-				sdk.NewAttribute(types.AttributeMarketID, marketID),
-				sdk.NewAttribute(types.AttributeOracle, oracle.String()),
-				sdk.NewAttribute(types.AttributeMarketPrice, price.String()),
-				sdk.NewAttribute(types.AttributeExpiry, fmt.Sprintf("%d", expiry.Unix())),
-			),
-		)
-		store.Set(
-			[]byte(types.RawPriceFeedPrefix+marketID), k.cdc.MustMarshalBinaryBare(prices),
-		)
-		return prices[index], nil
+	if !expiry.After(ctx.BlockTime()) {
+		return types.PostedPrice{}, types.ErrExpired
 	}
-	return types.PostedPrice{}, types.ErrExpired(k.codespace)
 
+	store := ctx.KVStore(k.key)
+	prices := k.GetRawPrices(ctx, marketID)
+
+	var index int
+	found := false
+	for i := range prices {
+		if prices[i].OracleAddress.Equals(oracle) {
+			index = i
+			found = true
+			break
+		}
+	}
+
+	// set the price for that particular oracle
+	if found {
+		prices[index] = types.PostedPrice{
+			MarketID: marketID, OracleAddress: oracle,
+			Price: price, Expiry: expiry}
+	} else {
+		prices = append(prices, types.PostedPrice{
+			MarketID: marketID, OracleAddress: oracle,
+			Price: price, Expiry: expiry})
+		index = len(prices) - 1
+	}
+
+	// Emit an event containing the oracle's new price
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeOracleUpdatedPrice,
+			sdk.NewAttribute(types.AttributeMarketID, marketID),
+			sdk.NewAttribute(types.AttributeOracle, oracle.String()),
+			sdk.NewAttribute(types.AttributeMarketPrice, price.String()),
+			sdk.NewAttribute(types.AttributeExpiry, expiry.UTC().String()),
+		),
+	)
+
+	store.Set(
+		[]byte(types.RawPriceFeedPrefix+marketID), k.cdc.MustMarshalBinaryBare(prices),
+	)
+	return prices[index], nil
 }
 
 // SetCurrentPrices updates the price of an asset to the median of all valid oracle inputs
 func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 	_, ok := k.GetMarket(ctx, marketID)
 	if !ok {
-		return types.ErrInvalidMarket(k.codespace, marketID)
+		return sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
 	}
 	// store current price
 	validPrevPrice := true
@@ -113,8 +116,9 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 		store.Set(
 			[]byte(types.CurrentPricePrefix+marketID), k.cdc.MustMarshalBinaryBare(types.CurrentPrice{}),
 		)
-		return types.ErrNoValidPrice(k.codespace)
+		return types.ErrNoValidPrice
 	}
+
 	medianPrice := k.CalculateMedianPrice(ctx, notExpiredPrices)
 
 	// check case that market price was not set in genesis
@@ -124,8 +128,8 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
 					types.EventTypeMarketPriceUpdated,
-					sdk.NewAttribute(types.AttributeMarketID, fmt.Sprintf("%s", marketID)),
-					sdk.NewAttribute(types.AttributeMarketPrice, fmt.Sprintf("%s", medianPrice.String())),
+					sdk.NewAttribute(types.AttributeMarketID, marketID),
+					sdk.NewAttribute(types.AttributeMarketPrice, medianPrice.String()),
 				),
 			)
 		}
@@ -178,12 +182,12 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 	bz := store.Get([]byte(types.CurrentPricePrefix + marketID))
 
 	if bz == nil {
-		return types.CurrentPrice{}, types.ErrNoValidPrice(k.codespace)
+		return types.CurrentPrice{}, types.ErrNoValidPrice
 	}
 	var price types.CurrentPrice
 	k.cdc.MustUnmarshalBinaryBare(bz, &price)
 	if price.Price.Equal(sdk.ZeroDec()) {
-		return types.CurrentPrice{}, types.ErrNoValidPrice(k.codespace)
+		return types.CurrentPrice{}, types.ErrNoValidPrice
 	}
 	return price, nil
 }

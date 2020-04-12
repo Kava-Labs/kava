@@ -5,18 +5,19 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
 // StartSurplusAuction starts a new surplus (forward) auction.
 func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, error) {
-
 	auction := types.NewSurplusAuction(
 		seller,
 		lot,
 		bidDenom,
-		types.DistantFuture)
+		types.DistantFuture,
+	)
 
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
@@ -53,7 +54,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
 	if !macc.HasPermission(supply.Minter) {
-		return 0, types.ErrInvalidModulePermissions(k.codespace, supply.Minter)
+		return 0, sdkerrors.Wrap(types.ErrInvalidModulePermissions, supply.Minter)
 	}
 
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, buyer, types.ModuleName, sdk.NewCoins(debt))
@@ -79,8 +80,10 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 }
 
 // StartCollateralAuction starts a new collateral (2-phase) auction.
-func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, error) {
-
+func (k Keeper) StartCollateralAuction(
+	ctx sdk.Context, seller string, lot, maxBid sdk.Coin,
+	lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin,
+) (uint64, error) {
 	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
 	if err != nil {
 		return 0, err
@@ -91,7 +94,8 @@ func (k Keeper) StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.C
 		types.DistantFuture,
 		maxBid,
 		weightedAddresses,
-		debt)
+		debt,
+	)
 
 	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
@@ -124,37 +128,36 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
-		return types.ErrAuctionNotFound(k.codespace, auctionID)
+		return sdkerrors.Wrap(types.ErrAuctionNotFound, auctionID)
 	}
 
 	// validation common to all auctions
 	if ctx.BlockTime().After(auction.GetEndTime()) {
-		return types.ErrAuctionHasExpired(k.codespace, auctionID)
+		return sdkerrors.Wrap(types.ErrAuctionHasExpired, auctionID)
 	}
 
 	// move coins and return updated auction
-	var err error
-	var updatedAuction types.Auction
+	var (
+		err            error
+		updatedAuction types.Auction
+	)
 	switch a := auction.(type) {
 	case types.SurplusAuction:
-		if updatedAuction, err = k.PlaceBidSurplus(ctx, a, bidder, newAmount); err != nil {
-			return err
-		}
+		updatedAuction, err = k.PlaceBidSurplus(ctx, a, bidder, newAmount)
 	case types.DebtAuction:
-		if updatedAuction, err = k.PlaceBidDebt(ctx, a, bidder, newAmount); err != nil {
-			return err
-		}
+		updatedAuction, err = k.PlaceBidDebt(ctx, a, bidder, newAmount)
 	case types.CollateralAuction:
 		if !a.IsReversePhase() {
 			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, a, bidder, newAmount)
 		} else {
 			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, a, bidder, newAmount)
 		}
-		if err != nil {
-			return err
-		}
 	default:
-		return types.ErrUnrecognizedAuctionType(k.codespace)
+		err = sdkerrors.Wrap(types.ErrUnrecognizedAuctionType, auction.GetType())
+	}
+
+	if err != nil {
+		return err
 	}
 
 	k.SetAuction(ctx, updatedAuction)
@@ -166,7 +169,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
-		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
+		return a, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "bid denom ≠ auction bid denom (%s ≠ %s)", bid.Denom, a.Bid.Denom)
 	}
 	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -175,7 +178,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 		),
 	)
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
+		return a, sdkerrors.Wrapf(types.ErrBidTooSmall, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt).String())
 	}
 
 	// New bidder pays back old bidder
@@ -226,10 +229,10 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
-		return a, types.ErrInvalidBidDenom(k.codespace, bid.Denom, a.Bid.Denom)
+		return a, types.ErrInvalidBidDenom, bid.Denom, a.Bid.Denom)
 	}
 	if a.IsReversePhase() {
-		return a, types.ErrCollateralAuctionIsInReversePhase(k.codespace, a.ID)
+		return a, types.ErrCollateralAuctionIsInReversePhase, a.ID)
 	}
 	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -239,10 +242,10 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	)
 	minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, types.ErrBidTooSmall(k.codespace, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
+		return a, types.ErrBidTooSmall, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
 	}
 	if a.MaxBid.IsLT(bid) {
-		return a, types.ErrBidTooLarge(k.codespace, bid, a.MaxBid)
+		return a, types.ErrBidTooLarge, bid, a.MaxBid)
 	}
 
 	// New bidder pays back old bidder
@@ -302,10 +305,10 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
-		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
+		return a, types.ErrInvalidLotDenom, lot.Denom, a.Lot.Denom)
 	}
 	if !a.IsReversePhase() {
-		return a, types.ErrCollateralAuctionIsInForwardPhase(k.codespace, a.ID)
+		return a, types.ErrCollateralAuctionIsInForwardPhase, a.ID)
 	}
 	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -314,10 +317,10 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+		return a, types.ErrLotTooLarge, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
 	}
 	if lot.IsNegative() {
-		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+		return a, types.ErrLotTooSmall, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
@@ -371,7 +374,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, error) {
 	// Validate new bid
 	if lot.Denom != a.Lot.Denom {
-		return a, types.ErrInvalidLotDenom(k.codespace, lot.Denom, a.Lot.Denom)
+		return a, types.ErrInvalidLotDenom, lot.Denom, a.Lot.Denom)
 	}
 	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -380,10 +383,10 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, types.ErrLotTooLarge(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+		return a, types.ErrLotTooLarge, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
 	}
 	if lot.IsNegative() {
-		return a, types.ErrLotTooSmall(k.codespace, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+		return a, types.ErrLotTooSmall, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
@@ -438,11 +441,11 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
-		return types.ErrAuctionNotFound(k.codespace, auctionID)
+		return sdkerrors.Wrap(types.ErrAuctionNotFound, auctionID)
 	}
 
 	if ctx.BlockTime().Before(auction.GetEndTime()) {
-		return types.ErrAuctionHasNotExpired(k.codespace, ctx.BlockTime(), auction.GetEndTime())
+		return types.ErrAuctionHasNotExpired, ctx.BlockTime(), auction.GetEndTime())
 	}
 
 	// payout to the last bidder
@@ -460,7 +463,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 			return err
 		}
 	default:
-		return types.ErrUnrecognizedAuctionType(k.codespace)
+		return types.ErrUnrecognizedAuctionType)
 	}
 
 	k.DeleteAuction(ctx, auctionID)

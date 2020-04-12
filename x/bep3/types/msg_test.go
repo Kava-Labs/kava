@@ -3,11 +3,14 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/stretchr/testify/require"
+
 	"github.com/tendermint/tendermint/crypto"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 var (
@@ -33,7 +36,7 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 		to                  sdk.AccAddress
 		recipientOtherChain string
 		senderOtherChain    string
-		randomNumberHash    cmn.HexBytes
+		randomNumberHash    tmbytes.HexBytes
 		timestamp           int64
 		amount              sdk.Coins
 		expectedIncome      string
@@ -75,8 +78,8 @@ func TestMsgClaimAtomicSwap(t *testing.T) {
 	tests := []struct {
 		description  string
 		from         sdk.AccAddress
-		swapID       cmn.HexBytes
-		randomNumber cmn.HexBytes
+		swapID       tmbytes.HexBytes
+		randomNumber tmbytes.HexBytes
 		expectPass   bool
 	}{
 		{"normal", binanceAddrs[0], swapID, randomNumberHash, true},
@@ -102,7 +105,7 @@ func TestMsgRefundAtomicSwap(t *testing.T) {
 	tests := []struct {
 		description string
 		from        sdk.AccAddress
-		swapID      cmn.HexBytes
+		swapID      tmbytes.HexBytes
 		expectPass  bool
 	}{
 		{"normal", binanceAddrs[0], swapID, true},

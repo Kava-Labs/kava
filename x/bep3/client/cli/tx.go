@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -25,7 +25,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short: "bep3 transactions subcommands",
 	}
 
-	bep3TxCmd.AddCommand(client.PostCommands(
+	bep3TxCmd.AddCommand(flags.PostCommands(
 		GetCmdCreateAtomicSwap(cdc),
 		GetCmdClaimAtomicSwap(cdc),
 		GetCmdRefundAtomicSwap(cdc),

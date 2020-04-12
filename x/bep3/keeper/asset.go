@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -9,7 +11,7 @@ import (
 func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// Resulting current supply must be under asset's limit
@@ -26,7 +28,7 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// Resulting current supply must be greater than or equal to 0
@@ -44,7 +46,7 @@ func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// 	Result of (current + incoming + amount) must be under asset's limit
@@ -62,7 +64,7 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// Resulting incoming supply must be greater than or equal to 0
@@ -80,7 +82,7 @@ func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// Result of (outgoing + amount) must be less than current supply
@@ -98,7 +100,7 @@ func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// Resulting outgoing supply must be greater than or equal to 0

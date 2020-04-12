@@ -1,9 +1,11 @@
 package keeper
 
 import (
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -19,7 +21,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown auction query endpoint")
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -27,21 +29,21 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 func queryAuction(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAuctionParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	// Lookup auction
 	auction, found := keeper.GetAuction(ctx, requestParams.AuctionID)
 	if !found {
-		return nil, types.ErrAuctionNotFound(types.DefaultCodespace, requestParams.AuctionID)
+		return nil, sdkerrors.Wrapf(types.ErrAuctionNotFound, "%d", requestParams.AuctionID)
 	}
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, auction)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -58,7 +60,7 @@ func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byt
 	// Encode Results
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, auctionsList)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -72,7 +74,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, params)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil

@@ -3,9 +3,11 @@ package types
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -36,21 +38,21 @@ var (
 
 // MsgCreateAtomicSwap contains an AtomicSwap struct
 type MsgCreateAtomicSwap struct {
-	From                sdk.AccAddress `json:"from"  yaml:"from"`
-	To                  sdk.AccAddress `json:"to"  yaml:"to"`
-	RecipientOtherChain string         `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
-	SenderOtherChain    string         `json:"sender_other_chain"  yaml:"sender_other_chain"`
-	RandomNumberHash    cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
-	Timestamp           int64          `json:"timestamp"  yaml:"timestamp"`
-	Amount              sdk.Coins      `json:"amount"  yaml:"amount"`
-	ExpectedIncome      string         `json:"expected_income"  yaml:"expected_income"`
-	HeightSpan          int64          `json:"height_span"  yaml:"height_span"`
-	CrossChain          bool           `json:"cross_chain"  yaml:"cross_chain"`
+	From                sdk.AccAddress   `json:"from"  yaml:"from"`
+	To                  sdk.AccAddress   `json:"to"  yaml:"to"`
+	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
+	SenderOtherChain    string           `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
+	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
+	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
+	ExpectedIncome      string           `json:"expected_income"  yaml:"expected_income"`
+	HeightSpan          int64            `json:"height_span"  yaml:"height_span"`
+	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
 }
 
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
 func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash cmn.HexBytes, timestamp int64,
+	senderOtherChain string, randomNumberHash tmbytes.HexBytes, timestamp int64,
 	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
 		From:                from,
@@ -92,11 +94,20 @@ func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) ValidateBasic() error {
+	if msg.From.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
 	if len(msg.From) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
 	}
+	if msg.To.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
+	}
 	if len(msg.To) != AddrByteCount {
 		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To)))
+	}
+	if msg.To.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
 	}
 	if !msg.CrossChain && len(msg.RecipientOtherChain) != 0 {
 		return sdk.ErrInternal(fmt.Sprintf("must leave recipient address on other chain to empty for single chain swap"))
@@ -119,8 +130,8 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if msg.Timestamp <= 0 {
 		return sdk.ErrInternal("timestamp must be positive")
 	}
-	if !msg.Amount.IsAllPositive() {
-		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
+	if !msg.Amount.IsValid() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 	if len(msg.ExpectedIncome) > MaxExpectedIncomeLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of expected income should be less than %d", MaxExpectedIncomeLength))
@@ -146,9 +157,9 @@ func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
 
 // MsgClaimAtomicSwap defines a AtomicSwap claim
 type MsgClaimAtomicSwap struct {
-	From         sdk.AccAddress `json:"from"  yaml:"from"`
-	SwapID       cmn.HexBytes   `json:"swap_id"  yaml:"swap_id"`
-	RandomNumber cmn.HexBytes   `json:"random_number"  yaml:"random_number"`
+	From         sdk.AccAddress   `json:"from"  yaml:"from"`
+	SwapID       tmbytes.HexBytes `json:"swap_id"  yaml:"swap_id"`
+	RandomNumber tmbytes.HexBytes `json:"random_number"  yaml:"random_number"`
 }
 
 // NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
@@ -184,7 +195,7 @@ func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
 // ValidateBasic validates the MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 	if len(msg.From) != AddrByteCount {
-		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address lenght ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
 	}
 	if len(msg.SwapID) != SwapIDLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
@@ -203,8 +214,8 @@ func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
 
 // MsgRefundAtomicSwap defines a refund msg
 type MsgRefundAtomicSwap struct {
-	From   sdk.AccAddress `json:"from" yaml:"from"`
-	SwapID cmn.HexBytes   `json:"swap_id" yaml:"swap_id"`
+	From   sdk.AccAddress   `json:"from" yaml:"from"`
+	SwapID tmbytes.HexBytes `json:"swap_id" yaml:"swap_id"`
 }
 
 // NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap

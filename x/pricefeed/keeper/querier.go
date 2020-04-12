@@ -1,12 +1,11 @@
 package keeper
 
 import (
-	"fmt"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -26,7 +25,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown pricefeed query endpoint")
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 
@@ -34,9 +33,9 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
@@ -46,9 +45,9 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 	if sdkErr != nil {
 		return nil, sdkErr
 	}
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, currentPrice)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, currentPrice)
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -56,9 +55,9 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 
 func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
@@ -66,9 +65,9 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 	}
 	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, rawPrices)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, rawPrices)
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -76,9 +75,9 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 
 func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	oracles, err := keeper.GetOracles(ctx, requestParams.MarketID)
@@ -86,9 +85,9 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 		return []byte{}, sdk.ErrUnknownRequest("market not found")
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, oracles)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, oracles)
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -97,9 +96,9 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
 	markets := keeper.GetMarkets(ctx)
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, markets)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, markets)
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -110,9 +109,9 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, params)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }

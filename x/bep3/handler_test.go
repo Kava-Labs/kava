@@ -6,11 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
@@ -47,7 +49,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 	suite.ctx = ctx
 }
 
-func (suite *HandlerTestSuite) AddAtomicSwap() (cmn.HexBytes, cmn.HexBytes) {
+func (suite *HandlerTestSuite) AddAtomicSwap() (tmbytes.HexBytes, tmbytes.HexBytes) {
 	expireHeight := int64(360)
 	amount := cs(c("bnb", int64(50000)))
 	timestamp := ts(0)

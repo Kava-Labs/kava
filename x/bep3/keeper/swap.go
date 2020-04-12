@@ -7,6 +7,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -18,7 +20,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
 	if found {
-		return types.ErrAtomicSwapAlreadyExists(k.codespace, swapID)
+		return sdkerrors.Wrap(types.ErrAtomicSwapAlreadyExists, string(swapID))
 	}
 
 	// The heightSpan period should be more than 10 minutes and less than one week
@@ -31,12 +33,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
 	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
 	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
-		return types.ErrInvalidTimestamp(k.codespace)
-	}
-
-	// Sanity check on recipient address
-	if recipient.Empty() {
-		return sdk.ErrInvalidAddress("invalid (empty) recipient address")
+		return sdkerrors.Wrap(types.ErrInvalidTimestamp, time.Unix(timestamp, 0).UTC().String())
 	}
 
 	if len(amount) != 1 {
@@ -58,17 +55,15 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	switch direction {
 	case types.Incoming:
-		err := k.IncrementIncomingAssetSupply(ctx, amount[0])
-		if err != nil {
-			return err
-		}
+		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
-		err := k.IncrementOutgoingAssetSupply(ctx, amount[0])
-		if err != nil {
-			return err
-		}
+		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
 	default:
-		return sdk.ErrInternal("invalid swap direction")
+		err = fmt.Errorf("invalid swap direction: %s", direction.String())
+	}
+
+	if err != nil {
+		return err
 	}
 
 	// Transfer coins to module
@@ -86,16 +81,16 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateAtomicSwap,
-			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", atomicSwap.Sender)),
-			sdk.NewAttribute(types.AttributeKeyRecipient, fmt.Sprintf("%s", atomicSwap.Recipient)),
-			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
+			sdk.NewAttribute(types.AttributeKeySender, atomicSwap.Sender.String()),
+			sdk.NewAttribute(types.AttributeKeyRecipient, atomicSwap.Recipient.String()),
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, hex.EncodeToString(atomicSwap.GetSwapID())),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, hex.EncodeToString(atomicSwap.RandomNumberHash)),
 			sdk.NewAttribute(types.AttributeKeyTimestamp, fmt.Sprintf("%d", atomicSwap.Timestamp)),
-			sdk.NewAttribute(types.AttributeKeySenderOtherChain, fmt.Sprintf("%s", atomicSwap.SenderOtherChain)),
+			sdk.NewAttribute(types.AttributeKeySenderOtherChain, atomicSwap.SenderOtherChain),
 			sdk.NewAttribute(types.AttributeKeyExpireHeight, fmt.Sprintf("%d", atomicSwap.ExpireHeight)),
-			sdk.NewAttribute(types.AttributeKeyAmount, fmt.Sprintf("%s", atomicSwap.Amount[0].String())),
-			sdk.NewAttribute(types.AttributeKeyExpectedIncome, fmt.Sprintf("%s", expectedIncome)),
-			sdk.NewAttribute(types.AttributeKeyDirection, fmt.Sprintf("%s", atomicSwap.Direction.String())),
+			sdk.NewAttribute(types.AttributeKeyAmount, atomicSwap.Amount[0].String()),
+			sdk.NewAttribute(types.AttributeKeyExpectedIncome, expectedIncome),
+			sdk.NewAttribute(types.AttributeKeyDirection, atomicSwap.Direction.String()),
 		),
 	)
 
@@ -108,12 +103,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
+		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", swapID)
 	}
 
 	// Only open atomic swaps can be claimed
 	if atomicSwap.Status != types.Open {
-		return types.ErrSwapNotClaimable(k.codespace)
+		return types.ErrSwapNotClaimable
 	}
 
 	//  Calculate hashed secret using submitted number
@@ -125,27 +120,26 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, atomicSwap.GetSwapID())
 	}
 
+	var err error
 	switch atomicSwap.Direction {
 	case types.Incoming:
 		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
-			return err
+			break
 		}
 		err = k.IncrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
-		if err != nil {
-			return err
-		}
 	case types.Outgoing:
-		err := k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
+		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
-			return err
+			break
 		}
 		err = k.DecrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
-		if err != nil {
-			return err
-		}
 	default:
-		return sdk.ErrInternal("invalid swap direction")
+		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
+	}
+
+	if err != nil {
+		return err
 	}
 
 	// Send intended recipient coins
@@ -158,11 +152,11 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaimAtomicSwap,
-			sdk.NewAttribute(types.AttributeKeyClaimSender, fmt.Sprintf("%s", from)),
-			sdk.NewAttribute(types.AttributeKeyRecipient, fmt.Sprintf("%s", atomicSwap.Recipient)),
-			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumber, fmt.Sprintf("%s", hex.EncodeToString(randomNumber))),
+			sdk.NewAttribute(types.AttributeKeyClaimSender, from.String()),
+			sdk.NewAttribute(types.AttributeKeyRecipient, atomicSwap.Recipient.String()),
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, hex.EncodeToString(atomicSwap.GetSwapID())),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, hex.EncodeToString(atomicSwap.RandomNumberHash)),
+			sdk.NewAttribute(types.AttributeKeyRandomNumber, hex.EncodeToString(randomNumber)),
 		),
 	)
 
@@ -181,30 +175,29 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return types.ErrAtomicSwapNotFound(k.codespace, swapID)
+		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", swapID)
 	}
 	// Only expired swaps may be refunded
 	if atomicSwap.Status != types.Expired {
-		return types.ErrSwapNotRefundable(k.codespace)
+		return types.ErrSwapNotRefundable
 	}
 
+	var err error
 	switch atomicSwap.Direction {
 	case types.Incoming:
-		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
-		if err != nil {
-			return err
-		}
+		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 	case types.Outgoing:
-		err := k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
-		if err != nil {
-			return err
-		}
+		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
 	default:
-		return sdk.ErrInternal("invalid swap direction")
+		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
+	}
+
+	if err != nil {
+		return err
 	}
 
 	// Refund coins to original swap sender
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	if err != nil {
 		return err
 	}

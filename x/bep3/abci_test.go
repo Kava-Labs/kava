@@ -3,11 +3,13 @@ package bep3_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
@@ -19,8 +21,8 @@ type ABCITestSuite struct {
 	app           app.TestApp
 	ctx           sdk.Context
 	addrs         []sdk.AccAddress
-	swapIDs       []cmn.HexBytes
-	randomNumbers []cmn.HexBytes
+	swapIDs       []tmbytes.HexBytes
+	randomNumbers []tmbytes.HexBytes
 }
 
 func (suite *ABCITestSuite) SetupTest() {
@@ -46,8 +48,8 @@ func (suite *ABCITestSuite) SetupTest() {
 func (suite *ABCITestSuite) ResetKeeper() {
 	suite.keeper = suite.app.GetBep3Keeper()
 
-	var swapIDs []cmn.HexBytes
-	var randomNumbers []cmn.HexBytes
+	var swapIDs []tmbytes.HexBytes
+	var randomNumbers []tmbytes.HexBytes
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
 		expireHeight := int64(360)
