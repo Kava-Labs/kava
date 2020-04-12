@@ -27,7 +27,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
 	currentPrice := types.CurrentPrice{MarketID: "current", Price: sdk.OneDec()}
-	postedPrice := types.PostedPrice{MarketID: "posted", Price: sdk.OneDec(), Expiry: time.Now().UTC()}
+	postedPrice := []types.PostedPrice{{MarketID: "posted", Price: sdk.OneDec(), Expiry: time.Now().UTC()}}
 
 	kvPairs := cmn.KVPairs{
 		cmn.KVPair{Key: []byte(types.CurrentPricePrefix), Value: cdc.MustMarshalBinaryBare(currentPrice)},

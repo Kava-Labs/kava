@@ -20,7 +20,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
 		return fmt.Sprintf("%s\n%s", priceA, priceB)
 
 	case bytes.Contains(kvA.Key, []byte(types.RawPriceFeedPrefix)):
-		var postedPriceA, postedPriceB types.PostedPrice
+		var postedPriceA, postedPriceB []types.PostedPrice
 		cdc.MustUnmarshalBinaryBare(kvA.Value, &postedPriceA)
 		cdc.MustUnmarshalBinaryBare(kvB.Value, &postedPriceB)
 		return fmt.Sprintf("%s\n%s", postedPriceA, postedPriceB)

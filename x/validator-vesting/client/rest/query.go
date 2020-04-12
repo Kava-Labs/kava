@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 // define routes that get registered by the main application
