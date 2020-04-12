@@ -17,4 +17,6 @@ var (
 	ErrInvalidMarket = sdkerrors.Register(ModuleName, 5, "market does not exist")
 	// ErrInvalidOracle error for posted price messages for invalid oracles
 	ErrInvalidOracle = sdkerrors.Register(ModuleName, 6, "oracle does not exist or not authorized")
+	// ErrAssetNotFound error for not found asset
+	ErrAssetNotFound = sdkerrors.Register(ModuleName, 7, "asset not found")
 )

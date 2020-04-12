@@ -48,7 +48,7 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 		suite.NoError(err)
 		c := sdk.NewCoins(sdk.NewCoin("usdx", ri))
 		coins = append(coins, c)
-		total = total.Add(cs(sdk.NewCoin("usdx", ri)))
+		total = total.Add(sdk.NewCoin("usdx", ri))
 	}
 
 	numBlocks := []int{100, 1000, 10000, 100000}
@@ -57,13 +57,13 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 		bulkFees := sdk.NewCoins()
 		individualFees := sdk.NewCoins()
 		for x := 0; x < nb; x++ {
-			fee := suite.keeper.CalculateFees(suite.ctx, total.Add(bulkFees), i(7), "xrp")
-			bulkFees = bulkFees.Add(fee)
+			fee := suite.keeper.CalculateFees(suite.ctx, total.Add(bulkFees...), i(7), "xrp")
+			bulkFees = bulkFees.Add(fee...)
 		}
 
 		for _, cns := range coins {
 			fee := suite.keeper.CalculateFees(suite.ctx, cns, i(int64(nb*7)), "xrp")
-			individualFees = individualFees.Add(fee)
+			individualFees = individualFees.Add(fee...)
 		}
 
 		absError := (sdk.OneDec().Sub(sdk.NewDecFromInt(bulkFees[0].Amount).Quo(sdk.NewDecFromInt(individualFees[0].Amount)))).Abs()

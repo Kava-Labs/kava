@@ -131,9 +131,9 @@ $ %s query %s cdps-by-ratio uatom 1.5
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Prepare params for querier
-			ratio, errSdk := sdk.NewDecFromStr(args[1])
-			if errSdk != nil {
-				return fmt.Errorf(errerror())
+			ratio, err := sdk.NewDecFromStr(args[1])
+			if err != nil {
+				return err
 			}
 			bz, err := cdc.MarshalJSON(types.QueryCdpsByRatioParams{
 				CollateralDenom: args[0],

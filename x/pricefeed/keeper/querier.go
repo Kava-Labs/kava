@@ -39,7 +39,7 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
-		return []byte{}, sdk.ErrUnknownRequest("asset not found")
+		return []byte{}, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 	currentPrice, sdkErr := keeper.GetCurrentPrice(ctx, requestParams.MarketID)
 	if sdkErr != nil {
@@ -61,7 +61,7 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
-		return []byte{}, sdk.ErrUnknownRequest("asset not found")
+		return []byte{}, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
 
@@ -82,7 +82,7 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []
 
 	oracles, err := keeper.GetOracles(ctx, requestParams.MarketID)
 	if err != nil {
-		return []byte{}, sdk.ErrUnknownRequest("market not found")
+		return []byte{}, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, oracles)

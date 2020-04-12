@@ -1,8 +1,6 @@
 package auction
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -19,7 +17,6 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgPlaceBid(ctx, keeper, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
-		}
 		}
 	}
 }

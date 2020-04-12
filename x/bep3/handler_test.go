@@ -76,8 +76,9 @@ func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
 		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain, TestSenderOtherChain,
 		randomNumberHash, timestamp, amount, amount.String(), int64(300), true)
 
-	res := suite.handler(suite.ctx, msg)
-	suite.True(res.IsOK())
+	res, err := suite.handler(suite.ctx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
 }
 
 func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
@@ -86,15 +87,16 @@ func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
 	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber.Bytes(), ts(0))
 	badSwapID := bep3.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
 	badMsg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], badSwapID, badRandomNumber.Bytes())
-	badRes := suite.handler(suite.ctx, badMsg)
-	suite.False(badRes.IsOK())
+	badRes, err := suite.handler(suite.ctx, badMsg)
+	suite.Require().Error(err)
 	suite.True(strings.Contains(badRes.Log, fmt.Sprintf("AtomicSwap %s was not found", hex.EncodeToString(badSwapID))))
 
 	// Add an atomic swap before attempting new claim msg
 	swapID, randomNumber := suite.AddAtomicSwap()
 	msg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], swapID, randomNumber)
-	res := suite.handler(suite.ctx, msg)
-	suite.True(res.IsOK())
+	res, err := suite.handler(suite.ctx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
 }
 
 func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
@@ -103,30 +105,31 @@ func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
 	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber.Bytes(), ts(0))
 	badSwapID := bep3.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
 	badMsg := bep3.NewMsgRefundAtomicSwap(suite.addrs[0], badSwapID)
-	badRes := suite.handler(suite.ctx, badMsg)
-	suite.False(badRes.IsOK())
-	suite.True(strings.Contains(badRes.Log, fmt.Sprintf("AtomicSwap %s was not found", hex.EncodeToString(badSwapID))))
+	badRes, err := suite.handler(suite.ctx, badMsg)
+	suite.Require().Error(err)
+	suite.Require().Nil(badRes)
 
 	// Add an atomic swap and build refund msg
 	swapID, _ := suite.AddAtomicSwap()
 	msg := bep3.NewMsgRefundAtomicSwap(suite.addrs[0], swapID)
 
 	// Attempt to refund active atomic swap
-	res1 := suite.handler(suite.ctx, msg)
+	res1, err := suite.handler(suite.ctx, msg)
 	suite.True(strings.Contains(res1.Log, "atomic swap is still active and cannot be refunded"))
-	suite.False(res1.IsOK())
+	suite.Require().Error(err)
 
 	// Expire the atomic swap with begin blocker and attempt refund
 	laterCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400)
 	bep3.BeginBlocker(laterCtx, suite.keeper)
-	res2 := suite.handler(laterCtx, msg)
-	suite.True(res2.IsOK())
+	res2, err := suite.handler(laterCtx, msg)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res2)
 }
 
 func (suite *HandlerTestSuite) TestInvalidMsg() {
-	res := suite.handler(suite.ctx, sdk.NewTestMsg())
-	suite.False(res.IsOK())
-	suite.True(strings.Contains(res.Log, "unrecognized bep3 message type"))
+	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
 }
 
 func TestHandlerTestSuite(t *testing.T) {

@@ -14,7 +14,6 @@ import (
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	clientkeys "github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
@@ -208,7 +207,7 @@ func (f *Fixtures) UnsafeResetAll(flags ...string) {
 // NOTE: GDInit sets the ChainID for the Fixtures instance
 func (f *Fixtures) GDInit(moniker string, flags ...string) {
 	cmd := fmt.Sprintf("%s init -o --home=%s %s", f.GaiadBinary, f.GaiadHome, moniker)
-	_, stderr := tests.ExecuteT(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	_, stderr := tests.ExecuteT(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 
 	var chainID string
 	var initRes map[string]json.RawMessage
@@ -231,13 +230,13 @@ func (f *Fixtures) AddGenesisAccount(address sdk.AccAddress, coins sdk.Coins, fl
 // GenTx is gaiad gentx
 func (f *Fixtures) GenTx(name string, flags ...string) {
 	cmd := fmt.Sprintf("%s gentx --name=%s --home=%s --home-client=%s", f.GaiadBinary, name, f.GaiadHome, f.GaiacliHome)
-	executeWriteCheckErr(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	executeWriteCheckErr(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // CollectGenTxs is gaiad collect-gentxs
 func (f *Fixtures) CollectGenTxs(flags ...string) {
 	cmd := fmt.Sprintf("%s collect-gentxs --home=%s", f.GaiadBinary, f.GaiadHome)
-	executeWriteCheckErr(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	executeWriteCheckErr(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // GDStart runs gaiad start with the appropriate flags and returns a process
@@ -276,19 +275,19 @@ func (f *Fixtures) KeysDelete(name string, flags ...string) {
 // KeysAdd is gaiacli keys add
 func (f *Fixtures) KeysAdd(name string, flags ...string) {
 	cmd := fmt.Sprintf("%s keys add --home=%s %s", f.GaiacliBinary, f.GaiacliHome, name)
-	executeWriteCheckErr(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	executeWriteCheckErr(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // KeysAddRecover prepares gaiacli keys add --recover
 func (f *Fixtures) KeysAddRecover(name, mnemonic string, flags ...string) (exitSuccess bool, stdout, stderr string) {
 	cmd := fmt.Sprintf("%s keys add --home=%s --recover %s", f.GaiacliBinary, f.GaiacliHome, name)
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass, mnemonic)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass, mnemonic)
 }
 
 // KeysAddRecoverHDPath prepares gaiacli keys add --recover --account --index
 func (f *Fixtures) KeysAddRecoverHDPath(name, mnemonic string, account uint32, index uint32, flags ...string) {
 	cmd := fmt.Sprintf("%s keys add --home=%s --recover %s --account %d --index %d", f.GaiacliBinary, f.GaiacliHome, name, account, index)
-	executeWriteCheckErr(f.T, addFlags(cmd, flags), client.DefaultKeyPass, mnemonic)
+	executeWriteCheckErr(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass, mnemonic)
 }
 
 // KeysShow is gaiacli keys show
@@ -324,25 +323,25 @@ func (f *Fixtures) CLIConfig(key, value string, flags ...string) {
 // TxSend is gaiacli tx send
 func (f *Fixtures) TxSend(from string, to sdk.AccAddress, amount sdk.Coin, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx send %s %s %s %v", f.GaiacliBinary, from, to, amount, f.Flags())
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxSign is gaiacli tx sign
 func (f *Fixtures) TxSign(signer, fileName string, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx sign %v --from=%s %v", f.GaiacliBinary, f.Flags(), signer, fileName)
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxBroadcast is gaiacli tx broadcast
 func (f *Fixtures) TxBroadcast(fileName string, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx broadcast %v %v", f.GaiacliBinary, f.Flags(), fileName)
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxEncode is gaiacli tx encode
 func (f *Fixtures) TxEncode(fileName string, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx encode %v %v", f.GaiacliBinary, f.Flags(), fileName)
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxMultisign is gaiacli tx multisign
@@ -364,13 +363,13 @@ func (f *Fixtures) TxStakingCreateValidator(from, consPubKey string, amount sdk.
 	cmd += fmt.Sprintf(" --amount=%v --moniker=%v --commission-rate=%v", amount, from, "0.05")
 	cmd += fmt.Sprintf(" --commission-max-rate=%v --commission-max-change-rate=%v", "0.20", "0.10")
 	cmd += fmt.Sprintf(" --min-self-delegation=%v", "1")
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxStakingUnbond is gaiacli tx staking unbond
 func (f *Fixtures) TxStakingUnbond(from, shares string, validator sdk.ValAddress, flags ...string) bool {
 	cmd := fmt.Sprintf("%s tx staking unbond %s %v --from=%s %v", f.GaiacliBinary, validator, shares, from, f.Flags())
-	return executeWrite(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWrite(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 //___________________________________________________________________________________
@@ -380,19 +379,19 @@ func (f *Fixtures) TxStakingUnbond(from, shares string, validator sdk.ValAddress
 func (f *Fixtures) TxGovSubmitProposal(from, typ, title, description string, deposit sdk.Coin, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx gov submit-proposal %v --from=%s --type=%s", f.GaiacliBinary, f.Flags(), from, typ)
 	cmd += fmt.Sprintf(" --title=%s --description=%s --deposit=%s", title, description, deposit)
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxGovDeposit is gaiacli tx gov deposit
 func (f *Fixtures) TxGovDeposit(proposalID int, from string, amount sdk.Coin, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx gov deposit %d %s --from=%s %v", f.GaiacliBinary, proposalID, amount, from, f.Flags())
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxGovVote is gaiacli tx gov vote
 func (f *Fixtures) TxGovVote(proposalID int, option gov.VoteOption, from string, flags ...string) (bool, string, string) {
 	cmd := fmt.Sprintf("%s tx gov vote %d %s --from=%s %v", f.GaiacliBinary, proposalID, option, from, f.Flags())
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxGovSubmitParamChangeProposal executes a CLI parameter change proposal
@@ -406,7 +405,7 @@ func (f *Fixtures) TxGovSubmitParamChangeProposal(
 		f.GaiacliBinary, proposalPath, from, f.Flags(),
 	)
 
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 // TxGovSubmitCommunityPoolSpendProposal executes a CLI community pool spend proposal
@@ -420,7 +419,7 @@ func (f *Fixtures) TxGovSubmitCommunityPoolSpendProposal(
 		f.GaiacliBinary, proposalPath, from, f.Flags(),
 	)
 
-	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), client.DefaultKeyPass)
+	return executeWriteRetStdStreams(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 }
 
 //___________________________________________________________________________________

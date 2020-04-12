@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -43,8 +44,9 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			version.ClientName, types.ModuleName),
 		Args: cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain)
 			to, err := sdk.AccAddressFromBech32(args[0])
@@ -119,8 +121,9 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 		Example: fmt.Sprintf("%s tx %s claim 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af 56f13e6a5cd397447f8b5f8c82fdb5bbf56127db75269f5cc14e50acd8ac9a4c --from accA", version.ClientName, types.ModuleName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			from := cliCtx.GetFromAddress()
 
@@ -158,8 +161,9 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 		Example: fmt.Sprintf("%s tx %s refund 6682c03cc3856879c8fb98c9733c6b0c30758299138166b6523fe94628b1d3af --from accA", version.ClientName, types.ModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			from := cliCtx.GetFromAddress()
 

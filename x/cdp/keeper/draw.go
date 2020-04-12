@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -12,7 +13,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, denom)
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner (%s), denom (%s)", owner, denom)
 	}
 	err := k.ValidatePrincipalDraw(ctx, principal)
 	if err != nil {
@@ -83,7 +84,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, denom)
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner (%s), denom (%s)", owner, denom)
 	}
 
 	// calculate fees
@@ -182,13 +183,13 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 		for _, pc := range payment {
 			paymentDenoms = append(paymentDenoms, pc.Denom)
 		}
-		return types.ErrInvalidPaymentDenom(k.codespace, cdp.ID, principalDenoms, paymentDenoms)
+		return sdkerrors.Wrapf(types.ErrInvalidPaymentDenom, cdp.ID, principalDenoms, paymentDenoms)
 	}
 	for _, dc := range payment {
 		dp, _ := k.GetDebtParam(ctx, dc.Denom)
 		proposedBalance := cdp.Principal.AmountOf(dc.Denom).Sub(dc.Amount)
 		if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
-			return types.ErrBelowDebtFloor(k.codespace, sdk.NewCoins(sdk.NewCoin(dc.Denom, proposedBalance)), dp.DebtFloor)
+			return sdkerrors.Wrapf(types.ErrBelowDebtFloor, sdk.NewCoins(sdk.NewCoin(dc.Denom, proposedBalance)), dp.DebtFloor)
 		}
 	}
 	return nil

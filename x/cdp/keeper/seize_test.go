@@ -145,7 +145,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().Error(err)
 }
 
 func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
@@ -170,7 +170,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().Error(err)
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {

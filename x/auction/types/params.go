@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"time"
 
@@ -98,25 +99,25 @@ func (p Params) String() string {
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
 	if p.BidDuration < 0 {
-		return sdk.ErrInternal("bid duration cannot be negative")
+		return errors.New("bid duration cannot be negative")
 	}
 	if p.MaxAuctionDuration < 0 {
-		return sdk.ErrInternal("max auction duration cannot be negative")
+		return errors.New("max auction duration cannot be negative")
 	}
 	if p.BidDuration > p.MaxAuctionDuration {
-		return sdk.ErrInternal("bid duration param cannot be larger than max auction duration")
+		return errors.New("bid duration param cannot be larger than max auction duration")
 	}
 	if p.IncrementSurplus == (sdk.Dec{}) || p.IncrementDebt == (sdk.Dec{}) || p.IncrementCollateral == (sdk.Dec{}) {
-		return sdk.ErrInternal("auction increment values cannot be nil")
+		return errors.New("auction increment values cannot be nil")
 	}
 	if p.IncrementSurplus.IsNegative() {
-		return sdk.ErrInternal("surplus auction increment cannot be less than zero")
+		return errors.New("surplus auction increment cannot be less than zero")
 	}
 	if p.IncrementDebt.IsNegative() {
-		return sdk.ErrInternal("debt auction increment cannot be less than zero")
+		return errors.New("debt auction increment cannot be less than zero")
 	}
 	if p.IncrementCollateral.IsNegative() {
-		return sdk.ErrInternal("collateral auction increment cannot be less than zero")
+		return errors.New("collateral auction increment cannot be less than zero")
 	}
 	return nil
 }

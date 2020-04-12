@@ -49,7 +49,7 @@ func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextAuctionIDKey)
 	if bz == nil {
-		return 0, types.ErrInvalidInitialAuctionID(k.codespace)
+		return 0, types.ErrInvalidInitialAuctionID
 	}
 	return types.Uint64FromBytes(bz), nil
 }

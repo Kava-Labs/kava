@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
@@ -16,7 +17,7 @@ import (
 func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	dp, found := k.GetDebtParam(ctx, debtDenom)
 	if !found {
-		return types.ErrDebtNotSupported(k.codespace, debtDenom)
+		return sdkerrors.Wrap(types.ErrDebtNotSupported, debtDenom)
 	}
 	savingsRateMacc := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
 	surplusToDistribute := savingsRateMacc.GetCoins().AmountOf(dp.Denom)
