@@ -178,6 +178,7 @@ func (k Keeper) calculateMeanPrice(ctx sdk.Context, prices []types.CurrentPrice)
 // GetCurrentPrice fetches the current median price of all oracles for a specific market
 func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.CurrentPrice, sdk.Error) {
 	store := ctx.KVStore(k.key)
+
 	bz := store.Get([]byte(types.CurrentPricePrefix + marketID))
 
 	if bz == nil {
@@ -185,6 +186,7 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 	}
 	var price types.CurrentPrice
 	k.cdc.MustUnmarshalBinaryBare(bz, &price)
+
 	if price.Price.Equal(sdk.ZeroDec()) {
 		return types.CurrentPrice{}, types.ErrNoValidPrice(k.codespace)
 	}
