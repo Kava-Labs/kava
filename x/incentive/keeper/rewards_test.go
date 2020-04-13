@@ -15,37 +15,6 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// GET/SET/DELETE RewardPeriod can use default genesis state - in fact, if we had params.Rewards set, the reward periods would be created when tApp.InitializeFromGenesisState() was called, because it calls the begin blocker.
-
-// GET/SET/DELETE ClaimPeriod default genesis state
-
-// GET/SET/DELETE Claims default genesis state
-
-// HandleRewardPeriodExpiry default genesis state, set a RewardPeriod
-
-// IterateRewardPeriods default genesis state, set multiple RewardPeriods, iterate
-
-// CreateNewRewardPeriod should use default genesis state
-
-// CreateAndDeleteRewardPeriods default genesis state but needs to add Rewards to params.. Should set a period to inactive and make sure it gets deleted. Should delete a period from the store and make sure when gets created //TODO anything else?
-
-// GetNextClaimPeriodID/GetNextClaimPeriodID default genesis state
-
-// CreateUniqueClaimPeriod - default genesis state but need to set next claim period ID for that denom
-
-// IterateClaimPeriodIDKeysAndValues default genesis state but needs a couple denoms with set next claim period ids
-
-// IterateClaims default genesis state
-
-// AddToClaim default genesis state
-
-// ApplyRewardsToCdps - needs a params.Reward in genesis state, can create cdps using the cdp keeper. Needs to check that claims are created and that their values make sense.
-
-// Suite:
-// app, ctx, keeper
-
-//  SetupTest - initialize empty app
-
 type KeeperTestSuite struct {
 	suite.Suite
 
