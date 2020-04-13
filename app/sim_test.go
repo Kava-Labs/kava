@@ -281,7 +281,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				return v
 			}(nil),
 			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
-				}
+		},
 		{
 			func(_ *rand.Rand) int {
 				var v int
