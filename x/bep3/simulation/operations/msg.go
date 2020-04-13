@@ -33,13 +33,13 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 		senderOtherChain := simulation.RandStringOfLength(r, 43)
 
 		// Generate cryptographically strong pseudo-random number
-		randomNumber, err := types.GenerateSecureRandomNumber()
+		randomNumber, err := simulation.RandPositiveInt(r, sdk.NewInt(math.MaxInt64))
 		if err != nil {
 			return noOpMsg, nil, err
 		}
 		// Must use current blocktime instead of 'now' since initial blocktime was randomly generated
 		timestamp := ctx.BlockTime().Unix()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber.BigInt().Bytes(), timestamp)
 
 		// Randomly select an asset from supported assets
 		assets, found := k.GetAssets(ctx)
@@ -90,7 +90,7 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 			if evenOdd%2 == 0 {
 				// Claim future operation
 				executionBlock := ctx.BlockHeight() + (msg.HeightSpan / 2)
-				futureOp = loadClaimFutureOp(acc.Address, swapID, randomNumber.Bytes(), executionBlock, handler)
+				futureOp = loadClaimFutureOp(acc.Address, swapID, randomNumber.BigInt().Bytes(), executionBlock, handler)
 			} else {
 				// Refund future operation
 				executionBlock := ctx.BlockHeight() + msg.HeightSpan
