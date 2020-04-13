@@ -17,17 +17,33 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
-// Generate random parameters
+const (
+	// Block time params are un-exported constants in cosmos-sdk/x/simulation.
+	// Copy them here in lieu of importing them.
+	minTimePerBlock time.Duration = (10000 / 2) * time.Second
+	maxTimePerBlock time.Duration = 10000 * time.Second
+
+	// Calculate the average block time
+	AverageBlockTime time.Duration = (maxTimePerBlock - minTimePerBlock) / 2
+	// MaxBidDuration is a crude way of ensuring that BidDuration ≤ MaxAuctionDuration for all generated params
+	MaxBidDuration time.Duration = AverageBlockTime * 50
+)
+
 func GenBidDuration(r *rand.Rand) time.Duration {
-	// time.Duration is just an int64 (ie a 63 bit number with a bit for the sign)
-	// So a positive int64 number can be generated using r.Int63.
-	// should not be greater than MaxBidDuration
-	return time.Duration(r.Int63()) // TODO restrict to a range of values that increase likelihood that auctions will close during simulations
+	d, err := RandomPositiveDuration(r, 0, MaxBidDuration)
+	if err != nil {
+		panic(err)
+	}
+	return d
 }
 func GenMaxAuctionDuration(r *rand.Rand) time.Duration {
-	// should not be greater than the max allowable by amino
-	return time.Duration(r.Int63())
+	d, err := RandomPositiveDuration(r, MaxBidDuration, AverageBlockTime*200)
+	if err != nil {
+		panic(err)
+	}
+	return d
 }
+
 func GenIncrementCollateral(r *rand.Rand) sdk.Dec {
 	return simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1"))
 }
@@ -37,20 +53,20 @@ var GenIncrementSurplus = GenIncrementCollateral
 
 // RandomizedGenState generates a random GenesisState for auction
 func RandomizedGenState(simState *module.SimulationState) {
-	maxDuration := GenMaxAuctionDuration(simState.Rand)
-	bidDuration := GenBidDuration(simState.Rand)
-	for bidDuration > maxDuration {
-		bidDuration = GenBidDuration(simState.Rand)
+
+	p := types.NewParams(
+		GenMaxAuctionDuration(simState.Rand),
+		GenBidDuration(simState.Rand),
+		GenIncrementSurplus(simState.Rand),
+		GenIncrementDebt(simState.Rand),
+		GenIncrementCollateral(simState.Rand),
+	)
+	if err := p.Validate(); err != nil {
+		panic(err)
 	}
 	auctionGenesis := types.NewGenesisState(
 		types.DefaultNextAuctionID,
-		types.NewParams(
-			maxDuration,
-			bidDuration,
-			GenIncrementSurplus(simState.Rand),
-			GenIncrementDebt(simState.Rand),
-			GenIncrementCollateral(simState.Rand),
-		),
+		p,
 		nil,
 	)
 
@@ -139,4 +155,17 @@ func replaceOrAppendAccount(accounts []authexported.GenesisAccount, acc authexpo
 		}
 	}
 	return append(newAccounts, acc)
+}
+
+func RandomPositiveDuration(r *rand.Rand, inclusiveMin, exclusiveMax time.Duration) (time.Duration, error) {
+	min := int64(inclusiveMin)
+	max := int64(exclusiveMax)
+	if min < 0 || max < 0 {
+		return 0, fmt.Errorf("min and max must be positive")
+	}
+	if min >= max {
+		return 0, fmt.Errorf("max must be < min")
+	}
+	randPositiveInt64 := r.Int63n(max-min) + min
+	return time.Duration(randPositiveInt64), nil
 }
