@@ -312,20 +312,19 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, cdp.ModuleName, bep3.ModuleName, incentive.ModuleName)
+	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, incentive.ModuleName)
 
-	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName, auction.ModuleName)
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
 
-	// Note: genutils must occur after staking so that pools are properly
-	// initialized with tokens from genesis accounts.
-	//
-	// Note: Changing the order of the auth module and modules that use module accounts
-	// results in subtle changes to the way accounts are loaded from genesis.
 	app.mm.SetOrderInitGenesis(
-		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
+		auth.ModuleName, // loads all accounts - should run before any module with a module account
+		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, // TODO is this order ok?
+		gov.ModuleName, mint.ModuleName,
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName,
+		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
+		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
+		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -345,9 +344,10 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.supplyKeeper),
 	)

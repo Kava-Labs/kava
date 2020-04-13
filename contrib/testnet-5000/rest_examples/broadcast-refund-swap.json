@@ -1,0 +1,28 @@
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "bep3/MsgRefundAtomicSwap",
+        "value": {
+          "from": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
+          "swap_id": "1B00244021EC239867E5B8C44BCD98E40F3148806A8C0A8FD3418872986BECBA"
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "500000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "AsGjurKnae7kuQQawGO3FLzrjeLCRO2W6orV74fekVYo"
+        },
+        "signature": "y/T0zLHuvk7oRgTqU9bc6wnWm5JHzhnEk/U1xSWVkxVD2NvC9MvI6lHjXy1iBzyn388x4U8DQ+sxsT/BBA1ehg=="
+      }
+    ],
+    "memo": ""
+  }
+}

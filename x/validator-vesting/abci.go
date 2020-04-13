@@ -7,7 +7,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 

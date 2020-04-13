@@ -4,13 +4,15 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
-
-	"github.com/spf13/cobra"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -26,6 +28,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCalcSwapIDCmd(queryRoute, cdc),
 		QueryCalcRandomNumberHashCmd(queryRoute, cdc),
 		QueryGetAtomicSwapCmd(queryRoute, cdc),
+		QueryGetAssetSupplyCmd(queryRoute, cdc),
 		QueryGetAtomicSwapsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 	)...)
@@ -36,26 +39,43 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryCalcRandomNumberHashCmd calculates the random number hash for a number and timestamp
 func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "calc-rnh [random-number] [unix-timestamp]",
-		Short:   "calculate a random number hash for given a number and timestamp",
-		Example: "bep3 calc-rnh d72e44cb98b1cf4e94e7f6fe3de72d9108346f8104ec9ba958f07d7b5124876f 1583358734",
-		Args:    cobra.MinimumNArgs(2),
+		Use:     "calc-rnh [unix-timestamp]",
+		Short:   "calculates an example random number hash from an optional timestamp",
+		Example: "bep3 calc-rnh now",
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// Parse query params
-			randomNumber, err := types.HexToBytes(args[1])
+			userTimestamp := "now"
+			if len(args) > 0 {
+				userTimestamp = args[0]
+			}
+
+			// Timestamp defaults to time.Now() unless it's explicitly set
+			var timestamp int64
+			if strings.Compare(userTimestamp, "now") == 0 {
+				timestamp = tmtime.Now().Unix()
+			} else {
+				userTimestamp, err := strconv.ParseInt(userTimestamp, 10, 64)
+				if err != nil {
+					return err
+				}
+				timestamp = userTimestamp
+			}
+
+			// Load hex-encoded cryptographically strong pseudo-random number
+			randomNumber, err := types.GenerateSecureRandomNumber()
 			if err != nil {
 				return err
 			}
-			timestamp, err := strconv.ParseInt(args[1], 10, 64)
-			if err != nil {
-				return fmt.Errorf(fmt.Sprintf("timestamp %s could not be converted to an integer", args[1]))
-			}
+			randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
-			// Calculate random number hash and convert to human-readable string
-			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
-			return cliCtx.PrintOutput(hex.EncodeToString(randomNumberHash))
+			// Prepare random number, timestamp, and hash for output
+			randomNumberStr := fmt.Sprintf("Random number: %s\n", randomNumber)
+			timestampStr := fmt.Sprintf("Timestamp: %d\n", timestamp)
+			randomNumberHashStr := fmt.Sprintf("Random number hash: %s", hex.EncodeToString(randomNumberHash))
+			output := []string{randomNumberStr, timestampStr, randomNumberHashStr}
+			return cliCtx.PrintOutput(strings.Join(output, ""))
 		},
 	}
 }
@@ -63,7 +83,7 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 // QueryCalcSwapIDCmd calculates the swapID for a random number hash, sender, and sender other chain
 func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:     "calc-swapid [randomNumberHash] [sender] [senderOtherChain]",
+		Use:     "calc-swapid [random-number-hash] [sender] [sender-other-chain]",
 		Short:   "calculate swap ID for the given random number hash, sender, and sender other chain",
 		Example: "bep3 calc-swapid 0677bd8a303dd981810f34d8e5cc6507f13b391899b84d3c1be6c6045a17d747 kava15qdefkmwswysgg4qxgcqpqr35k3m49pkx2jdfnw bnb1ud3q90r98l3mhd87kswv3h8cgrymzeljct8qn7",
 		Args:    cobra.MinimumNArgs(3),
@@ -81,6 +101,36 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Calculate swap ID and convert to human-readable string
 			swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 			return cliCtx.PrintOutput(hex.EncodeToString(swapID))
+		},
+	}
+}
+
+// QueryGetAssetSupplyCmd queries as asset's current in swap supply, active, supply, and supply limit
+func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "supply [denom]",
+		Short:   "get information about an asset's supply",
+		Example: "bep3 supply bnb",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare query params
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply([]byte(args[0])))
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAssetSupply), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var assetSupply types.AssetSupply
+			cdc.MustUnmarshalJSON(res, &assetSupply)
+			return cliCtx.PrintOutput(assetSupply)
 		},
 	}
 }
@@ -108,16 +158,16 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Execute query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAtomicSwap), bz)
 			if err != nil {
 				return err
 			}
 
-			// TODO: randomnumberhash: [232, 148....]
-			// Decode and print results
 			var atomicSwap types.AtomicSwap
 			cdc.MustUnmarshalJSON(res, &atomicSwap)
-			return cliCtx.PrintOutput(atomicSwap)
+
+			cliCtx = cliCtx.WithHeight(height)
+			return cliCtx.PrintOutput(atomicSwap.String())
 		},
 	}
 }
@@ -144,7 +194,7 @@ func QueryGetAtomicSwapsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(atomicSwaps)
+			return cliCtx.PrintOutput(atomicSwaps.String())
 		},
 	}
 }

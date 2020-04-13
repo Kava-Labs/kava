@@ -1,11 +1,8 @@
 package cli
 
 import (
-	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
-	"math/big"
 	"strconv"
 	"strings"
 
@@ -70,7 +67,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Generate cryptographically strong pseudo-random number
-			randomNumber, err := generateSecureRandomNumber()
+			randomNumber, err := types.GenerateSecureRandomNumber()
 			if err != nil {
 				return err
 			}
@@ -78,7 +75,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 
 			// Print random number, timestamp, and hash to user's console
-			fmt.Printf("\nRandom number: %s\n", randomNumber.Text(16))
+			fmt.Printf("\nRandom number: %s\n", hex.EncodeToString(randomNumber.Bytes()))
 			fmt.Printf("Timestamp: %d\n", timestamp)
 			fmt.Printf("Random number hash: %s\n\n", hex.EncodeToString(randomNumberHash))
 
@@ -181,22 +178,4 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-}
-
-func generateSecureRandomNumber() (*big.Int, error) {
-	max := new(big.Int)
-	max.Exp(big.NewInt(2), big.NewInt(256), nil).Sub(max, big.NewInt(1)) // 256-bits integer i.e. 2^256 - 1
-
-	// Generate number between 0 - max
-	randomNumber, err := rand.Int(rand.Reader, max)
-	if err != nil {
-		return big.NewInt(0), errors.New("random number generation error")
-	}
-
-	// Catch random numbers that encode to hexadecimal poorly
-	if len(randomNumber.Text(16)) != 64 {
-		return generateSecureRandomNumber()
-	}
-
-	return randomNumber, nil
 }

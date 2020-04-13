@@ -110,8 +110,10 @@ func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
 	}
 }
 
-// RegisterInvariants performs a no-op.
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+// RegisterInvariants registers the module invariants.
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	RegisterInvariants(ir, am.keeper)
+}
 
 // Route module message route name
 func (AppModule) Route() string {
@@ -149,10 +151,11 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 }
 
 // BeginBlock module begin-block
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
+	BeginBlocker(ctx, am.keeper)
+}
 
 // EndBlock module end-block
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }

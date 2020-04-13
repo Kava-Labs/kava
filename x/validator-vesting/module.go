@@ -15,8 +15,8 @@ import (
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/kava-labs/kava/x/validator-vesting/client/cli"
 	"github.com/kava-labs/kava/x/validator-vesting/client/rest"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
 	"github.com/kava-labs/kava/x/validator-vesting/simulation"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 var (

@@ -52,7 +52,7 @@ func (k Keeper) GetAssetByDenom(ctx sdk.Context, denom string) (types.AssetParam
 }
 
 // GetAssetByCoinID returns an asset by its denom
-func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID string) (types.AssetParam, bool) {
+func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam, bool) {
 	params := k.GetParams(ctx)
 	for _, asset := range params.SupportedAssets {
 		if asset.CoinID == coinID {
@@ -60,4 +60,16 @@ func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID string) (types.AssetPar
 		}
 	}
 	return types.AssetParam{}, false
+}
+
+// ValidateLiveAsset checks if an asset is both supported and active
+func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) sdk.Error {
+	asset, found := k.GetAssetByDenom(ctx, coin.Denom)
+	if !found {
+		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+	}
+	if !asset.Active {
+		return types.ErrAssetNotActive(k.codespace, asset.Denom)
+	}
+	return nil
 }
