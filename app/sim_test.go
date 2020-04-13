@@ -311,7 +311,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightMsgCdp, &v, nil,
 					func(_ *rand.Rand) {
-						v = 10000 // TODO
+						v = 100 // TODO
 					})
 				return v
 			}(nil),

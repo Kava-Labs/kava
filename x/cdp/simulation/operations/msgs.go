@@ -21,6 +21,9 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 		handler := cdp.NewHandler(k)
 		simacc := simulation.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simacc.Address)
+		if acc == nil {
+			return simulation.NoOpMsg(cdp.ModuleName), nil, nil
+		}
 		coins := acc.GetCoins()
 		collateralParams := k.GetParams(ctx).CollateralParams
 		if len(collateralParams) == 0 {
@@ -35,8 +38,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 
 		price, err := pfk.GetCurrentPrice(ctx, randCollateralParam.MarketID)
 		if err != nil {
-			fmt.Printf("error from pricefeed: %v\n", err)
-			return simulation.NoOpMsg(cdp.ModuleName), nil, nil
+			return simulation.NoOpMsg(cdp.ModuleName), nil, err
 		}
 		// convert the price to the same units as the debt param
 		priceShifted := ShiftDec(price.Price, randDebtParam.ConversionFactor)
@@ -160,14 +162,13 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 
 func submitMsg(msg sdk.Msg, handler sdk.Handler, ctx sdk.Context) (ok bool) {
 	ctx, write := ctx.CacheContext()
-	ok = handler(ctx, msg).IsOK()
-	if ok {
+	res := handler(ctx, msg)
+	if res.IsOK() {
 		write()
 	} else {
-		log := handler(ctx, msg).Log
-		fmt.Println(log)
+		fmt.Println(res.Log)
 	}
-	return ok
+	return res.IsOK()
 }
 
 func shouldDraw(r *rand.Rand) bool {
