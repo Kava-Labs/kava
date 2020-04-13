@@ -36,7 +36,7 @@ func (msg MsgPlaceBid) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "bidder address cannot be empty")
 	}
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bid %s", msg.Amount.String())
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bid amount %s", msg.Amount.String())
 	}
 	return nil
 }

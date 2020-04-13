@@ -1,9 +1,12 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // ensure Msg interface compliance at compile time
@@ -40,22 +43,16 @@ func (msg MsgCreateCDP) Type() string { return "create_cdp" }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgCreateCDP) ValidateBasic() error {
 	if msg.Sender.Empty() {
-		return sdk.ErrInternal("invalid (empty) sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.Collateral) != 1 {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cdps do not support multiple collateral types: %s", msg.Collateral)
 	}
 	if !msg.Collateral.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid collateral amount: %s", msg.Collateral))
-	}
-	if !msg.Collateral.IsAllPositive() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("negative collateral amount: %s", msg.Collateral))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
 	if !msg.Principal.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid principal amount: %s", msg.Principal))
-	}
-	if !msg.Principal.IsAllPositive() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("negative principal amount: %s", msg.Principal))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
 	}
 	return nil
 }
@@ -105,19 +102,16 @@ func (msg MsgDeposit) Type() string { return "deposit_cdp" }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Owner.Empty() {
-		return sdk.ErrInternal("invalid (empty) sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 	if msg.Depositor.Empty() {
-		return sdk.ErrInternal("invalid (empty) owner address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.Collateral) != 1 {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cdps do not support multiple collateral types: %s", msg.Collateral)
 	}
 	if !msg.Collateral.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid collateral amount: %s", msg.Collateral))
-	}
-	if !msg.Collateral.IsAllPositive() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("negative collateral amount: %s", msg.Collateral))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
 	return nil
 }
@@ -167,19 +161,16 @@ func (msg MsgWithdraw) Type() string { return "withdraw_cdp" }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
 	if msg.Owner.Empty() {
-		return sdk.ErrInternal("invalid (empty) sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 	if msg.Depositor.Empty() {
-		return sdk.ErrInternal("invalid (empty) owner address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.Collateral) != 1 {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("cdps do not support multiple collateral types: received %s", msg.Collateral))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cdps do not support multiple collateral types: %s", msg.Collateral)
 	}
 	if !msg.Collateral.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid collateral amount: %s", msg.Collateral))
-	}
-	if !msg.Collateral.IsAllPositive() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("negative collateral amount: %s", msg.Collateral))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
 	return nil
 }
@@ -229,16 +220,13 @@ func (msg MsgDrawDebt) Type() string { return "draw_cdp" }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDrawDebt) ValidateBasic() error {
 	if msg.Sender.Empty() {
-		return sdk.ErrInternal("invalid (empty) sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if msg.CdpDenom == "" {
-		return sdk.ErrInternal("invalid (empty) cdp denom")
+	if strings.TrimSpace(msg.CdpDenom) == "" {
+		return errors.New("cdp denom cannot be blank")
 	}
 	if !msg.Principal.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid principal amount: %s", msg.Principal))
-	}
-	if !msg.Principal.IsAllPositive() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("negative principal amount: %s", msg.Principal))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
 	}
 	return nil
 }
@@ -288,16 +276,13 @@ func (msg MsgRepayDebt) Type() string { return "repay_cdp" }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgRepayDebt) ValidateBasic() error {
 	if msg.Sender.Empty() {
-		return sdk.ErrInternal("invalid (empty) sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if msg.CdpDenom == "" {
-		return sdk.ErrInternal("invalid (empty) cdp denom")
+	if strings.TrimSpace(msg.CdpDenom) == "" {
+		return errors.New("cdp denom cannot be blank")
 	}
 	if !msg.Payment.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid payment amount: %s", msg.Payment))
-	}
-	if !msg.Payment.IsAllPositive() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("negative payment amount: %s", msg.Payment))
+		sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "payment amount %s", msg.Payment)
 	}
 	return nil
 }

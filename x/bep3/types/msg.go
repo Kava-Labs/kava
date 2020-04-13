@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/tendermint/tendermint/crypto"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
@@ -98,53 +100,50 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.From) != AddrByteCount {
-		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
 	}
 	if msg.To.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
 	}
 	if len(msg.To) != AddrByteCount {
-		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To)))
+		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.To))
 	}
-	if msg.To.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
+	if !msg.CrossChain && msg.RecipientOtherChain != "" {
+		return errors.New("must leave recipient address on other chain to empty for single chain swap")
 	}
-	if !msg.CrossChain && len(msg.RecipientOtherChain) != 0 {
-		return sdk.ErrInternal(fmt.Sprintf("must leave recipient address on other chain to empty for single chain swap"))
+	if !msg.CrossChain && msg.SenderOtherChain != "" {
+		return errors.New("must leave sender address on other chain to empty for single chain swap")
 	}
-	if !msg.CrossChain && len(msg.SenderOtherChain) != 0 {
-		return sdk.ErrInternal(fmt.Sprintf("must leave sender address on other chain to empty for single chain swap"))
-	}
-	if msg.CrossChain && len(msg.RecipientOtherChain) == 0 {
-		return sdk.ErrInternal(fmt.Sprintf("missing recipient address on other chain for cross chain swap"))
+	if msg.CrossChain && strings.TrimSpace(msg.RecipientOtherChain) == "" {
+		return errors.New("missing recipient address on other chain for cross chain swap")
 	}
 	if len(msg.RecipientOtherChain) > MaxOtherChainAddrLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of recipient address on other chain should be less than %d", MaxOtherChainAddrLength))
+		return fmt.Errorf("the length of recipient address on other chain should be less than %d", MaxOtherChainAddrLength)
 	}
 	if len(msg.SenderOtherChain) > MaxOtherChainAddrLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength))
+		return fmt.Errorf("the length of sender address on other chain should be less than %d", MaxOtherChainAddrLength)
 	}
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
+		return fmt.Errorf("the length of random number hash should be %d", RandomNumberHashLength)
 	}
 	if msg.Timestamp <= 0 {
-		return sdk.ErrInternal("timestamp must be positive")
+		return errors.New("timestamp must be positive")
 	}
 	if !msg.Amount.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 	if len(msg.ExpectedIncome) > MaxExpectedIncomeLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of expected income should be less than %d", MaxExpectedIncomeLength))
+		return fmt.Errorf("the length of expected income should be less than %d", MaxExpectedIncomeLength)
 	}
 	expectedIncomeCoins, err := sdk.ParseCoins(msg.ExpectedIncome)
 	if err != nil || expectedIncomeCoins == nil {
-		return sdk.ErrInternal(fmt.Sprintf("expected income %s must be in valid format e.g. 10000ukava", msg.ExpectedIncome))
+		return fmt.Errorf("expected income %s must be in valid format e.g. 10000ukava", msg.ExpectedIncome)
 	}
 	if expectedIncomeCoins.IsAnyGT(msg.Amount) {
-		return sdk.ErrInternal(fmt.Sprintf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String()))
+		return fmt.Errorf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String())
 	}
 	if msg.HeightSpan <= 0 {
-		return sdk.ErrInternal("height span  must be positive")
+		return errors.New("height span  must be positive")
 	}
 	return nil
 }
@@ -194,14 +193,17 @@ func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) ValidateBasic() error {
+	if msg.From.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
 	if len(msg.From) != AddrByteCount {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address lenght ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
 	}
 	if len(msg.SwapID) != SwapIDLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
+		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
 	if len(msg.RandomNumber) == 0 {
-		return sdk.ErrInternal("the length of random number cannot be 0")
+		return errors.New("the length of random number cannot be 0")
 	}
 	return nil
 }
@@ -249,11 +251,14 @@ func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic validates the MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) ValidateBasic() error {
+	if msg.From.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
 	if len(msg.From) != AddrByteCount {
-		return sdk.ErrInternal(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From)))
+		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(msg.From))
 	}
 	if len(msg.SwapID) != SwapIDLength {
-		return sdk.ErrInternal(fmt.Sprintf("the length of swapID should be %d", SwapIDLength))
+		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
 	return nil
 }

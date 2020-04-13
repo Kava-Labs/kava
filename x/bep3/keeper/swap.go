@@ -20,13 +20,13 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
 	if found {
-		return sdkerrors.Wrap(types.ErrAtomicSwapAlreadyExists, string(swapID))
+		return sdkerrors.Wrap(types.ErrAtomicSwapAlreadyExists, hex.EncodeToString(swapID))
 	}
 
 	// The heightSpan period should be more than 10 minutes and less than one week
 	// Assume average block time interval is 10 second. 10 mins = 60 blocks, 1 week = 60480 blocks
 	if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
-		return types.ErrInvalidHeightSpan(k.codespace, heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
+		return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d, range %d - %d", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
 	}
 
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
@@ -37,7 +37,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	if len(amount) != 1 {
-		return sdk.ErrInternal("amount must contain exactly one coin")
+		return fmt.Errorf("amount must contain exactly one coin")
 	}
 
 	err := k.ValidateLiveAsset(ctx, amount[0])
@@ -117,7 +117,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 
 	// Confirm that secret unlocks the atomic swap
 	if !bytes.Equal(hashedSecret, atomicSwap.GetSwapID()) {
-		return types.ErrInvalidClaimSecret(k.codespace, hashedSecret, atomicSwap.GetSwapID())
+		return sdkerrors.Wrapf(types.ErrInvalidClaimSecret, "%s ≠ %s", hex.EncodeToString(hashedSecret), hex.EncodeToString(atomicSwap.GetSwapID()))
 	}
 
 	var err error
@@ -143,7 +143,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	}
 
 	// Send intended recipient coins
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
 	if err != nil {
 		return err
 	}

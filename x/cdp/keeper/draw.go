@@ -183,13 +183,13 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 		for _, pc := range payment {
 			paymentDenoms = append(paymentDenoms, pc.Denom)
 		}
-		return sdkerrors.Wrapf(types.ErrInvalidPaymentDenom, cdp.ID, principalDenoms, paymentDenoms)
+		return sdkerrors.Wrapf(types.ErrInvalidPayment, "cdp %d: expected %s, got %s", cdp.ID, principalDenoms, paymentDenoms)
 	}
 	for _, dc := range payment {
 		dp, _ := k.GetDebtParam(ctx, dc.Denom)
 		proposedBalance := cdp.Principal.AmountOf(dc.Denom).Sub(dc.Amount)
 		if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
-			return sdkerrors.Wrapf(types.ErrBelowDebtFloor, sdk.NewCoins(sdk.NewCoin(dc.Denom, proposedBalance)), dp.DebtFloor)
+			return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoins(sdk.NewCoin(dc.Denom, proposedBalance)), dp.DebtFloor)
 		}
 	}
 	return nil

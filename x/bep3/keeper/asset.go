@@ -16,7 +16,7 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 
 	// Resulting current supply must be under asset's limit
 	if !supply.Limit.IsGTE(supply.CurrentSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, coin, supply.CurrentSupply, supply.Limit)
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supply.Limit)
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Add(coin)
@@ -34,7 +34,7 @@ func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	// Resulting current supply must be greater than or equal to 0
 	// Use sdk.Int instead of sdk.Coin to prevent panic if true
 	if supply.CurrentSupply.Amount.Sub(coin.Amount).IsNegative() {
-		return sdkerrors.Wrapf(types.ErrInvalidCurrentSupply, coin, supply.CurrentSupply)
+		return sdkerrors.Wrapf(types.ErrInvalidCurrentSupply, "decrease %s, asset supply %s", coin, supply.CurrentSupply)
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Sub(coin)
@@ -52,7 +52,7 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	// 	Result of (current + incoming + amount) must be under asset's limit
 	totalSupply := supply.CurrentSupply.Add(supply.IncomingSupply)
 	if !supply.Limit.IsGTE(totalSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, coin, totalSupply, supply.Limit)
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supply.Limit)
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Add(coin)
@@ -70,7 +70,7 @@ func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	// Resulting incoming supply must be greater than or equal to 0
 	// Use sdk.Int instead of sdk.Coin to prevent panic if true
 	if supply.IncomingSupply.Amount.Sub(coin.Amount).IsNegative() {
-		return sdkerrors.Wrapf(types.ErrInvalidIncomingSupply, coin, supply.IncomingSupply)
+		return sdkerrors.Wrapf(types.ErrInvalidIncomingSupply, "decrease %s, incoming supply %s", coin, supply.IncomingSupply)
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Sub(coin)
@@ -87,7 +87,7 @@ func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 
 	// Result of (outgoing + amount) must be less than current supply
 	if !supply.CurrentSupply.IsGTE(supply.OutgoingSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsAvailableSupply, coin,
+		return sdkerrors.Wrapf(types.ErrExceedsAvailableSupply, "swap amount %s, available supply %s", coin,
 			supply.CurrentSupply.Amount.Sub(supply.OutgoingSupply.Amount))
 	}
 
@@ -106,7 +106,7 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	// Resulting outgoing supply must be greater than or equal to 0
 	// Use sdk.Int instead of sdk.Coin to prevent panic if true
 	if supply.OutgoingSupply.Amount.Sub(coin.Amount).IsNegative() {
-		return sdkerrors.Wrapf(types.ErrInvalidOutgoingSupply, coin, supply.OutgoingSupply)
+		return sdkerrors.Wrapf(types.ErrInvalidOutgoingSupply, "decrease %s, outgoing supply %s", coin, supply.OutgoingSupply)
 	}
 
 	supply.OutgoingSupply = supply.OutgoingSupply.Sub(coin)

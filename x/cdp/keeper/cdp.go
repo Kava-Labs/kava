@@ -338,7 +338,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 // ValidateCollateral validates that a collateral is valid for use in cdps
 func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coins) error {
 	if len(collateral) != 1 {
-		return sdkerrors.Wrap(types.ErrInvalidCollateralLength, len(collateral))
+		return sdkerrors.Wrapf(types.ErrInvalidCollateralLength, "%d", len(collateral))
 	}
 	_, found := k.GetCollateral(ctx, collateral[0].Denom)
 	if !found {
@@ -355,7 +355,7 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) error
 			return sdkerrors.Wrap(types.ErrDebtNotSupported, dc.Denom)
 		}
 		if dc.Amount.LT(dp.DebtFloor) {
-			return sdkerrors.Wrap(types.ErrBelowDebtFloor, sdk.NewCoins(dc), dp.DebtFloor)
+			return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoins(dc), dp.DebtFloor)
 		}
 	}
 	return nil
@@ -378,7 +378,7 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 		totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, dc.Denom).Add(dc.Amount)
 		globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(dc.Denom)
 		if totalPrincipal.GT(globalLimit) {
-			return sdkerrors.Wrap(types.ErrExceedsDebtLimit, sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, globalLimit)))
+			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > debt %s", sdk.NewCoin(dc.Denom, totalPrincipal), sdk.NewCoin(dc.Denom, globalLimit))
 		}
 	}
 	return nil
@@ -393,7 +393,7 @@ func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.C
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
 	if collateralizationRatio.LT(liquidationRatio) {
-		return sdkerrors.Wrap(types.ErrInvalidCollateralRatio, collateral[0].Denom, collateralizationRatio, liquidationRatio)
+		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "owner %s, collateral ratio %s, liquidation ration %s", collateral[0].Denom, collateralizationRatio, liquidationRatio)
 	}
 	return nil
 }

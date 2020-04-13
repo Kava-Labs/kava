@@ -169,7 +169,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.SurplusAuction, error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
-		return a, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "bid denom ≠ auction bid denom (%s ≠ %s)", bid.Denom, a.Bid.Denom)
+		return a, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s)", bid.Denom, a.Bid.Denom)
 	}
 	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -178,7 +178,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 		),
 	)
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, sdkerrors.Wrapf(types.ErrBidTooSmall, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt).String())
+		return a, sdkerrors.Wrapf(types.ErrBidTooSmall, "%s ≤ %s", bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
 	}
 
 	// New bidder pays back old bidder
@@ -229,10 +229,10 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
 	if bid.Denom != a.Bid.Denom {
-		return a, sdkerrors.Wrap(types.ErrInvalidBidDenom, bid.Denom, a.Bid.Denom)
+		return a, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, a.Bid.Denom)
 	}
 	if a.IsReversePhase() {
-		return a, sdkerrors.Wrap(types.ErrCollateralAuctionIsInReversePhase, a.ID)
+		return a, sdkerrors.Wrapf(types.ErrCollateralAuctionIsInReversePhase, "%d", a.ID)
 	}
 	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -242,10 +242,10 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	)
 	minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, sdkerrors.Wrapf(types.ErrBidTooSmall, bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
+		return a, sdkerrors.Wrapf(types.ErrBidTooSmall, "%s ≤ %s", bid, sdk.NewCoin(a.Bid.Denom, minNewBidAmt))
 	}
 	if a.MaxBid.IsLT(bid) {
-		return a, sdkerrors.Wrapf(types.ErrBidTooLarge, bid, a.MaxBid)
+		return a, sdkerrors.Wrapf(types.ErrBidTooLarge, "%s > %s", bid, a.MaxBid)
 	}
 
 	// New bidder pays back old bidder
@@ -308,7 +308,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		return a, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, a.Lot.Denom)
 	}
 	if !a.IsReversePhase() {
-		return a, sdkerrors.Wrap(types.ErrCollateralAuctionIsInForwardPhase, a.ID)
+		return a, sdkerrors.Wrapf(types.ErrCollateralAuctionIsInForwardPhase, "%d", a.ID)
 	}
 	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -317,10 +317,10 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s", lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
 	}
 	if lot.IsNegative() {
-		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s", lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
@@ -383,10 +383,10 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
+		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s", lot, sdk.NewCoin(a.Lot.Denom, maxNewLotAmt))
 	}
 	if lot.IsNegative() {
-		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
+		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s", lot, sdk.NewCoin(a.Lot.Denom, sdk.ZeroInt()))
 	}
 
 	// New bidder pays back old bidder
@@ -445,7 +445,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 	}
 
 	if ctx.BlockTime().Before(auction.GetEndTime()) {
-		return sdkerrors.Wrapf(types.ErrAuctionHasNotExpired, ctx.BlockTime(), auction.GetEndTime())
+		return sdkerrors.Wrapf(types.ErrAuctionHasNotExpired, "block time %s, auction end time %s", ctx.BlockTime().UTC(), auction.GetEndTime().UTC())
 	}
 
 	// payout to the last bidder
