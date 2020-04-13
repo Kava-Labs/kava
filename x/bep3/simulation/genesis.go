@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,8 +51,8 @@ func GenMaxBlockLock(r *rand.Rand, minBlockLock int64) int64 {
 // GenSupportedAssets gets randomized SupportedAssets
 func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 	var assets types.AssetParams
-	for i := 0; i < (r.Intn(10) + 1); i++ {
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	numAssets := (r.Intn(10) + 1)
+	for i := 0; i < numAssets; i++ {
 		denom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
 		asset := genSupportedAsset(r, denom)
 		assets = append(assets, asset)
