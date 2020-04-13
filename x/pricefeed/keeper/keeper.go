@@ -46,7 +46,10 @@ func (k Keeper) SetPrice(
 	// If the expiry is less than or equal to the current blockheight, we consider the price valid
 	if expiry.After(ctx.BlockTime()) {
 		store := ctx.KVStore(k.key)
-		prices := k.GetRawPrices(ctx, marketID)
+		prices, err := k.GetRawPrices(ctx, marketID)
+		if err != nil {
+			return types.PostedPrice{}, err
+		}
 		var index int
 		found := false
 		for i := range prices {
@@ -96,7 +99,10 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) sdk.Error {
 		validPrevPrice = false
 	}
 
-	prices := k.GetRawPrices(ctx, marketID)
+	prices, err := k.GetRawPrices(ctx, marketID)
+	if err != nil {
+		return err
+	}
 	var notExpiredPrices types.CurrentPrices
 	// filter out expired prices
 	for _, v := range prices {
@@ -174,8 +180,10 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 		return types.CurrentPrice{}, types.ErrNoValidPrice(k.codespace)
 	}
 	var price types.CurrentPrice
-	k.cdc.MustUnmarshalBinaryBare(bz, &price)
-
+	err := k.cdc.UnmarshalBinaryBare(bz, &price)
+	if err != nil {
+		return types.CurrentPrice{}, sdk.ErrInternal(sdk.AppendMsgToErr("failed to unmarshal result", err.Error()))
+	}
 	if price.Price.Equal(sdk.ZeroDec()) {
 		return types.CurrentPrice{}, types.ErrNoValidPrice(k.codespace)
 	}
@@ -183,12 +191,18 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 }
 
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
-func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) types.PostedPrices {
+func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) (types.PostedPrices, sdk.Error) {
 	store := ctx.KVStore(k.key)
 	bz := store.Get(types.RawPriceKey(marketID))
+	if bz == nil {
+		return types.PostedPrices{}, nil
+	}
 	var prices types.PostedPrices
-	k.cdc.MustUnmarshalBinaryBare(bz, &prices)
-	return prices
+	err := k.cdc.UnmarshalBinaryBare(bz, &prices)
+	if err != nil {
+		return types.PostedPrices{}, sdk.ErrInternal(sdk.AppendMsgToErr("failed to unmarshal result", err.Error()))
+	}
+	return prices, nil
 }
 
 // Codespace return the codespace for the keeper
