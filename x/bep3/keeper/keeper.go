@@ -103,13 +103,13 @@ func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwap
 // InsertIntoByBlockIndex adds a swap ID and expiration time into the byBlock index.
 func (k Keeper) InsertIntoByBlockIndex(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
-	store.Set(types.GetAtomicSwapByBlockKey(atomicSwap.ExpireHeight, atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
+	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ExpireHeight, atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
 }
 
 // RemoveFromByBlockIndex removes an AtomicSwap from the byBlock index.
 func (k Keeper) RemoveFromByBlockIndex(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
-	store.Delete(types.GetAtomicSwapByBlockKey(atomicSwap.ExpireHeight, atomicSwap.GetSwapID()))
+	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ExpireHeight, atomicSwap.GetSwapID()))
 }
 
 // IterateAtomicSwapsByBlock provides an iterator over AtomicSwaps ordered by AtomicSwap expiration block
@@ -133,50 +133,90 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 }
 
 // ------------------------------------------
-//				Asset Supplies
+//		Atomic Swap Longterm Storage Index
 // ------------------------------------------
 
-// SetAssetSupply updates an asset's current active supply
-func (k Keeper) SetAssetSupply(ctx sdk.Context, asset sdk.Coin, coinID []byte) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(asset)
-	store.Set(coinID, bz)
+// InsertIntoLongtermStorage adds a swap ID and deletion time into the longterm storage index.
+// Completed swaps are stored for 1 week.
+func (k Keeper) InsertIntoLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
+	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+types.DefaultLongtermStorageDuration,
+		atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
 }
 
-// GetAssetSupply gets an asset's current supply from the store.
-func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (sdk.Coin, bool) {
-	var asset sdk.Coin
-
-	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
-	bz := store.Get(denom)
-	if bz == nil {
-		return sdk.Coin{}, false
-	}
-
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &asset)
-	return asset, true
+// RemoveFromLongtermStorage removes a swap from the into the longterm storage index
+func (k Keeper) RemoveFromLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
+	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+types.DefaultLongtermStorageDuration,
+		atomicSwap.GetSwapID()))
 }
 
-// IterateAssetSupplies provides an iterator over all stored AssetSupplies.
-// For each AssetSupply, cb will be called. If cb returns true, the iterator will close and stop.
-func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(asset sdk.Coin) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+// IterateAtomicSwapsLongtermStorage provides an iterator over AtomicSwaps ordered by deletion height.
+// For each AtomicSwap cb will be called. If cb returns true the iterator will close and stop.
+func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCutoffTime uint64,
+	cb func(swapID []byte) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
+	iterator := store.Iterator(
+		nil, // start at the very start of the prefix store
+		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
+	)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var asset sdk.Coin
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &asset)
 
-		if cb(asset) {
+		id := iterator.Value()
+
+		if cb(id) {
 			break
 		}
 	}
 }
 
-// GetAllAssetSupplies returns all asset supplies from the store as an array of sdk.Coin
-func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (assets []sdk.Coin) {
-	k.IterateAssetSupplies(ctx, func(asset sdk.Coin) bool {
-		assets = append(assets, asset)
+// ------------------------------------------
+//				Asset Supplies
+// ------------------------------------------
+
+// GetAssetSupply gets an asset's current supply from the store.
+func (k Keeper) GetAssetSupply(ctx sdk.Context, denom []byte) (types.AssetSupply, bool) {
+	var supply types.AssetSupply
+
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+	bz := store.Get(denom)
+	if bz == nil {
+		return types.AssetSupply{}, false
+	}
+
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &supply)
+	return supply, true
+}
+
+// SetAssetSupply updates an asset's current active supply
+func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom []byte) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(supply)
+	store.Set(denom, bz)
+}
+
+// IterateAssetSupplies provides an iterator over current asset supplies.
+// For each asset supply, cb will be called. If cb returns true, the iterator will close and stop.
+func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.AssetSupply) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var supply types.AssetSupply
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &supply)
+
+		if cb(supply) {
+			break
+		}
+	}
+}
+
+// GetAllAssetSupplies returns current asset supplies from the store as an array of sdk.Coin
+func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
+	k.IterateAssetSupplies(ctx, func(supply types.AssetSupply) bool {
+		supplies = append(supplies, supply)
 		return false
 	})
 	return

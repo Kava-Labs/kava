@@ -1,12 +1,11 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
-	cmm "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 const (
@@ -25,29 +24,33 @@ const (
 	MaxExpectedIncomeLength = 64
 )
 
+// ensure Msg interface compliance at compile time
 var (
+	_                      sdk.Msg = &MsgCreateAtomicSwap{}
+	_                      sdk.Msg = &MsgClaimAtomicSwap{}
+	_                      sdk.Msg = &MsgRefundAtomicSwap{}
+	AtomicSwapCoinsAccAddr         = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 	// kava prefix address:  [INSERT BEP3-DEPUTY ADDRESS]
 	// tkava prefix address: [INSERT BEP3-DEPUTY ADDRESS]
-	AtomicSwapCoinsAccAddr = sdk.AccAddress(crypto.AddressHash([]byte("KavaAtomicSwapCoins")))
 )
 
 // MsgCreateAtomicSwap contains an AtomicSwap struct
 type MsgCreateAtomicSwap struct {
-	From                sdk.AccAddress `json:"from"`
-	To                  sdk.AccAddress `json:"to"`
-	RecipientOtherChain string         `json:"recipient_other_chain"`
-	SenderOtherChain    string         `json:"sender_other_chain"`
-	RandomNumberHash    cmm.HexBytes   `json:"random_number_hash"`
-	Timestamp           int64          `json:"timestamp"`
-	Amount              sdk.Coins      `json:"amount"`
-	ExpectedIncome      string         `json:"expected_income"`
-	HeightSpan          int64          `json:"height_span"`
-	CrossChain          bool           `json:"cross_chain"`
+	From                sdk.AccAddress `json:"from"  yaml:"from"`
+	To                  sdk.AccAddress `json:"to"  yaml:"to"`
+	RecipientOtherChain string         `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
+	SenderOtherChain    string         `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	RandomNumberHash    cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
+	Timestamp           int64          `json:"timestamp"  yaml:"timestamp"`
+	Amount              sdk.Coins      `json:"amount"  yaml:"amount"`
+	ExpectedIncome      string         `json:"expected_income"  yaml:"expected_income"`
+	HeightSpan          int64          `json:"height_span"  yaml:"height_span"`
+	CrossChain          bool           `json:"cross_chain"  yaml:"cross_chain"`
 }
 
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
 func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
-	senderOtherChain string, randomNumberHash cmm.HexBytes, timestamp int64,
+	senderOtherChain string, randomNumberHash cmn.HexBytes, timestamp int64,
 	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
 		From:                from,
@@ -113,6 +116,9 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
 	if len(msg.RandomNumberHash) != RandomNumberHashLength {
 		return sdk.ErrInternal(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
 	}
+	if msg.Timestamp <= 0 {
+		return sdk.ErrInternal("timestamp must be positive")
+	}
 	if !msg.Amount.IsAllPositive() {
 		return sdk.ErrInternal(fmt.Sprintf("the swapped out coin must be positive"))
 	}
@@ -126,23 +132,23 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() sdk.Error {
 	if expectedIncomeCoins.IsAnyGT(msg.Amount) {
 		return sdk.ErrInternal(fmt.Sprintf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String()))
 	}
+	if msg.HeightSpan <= 0 {
+		return sdk.ErrInternal("height span  must be positive")
+	}
 	return nil
 }
 
 // GetSignBytes gets the sign bytes of a MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) GetSignBytes() []byte {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }
 
 // MsgClaimAtomicSwap defines a AtomicSwap claim
 type MsgClaimAtomicSwap struct {
-	From         sdk.AccAddress `json:"from"`
-	SwapID       cmm.HexBytes   `json:"swap_id"`
-	RandomNumber cmm.HexBytes   `json:"random_number"`
+	From         sdk.AccAddress `json:"from"  yaml:"from"`
+	SwapID       cmn.HexBytes   `json:"swap_id"  yaml:"swap_id"`
+	RandomNumber cmn.HexBytes   `json:"random_number"  yaml:"random_number"`
 }
 
 // NewMsgClaimAtomicSwap initializes a new MsgClaimAtomicSwap
@@ -191,17 +197,14 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() sdk.Error {
 
 // GetSignBytes gets the sign bytes of a MsgClaimAtomicSwap
 func (msg MsgClaimAtomicSwap) GetSignBytes() []byte {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }
 
 // MsgRefundAtomicSwap defines a refund msg
 type MsgRefundAtomicSwap struct {
-	From   sdk.AccAddress `json:"from"`
-	SwapID cmm.HexBytes   `json:"swap_id"`
+	From   sdk.AccAddress `json:"from" yaml:"from"`
+	SwapID cmn.HexBytes   `json:"swap_id" yaml:"swap_id"`
 }
 
 // NewMsgRefundAtomicSwap initializes a new MsgRefundAtomicSwap
@@ -246,9 +249,6 @@ func (msg MsgRefundAtomicSwap) ValidateBasic() sdk.Error {
 
 // GetSignBytes gets the sign bytes of a MsgRefundAtomicSwap
 func (msg MsgRefundAtomicSwap) GetSignBytes() []byte {
-	b, err := json.Marshal(msg)
-	if err != nil {
-		panic(err)
-	}
-	return b
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }

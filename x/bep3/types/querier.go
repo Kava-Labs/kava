@@ -1,22 +1,35 @@
 package types
 
 import (
-	cmm "github.com/tendermint/tendermint/libs/common"
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 const (
-	// QueryGetAtomicSwap command for getting info about an AtomicSwap
+	// QueryGetAssetSupply command for getting info about an asset's supply
+	QueryGetAssetSupply = "supply"
+	// QueryGetAtomicSwap command for getting info about an atomic swap
 	QueryGetAtomicSwap = "swap"
-	// QueryGetAtomicSwaps command for getting a list of AtomicSwaps
+	// QueryGetAtomicSwaps command for getting a list of atomic swaps
 	QueryGetAtomicSwaps = "swaps"
 	// QueryGetParams command for getting module params
-	QueryGetParams = "params"
+	QueryGetParams = "parameters"
 )
+
+// QueryAssetSupply contains the params for query 'custom/bep3/supply'
+type QueryAssetSupply struct {
+	Denom cmn.HexBytes `json:"denom" yaml:"denom"`
+}
+
+// NewQueryAssetSupply creates a new QueryAssetSupply
+func NewQueryAssetSupply(denom cmn.HexBytes) QueryAssetSupply {
+	return QueryAssetSupply{
+		Denom: denom,
+	}
+}
 
 // QueryAtomicSwapByID contains the params for query 'custom/bep3/swap'
 type QueryAtomicSwapByID struct {
-	SwapID cmm.HexBytes
+	SwapID cmn.HexBytes `json:"swap_id" yaml:"swap_id"`
 }
 
 // NewQueryAtomicSwapByID creates a new QueryAtomicSwapByID

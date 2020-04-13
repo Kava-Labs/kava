@@ -15,7 +15,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 )
 
-func TestKeeper_EndBlocker(t *testing.T) {
+func TestKeeper_BeginBlocker(t *testing.T) {
 	// Setup
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	buyer := addrs[0]
@@ -36,13 +36,14 @@ func TestKeeper_EndBlocker(t *testing.T) {
 	ctx := tApp.NewContext(true, abci.Header{})
 	keeper := tApp.GetAuctionKeeper()
 
+	// Start an auction and place a bid
 	auctionID, err := keeper.StartCollateralAuction(ctx, sellerModName, c("token1", 20), c("token2", 50), returnAddrs, returnWeights, c("debt", 40))
 	require.NoError(t, err)
 	require.NoError(t, keeper.PlaceBid(ctx, auctionID, buyer, c("token2", 30)))
 
-	// Run the endblocker, simulating a block time 1ns before auction expiry
+	// Run the beginblocker, simulating a block time 1ns before auction expiry
 	preExpiryTime := ctx.BlockTime().Add(auction.DefaultBidDuration - 1)
-	auction.EndBlocker(ctx.WithBlockTime(preExpiryTime), keeper)
+	auction.BeginBlocker(ctx.WithBlockTime(preExpiryTime), keeper)
 
 	// Check auction has not been closed yet
 	_, found := keeper.GetAuction(ctx, auctionID)
@@ -50,7 +51,7 @@ func TestKeeper_EndBlocker(t *testing.T) {
 
 	// Run the endblocker, simulating a block time equal to auction expiry
 	expiryTime := ctx.BlockTime().Add(auction.DefaultBidDuration)
-	auction.EndBlocker(ctx.WithBlockTime(expiryTime), keeper)
+	auction.BeginBlocker(ctx.WithBlockTime(expiryTime), keeper)
 
 	// Check auction has been closed
 	_, found = keeper.GetAuction(ctx, auctionID)

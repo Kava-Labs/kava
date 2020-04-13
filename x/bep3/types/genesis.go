@@ -4,33 +4,30 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	Params        Params      `json:"params" yaml:"params"`
-	AtomicSwaps   AtomicSwaps `json:"atomic_swaps" yaml:"atomic_swaps"`
-	AssetSupplies []sdk.Coin  `json:"assets_supplies" yaml:"assets_supplies"`
+	Params        Params        `json:"params" yaml:"params"`
+	AtomicSwaps   AtomicSwaps   `json:"atomic_swaps" yaml:"atomic_swaps"`
+	AssetSupplies AssetSupplies `json:"assets_supplies" yaml:"assets_supplies"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, swaps AtomicSwaps, assetSupplies []sdk.Coin) GenesisState {
+func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies) GenesisState {
 	return GenesisState{
 		Params:        params,
 		AtomicSwaps:   swaps,
-		AssetSupplies: assetSupplies,
+		AssetSupplies: supplies,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
-
 	return NewGenesisState(
 		DefaultParams(),
 		AtomicSwaps{},
-		[]sdk.Coin{},
+		AssetSupplies{},
 	)
 }
 
@@ -51,10 +48,17 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
+	denoms := map[string]bool{}
+	for _, a := range gs.AssetSupplies {
+		if denoms[a.Denom] {
+			return fmt.Errorf("found duplicate asset denom %s", a.Denom)
+		}
+		denoms[a.Denom] = true
+	}
 	ids := map[string]bool{}
 	for _, a := range gs.AtomicSwaps {
 		if ids[hex.EncodeToString(a.GetSwapID())] {
-			return fmt.Errorf("found duplicate atomic swap ID (%s)", hex.EncodeToString(a.GetSwapID()))
+			return fmt.Errorf("found duplicate atomic swap ID %s", hex.EncodeToString(a.GetSwapID()))
 		}
 		ids[hex.EncodeToString(a.GetSwapID())] = true
 	}
