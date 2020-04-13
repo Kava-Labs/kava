@@ -68,8 +68,9 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			// randomly select a debt draw amount
 			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(randDebtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
 			msg := cdp.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, collateralDeposit)), sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, debtDraw)))
-			if msg.ValidateBasic() != nil {
-				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
+			err := msg.ValidateBasic()
+			if err != nil {
+				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %v", err)
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
@@ -78,7 +79,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			return simulation.NewOperationMsg(msg, ok, "create cdp"), nil, nil
 		}
 
-		// TODO a cdp already exists, deposit to it, draw debt from it, or repay debt to it
+		// a cdp already exists, deposit to it, draw debt from it, or repay debt to it
 		// close 25% of the time
 		if canClose(acc, existingCDP, randDebtParam.Denom) && shouldClose(r) {
 			repaymentAmount := coins.AmountOf(randDebtParam.Denom)
@@ -147,7 +148,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			msg := cdp.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randRepayAmount)))
 			err := msg.ValidateBasic()
 			if err != nil {
-				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected repay msg to pass ValidateBasic: %s", msg.GetSignBytes())
+				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("expected repay msg to pass ValidateBasic: %v", err)
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
@@ -207,7 +208,7 @@ func shouldClose(r *rand.Rand) bool {
 
 func canClose(acc authexported.Account, c cdp.CDP, denom string) bool {
 	repaymentAmount := c.Principal.Add(c.AccumulatedFees).AmountOf(denom)
-	if acc.GetCoins().AmountOf(denom).GT(repaymentAmount) {
+	if acc.GetCoins().AmountOf(denom).GTE(repaymentAmount) {
 		return true
 	}
 	return false
