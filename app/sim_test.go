@@ -35,6 +35,7 @@ import (
 	stakingsimops "github.com/cosmos/cosmos-sdk/x/staking/simulation/operations"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
 	bep3simops "github.com/kava-labs/kava/x/bep3/simulation/operations"
 	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation/operations"
 	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
@@ -60,6 +61,7 @@ const (
 	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
 	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
+	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
 	OpWeightMsgPricefeed                               = "op_weight_msg_pricefeed"
 	OpWeightMsgCreateAtomicSwap                        = "op_weight_msg_create_atomic_Swap"
 	OpWeightMsgCdp                                     = "op_weight_msg_cdp"
@@ -274,6 +276,17 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 		{
 			func(_ *rand.Rand) int {
 				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100
+					})
+				return v
+			}(nil),
+			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightMsgCreateAtomicSwap, &v, nil,
 					func(_ *rand.Rand) {
 						v = 100
@@ -287,7 +300,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightMsgPricefeed, &v, nil,
 					func(_ *rand.Rand) {
-						v = 10000 // TODO
+						v = 100
 					})
 				return v
 			}(nil),
