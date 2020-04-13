@@ -154,7 +154,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			return simulation.NewOperationMsg(msg, ok, "repay debt cdp"), nil, nil
 		}
 
-		return simulation.NoOpMsg(cdp.ModuleName), nil, nil
+		return simulation.NewOperationMsgBasic(cdp.ModuleName, "no-operation (no valid actions)", "", false, nil), nil, nil
 	}
 }
 
