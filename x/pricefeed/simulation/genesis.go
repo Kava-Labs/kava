@@ -9,11 +9,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/kava-labs/kava/x/pricefeed/types"
+	pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // RandomizedGenState generates a random GenesisState for pricefeed
 func RandomizedGenState(simState *module.SimulationState) {
-
+	// get the params with xrp, btc and bnb to usd
+	// getPricefeedSimulationParams is defined to return params with xrp:usd, btc:usd, bnb:usd
 	params := getPricefeedSimulationParams()
 	markets := []types.Market{}
 	genPrices := []types.PostedPrice{}
@@ -31,26 +33,30 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(pricefeedGenesis)
 }
 
+// getPricefeedSimulationParams returns the params with xrp:usd, btc:usd, bnb:usd
 func getPricefeedSimulationParams() types.Params {
-	return types.Params{
-		Markets: []types.Market{
-			types.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-			types.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-			types.Market{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+	// SET UP THE PRICEFEED GENESIS STATE
+	pricefeedGenesis := pricefeed.GenesisState{
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				pricefeed.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				pricefeed.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				pricefeed.Market{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			},
 		},
 	}
+	return pricefeedGenesis.Params
 }
 
-func getInitialPrice(marketID string) sdk.Dec {
-	switch marketID {
-	case "xrp:usd":
-		return sdk.MustNewDecFromStr("0.20")
-	case "bnb:usd":
-		return sdk.MustNewDecFromStr("14.0")
+// getInitialPrice gets the starting price for each of the base assets
+func getInitialPrice(marketId string) (price sdk.Dec) {
+	switch marketId {
 	case "btc:usd":
-		return sdk.MustNewDecFromStr("7000.0")
-	default:
-		panic("invalid market id")
+		return sdk.MustNewDecFromStr("7000")
+	case "bnb:usd":
+		return sdk.MustNewDecFromStr("14")
+	case "xrp:usd":
+		return sdk.MustNewDecFromStr("0.2")
 	}
-
+	panic(fmt.Sprintf("Invalid marketId in getInitialPrice: %s\n", marketId))
 }

@@ -35,7 +35,7 @@ import (
 	stakingsimops "github.com/cosmos/cosmos-sdk/x/staking/simulation/operations"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
+	bep3simops "github.com/kava-labs/kava/x/bep3/simulation/operations"
 	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation/operations"
 	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
@@ -60,8 +60,9 @@ const (
 	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
 	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
-	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
-	OpWeightCdpMsg                                     = "op_weight_cdp_msg"
+	OpWeightMsgPricefeed                               = "op_weight_msg_pricefeed"
+	OpWeightMsgCreateAtomicSwap                        = "op_weight_msg_create_atomic_Swap"
+	OpWeightMsgCdp                                     = "op_weight_msg_cdp"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -270,34 +271,32 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 			}(nil),
 			slashingsimops.SimulateMsgUnjail(app.slashingKeeper),
 		},
-		// Auction
 		{
 			func(_ *rand.Rand) int {
 				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+				ap.GetOrGenerate(app.cdc, OpWeightMsgCreateAtomicSwap, &v, nil,
 					func(_ *rand.Rand) {
-						v = 100 // TODO
+						v = 100
 					})
 				return v
 			}(nil),
-			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
+			bep3simops.SimulateMsgCreateAtomicSwap(app.accountKeeper, app.bep3Keeper),
 		},
-		// Pricefeed
 		{
 			func(_ *rand.Rand) int {
 				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
+				ap.GetOrGenerate(app.cdc, OpWeightMsgPricefeed, &v, nil,
 					func(_ *rand.Rand) {
 						v = 10000 // TODO
 					})
 				return v
 			}(nil),
-			pricefeedsimops.SimulateMsgUpdatePrices(app.accountKeeper, app.pricefeedKeeper),
+			pricefeedsimops.SimulateMsgUpdatePrices(app.pricefeedKeeper),
 		},
 		{
 			func(_ *rand.Rand) int {
 				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightCdpMsg, &v, nil,
+				ap.GetOrGenerate(app.cdc, OpWeightMsgCdp, &v, nil,
 					func(_ *rand.Rand) {
 						v = 10000 // TODO
 					})
@@ -396,6 +395,7 @@ func TestFullAppSimulation(t *testing.T) {
 
 	app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, fauxMerkleModeOpt)
 	require.Equal(t, "kava", app.Name())
+
 	// Run randomized simulation
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.sm),
