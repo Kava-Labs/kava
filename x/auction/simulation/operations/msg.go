@@ -61,7 +61,7 @@ func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper keeper.Keeper) si
 			return true // found valid pair
 		})
 		if !found {
-			return noOpMsg, nil, nil // TODO op message?
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
 		}
 
 		// pick a bid amount for the chosen auction and bidder
