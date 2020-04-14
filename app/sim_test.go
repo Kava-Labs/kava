@@ -37,6 +37,7 @@ import (
 
 	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
 	bep3simops "github.com/kava-labs/kava/x/bep3/simulation/operations"
+	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation/operations"
 	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
 
@@ -63,6 +64,7 @@ const (
 	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
 	OpWeightMsgPricefeed                               = "op_weight_msg_pricefeed"
 	OpWeightMsgCreateAtomicSwap                        = "op_weight_msg_create_atomic_Swap"
+	OpWeightMsgCdp                                     = "op_weight_msg_cdp"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -303,6 +305,17 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				return v
 			}(nil),
 			pricefeedsimops.SimulateMsgUpdatePrices(app.pricefeedKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightMsgCdp, &v, nil,
+					func(_ *rand.Rand) {
+						v = 100 // TODO
+					})
+				return v
+			}(nil),
+			cdpsimops.SimulateMsgCdp(app.accountKeeper, app.cdpKeeper, app.pricefeedKeeper),
 		},
 	}
 }
