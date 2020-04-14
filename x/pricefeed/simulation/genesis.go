@@ -5,13 +5,11 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // RandomizedGenState generates a random GenesisState for pricefeed
@@ -31,7 +29,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 	}
 	params = types.NewParams(markets)
 	pricefeedGenesis := types.NewGenesisState(params, genPrices)
-
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, pricefeedGenesis))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(pricefeedGenesis)
 }
