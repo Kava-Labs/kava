@@ -44,12 +44,18 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 			return noOpMsg, nil, fmt.Errorf("Error getting current price")
 		}
 
+		// get the genesis price for an asset
+		genesisPrice, err := keeper.GetCurrentPrice(ctx.WithBlockHeight(1), marketID)
+		if err != nil {
+			return noOpMsg, nil, fmt.Errorf("Error getting genesis price")
+		}
+
 		// get the address for the account
 		// this address needs to be an oracle and also exist. genesis should add all the accounts as oracles.
 		address := getRandomOracle(r, randomMarket)
 
 		// generate a new random price based off the current price
-		price, err := pickNewRandomPrice(r, currentPrice.Price)
+		price, err := pickNewRandomPrice(r, currentPrice.Price, genesisPrice.Price)
 		if err != nil {
 			return noOpMsg, nil, fmt.Errorf("Error picking random price")
 		}
@@ -101,26 +107,36 @@ func getExpiryTime(ctx sdk.Context) (t time.Time) {
 // pickNewRandomPrice picks a new random price given the current price
 // It takes the current price then generates a random number to multiply it by to create variation while
 // still being in the similar range. Random walk style.
-func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err sdk.Error) {
-	// Pick random price
-	// this is in the range [0-0.4) because when added to 0.8 it gives a multiplier in the range 0.8-1.2
-	got := sdk.MustNewDecFromStr("0.4")
+// originalPrice is the starting price for the asset
+func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec, originalPrice sdk.Dec) (newPrice sdk.Dec, err sdk.Error) {
+	// Pick random price multiplier
+	limit := sdk.MustNewDecFromStr("0.2")
+	got := simulation.RandomDecAmount(r, limit) // random in the range 0-0.2
 
-	randomPriceMultiplier := simulation.RandomDecAmount(r, got) // get a random number
 	if err != nil {
-		fmt.Errorf("Error generating random price multiplier\n")
+		fmt.Errorf("error generating random price multiplier")
 		return sdk.ZeroDec(), err
 	}
-	// 0.8 offset corresponds to 80% of the the current price
-	offset := sdk.MustNewDecFromStr("0.8")
+	// random amount to deviate by
+	deviationAmount := got.Mul(originalPrice)
 
-	// gives a result in range 0.8-1.2 inclusive, so the price can fluctuate from 80% to 120% of its current value
-	randomPriceMultiplier = randomPriceMultiplier.Add(offset)
+	// now flip a coin
+	upDown := r.Intn(2)
+	// upDown := simulation.RandIntBetween(r, 0, 1) // WARNING THIS IS BIASED TOWARDS ZERO DO NOT USE
 
-	// multiply the current price by the price multiplier
-	price = randomPriceMultiplier.Mul(currentPrice)
+	// either add or subtract the deviation amount with random probability
+	if upDown == 0 {
+		if currentPrice.Sub(deviationAmount).LTE(sdk.ZeroDec()) {
+			newPrice = sdk.ZeroDec()
+		} else {
+			newPrice = currentPrice.Sub(deviationAmount)
+		}
+	} else {
+		newPrice = currentPrice.Add(deviationAmount)
+	}
+
 	// return the price
-	return price, nil
+	return newPrice, nil
 }
 
 // submitMsg submits a message to the current instance of the keeper and returns a boolean whether the operation completed successfully or not
