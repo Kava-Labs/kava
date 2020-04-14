@@ -38,8 +38,9 @@ func ParamKeyTable() params.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 // pairs of pricefeed module's parameters.
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	// TODO: Write validation functions
 	return params.ParamSetPairs{
-		{Key: KeyMarkets, Value: &p.Markets},
+		params.NewParamSetPair(KeyMarkets, &p.Markets, validateFn),
 	}
 }
 
@@ -60,5 +61,9 @@ func (p Params) Validate() error {
 			return fmt.Errorf("invalid market: %s. missing market ID", asset.String())
 		}
 	}
+	return nil
+}
+
+func validateFn(i interface{}) error {
 	return nil
 }

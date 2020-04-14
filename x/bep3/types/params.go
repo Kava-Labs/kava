@@ -102,11 +102,12 @@ func ParamKeyTable() params.KeyTable {
 // pairs of bep3 module's parameters.
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	// TODO: Write validation functions
 	return params.ParamSetPairs{
-		{Key: KeyBnbDeputyAddress, Value: &p.BnbDeputyAddress},
-		{Key: KeyMinBlockLock, Value: &p.MinBlockLock},
-		{Key: KeyMaxBlockLock, Value: &p.MaxBlockLock},
-		{Key: KeySupportedAssets, Value: &p.SupportedAssets},
+		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateFn),
+		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateFn),
+		params.NewParamSetPair(KeyMaxBlockLock, &p.MaxBlockLock, validateFn),
+		params.NewParamSetPair(KeySupportedAssets, &p.SupportedAssets, validateFn),
 	}
 }
 
@@ -142,5 +143,9 @@ func (p Params) Validate() error {
 		}
 		coinIDs[asset.CoinID] = true
 	}
+	return nil
+}
+
+func validateFn(i interface{}) error {
 	return nil
 }

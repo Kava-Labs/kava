@@ -80,9 +80,10 @@ func ParamKeyTable() params.KeyTable {
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	// TODO: Write validation functions
 	return params.ParamSetPairs{
-		{Key: KeyActive, Value: &p.Active},
-		{Key: KeyPeriods, Value: &p.Periods},
+		params.NewParamSetPair(KeyActive, &p.Active, validateFn),
+		params.NewParamSetPair(KeyPeriods, &p.Periods, validateFn),
 	}
 }
 
@@ -98,5 +99,9 @@ func (p Params) Validate() error {
 		}
 		prevEnd = pr.End
 	}
+	return nil
+}
+
+func validateFn(i interface{}) error {
 	return nil
 }

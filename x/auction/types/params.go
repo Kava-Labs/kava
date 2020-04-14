@@ -7,6 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 )
 
@@ -69,12 +70,13 @@ func ParamKeyTable() subspace.KeyTable {
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
 func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
+	// TODO: Write validation functions
 	return subspace.ParamSetPairs{
-		{Key: KeyBidDuration, Value: &p.BidDuration},
-		{Key: KeyMaxAuctionDuration, Value: &p.MaxAuctionDuration},
-		{Key: KeyIncrementSurplus, Value: &p.IncrementSurplus},
-		{Key: KeyIncrementDebt, Value: &p.IncrementDebt},
-		{Key: KeyIncrementCollateral, Value: &p.IncrementCollateral},
+		params.NewParamSetPair(KeyBidDuration, &p.BidDuration, validateFn),
+		params.NewParamSetPair(KeyMaxAuctionDuration, &p.MaxAuctionDuration, validateFn),
+		params.NewParamSetPair(KeyIncrementSurplus, &p.IncrementSurplus, validateFn),
+		params.NewParamSetPair(KeyIncrementDebt, &p.IncrementDebt, validateFn),
+		params.NewParamSetPair(KeyIncrementCollateral, &p.IncrementCollateral, validateFn),
 	}
 }
 
@@ -119,5 +121,9 @@ func (p Params) Validate() error {
 	if p.IncrementCollateral.IsNegative() {
 		return errors.New("collateral auction increment cannot be less than zero")
 	}
+	return nil
+}
+
+func validateFn(i interface{}) error {
 	return nil
 }

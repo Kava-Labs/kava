@@ -155,14 +155,15 @@ func ParamKeyTable() params.KeyTable {
 // pairs of auth module's parameters.
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	// TODO: Write validation functions
 	return params.ParamSetPairs{
-		{Key: KeyGlobalDebtLimit, Value: &p.GlobalDebtLimit},
-		{Key: KeyCollateralParams, Value: &p.CollateralParams},
-		{Key: KeyDebtParams, Value: &p.DebtParams},
-		{Key: KeyCircuitBreaker, Value: &p.CircuitBreaker},
-		{Key: KeySurplusThreshold, Value: &p.SurplusAuctionThreshold},
-		{Key: KeyDebtThreshold, Value: &p.DebtAuctionThreshold},
-		{Key: KeyDistributionFrequency, Value: &p.SavingsDistributionFrequency},
+		params.NewParamSetPair(KeyGlobalDebtLimit, &p.GlobalDebtLimit, validateFn),
+		params.NewParamSetPair(KeyCollateralParams, &p.CollateralParams, validateFn),
+		params.NewParamSetPair(KeyDebtParams, &p.DebtParams, validateFn),
+		params.NewParamSetPair(KeyCircuitBreaker, &p.CircuitBreaker, validateFn),
+		params.NewParamSetPair(KeySurplusThreshold, &p.SurplusAuctionThreshold, validateFn),
+		params.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateFn),
+		params.NewParamSetPair(KeyDistributionFrequency, &p.SavingsDistributionFrequency, validateFn),
 	}
 }
 
@@ -248,5 +249,9 @@ func (p Params) Validate() error {
 	if p.SavingsDistributionFrequency.Seconds() <= float64(0) {
 		return fmt.Errorf("savings distribution frequency should be positive, is %s", p.SavingsDistributionFrequency)
 	}
+	return nil
+}
+
+func validateFn(i interface{}) error {
 	return nil
 }
