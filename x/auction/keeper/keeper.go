@@ -25,11 +25,16 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.Suppl
 	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
+
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		supplyKeeper:  supplyKeeper,
 		storeKey:      storeKey,
 		cdc:           cdc,
-		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
+		paramSubspace: paramstore,
 	}
 }
 

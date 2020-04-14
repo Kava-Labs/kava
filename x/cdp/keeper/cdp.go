@@ -22,7 +22,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	}
 	_, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if found {
-		return sdkerrors.Wrapf(types.ErrCdpAlreadyExists, "owner (%s), denom (%s)", collateral[0].Denom)
+		return sdkerrors.Wrapf(types.ErrCdpAlreadyExists, "owner (%s), denom (%s)", owner, collateral[0].Denom)
 	}
 	err = k.ValidatePrincipalAdd(ctx, principal)
 	if err != nil {

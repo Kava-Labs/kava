@@ -24,12 +24,16 @@ type Keeper struct {
 
 // NewKeeper returns a new keeper for the pricefeed module.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSubspace subspace.Subspace,
+	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 ) Keeper {
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		cdc:           cdc,
 		key:           key,
-		paramSubspace: paramSubspace.WithKeyTable(types.ParamKeyTable()),
+		paramSubspace: paramstore,
 	}
 }
 
