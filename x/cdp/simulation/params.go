@@ -9,6 +9,5 @@ import (
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation
 func ParamChanges(r *rand.Rand) []simulation.ParamChange {
-	// TODO implement this
 	return []simulation.ParamChange{}
 }
