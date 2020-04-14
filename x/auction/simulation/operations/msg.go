@@ -39,7 +39,7 @@ func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper auction.Keeper) s
 		})
 
 		// shuffle auctions slice so that bids are evenly distributed across auctions
-		rand.Shuffle(len(openAuctions), func(i, j int) {
+		r.Shuffle(len(openAuctions), func(i, j int) {
 			openAuctions[i], openAuctions[j] = openAuctions[j], openAuctions[i]
 		})
 		// TODO do the same for accounts?
