@@ -1,8 +1,8 @@
 package keeper_test
+
 import (
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -18,8 +18,7 @@ func (suite *KeeperTestSuite) TestQuerier() {
 	var p types.Params
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &p))
 
-	addr, _ := sdk.AccAddressFromBech32("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
-	claimQueryParams := types.NewQueryClaimsParams(addr, "bnb")
+	claimQueryParams := types.NewQueryClaimsParams(suite.addrs[0], "bnb")
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{"custom", types.QuerierRoute, types.QueryGetClaims}, "/"),
 		Data: types.ModuleCdc.MustMarshalJSON(claimQueryParams),
