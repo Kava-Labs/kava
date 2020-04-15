@@ -103,7 +103,7 @@ func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (newPrice sdk.Dec) {
 	if upDown == 0 {
 		newPrice = currentPrice.Mul(smallerMultiple)
 	} else {
-		newPrice = currentPrice.Add(biggerMultiple)
+		newPrice = currentPrice.Mul(biggerMultiple)
 	}
 
 	return newPrice
