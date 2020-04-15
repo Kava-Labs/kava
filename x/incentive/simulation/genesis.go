@@ -71,11 +71,11 @@ func GenRewards(r *rand.Rand) types.Rewards {
 		// total reward is in range (half max total reward, max total reward)
 		amount := simulation.RandIntBetween(r, int(MaxTotalAssetReward.Int64()/2), int(MaxTotalAssetReward.Int64()))
 		totalRewards := sdk.NewInt64Coin(RewardDenom, int64(amount))
-		// generate a random number of days to use for reward's times
-		numbDays := simulation.RandIntBetween(r, 1, 365) * 24
+		// generate a random number of days between 7-30 to use for reward's times
+		numbDays := simulation.RandIntBetween(r, 7, 30) * 24
 		duration := time.Duration(time.Hour * time.Duration(numbDays))
-		timeLock := time.Duration(time.Hour * time.Duration(numbDays*2)) // twice as long as duration
-		claimDuration := time.Hour * time.Duration(numbDays/2)           // half as long as duration
+		timeLock := time.Duration(time.Hour * time.Duration(numbDays*10)) // 10 times as long as duration
+		claimDuration := time.Hour * time.Duration(numbDays*2)            // twice as long as duration
 		reward := types.NewReward(active, denom, totalRewards, duration, timeLock, claimDuration)
 		rewards = append(rewards, reward)
 	}
@@ -149,14 +149,7 @@ func loadAuthGenState(simState *module.SimulationState, incentiveGenesis types.G
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
 
 	// Load the first 10 accounts
-	var claimers []authexported.GenesisAccount
-	for i, acc := range authGenesis.Accounts {
-		if i < 10 {
-			claimers = append(claimers, acc)
-		} else {
-			break
-		}
-	}
+	claimers := LoadClaimers(authGenesis.Accounts)
 	if len(claimers) != 10 {
 		panic("not enough claimer accounts were loaded from auth's genesis accounts")
 	}
@@ -206,4 +199,14 @@ func replaceOrAppendAccount(accounts []authexported.GenesisAccount, acc authexpo
 		}
 	}
 	return append(newAccounts, acc)
+}
+
+// GenActive generates active bool with 80% chance of true
+func GenActive(r *rand.Rand) bool {
+	threshold := 80
+	value := simulation.RandIntBetween(r, 1, 100)
+	if value > threshold {
+		return false
+	}
+	return true
 }
