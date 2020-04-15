@@ -22,6 +22,9 @@ func TestPriceGen(t *testing.T) {
 	prices := make([]sdk.Dec, n)
 	for i := int64(0); i < n; i++ {
 		prices[i] = price
+		fmt.Print(i)
+		fmt.Print(",")
+		fmt.Println(price)
 		price = pickNewRandomPrice(r, marketID)
 	}
 
