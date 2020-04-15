@@ -170,12 +170,6 @@ func loadAuthGenState(simState *module.SimulationState, incentiveGenesis types.G
 	return authGenesis, totalCoins
 }
 
-// GetRandomClaimer gets a random account from the set of claimer accounts
-func GetRandomClaimer(r *rand.Rand, accounts []authexported.GenesisAccount) authexported.GenesisAccount {
-	claimers := LoadClaimers(accounts)
-	return claimers[r.Intn(len(claimers))]
-}
-
 // LoadClaimers loads the first 10 accounts from auth
 func LoadClaimers(accounts []authexported.GenesisAccount) []authexported.GenesisAccount {
 	var claimers []authexported.GenesisAccount
