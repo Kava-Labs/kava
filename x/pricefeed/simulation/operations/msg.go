@@ -15,8 +15,56 @@ import (
 )
 
 var (
-	noOpMsg = simulation.NoOpMsg(pricefeed.ModuleName)
+	noOpMsg  = simulation.NoOpMsg(pricefeed.ModuleName)
+	btcPrice = sdk.MustNewDecFromStr("7000")
+	bnbPrice = sdk.MustNewDecFromStr("15")
+	xrpPrice = sdk.MustNewDecFromStr("0.25")
 )
+
+func getStartPrice(marketID string) (startPrice sdk.Dec) {
+	switch marketID {
+	case "btc:usd":
+		return sdk.MustNewDecFromStr("7000")
+	case "bnb:usd":
+		return sdk.MustNewDecFromStr("15")
+	case "xrp:usd":
+		return sdk.MustNewDecFromStr("0.25")
+	}
+	return sdk.MustNewDecFromStr("100")
+}
+
+func getRecentPrice(marketID string) (prevPrice sdk.Dec) {
+	switch marketID {
+	case "btc:usd":
+		return btcPrice
+	case "bnb:usd":
+		return bnbPrice
+	case "xrp:usd":
+		return xrpPrice
+	}
+	return sdk.MustNewDecFromStr("100")
+}
+
+func setRecentPrice(marketID string, newPrice sdk.Dec) {
+	switch marketID {
+	case "btc:usd":
+		btcPrice = newPrice
+		return
+	case "bnb:usd":
+		bnbPrice = newPrice
+		return
+	case "xrp:usd":
+		xrpPrice = newPrice
+		return
+	}
+}
+
+func getIncrement(marketID string) (increment sdk.Dec) {
+	startPrice := getStartPrice(marketID)
+	divisor := sdk.MustNewDecFromStr("20")
+	increment = startPrice.Quo(divisor)
+	return increment
+}
 
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
 func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
@@ -26,29 +74,10 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
 
-		// OVERALL LOGIC:
-		// (1) RANDOMLY PICK AN ASSET OUT OF BNB AN BTC [TODO QUESTION - USDX IS EXCLUDED AS IT IS A STABLE DENOM
-		// (2) GET THE CURRENT PRICE OF THAT ASSET IN USD
-		// (3) GENERATE A RANDOM NUMBER IN THE RANGE 0.8-1.2 (UNIFORM DISTRIBUTION)
-		// (4) MULTIPLY THE CURRENT PRICE BY THE RANDOM NUMBER
-		// (5) POST THE NEW PRICE TO THE KEEPER
-
-		// pick a random asset out of BNB and BTC
 		randomMarket := pickRandomAsset(ctx, keeper, r)
-
 		marketID := randomMarket.MarketID
-
-		// Get the current price of the asset
-		currentPrice, err := keeper.GetCurrentPrice(ctx, marketID) //  Note this is marketID AND **NOT** just the base asset
-		if err != nil {
-			return noOpMsg, nil, fmt.Errorf("Error getting current price")
-		}
-
-		// get the address for the account
-		// this address needs to be an oracle and also exist. genesis should add all the accounts as oracles.
 		address := getRandomOracle(r, randomMarket)
-
-		price := pickNewRandomPrice(r, currentPrice.Price)
+		price := pickNewRandomPrice(r, marketID)
 
 		// get the expiry time based off the current time
 		expiry := getExpiryTime(ctx)
@@ -94,17 +123,27 @@ func getExpiryTime(ctx sdk.Context) (t time.Time) {
 	return t
 }
 
-func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (newPrice sdk.Dec) {
+func pickNewRandomPrice(r *rand.Rand, marketID string) (newPrice sdk.Dec) {
+	startPrice := getStartPrice(marketID)
+	doublePrice := sdk.MustNewDecFromStr("2.0").Mul(startPrice)
+	recentPrice := getRecentPrice(marketID)
+	increment := getIncrement(marketID)
+
 	upDown := r.Intn(2)
-
-	smallerMultiple := sdk.MustNewDecFromStr("0.8")
-	biggerMultiple := sdk.MustNewDecFromStr("1.25")
-
 	if upDown == 0 {
-		newPrice = currentPrice.Mul(smallerMultiple)
+		if doublePrice.Sub(increment).LTE(recentPrice) {
+			newPrice = doublePrice
+		} else {
+			newPrice = recentPrice.Add(increment)
+		}
 	} else {
-		newPrice = currentPrice.Mul(biggerMultiple)
+		if sdk.ZeroDec().Add(increment).GTE(recentPrice) {
+			newPrice = sdk.ZeroDec()
+		} else {
+			newPrice = recentPrice.Sub(increment)
+		}
 	}
+	setRecentPrice(marketID, newPrice)
 
 	return newPrice
 }
