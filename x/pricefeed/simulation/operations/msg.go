@@ -61,7 +61,7 @@ func setRecentPrice(marketID string, newPrice sdk.Dec) {
 
 func getIncrement(marketID string) (increment sdk.Dec) {
 	startPrice := getStartPrice(marketID)
-	divisor := sdk.MustNewDecFromStr("20")
+	divisor := sdk.MustNewDecFromStr("100")
 	increment = startPrice.Quo(divisor)
 	return increment
 }
