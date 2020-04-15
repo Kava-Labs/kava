@@ -44,21 +44,11 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 			return noOpMsg, nil, fmt.Errorf("Error getting current price")
 		}
 
-		// get the genesis price for an asset
-		genesisPrice, err := keeper.GetCurrentPrice(ctx.WithBlockHeight(1), marketID)
-		if err != nil {
-			return noOpMsg, nil, fmt.Errorf("Error getting genesis price")
-		}
-
 		// get the address for the account
 		// this address needs to be an oracle and also exist. genesis should add all the accounts as oracles.
 		address := getRandomOracle(r, randomMarket)
 
-		// generate a new random price based off the current price
-		price, err := pickNewRandomPrice(r, currentPrice.Price, genesisPrice.Price)
-		if err != nil {
-			return noOpMsg, nil, fmt.Errorf("Error picking random price")
-		}
+		price := pickNewRandomPrice(r, currentPrice.Price)
 
 		// get the expiry time based off the current time
 		expiry := getExpiryTime(ctx)
@@ -104,39 +94,19 @@ func getExpiryTime(ctx sdk.Context) (t time.Time) {
 	return t
 }
 
-// pickNewRandomPrice picks a new random price given the current price
-// It takes the current price then generates a random number to multiply it by to create variation while
-// still being in the similar range. Random walk style.
-// originalPrice is the starting price for the asset
-func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec, originalPrice sdk.Dec) (newPrice sdk.Dec, err sdk.Error) {
-	// Pick random price multiplier
-	limit := sdk.MustNewDecFromStr("0.2")
-	got := simulation.RandomDecAmount(r, limit) // random in the range 0-0.2
-
-	if err != nil {
-		fmt.Errorf("error generating random price multiplier")
-		return sdk.ZeroDec(), err
-	}
-	// random amount to deviate by
-	deviationAmount := got.Mul(originalPrice)
-
-	// now flip a coin
+func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (newPrice sdk.Dec) {
 	upDown := r.Intn(2)
-	// upDown := simulation.RandIntBetween(r, 0, 1) // WARNING THIS IS BIASED TOWARDS ZERO DO NOT USE
 
-	// either add or subtract the deviation amount with random probability
+	smallerMultiple := sdk.MustNewDecFromStr("0.8")
+	biggerMultiple := sdk.MustNewDecFromStr("1.25")
+
 	if upDown == 0 {
-		if currentPrice.Sub(deviationAmount).LTE(sdk.ZeroDec()) {
-			newPrice = sdk.ZeroDec()
-		} else {
-			newPrice = currentPrice.Sub(deviationAmount)
-		}
+		newPrice = currentPrice.Mul(smallerMultiple)
 	} else {
-		newPrice = currentPrice.Add(deviationAmount)
+		newPrice = currentPrice.Mul(biggerMultiple)
 	}
 
-	// return the price
-	return newPrice, nil
+	return newPrice
 }
 
 // submitMsg submits a message to the current instance of the keeper and returns a boolean whether the operation completed successfully or not
