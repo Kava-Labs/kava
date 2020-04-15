@@ -178,7 +178,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateGlobalDebtLimitParam(p.DebtParams); err != nil {
+	if err := validateDebtParams(p.DebtParams); err != nil {
 		return err
 	}
 
@@ -235,8 +235,8 @@ func validateGlobalDebtLimitParam(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if globalDebtLimit.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "global debt limit %s", globalDebtLimit)
+	if !globalDebtLimit.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "global debt limit %s", globalDebtLimit.String())
 	}
 
 	return nil

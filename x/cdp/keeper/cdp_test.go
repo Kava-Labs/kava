@@ -284,8 +284,11 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 	cd := cdps()[1]
 	err := suite.keeper.MintDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
-	err = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
-	suite.Error(err)
+	suite.Require().Panics(func() {
+		err = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
+	},
+	)
+
 	sk := suite.app.GetSupplyKeeper()
 	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(cs(c("debt", 10000000)), acc.GetCoins())

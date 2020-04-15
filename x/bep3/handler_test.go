@@ -1,9 +1,6 @@
 package bep3_test
 
 import (
-	"encoding/hex"
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -89,7 +86,7 @@ func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
 	badMsg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], badSwapID, badRandomNumber.Bytes())
 	badRes, err := suite.handler(suite.ctx, badMsg)
 	suite.Require().Error(err)
-	suite.True(strings.Contains(badRes.Log, fmt.Sprintf("AtomicSwap %s was not found", hex.EncodeToString(badSwapID))))
+	suite.Require().Nil(badRes)
 
 	// Add an atomic swap before attempting new claim msg
 	swapID, randomNumber := suite.AddAtomicSwap()
@@ -115,8 +112,8 @@ func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
 
 	// Attempt to refund active atomic swap
 	res1, err := suite.handler(suite.ctx, msg)
-	suite.True(strings.Contains(res1.Log, "atomic swap is still active and cannot be refunded"))
 	suite.Require().Error(err)
+	suite.Require().Nil(res1)
 
 	// Expire the atomic swap with begin blocker and attempt refund
 	laterCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 400)

@@ -1,7 +1,6 @@
 package cdp_test
 
 import (
-	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,8 +54,8 @@ func (suite *HandlerTestSuite) TestMsgCreateCdp() {
 
 func (suite *HandlerTestSuite) TestInvalidMsg() {
 	res, err := suite.handler(suite.ctx, sdk.NewTestMsg())
-	suite.Require().NoError(err)
-	suite.Require().True(strings.Contains(res.Log, "unrecognized cdp msg type"))
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
 }
 
 func TestHandlerTestSuite(t *testing.T) {
