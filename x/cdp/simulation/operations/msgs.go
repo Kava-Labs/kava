@@ -66,13 +66,13 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			// calculate the max amount of debt that could be drawn for the chosen deposit
 			maxDebtDraw := collateralDepositValue.Quo(randCollateralParam.LiquidationRatio).TruncateInt()
 			// check that the debt limit hasn't been reached
-			debtLimit := randCollateralParam.DebtLimit.AmountOf(randDebtParam.Denom).Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
-			if debtLimit.LTE(randDebtParam.DebtFloor) {
+			availableAssetDebt := randCollateralParam.DebtLimit.AmountOf(randDebtParam.Denom).Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
+			if availableAssetDebt.LTE(randDebtParam.DebtFloor) {
 				// debt limit has been reached
 				return simulation.NewOperationMsgBasic(cdp.ModuleName, "no-operation", "debt limit reached, cannot open cdp", false, nil), nil, nil
 			}
 			// ensure that the debt draw does not exceed the debt limit
-			maxDebtDraw = sdk.MinInt(maxDebtDraw, debtLimit)
+			maxDebtDraw = sdk.MinInt(maxDebtDraw, availableAssetDebt)
 			// randomly select a debt draw amount
 			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(randDebtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
 			msg := cdp.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, collateralDeposit)), sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, debtDraw)))
@@ -131,12 +131,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 				return simulation.NewOperationMsgBasic(cdp.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
 			}
 			// check if the debt limit has been reached
-			debtLimit := randCollateralParam.DebtLimit.AmountOf(randDebtParam.Denom).Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
-			if debtLimit.LTE(sdk.OneInt()) {
+			availableAssetDebt := randCollateralParam.DebtLimit.AmountOf(randDebtParam.Denom).Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
+			if availableAssetDebt.LTE(sdk.OneInt()) {
 				// debt limit has been reached
 				return simulation.NewOperationMsgBasic(cdp.ModuleName, "no-operation", "debt limit reached, cannot draw more debt", false, nil), nil, nil
 			}
-			maxDraw := sdk.MinInt(maxDebt, debtLimit)
+			maxDraw := sdk.MinInt(maxDebt, availableAssetDebt)
 
 			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
 			msg := cdp.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randDrawAmount)))
