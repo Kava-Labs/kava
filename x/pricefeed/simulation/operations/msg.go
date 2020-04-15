@@ -137,7 +137,7 @@ func pickNewRandomPrice(r *rand.Rand, marketID string) (newPrice sdk.Dec) {
 			newPrice = recentPrice.Add(increment)
 		}
 	} else {
-		if sdk.SmallestDec().Add(increment).GTE(recentPrice) {
+		if recentPrice.Sub(increment).LT(sdk.SmallestDec()) {
 			newPrice = sdk.SmallestDec()
 		} else {
 			newPrice = recentPrice.Sub(increment)
