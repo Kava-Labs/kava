@@ -61,7 +61,7 @@ func setRecentPrice(marketID string, newPrice sdk.Dec) {
 
 func getIncrement(marketID string) (increment sdk.Dec) {
 	startPrice := getStartPrice(marketID)
-	divisor := sdk.MustNewDecFromStr("100")
+	divisor := sdk.MustNewDecFromStr("20")
 	increment = startPrice.Quo(divisor)
 	return increment
 }
@@ -125,20 +125,20 @@ func getExpiryTime(ctx sdk.Context) (t time.Time) {
 
 func pickNewRandomPrice(r *rand.Rand, marketID string) (newPrice sdk.Dec) {
 	startPrice := getStartPrice(marketID)
-	doublePrice := sdk.MustNewDecFromStr("2.0").Mul(startPrice)
+	maxPrice := sdk.MustNewDecFromStr("10.0").Mul(startPrice)
 	recentPrice := getRecentPrice(marketID)
 	increment := getIncrement(marketID)
 
 	upDown := r.Intn(2)
 	if upDown == 0 {
-		if doublePrice.Sub(increment).LTE(recentPrice) {
-			newPrice = doublePrice
+		if maxPrice.Sub(increment).LTE(recentPrice) {
+			newPrice = maxPrice
 		} else {
 			newPrice = recentPrice.Add(increment)
 		}
 	} else {
-		if sdk.ZeroDec().Add(increment).GTE(recentPrice) {
-			newPrice = sdk.ZeroDec()
+		if sdk.SmallestDec().Add(increment).GTE(recentPrice) {
+			newPrice = sdk.SmallestDec()
 		} else {
 			newPrice = recentPrice.Sub(increment)
 		}
