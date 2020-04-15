@@ -80,28 +80,55 @@ func ParamKeyTable() params.KeyTable {
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	// TODO: Write validation functions
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyActive, &p.Active, validateFn),
-		params.NewParamSetPair(KeyPeriods, &p.Periods, validateFn),
+		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
+		params.NewParamSetPair(KeyPeriods, &p.Periods, validatePeriodsParams),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	prevEnd := tmtime.Canonical(time.Unix(0, 0))
-	for _, pr := range p.Periods {
-		if pr.End.Before(pr.Start) {
-			return fmt.Errorf("end time for period is before start time: %s", pr)
-		}
-		if pr.Start.Before(prevEnd) {
-			return fmt.Errorf("periods must be in chronological order: %s", p.Periods)
-		}
-		prevEnd = pr.End
+	if err := validateActiveParam(p.Active); err != nil {
+		return err
 	}
+
+	return validatePeriodsParams(p.Periods)
+}
+
+func validateActiveParam(i interface{}) error {
+	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
 	return nil
 }
 
-func validateFn(i interface{}) error {
+func validatePeriodsParams(i interface{}) error {
+	periods, ok := i.(Periods)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	prevEnd := tmtime.Canonical(time.Unix(0, 0))
+	now := time.Now()
+	for _, pr := range periods {
+		if pr.End.Before(pr.Start) {
+			return fmt.Errorf("end time for period is before start time: %s", pr)
+		}
+
+		// check that the period is not expired
+		if pr.End.Before(now) {
+			return fmt.Errorf("period already expired: %s", pr)
+		}
+
+		if pr.Start.Before(prevEnd) {
+			return fmt.Errorf("periods must be in chronological order: %s", periods)
+		}
+		prevEnd = pr.End
+
+		//TODO: validate period Inflation?
+	}
+
 	return nil
 }

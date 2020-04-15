@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 )
 
+var emptyDec = sdk.Dec{}
+
 // Defaults for auction params
 const (
 	// DefaultMaxAuctionDuration max length of auction
@@ -72,11 +74,11 @@ func ParamKeyTable() subspace.KeyTable {
 func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
 	// TODO: Write validation functions
 	return subspace.ParamSetPairs{
-		params.NewParamSetPair(KeyBidDuration, &p.BidDuration, validateFn),
-		params.NewParamSetPair(KeyMaxAuctionDuration, &p.MaxAuctionDuration, validateFn),
-		params.NewParamSetPair(KeyIncrementSurplus, &p.IncrementSurplus, validateFn),
-		params.NewParamSetPair(KeyIncrementDebt, &p.IncrementDebt, validateFn),
-		params.NewParamSetPair(KeyIncrementCollateral, &p.IncrementCollateral, validateFn),
+		params.NewParamSetPair(KeyBidDuration, &p.BidDuration, validateBidDurationParam),
+		params.NewParamSetPair(KeyMaxAuctionDuration, &p.MaxAuctionDuration, validateMaxAuctionDurationParam),
+		params.NewParamSetPair(KeyIncrementSurplus, &p.IncrementSurplus, validateIncrementSurplusParam),
+		params.NewParamSetPair(KeyIncrementDebt, &p.IncrementDebt, validateIncrementDebtParam),
+		params.NewParamSetPair(KeyIncrementCollateral, &p.IncrementCollateral, validateIncrementCollateralParam),
 	}
 }
 
@@ -100,30 +102,102 @@ func (p Params) String() string {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	if p.BidDuration < 0 {
-		return errors.New("bid duration cannot be negative")
+	if err := validateBidDurationParam(p.BidDuration); err != nil {
+		return err
 	}
-	if p.MaxAuctionDuration < 0 {
-		return errors.New("max auction duration cannot be negative")
+
+	if err := validateMaxAuctionDurationParam(p.MaxAuctionDuration); err != nil {
+		return err
 	}
+
 	if p.BidDuration > p.MaxAuctionDuration {
 		return errors.New("bid duration param cannot be larger than max auction duration")
 	}
-	if p.IncrementSurplus == (sdk.Dec{}) || p.IncrementDebt == (sdk.Dec{}) || p.IncrementCollateral == (sdk.Dec{}) {
-		return errors.New("auction increment values cannot be nil")
+
+	if err := validateIncrementSurplusParam(p.IncrementSurplus); err != nil {
+		return err
 	}
-	if p.IncrementSurplus.IsNegative() {
-		return errors.New("surplus auction increment cannot be less than zero")
+
+	if err := validateIncrementDebtParam(p.IncrementDebt); err != nil {
+		return err
 	}
-	if p.IncrementDebt.IsNegative() {
-		return errors.New("debt auction increment cannot be less than zero")
+
+	return validateIncrementCollateralParam(p.IncrementCollateral)
+}
+
+func validateBidDurationParam(i interface{}) error {
+	bidDuration, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if p.IncrementCollateral.IsNegative() {
-		return errors.New("collateral auction increment cannot be less than zero")
+
+	if bidDuration < 0 {
+		return fmt.Errorf("bid duration cannot be negative %d", bidDuration)
 	}
+
 	return nil
 }
 
-func validateFn(i interface{}) error {
+func validateMaxAuctionDurationParam(i interface{}) error {
+	maxAuctionDuration, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if maxAuctionDuration < 0 {
+		return fmt.Errorf("max auction duration cannot be negative %d", maxAuctionDuration)
+	}
+
+	return nil
+}
+
+func validateIncrementSurplusParam(i interface{}) error {
+	incrementSurplus, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if incrementSurplus == emptyDec || incrementSurplus.IsNil() {
+		return errors.New("surplus auction increment cannot be nil or empty")
+	}
+
+	if incrementSurplus.IsNegative() {
+		return fmt.Errorf("surplus auction increment cannot be less than zero %s", incrementSurplus)
+	}
+
+	return nil
+}
+
+func validateIncrementDebtParam(i interface{}) error {
+	incrementDebt, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if incrementDebt == emptyDec || incrementDebt.IsNil() {
+		return errors.New("debt auction increment cannot be nil or empty")
+	}
+
+	if incrementDebt.IsNegative() {
+		return fmt.Errorf("debt auction increment cannot be less than zero %s", incrementDebt)
+	}
+
+	return nil
+}
+
+func validateIncrementCollateralParam(i interface{}) error {
+	incrementCollateral, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if incrementCollateral == emptyDec || incrementCollateral.IsNil() {
+		return errors.New("collateral auction increment cannot be nil or empty")
+	}
+
+	if incrementCollateral.IsNegative() {
+		return fmt.Errorf("collateral auction increment cannot be less than zero %s", incrementCollateral)
+	}
+
 	return nil
 }

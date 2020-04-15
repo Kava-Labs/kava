@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -104,48 +106,112 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	// TODO: Write validation functions
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateFn),
-		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateFn),
-		params.NewParamSetPair(KeyMaxBlockLock, &p.MaxBlockLock, validateFn),
-		params.NewParamSetPair(KeySupportedAssets, &p.SupportedAssets, validateFn),
+		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateBnbDeputyAddressParam),
+		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateMinBlockLockParam),
+		params.NewParamSetPair(KeyMaxBlockLock, &p.MaxBlockLock, validateMaxBlockLockParam),
+		params.NewParamSetPair(KeySupportedAssets, &p.SupportedAssets, validateSupportedAssetsParams),
 	}
 }
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	if p.MinBlockLock < AbsoluteMinimumBlockLock {
-		return fmt.Errorf(fmt.Sprintf("minimum block lock cannot be less than %d", AbsoluteMinimumBlockLock))
+	if err := validateBnbDeputyAddressParam(p.BnbDeputyAddress); err != nil {
+		return err
 	}
+
+	if err := validateMinBlockLockParam(p.MinBlockLock); err != nil {
+		return err
+	}
+
+	if err := validateMaxBlockLockParam(p.MaxBlockLock); err != nil {
+		return err
+	}
+
 	if p.MinBlockLock >= p.MaxBlockLock {
-		return fmt.Errorf("maximum block lock must be greater than minimum block lock")
+		return fmt.Errorf("minimum block lock ≥ maximum block lock, got %d ≥ %d", p.MinBlockLock, p.MaxBlockLock)
 	}
-	if p.MaxBlockLock > AbsoluteMaximumBlockLock {
-		return fmt.Errorf(fmt.Sprintf("maximum block lock cannot be greater than %d", AbsoluteMaximumBlockLock))
+
+	return validateSupportedAssetsParams(p.SupportedAssets)
+}
+
+func validateBnbDeputyAddressParam(i interface{}) error {
+	addr, ok := i.(sdk.AccAddress)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	coinIDs := make(map[int]bool)
-	coinDenoms := make(map[string]bool)
-	for _, asset := range p.SupportedAssets {
-		if len(asset.Denom) == 0 {
-			return fmt.Errorf("asset denom cannot be empty")
-		}
-		if asset.CoinID < 0 {
-			return fmt.Errorf(fmt.Sprintf("asset %s must be a positive integer", asset.Denom))
-		}
-		if !asset.Limit.IsPositive() {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive supply limit", asset.Denom))
-		}
-		if coinDenoms[asset.Denom] {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate denom", asset.Denom))
-		}
-		coinDenoms[asset.Denom] = true
-		if coinIDs[asset.CoinID] {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %d", asset.Denom, asset.CoinID))
-		}
-		coinIDs[asset.CoinID] = true
+
+	if addr.Empty() {
+		return errors.New("bnb deputy address cannot be empty")
 	}
+
+	if len(addr.Bytes()) != sdk.AddrLen {
+		return fmt.Errorf("bnb deputy address invalid bytes length got %d, want %d", len(addr.Bytes()), sdk.AddrLen)
+	}
+
 	return nil
 }
 
-func validateFn(i interface{}) error {
+func validateMinBlockLockParam(i interface{}) error {
+	minBlockLock, ok := i.(int64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if minBlockLock < AbsoluteMinimumBlockLock {
+		return fmt.Errorf("minimum block lock cannot be less than %d, got %d", AbsoluteMinimumBlockLock, minBlockLock)
+	}
+
+	return nil
+}
+
+func validateMaxBlockLockParam(i interface{}) error {
+	maxBlockLock, ok := i.(int64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if maxBlockLock > AbsoluteMaximumBlockLock {
+		return fmt.Errorf("maximum block lock cannot be greater than %d, got %d", AbsoluteMaximumBlockLock, maxBlockLock)
+	}
+
+	return nil
+}
+
+func validateSupportedAssetsParams(i interface{}) error {
+	assetParams, ok := i.(AssetParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	coinIDs := make(map[int]bool)
+	coinDenoms := make(map[string]bool)
+	for _, asset := range assetParams {
+		if strings.TrimSpace(asset.Denom) == "" {
+			return errors.New("asset denom cannot be empty")
+		}
+
+		if asset.CoinID < 0 {
+			return fmt.Errorf(fmt.Sprintf("asset %s must be a non negative integer", asset.Denom))
+		}
+
+		if !asset.Limit.IsPositive() {
+			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive supply limit", asset.Denom))
+		}
+
+		_, found := coinDenoms[asset.Denom]
+		if found {
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate denom", asset.Denom))
+		}
+
+		coinDenoms[asset.Denom] = true
+
+		_, found = coinIDs[asset.CoinID]
+		if found {
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %d", asset.Denom, asset.CoinID))
+		}
+
+		coinIDs[asset.CoinID] = true
+	}
+
 	return nil
 }
