@@ -50,6 +50,10 @@ type TestApp struct {
 }
 
 func NewTestApp() TestApp {
+	config := sdk.GetConfig()
+	SetBech32AddressPrefixes(config)
+	SetBip44CoinType(config)
+
 	db := tmdb.NewMemDB()
 	app := NewApp(log.NewNopLogger(), db, nil, true, 0)
 	return TestApp{App: *app}

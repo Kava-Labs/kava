@@ -143,7 +143,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, validatorvesting.StoreKey,
+		gov.StoreKey, params.StoreKey, evidence.StoreKey, validatorvesting.StoreKey,
 		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey,
 		kavadist.StoreKey,
 	)
@@ -340,7 +340,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, // TODO is this order ok?
+		evidence.ModuleName, pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, // TODO is this order ok?
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

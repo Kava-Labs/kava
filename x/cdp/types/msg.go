@@ -45,13 +45,13 @@ func (msg MsgCreateCDP) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.Collateral) != 1 {
+	if msg.Collateral.Len() != 1 {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cdps do not support multiple collateral types: %s", msg.Collateral)
 	}
 	if !msg.Collateral.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
-	if !msg.Principal.IsValid() {
+	if msg.Principal.Empty() || !msg.Principal.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
 	}
 	return nil
@@ -107,7 +107,7 @@ func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Depositor.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.Collateral) != 1 {
+	if msg.Collateral.Len() != 1 {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cdps do not support multiple collateral types: %s", msg.Collateral)
 	}
 	if !msg.Collateral.IsValid() {
@@ -166,7 +166,7 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if msg.Depositor.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if len(msg.Collateral) != 1 {
+	if msg.Collateral.Len() != 1 {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "cdps do not support multiple collateral types: %s", msg.Collateral)
 	}
 	if !msg.Collateral.IsValid() {
@@ -225,7 +225,7 @@ func (msg MsgDrawDebt) ValidateBasic() error {
 	if strings.TrimSpace(msg.CdpDenom) == "" {
 		return errors.New("cdp denom cannot be blank")
 	}
-	if !msg.Principal.IsValid() {
+	if msg.Principal.Empty() || !msg.Principal.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
 	}
 	return nil
@@ -281,8 +281,8 @@ func (msg MsgRepayDebt) ValidateBasic() error {
 	if strings.TrimSpace(msg.CdpDenom) == "" {
 		return errors.New("cdp denom cannot be blank")
 	}
-	if !msg.Payment.IsValid() {
-		sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "payment amount %s", msg.Payment)
+	if msg.Payment.Empty() || !msg.Payment.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "payment amount %s", msg.Payment)
 	}
 	return nil
 }

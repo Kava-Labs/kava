@@ -60,7 +60,8 @@ func TestAuctionBidding(t *testing.T) {
 		expectedEndTime time.Time
 		expectedBidder  sdk.AccAddress
 		expectedBid     sdk.Coin
-		expectpass      bool
+		expectPass      bool
+		expectPanic     bool
 	}{
 		{
 			"basic: auction doesn't exist",
@@ -72,6 +73,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 10),
 			false,
+			true,
 		},
 		{
 			"basic: closed auction",
@@ -82,6 +84,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			nil,
 			c("token2", 0),
+			false,
 			false,
 		},
 		{
@@ -94,6 +97,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 10),
 			true,
+			false,
 		},
 		{
 			"surplus: second bidder",
@@ -105,6 +109,7 @@ func TestAuctionBidding(t *testing.T) {
 			secondBuyer,
 			c("token2", 11),
 			true,
+			false,
 		},
 		{
 			"surplus: invalid bid denom",
@@ -115,6 +120,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			nil, // surplus auctions are created with initial bidder as a nil address
 			c("token2", 0),
+			false,
 			false,
 		},
 		{
@@ -127,6 +133,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 100),
 			false,
+			false,
 		},
 		{
 			"surplus: invalid bid (equal)",
@@ -137,6 +144,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			nil, // surplus auctions are created with initial bidder as a nil address
 			c("token2", 0),
+			false,
 			false,
 		},
 		{
@@ -149,6 +157,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 100),
 			false,
+			false,
 		},
 		{
 			"debt: normal",
@@ -160,6 +169,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 100),
 			true,
+			false,
 		},
 		{
 			"debt: second bidder",
@@ -171,6 +181,7 @@ func TestAuctionBidding(t *testing.T) {
 			secondBuyer,
 			c("token2", 100),
 			true,
+			false,
 		},
 		{
 			"debt: invalid lot denom",
@@ -181,6 +192,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			supply.NewModuleAddress(modName),
 			c("token2", 100),
+			false,
 			false,
 		},
 		{
@@ -193,6 +205,7 @@ func TestAuctionBidding(t *testing.T) {
 			supply.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
+			false,
 		},
 		{
 			"debt: invalid lot size (equal)",
@@ -204,6 +217,7 @@ func TestAuctionBidding(t *testing.T) {
 			supply.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
+			false,
 		},
 		{
 			"debt: invalid lot size (larger than min increment)",
@@ -214,7 +228,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			supply.NewModuleAddress(modName),
 			c("token2", 100),
-			false,
+			false, false,
 		},
 		{
 			"collateral [forward]: normal",
@@ -226,6 +240,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 10),
 			true,
+			false,
 		},
 		{
 			"collateral [forward]: second bidder",
@@ -237,6 +252,7 @@ func TestAuctionBidding(t *testing.T) {
 			secondBuyer,
 			c("token2", 11),
 			true,
+			false,
 		},
 		{
 			"collateral [forward]: invalid bid denom",
@@ -247,6 +263,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			nil,
 			c("token2", 0),
+			false,
 			false,
 		},
 		{
@@ -259,6 +276,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 10),
 			false,
+			false,
 		},
 		{
 			"collateral [forward]: invalid bid size (equal)",
@@ -269,6 +287,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			nil,
 			c("token2", 0),
+			false,
 			false,
 		},
 		{
@@ -281,6 +300,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 50),
 			false,
+			false,
 		},
 		{
 			"collateral [forward]: less than min increment but equal to maxBid",
@@ -292,6 +312,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 100),
 			true,
+			false,
 		},
 		{
 			"collateral [forward]: invalid bid size (greater than max)",
@@ -302,6 +323,7 @@ func TestAuctionBidding(t *testing.T) {
 			types.DistantFuture,
 			nil,
 			c("token2", 0),
+			false,
 			false,
 		},
 		{
@@ -314,6 +336,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 50),
 			true,
+			false,
 		},
 		{
 			"collateral [reverse]: second bidder",
@@ -325,6 +348,7 @@ func TestAuctionBidding(t *testing.T) {
 			secondBuyer,
 			c("token2", 50),
 			true,
+			false,
 		},
 		{
 			"collateral [reverse]: invalid lot denom",
@@ -335,6 +359,7 @@ func TestAuctionBidding(t *testing.T) {
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 50),
+			false,
 			false,
 		},
 		{
@@ -347,6 +372,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 50),
 			false,
+			false,
 		},
 		{
 			"collateral [reverse]: invalid lot size (equal)",
@@ -358,6 +384,7 @@ func TestAuctionBidding(t *testing.T) {
 			buyer,
 			c("token2", 50),
 			false,
+			false,
 		},
 		{
 			"collateral [reverse]: invalid lot size (larger than min increment)",
@@ -368,6 +395,7 @@ func TestAuctionBidding(t *testing.T) {
 			someTime.Add(types.DefaultBidDuration),
 			buyer,
 			c("token2", 50),
+			false,
 			false,
 		},
 	}
@@ -398,14 +426,23 @@ func TestAuctionBidding(t *testing.T) {
 			var err error
 			switch tc.auctionArgs.auctionType {
 			case Surplus:
-				id, _ = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom)
+				if tc.expectPanic {
+					require.Panics(t, func() {
+						id, err = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom)
+					})
+				} else {
+					id, err = keeper.StartSurplusAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid.Denom)
+				}
 			case Debt:
-				id, _ = keeper.StartDebtAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.bid, tc.auctionArgs.lot, tc.auctionArgs.debt)
+				id, err = keeper.StartDebtAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.bid, tc.auctionArgs.lot, tc.auctionArgs.debt)
 			case Collateral:
-				id, _ = keeper.StartCollateralAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid, tc.auctionArgs.addresses, tc.auctionArgs.weights, tc.auctionArgs.debt) // seller, lot, maxBid, otherPerson
+				id, err = keeper.StartCollateralAuction(ctx, tc.auctionArgs.seller, tc.auctionArgs.lot, tc.auctionArgs.bid, tc.auctionArgs.addresses, tc.auctionArgs.weights, tc.auctionArgs.debt) // seller, lot, maxBid, otherPerson
 			default:
 				t.Fail()
 			}
+
+			require.NoError(t, err)
+
 			// Place setup bids
 			for _, b := range tc.setupBids {
 				require.NoError(t, keeper.PlaceBid(ctx, id, b.bidder, b.amount))
@@ -429,7 +466,7 @@ func TestAuctionBidding(t *testing.T) {
 			err = keeper.PlaceBid(ctx, id, tc.bidArgs.bidder, tc.bidArgs.amount)
 
 			// Check success/failure
-			if tc.expectpass {
+			if tc.expectPass {
 				require.Nil(t, err)
 				// Check auction was found
 				newAuction, found := keeper.GetAuction(ctx, id)
@@ -446,7 +483,8 @@ func TestAuctionBidding(t *testing.T) {
 				case Debt:
 					bidAmt = oldAuction.GetBid()
 				case Collateral:
-					collatAuction, _ := oldAuction.(types.CollateralAuction)
+					collatAuction, ok := oldAuction.(types.CollateralAuction)
+					require.True(t, ok, tc.name)
 					if collatAuction.IsReversePhase() {
 						bidAmt = oldAuction.GetBid()
 					}
@@ -458,7 +496,7 @@ func TestAuctionBidding(t *testing.T) {
 					if oldBidder.Equals(supply.NewModuleAddress(oldAuction.GetInitiator())) {                  // handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
 						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), bank.GetCoins(ctx, oldBidder))
 					} else {
-						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()), bank.GetCoins(ctx, oldBidder))
+						require.Equal(t, sdk.NewCoins(oldBidderOldCoins.Add(oldAuction.GetBid())...), sdk.NewCoins(bank.GetCoins(ctx, oldBidder)...))
 					}
 				}
 

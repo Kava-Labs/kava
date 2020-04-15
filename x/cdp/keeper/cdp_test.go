@@ -84,7 +84,7 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(cs(c("usdx", 110000000), c("xrp", 100000000)), acc.GetCoins())
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("lol", 100)), cs(c("usdx", 10)))
-	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
+	suite.Require().True(errors.Is(err, types.ErrCollateralNotSupported))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100)), cs(c("usdx", 10)))
 	suite.Require().True(errors.Is(err, types.ErrCdpAlreadyExists))
 }
@@ -285,9 +285,8 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 	err := suite.keeper.MintDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
 	suite.Require().Panics(func() {
-		err = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
-	},
-	)
+		_ = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
+	})
 
 	sk := suite.app.GetSupplyKeeper()
 	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -295,8 +294,9 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 
 	err = suite.keeper.BurnDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
-	err = suite.keeper.BurnDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
-	suite.Error(err)
+	suite.Require().Panics(func() {
+		_ = suite.keeper.BurnDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
+	})
 	sk = suite.app.GetSupplyKeeper()
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(sdk.Coins(nil), acc.GetCoins())

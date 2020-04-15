@@ -9,6 +9,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
+const (
+	bech32MainPrefix = "kava"
+)
+
 // Parameter keys
 var (
 	KeyBnbDeputyAddress = []byte("BnbDeputyAddress")
@@ -61,7 +65,17 @@ func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock int64
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	defaultBnbDeputyAddress, _ := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
+	// required to prevent the panic below
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount(bech32MainPrefix, bech32MainPrefix+sdk.PrefixPublic)
+	config.SetBech32PrefixForValidator(bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator, bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixOperator+sdk.PrefixPublic)
+	config.SetBech32PrefixForConsensusNode(bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus, bech32MainPrefix+sdk.PrefixValidator+sdk.PrefixConsensus+sdk.PrefixPublic)
+
+	defaultBnbDeputyAddress, err := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
+	if err != nil {
+		panic(err)
+	}
+
 	return NewParams(defaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
 }
 
