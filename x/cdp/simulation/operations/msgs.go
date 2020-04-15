@@ -127,7 +127,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			// given the current collateral value, calculate how much debt we could add while maintaining a valid liquidation ratio
 			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom).Add(totalFees)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
-			maxDebt := maxTotalDebt.Sub(sdk.NewDecFromInt(debt)).TruncateInt() // subtract 10 off of maxDebt to account for fees that may have accumulated and not yet accrued to AccumulatedFees.
+			maxDebt := maxTotalDebt.Sub(sdk.NewDecFromInt(debt)).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
 				// debt in cdp is maxed out
 				return simulation.NewOperationMsgBasic(cdp.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
