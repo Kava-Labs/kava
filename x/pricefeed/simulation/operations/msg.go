@@ -131,7 +131,7 @@ func pickNewRandomPrice(r *rand.Rand, marketID string) (newPrice sdk.Dec) {
 
 	upDown := r.Intn(2)
 	if upDown == 0 {
-		if maxPrice.Sub(increment).LTE(recentPrice) {
+		if recentPrice.Add(increment).GT(maxPrice) {
 			newPrice = maxPrice
 		} else {
 			newPrice = recentPrice.Add(increment)
