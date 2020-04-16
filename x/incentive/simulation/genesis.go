@@ -13,7 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 var (
@@ -42,6 +44,15 @@ func RandomizedGenState(simState *module.SimulationState) {
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, incentiveGenesis))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(incentiveGenesis)
 
+	// Load pricefeed genesis state
+	pricefeedGenesis := loadPricefeedGenState(simState, incentiveGenesis)
+	simState.GenState[pricefeed.ModuleName] = simState.Cdc.MustMarshalJSON(pricefeedGenesis)
+
+	// Load CDP genesis state so we can create CDPs before claiming rewards
+	cdpGenesis := loadCDPGenState(simState, incentiveGenesis)
+	simState.GenState[cdp.ModuleName] = simState.Cdc.MustMarshalJSON(cdpGenesis)
+
+	// Load auth state with populated account balances
 	authGenesis, totalCoins := loadAuthGenState(simState, incentiveGenesis)
 	simState.GenState[auth.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
 
@@ -143,6 +154,37 @@ func GenNextClaimPeriodIds(cps types.ClaimPeriods) types.GenesisClaimPeriodIDs {
 	return claimPeriodIDs
 }
 
+func loadPricefeedGenState(simState *module.SimulationState, incentiveGenesis types.GenesisState) pricefeed.GenesisState {
+	quoteAsset := "usd"
+	oracle := simState.Accounts[simulation.RandIntBetween(simState.Rand, 0, len(simState.Accounts))]
+
+	var markets []pricefeed.Market
+	var postedPrices []pricefeed.PostedPrice
+	for _, reward := range incentiveGenesis.Params.Rewards {
+		marketID := fmt.Sprintf("%s:%s", reward.Denom, quoteAsset)
+		// Construct market for this reward asset
+		market := pricefeed.Market{
+			MarketID:   marketID,
+			BaseAsset:  reward.Denom,
+			QuoteAsset: quoteAsset,
+			Oracles:    []sdk.AccAddress{oracle.Address},
+			Active:     true,
+		}
+		// Construct posted price for this reward asset
+		postedPrice := pricefeed.PostedPrice{
+			MarketID:      market.MarketID,
+			OracleAddress: oracle.Address,
+			Price:         sdk.MustNewDecFromStr("20"),                       // TODO: dynamic pricing
+			Expiry:        simState.GenTimestamp.Add(time.Hour * 24 * 36500), // 1000 years
+		}
+		markets = append(markets, market)
+		postedPrices = append(postedPrices, postedPrice)
+	}
+	params := pricefeed.NewParams(markets)
+	genesis := pricefeed.NewGenesisState(params, postedPrices)
+	return genesis
+}
+
 func loadAuthGenState(simState *module.SimulationState, incentiveGenesis types.GenesisState) (
 	auth.GenesisState, []sdk.Coins) {
 	var authGenesis auth.GenesisState
@@ -168,6 +210,68 @@ func loadAuthGenState(simState *module.SimulationState, incentiveGenesis types.G
 		authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, claimer)
 	}
 	return authGenesis, totalCoins
+}
+
+// TODO: Make this dynamic similar to loadAuthGenState
+func loadCDPGenState(simState *module.SimulationState, incentiveGenesis types.GenesisState) cdp.GenesisState {
+	return cdp.GenesisState{
+		Params: cdp.Params{
+			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 100000000000000)),
+			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
+			CollateralParams: cdp.CollateralParams{
+				{
+					Denom:              "xrp",
+					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 20000000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000004431822130"),
+					LiquidationPenalty: sdk.MustNewDecFromStr("0.075"),
+					AuctionSize:        sdk.NewInt(100000000000),
+					Prefix:             0x20,
+					MarketID:           "xrp:usd",
+					ConversionFactor:   sdk.NewInt(6),
+				},
+				{
+					Denom:              "btc",
+					LiquidationRatio:   sdk.MustNewDecFromStr("1.25"),
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 50000000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"),
+					LiquidationPenalty: sdk.MustNewDecFromStr("0.05"),
+					AuctionSize:        sdk.NewInt(1000000000),
+					Prefix:             0x21,
+					MarketID:           "btc:usd",
+					ConversionFactor:   sdk.NewInt(8),
+				},
+				{
+					Denom:              "bnb",
+					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 30000000000000)),
+					StabilityFee:       sdk.MustNewDecFromStr("1.000000002293273137"),
+					LiquidationPenalty: sdk.MustNewDecFromStr("0.15"),
+					AuctionSize:        sdk.NewInt(1000000000000),
+					Prefix:             0x22,
+					MarketID:           "bnb:usd",
+					ConversionFactor:   sdk.NewInt(8),
+				},
+			},
+			DebtParams: cdp.DebtParams{
+				{
+					Denom:            "usdx",
+					ReferenceAsset:   "usd",
+					ConversionFactor: sdk.NewInt(6),
+					DebtFloor:        sdk.NewInt(10000000),
+					SavingsRate:      sdk.MustNewDecFromStr("0.95"),
+				},
+			},
+		},
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+	}
 }
 
 // LoadClaimers loads the first 10 accounts from auth
