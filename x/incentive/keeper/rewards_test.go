@@ -12,7 +12,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-func (suite *KeeperTestSuite) TestHelperMethods() {
+func (suite *KeeperTestSuite) TestExpireRewardPeriod() {
 	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
 	suite.keeper.SetRewardPeriod(suite.ctx, rp)
 	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
@@ -21,28 +21,33 @@ func (suite *KeeperTestSuite) TestHelperMethods() {
 	})
 	_, found := suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
 	suite.True(found)
+}
 
-	addr, _ := sdk.AccAddressFromBech32("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
-	c1 := types.NewClaim(addr, c("ukava", 1000000), "bnb", 1)
+func (suite *KeeperTestSuite) TestAddToClaim() {
+	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
+	suite.keeper.SetRewardPeriod(suite.ctx, rp)
+	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
+	suite.keeper.HandleRewardPeriodExpiry(suite.ctx, rp)
+	c1 := types.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", 1)
 	suite.keeper.SetClaim(suite.ctx, c1)
 	suite.NotPanics(func() {
-		suite.keeper.AddToClaim(suite.ctx, addr, "bnb", 1, c("ukava", 1000000))
+		suite.keeper.AddToClaim(suite.ctx, suite.addrs[0], "bnb", 1, c("ukava", 1000000))
 	})
-	testC, _ := suite.keeper.GetClaim(suite.ctx, addr, "bnb", 1)
+	testC, _ := suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb", 1)
 	suite.Equal(c("ukava", 2000000), testC.Reward)
 
 	suite.NotPanics(func() {
-		suite.keeper.AddToClaim(suite.ctx, addr, "xpr", 1, c("ukava", 1000000))
+		suite.keeper.AddToClaim(suite.ctx, suite.addrs[0], "xpr", 1, c("ukava", 1000000))
 	})
+}
 
-	suite.SetupTest()
+func (suite *KeeperTestSuite) TestCreateRewardPeriod() {
 	reward := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
 	suite.NotPanics(func() {
 		suite.keeper.CreateNewRewardPeriod(suite.ctx, reward)
 	})
-	_, found = suite.keeper.GetRewardPeriod(suite.ctx, "bnb")
+	_, found := suite.keeper.GetRewardPeriod(suite.ctx, "bnb")
 	suite.True(found)
-
 }
 
 func (suite *KeeperTestSuite) TestCreateAndDeleteRewardsPeriods() {
