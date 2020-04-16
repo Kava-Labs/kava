@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -15,69 +16,53 @@ import (
 )
 
 var (
-	noOpMsg  = simulation.NoOpMsg(pricefeed.ModuleName)
-	btcPrice = sdk.MustNewDecFromStr("7000")
-	bnbPrice = sdk.MustNewDecFromStr("15")
-	xrpPrice = sdk.MustNewDecFromStr("0.25")
+	noOpMsg   = simulation.NoOpMsg(pricefeed.ModuleName)
+	btcPrices = []sdk.Dec{}
+	bnbPrices = []sdk.Dec{}
+	xrpPrices = []sdk.Dec{}
+	genPrices sync.Once
 )
 
-func getStartPrice(marketID string) (startPrice sdk.Dec) {
-	switch marketID {
-	case "btc:usd":
-		return sdk.MustNewDecFromStr("7000")
-	case "bnb:usd":
-		return sdk.MustNewDecFromStr("15")
-	case "xrp:usd":
-		return sdk.MustNewDecFromStr("0.25")
-	}
-	return sdk.MustNewDecFromStr("100")
-}
-
-func getRecentPrice(marketID string) (prevPrice sdk.Dec) {
-	switch marketID {
-	case "btc:usd":
-		return btcPrice
-	case "bnb:usd":
-		return bnbPrice
-	case "xrp:usd":
-		return xrpPrice
-	}
-	return sdk.MustNewDecFromStr("100")
-}
-
-func setRecentPrice(marketID string, newPrice sdk.Dec) {
-	switch marketID {
-	case "btc:usd":
-		btcPrice = newPrice
-		return
-	case "bnb:usd":
-		bnbPrice = newPrice
-		return
-	case "xrp:usd":
-		xrpPrice = newPrice
-		return
-	}
-}
-
-func getIncrement(marketID string) (increment sdk.Dec) {
-	startPrice := getStartPrice(marketID)
-	divisor := sdk.MustNewDecFromStr("20")
-	increment = startPrice.Quo(divisor)
-	return increment
-}
-
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
-func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
+func SimulateMsgUpdatePrices(keeper keeper.Keeper, blocks int) simulation.Operation {
 	// get a pricefeed handler
 	handler := pricefeed.NewHandler(keeper)
 
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
+		genPrices.Do(func() {
+			// generate a random walk for each asset exactly once, with observations equal to the number of blocks in the sim
+			for _, m := range keeper.GetMarkets(ctx) {
+				startPrice := getStartPrice(m.MarketID)
+				// allow prices to fluctuate from 10x GAINZ to 100x REKT
+				maxPrice := sdk.MustNewDecFromStr("10.0").Mul(startPrice)
+				minPrice := sdk.MustNewDecFromStr("0.01").Mul(startPrice)
+				previousPrice := startPrice
+				for i := 0; i < blocks; i++ {
+					increment := getIncrement(m.MarketID)
+					upDown := r.Intn(2)
+					if upDown == 0 {
+						if previousPrice.Add(increment).GT(maxPrice) {
+							previousPrice = maxPrice
+						} else {
+							previousPrice = previousPrice.Add(increment)
+						}
+					} else {
+						if previousPrice.Sub(increment).LT(minPrice) {
+							previousPrice = minPrice
+						} else {
+							previousPrice = previousPrice.Sub(increment)
+						}
+					}
+					setPrice(m.MarketID, previousPrice)
+				}
+			}
+		})
 
 		randomMarket := pickRandomAsset(ctx, keeper, r)
 		marketID := randomMarket.MarketID
 		address := getRandomOracle(r, randomMarket)
-		price := pickNewRandomPrice(r, marketID)
+		price := pickNewRandomPrice(marketID, int(ctx.BlockHeight()))
 
 		// get the expiry time based off the current time
 		expiry := getExpiryTime(ctx)
@@ -96,6 +81,51 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 		}
 		return simulation.NewOperationMsg(msg, true, "pricefeed update submitted"), nil, nil
 	}
+}
+
+func getStartPrice(marketID string) (startPrice sdk.Dec) {
+	switch marketID {
+	case "btc:usd":
+		return sdk.MustNewDecFromStr("7000")
+	case "bnb:usd":
+		return sdk.MustNewDecFromStr("15")
+	case "xrp:usd":
+		return sdk.MustNewDecFromStr("0.25")
+	}
+	return sdk.MustNewDecFromStr("100")
+}
+
+func getIncrement(marketID string) (increment sdk.Dec) {
+	startPrice := getStartPrice(marketID)
+	divisor := sdk.MustNewDecFromStr("20")
+	increment = startPrice.Quo(divisor)
+	return increment
+}
+
+func setPrice(marketID string, price sdk.Dec) {
+	switch marketID {
+	case "btc:usd":
+		btcPrices = append(btcPrices, price)
+		return
+	case "bnb:usd":
+		bnbPrices = append(bnbPrices, price)
+		return
+	case "xrp:usd":
+		xrpPrices = append(xrpPrices, price)
+	}
+	return
+}
+
+func pickNewRandomPrice(marketID string, blockHeight int) (newPrice sdk.Dec) {
+	switch marketID {
+	case "btc:usd":
+		return btcPrices[blockHeight-1]
+	case "bnb:usd":
+		return bnbPrices[blockHeight-1]
+	case "xrp:usd":
+		return xrpPrices[blockHeight-1]
+	}
+	panic("invalid price request")
 }
 
 // getRandomOracle picks a random oracle from the list of oracles
@@ -121,31 +151,6 @@ func getExpiryTime(ctx sdk.Context) (t time.Time) {
 	// need to use the blocktime from the context as the context generates random start time when running simulations
 	t = ctx.BlockTime().Add(time.Second * 1000000)
 	return t
-}
-
-func pickNewRandomPrice(r *rand.Rand, marketID string) (newPrice sdk.Dec) {
-	startPrice := getStartPrice(marketID)
-	maxPrice := sdk.MustNewDecFromStr("10.0").Mul(startPrice)
-	recentPrice := getRecentPrice(marketID)
-	increment := getIncrement(marketID)
-
-	upDown := r.Intn(2)
-	if upDown == 0 {
-		if recentPrice.Add(increment).GT(maxPrice) {
-			newPrice = maxPrice
-		} else {
-			newPrice = recentPrice.Add(increment)
-		}
-	} else {
-		if recentPrice.Sub(increment).LT(sdk.SmallestDec()) {
-			newPrice = sdk.SmallestDec()
-		} else {
-			newPrice = recentPrice.Sub(increment)
-		}
-	}
-	setRecentPrice(marketID, newPrice)
-
-	return newPrice
 }
 
 // submitMsg submits a message to the current instance of the keeper and returns a boolean whether the operation completed successfully or not
