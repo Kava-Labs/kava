@@ -78,7 +78,7 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 				return false
 			}
 			rewardsEarned := rewardsShare.Mul(sdk.NewDecFromInt(rewardsThisPeriod)).RoundInt()
-			k.AddToClaim(ctx, cdp.Owner, types.GovDenom, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
+			k.AddToClaim(ctx, cdp.Owner, rp.Denom, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
 			return false
 		})
 		if expired {
