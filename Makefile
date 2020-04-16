@@ -109,7 +109,7 @@ link-check:
 # TODO tidy up cli tests to use same -Enable flag as simulations, or the other way round
 # TODO -mod=readonly ?
 # build dependency needed for cli tests
-test-all: build test test-cli
+test-all: build test-cli test
 	# basic app tests
 	@go test ./app -v
 	# basic simulation (seed "2" happens to not unbond all validators before reaching 100 blocks)
