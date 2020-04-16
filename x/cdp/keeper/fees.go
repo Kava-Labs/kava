@@ -41,9 +41,12 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, 
 	}
 
 	liquidationRatio := k.getLiquidationRatio(ctx, collateralDenom)
-
+	priceDivLiqRatio := price.Price.Quo(liquidationRatio)
+	if priceDivLiqRatio.IsZero() {
+		priceDivLiqRatio = sdk.SmallestDec()
+	}
 	// NOTE - we have a fixed cutoff at 110% - this may or may not be changed in the future
-	normalizedRatio := sdk.OneDec().Quo(price.Price.Quo(liquidationRatio)).Mul(sdk.MustNewDecFromStr("1.1"))
+	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio).Mul(sdk.MustNewDecFromStr("1.1"))
 
 	// now iterate over all the cdps based on collateral ratio
 	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, normalizedRatio, func(cdp types.CDP) bool {

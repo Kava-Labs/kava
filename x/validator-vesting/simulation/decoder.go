@@ -25,6 +25,6 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &btB)
 		return fmt.Sprintf("%v\n%v", btA, btB)
 	default:
-		panic(fmt.Sprintf("invalid account key %X", kvA.Key))
+		panic(fmt.Sprintf("invalid %s key %X", types.ModuleName, kvA.Key))
 	}
 }

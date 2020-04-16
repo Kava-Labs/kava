@@ -41,6 +41,7 @@ var (
 	// functions aliases
 	NewKeeper                            = keeper.NewKeeper
 	NewQuerier                           = keeper.NewQuerier
+	RegisterInvariants                   = keeper.RegisterInvariants
 	NewSurplusAuction                    = types.NewSurplusAuction
 	NewDebtAuction                       = types.NewDebtAuction
 	NewCollateralAuction                 = types.NewCollateralAuction

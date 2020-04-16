@@ -331,16 +331,15 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
 
-	// Note: genutils must occur after staking so that pools are properly
-	// initialized with tokens from genesis accounts.
-	//
-	// Note: Changing the order of the auth module and modules that use module accounts
-	// results in subtle changes to the way accounts are loaded from genesis.
 	app.mm.SetOrderInitGenesis(
-		auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
+		auth.ModuleName, // loads all accounts - should run before any module with a module account
+		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		evidence.ModuleName, pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, // TODO is this order ok?
+		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, // TODO is this order ok?
+		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
+		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
+		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -360,8 +359,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper), // TODO how is the order be decided here? Is this order correct?
 		pricefeed.NewAppModule(app.pricefeedKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.pricefeedKeeper, app.supplyKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.supplyKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),

@@ -53,7 +53,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(),
-		NewCDPGenStateMulti(),
+		NewCDPGenStateHighDebtLimit(),
 	)
 
 	suite.ctx = ctx
@@ -93,11 +93,13 @@ func (suite *QuerierTestSuite) SetupTest() {
 			amount = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 500000000, 5000000000)
 			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 1000000000, 25000000000)
 		}
-		suite.Nil(suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt)))))
+		err = suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt))))
+		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
 		cdps[j] = c
-		aCDP, _ := suite.keeper.LoadAugmentedCDP(suite.ctx, c)
+		aCDP, err := suite.keeper.LoadAugmentedCDP(suite.ctx, c)
+		suite.NoError(err)
 		augmentedCDPs[j] = aCDP
 	}
 
@@ -250,7 +252,7 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	var p types.Params
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &p))
 
-	cdpGS := NewCDPGenStateMulti()
+	cdpGS := NewCDPGenStateHighDebtLimit()
 	gs := types.GenesisState{}
 	types.ModuleCdc.UnmarshalJSON(cdpGS["cdp"], &gs)
 	suite.Equal(gs.Params, p)

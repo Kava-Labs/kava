@@ -33,6 +33,15 @@ type Period struct {
 	Inflation sdk.Dec   `json:"inflation" yaml:"inflation"` // example "1.000000003022265980"  - 10% inflation
 }
 
+// NewPeriod returns a new instance of Period
+func NewPeriod(start time.Time, end time.Time, inflation sdk.Dec) Period {
+	return Period{
+		Start:     start,
+		End:       end,
+		Inflation: inflation,
+	}
+}
+
 // String implements fmt.Stringer
 func (pr Period) String() string {
 	return fmt.Sprintf(`Period:

@@ -28,6 +28,11 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if err != nil {
 		return err
 	}
+
+	err = k.ValidateDebtLimit(ctx, collateral[0].Denom, principal)
+	if err != nil {
+		return err
+	}
 	err = k.ValidateCollateralizationRatio(ctx, collateral, principal, sdk.NewCoins())
 	if err != nil {
 		return err
@@ -372,10 +377,19 @@ func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coins) erro
 	return nil
 }
 
-// ValidateDebtLimit validates that the input debt amount does not exceed the global debt limit
+// ValidateDebtLimit validates that the input debt amount does not exceed the global debt limit or the debt limit for that collateral
 func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, principal sdk.Coins) error {
+	cp, found := k.GetCollateral(ctx, collateralDenom)
+	if !found {
+		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateralDenom)
+	}
+
 	for _, dc := range principal {
 		totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, dc.Denom).Add(dc.Amount)
+		collateralLimit := cp.DebtLimit.AmountOf(dc.Denom)
+		if totalPrincipal.GT(collateralLimit) {
+			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > debt %s", sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, collateralLimit)))
+		}
 		globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(dc.Denom)
 		if totalPrincipal.GT(globalLimit) {
 			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > debt %s", sdk.NewCoin(dc.Denom, totalPrincipal), sdk.NewCoin(dc.Denom, globalLimit))

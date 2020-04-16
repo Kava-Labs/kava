@@ -39,7 +39,7 @@ func (suite *CdpTestSuite) SetupTest() {
 }
 
 func (suite *CdpTestSuite) TestAddCdp() {
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
@@ -47,14 +47,21 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	err := suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200000000)), cs(c("usdx", 26000000)))
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 500000000)), cs(c("usdx", 26000000)))
-	suite.Error(err)
+	suite.Error(err) // insufficient balance
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200000000)), cs(c("xusd", 10000000)))
 	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
+
+	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
+	acc2.SetCoins(cs(c("btc", 500000000000)))
+	ak.SetAccount(suite.ctx, acc2)
+	err = suite.keeper.AddCdp(suite.ctx, addrs[1], cs(c("btc", 500000000000)), cs(c("usdx", 500000000001)))
+	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
+
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pk := suite.app.GetPriceFeedKeeper()
 	_ = pk.SetCurrentPrices(ctx, "xrp:usd")
 	err = suite.keeper.AddCdp(ctx, addrs[0], cs(c("xrp", 100000000)), cs(c("usdx", 10000000)))
-	suite.Error(err)
+	suite.Error(err) // no prices in pricefeed
 
 	_ = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100000000)), cs(c("usdx", 10000000)))
