@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govsimops "github.com/cosmos/cosmos-sdk/x/gov/simulation/operations"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/committee"
@@ -35,13 +34,33 @@ really want to control amount each type of proposal is submitted
 top level - control of likelihood of different proposal types
 create new param change proposal generator - one that accepts a list of param generators with weights
 
-*/
+type ParamChangePermissionSimulator struct {
+	ParamChangePermission
+	paramChanges
+}
+func (PCPS) GenereatePubProposal() {
+	// pick valid param changes, make a proposal
+}
 
-type PubProposalGenerator func(r *rand.Rand, ctx sdk.Context, perm committee.Permission, accs []simulation.Account) committee.PubProposal {
+type PermissionSimulator interface {
+	GeneratePubProposal
+}
+
+types contentSimulators struct {
+	permName: ...
 
 }
 
-func SimulateMsgSubmitProposal(keeper committee.Keeper, pubProposalGenerator PubProposalGenerator) simulation.Operation {
+
+just keep the probabilities in this file. just as easily edited
+op is "send a proposal", pick proposal type first (permission), then find a matching committee and send?
+No ops are useless for a bug discovery point of view - just waste time.
+
+Just pick committee, permission, then generate a valid proposal.
+
+*/
+
+func SimulateSubmittingVotingForProposal(keeper committee.Keeper, pubProposalSimulator PubProposalSimulator) simulation.Operation {
 	handler := committee.NewHandler(keeper)
 
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
@@ -55,45 +74,59 @@ func SimulateMsgSubmitProposal(keeper committee.Keeper, pubProposalGenerator Pub
 			coms = append(coms, com)
 			return false
 		})
+		if len(coms) < 1 {
+			return simulation.NewOperationMsgBasic(committee.ModuleName, "no-operation (no committees)", "", false, nil), nil, nil
+		}
 		randomCommittee := coms[r.Intn(len(coms))]
 
-		// pick a committee with permissions that fullfi
+		// pick a permission randomly
+		if len(randomCommittee.Permissions) < 1 {
+			return simulation.NewOperationMsgBasic(committee.ModuleName, "no-operation (committee has no permissions)", "", false, nil), nil, nil
+		}
+		perm := randomCommittee.Permissions[r.Intn(len(randomCommittee.Permissions))]
 
 		// generate a proposal and submit-proposal msg
-		proposer := randomCommittee.Members[len(randomCommittee.Members)]
-		perm := randomCommittee.Permissions[r.Intn(len(randomCommittee.Permissions))]
-		getPubProposalGenerator(perm)
-		pubProposal := pubProposalGenerator(r, ctx, perm, accs)
+		proposer := randomCommittee.Members[r.Intn(len(randomCommittee.Members))]
+		pubProposal := pubProposalSimulator(r, ctx, accs, perm)
+		if pubProposal == nil {
+			return simulation.NewOperationMsgBasic(committee.ModuleName, "no-operation (couldn't genereate pubproposal)", "", false, nil), nil, nil
+		}
 		msg := committee.NewMsgSubmitProposal(
 			pubProposal,
 			proposer,
 			randomCommittee.ID,
 		)
 		if err := msg.ValidateBasic(); err != nil {
-			return noOpMsg, nil, err
+			return noOpMsg, nil, fmt.Errorf("expected msg to pass ValidateBasic: %w, %s", err, msg.GetSignBytes()) // TODO formatting
 		}
 
 		// submit the msg
-		res := submitMsg(ctx, handler, msg)
-		submitOpMsg := simulation.NewOperationMsg(msg, res.IsOK(), res.Log)
-		if !res.IsOK() { // don't schedule votes if proposal failed
+		response := submitMsg(ctx, handler, msg)
+		submitOpMsg := simulation.NewOperationMsg(msg, response.IsOK(), response.Log)
+		if !response.IsOK() { // don't schedule votes if proposal failed
 			return submitOpMsg, nil, nil
 		}
 
 		// 2) Schedule vote operations
 
 		// get submitted proposal
-		proposalID := committee.Uint64FromBytes(res.Data)
+		proposalID := committee.Uint64FromBytes(response.Data)
 		proposal, found := keeper.GetProposal(ctx, proposalID)
 		if !found {
-			return noOpMsg, nil, fmt.Errorf("can't find proposal")
+			return noOpMsg, nil, fmt.Errorf("can't find proposal with ID '%d'", proposalID)
 		}
 
-		// pick the voters - addresses that will submit vote msgs
-		// note: not all proposals will get enough votes (number of passing proposals determined by `proposalPassPercentage`)
+		// pick the voters (addresses that will submit vote msgs)
+		// num voters determined by whether the proposal should pass or not
 		numMembers := int64(len(randomCommittee.Members))
 		majority := randomCommittee.VoteThreshold.Mul(sdk.NewInt(numMembers).ToDec()).Ceil().TruncateInt64()
-		numVoters := r.Int63n(majority) // in interval [0, majority)
+		var numVoters int64 = 0
+		// Catch the edge case where vote threshold is zero.
+		// This can be interpreted as meaning a vote should pass immediately after submition even with no votes.
+		// There is no numVoters that will make the proposal not pass, so just leave it at zero and let the proposal pass.
+		if majority > 0 {
+			numVoters = r.Int63n(majority) // in interval [0, majority)
+		}
 
 		shouldPass := r.Float64() < proposalPassPercentage
 		if shouldPass {
@@ -144,6 +177,8 @@ func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) sdk.Result {
 	return result
 }
 
+// TODO move random funcs to common location
+
 func RandomTime(r *rand.Rand, inclusiveMin, exclusiveMax time.Time) (time.Time, error) {
 	if exclusiveMax.Before(inclusiveMin) {
 		return time.Time{}, fmt.Errorf("max must be > min")
@@ -151,12 +186,11 @@ func RandomTime(r *rand.Rand, inclusiveMin, exclusiveMax time.Time) (time.Time, 
 	period := exclusiveMax.Sub(inclusiveMin)
 	subPeriod, err := RandomPositiveDuration(r, 0, period)
 	if err != nil {
-		return err
+		return time.Time{}, err
 	}
 	return inclusiveMin.Add(subPeriod), nil
 }
 
-// TODO move to common location
 func RandomPositiveDuration(r *rand.Rand, inclusiveMin, exclusiveMax time.Duration) (time.Duration, error) {
 	min := int64(inclusiveMin)
 	max := int64(exclusiveMax)
@@ -169,130 +203,6 @@ func RandomPositiveDuration(r *rand.Rand, inclusiveMin, exclusiveMax time.Durati
 	randPositiveInt64 := r.Int63n(max-min) + min
 	return time.Duration(randPositiveInt64), nil
 }
-
-// // Return a function that runs a random state change on the module keeper.
-// // There's two error paths
-// // - return a OpMessage, but nil error - this will log a message but keep running the simulation
-// // - return an error - this will stop the simulation
-// func SimulateMsgPlaceBid(authKeeper auth.AccountKeeper, keeper auction.Keeper) simulation.Operation {
-// 	handler := auction.NewHandler(keeper)
-
-// 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
-// 		simulation.OperationMsg, []simulation.FutureOperation, error) {
-
-// 		// get open auctions
-// 		openAuctions := auction.Auctions{}
-// 		keeper.IterateAuctions(ctx, func(a auction.Auction) bool {
-// 			openAuctions = append(openAuctions, a)
-// 			return false
-// 		})
-
-// 		// shuffle auctions slice so that bids are evenly distributed across auctions
-// 		rand.Shuffle(len(openAuctions), func(i, j int) {
-// 			openAuctions[i], openAuctions[j] = openAuctions[j], openAuctions[i]
-// 		})
-// 		// TODO do the same for accounts?
-// 		var accounts []authexported.Account
-// 		for _, acc := range accs {
-// 			accounts = append(accounts, authKeeper.GetAccount(ctx, acc.Address))
-// 		}
-
-// 		// search through auctions and an accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
-// 		blockTime := ctx.BlockHeader().Time
-// 		bidder, openAuction, found := findValidAccountAuctionPair(accounts, openAuctions, func(acc authexported.Account, auc auction.Auction) bool {
-// 			_, err := generateBidAmount(r, auc, acc, blockTime)
-// 			if err == ErrorNotEnoughCoins {
-// 				return false // keep searching
-// 			} else if err != nil {
-// 				panic(err) // raise errors
-// 			}
-// 			return true // found valid pair
-// 		})
-// 		if !found {
-// 			return simulation.NewOperationMsgBasic(auction.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
-// 		}
-
-// 		// pick a bid amount for the chosen auction and bidder
-// 		amount, _ := generateBidAmount(r, openAuction, bidder, blockTime)
-
-// 		// create a msg
-// 		msg := auction.NewMsgPlaceBid(openAuction.GetID(), bidder.GetAddress(), amount)
-// 		if err := msg.ValidateBasic(); err != nil { // don't submit errors that fail ValidateBasic, use unit tests for testing ValidateBasic
-// 			return noOpMsg, nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
-// 		}
-
-// 		// submit the msg
-// 		result := submitMsg(ctx, handler, msg)
-// 		// Return an operationMsg indicating whether the msg was submitted successfully
-// 		// Using result.Log as the comment field as it contains any error message emitted by the keeper
-// 		return simulation.NewOperationMsg(msg, result.IsOK(), result.Log), nil, nil
-// 	}
-// }
-
-// func generateBidAmount(r *rand.Rand, auc auction.Auction, bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
-// 	bidderBalance := bidder.SpendableCoins(blockTime)
-
-// 	switch a := auc.(type) {
-
-// 	case auction.DebtAuction:
-// 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
-// 			return sdk.Coin{}, ErrorNotEnoughCoins
-// 		}
-// 		amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount // TODO min bid increments
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		return sdk.NewCoin(a.Lot.Denom, amt), nil // gov coin
-
-// 	case auction.SurplusAuction:
-// 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // gov coin // TODO account for bid increments
-// 			return sdk.Coin{}, ErrorNotEnoughCoins
-// 		}
-// 		amt, err := RandIntInclusive(r, a.Bid.Amount, bidderBalance.AmountOf(a.Bid.Denom))
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		return sdk.NewCoin(a.Bid.Denom, amt), nil // gov coin
-
-// 	case auction.CollateralAuction:
-// 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin // TODO account for bid increments (in forward phase)
-// 			return sdk.Coin{}, ErrorNotEnoughCoins
-// 		}
-// 		if a.IsReversePhase() {
-// 			amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount
-// 			if err != nil {
-// 				panic(err)
-// 			}
-// 			return sdk.NewCoin(a.Lot.Denom, amt), nil // collateral coin
-// 		} else {
-// 			amt, err := RandIntInclusive(r, a.Bid.Amount, sdk.MinInt(bidderBalance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
-// 			if err != nil {
-// 				panic(err)
-// 			}
-// 			// pick the MaxBid amount more frequently to increase chance auctions phase get into reverse phase
-// 			if r.Intn(10) == 0 { // 10%
-// 				amt = a.MaxBid.Amount
-// 			}
-// 			return sdk.NewCoin(a.Bid.Denom, amt), nil // stable coin
-// 		}
-
-// 	default:
-// 		return sdk.Coin{}, fmt.Errorf("unknown auction type")
-// 	}
-// }
-
-// // findValidAccountAuctionPair finds an auction and account for which the callback func returns true
-// func findValidAccountAuctionPair(accounts []authexported.Account, auctions auction.Auctions, cb func(authexported.Account, auction.Auction) bool) (authexported.Account, auction.Auction, bool) {
-// 	for _, auc := range auctions {
-// 		for _, acc := range accounts {
-// 			if isValid := cb(acc, auc); isValid {
-// 				return acc, auc, true
-// 			}
-
-// 		}
-// 	}
-// 	return nil, nil, false
-// }
 
 // RandInt randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
 func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int, error) {

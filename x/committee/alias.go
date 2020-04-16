@@ -101,5 +101,6 @@ type (
 	QueryCommitteeParams    = types.QueryCommitteeParams
 	QueryProposalParams     = types.QueryProposalParams
 	QueryVoteParams         = types.QueryVoteParams
+	TextPermission          = types.TextPermission
 	Vote                    = types.Vote
 )

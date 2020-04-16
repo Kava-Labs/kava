@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/committee/types"
 )
 
 /*
@@ -46,7 +46,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	}
 
 	numCommittees := r.Intn(100)
-	var committees []committee.Committee
+	var committees []types.Committee
 	for i := 0; i < numCommittees; i++ {
 		com, err := randomCommittee(r, addresses)
 		if err != nil {
@@ -56,36 +56,36 @@ func RandomizedGenState(simState *module.SimulationState) {
 	}
 
 	// TODO Proposals or votes aren't generated. Should these be removed from committee's genesis state?
-	genesisState := committee.NewGenesisState(
-		committee.DefaultNextProposalID,
+	genesisState := types.NewGenesisState(
+		types.DefaultNextProposalID,
 		committees,
-		[]committee.Proposal{},
-		[]committee.Vote{},
+		[]types.Proposal{},
+		[]types.Vote{},
 	)
-	genesisState.Committees = []committee.Committee{com}
 
-	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", committee.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, genesisState))
-	simState.GenState[committee.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, genesisState))
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
 }
 
-func randomCommittee(r *rand.Rand, addresses []sdk.AccAddress) (committee.Committee, error) {
+func randomCommittee(r *rand.Rand, addresses []sdk.AccAddress) (types.Committee, error) {
 	shuffledIndexes := r.Perm(len(addresses))
-	memberIndexes := shuffledIndexes[:r.Intn(len(addresses))]
-	members := make([]sdk.AccAddress, len(memberIndexes))
+	numMembers := r.Intn(len(addresses)) + 1 // ensure there is ≥1 member
+	memberIndexes := shuffledIndexes[:numMembers]
+	members := make([]sdk.AccAddress, numMembers)
 	for mi, ai := range memberIndexes {
 		members[mi] = addresses[ai]
 	}
 
 	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*100)
 	if err != nil {
-		return committee.Committee{}, err
+		return types.Committee{}, err
 	}
 
-	return committee.NewCommittee(
+	return types.NewCommittee(
 		r.Uint64(),
-		simulation.RandStringOfLength(r, committee.MaxCommitteeDescriptionLength),
+		simulation.RandStringOfLength(r, types.MaxCommitteeDescriptionLength),
 		members,
-		[]committee.Permission{committee.GodPermission{}}, // TODO
+		[]types.Permission{types.GodPermission{}}, // TODO
 		simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1.00")),
 		dur,
 	), nil

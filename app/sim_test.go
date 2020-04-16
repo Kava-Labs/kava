@@ -34,6 +34,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingsimops "github.com/cosmos/cosmos-sdk/x/staking/simulation/operations"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	committeesimops "github.com/kava-labs/kava/x/committee/simulation/operations"
 )
 
 // Simulation parameter constants
@@ -56,6 +58,7 @@ const (
 	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
 	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
 	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
+	OpWeightCommitteeSubmitVote                        = "op_weight_msg_committee_submit_proposal_and_votes"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -197,6 +200,23 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				return v
 			}(nil),
 			govsimops.SimulateMsgDeposit(app.govKeeper),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightCommitteeSubmitVote, &v, nil,
+					func(_ *rand.Rand) {
+						v = 50000 // TODO
+					})
+				return v
+			}(nil),
+			committeesimops.SimulateSubmittingVotingForProposal(
+				app.committeeKeeper,
+				committeesimops.SimulateAnyPubProposal(
+					govsimops.SimulateTextProposalContent,
+					paramsimops.SimulateParamChangeProposalContent(paramChanges),
+					committeesimops.SimulateParamChangePubProposal(paramChanges),
+				)),
 		},
 		{
 			func(_ *rand.Rand) int {

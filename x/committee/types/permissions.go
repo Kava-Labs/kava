@@ -11,6 +11,7 @@ func init() {
 	gov.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
 	gov.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
 	gov.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
+	gov.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
 }
 
 // GodPermission allows any governance proposal. It is used mainly for testing.
@@ -18,7 +19,7 @@ type GodPermission struct{}
 
 var _ Permission = GodPermission{}
 
-func (GodPermission) Allows(gov.Content) bool { return true }
+func (GodPermission) Allows(PubProposal) bool { return true }
 
 func (GodPermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
@@ -36,7 +37,7 @@ type ParamChangePermission struct {
 
 var _ Permission = ParamChangePermission{}
 
-func (perm ParamChangePermission) Allows(p gov.Content) bool {
+func (perm ParamChangePermission) Allows(p PubProposal) bool {
 	proposal, ok := p.(params.ParameterChangeProposal)
 	if !ok {
 		return false
@@ -74,6 +75,24 @@ func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
 		}
 	}
 	return false
+}
+
+type TextPermission struct{}
+
+var _ Permission = TextPermission{}
+
+func (TextPermission) Allows(p PubProposal) bool {
+	_, ok := p.(gov.TextProposal)
+	return ok
+}
+
+func (TextPermission) MarshalYAML() (interface{}, error) {
+	valueToMarshal := struct {
+		Type string `yaml:"type"`
+	}{
+		Type: "text_permission",
+	}
+	return valueToMarshal, nil
 }
 
 // TODO add more permissions?
