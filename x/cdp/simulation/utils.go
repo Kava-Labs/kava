@@ -1,4 +1,4 @@
-package operations
+package simulation
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"

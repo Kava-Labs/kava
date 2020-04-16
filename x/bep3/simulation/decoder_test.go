@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,12 +30,12 @@ func TestDecodeDistributionStore(t *testing.T) {
 	supply := types.AssetSupply{Denom: "coin", IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin, Limit: oneCoin}
 	bz := cmn.HexBytes([]byte{1, 2})
 
-	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: types.AtomicSwapKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(swap)},
-		cmn.KVPair{Key: types.AssetSupplyKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(supply)},
-		cmn.KVPair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
-		cmn.KVPair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
-		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
+	kvPairs := kv.Pairs{
+		kv.Pair{Key: types.AtomicSwapKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(swap)},
+		kv.Pair{Key: types.AssetSupplyKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(supply)},
+		kv.Pair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
+		kv.Pair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
+		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
 	tests := []struct {

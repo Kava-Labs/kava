@@ -90,7 +90,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var supplyGenesis supply.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
 	for _, deputyCoin := range totalCoins {
-		supplyGenesis.Supply = supplyGenesis.Supply.Add(deputyCoin)
+		supplyGenesis.Supply = supplyGenesis.Supply.Add(deputyCoin...)
 	}
 	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
 }

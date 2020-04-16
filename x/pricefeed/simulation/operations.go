@@ -1,6 +1,7 @@
-package operations
+package simulation
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -9,19 +10,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 var (
-	noOpMsg = simulation.NoOpMsg(pricefeed.ModuleName)
+	noOpMsg = simulation.NoOpMsg(types.ModuleName)
 )
 
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
 func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 	// get a pricefeed handler
-	handler := pricefeed.NewHandler(keeper)
+	// handler := pricefeed.NewHandler(keeper)
 
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -74,7 +74,7 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper) simulation.Operation {
 }
 
 // getRandomOracle picks a random oracle from the list of oracles
-func getRandomOracle(r *rand.Rand, market pricefeed.Market) sdk.AccAddress {
+func getRandomOracle(r *rand.Rand, market types.Market) sdk.AccAddress {
 	randomIndex := simulation.RandIntBetween(r, 0, len(market.Oracles))
 	oracle := market.Oracles[randomIndex]
 	return oracle
@@ -101,15 +101,14 @@ func getExpiryTime(ctx sdk.Context) (t time.Time) {
 // pickNewRandomPrice picks a new random price given the current price
 // It takes the current price then generates a random number to multiply it by to create variation while
 // still being in the similar range. Random walk style.
-func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err sdk.Error) {
+func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err error) {
 	// Pick random price
 	// this is in the range [0-0.4) because when added to 0.8 it gives a multiplier in the range 0.8-1.2
 	got := sdk.MustNewDecFromStr("0.4")
 
 	randomPriceMultiplier := simulation.RandomDecAmount(r, got) // get a random number
 	if err != nil {
-		fmt.Errorf("Error generating random price multiplier\n")
-		return sdk.ZeroDec(), err
+		return sdk.ZeroDec(), errors.New("couldn't generate random price multiplier")
 	}
 	// 0.8 offset corresponds to 80% of the the current price
 	offset := sdk.MustNewDecFromStr("0.8")
@@ -126,7 +125,10 @@ func pickNewRandomPrice(r *rand.Rand, currentPrice sdk.Dec) (price sdk.Dec, err 
 // submitMsg submits a message to the current instance of the keeper and returns a boolean whether the operation completed successfully or not
 func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) (ok bool) {
 	ctx, write := ctx.CacheContext()
-	got := handler(ctx, msg)
+	got, err := handler(ctx, msg)
+	if err != nil {
+		return err == nil
+	}
 
 	ok = got.IsOK()
 	if ok {

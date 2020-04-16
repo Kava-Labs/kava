@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -23,7 +23,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
 	totalCdpCoins := sdk.NewCoins()
 	for _, acc := range authGenesis.Accounts {
-		_, ok := acc.(supplyExported.ModuleAccountI)
+		_, ok := acc.(supplyexported.ModuleAccountI)
 		if ok {
 			continue
 		}
@@ -33,18 +33,18 @@ func RandomizedGenState(simState *module.SimulationState) {
 			sdk.NewCoin("btc", sdk.NewInt(int64(simState.Rand.Intn(500000000)))),
 			sdk.NewCoin("usdx", sdk.NewInt(int64(simState.Rand.Intn(1000000000)))),
 		)
-		err := acc.SetCoins(acc.GetCoins().Add(coinsToAdd))
+		err := acc.SetCoins(acc.GetCoins().Add(coinsToAdd...))
 		if err != nil {
 			panic(err)
 		}
-		totalCdpCoins = totalCdpCoins.Add(coinsToAdd)
+		totalCdpCoins = totalCdpCoins.Add(coinsToAdd...)
 		authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, acc)
 	}
 	simState.GenState[auth.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
 
 	var supplyGenesis supply.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
-	supplyGenesis.Supply = supplyGenesis.Supply.Add(totalCdpCoins)
+	supplyGenesis.Supply = supplyGenesis.Supply.Add(totalCdpCoins...)
 	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
 
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, cdpGenesis))
@@ -73,7 +73,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 				DebtAuctionThreshold:         types.DefaultDebtThreshold,
 				SavingsDistributionFrequency: types.DefaultSavingsDistributionFrequency,
 				CollateralParams: types.CollateralParams{
-					{
+					CollateralParam{
 						Denom:              "xrp",
 						LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
 						DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 20000000000000)),
@@ -84,7 +84,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 						MarketID:           "xrp:usd",
 						ConversionFactor:   sdk.NewInt(6),
 					},
-					{
+					CollateralParam{
 						Denom:              "btc",
 						LiquidationRatio:   sdk.MustNewDecFromStr("1.25"),
 						DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 50000000000000)),
@@ -95,7 +95,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 						MarketID:           "btc:usd",
 						ConversionFactor:   sdk.NewInt(8),
 					},
-					{
+					CollateralParam{
 						Denom:              "bnb",
 						LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 30000000000000)),
@@ -108,7 +108,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 					},
 				},
 				DebtParams: types.DebtParams{
-					{
+					DebtParam{
 						Denom:            "usdx",
 						ReferenceAsset:   "usd",
 						ConversionFactor: sdk.NewInt(6),
@@ -132,7 +132,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 				DebtAuctionThreshold:         types.DefaultDebtThreshold,
 				SavingsDistributionFrequency: types.DefaultSavingsDistributionFrequency,
 				CollateralParams: types.CollateralParams{
-					{
+					CollateralParam{
 						Denom:              "bnb",
 						LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 100000000000000)),
@@ -145,7 +145,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 					},
 				},
 				DebtParams: types.DebtParams{
-					{
+					DebtParam{
 						Denom:            "usdx",
 						ReferenceAsset:   "usd",
 						ConversionFactor: sdk.NewInt(6),

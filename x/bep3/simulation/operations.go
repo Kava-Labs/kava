@@ -1,4 +1,4 @@
-package operations
+package simulation
 
 import (
 	"fmt"
@@ -10,18 +10,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 var (
-	noOpMsg = simulation.NoOpMsg(bep3.ModuleName)
+	noOpMsg = simulation.NoOpMsg(types.ModuleName)
 )
 
 // SimulateMsgCreateAtomicSwap generates a MsgCreateAtomicSwap with random values
 func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulation.Operation {
-	handler := bep3.NewHandler(k)
+	// handler := bep3.NewHandler(k)
 
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {

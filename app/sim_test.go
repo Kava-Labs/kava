@@ -34,30 +34,18 @@ import (
 	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
 
+type StoreKeysPrefixes struct {
+	A        sdk.StoreKey
+	B        sdk.StoreKey
+	Prefixes [][]byte
+}
+
 // Simulation parameter constants
 const (
-	StakePerAccount                                    = "stake_per_account"
-	InitiallyBondedValidators                          = "initially_bonded_validators"
-	OpWeightDeductFee                                  = "op_weight_deduct_fee"
-	OpWeightMsgSend                                    = "op_weight_msg_send"
-	OpWeightSingleInputMsgMultiSend                    = "op_weight_single_input_msg_multisend"
-	OpWeightMsgSetWithdrawAddress                      = "op_weight_msg_set_withdraw_address"
-	OpWeightMsgWithdrawDelegationReward                = "op_weight_msg_withdraw_delegation_reward"
-	OpWeightMsgWithdrawValidatorCommission             = "op_weight_msg_withdraw_validator_commission"
-	OpWeightSubmitVotingSlashingTextProposal           = "op_weight_submit_voting_slashing_text_proposal"
-	OpWeightSubmitVotingSlashingCommunitySpendProposal = "op_weight_submit_voting_slashing_community_spend_proposal"
-	OpWeightSubmitVotingSlashingParamChangeProposal    = "op_weight_submit_voting_slashing_param_change_proposal"
-	OpWeightMsgDeposit                                 = "op_weight_msg_deposit"
-	OpWeightMsgCreateValidator                         = "op_weight_msg_create_validator"
-	OpWeightMsgEditValidator                           = "op_weight_msg_edit_validator"
-	OpWeightMsgDelegate                                = "op_weight_msg_delegate"
-	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
-	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
-	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
-	OpWeightMsgPlaceBid                                = "op_weight_msg_place_bid"
-	OpWeightMsgPricefeed                               = "op_weight_msg_pricefeed"
-	OpWeightMsgCreateAtomicSwap                        = "op_weight_msg_create_atomic_Swap"
-	OpWeightMsgCdp                                     = "op_weight_msg_cdp"
+	OpWeightMsgPlaceBid         = "op_weight_msg_place_bid"
+	OpWeightMsgPricefeed        = "op_weight_msg_pricefeed"
+	OpWeightMsgCreateAtomicSwap = "op_weight_msg_create_atomic_Swap"
+	OpWeightMsgCdp              = "op_weight_msg_cdp"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -86,182 +74,6 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 
 	// nolint: govet
 	return []simulation.WeightedOperation{
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightDeductFee, &v, nil,
-					func(_ *rand.Rand) {
-						v = 5
-					})
-				return v
-			}(nil),
-			authsimops.SimulateDeductFee(app.accountKeeper, app.supplyKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgSend, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			banksimops.SimulateMsgSend(app.accountKeeper, app.bankKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightSingleInputMsgMultiSend, &v, nil,
-					func(_ *rand.Rand) {
-						v = 10
-					})
-				return v
-			}(nil),
-			banksimops.SimulateSingleInputMsgMultiSend(app.accountKeeper, app.bankKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgSetWithdrawAddress, &v, nil,
-					func(_ *rand.Rand) {
-						v = 50
-					})
-				return v
-			}(nil),
-			distrsimops.SimulateMsgSetWithdrawAddress(app.distrKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgWithdrawDelegationReward, &v, nil,
-					func(_ *rand.Rand) {
-						v = 50
-					})
-				return v
-			}(nil),
-			distrsimops.SimulateMsgWithdrawDelegatorReward(app.distrKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgWithdrawValidatorCommission, &v, nil,
-					func(_ *rand.Rand) {
-						v = 50
-					})
-				return v
-			}(nil),
-			distrsimops.SimulateMsgWithdrawValidatorCommission(app.distrKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightSubmitVotingSlashingTextProposal, &v, nil,
-					func(_ *rand.Rand) {
-						v = 5
-					})
-				return v
-			}(nil),
-			govsimops.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, govsimops.SimulateTextProposalContent),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightSubmitVotingSlashingCommunitySpendProposal, &v, nil,
-					func(_ *rand.Rand) {
-						v = 5
-					})
-				return v
-			}(nil),
-			govsimops.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, distrsimops.SimulateCommunityPoolSpendProposalContent(app.distrKeeper)),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightSubmitVotingSlashingParamChangeProposal, &v, nil,
-					func(_ *rand.Rand) {
-						v = 5
-					})
-				return v
-			}(nil),
-			govsimops.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, paramsimops.SimulateParamChangeProposalContent(paramChanges)),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgDeposit, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			govsimops.SimulateMsgDeposit(app.govKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgCreateValidator, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			stakingsimops.SimulateMsgCreateValidator(app.accountKeeper, app.stakingKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgEditValidator, &v, nil,
-					func(_ *rand.Rand) {
-						v = 5
-					})
-				return v
-			}(nil),
-			stakingsimops.SimulateMsgEditValidator(app.stakingKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgDelegate, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			stakingsimops.SimulateMsgDelegate(app.accountKeeper, app.stakingKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgUndelegate, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			stakingsimops.SimulateMsgUndelegate(app.accountKeeper, app.stakingKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgBeginRedelegate, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			stakingsimops.SimulateMsgBeginRedelegate(app.accountKeeper, app.stakingKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgUnjail, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			slashingsimops.SimulateMsgUnjail(app.slashingKeeper),
-		},
 		{
 			func(_ *rand.Rand) int {
 				var v int
@@ -300,7 +112,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightMsgCdp, &v, nil,
 					func(_ *rand.Rand) {
-						v = 100 // TODO
+						v = 100
 					})
 				return v
 			}(nil),
