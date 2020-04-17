@@ -50,19 +50,12 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 
 		// Check that the sender has coins of this type
 		availableAmount := ak.GetAccount(ctx, sender).GetCoins().AmountOf(asset.Denom)
-		if !availableAmount.IsPositive() {
-			return noOpMsg, nil, fmt.Errorf("available amount must be positive")
+		// Get an amount of coins between 0.1 and 2% of total coins
+		amount := availableAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
+		if amount.IsZero() {
+			return simulation.NewOperationMsgBasic(bep3.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", asset.Denom), "", false, nil), nil, nil
 		}
-
-		// Get a random amount of the available coins
-		amount, err := simulation.RandPositiveInt(r, availableAmount)
-		if err != nil {
-			return noOpMsg, nil, err
-		}
-
-		// If we don't adjust the conversion factor, we'll be out of funds soon
-		adjustedAmount := amount.Int64() / int64(math.Pow10(8))
-		coin := sdk.NewInt64Coin(asset.Denom, adjustedAmount)
+		coin := sdk.NewCoin(asset.Denom, amount)
 		coins := sdk.NewCoins(coin)
 		expectedIncome := coin.String()
 
