@@ -48,7 +48,7 @@ func loadPricefeedGenState(simState *module.SimulationState) pricefeed.GenesisSt
 			MarketID:      market.MarketID,
 			OracleAddress: oracle.Address,
 			Price:         getInitialPrice(marketID),
-			Expiry:        simState.GenTimestamp.Add(time.Hour * 24 * 36500), // 1000 years
+			Expiry:        simState.GenTimestamp.Add(time.Hour * 24),
 		}
 		markets = append(markets, market)
 		postedPrices = append(postedPrices, postedPrice)
