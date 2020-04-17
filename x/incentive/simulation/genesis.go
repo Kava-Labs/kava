@@ -8,22 +8,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 var (
-	CollateralDenoms                 = [3]string{"bnb", "xrp", "btc"}
-	RewardDenom                      = "ukava"
-	MaxTotalAssetReward              = sdk.NewInt(10000000000000000)
-	BaseRewardPeriodReward           = sdk.NewInt(10000000)
-	ClaimerStartingCollateralBalance = sdk.NewInt(10000000000)
+	CollateralDenoms    = [3]string{"bnb", "xrp", "btc"}
+	RewardDenom         = "ukava"
+	MaxTotalAssetReward = sdk.NewInt(1000)
 )
 
 // RandomizedGenState generates a random GenesisState for incentive module
@@ -34,35 +28,14 @@ func RandomizedGenState(simState *module.SimulationState) {
 	claimPeriodIDs := GenNextClaimPeriodIds(claimPeriods)
 
 	// New genesis state holds valid, linked reward periods, claim periods, and claim period IDs
-	incentiveGenesis := types.NewGenesisState(
-		params, types.DefaultPreviousBlockTime, rewardPeriods,
-		claimPeriods, types.Claims{}, claimPeriodIDs)
+	incentiveGenesis := types.NewGenesisState(params, types.DefaultPreviousBlockTime,
+		rewardPeriods, claimPeriods, types.Claims{}, claimPeriodIDs)
 	if err := incentiveGenesis.Validate(); err != nil {
 		panic(err)
 	}
 
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, incentiveGenesis))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(incentiveGenesis)
-
-	// Load pricefeed genesis state
-	pricefeedGenesis := loadPricefeedGenState(simState, incentiveGenesis)
-	simState.GenState[pricefeed.ModuleName] = simState.Cdc.MustMarshalJSON(pricefeedGenesis)
-
-	// Load CDP genesis state so we can create CDPs before claiming rewards
-	cdpGenesis := loadCDPGenState(simState, incentiveGenesis)
-	simState.GenState[cdp.ModuleName] = simState.Cdc.MustMarshalJSON(cdpGenesis)
-
-	// Load auth state with populated account balances
-	authGenesis, totalCoins := loadAuthGenState(simState, incentiveGenesis)
-	simState.GenState[auth.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
-
-	// Update supply to match amount of coins in auth
-	var supplyGenesis supply.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
-	for _, totalAssetClaimerBalances := range totalCoins {
-		supplyGenesis.Supply = supplyGenesis.Supply.Add(totalAssetClaimerBalances)
-	}
-	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
 }
 
 // GenParams generates random rewards and is active by default
@@ -82,11 +55,11 @@ func GenRewards(r *rand.Rand) types.Rewards {
 		// total reward is in range (half max total reward, max total reward)
 		amount := simulation.RandIntBetween(r, int(MaxTotalAssetReward.Int64()/2), int(MaxTotalAssetReward.Int64()))
 		totalRewards := sdk.NewInt64Coin(RewardDenom, int64(amount))
-		// generate a random number of days between 7-30 to use for reward's times
-		numbDays := simulation.RandIntBetween(r, 7, 30) * 24
+		// generate a random number of days between 1-2 to use for reward's times
+		numbDays := simulation.RandIntBetween(r, 1, 2) * 24
 		duration := time.Duration(time.Hour * time.Duration(numbDays))
-		timeLock := time.Duration(time.Hour * time.Duration(numbDays*10)) // 10 times as long as duration
-		claimDuration := time.Hour * time.Duration(numbDays*2)            // twice as long as duration
+		timeLock := time.Duration(time.Hour * time.Duration(numbDays/2)) // half as long as duration
+		claimDuration := time.Hour * time.Duration(numbDays*2)           // twice as long as duration
 		reward := types.NewReward(active, denom, totalRewards, duration, timeLock, claimDuration)
 		rewards = append(rewards, reward)
 	}
@@ -102,9 +75,9 @@ func GenRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) 
 			// Set up reward period parameters
 			start := rewardPeriodStart
 			end := start.Add(reward.Duration).UTC()
-			baseRewardAmount := reward.Reward.Amount.Quo(BaseRewardPeriodReward)
+			baseRewardAmount := reward.Reward.Amount.Quo(sdk.NewInt(100)) // base period reward is 1/100 total reward
 			// Earlier periods have larger rewards
-			amount := sdk.NewCoin(reward.Denom, baseRewardAmount.Mul(sdk.NewInt(int64(i*2))))
+			amount := sdk.NewCoin(reward.Denom, baseRewardAmount.Mul(sdk.NewInt(int64(i))))
 			claimEnd := end.Add(reward.ClaimDuration)
 			claimTimeLock := reward.TimeLock
 			// Create reward period and append to array
@@ -152,139 +125,6 @@ func GenNextClaimPeriodIds(cps types.ClaimPeriods) types.GenesisClaimPeriodIDs {
 		claimPeriodIDs = append(claimPeriodIDs, claimPeriodID)
 	}
 	return claimPeriodIDs
-}
-
-func loadPricefeedGenState(simState *module.SimulationState, incentiveGenesis types.GenesisState) pricefeed.GenesisState {
-	quoteAsset := "usd"
-	oracle := simState.Accounts[simulation.RandIntBetween(simState.Rand, 0, len(simState.Accounts))]
-
-	var markets []pricefeed.Market
-	var postedPrices []pricefeed.PostedPrice
-	for _, reward := range incentiveGenesis.Params.Rewards {
-		marketID := fmt.Sprintf("%s:%s", reward.Denom, quoteAsset)
-		// Construct market for this reward asset
-		market := pricefeed.Market{
-			MarketID:   marketID,
-			BaseAsset:  reward.Denom,
-			QuoteAsset: quoteAsset,
-			Oracles:    []sdk.AccAddress{oracle.Address},
-			Active:     true,
-		}
-		// Construct posted price for this reward asset
-		postedPrice := pricefeed.PostedPrice{
-			MarketID:      market.MarketID,
-			OracleAddress: oracle.Address,
-			Price:         sdk.MustNewDecFromStr("20"),                       // TODO: dynamic pricing
-			Expiry:        simState.GenTimestamp.Add(time.Hour * 24 * 36500), // 1000 years
-		}
-		markets = append(markets, market)
-		postedPrices = append(postedPrices, postedPrice)
-	}
-	params := pricefeed.NewParams(markets)
-	genesis := pricefeed.NewGenesisState(params, postedPrices)
-	return genesis
-}
-
-func loadAuthGenState(simState *module.SimulationState, incentiveGenesis types.GenesisState) (
-	auth.GenesisState, []sdk.Coins) {
-	var authGenesis auth.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
-
-	// Load the first 10 accounts
-	claimers := LoadClaimers(authGenesis.Accounts)
-	if len(claimers) != 10 {
-		panic("not enough claimer accounts were loaded from auth's genesis accounts")
-	}
-
-	// Load starting balance of each collateral type to each claimer's account
-	var totalCoins []sdk.Coins
-	for _, claimer := range claimers {
-		for _, reward := range incentiveGenesis.Params.Rewards {
-			startingCoinBalance := sdk.NewCoins(sdk.NewCoin(reward.Denom, ClaimerStartingCollateralBalance))
-			if err := claimer.SetCoins(claimer.GetCoins().Add(startingCoinBalance)); err != nil {
-				panic(err)
-			}
-			totalCoins = append(totalCoins, startingCoinBalance)
-		}
-		// Update claimer's account in auth genesis
-		authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, claimer)
-	}
-	return authGenesis, totalCoins
-}
-
-// TODO: Make this dynamic similar to loadAuthGenState
-func loadCDPGenState(simState *module.SimulationState, incentiveGenesis types.GenesisState) cdp.GenesisState {
-	return cdp.GenesisState{
-		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 100000000000000)),
-			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
-			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
-			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
-			CollateralParams: cdp.CollateralParams{
-				{
-					Denom:              "xrp",
-					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 20000000000000)),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000004431822130"),
-					LiquidationPenalty: sdk.MustNewDecFromStr("0.075"),
-					AuctionSize:        sdk.NewInt(100000000000),
-					Prefix:             0x20,
-					MarketID:           "xrp:usd",
-					ConversionFactor:   sdk.NewInt(6),
-				},
-				{
-					Denom:              "btc",
-					LiquidationRatio:   sdk.MustNewDecFromStr("1.25"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 50000000000000)),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"),
-					LiquidationPenalty: sdk.MustNewDecFromStr("0.05"),
-					AuctionSize:        sdk.NewInt(1000000000),
-					Prefix:             0x21,
-					MarketID:           "btc:usd",
-					ConversionFactor:   sdk.NewInt(8),
-				},
-				{
-					Denom:              "bnb",
-					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 30000000000000)),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000002293273137"),
-					LiquidationPenalty: sdk.MustNewDecFromStr("0.15"),
-					AuctionSize:        sdk.NewInt(1000000000000),
-					Prefix:             0x22,
-					MarketID:           "bnb:usd",
-					ConversionFactor:   sdk.NewInt(8),
-				},
-			},
-			DebtParams: cdp.DebtParams{
-				{
-					Denom:            "usdx",
-					ReferenceAsset:   "usd",
-					ConversionFactor: sdk.NewInt(6),
-					DebtFloor:        sdk.NewInt(10000000),
-					SavingsRate:      sdk.MustNewDecFromStr("0.95"),
-				},
-			},
-		},
-		StartingCdpID:            cdp.DefaultCdpStartingID,
-		DebtDenom:                cdp.DefaultDebtDenom,
-		GovDenom:                 cdp.DefaultGovDenom,
-		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
-		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
-	}
-}
-
-// LoadClaimers loads the first 10 accounts from auth
-func LoadClaimers(accounts []authexported.GenesisAccount) []authexported.GenesisAccount {
-	var claimers []authexported.GenesisAccount
-	for i, acc := range accounts {
-		if i < 10 {
-			claimers = append(claimers, acc)
-		} else {
-			break
-		}
-	}
-	return claimers
 }
 
 // In a list of accounts, replace the first account found with the same address. If not found, append the account.

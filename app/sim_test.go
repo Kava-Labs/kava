@@ -328,7 +328,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 					})
 				return v
 			}(nil),
-			incentivesimops.SimulateMsgClaimReward(app.accountKeeper, app.incentiveKeeper, app.cdpKeeper, app.pricefeedKeeper),
+			incentivesimops.SimulateMsgClaimReward(app.accountKeeper, app.supplyKeeper, app.incentiveKeeper),
 		},
 	}
 }
