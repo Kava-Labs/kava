@@ -46,8 +46,8 @@ func genRandomPeriods(r *rand.Rand, timestamp time.Time) types.Periods {
 	numPeriods := simulation.RandIntBetween(r, 1, 10)
 	periodStart := timestamp
 	for i := 0; i < numPeriods; i++ {
-		// set periods to be between 2 weeks and 2 years
-		durationMultiplier := simulation.RandIntBetween(r, 14, 104)
+		// set periods to be between 1-3 days
+		durationMultiplier := simulation.RandIntBetween(r, 1, 3)
 		duration := time.Duration(int64(24*durationMultiplier)) * time.Hour
 		periodEnd := periodStart.Add(duration)
 		inflation := genRandomInflation(r)
