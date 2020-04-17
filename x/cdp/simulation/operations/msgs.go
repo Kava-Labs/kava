@@ -156,7 +156,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 
 		// repay debt 25% of the time
 		if hasCoins(acc, randDebtParam.Denom) {
-			debt := (existingCDP.Principal.Add(existingCDP.AccumulatedFees)).AmountOf(randDebtParam.Denom)
+			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom)
 			maxRepay := acc.GetCoins().AmountOf(randDebtParam.Denom)
 			payableDebt := debt.Sub(randDebtParam.DebtFloor)
 			if maxRepay.GT(payableDebt) {
