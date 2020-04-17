@@ -55,7 +55,10 @@ func SimulateParamChangePubProposal(paramChanges []simulation.ParamChange) PubPr
 		}
 
 		// generate param changes
-		numChanges := r.Intn(len(availableParamChanges))
+		numChanges := r.Intn(len(availableParamChanges) + 1)
+		if numChanges < 1 {
+			return nil // must be ≥ 1 param change to satisfy validate basic
+		}
 		indexes := r.Perm(len(availableParamChanges))[:numChanges]
 
 		var changes []params.ParamChange

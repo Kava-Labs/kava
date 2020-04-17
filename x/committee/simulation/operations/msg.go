@@ -18,48 +18,6 @@ var (
 	proposalPassPercentage = 0.8
 )
 
-/*
-each permission type has a ContentSimulator that create valid pubproposals
-pick committee, pick a permission, run generator for permission to get pubproposal
-param - write own, needs list of possible param changes
-god - could use any existing ContentSimulator
-text - use existing Text ContentSimulator
-
-unlike gov, can't just send in a pubp generator and say submit a message. Might be no committees, or no committees with the right permissions.
-could say, given committees, try and get someone to submit a valid proposal.
-pick committee, pick permission, generate proposal valid for perission - could use existing funcs
-
-really want to control amount each type of proposal is submitted
-
-top level - control of likelihood of different proposal types
-create new param change proposal generator - one that accepts a list of param generators with weights
-
-type ParamChangePermissionSimulator struct {
-	ParamChangePermission
-	paramChanges
-}
-func (PCPS) GenereatePubProposal() {
-	// pick valid param changes, make a proposal
-}
-
-type PermissionSimulator interface {
-	GeneratePubProposal
-}
-
-types contentSimulators struct {
-	permName: ...
-
-}
-
-
-just keep the probabilities in this file. just as easily edited
-op is "send a proposal", pick proposal type first (permission), then find a matching committee and send?
-No ops are useless for a bug discovery point of view - just waste time.
-
-Just pick committee, permission, then generate a valid proposal.
-
-*/
-
 func SimulateSubmittingVotingForProposal(keeper committee.Keeper, pubProposalSimulator PubProposalSimulator) simulation.Operation {
 	handler := committee.NewHandler(keeper)
 
@@ -86,10 +44,10 @@ func SimulateSubmittingVotingForProposal(keeper committee.Keeper, pubProposalSim
 		perm := randomCommittee.Permissions[r.Intn(len(randomCommittee.Permissions))]
 
 		// generate a proposal and submit-proposal msg
-		proposer := randomCommittee.Members[r.Intn(len(randomCommittee.Members))]
+		proposer := randomCommittee.Members[r.Intn(len(randomCommittee.Members))] // won't panic as committees must have ≥ 1 members
 		pubProposal := pubProposalSimulator(r, ctx, accs, perm)
 		if pubProposal == nil {
-			return simulation.NewOperationMsgBasic(committee.ModuleName, "no-operation (couldn't genereate pubproposal)", "", false, nil), nil, nil
+			return simulation.NewOperationMsgBasic(committee.ModuleName, "no-operation (couldn't generate pubproposal)", "", false, nil), nil, nil
 		}
 		msg := committee.NewMsgSubmitProposal(
 			pubProposal,

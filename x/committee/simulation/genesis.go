@@ -13,19 +13,6 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-/*
-	genesis
-	- committee, votes, proposals
-	msg
-	- submit proposal, vote
-	invariants
-	- validate state like in genesis
-	- proposal doesn't exist after end time
-	other
-	- generate committee change proposals - write content generator, add to gov
-
-*/
-
 const (
 	// Block time params are un-exported constants in cosmos-sdk/x/simulation.
 	// Copy them here in lieu of importing them.
@@ -38,6 +25,7 @@ const (
 // RandomizedGenState generates a random GenesisState for the module
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
+	allowedParams := getAllowedParamKeys()
 
 	// TODO remove this?
 	addresses := make([]sdk.AccAddress, len(simState.Accounts))
@@ -48,7 +36,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	numCommittees := r.Intn(100)
 	var committees []types.Committee
 	for i := 0; i < numCommittees; i++ {
-		com, err := randomCommittee(r, addresses)
+		com, err := randomCommittee(r, addresses, allowedParams)
 		if err != nil {
 			panic(err)
 		}
@@ -67,25 +55,42 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
 }
 
-func randomCommittee(r *rand.Rand, addresses []sdk.AccAddress) (types.Committee, error) {
-	shuffledIndexes := r.Perm(len(addresses))
-	numMembers := r.Intn(len(addresses)) + 1 // ensure there is ≥1 member
-	memberIndexes := shuffledIndexes[:numMembers]
-	members := make([]sdk.AccAddress, numMembers)
-	for mi, ai := range memberIndexes {
-		members[mi] = addresses[ai]
+func randomCommittee(r *rand.Rand, availableAddrs []sdk.AccAddress, allowedParams []types.AllowedParam) (types.Committee, error) {
+	// pick committee members
+	r.Shuffle(len(availableAddrs), func(i, j int) {
+		availableAddrs[i], availableAddrs[j] = availableAddrs[j], availableAddrs[i]
+	})
+	if len(availableAddrs) < 1 {
+		return types.Committee{}, fmt.Errorf("must be ≥ 1 addresses")
 	}
+	members := availableAddrs[:r.Intn(len(availableAddrs))+1] // +1 to ensure there is ≥1 member
 
+	// pick committee duration
 	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*100)
 	if err != nil {
 		return types.Committee{}, err
 	}
 
+	// pick permissions
+	var permissions []types.Permission
+	if r.Intn(2) > 0 {
+		permissions = append(permissions, types.TextPermission{})
+	}
+	if r.Intn(2) > 0 {
+		r.Shuffle(len(allowedParams), func(i, j int) {
+			allowedParams[i], allowedParams[j] = allowedParams[j], allowedParams[i]
+		})
+		permissions = append(permissions,
+			types.ParamChangePermission{
+				AllowedParams: allowedParams[:r.Intn(len(allowedParams)+1)],
+			})
+	}
+
 	return types.NewCommittee(
 		r.Uint64(),
-		simulation.RandStringOfLength(r, types.MaxCommitteeDescriptionLength),
+		simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
 		members,
-		[]types.Permission{types.GodPermission{}}, // TODO
+		permissions,
 		simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1.00")),
 		dur,
 	), nil

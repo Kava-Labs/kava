@@ -84,8 +84,8 @@ func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState
 }
 
 // RandomizedParams creates randomized param changes for the simulator.
-func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return simulation.ParamChanges(r)
+func (AppModuleSimulation) RandomizedParams(_ *rand.Rand) []sim.ParamChange {
+	return nil
 }
 
 //____________________________________________________________________________
