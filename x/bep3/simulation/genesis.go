@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	MaxSupplyLimit   = sdk.NewInt(10000000000000000)
+	MaxSupplyLimit   = sdk.NewInt(1000000000000)
 	Accs             []simulation.Account
 	ConsistentDenoms = [3]string{"bnb", "xrp", "btc"}
 )
