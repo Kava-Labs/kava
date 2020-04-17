@@ -79,7 +79,7 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 		})
 		if !found {
 			return simulation.NewOperationMsgBasic(incentive.ModuleName,
-				"no-operation (no valid claim and account for current kavadist balance)", "", false, nil), nil, nil
+				"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 		}
 
 		msg := types.NewMsgClaimReward(claimer.GetAddress(), claim.Denom)
