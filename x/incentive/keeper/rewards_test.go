@@ -59,41 +59,91 @@ func (suite *KeeperTestSuite) TestCreateAndDeleteRewardsPeriods() {
 	suite.NotPanics(func() {
 		suite.keeper.CreateAndDeleteRewardPeriods(suite.ctx)
 	})
-
-	_, found := suite.keeper.GetRewardPeriod(suite.ctx, "bnb")
-	suite.True(found)
-	_, found = suite.keeper.GetRewardPeriod(suite.ctx, "xrp")
-	suite.False(found)
-
+	testCases := []struct {
+		name        string
+		arg         string
+		expectFound bool
+	}{
+		{
+			"active reward period",
+			"bnb",
+			true,
+		},
+		{
+			"inactive reward period",
+			"xrp",
+			false,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			_, found := suite.keeper.GetRewardPeriod(suite.ctx, tc.arg)
+			if tc.expectFound {
+				suite.True(found)
+			} else {
+				suite.False(found)
+			}
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestApplyRewardsToCdps() {
-	suite.setupCdpChain()
+	suite.setupCdpChain() // creates a test app with 3 BNB cdps and usdx incentives for bnb - each reward period is one week
+
+	// move the context forward by 100 periods
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 100))
+	// apply rewards to BNB cdps
 	suite.NotPanics(func() {
 		suite.keeper.ApplyRewardsToCdps(suite.ctx)
 	})
+	// each cdp should have a claim
 	claims := types.Claims{}
 	suite.keeper.IterateClaims(suite.ctx, func(c types.Claim) (stop bool) {
 		claims = append(claims, c)
 		return false
 	})
 	suite.Equal(3, len(claims))
+	// there should be no associated claim period, because the reward period has not ended yet
 	_, found := suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
 	suite.False(found)
 
-	// move to the past the period expiry and check that the claim period has been created and the next claim period id has increased
+	// move ctx to the reward period expiry and check that the claim period has been created and the next claim period id has increased
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 24 * 7))
+
 	suite.NotPanics(func() {
+		// apply rewards to cdps
 		suite.keeper.ApplyRewardsToCdps(suite.ctx)
+		// delete the old reward period amd create a new one
+		suite.keeper.CreateAndDeleteRewardPeriods(suite.ctx)
 	})
 	_, found = suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
 	suite.True(found)
 	testID := suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
 	suite.Equal(uint64(2), testID)
+
+	// move the context forward by 100 periods
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 100))
+	// run the begin blocker functions
+	suite.NotPanics(func() {
+		suite.keeper.DeleteExpiredClaimsAndClaimPeriods(suite.ctx)
+		suite.keeper.ApplyRewardsToCdps(suite.ctx)
+		suite.keeper.CreateAndDeleteRewardPeriods(suite.ctx)
+	})
+	// each cdp should now have two claims
+	claims = types.Claims{}
+	suite.keeper.IterateClaims(suite.ctx, func(c types.Claim) (stop bool) {
+		claims = append(claims, c)
+		return false
+	})
+	suite.Equal(6, len(claims))
 }
 
 func (suite *KeeperTestSuite) setupCdpChain() {
+	// creates a new test app with bnb as the only asset the pricefeed and cdp modules
+	// funds three addresses and creates 3 cdps, funded with 100 BNB, 1000 BNB, and 10000 BNB
+	// each CDP draws 10, 100, and 1000 USDX respectively
+	// adds usdx incentives for bnb - 1000 KAVA per week with a 1 year time lock
+
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	// need pricefeed and cdp gen state with one collateral

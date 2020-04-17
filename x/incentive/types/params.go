@@ -67,6 +67,9 @@ func (p Params) Validate() error {
 	rewardDenoms := make(map[string]bool)
 
 	for _, reward := range p.Rewards {
+		if reward.Denom == "" {
+			return fmt.Errorf("cannot have empty reward denoms: %s", reward)
+		}
 		if rewardDenoms[reward.Denom] {
 			return fmt.Errorf("cannot have duplicate reward denoms: %s", reward.Denom)
 		}

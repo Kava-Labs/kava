@@ -5,6 +5,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -34,6 +36,16 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.ctx = ctx
 	suite.keeper = keeper
 	suite.addrs = addrs
+}
+
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetAccount(suite.ctx, addr)
+}
+
+func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
+	sk := suite.app.GetSupplyKeeper()
+	return sk.GetModuleAccount(suite.ctx, name)
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteRewardPeriod() {

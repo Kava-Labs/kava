@@ -28,4 +28,5 @@ func (suite *KeeperTestSuite) TestQuerier() {
 	var claims types.Claims
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &claims))
 	suite.Equal(1, len(claims))
+	suite.Equal(types.Claims{types.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", 1)}, claims)
 }

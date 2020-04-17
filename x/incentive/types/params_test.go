@@ -24,9 +24,26 @@ type ParamTestSuite struct {
 func (suite *ParamTestSuite) SetupTest() {
 	suite.tests = []paramTest{
 		paramTest{
-			name: "valid",
+			name: "valid - active",
 			params: types.Params{
 				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:        true,
+						Denom:         "bnb",
+						Reward:        sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:      time.Hour * 24 * 7,
+						TimeLock:      time.Hour * 8766,
+						ClaimDuration: time.Hour * 24 * 14,
+					},
+				},
+			},
+			expectPass: true,
+		},
+		paramTest{
+			name: "valid - inactive",
+			params: types.Params{
+				Active: false,
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:        true,
@@ -127,7 +144,24 @@ func (suite *ParamTestSuite) SetupTest() {
 						Reward:        sdk.NewCoin("ukava", sdk.NewInt(0)),
 						Duration:      time.Hour * 24 * 7,
 						TimeLock:      time.Hour * 8766,
-						ClaimDuration: time.Hour * 0,
+						ClaimDuration: time.Hour * 24 * 14,
+					},
+				},
+			},
+			expectPass: false,
+		},
+		paramTest{
+			name: "empty reward denom",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:        true,
+						Denom:         "",
+						Reward:        sdk.NewCoin("ukava", sdk.NewInt(0)),
+						Duration:      time.Hour * 24 * 7,
+						TimeLock:      time.Hour * 8766,
+						ClaimDuration: time.Hour * 24 * 14,
 					},
 				},
 			},
