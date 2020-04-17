@@ -25,7 +25,7 @@ func (rp RewardPeriod) String() string {
 	End: %s,
 	Reward: %s,
 	Claim End: %s,
-	Time Lock: %s`,
+	Claim Time Lock: %s`,
 		rp.Denom, rp.Start, rp.End, rp.Reward, rp.ClaimEnd, rp.ClaimTimeLock)
 }
 
@@ -49,7 +49,7 @@ type ClaimPeriod struct {
 	Denom    string        `json:"denom" yaml:"denom"`
 	ID       uint64        `json:"id" yaml:"id"`
 	End      time.Time     `json:"end" yaml:"end"`
-	TimeLock time.Duration `json:"claim_time_lock" yaml:"claim_time_lock"`
+	TimeLock time.Duration `json:"time_lock" yaml:"time_lock"`
 }
 
 // NewClaimPeriod returns a new ClaimPeriod
@@ -70,16 +70,16 @@ type Claim struct {
 	Owner         sdk.AccAddress `json:"owner" yaml:"owner"`
 	Reward        sdk.Coin       `json:"reward" yaml:"reward"`
 	Denom         string         `json:"denom" yaml:"denom"`
-	ClaimPeriodID uint64         `json:"id" yaml:"id"`
+	ClaimPeriodID uint64         `json:"claim_period_id" yaml:"claim_period_id"`
 }
 
 // NewClaim returns a new Claim
-func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, id uint64) Claim {
+func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, claimPeriodID uint64) Claim {
 	return Claim{
 		Owner:         owner,
 		Reward:        reward,
 		Denom:         denom,
-		ClaimPeriodID: id,
+		ClaimPeriodID: claimPeriodID,
 	}
 }
 
@@ -89,8 +89,8 @@ func (c Claim) String() string {
 	Owner: %s,
 	Denom: %s,
 	Reward: %s,
-	Caim Period ID: %d,`,
-		c.Denom, c.Denom, c.Reward, c.ClaimPeriodID)
+	Claim Period ID: %d,`,
+		c.Owner, c.Denom, c.Reward, c.ClaimPeriodID)
 }
 
 // Claims array of Claim

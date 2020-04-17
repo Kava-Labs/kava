@@ -74,8 +74,8 @@ func (p Params) Validate() error {
 			return fmt.Errorf("cannot have duplicate reward denoms: %s", reward.Denom)
 		}
 		rewardDenoms[reward.Denom] = true
-		if !reward.Reward.IsPositive() {
-			return fmt.Errorf("reward must be positive, is %s for %s", reward.Reward, reward.Denom)
+		if !reward.AvailableRewards.IsPositive() {
+			return fmt.Errorf("available rewards must be positive, is %s for %s", reward.AvailableRewards, reward.Denom)
 		}
 		if int(reward.Duration.Seconds()) <= 0 {
 			return fmt.Errorf("reward duration must be positive, is %s for %s", reward.Duration.String(), reward.Denom)
@@ -92,36 +92,36 @@ func (p Params) Validate() error {
 
 // Reward stores the specified state for a single reward period.
 type Reward struct {
-	Active        bool          `json:"active" yaml:"actlive"`                // governance switch to disable a period
-	Denom         string        `json:"denom" yaml:"denom"`                   // the collateral denom rewards apply to, must be found in the cdp collaterals
-	Reward        sdk.Coin      `json:"reward" yaml:"reward"`                 // the total amount of coins distributed per period
-	Duration      time.Duration `json:"duration" yaml:"duration"`             // the duration of the period
-	TimeLock      time.Duration `json:"time_lock" yaml:"time_lock"`           // how long rewards for this period are timelocked
-	ClaimDuration time.Duration `json:"claim_duration" yaml:"claim_duration"` // how long users have after the period ends to claim their rewards
+	Active           bool          `json:"active" yaml:"active"`                       // governance switch to disable a period
+	Denom            string        `json:"denom" yaml:"denom"`                         // the collateral denom rewards apply to, must be found in the cdp collaterals
+	AvailableRewards sdk.Coin      `json:"available_rewards" yaml:"available_rewards"` // the total amount of coins distributed per period
+	Duration         time.Duration `json:"duration" yaml:"duration"`                   // the duration of the period
+	TimeLock         time.Duration `json:"time_lock" yaml:"time_lock"`                 // how long rewards for this period are timelocked
+	ClaimDuration    time.Duration `json:"claim_duration" yaml:"claim_duration"`       // how long users have after the period ends to claim their rewards
 }
 
 // NewReward returns a new Reward
 func NewReward(active bool, denom string, reward sdk.Coin, duration time.Duration, timelock time.Duration, claimDuration time.Duration) Reward {
 	return Reward{
-		Active:        active,
-		Denom:         denom,
-		Reward:        reward,
-		Duration:      duration,
-		TimeLock:      timelock,
-		ClaimDuration: claimDuration,
+		Active:           active,
+		Denom:            denom,
+		AvailableRewards: reward,
+		Duration:         duration,
+		TimeLock:         timelock,
+		ClaimDuration:    claimDuration,
 	}
 }
 
 // String implements fmt.Stringer
 func (r Reward) String() string {
-	return fmt.Sprintf(`Reward Period:
+	return fmt.Sprintf(`Reward:
 	Active: %t,
 	Denom: %s,
-	Reward: %s,
+	Available Rewards: %s,
 	Duration: %s,
 	Time Lock: %s,
 	Claim Duration: %s`,
-		r.Active, r.Denom, r.Reward, r.Duration, r.TimeLock, r.ClaimDuration)
+		r.Active, r.Denom, r.AvailableRewards, r.Duration, r.TimeLock, r.ClaimDuration)
 }
 
 // Rewards array of Reward
@@ -129,7 +129,7 @@ type Rewards []Reward
 
 // String implements fmt.Stringer
 func (rs Rewards) String() string {
-	out := "Reward Periods\n"
+	out := "Rewards\n"
 	for _, r := range rs {
 		out += fmt.Sprintf("%s\n", r)
 	}
