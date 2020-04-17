@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// BaseAssets is a list of collateral asset denoms
 	BaseAssets = [3]string{"bnb", "xrp", "btc"}
 	QuoteAsset = "usd"
 )
@@ -57,14 +58,15 @@ func loadPricefeedGenState(simState *module.SimulationState) pricefeed.GenesisSt
 }
 
 // getInitialPrice gets the starting price for each of the base assets
-func getInitialPrice(marketId string) (price sdk.Dec) {
-	switch marketId {
+func getInitialPrice(marketID string) (price sdk.Dec) {
+	switch marketID {
 	case "btc:usd":
 		return sdk.MustNewDecFromStr("7000")
 	case "bnb:usd":
 		return sdk.MustNewDecFromStr("14")
 	case "xrp:usd":
 		return sdk.MustNewDecFromStr("0.2")
+	default:
+		return sdk.MustNewDecFromStr("20") // Catch future additional assets
 	}
-	panic(fmt.Sprintf("Invalid marketId in getInitialPrice: %s\n", marketId))
 }
