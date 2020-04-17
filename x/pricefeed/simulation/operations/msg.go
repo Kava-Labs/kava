@@ -40,7 +40,8 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper, blocks int) simulation.Operat
 				previousPrice := startPrice
 				for i := 0; i < blocks; i++ {
 					increment := getIncrement(m.MarketID)
-					upDown := r.Intn(2)
+					// note calling r instead of rand here breaks determinism
+					upDown := rand.Intn(2)
 					if upDown == 0 {
 						if previousPrice.Add(increment).GT(maxPrice) {
 							previousPrice = maxPrice
