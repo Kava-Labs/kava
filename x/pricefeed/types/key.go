@@ -15,16 +15,22 @@ const (
 
 	// DefaultParamspace default namestore
 	DefaultParamspace = ModuleName
+)
+
+var (
+	// CurrentPricePrefix prefix for the current price of an asset
+	CurrentPricePrefix = []byte{0x00}
 
 	// RawPriceFeedPrefix prefix for the raw pricefeed of an asset
-	RawPriceFeedPrefix = StoreKey + ":raw:"
-
-	// CurrentPricePrefix prefix for the current price of an asset
-	CurrentPricePrefix = StoreKey + ":currentprice:"
-
-	// MarketPrefix Prefix for the assets in the pricefeed system
-	MarketPrefix = StoreKey + ":markets"
-
-	// OraclePrefix store prefix for the oracle accounts
-	OraclePrefix = StoreKey + ":oracles"
+	RawPriceFeedPrefix = []byte{0x01}
 )
+
+// CurrentPriceKey returns the prefix for the current price
+func CurrentPriceKey(marketID string) []byte {
+	return append(CurrentPricePrefix, []byte(marketID)...)
+}
+
+// RawPriceKey returns the prefix for the raw price
+func RawPriceKey(marketID string) []byte {
+	return append(RawPriceFeedPrefix, []byte(marketID)...)
+}

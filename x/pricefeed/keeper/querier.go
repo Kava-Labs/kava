@@ -56,18 +56,20 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 
 func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr sdk.Error) {
 	var requestParams types.QueryWithMarketIDParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
-	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+	err2 := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err2 != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err2))
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
 		return []byte{}, sdk.ErrUnknownRequest("asset not found")
 	}
-	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, rawPrices)
+	rawPrices, err := keeper.GetRawPrices(ctx, requestParams.MarketID)
 	if err != nil {
+		return nil, err
+	}
+	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, rawPrices)
+	if err2 != nil {
 		panic("could not marshal result to JSON")
 	}
 
