@@ -127,7 +127,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			// given the current collateral value, calculate how much debt we could add while maintaining a valid liquidation ratio
 			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom).Add(totalFees)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
-			maxDebt := maxTotalDebt.Sub(sdk.NewDecFromInt(debt)).TruncateInt()
+			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
 				// debt in cdp is maxed out
 				return simulation.NewOperationMsgBasic(cdp.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
@@ -140,7 +140,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			}
 			maxDraw := sdk.MinInt(maxDebt, availableAssetDebt)
 
-			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
+			randDrawAmount := sdk.NewInt(int64(r.Intn(int(maxDraw.Int64()))) + 1)
 			msg := cdp.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randDrawAmount)))
 			err := msg.ValidateBasic()
 			if err != nil {
@@ -148,6 +148,10 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
+				fmt.Printf("Draw of %s attempted\n", msg)
+				fmt.Printf("Max debt: %s\n", maxDebt)
+				fmt.Printf("Available debt: %s\n", availableAssetDebt)
+				fmt.Printf("Random draw: %s\n", randDrawAmount)
 				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("could not submit draw msg")
 			}
 			return simulation.NewOperationMsg(msg, ok, "draw debt from cdp"), nil, nil
