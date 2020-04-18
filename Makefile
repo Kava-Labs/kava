@@ -109,24 +109,35 @@ link-check:
 # TODO tidy up cli tests to use same -Enable flag as simulations, or the other way round
 # TODO -mod=readonly ?
 # build dependency needed for cli tests
-test-all: build
+test-all: build test-cli test
 	# basic app tests
 	@go test ./app -v
-	# cli tests
-	@go test ./cli_test -tags cli_test -v -p 4
 	# basic simulation (seed "2" happens to not unbond all validators before reaching 100 blocks)
 	@go test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
 	# other sim tests
 	@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
 	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
 	@# AppStateDeterminism does not use Seed flag
-	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200         -v -timeout 24h
+	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 2 -v -timeout 24h
+
+# run module tests and short simulations
+test-basic: test
+	# basic simulation (seed "2" happens to not unbond all validators before reaching 100 blocks)
+	@go test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 2 -v -timeout 2m
+	# other sim tests
+	@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 2 -v -timeout 2m
+	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 2 -v -timeout 2m
+	@# AppStateDeterminism does not use Seed flag
+	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 2 -v -timeout 2m
 
 test:
 	@go test ./...
 
 test_dredd:
 	rest_test/./run_all_tests_from_make.sh
+
+test-cli:
+	@go test ./cli_test -tags cli_test -v -p 4
 
 # Kick start lots of sims on an AWS cluster.
 # This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
@@ -143,4 +154,4 @@ start-remote-sims:
 		-—job-definition kava-sim-master \
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
-.PHONY: all build-linux install clean build test test-all start-remote-sims
+.PHONY: all build-linux install clean build test test-cli test-all test_dredd test-basic start-remote-sims
