@@ -175,9 +175,9 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		suite.Run(t.name, func() {
 			err := t.params.Validate()
 			if t.expectPass {
-				suite.NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				suite.Error(err)
+				suite.Require().Error(err)
 			}
 		})
 	}

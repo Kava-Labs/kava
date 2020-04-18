@@ -47,9 +47,9 @@ func (suite *MsgTestSuite) TestMsgValidation() {
 		msg := types.NewMsgClaimReward(t.from, t.denom)
 		err := msg.ValidateBasic()
 		if t.expectPass {
-			suite.NoError(err)
+			suite.Require().NoError(err)
 		} else {
-			suite.Error(err)
+			suite.Require().Error(err)
 		}
 	}
 }

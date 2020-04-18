@@ -12,7 +12,7 @@ func (suite *KeeperTestSuite) TestQuerier() {
 	suite.addObjectsToStore()
 	querier := keeper.NewQuerier(suite.keeper)
 	bz, err := querier(suite.ctx, []string{types.QueryGetParams}, abci.RequestQuery{})
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.NotNil(bz)
 
 	var p types.Params

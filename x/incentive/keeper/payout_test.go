@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) setupChain() {
 	supplyKeeper := tApp.GetSupplyKeeper()
 	macc := supplyKeeper.GetModuleAccount(ctx, kavadist.ModuleName)
 	err := supplyKeeper.MintCoins(ctx, macc.GetName(), cs(c("ukava", 500)))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	// sets addrs[0] to be a periodic vesting account
 	ak := tApp.GetAccountKeeper()
@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) setupChain() {
 		vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
 	}
 	bva, err2 := vesting.NewBaseVestingAccount(bacc, cs(c("ukava", 400)), ctx.BlockTime().Unix()+16)
-	suite.NoError(err2)
+	suite.Require().NoError(err2)
 	pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), periods)
 	ak.SetAccount(ctx, pva)
 
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) setupChain() {
 	acc = ak.GetAccount(ctx, addrs[2])
 	bacc = auth.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 	bva, err2 = vesting.NewBaseVestingAccount(bacc, cs(c("ukava", 400)), ctx.BlockTime().Unix()+16)
-	suite.NoError(err2)
+	suite.Require().NoError(err2)
 	vva := validatorvesting.NewValidatorVestingAccountRaw(bva, ctx.BlockTime().Unix(), periods, sdk.ConsAddress{}, nil, 90)
 	ak.SetAccount(ctx, vva)
 	suite.app = tApp
@@ -238,7 +238,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			if tc.errArgs.expectErr {
 				suite.Equal(tc.errArgs.code, err.Result().Code)
 			} else {
-				suite.NoError(err)
+				suite.Require().NoError(err)
 				acc := suite.getAccount(suite.addrs[0])
 				vacc, ok := acc.(*vesting.PeriodicVestingAccount)
 				suite.True(ok)
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToBaseAccount() {
 	suite.setupChain()
 	// send coins to base account
 	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[1], cs(c("ukava", 100)), 5)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	acc := suite.getAccount(suite.addrs[1])
 	vacc, ok := acc.(*vesting.PeriodicVestingAccount)
 	suite.True(ok)
@@ -298,7 +298,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 
 	// existing claim with corresponding claim period successfully claimed by existing periodic vesting account
 	err := suite.keeper.PayoutClaim(suite.ctx, suite.addrs[0], "bnb", 1)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	acc := suite.getAccount(suite.addrs[0])
 	// account is a periodic vesting account
 	vacc, ok := acc.(*vesting.PeriodicVestingAccount)
@@ -308,7 +308,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 
 	// existing claim with corresponding claim period successfully claimed by base account
 	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[1], "bnb", 1)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	acc = suite.getAccount(suite.addrs[1])
 	// account has become a periodic vesting account
 	vacc, ok = acc.(*vesting.PeriodicVestingAccount)

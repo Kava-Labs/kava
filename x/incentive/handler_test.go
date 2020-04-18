@@ -51,7 +51,7 @@ func (suite *HandlerTestSuite) addClaim() {
 	supplyKeeper := suite.app.GetSupplyKeeper()
 	macc := supplyKeeper.GetModuleAccount(suite.ctx, kavadist.ModuleName)
 	err := supplyKeeper.MintCoins(suite.ctx, macc.GetName(), cs(c("ukava", 1000000)))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	cp := incentive.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
 	suite.NotPanics(func() {
 		suite.keeper.SetClaimPeriod(suite.ctx, cp)

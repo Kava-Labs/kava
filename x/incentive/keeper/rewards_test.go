@@ -231,11 +231,11 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 	// create 3 cdps
 	cdpKeeper := tApp.GetCDPKeeper()
 	err := cdpKeeper.AddCdp(suite.ctx, addrs[0], cs(c("bnb", 10000000000)), cs(c("usdx", 10000000)))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	err = cdpKeeper.AddCdp(suite.ctx, addrs[1], cs(c("bnb", 100000000000)), cs(c("usdx", 100000000)))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	err = cdpKeeper.AddCdp(suite.ctx, addrs[2], cs(c("bnb", 1000000000000)), cs(c("usdx", 1000000000)))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	// total usd is 1110
 
 	// set the previous block time
