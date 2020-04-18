@@ -39,12 +39,10 @@ func (k Keeper) CreateAndDeleteRewardPeriods(ctx sdk.Context) {
 
 	for _, r := range params.Rewards {
 		_, found := k.GetRewardPeriod(ctx, r.Denom)
-		// if governance has made a reward inactive, delete the current period
-		if !r.Active {
+		switch found {
+		case found && !r.Active:
 			k.DeleteRewardPeriod(ctx, r.Denom)
-		}
-		// if a reward period for an active reward is not found, create one
-		if !found && r.Active {
+		case !found && r.Active:
 			k.CreateNewRewardPeriod(ctx, r)
 		}
 	}
