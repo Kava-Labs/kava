@@ -13,7 +13,7 @@ import (
 func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod) {
 	k.CreateUniqueClaimPeriod(ctx, rp.Denom, rp.ClaimEnd, rp.ClaimTimeLock)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	store.Delete(types.GetDenomBytes(rp.Denom))
+	store.Delete([]byte(rp.Denom))
 	return
 }
 
@@ -102,9 +102,8 @@ func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, i
 	claim, found := k.GetClaim(ctx, addr, denom, id)
 	if found {
 		claim.Reward = claim.Reward.Add(amount)
-		k.SetClaim(ctx, claim)
-		return
+	} else {
+		claim = types.NewClaim(addr, amount, denom, id)
 	}
-	claim = types.NewClaim(addr, amount, denom, id)
 	k.SetClaim(ctx, claim)
 }

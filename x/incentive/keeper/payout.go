@@ -162,15 +162,35 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 // DeleteExpiredClaimsAndClaimPeriods deletes expired claim periods and their associated claims
 func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.End.Before(ctx.BlockTime()) {
-			k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-				if c.Denom == cp.Denom && c.ClaimPeriodID == cp.ID {
-					k.DeleteClaim(ctx, c.Owner, c.Denom, c.ClaimPeriodID)
-				}
-				return false
-			})
-			k.DeleteClaimPeriod(ctx, cp.ID, cp.Denom)
+		if !cp.End.Before(ctx.BlockTime()) {
+			return false
 		}
+		k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
+			if !(c.Denom == cp.Denom && c.ClaimPeriodID == cp.ID) {
+				return false
+			}
+			k.DeleteClaim(ctx, c.Owner, c.Denom, c.ClaimPeriodID)
+			return false
+		})
+		k.DeleteClaimPeriod(ctx, cp.ID, cp.Denom)
 		return false
 	})
+}
+
+// GetClaimsByAddressAndDenom returns all claims for a specific user and address and a bool for if any were found
+func (k Keeper) GetClaimsByAddressAndDenom(ctx sdk.Context, addr sdk.AccAddress, denom string) (claims types.Claims, found bool) {
+	found = false
+	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
+		if cp.Denom != denom {
+			return false
+		}
+		c, hasClaim := k.GetClaim(ctx, addr, cp.Denom, cp.ID)
+		if !hasClaim {
+			return false
+		}
+		found = true
+		claims = append(claims, c)
+		return false
+	})
+	return claims, found
 }

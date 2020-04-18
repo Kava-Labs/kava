@@ -27,6 +27,10 @@ func postClaimHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 		msg := types.NewMsgClaimReward(requestBody.Sender, requestBody.Denom)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }

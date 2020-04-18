@@ -40,7 +40,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetClaims), bz)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		cliCtx = cliCtx.WithHeight(height)
