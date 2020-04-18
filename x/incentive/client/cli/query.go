@@ -13,9 +13,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// GetQueryCmd returns the cli query commands for the incentive module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	incentiveQueryCmd := &cobra.Command{
-		Use:   "incentive",
+		Use:   types.ModuleName,
 		Short: "Querying commands for the incentive module",
 	}
 
@@ -61,7 +62,9 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			var claims types.Claims
-			cdc.MustUnmarshalJSON(res, &claims)
+			if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+				return fmt.Errorf("failed to unmarshal claims: %w", err)
+			}
 			return cliCtx.PrintOutput(claims)
 
 		},
@@ -85,9 +88,11 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Decode and print results
-			var out types.Params
-			cdc.MustUnmarshalJSON(res, &out)
-			return cliCtx.PrintOutput(out)
+			var params types.Params
+			if err := cdc.UnmarshalJSON(res, &params); err != nil {
+				return fmt.Errorf("failed to unmarshal params: %w", err)
+			}
+			return cliCtx.PrintOutput(params)
 		},
 	}
 }

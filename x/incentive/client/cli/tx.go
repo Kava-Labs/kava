@@ -15,10 +15,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GetTxCmd returns the transaction commands for the incentive module
+// GetTxCmd returns the transaction cli commands for the incentive module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	incentiveTxCmd := &cobra.Command{
-		Use:   "incentive",
+		Use:   types.ModuleName,
 		Short: "transaction commands for the incentive module",
 	}
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -67,6 +68,9 @@ func (p Params) Validate() error {
 	rewardDenoms := make(map[string]bool)
 
 	for _, reward := range p.Rewards {
+		if strings.TrimSpace(reward.Denom) == "" {
+			return fmt.Errorf("cannot have empty reward denom: %s", reward)
+		}
 		if rewardDenoms[reward.Denom] {
 			return fmt.Errorf("cannot have duplicate reward denoms: %s", reward.Denom)
 		}

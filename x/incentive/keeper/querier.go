@@ -40,16 +40,8 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
-	var claims types.Claims
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.Denom == requestParams.Denom {
-			claim, found := k.GetClaim(ctx, requestParams.Owner, cp.Denom, cp.ID)
-			if found {
-				claims = append(claims, claim)
-			}
-		}
-		return false
-	})
+	claims, _ := k.GetClaimsByAddressAndDenom(ctx, requestParams.Owner, requestParams.Denom)
+
 	bz, err := codec.MarshalJSONIndent(k.cdc, claims)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))

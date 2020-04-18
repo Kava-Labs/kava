@@ -24,36 +24,25 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 }
 
 func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) sdk.Result {
-	foundClaim := false
-	var txError sdk.Error
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.Denom == msg.Denom {
-			_, found := k.GetClaim(ctx, msg.Sender, cp.Denom, cp.ID)
-			if found {
-				foundClaim = true
-				err := k.PayoutClaim(ctx, msg.Sender, cp.Denom, cp.ID)
-				if err != nil {
-					txError = err
-					return true
-				}
-				ctx.EventManager().EmitEvent(
-					sdk.NewEvent(
-						sdk.EventTypeMessage,
-						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-						sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-					),
-				)
-			}
-		}
-		return false
-	})
-	if txError != nil {
-		return txError.Result()
-	}
-	if !foundClaim {
+
+	claims, found := k.GetClaimsByAddressAndDenom(ctx, msg.Sender, msg.Denom)
+	if !found {
 		return types.ErrNoClaimsFound(k.Codespace(), msg.Sender, msg.Denom).Result()
 	}
-	return sdk.Result{
-		Events: ctx.EventManager().Events(),
+
+	for _, claim := range claims {
+		err := k.PayoutClaim(ctx, claim.Owner, claim.Denom, claim.ClaimPeriodID)
+		if err != nil {
+			return err.Result()
+		}
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+			),
+		)
 	}
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
 }

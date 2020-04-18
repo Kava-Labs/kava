@@ -1,6 +1,8 @@
 package types
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -32,7 +34,7 @@ func (msg MsgClaimReward) ValidateBasic() sdk.Error {
 	if msg.Sender.Empty() {
 		return sdk.ErrInvalidAddress("invalid sender address")
 	}
-	if msg.Denom == "" {
+	if strings.TrimSpace(msg.Denom) == "" {
 		return sdk.ErrInternal("invalid (empty) denom")
 	}
 	return nil

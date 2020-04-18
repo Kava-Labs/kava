@@ -56,38 +56,18 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	// get all objects out of the store
 	params := k.GetParams(ctx)
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+
+	// since it is not set in genesis, if somehow the chain got started and was exported
+	// immediately after InitGenesis, there would be no previousBlockTime value.
 	if !found {
 		previousBlockTime = types.DefaultPreviousBlockTime
 	}
 
-	rps := types.RewardPeriods{}
-	k.IterateRewardPeriods(ctx, func(rp types.RewardPeriod) (stop bool) {
-		rps = append(rps, rp)
-		return false
-	})
+	// Get all objects from the store
+	rewardPeriods := k.GetAllRewardPeriods(ctx)
+	claimPeriods := k.GetAllClaimPeriods(ctx)
+	claims := k.GetAllClaims(ctx)
+	claimPeriodIDs := k.GetAllClaimPeriodIDPairs(ctx)
 
-	cps := types.ClaimPeriods{}
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		cps = append(cps, cp)
-		return false
-	})
-
-	cs := types.Claims{}
-	k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-		cs = append(cs, c)
-		return false
-	})
-
-	ids := types.GenesisClaimPeriodIDs{}
-	k.IterateClaimPeriodIDKeysAndValues(ctx, func(denom string, id uint64) (stop bool) {
-		genID := types.GenesisClaimPeriodID{
-			Denom: denom,
-			ID:    id,
-		}
-		ids = append(ids, genID)
-		return false
-	})
-
-	// return them as a new genesis state
-	return types.NewGenesisState(params, previousBlockTime, rps, cps, cs, ids)
+	return types.NewGenesisState(params, previousBlockTime, rewardPeriods, claimPeriods, claims, claimPeriodIDs)
 }
