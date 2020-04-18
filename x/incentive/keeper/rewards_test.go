@@ -53,7 +53,12 @@ func (suite *KeeperTestSuite) TestCreateRewardPeriod() {
 func (suite *KeeperTestSuite) TestCreateAndDeleteRewardsPeriods() {
 	reward1 := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
 	reward2 := types.NewReward(false, "xrp", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
-	params := types.NewParams(true, types.Rewards{reward1, reward2})
+	reward3 := types.NewReward(false, "btc", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
+	// add a reward period to the store for a non-active reward
+	suite.NotPanics(func() {
+		suite.keeper.CreateNewRewardPeriod(suite.ctx, reward3)
+	})
+	params := types.NewParams(true, types.Rewards{reward1, reward2, reward3})
 	suite.keeper.SetParams(suite.ctx, params)
 
 	suite.NotPanics(func() {
@@ -70,8 +75,13 @@ func (suite *KeeperTestSuite) TestCreateAndDeleteRewardsPeriods() {
 			true,
 		},
 		{
-			"inactive reward period",
+			"attempt to add inactive reward period",
 			"xrp",
+			false,
+		},
+		{
+			"remove inactive reward period",
+			"btc",
 			false,
 		},
 	}
