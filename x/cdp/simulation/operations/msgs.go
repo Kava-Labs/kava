@@ -140,7 +140,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			}
 			maxDraw := sdk.MinInt(maxDebt, availableAssetDebt)
 
-			randDrawAmount := sdk.NewInt(int64(r.Intn(int(maxDraw.Int64()))) + 1)
+			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
 			msg := cdp.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randDrawAmount)))
 			err := msg.ValidateBasic()
 			if err != nil {
@@ -148,10 +148,6 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k cdp.Keeper, pfk pricefeed.Keeper) s
 			}
 			ok := submitMsg(msg, handler, ctx)
 			if !ok {
-				fmt.Printf("Draw of %s attempted\n", msg)
-				fmt.Printf("Max debt: %s\n", maxDebt)
-				fmt.Printf("Available debt: %s\n", availableAssetDebt)
-				fmt.Printf("Random draw: %s\n", randDrawAmount)
 				return simulation.NoOpMsg(cdp.ModuleName), nil, fmt.Errorf("could not submit draw msg")
 			}
 			return simulation.NewOperationMsg(msg, ok, "draw debt from cdp"), nil, nil
