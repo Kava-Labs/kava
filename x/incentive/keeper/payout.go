@@ -64,79 +64,7 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 	if err != nil {
 		return err
 	}
-	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
-	vacc := acc.(*vesting.PeriodicVestingAccount)
-	// Add the new vesting coins to OriginalVesting
-	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt)
-	// update vesting periods
-	if vacc.EndTime < ctx.BlockTime().Unix() {
-		// edge case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
-		// append a new period to the vesting account, update the end time, update the account in the store and return
-		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length
-		newPeriod := types.NewPeriod(amt, newPeriodLength)
-		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
-		vacc.EndTime = ctx.BlockTime().Unix() + length
-		k.accountKeeper.SetAccount(ctx, vacc)
-		return nil
-	}
-	if vacc.StartTime > ctx.BlockTime().Unix() {
-		// edge case two - the vesting account's start time is in the future (all periods have not started)
-		// update the start time to now and adjust the period lengths in place - a new period will be inserted in the next block
-		updatedPeriods := vesting.Periods{}
-		for i, period := range vacc.VestingPeriods {
-			updatedPeriod := period
-			if i == 0 {
-				updatedPeriod = types.NewPeriod(period.Amount, (vacc.StartTime-ctx.BlockTime().Unix())+period.Length)
-			}
-			updatedPeriods = append(updatedPeriods, updatedPeriod)
-		}
-		vacc.VestingPeriods = updatedPeriods
-		vacc.StartTime = ctx.BlockTime().Unix()
-	}
-
-	// logic for inserting a new vesting period into the existing vesting schedule
-	totalPeriodLength := types.GetTotalVestingPeriodLength(vacc.VestingPeriods)
-	proposedEndTime := ctx.BlockTime().Unix() + length
-	if totalPeriodLength < length {
-		// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
-		newPeriodLength := length - totalPeriodLength
-		newPeriod := types.NewPeriod(amt, newPeriodLength)
-		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
-		// update the end time so that the sum of all period lengths equals endTime - startTime
-		vacc.EndTime = proposedEndTime
-	} else {
-		// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
-		// EXAMPLE (l is length, a is amount)
-		// Original Periods: {[l: 1 a: 1], [l: 2, a: 1], [l:8, a:3], [l: 5, a: 3]}
-		// Period we want to insert [l: 5, a: x]
-		// Expected result:
-		// {[l: 1, a: 1], [l:2, a: 1], [l:2, a:x], [l:6, a:3], [l:5, a:3]}
-
-		newPeriods := vesting.Periods{}
-		lengthCounter := int64(0)
-		appendRemaining := false
-		for _, period := range vacc.VestingPeriods {
-			if appendRemaining {
-				newPeriods = append(newPeriods, period)
-				continue
-			}
-			lengthCounter += period.Length
-			if lengthCounter < length {
-				newPeriods = append(newPeriods, period)
-			} else if lengthCounter == length {
-				newPeriod := types.NewPeriod(period.Amount.Add(amt), period.Length)
-				newPeriods = append(newPeriods, newPeriod)
-				appendRemaining = true
-			} else {
-				newPeriod := types.NewPeriod(amt, length-types.GetTotalVestingPeriodLength(newPeriods))
-				previousPeriod := types.NewPeriod(period.Amount, period.Length-newPeriod.Length)
-				newPeriods = append(newPeriods, newPeriod, previousPeriod)
-				appendRemaining = true
-			}
-		}
-		vacc.VestingPeriods = newPeriods
-	}
-	k.accountKeeper.SetAccount(ctx, vacc)
+	k.addCoinsToVestingSchedule(ctx, recipientAddr, amt, length)
 	return nil
 }
 
@@ -193,4 +121,83 @@ func (k Keeper) GetClaimsByAddressAndDenom(ctx sdk.Context, addr sdk.AccAddress,
 		return false
 	})
 	return claims, found
+}
+
+// addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for
+// the input address must be a periodic vesting account
+func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins, length int64) {
+	acc := k.accountKeeper.GetAccount(ctx, addr)
+	vacc := acc.(*vesting.PeriodicVestingAccount)
+	// Add the new vesting coins to OriginalVesting
+	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt)
+	// update vesting periods
+	if vacc.EndTime < ctx.BlockTime().Unix() {
+		// edge case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
+		// append a new period to the vesting account, update the end time, update the account in the store and return
+		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length
+		newPeriod := types.NewPeriod(amt, newPeriodLength)
+		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
+		vacc.EndTime = ctx.BlockTime().Unix() + length
+		k.accountKeeper.SetAccount(ctx, vacc)
+		return
+	}
+	if vacc.StartTime > ctx.BlockTime().Unix() {
+		// edge case two - the vesting account's start time is in the future (all periods have not started)
+		// update the start time to now and adjust the period lengths in place - a new period will be inserted in the next code block
+		updatedPeriods := vesting.Periods{}
+		for i, period := range vacc.VestingPeriods {
+			updatedPeriod := period
+			if i == 0 {
+				updatedPeriod = types.NewPeriod(period.Amount, (vacc.StartTime-ctx.BlockTime().Unix())+period.Length)
+			}
+			updatedPeriods = append(updatedPeriods, updatedPeriod)
+		}
+		vacc.VestingPeriods = updatedPeriods
+		vacc.StartTime = ctx.BlockTime().Unix()
+	}
+
+	// logic for inserting a new vesting period into the existing vesting schedule
+	totalPeriodLength := types.GetTotalVestingPeriodLength(vacc.VestingPeriods)
+	proposedEndTime := ctx.BlockTime().Unix() + length
+	if totalPeriodLength < length {
+		// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
+		newPeriodLength := length - totalPeriodLength
+		newPeriod := types.NewPeriod(amt, newPeriodLength)
+		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
+		// update the end time so that the sum of all period lengths equals endTime - startTime
+		vacc.EndTime = proposedEndTime
+	} else {
+		// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
+		// EXAMPLE (l is length, a is amount)
+		// Original Periods: {[l: 1 a: 1], [l: 2, a: 1], [l:8, a:3], [l: 5, a: 3]}
+		// Period we want to insert [l: 5, a: x]
+		// Expected result:
+		// {[l: 1, a: 1], [l:2, a: 1], [l:2, a:x], [l:6, a:3], [l:5, a:3]}
+
+		newPeriods := vesting.Periods{}
+		lengthCounter := int64(0)
+		appendRemaining := false
+		for _, period := range vacc.VestingPeriods {
+			if appendRemaining {
+				newPeriods = append(newPeriods, period)
+				continue
+			}
+			lengthCounter += period.Length
+			if lengthCounter < length {
+				newPeriods = append(newPeriods, period)
+			} else if lengthCounter == length {
+				newPeriod := types.NewPeriod(period.Amount.Add(amt), period.Length)
+				newPeriods = append(newPeriods, newPeriod)
+				appendRemaining = true
+			} else {
+				newPeriod := types.NewPeriod(amt, length-types.GetTotalVestingPeriodLength(newPeriods))
+				previousPeriod := types.NewPeriod(period.Amount, period.Length-newPeriod.Length)
+				newPeriods = append(newPeriods, newPeriod, previousPeriod)
+				appendRemaining = true
+			}
+		}
+		vacc.VestingPeriods = newPeriods
+	}
+	k.accountKeeper.SetAccount(ctx, vacc)
+	return
 }

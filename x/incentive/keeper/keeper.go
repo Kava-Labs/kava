@@ -12,13 +12,13 @@ import (
 
 // Keeper keeper for the incentive module
 type Keeper struct {
-	key           sdk.StoreKey
+	accountKeeper types.AccountKeeper
 	cdc           *codec.Codec
+	cdpKeeper     types.CdpKeeper
+	codespace     sdk.CodespaceType
+	key           sdk.StoreKey
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
-	cdpKeeper     types.CdpKeeper
-	accountKeeper types.AccountKeeper
-	codespace     sdk.CodespaceType
 }
 
 // NewKeeper creates a new keeper
@@ -28,13 +28,13 @@ func NewKeeper(
 ) Keeper {
 
 	return Keeper{
-		key:           key,
+		accountKeeper: ak,
 		cdc:           cdc,
+		cdpKeeper:     cdpk,
+		codespace:     codespace,
+		key:           key,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 		supplyKeeper:  sk,
-		cdpKeeper:     cdpk,
-		accountKeeper: ak,
-		codespace:     codespace,
 	}
 }
 
