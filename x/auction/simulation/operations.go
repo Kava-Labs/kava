@@ -87,16 +87,21 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
 		}
 
+		bidderAcc := ak.GetAccount(ctx, bidder.Address)
+		if bidderAcc == nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
 		// pick a bid amount for the chosen auction and bidder
-		amount, err := generateBidAmount(r, openAuction, bidder, blockTime)
+		amount, err := generateBidAmount(r, openAuction, bidderAcc, blockTime)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		// create a msg
-		msg := types.NewMsgPlaceBid(openAuction.GetID(), bidder.GetAddress(), amount)
+		msg := types.NewMsgPlaceBid(openAuction.GetID(), bidder.Address, amount)
 
-		spendable := bidder.SpendableCoins()
+		spendable := bidderAcc.SpendableCoins(ctx.BlockTime())
 		fees, err := simulation.RandomFees(r, ctx, spendable)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
@@ -107,8 +112,8 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			fees,
 			helpers.DefaultGenTxGas,
 			chainID,
-			[]uint64{bidder.GetAccountNumber()},
-			[]uint64{bidder.GetSequence()},
+			[]uint64{bidderAcc.GetAccountNumber()},
+			[]uint64{bidderAcc.GetSequence()},
 			bidder.PrivKey,
 		)
 
@@ -175,16 +180,15 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 }
 
 // findValidAccountAuctionPair finds an auction and account for which the callback func returns true
-func findValidAccountAuctionPair(accounts []simulation.Account, auctions types.Auctions, cb func(authexported.Account, types.Auction) bool) (simulation.Account, types.Auction, bool) {
+func findValidAccountAuctionPair(accounts []simulation.Account, auctions types.Auctions, cb func(simulation.Account, types.Auction) bool) (simulation.Account, types.Auction, bool) {
 	for _, auc := range auctions {
 		for _, acc := range accounts {
 			if isValid := cb(acc, auc); isValid {
 				return acc, auc, true
 			}
-
 		}
 	}
-	return nil, nil, false
+	return simulation.Account{}, nil, false
 }
 
 // RandIntInclusive randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.

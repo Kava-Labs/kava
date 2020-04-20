@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -33,7 +33,7 @@ const (
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
 	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
-	k keeper.Keeper, wContents []simulation.WeightedProposalContent,
+	k keeper.Keeper, blocks int, wContents []simulation.WeightedProposalContent,
 ) simulation.WeightedOperations {
 	var weightMsgUpdatePrices int
 
@@ -52,7 +52,7 @@ func WeightedOperations(
 }
 
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
-func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper.Keeper, blocks int) simulation.Operation {
+func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks int) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -90,8 +90,14 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper.Keeper, blocks int) s
 		randomMarket := pickRandomAsset(ctx, keeper, r)
 		marketID := randomMarket.MarketID
 		address := getRandomOracle(r, randomMarket)
-		acc := ak.GetAccount(ctx, address)
-		if acc == nil {
+
+		oracle, found := simulation.FindAccount(accs, address)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
+		oracleAcc := ak.GetAccount(ctx, oracle.Address)
+		if oracleAcc == nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
@@ -101,16 +107,22 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper.Keeper, blocks int) s
 		expiry := getExpiryTime(ctx)
 
 		// now create the msg to post price
-		msg := types.NewMsgPostPrice(address, marketID, price, expiry)
+		msg := types.NewMsgPostPrice(oracle.Address, marketID, price, expiry)
+
+		spendable := oracleAcc.SpendableCoins(ctx.BlockTime())
+		fees, err := simulation.RandomFees(r, ctx, spendable)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
 			helpers.DefaultGenTxGas,
 			chainID,
-			[]uint64{acc.GetAccountNumber()},
-			[]uint64{acc.GetSequence()},
-			bidder.PrivKey,
+			[]uint64{oracleAcc.GetAccountNumber()},
+			[]uint64{oracleAcc.GetSequence()},
+			oracle.PrivKey,
 		)
 
 		_, result, err := app.Deliver(tx)
