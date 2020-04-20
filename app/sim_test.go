@@ -42,10 +42,8 @@ type StoreKeysPrefixes struct {
 
 // Simulation parameter constants
 const (
-	OpWeightMsgPlaceBid         = "op_weight_msg_place_bid"
-	OpWeightMsgPricefeed        = "op_weight_msg_pricefeed"
-	OpWeightMsgCreateAtomicSwap = "op_weight_msg_create_atomic_Swap"
-	OpWeightMsgCdp              = "op_weight_msg_cdp"
+	OpWeightMsgPricefeed = "op_weight_msg_pricefeed"
+	OpWeightMsgCdp       = "op_weight_msg_cdp"
 )
 
 // TestMain runs setup and teardown code before all tests.
