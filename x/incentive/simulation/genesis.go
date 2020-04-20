@@ -55,11 +55,11 @@ func GenRewards(r *rand.Rand) types.Rewards {
 		// total reward is in range (half max total reward, max total reward)
 		amount := simulation.RandIntBetween(r, int(MaxTotalAssetReward.Int64()/2), int(MaxTotalAssetReward.Int64()))
 		totalRewards := sdk.NewInt64Coin(RewardDenom, int64(amount))
-		// generate a random number of days between 1-2 to use for reward's times
-		numbDays := simulation.RandIntBetween(r, 1, 2) * 24
-		duration := time.Duration(time.Hour * time.Duration(numbDays))
-		timeLock := time.Duration(time.Hour * time.Duration(numbDays/2)) // half as long as duration
-		claimDuration := time.Hour * time.Duration(numbDays*2)           // twice as long as duration
+		// generate a random number of hours between 6-48 to use for reward's times
+		numbHours := simulation.RandIntBetween(r, 6, 48)
+		duration := time.Duration(time.Hour * time.Duration(numbHours))
+		timeLock := time.Duration(time.Hour * time.Duration(numbHours/2)) // half as long as duration
+		claimDuration := time.Hour * time.Duration(numbHours*2)           // twice as long as duration
 		reward := types.NewReward(active, denom, totalRewards, duration, timeLock, claimDuration)
 		rewards = append(rewards, reward)
 	}

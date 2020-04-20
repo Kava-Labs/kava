@@ -52,13 +52,6 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 			openClaims[i], openClaims[j] = openClaims[j], openClaims[i]
 		})
 
-		// Randomly select a reward's collateral type from params
-		params := k.GetParams(ctx)
-		if len(params.Rewards) == 0 {
-			return noOpMsg, nil, fmt.Errorf("no rewards found in incentive module params")
-		}
-		reward := params.Rewards[r.Intn(len(params.Rewards))]
-
 		// Load kavadist module account's current balance
 		kavadistMacc := sk.GetModuleAccount(ctx, kavadist.KavaDistMacc)
 		kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
@@ -66,12 +59,10 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 		// Find address that has a claim of the same reward denom, then confirm it's distributable
 		claimer, claim, found := findValidAccountClaimPair(accounts, openClaims, func(acc authexported.Account, claim types.Claim) bool {
 			if claim.Owner.Equals(acc.GetAddress()) { // Account must be claim owner
-				if claim.Denom == reward.Denom { // Claim's denom must match our reward's denom
-					if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
-						// Validate that kavadist module has enough coins to distribute the claim
-						if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
-							return true
-						}
+				if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
+					// Validate that kavadist module has enough coins to distribute the claim
+					if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
+						return true
 					}
 				}
 			}

@@ -60,21 +60,18 @@ func genRandomPeriods(r *rand.Rand, timestamp time.Time) types.Periods {
 }
 
 func genRandomInflation(r *rand.Rand) sdk.Dec {
-	aprPadding, err := sdk.NewDecFromStr(BaseAprPadding)
-	if err != nil {
-		panic(fmt.Sprintf("error loading base inflation rate %v", err))
-	}
 	// If sim.RandomDecAmount is less than base apr padding, add base apr padding
+	aprPadding, _ := sdk.NewDecFromStr(BaseAprPadding)
 	extraAprInflation := simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("0.25"))
-	for extraAprInflation.LTE(aprPadding) {
+	for extraAprInflation.LT(aprPadding) {
 		extraAprInflation = extraAprInflation.Add(aprPadding)
 	}
 	aprInflation := sdk.OneDec().Add(extraAprInflation)
 
 	// convert APR inflation to SPR (inflation per second)
-	inflationSpr, sdkErr := approxRoot(aprInflation, uint64(SecondsPerYear))
+	inflationSpr, err := approxRoot(aprInflation, uint64(SecondsPerYear))
 	if err != nil {
-		panic(fmt.Sprintf("error generating random inflation %v", sdkErr))
+		panic(fmt.Sprintf("error generating random inflation %v", err))
 	}
 	return inflationSpr
 }
