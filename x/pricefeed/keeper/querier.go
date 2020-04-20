@@ -64,6 +64,10 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res 
 		return []byte{}, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
+	rawPrices, err := keeper.GetRawPrices(ctx, requestParams.MarketID)
+	if err != nil {
+		return nil, err
+	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, rawPrices)
 	if err != nil {

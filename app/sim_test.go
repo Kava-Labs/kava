@@ -61,7 +61,7 @@ func TestMain(m *testing.M) {
 func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOperation {
 	ap := make(simulation.AppParams)
 
-	paramChanges := app.sm.GenerateParamChanges(config.Seed)
+	// paramChanges := app.sm.GenerateParamChanges(config.Seed)
 
 	if config.ParamsFile != "" {
 		bz, err := ioutil.ReadFile(config.ParamsFile)
@@ -105,7 +105,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 					})
 				return v
 			}(nil),
-			pricefeedsimops.SimulateMsgUpdatePrices(app.pricefeedKeeper),
+			pricefeedsimops.SimulateMsgUpdatePrices(app.pricefeedKeeper, config.NumBlocks),
 		},
 		{
 			func(_ *rand.Rand) int {
@@ -329,50 +329,33 @@ func TestAppStateDeterminism(t *testing.T) {
 	config.AllInvariants = false
 	config.ChainID = helpers.SimAppChainID
 
-	numSeeds := 3
-	numTimesToRunPerSeed := 5
+	numTimesToRunPerSeed := 2
 	appHashList := make([]json.RawMessage, numTimesToRunPerSeed)
 
-	for i := 0; i < numSeeds; i++ {
-		config.Seed = rand.Int63()
+	for j := 0; j < numTimesToRunPerSeed; j++ {
+		logger := log.NewNopLogger()
+		db := dbm.NewMemDB()
+		app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, interBlockCacheOpt())
 
-		for j := 0; j < numTimesToRunPerSeed; j++ {
-			var logger log.Logger
-			if simapp.FlagVerboseValue {
-				logger = log.TestingLogger()
-			} else {
-				logger = log.NewNopLogger()
-			}
+		fmt.Printf(
+			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
+			config.Seed, j+1, numTimesToRunPerSeed,
+		)
 
-			db := dbm.NewMemDB()
+		_, _, err := simulation.SimulateFromSeed(
+			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.sm),
+			testAndRunTxs(app, config), app.ModuleAccountAddrs(), config,
+		)
+		require.NoError(t, err)
 
-			app := NewApp(logger, db, nil, true, simapp.FlagPeriodValue, interBlockCacheOpt())
+		appHash := app.LastCommitID().Hash
+		appHashList[j] = appHash
 
-			fmt.Printf(
-				"running non-determinism simulation; seed %d: %d/%d, attempt: %d/%d\n",
-				config.Seed, i+1, numSeeds, j+1, numTimesToRunPerSeed,
+		if j != 0 {
+			require.Equal(
+				t, appHashList[0], appHashList[j],
+				"non-determinism in seed %d: attempt: %d/%d\n", config.Seed, j+1, numTimesToRunPerSeed,
 			)
-
-			_, _, err := simulation.SimulateFromSeed(
-				t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
-				simapp.SimulationOperations(app, app.Codec(), config),
-				app.ModuleAccountAddrs(), config,
-			)
-			require.NoError(t, err)
-
-			if config.Commit {
-				simapp.PrintStats(db)
-			}
-
-			appHash := app.LastCommitID().Hash
-			appHashList[j] = appHash
-
-			if j != 0 {
-				require.Equal(
-					t, appHashList[0], appHashList[j],
-					"non-determinism in seed %d: %d/%d, attempt: %d/%d\n", config.Seed, i+1, numSeeds, j+1, numTimesToRunPerSeed,
-				)
-			}
 		}
 	}
 }

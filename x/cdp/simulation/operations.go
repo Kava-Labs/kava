@@ -129,7 +129,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 			// given the current collateral value, calculate how much debt we could add while maintaining a valid liquidation ratio
 			debt := existingtypes.Principal.AmountOf(randDebtParam.Denom).Add(totalFees)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
-			maxDebt := maxTotalDebt.Sub(sdk.NewDecFromInt(debt)).TruncateInt()
+			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
 				// debt in cdp is maxed out
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
@@ -158,7 +158,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 
 		// repay debt 25% of the time
 		if hasCoins(acc, randDebtParam.Denom) {
-			debt := (existingtypes.Principal.Add(existingtypes.AccumulatedFees)).AmountOf(randDebtParam.Denom)
+			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom)
 			maxRepay := acc.GetCoins().AmountOf(randDebtParam.Denom)
 			payableDebt := debt.Sub(randDebtParam.DebtFloor)
 			if maxRepay.GT(payableDebt) {

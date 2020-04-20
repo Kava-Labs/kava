@@ -26,50 +26,56 @@ const (
 	RouterKey                     = types.RouterKey
 	QuerierRoute                  = types.QuerierRoute
 	DefaultParamspace             = types.DefaultParamspace
-	RawPriceFeedPrefix            = types.RawPriceFeedPrefix
-	CurrentPricePrefix            = types.CurrentPricePrefix
-	MarketPrefix                  = types.MarketPrefix
-	OraclePrefix                  = types.OraclePrefix
 	TypeMsgPostPrice              = types.TypeMsgPostPrice
-	QueryPrice                    = types.QueryPrice
-	QueryRawPrices                = types.QueryRawPrices
+	QueryGetParams                = types.QueryGetParams
 	QueryMarkets                  = types.QueryMarkets
+	QueryOracles                  = types.QueryOracles
+	QueryRawPrices                = types.QueryRawPrices
+	QueryPrice                    = types.QueryPrice
 )
 
 // nolint
 var (
 	// functions aliases
-	RegisterCodec       = types.RegisterCodec
-	ErrEmptyInput       = types.ErrEmptyInput
-	ErrExpired          = types.ErrExpired
-	ErrNoValidPrice     = types.ErrNoValidPrice
-	ErrInvalidMarket    = types.ErrInvalidMarket
-	ErrInvalidOracle    = types.ErrInvalidOracle
-	NewGenesisState     = types.NewGenesisState
-	DefaultGenesisState = types.DefaultGenesisState
-	NewMsgPostPrice     = types.NewMsgPostPrice
-	NewParams           = types.NewParams
-	DefaultParams       = types.DefaultParams
-	ParamKeyTable       = types.ParamKeyTable
-	NewKeeper           = keeper.NewKeeper
-	NewQuerier          = keeper.NewQuerier
+	NewKeeper                  = keeper.NewKeeper
+	NewQuerier                 = keeper.NewQuerier
+	RegisterCodec              = types.RegisterCodec
+	ErrEmptyInput              = types.ErrEmptyInput
+	ErrExpired                 = types.ErrExpired
+	ErrNoValidPrice            = types.ErrNoValidPrice
+	ErrInvalidMarket           = types.ErrInvalidMarket
+	ErrInvalidOracle           = types.ErrInvalidOracle
+	NewGenesisState            = types.NewGenesisState
+	DefaultGenesisState        = types.DefaultGenesisState
+	CurrentPriceKey            = types.CurrentPriceKey
+	RawPriceKey                = types.RawPriceKey
+	NewCurrentPrice            = types.NewCurrentPrice
+	NewPostedPrice             = types.NewPostedPrice
+	NewMsgPostPrice            = types.NewMsgPostPrice
+	NewParams                  = types.NewParams
+	DefaultParams              = types.DefaultParams
+	ParamKeyTable              = types.ParamKeyTable
+	NewQueryWithMarketIDParams = types.NewQueryWithMarketIDParams
 
 	// variable aliases
-	ModuleCdc      = types.ModuleCdc
-	KeyMarkets     = types.KeyMarkets
-	DefaultMarkets = types.DefaultMarkets
+	ModuleCdc          = types.ModuleCdc
+	CurrentPricePrefix = types.CurrentPricePrefix
+	RawPriceFeedPrefix = types.RawPriceFeedPrefix
+	KeyMarkets         = types.KeyMarkets
+	DefaultMarkets     = types.DefaultMarkets
 )
 
 // nolint
 type (
+	Keeper                  = keeper.Keeper
 	GenesisState            = types.GenesisState
 	Market                  = types.Market
 	Markets                 = types.Markets
 	CurrentPrice            = types.CurrentPrice
 	PostedPrice             = types.PostedPrice
+	PostedPrices            = types.PostedPrices
 	SortDecs                = types.SortDecs
 	MsgPostPrice            = types.MsgPostPrice
 	Params                  = types.Params
 	QueryWithMarketIDParams = types.QueryWithMarketIDParams
-	Keeper                  = keeper.Keeper
 )
