@@ -58,8 +58,8 @@ func ParamKeyTable() params.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyActive, Value: &p.Active},
-		{Key: KeyRewards, Value: &p.Rewards},
+		params.NewParamSetPair(KeyActive, &p.Active),
+		params.NewParamSetPair(KeyRewards, &p.Rewards),
 	}
 }
 
@@ -75,8 +75,8 @@ func (p Params) Validate() error {
 			return fmt.Errorf("cannot have duplicate reward denoms: %s", reward.Denom)
 		}
 		rewardDenoms[reward.Denom] = true
-		if !reward.AvailableRewards.IsPositive() {
-			return fmt.Errorf("available rewards must be positive, is %s for %s", reward.AvailableRewards, reward.Denom)
+		if !reward.AvailableRewards.IsValid() {
+			return fmt.Errorf("invalid reward coins %s for %s", reward.AvailableRewards, reward.Denom)
 		}
 		if int(reward.Duration.Seconds()) <= 0 {
 			return fmt.Errorf("reward duration must be positive, is %s for %s", reward.Duration.String(), reward.Denom)

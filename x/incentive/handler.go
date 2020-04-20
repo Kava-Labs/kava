@@ -35,14 +35,14 @@ func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimRe
 		if err != nil {
 			return err.Result()
 		}
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-				sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-			),
-		)
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		),
+	)
 
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }
