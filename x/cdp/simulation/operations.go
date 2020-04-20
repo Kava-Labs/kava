@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -75,6 +74,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 		}
 		// convert the price to the same units as the debt param
 		priceShifted := ShiftDec(price.Price, randDebtParam.ConversionFactor)
+
+		spendableCoins := acc.SpendableCoins(ctx.BlockTime())
+		fees, err := simulation.RandomFees(r, ctx, spendableCoins)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
 
 		existingCDP, found := k.GetCdpByOwnerAndDenom(ctx, acc.GetAddress(), randCollateralParam.Denom)
 		if !found {
@@ -157,10 +162,6 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 		if hasCoins(acc, randCollateralParam.Denom) && shouldDeposit(r) {
 			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(acc.GetCoins().AmountOf(randCollateralParam.Denom).Int64()))))
 			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, randDepositAmount)))
-			err := msg.ValidateBasic()
-			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("expected deposit msg to pass ValidateBasic: %v", err)
-			}
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -182,12 +183,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 
 		// draw debt 25% of the time
 		if shouldDraw(r) {
-			collateralShifted := ShiftDec(sdk.NewDecFromInt(existingtypes.Collateral.AmountOf(randCollateralParam.Denom)), randCollateralParam.ConversionFactor.Neg())
+			collateralShifted := ShiftDec(sdk.NewDecFromInt(existingCDP.Collateral.AmountOf(randCollateralParam.Denom)), randCollateralParam.ConversionFactor.Neg())
 			collateralValue := collateralShifted.Mul(priceShifted)
-			newFeesAccumulated := k.CalculateFees(ctx, existingtypes.Principal, sdk.NewInt(ctx.BlockTime().Unix()-existingtypes.FeesUpdated.Unix()), randCollateralParam.Denom).AmountOf(randDebtParam.Denom)
-			totalFees := existingtypes.AccumulatedFees.AmountOf(randCollateralParam.Denom).Add(newFeesAccumulated)
+			newFeesAccumulated := k.CalculateFees(ctx, existingCDP.Principal, sdk.NewInt(ctx.BlockTime().Unix()-existingCDP.FeesUpdated.Unix()), randCollateralParam.Denom).AmountOf(randDebtParam.Denom)
+			totalFees := existingCDP.AccumulatedFees.AmountOf(randCollateralParam.Denom).Add(newFeesAccumulated)
 			// given the current collateral value, calculate how much debt we could add while maintaining a valid liquidation ratio
-			debt := existingtypes.Principal.AmountOf(randDebtParam.Denom).Add(totalFees)
+			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom).Add(totalFees)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
 			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
@@ -255,6 +256,9 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 
 			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 		}
+
+		return simulation.NoOpMsg(types.ModuleName), nil, nil
+	}
 }
 
 func shouldDraw(r *rand.Rand) bool {
