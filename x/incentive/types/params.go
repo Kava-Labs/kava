@@ -78,6 +78,9 @@ func (p Params) Validate() error {
 		if !reward.AvailableRewards.IsValid() {
 			return fmt.Errorf("invalid reward coins %s for %s", reward.AvailableRewards, reward.Denom)
 		}
+		if !reward.AvailableRewards.IsPositive() {
+			return fmt.Errorf("reward amount must be positive, is %s for %s", reward.AvailableRewards, reward.Denom)
+		}
 		if int(reward.Duration.Seconds()) <= 0 {
 			return fmt.Errorf("reward duration must be positive, is %s for %s", reward.Duration.String(), reward.Denom)
 		}
