@@ -42,7 +42,7 @@ func ValidCommitteesInvariant(k Keeper) sdk.Invariant {
 			"valid committees",
 			fmt.Sprintf(
 				"\tfound invalid committee, reason: %s\n"+
-					"\tcommittee:\n\t%s\n",
+					"\tcommittee:\n\t%+v\n",
 				validationErr, invalidCommittee),
 		)
 		return invariantMessage, broken
@@ -73,7 +73,7 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 
 			com, found := k.GetCommittee(ctx, proposal.CommitteeID)
 			if !found {
-				validationErr = fmt.Errorf("proposal refers to non existant committee ID '%s'", proposal.CommitteeID)
+				validationErr = fmt.Errorf("proposal refers to non existant committee ID '%d'", proposal.CommitteeID)
 				return true
 			}
 
@@ -112,7 +112,7 @@ func ValidVotesInvariant(k Keeper) sdk.Invariant {
 			k.cdc.MustUnmarshalBinaryLengthPrefixed(voteIterator.Value(), &vote)
 
 			if _, found := k.GetProposal(ctx, vote.ProposalID); !found {
-				validationErr = fmt.Errorf("vote refers to non existant proposal ID '%s'", vote.ProposalID)
+				validationErr = fmt.Errorf("vote refers to non existant proposal ID '%d'", vote.ProposalID)
 				invalidVote = vote
 				break
 			}
@@ -132,7 +132,7 @@ func ValidVotesInvariant(k Keeper) sdk.Invariant {
 			"valid votes",
 			fmt.Sprintf(
 				"\tfound invalid vote, reason: %s\n"+
-					"\tvote:\n\t%s\n",
+					"\tvote:\n\t%+v\n",
 				validationErr, invalidVote),
 		)
 		return invariantMessage, broken
