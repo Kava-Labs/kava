@@ -5,32 +5,63 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/kava-labs/kava/app/helpers"
+	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
+// Simulation operation weights constants
+const (
+	OpWeightMsgCdp = "op_weight_msg_cdp"
+)
+
+// WeightedOperations returns all the operations from the module with their respective weights
+func WeightedOperations(
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
+	k keeper.Keeper, pfk pricefeed.Keeper, wContents []simulation.WeightedProposalContent,
+) simulation.WeightedOperations {
+	var weightMsgCdp int
+
+	appParams.GetOrGenerate(cdc, OpWeightMsgCdp, &weightMsgCdp, nil,
+		func(_ *rand.Rand) {
+			weightMsgCdp = appparams.DefaultWeightMsgCdp
+		},
+	)
+
+	return simulation.WeightedOperations{
+		simulation.NewWeightedOperation(
+			weightMsgCdp,
+			SimulateMsgCdp(ak, k, pfk),
+		),
+	}
+}
+
 // SimulateMsgCdp generates a MsgCreateCdp or MsgDepositCdp with random values.
 func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper) simulation.Operation {
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
-		opMsg simulation.OperationMsg, fOps []simulation.FutureOperation, err error) {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
-		handler := types.NewHandler(k)
-		simacc := simulation.RandomAcc(r, accs)
-		acc := ak.GetAccount(ctx, simacc.Address)
+		simAccount, _ := simulation.RandomAcc(r, accs)
+		acc := ak.GetAccount(ctx, simAccount.Address)
 		if acc == nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+
 		coins := acc.GetCoins()
 		collateralParams := k.GetParams(ctx).CollateralParams
 		if len(collateralParams) == 0 {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+
 		randCollateralParam := collateralParams[r.Intn(len(collateralParams))]
 		randDebtAsset := randCollateralParam.DebtLimit[r.Intn(len(randCollateralParam.DebtLimit))]
 		randDebtParam, _ := k.GetDebtParam(ctx, randDebtAsset.Denom)
@@ -77,16 +108,25 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 			maxDebtDraw = sdk.MinInt(maxDebtDraw, availableAssetDebt)
 			// randomly select a debt draw amount
 			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(randDebtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
+
 			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, collateralDeposit)), sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, debtDraw)))
-			err := msg.ValidateBasic()
+
+			tx := helpers.GenTx(
+				[]sdk.Msg{msg},
+				fees,
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{acc.GetAccountNumber()},
+				[]uint64{acc.GetSequence()},
+				simAccount.PrivKey,
+			)
+
+			_, result, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("expected msg to pass ValidateBasic: %v", err)
+				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
-			ok := submitMsg(msg, handler, ctx)
-			if !ok {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("could not submit create cdp msg")
-			}
-			return simulation.NewOperationMsg(msg, ok, "create cdp"), nil, nil
+
+			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 		}
 
 		// a cdp already exists, deposit to it, draw debt from it, or repay debt to it
@@ -94,15 +134,23 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 		if canClose(acc, existingCDP, randDebtParam.Denom) && shouldClose(r) {
 			repaymentAmount := coins.AmountOf(randDebtParam.Denom)
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, repaymentAmount)))
-			err := msg.ValidateBasic()
+
+			tx := helpers.GenTx(
+				[]sdk.Msg{msg},
+				fees,
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{acc.GetAccountNumber()},
+				[]uint64{acc.GetSequence()},
+				simAccount.PrivKey,
+			)
+
+			_, result, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("expected repay (close) msg to pass ValidateBasic: %v", err)
+				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
-			ok := submitMsg(msg, handler, ctx)
-			if !ok {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("could not submit repay (close) msg")
-			}
-			return simulation.NewOperationMsg(msg, ok, "repay debt (close) cdp"), nil, nil
+
+			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 		}
 
 		// deposit 25% of the time
@@ -113,11 +161,23 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("expected deposit msg to pass ValidateBasic: %v", err)
 			}
-			ok := submitMsg(msg, handler, ctx)
-			if !ok {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("could not submit deposit msg")
+
+			tx := helpers.GenTx(
+				[]sdk.Msg{msg},
+				fees,
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{acc.GetAccountNumber()},
+				[]uint64{acc.GetSequence()},
+				simAccount.PrivKey,
+			)
+
+			_, result, err := app.Deliver(tx)
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
-			return simulation.NewOperationMsg(msg, ok, "deposit to cdp"), nil, nil
+
+			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 		}
 
 		// draw debt 25% of the time
@@ -144,16 +204,23 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 
 			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
 			msg := types.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randDrawAmount)))
-			err := msg.ValidateBasic()
-			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("expected draw msg to pass ValidateBasic: %v", err)
-			}
-			ok := submitMsg(msg, handler, ctx)
-			if !ok {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("could not submit draw msg")
-			}
-			return simulation.NewOperationMsg(msg, ok, "draw debt from cdp"), nil, nil
 
+			tx := helpers.GenTx(
+				[]sdk.Msg{msg},
+				fees,
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{acc.GetAccountNumber()},
+				[]uint64{acc.GetSequence()},
+				simAccount.PrivKey,
+			)
+
+			_, result, err := app.Deliver(tx)
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, err
+			}
+
+			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 		}
 
 		// repay debt 25% of the time
@@ -165,76 +232,54 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper
 				maxRepay = payableDebt
 			}
 			randRepayAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
-			if debt.Equal(randDebtParam.DebtFloor) {
-				if acc.GetCoins().AmountOf(randDebtParam.Denom).GTE(debt) {
-					randRepayAmount = debt
-				}
+			if debt.Equal(randDebtParam.DebtFloor) && acc.GetCoins().AmountOf(randDebtParam.Denom).GTE(debt) {
+				randRepayAmount = debt
 			}
+
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randRepayAmount)))
-			err := msg.ValidateBasic()
+
+			tx := helpers.GenTx(
+				[]sdk.Msg{msg},
+				fees,
+				helpers.DefaultGenTxGas,
+				chainID,
+				[]uint64{acc.GetAccountNumber()},
+				[]uint64{acc.GetSequence()},
+				simAccount.PrivKey,
+			)
+
+			_, result, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("expected repay msg to pass ValidateBasic: %v", err)
+				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
-			ok := submitMsg(msg, handler, ctx)
-			if !ok {
-				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("could not submit repay msg")
-			}
-			return simulation.NewOperationMsg(msg, ok, "repay debt cdp"), nil, nil
+
+			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 		}
-
-		return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid actions)", "", false, nil), nil, nil
-	}
-}
-
-func submitMsg(msg sdk.Msg, handler sdk.Handler, ctx sdk.Context) (ok bool) {
-	ctx, write := ctx.CacheContext()
-	res := handler(ctx, msg)
-	if res.IsOK() {
-		write()
-	} else {
-		fmt.Println(res.Log)
-	}
-	return res.IsOK()
 }
 
 func shouldDraw(r *rand.Rand) bool {
 	threshold := 50
 	value := simulation.RandIntBetween(r, 1, 100)
-	if value > threshold {
-		return true
-	}
-	return false
+	return value > threshold
 }
 
 func shouldDeposit(r *rand.Rand) bool {
 	threshold := 66
 	value := simulation.RandIntBetween(r, 1, 100)
-	if value > threshold {
-		return true
-	}
-	return false
+	return value > threshold
 }
 
 func hasCoins(acc authexported.Account, denom string) bool {
-	if acc.GetCoins().AmountOf(denom).IsZero() {
-		return false
-	}
-	return true
+	return acc.GetCoins().AmountOf(denom).IsPositive()
 }
 
 func shouldClose(r *rand.Rand) bool {
 	threshold := 75
 	value := simulation.RandIntBetween(r, 1, 100)
-	if value > threshold {
-		return true
-	}
-	return false
+	return value > threshold
 }
 
 func canClose(acc authexported.Account, c types.CDP, denom string) bool {
-	repaymentAmount := c.Principal.Add(c.AccumulatedFees).AmountOf(denom)
-	if acc.GetCoins().AmountOf(denom).GTE(repaymentAmount) {
-		return true
-	}
-	return false
+	repaymentAmount := c.Principal.Add(c.AccumulatedFees...).AmountOf(denom)
+	return acc.GetCoins().AmountOf(denom).GTE(repaymentAmount)
 }

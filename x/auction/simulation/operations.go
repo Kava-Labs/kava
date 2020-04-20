@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -33,8 +32,8 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simtypes.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
-	k keeper.Keeper, wContents []simtypes.WeightedProposalContent,
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
+	k keeper.Keeper, wContents []simulation.WeightedProposalContent,
 ) simulation.WeightedOperations {
 	var weightMsgPlaceBid int
 
@@ -58,8 +57,8 @@ func WeightedOperations(
 // - return an error - this will stop the simulation
 func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation.Operation {
 	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		// get open auctions
 		openAuctions := types.Auctions{}
 		keeper.IterateAuctions(ctx, func(a types.Auction) bool {
@@ -74,7 +73,7 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 
 		// search through auctions and an accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
 		blockTime := ctx.BlockHeader().Time
-		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simtypes.Account, auc types.Auction) bool {
+		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {
 			account := ak.GetAccount(ctx, acc.Address)
 			_, err := generateBidAmount(r, auc, account, blockTime)
 			if err == ErrorNotEnoughCoins {
@@ -85,22 +84,22 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			return true // found valid pair
 		})
 		if !found {
-			return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
 		}
 
 		// pick a bid amount for the chosen auction and bidder
 		amount, err := generateBidAmount(r, openAuction, bidder, blockTime)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		// create a msg
 		msg := types.NewMsgPlaceBid(openAuction.GetID(), bidder.GetAddress(), amount)
 
 		spendable := bidder.SpendableCoins()
-		fees, err := simtypes.RandomFees(r, ctx, spendable)
+		fees, err := simulation.RandomFees(r, ctx, spendable)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -115,12 +114,12 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		// Return an operationMsg indicating whether the msg was submitted successfully
 		// Using result.Log as the comment field as it contains any error message emitted by the keeper
-		return simtypes.NewOperationMsg(msg, true, result.Log), nil, nil
+		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
@@ -176,7 +175,7 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 }
 
 // findValidAccountAuctionPair finds an auction and account for which the callback func returns true
-func findValidAccountAuctionPair(accounts []simtypes.Account, auctions types.Auctions, cb func(authexported.Account, types.Auction) bool) (simtypes.Account, types.Auction, bool) {
+func findValidAccountAuctionPair(accounts []simulation.Account, auctions types.Auctions, cb func(authexported.Account, types.Auction) bool) (simulation.Account, types.Auction, bool) {
 	for _, auc := range auctions {
 		for _, acc := range accounts {
 			if isValid := cb(acc, auc); isValid {

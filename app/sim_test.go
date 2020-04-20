@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -27,11 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-
-	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
-	bep3simops "github.com/kava-labs/kava/x/bep3/simulation/operations"
-	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation/operations"
-	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
 )
 
 type StoreKeysPrefixes struct {
@@ -39,12 +33,6 @@ type StoreKeysPrefixes struct {
 	B        sdk.StoreKey
 	Prefixes [][]byte
 }
-
-// Simulation parameter constants
-const (
-	OpWeightMsgPricefeed = "op_weight_msg_pricefeed"
-	OpWeightMsgCdp       = "op_weight_msg_cdp"
-)
 
 // TestMain runs setup and teardown code before all tests.
 func TestMain(m *testing.M) {
@@ -54,69 +42,6 @@ func TestMain(m *testing.M) {
 	config.Seal()
 	// load the values from simulation specific flags
 	simapp.GetSimulatorFlags()
-}
-
-func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOperation {
-	ap := make(simulation.AppParams)
-
-	// paramChanges := app.sm.GenerateParamChanges(config.Seed)
-
-	if config.ParamsFile != "" {
-		bz, err := ioutil.ReadFile(config.ParamsFile)
-		if err != nil {
-			panic(err)
-		}
-
-		app.cdc.MustUnmarshalJSON(bz, &ap)
-	}
-
-	// nolint: govet
-	return []simulation.WeightedOperation{
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgPlaceBid, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			auctionsimops.SimulateMsgPlaceBid(app.accountKeeper, app.auctionKeeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgCreateAtomicSwap, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			bep3simops.SimulateMsgCreateAtomicSwap(app.accountKeeper, app.bep3Keeper),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgPricefeed, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			pricefeedsimops.SimulateMsgUpdatePrices(app.pricefeedKeeper, config.NumBlocks),
-		},
-		{
-			func(_ *rand.Rand) int {
-				var v int
-				ap.GetOrGenerate(app.cdc, OpWeightMsgCdp, &v, nil,
-					func(_ *rand.Rand) {
-						v = 100
-					})
-				return v
-			}(nil),
-			cdpsimops.SimulateMsgCdp(app.accountKeeper, app.cdpKeeper, app.pricefeedKeeper),
-		},
-	}
 }
 
 // fauxMerkleModeOpt returns a BaseApp option to use a dbStoreAdapter instead of
@@ -339,21 +264,23 @@ func TestAppStateDeterminism(t *testing.T) {
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
 			config.Seed, j+1, numTimesToRunPerSeed,
 		)
-
-		_, _, err := simulation.SimulateFromSeed(
-			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.sm),
-			testAndRunTxs(app, config), app.ModuleAccountAddrs(), config,
-		)
-		require.NoError(t, err)
-
-		appHash := app.LastCommitID().Hash
-		appHashList[j] = appHash
-
-		if j != 0 {
-			require.Equal(
-				t, appHashList[0], appHashList[j],
-				"non-determinism in seed %d: attempt: %d/%d\n", config.Seed, j+1, numTimesToRunPerSeed,
+		
+			_, _, err := simulation.SimulateFromSeed(
+				t, os.Stdout, app.BaseApp, AppStateFn(app.Codec(), app.SimulationManager()),
+				SimulationOperations(app, app.Codec(), config),
+				app.ModuleAccountAddrs(), config,
 			)
+			require.NoError(t, err)
+
+			appHash := app.LastCommitID().Hash
+			appHashList[j] = appHash
+	
+			if j != 0 {
+				require.Equal(
+					t, appHashList[0], appHashList[j],
+					"non-determinism in seed %d: attempt: %d/%d\n", config.Seed, j+1, numTimesToRunPerSeed,
+				)
+			}
 		}
 	}
 }

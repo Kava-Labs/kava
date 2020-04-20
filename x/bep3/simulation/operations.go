@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -29,8 +28,8 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simtypes.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
-	k keeper.Keeper, wContents []simtypes.WeightedProposalContent,
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
+	k keeper.Keeper, wContents []simulation.WeightedProposalContent,
 ) simulation.WeightedOperations {
 	var weightCreateAtomicSwap int
 
@@ -51,11 +50,11 @@ func WeightedOperations(
 // SimulateMsgCreateAtomicSwap generates a MsgCreateAtomicSwap with random values
 func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulation.Operation {
 	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		senderAddr := k.GetBnbDeputyAddress(ctx)
-		recipient := simtypes.RandomAcc(r, accs).Address
+		recipient := simulation.RandomAcc(r, accs).Address
 
 		recipientOtherChain := simulation.RandStringOfLength(r, 43)
 		senderOtherChain := simulation.RandStringOfLength(r, 43)
@@ -109,13 +108,13 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		// If created, construct a MsgClaimAtomicSwap or MsgRefundAtomicSwap future operation
 		var futureOp simulation.FutureOperation
 		swapID := types.CalculateSwapID(msg.RandomNumberHash, msg.From, msg.SenderOtherChain)
-		acc := simtypes.RandomAcc(r, accs)
+		acc := simulation.RandomAcc(r, accs)
 		evenOdd := r.Intn(2) + 1
 		if evenOdd%2 == 0 {
 			// Claim future operation
@@ -133,8 +132,8 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 
 func loadClaimFutureOp(sender sdk.AccAddress, swapID []byte, randomNumber []byte, height int64) simulation.FutureOperation {
 	claimOp := func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// Build the refund msg and validate basic
 		claimMsg := types.NewMsgClaimAtomicSwap(sender, swapID, randomNumber)
@@ -151,7 +150,7 @@ func loadClaimFutureOp(sender sdk.AccAddress, swapID []byte, randomNumber []byte
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		return simulation.NewOperationMsg(claimMsg, true, result.Log), nil, nil
@@ -165,8 +164,8 @@ func loadClaimFutureOp(sender sdk.AccAddress, swapID []byte, randomNumber []byte
 
 func loadRefundFutureOp(sender sdk.AccAddress, swapID []byte, height int64) simulation.FutureOperation {
 	refundOp := func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
-	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		// Build the refund msg and validate basic
 		refundMsg := types.NewMsgRefundAtomicSwap(sender, swapID)
 
@@ -182,7 +181,7 @@ func loadRefundFutureOp(sender sdk.AccAddress, swapID []byte, height int64) simu
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		return simulation.NewOperationMsg(refundMsg, true, result.Log), nil, nil
