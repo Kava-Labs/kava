@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -75,15 +76,17 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper          Keeper
+	accountKeeper   auth.AccountKeeper
 	pricefeedKeeper PricefeedKeeper
 	supplyKeeper    SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, pricefeedKeeper PricefeedKeeper, supplyKeeper SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper, pricefeedKeeper PricefeedKeeper, supplyKeeper SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		keeper:          keeper,
+		accountKeeper:   accountKeeper,
 		pricefeedKeeper: pricefeedKeeper,
 		supplyKeeper:    supplyKeeper,
 	}
@@ -166,5 +169,5 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 
 // WeightedOperations returns the all the cdp module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, am.pricefeedKeeper)
 }

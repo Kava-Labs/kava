@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -74,14 +75,16 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper Keeper
+	keeper        Keeper
+	accountKeeper auth.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		accountKeeper:  accountKeeper,
 	}
 }
 
@@ -140,7 +143,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 
 // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the auth module
+// GenerateGenesisState creates a randomized GenState of the price feed module
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -150,17 +153,17 @@ func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedP
 	return nil
 }
 
-// RandomizedParams returns nil because validatorvesting has no params.
+// RandomizedParams returns nil because price feed has no params.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
 }
 
-// RegisterStoreDecoder registers a decoder for auth module's types
+// RegisterStoreDecoder registers a decoder for price feed module's types
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns the all the validator vesting module operations with their respective weights.
+// WeightedOperations returns the all the price feed module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, 50)
 }

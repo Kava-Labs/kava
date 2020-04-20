@@ -32,8 +32,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
-	k keeper.Keeper, wContents []simulation.WeightedProposalContent,
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightMsgPlaceBid int
 

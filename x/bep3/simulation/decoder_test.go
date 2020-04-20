@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -28,7 +28,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 	oneCoin := sdk.NewCoin("coin", sdk.OneInt())
 	swap := types.NewAtomicSwap(sdk.Coins{oneCoin}, nil, 10, 100, nil, nil, "otherChainSender", "otherChainRec", 200, types.Completed, true, types.Outgoing)
 	supply := types.AssetSupply{Denom: "coin", IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin, Limit: oneCoin}
-	bz := cmn.HexBytes([]byte{1, 2})
+	bz := tmbytes.HexBytes([]byte{1, 2})
 
 	kvPairs := kv.Pairs{
 		kv.Pair{Key: types.AtomicSwapKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(swap)},

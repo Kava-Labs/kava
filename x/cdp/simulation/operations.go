@@ -14,7 +14,6 @@ import (
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
-	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 // Simulation operation weights constants
@@ -25,7 +24,7 @@ const (
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
 	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
-	k keeper.Keeper, pfk pricefeed.Keeper, wContents []simulation.WeightedProposalContent,
+	k keeper.Keeper, pfk types.PricefeedKeeper,
 ) simulation.WeightedOperations {
 	var weightMsgCdp int
 
@@ -44,7 +43,7 @@ func WeightedOperations(
 }
 
 // SimulateMsgCdp generates a MsgCreateCdp or MsgDepositCdp with random values.
-func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk pricefeed.Keeper) simulation.Operation {
+func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedKeeper) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {

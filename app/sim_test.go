@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"os"
 	"testing"
 
@@ -264,23 +263,22 @@ func TestAppStateDeterminism(t *testing.T) {
 			"running non-determinism simulation; seed %d: attempt: %d/%d\n",
 			config.Seed, j+1, numTimesToRunPerSeed,
 		)
-		
-			_, _, err := simulation.SimulateFromSeed(
-				t, os.Stdout, app.BaseApp, AppStateFn(app.Codec(), app.SimulationManager()),
-				SimulationOperations(app, app.Codec(), config),
-				app.ModuleAccountAddrs(), config,
-			)
-			require.NoError(t, err)
 
-			appHash := app.LastCommitID().Hash
-			appHashList[j] = appHash
-	
-			if j != 0 {
-				require.Equal(
-					t, appHashList[0], appHashList[j],
-					"non-determinism in seed %d: attempt: %d/%d\n", config.Seed, j+1, numTimesToRunPerSeed,
-				)
-			}
+		_, _, err := simulation.SimulateFromSeed(
+			t, os.Stdout, app.BaseApp, simapp.AppStateFn(app.Codec(), app.SimulationManager()),
+			simapp.SimulationOperations(app, app.Codec(), config),
+			app.ModuleAccountAddrs(), config,
+		)
+		require.NoError(t, err)
+
+		appHash := app.LastCommitID().Hash
+		appHashList[j] = appHash
+
+		if j != 0 {
+			require.Equal(
+				t, appHashList[0], appHashList[j],
+				"non-determinism in seed %d: attempt: %d/%d\n", config.Seed, j+1, numTimesToRunPerSeed,
+			)
 		}
 	}
 }
