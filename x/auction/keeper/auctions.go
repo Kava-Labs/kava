@@ -320,7 +320,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, a.Lot.Denom)
 	}
 	if lot.IsNegative() {
-		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), a.Lot.Denom)
+		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s < %s%s", lot, sdk.ZeroInt(), a.Lot.Denom)
 	}
 
 	// New bidder pays back old bidder
@@ -386,7 +386,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, a.Lot.Denom)
 	}
 	if lot.IsNegative() {
-		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), a.Lot.Denom)
+		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s < %s%s", lot, sdk.ZeroInt(), a.Lot.Denom)
 	}
 
 	// New bidder pays back old bidder

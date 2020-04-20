@@ -175,7 +175,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", swapID)
+		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
 	}
 	// Only expired swaps may be refunded
 	if atomicSwap.Status != types.Expired {
