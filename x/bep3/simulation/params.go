@@ -22,22 +22,22 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 	minBlockLockVal := GenMinBlockLock(r)
 
 	return []simulation.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyAddress, "",
+		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyAddress,
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%s\"", GenBnbDeputyAddress(r))
+				return fmt.Sprintf("\"%s\"", GenRandBnbDeputy(r).Address)
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, keyMinBlockLock, "",
+		simulation.NewSimParamChange(types.ModuleName, keyMinBlockLock,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%d\"", minBlockLockVal)
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, keyMaxBlockLock, "",
+		simulation.NewSimParamChange(types.ModuleName, keyMaxBlockLock,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%d\"", GenMaxBlockLock(r, minBlockLockVal))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, keySupportedAssets, "",
+		simulation.NewSimParamChange(types.ModuleName, keySupportedAssets,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%v\"", GenSupportedAssets(r))
 			},

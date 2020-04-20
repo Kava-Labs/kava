@@ -7,11 +7,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/kava-labs/kava/app/helpers"
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -54,7 +55,13 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		senderAddr := k.GetBnbDeputyAddress(ctx)
-		recipient := simulation.RandomAcc(r, accs).Address
+
+		sender, found := simulation.FindAccount(accs, senderAddr)
+		if !found {
+			return noOpMsg, nil, nil
+		}
+
+		recipient, _ := simulation.RandomAcc(r, accs)
 
 		recipientOtherChain := simulation.RandStringOfLength(r, 43)
 		senderOtherChain := simulation.RandStringOfLength(r, 43)
@@ -76,8 +83,8 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 		asset := assets[r.Intn(len(assets))]
 
 		// Check that the sender has coins of this type
-		sender := ak.GetAccount(ctx, senderAddr)
-		availableAmount := sender.GetCoins().AmountOf(asset.Denom)
+		senderAcc := ak.GetAccount(ctx, senderAddr)
+		availableAmount := senderAcc.GetCoins().AmountOf(asset.Denom)
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := availableAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
 		if amount.IsZero() {
@@ -92,17 +99,22 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 		crossChain := true
 
 		msg := types.NewMsgCreateAtomicSwap(
-			senderAddr, recipient, recipientOtherChain, senderOtherChain, randomNumberHash,
+			senderAddr, recipient.Address, recipientOtherChain, senderOtherChain, randomNumberHash,
 			timestamp, coins, expectedIncome, heightSpan, crossChain,
 		)
 
+		fees, err := simulation.RandomFees(r, ctx, senderAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
-			nil,
+			fees,
 			helpers.DefaultGenTxGas,
 			chainID,
-			[]uint64{sender.GetAccountNumber()},
-			[]uint64{sender.GetSequence()},
+			[]uint64{senderAcc.GetAccountNumber()},
+			[]uint64{senderAcc.GetSequence()},
 			sender.PrivKey,
 		)
 
@@ -114,37 +126,42 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 		// If created, construct a MsgClaimAtomicSwap or MsgRefundAtomicSwap future operation
 		var futureOp simulation.FutureOperation
 		swapID := types.CalculateSwapID(msg.RandomNumberHash, msg.From, msg.SenderOtherChain)
-		acc := simulation.RandomAcc(r, accs)
+		acc, _ := simulation.RandomAcc(r, accs)
+		acc2 := ak.GetAccount(ctx, acc.Address)
 		evenOdd := r.Intn(2) + 1
 		if evenOdd%2 == 0 {
 			// Claim future operation
 			executionBlock := ctx.BlockHeight() + (msg.HeightSpan / 2)
-			futureOp = loadClaimFutureOp(acc.Address, swapID, randomNumber.BigInt().Bytes(), executionBlock)
+			futureOp = loadClaimFutureOp(acc, acc2, swapID, randomNumber.BigInt().Bytes(), executionBlock)
 		} else {
 			// Refund future operation
 			executionBlock := ctx.BlockHeight() + msg.HeightSpan
-			futureOp = loadRefundFutureOp(acc.Address, swapID, executionBlock)
+			futureOp = loadRefundFutureOp(acc, acc2, swapID, executionBlock)
 		}
 
 		return simulation.NewOperationMsg(msg, true, result.Log), []simulation.FutureOperation{futureOp}, nil
 	}
 }
 
-func loadClaimFutureOp(sender sdk.AccAddress, swapID []byte, randomNumber []byte, height int64) simulation.FutureOperation {
+func loadClaimFutureOp(sender simulation.Account, senderAcc authexported.Account, swapID []byte, randomNumber []byte, height int64) simulation.FutureOperation {
 	claimOp := func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// Build the refund msg and validate basic
-		claimMsg := types.NewMsgClaimAtomicSwap(sender, swapID, randomNumber)
+		claimMsg := types.NewMsgClaimAtomicSwap(sender.Address, swapID, randomNumber)
+		fees, err := simulation.RandomFees(r, ctx, senderAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{claimMsg},
-			nil,
+			fees,
 			helpers.DefaultGenTxGas,
 			chainID,
-			[]uint64{sender.GetAccountNumber()},
-			[]uint64{sender.GetSequence()},
+			[]uint64{senderAcc.GetAccountNumber()},
+			[]uint64{senderAcc.GetSequence()},
 			sender.PrivKey,
 		)
 
@@ -162,20 +179,24 @@ func loadClaimFutureOp(sender sdk.AccAddress, swapID []byte, randomNumber []byte
 	}
 }
 
-func loadRefundFutureOp(sender sdk.AccAddress, swapID []byte, height int64) simulation.FutureOperation {
+func loadRefundFutureOp(sender simulation.Account, senderAcc authexported.Account, swapID []byte, height int64) simulation.FutureOperation {
 	refundOp := func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		// Build the refund msg and validate basic
-		refundMsg := types.NewMsgRefundAtomicSwap(sender, swapID)
+		refundMsg := types.NewMsgRefundAtomicSwap(sender.Address, swapID)
+		fees, err := simulation.RandomFees(r, ctx, senderAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{refundMsg},
-			nil,
+			fees,
 			helpers.DefaultGenTxGas,
 			chainID,
-			[]uint64{sender.GetAccountNumber()},
-			[]uint64{sender.GetSequence()},
+			[]uint64{senderAcc.GetAccountNumber()},
+			[]uint64{senderAcc.GetSequence()},
 			sender.PrivKey,
 		)
 

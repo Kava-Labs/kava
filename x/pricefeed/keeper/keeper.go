@@ -83,9 +83,7 @@ func (k Keeper) SetPrice(
 		),
 	)
 
-	store.Set(
-		[]byte(types.RawPriceFeedPrefix+marketID), k.cdc.MustMarshalBinaryBare(prices),
-	)
+	store.Set(types.RawPriceKey(marketID), k.cdc.MustMarshalBinaryBare(prices))
 	return prices[index], nil
 }
 
@@ -186,7 +184,7 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 	var price types.CurrentPrice
 	err := k.cdc.UnmarshalBinaryBare(bz, &price)
 	if err != nil {
-		return types.CurrentPrice{}, sdk.ErrInternal(sdk.AppendMsgToErr("failed to unmarshal result", err.Error()))
+		return types.CurrentPrice{}, err
 	}
 	if price.Price.Equal(sdk.ZeroDec()) {
 		return types.CurrentPrice{}, types.ErrNoValidPrice
@@ -195,7 +193,7 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 }
 
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
-func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) (types.PostedPrices, sdk.Error) {
+func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) (types.PostedPrices, error) {
 	store := ctx.KVStore(k.key)
 	bz := store.Get(types.RawPriceKey(marketID))
 	if bz == nil {
@@ -204,7 +202,7 @@ func (k Keeper) GetRawPrices(ctx sdk.Context, marketID string) (types.PostedPric
 	var prices types.PostedPrices
 	err := k.cdc.UnmarshalBinaryBare(bz, &prices)
 	if err != nil {
-		return types.PostedPrices{}, sdk.ErrInternal(sdk.AppendMsgToErr("failed to unmarshal result", err.Error()))
+		return types.PostedPrices{}, err
 	}
 	return prices, nil
 }

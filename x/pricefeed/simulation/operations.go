@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/kava-labs/kava/app/helpers"
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"

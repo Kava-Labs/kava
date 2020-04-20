@@ -25,13 +25,14 @@ const (
 
 var (
 	MaxSupplyLimit   = sdk.NewInt(1000000000000)
-	Accs             []simulation.Account
+	accs             []simulation.Account
 	ConsistentDenoms = [3]string{"bnb", "xrp", "btc"}
 )
 
-// GenBnbDeputyAddress randomized BnbDeputyAddress
-func GenBnbDeputyAddress(r *rand.Rand) sdk.AccAddress {
-	return simulation.RandomAcc(r, Accs).Address
+// GenRandBnbDeputy randomized BnbDeputyAddress
+func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
+	acc, _ := simulation.RandomAcc(r, accs)
+	return acc
 }
 
 // GenMinBlockLock randomized MinBlockLock
@@ -77,7 +78,7 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 
 // RandomizedGenState generates a random GenesisState
 func RandomizedGenState(simState *module.SimulationState) {
-	Accs = simState.Accounts
+	accs = simState.Accounts
 
 	bep3Genesis := loadRandomBep3GenState(simState)
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, bep3Genesis))
@@ -96,7 +97,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 }
 
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
-	bnbDeputyAddress := simulation.RandomAcc(simState.Rand, simState.Accounts).Address
+	bnbDeputy := GenRandBnbDeputy(simState.Rand)
 
 	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
 	minBlockLock := int64(types.AbsoluteMinimumBlockLock)
@@ -110,7 +111,7 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
-			BnbDeputyAddress: bnbDeputyAddress,
+			BnbDeputyAddress: bnbDeputy.Address,
 			MinBlockLock:     minBlockLock,
 			MaxBlockLock:     maxBlockLock,
 			SupportedAssets:  supportedAssets,
@@ -134,7 +135,7 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 	var totalCoins []sdk.Coins
 	for _, asset := range bep3Genesis.Params.SupportedAssets {
 		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.Limit))
-		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin)); err != nil {
+		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin...)); err != nil {
 			panic(err)
 		}
 		totalCoins = append(totalCoins, assetCoin)
