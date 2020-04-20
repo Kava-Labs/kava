@@ -62,6 +62,8 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 				if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
 					// Validate that kavadist module has enough coins to distribute the claim
 					if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
+						fmt.Println("claim reward:", claim.Reward)
+						fmt.Println("kavadist balance:", kavadistBalance.AmountOf(claim.Reward.Denom), claim.Reward.Denom)
 						return true
 					}
 				}
@@ -89,6 +91,8 @@ func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) (ok bool) {
 	ok = result.IsOK()
 	if ok {
 		write()
+	} else {
+		fmt.Println("Failed:", result.Log)
 	}
 	return ok
 }
