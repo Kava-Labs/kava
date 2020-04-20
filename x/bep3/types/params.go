@@ -142,7 +142,7 @@ func (p Params) Validate() error {
 	}
 
 	if p.MinBlockLock >= p.MaxBlockLock {
-		return fmt.Errorf("minimum block lock ≥ maximum block lock, got %d ≥ %d", p.MinBlockLock, p.MaxBlockLock)
+		return fmt.Errorf("minimum block lock cannot be ≥ maximum block lock, got %d ≥ %d", p.MinBlockLock, p.MaxBlockLock)
 	}
 
 	return validateSupportedAssetsParams(p.SupportedAssets)
