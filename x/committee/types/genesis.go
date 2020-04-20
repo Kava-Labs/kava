@@ -65,7 +65,7 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
-	// validate proposals - pp.Val, no duplicate IDs, no ids >= nextID, committee needs to exist
+	// validate proposals
 	proposalMap := make(map[uint64]bool, len(gs.Proposals))
 	for _, p := range gs.Proposals {
 		// check there are no duplicate IDs
