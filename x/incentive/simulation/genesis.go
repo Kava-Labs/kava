@@ -17,7 +17,7 @@ import (
 var (
 	CollateralDenoms    = [3]string{"bnb", "xrp", "btc"}
 	RewardDenom         = "ukava"
-	MaxTotalAssetReward = sdk.NewInt(1000)
+	MaxTotalAssetReward = sdk.NewInt(1000000000)
 )
 
 // RandomizedGenState generates a random GenesisState for incentive module

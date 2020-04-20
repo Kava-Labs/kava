@@ -14,10 +14,11 @@ import (
 )
 
 // SecondsPerYear is the number of seconds in a year
-const SecondsPerYear = 31536000
-
-// BaseAprPadding prevents the calculated SPR inflation rate from being 0.0
-const BaseAprPadding = "0.000000000100000000"
+const (
+	SecondsPerYear = 31536000
+	// BaseAprPadding sets the minimum inflation to the calculated SPR inflation rate from being 0.0
+	BaseAprPadding = "0.000000003022265980"
+)
 
 // RandomizedGenState generates a random GenesisState for kavadist module
 func RandomizedGenState(simState *module.SimulationState) {
@@ -59,17 +60,21 @@ func genRandomPeriods(r *rand.Rand, timestamp time.Time) types.Periods {
 }
 
 func genRandomInflation(r *rand.Rand) sdk.Dec {
-	// If sim.RandomDecAmount returns 0 (happens frequently by design), add BaseAprPadding
-	extraAprInflation := simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("0.25"))
-	for extraAprInflation.Equal(sdk.ZeroDec()) {
-		extraAprInflation = extraAprInflation.Add(sdk.MustNewDecFromStr(BaseAprPadding))
-	}
-
-	aprInflation := sdk.OneDec().Add(extraAprInflation)
-	// convert APR inflation to SPR (inflation per second)
-	inflationSpr, err := approxRoot(aprInflation, uint64(SecondsPerYear))
+	aprPadding, err := sdk.NewDecFromStr(BaseAprPadding)
 	if err != nil {
-		panic(fmt.Sprintf("error generating random inflation %v", err))
+		panic(fmt.Sprintf("error loading base inflation rate %v", err))
+	}
+	// If sim.RandomDecAmount is less than base apr padding, add base apr padding
+	extraAprInflation := simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("0.25"))
+	for extraAprInflation.LTE(aprPadding) {
+		extraAprInflation = extraAprInflation.Add(aprPadding)
+	}
+	aprInflation := sdk.OneDec().Add(extraAprInflation)
+
+	// convert APR inflation to SPR (inflation per second)
+	inflationSpr, sdkErr := approxRoot(aprInflation, uint64(SecondsPerYear))
+	if err != nil {
+		panic(fmt.Sprintf("error generating random inflation %v", sdkErr))
 	}
 	return inflationSpr
 }
