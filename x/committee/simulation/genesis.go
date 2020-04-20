@@ -51,16 +51,12 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedParams []types.AllowedParam) (types.Committee, error) {
 	// pick committee members
-	r.Shuffle(len(availableAccs), func(i, j int) {
-		availableAccs[i], availableAccs[j] = availableAccs[j], availableAccs[i]
-	})
 	if len(availableAccs) < 1 {
 		return types.Committee{}, fmt.Errorf("must be ≥ 1 addresses")
 	}
 	var members []sdk.AccAddress
-	numMembers := r.Intn(len(availableAccs)) + 1 // +1 to ensure there is ≥1 member
-	for i := 0; i < numMembers; i++ {
-		members = append(members, availableAccs[i].Address)
+	for len(members) < 1 {
+		members = RandomAddresses(r, availableAccs)
 	}
 
 	// pick committee duration
@@ -69,12 +65,35 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 		return types.Committee{}, err
 	}
 
-	// pick permissions
+	return types.NewCommittee(
+		r.Uint64(),
+		simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
+		members,
+		RandomPermissions(r, allowedParams),
+		simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1.00")),
+		dur,
+	), nil
+}
+
+func RandomAddresses(r *rand.Rand, accs []simulation.Account) []sdk.AccAddress {
+	r.Shuffle(len(accs), func(i, j int) {
+		accs[i], accs[j] = accs[j], accs[i]
+	})
+
+	var addresses []sdk.AccAddress
+	numAddresses := r.Intn(len(accs) + 1)
+	for i := 0; i < numAddresses; i++ {
+		addresses = append(addresses, accs[i].Address)
+	}
+	return addresses
+}
+
+func RandomPermissions(r *rand.Rand, allowedParams []types.AllowedParam) []types.Permission {
 	var permissions []types.Permission
-	if r.Intn(2) > 0 {
+	if r.Intn(100) < 50 {
 		permissions = append(permissions, types.TextPermission{})
 	}
-	if r.Intn(2) > 0 {
+	if r.Intn(100) < 50 {
 		r.Shuffle(len(allowedParams), func(i, j int) {
 			allowedParams[i], allowedParams[j] = allowedParams[j], allowedParams[i]
 		})
@@ -83,15 +102,7 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 				AllowedParams: allowedParams[:r.Intn(len(allowedParams)+1)],
 			})
 	}
-
-	return types.NewCommittee(
-		r.Uint64(),
-		simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
-		members,
-		permissions,
-		simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1.00")),
-		dur,
-	), nil
+	return permissions
 }
 
 // TODO move to common location

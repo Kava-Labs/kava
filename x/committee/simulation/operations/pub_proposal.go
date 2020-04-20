@@ -89,6 +89,7 @@ func SimulateCommitteeChangeProposalContent(k committee.Keeper) govsimops.Conten
 	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
 		allowedParams := committeesims.GetAllowedParamKeys()
 
+		// get current committees
 		var committees []committee.Committee
 		k.IterateCommittees(ctx, func(com committee.Committee) bool {
 			committees = append(committees, com)
@@ -106,9 +107,12 @@ func SimulateCommitteeChangeProposalContent(k committee.Keeper) govsimops.Conten
 			)
 		}
 
+		// create a proposal content
+
 		var content govtypes.Content
-		switch choice := r.Float64(); {
-		case choice > 0.8: // create committee
+		switch choice := r.Intn(100); {
+		// create committee
+		case choice < 20:
 			com, err := committeesims.RandomCommittee(r, accs, allowedParams)
 			if err != nil {
 				panic(err)
@@ -118,14 +122,46 @@ func SimulateCommitteeChangeProposalContent(k committee.Keeper) govsimops.Conten
 				simulation.RandStringOfLength(r, 100),
 				com,
 			)
-		// case choice > 0.2: // update committee
-		// 	com := committee.Committee{}
-		// 	content = committee.NewCommitteeChangeProposal(
-		// 		simulation.RandStringOfLength(r, 10),
-		// 		simulation.RandStringOfLength(r, 100),
-		// 		com,
-		// 	)
-		default: // delete committee
+		// update committee
+		case choice < 80:
+			com := committees[r.Intn(len(committees))]
+
+			// update members
+			if r.Intn(100) < 50 {
+				var members []sdk.AccAddress
+				for len(members) < 1 {
+					members = committeesims.RandomAddresses(r, accs)
+				}
+				com.Members = members
+			}
+			// update permissions
+			if r.Intn(100) < 50 {
+				var members []sdk.AccAddress
+				for len(members) < 1 {
+					members = committeesims.RandomAddresses(r, accs)
+				}
+				com.Permissions = committeesims.RandomPermissions(r, allowedParams)
+			}
+			// update proposal duration
+			if r.Intn(100) < 50 {
+				dur, err := RandomPositiveDuration(r, 0, committeesims.AverageBlockTime*100)
+				if err != nil {
+					panic(err)
+				}
+				com.MaxProposalDuration = dur
+			}
+			// update vote threshold
+			if r.Intn(100) < 50 {
+				com.VoteThreshold = simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1.00"))
+			}
+
+			content = committee.NewCommitteeChangeProposal(
+				simulation.RandStringOfLength(r, 10),
+				simulation.RandStringOfLength(r, 100),
+				com,
+			)
+		// delete committee
+		default:
 			com := committees[r.Intn(len(committees))]
 			content = committee.NewCommitteeDeleteProposal(
 				simulation.RandStringOfLength(r, 10),
