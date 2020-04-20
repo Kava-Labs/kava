@@ -388,11 +388,11 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 		totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, dc.Denom).Add(dc.Amount)
 		collateralLimit := cp.DebtLimit.AmountOf(dc.Denom)
 		if totalPrincipal.GT(collateralLimit) {
-			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > debt %s", sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, collateralLimit)))
+			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > collateral debt limit %s", sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, collateralLimit)))
 		}
 		globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(dc.Denom)
 		if totalPrincipal.GT(globalLimit) {
-			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > debt %s", sdk.NewCoin(dc.Denom, totalPrincipal), sdk.NewCoin(dc.Denom, globalLimit))
+			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > global debt limit  %s", sdk.NewCoin(dc.Denom, totalPrincipal), sdk.NewCoin(dc.Denom, globalLimit))
 		}
 	}
 	return nil

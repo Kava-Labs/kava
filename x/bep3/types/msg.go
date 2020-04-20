@@ -143,7 +143,7 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 		return fmt.Errorf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String())
 	}
 	if msg.HeightSpan <= 0 {
-		return errors.New("height span  must be positive")
+		return errors.New("height span must be positive")
 	}
 	return nil
 }
@@ -197,7 +197,7 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if len(msg.From) != AddrByteCount {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address lenght ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "actual address length ≠ expected length (%d ≠ %d)", len(msg.From), AddrByteCount)
 	}
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)

@@ -68,7 +68,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "depositor %s, collateral %s", depositor, collateral[0].Denom)
 	}
 	if collateral.IsAnyGT(deposit.Amount) {
-		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "owner %s, collateral %s", collateral, deposit.Amount)
+		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))

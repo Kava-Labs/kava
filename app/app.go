@@ -238,7 +238,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.slashingKeeper,
 	)
 	evidenceRouter := evidence.NewRouter()
-	// TODO: Register evidence routes.
 	evidenceKeeper.SetRouter(evidenceRouter)
 	app.evidenceKeeper = *evidenceKeeper
 

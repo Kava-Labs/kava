@@ -72,7 +72,6 @@ func ParamKeyTable() subspace.KeyTable {
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
 func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
-	// TODO: Write validation functions
 	return subspace.ParamSetPairs{
 		params.NewParamSetPair(KeyBidDuration, &p.BidDuration, validateBidDurationParam),
 		params.NewParamSetPair(KeyMaxAuctionDuration, &p.MaxAuctionDuration, validateMaxAuctionDurationParam),

@@ -118,7 +118,6 @@ func ParamKeyTable() params.KeyTable {
 // pairs of bep3 module's parameters.
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	// TODO: Write validation functions
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateBnbDeputyAddressParam),
 		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateMinBlockLockParam),
