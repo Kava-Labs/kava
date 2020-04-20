@@ -22,7 +22,7 @@ import (
 // getAllowedParamKeys collects up and returns the keys of all the params that can be changed during a simulation
 // TODO This only exists because the random genesis needs access to the available params to generate committee permissions
 // and there was no way to pass that information down from the simulation test.
-func getAllowedParamKeys() []types.AllowedParam {
+func GetAllowedParamKeys() []types.AllowedParam {
 	paramChanges := [][]simulation.ParamChange{
 		authsim.ParamChanges(nil),
 		banksim.ParamChanges(nil),

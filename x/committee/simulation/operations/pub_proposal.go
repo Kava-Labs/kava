@@ -6,10 +6,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govsimops "github.com/cosmos/cosmos-sdk/x/gov/simulation/operations"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/committee"
+	committeesims "github.com/kava-labs/kava/x/committee/simulation"
 )
 
 type PubProposalSimulator func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account, perm committee.Permission) committee.PubProposal
@@ -77,4 +79,61 @@ func SimulateParamChangePubProposal(paramChanges []simulation.ParamChange) PubPr
 
 func paramChangeAllowed(pc simulation.ParamChange, ap committee.AllowedParam) bool {
 	return ap.Subspace+ap.Key+ap.Subkey == pc.ComposedKey()
+}
+
+// SimulateCommitteeChangeProposalContent generates gov proposal contents that either:
+// - create new committees
+// - change existing committees
+// - delete committees
+func SimulateCommitteeChangeProposalContent(k committee.Keeper) govsimops.ContentSimulator {
+	return func(r *rand.Rand, ctx sdk.Context, accs []simulation.Account) govtypes.Content {
+		allowedParams := committeesims.GetAllowedParamKeys()
+
+		var committees []committee.Committee
+		k.IterateCommittees(ctx, func(com committee.Committee) bool {
+			committees = append(committees, com)
+			return false
+		})
+		if len(committees) < 1 { // create a committee if none exist
+			com, err := committeesims.RandomCommittee(r, accs, allowedParams)
+			if err != nil {
+				panic(err)
+			}
+			return committee.NewCommitteeChangeProposal(
+				simulation.RandStringOfLength(r, 10),
+				simulation.RandStringOfLength(r, 100),
+				com,
+			)
+		}
+
+		var content govtypes.Content
+		switch choice := r.Float64(); {
+		case choice > 0.8: // create committee
+			com, err := committeesims.RandomCommittee(r, accs, allowedParams)
+			if err != nil {
+				panic(err)
+			}
+			content = committee.NewCommitteeChangeProposal(
+				simulation.RandStringOfLength(r, 10),
+				simulation.RandStringOfLength(r, 100),
+				com,
+			)
+		// case choice > 0.2: // update committee
+		// 	com := committee.Committee{}
+		// 	content = committee.NewCommitteeChangeProposal(
+		// 		simulation.RandStringOfLength(r, 10),
+		// 		simulation.RandStringOfLength(r, 100),
+		// 		com,
+		// 	)
+		default: // delete committee
+			com := committees[r.Intn(len(committees))]
+			content = committee.NewCommitteeDeleteProposal(
+				simulation.RandStringOfLength(r, 10),
+				simulation.RandStringOfLength(r, 100),
+				com.ID,
+			)
+		}
+
+		return content
+	}
 }

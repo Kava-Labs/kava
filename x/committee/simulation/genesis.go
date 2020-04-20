@@ -25,18 +25,12 @@ const (
 // RandomizedGenState generates a random GenesisState for the module
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
-	allowedParams := getAllowedParamKeys()
-
-	// TODO remove this?
-	addresses := make([]sdk.AccAddress, len(simState.Accounts))
-	for i, acc := range simState.Accounts {
-		addresses[i] = acc.Address
-	}
+	allowedParams := GetAllowedParamKeys()
 
 	numCommittees := r.Intn(100)
 	var committees []types.Committee
 	for i := 0; i < numCommittees; i++ {
-		com, err := randomCommittee(r, addresses, allowedParams)
+		com, err := RandomCommittee(r, simState.Accounts, allowedParams)
 		if err != nil {
 			panic(err)
 		}
@@ -55,15 +49,19 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
 }
 
-func randomCommittee(r *rand.Rand, availableAddrs []sdk.AccAddress, allowedParams []types.AllowedParam) (types.Committee, error) {
+func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedParams []types.AllowedParam) (types.Committee, error) {
 	// pick committee members
-	r.Shuffle(len(availableAddrs), func(i, j int) {
-		availableAddrs[i], availableAddrs[j] = availableAddrs[j], availableAddrs[i]
+	r.Shuffle(len(availableAccs), func(i, j int) {
+		availableAccs[i], availableAccs[j] = availableAccs[j], availableAccs[i]
 	})
-	if len(availableAddrs) < 1 {
+	if len(availableAccs) < 1 {
 		return types.Committee{}, fmt.Errorf("must be ≥ 1 addresses")
 	}
-	members := availableAddrs[:r.Intn(len(availableAddrs))+1] // +1 to ensure there is ≥1 member
+	var members []sdk.AccAddress
+	numMembers := r.Intn(len(availableAccs)) + 1 // +1 to ensure there is ≥1 member
+	for i := 0; i < numMembers; i++ {
+		members = append(members, availableAccs[i].Address)
+	}
 
 	// pick committee duration
 	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*100)

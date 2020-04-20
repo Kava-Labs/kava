@@ -40,25 +40,26 @@ import (
 
 // Simulation parameter constants
 const (
-	StakePerAccount                                    = "stake_per_account"
-	InitiallyBondedValidators                          = "initially_bonded_validators"
-	OpWeightDeductFee                                  = "op_weight_deduct_fee"
-	OpWeightMsgSend                                    = "op_weight_msg_send"
-	OpWeightSingleInputMsgMultiSend                    = "op_weight_single_input_msg_multisend"
-	OpWeightMsgSetWithdrawAddress                      = "op_weight_msg_set_withdraw_address"
-	OpWeightMsgWithdrawDelegationReward                = "op_weight_msg_withdraw_delegation_reward"
-	OpWeightMsgWithdrawValidatorCommission             = "op_weight_msg_withdraw_validator_commission"
-	OpWeightSubmitVotingSlashingTextProposal           = "op_weight_submit_voting_slashing_text_proposal"
-	OpWeightSubmitVotingSlashingCommunitySpendProposal = "op_weight_submit_voting_slashing_community_spend_proposal"
-	OpWeightSubmitVotingSlashingParamChangeProposal    = "op_weight_submit_voting_slashing_param_change_proposal"
-	OpWeightMsgDeposit                                 = "op_weight_msg_deposit"
-	OpWeightMsgCreateValidator                         = "op_weight_msg_create_validator"
-	OpWeightMsgEditValidator                           = "op_weight_msg_edit_validator"
-	OpWeightMsgDelegate                                = "op_weight_msg_delegate"
-	OpWeightMsgUndelegate                              = "op_weight_msg_undelegate"
-	OpWeightMsgBeginRedelegate                         = "op_weight_msg_begin_redelegate"
-	OpWeightMsgUnjail                                  = "op_weight_msg_unjail"
-	OpWeightCommitteeSubmitVote                        = "op_weight_msg_committee_submit_proposal_and_votes"
+	StakePerAccount                                     = "stake_per_account"
+	InitiallyBondedValidators                           = "initially_bonded_validators"
+	OpWeightDeductFee                                   = "op_weight_deduct_fee"
+	OpWeightMsgSend                                     = "op_weight_msg_send"
+	OpWeightSingleInputMsgMultiSend                     = "op_weight_single_input_msg_multisend"
+	OpWeightMsgSetWithdrawAddress                       = "op_weight_msg_set_withdraw_address"
+	OpWeightMsgWithdrawDelegationReward                 = "op_weight_msg_withdraw_delegation_reward"
+	OpWeightMsgWithdrawValidatorCommission              = "op_weight_msg_withdraw_validator_commission"
+	OpWeightSubmitVotingSlashingTextProposal            = "op_weight_submit_voting_slashing_text_proposal"
+	OpWeightSubmitVotingSlashingCommunitySpendProposal  = "op_weight_submit_voting_slashing_community_spend_proposal"
+	OpWeightSubmitVotingSlashingParamChangeProposal     = "op_weight_submit_voting_slashing_param_change_proposal"
+	OpWeightSubmitVotingSlashingCommitteeChangeProposal = "op_weight_submit_voting_slashing_committee_change_proposal"
+	OpWeightMsgDeposit                                  = "op_weight_msg_deposit"
+	OpWeightMsgCreateValidator                          = "op_weight_msg_create_validator"
+	OpWeightMsgEditValidator                            = "op_weight_msg_edit_validator"
+	OpWeightMsgDelegate                                 = "op_weight_msg_delegate"
+	OpWeightMsgUndelegate                               = "op_weight_msg_undelegate"
+	OpWeightMsgBeginRedelegate                          = "op_weight_msg_begin_redelegate"
+	OpWeightMsgUnjail                                   = "op_weight_msg_unjail"
+	OpWeightCommitteeSubmitVote                         = "op_weight_msg_committee_submit_proposal_and_votes"
 )
 
 // TestMain runs setup and teardown code before all tests.
@@ -193,6 +194,17 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 		{
 			func(_ *rand.Rand) int {
 				var v int
+				ap.GetOrGenerate(app.cdc, OpWeightSubmitVotingSlashingCommitteeChangeProposal, &v, nil,
+					func(_ *rand.Rand) {
+						v = 5000 // TODO
+					})
+				return v
+			}(nil),
+			govsimops.SimulateSubmittingVotingAndSlashingForProposal(app.govKeeper, committeesimops.SimulateCommitteeChangeProposalContent(app.committeeKeeper)),
+		},
+		{
+			func(_ *rand.Rand) int {
+				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightMsgDeposit, &v, nil,
 					func(_ *rand.Rand) {
 						v = 100
@@ -206,7 +218,7 @@ func testAndRunTxs(app *App, config simulation.Config) []simulation.WeightedOper
 				var v int
 				ap.GetOrGenerate(app.cdc, OpWeightCommitteeSubmitVote, &v, nil,
 					func(_ *rand.Rand) {
-						v = 50000 // TODO
+						v = 5000 // TODO
 					})
 				return v
 			}(nil),
