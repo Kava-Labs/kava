@@ -75,7 +75,7 @@ func GenRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) 
 			// Set up reward period parameters
 			start := rewardPeriodStart
 			end := start.Add(reward.Duration).UTC()
-			baseRewardAmount := reward.Reward.Amount.Quo(sdk.NewInt(100)) // base period reward is 1/100 total reward
+			baseRewardAmount := reward.AvailableRewards.Amount.Quo(sdk.NewInt(100)) // base period reward is 1/100 total reward
 			// Earlier periods have larger rewards
 			amount := sdk.NewCoin(reward.Denom, baseRewardAmount.Mul(sdk.NewInt(int64(i))))
 			claimEnd := end.Add(reward.ClaimDuration)
@@ -101,9 +101,9 @@ func GenClaimPeriods(rewardPeriods types.RewardPeriods) types.ClaimPeriods {
 		denomRewardPeriodsCount[denom] = numbRewardPeriods
 		// Set end and timelock from the associated reward period
 		end := rewardPeriod.ClaimEnd
-		timeLock := rewardPeriod.ClaimTimeLock
+		claimTimeLock := rewardPeriod.ClaimTimeLock
 		// Create the new claim period for this reward period
-		claimPeriod := types.NewClaimPeriod(denom, numbRewardPeriods, end, timeLock)
+		claimPeriod := types.NewClaimPeriod(denom, numbRewardPeriods, end, claimTimeLock)
 		claimPeriods = append(claimPeriods, claimPeriod)
 	}
 	return claimPeriods
