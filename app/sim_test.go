@@ -41,6 +41,9 @@ func TestMain(m *testing.M) {
 	config.Seal()
 	// load the values from simulation specific flags
 	simapp.GetSimulatorFlags()
+	// run tests
+	exitCode := m.Run()
+	os.Exit(exitCode)
 }
 
 // fauxMerkleModeOpt returns a BaseApp option to use a dbStoreAdapter instead of
