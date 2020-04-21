@@ -70,9 +70,6 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, pr
 		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 		k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
-
-		k.SetCDP(ctx, cdp)
-
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
 	return nil
