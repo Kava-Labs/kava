@@ -27,14 +27,9 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 	return newFees
 }
 
-// UpdateFeesForRiskyCdps calculates fees for risky CDPs
-// The overall logic is first select the CDPs with 10% of the liquidation ratio
-// Then we call calculate fees on each of those CDPs
-// Next we store the result of the fees in the cdp.AccumulatedFees field
-// Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
-// is when we made the update
-func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, marketID string) error {
-
+// TODO QUESTION - the functionality for this method is slightly different than handleNewDebt
+// handleNewDebt mints new coins in a slightly different way to UpdateFeesForAllCdps
+func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, marketID string) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err
@@ -45,11 +40,9 @@ func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, 
 	if priceDivLiqRatio.IsZero() {
 		priceDivLiqRatio = sdk.SmallestDec()
 	}
-	// NOTE - we have a fixed cutoff at 110% - this may or may not be changed in the future
-	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio).Mul(sdk.MustNewDecFromStr("1.1"))
 
-	// now iterate over all the cdps based on collateral ratio
-	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, normalizedRatio, func(cdp types.CDP) bool {
+	// now iterate over ALL the cdps
+	k.IterateAllCdps(ctx, func(cdp types.CDP) bool {
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))

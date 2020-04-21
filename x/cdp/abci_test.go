@@ -149,6 +149,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 
 }
 
+// TODO WARNING THIS TEST FAILS BECAUSE OF THE UPDATED CDP METHOD
 func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], cs(c("xrp", 10000000000)), cs(c("usdx", 1000000000)))
 	suite.NoError(err)

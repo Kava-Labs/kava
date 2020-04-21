@@ -188,14 +188,6 @@ func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
 }
 
-func (suite *SeizeTestSuite) TestHandleNewDebt() {
-	suite.createCdps()
-	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	suite.keeper.HandleNewDebt(suite.ctx, "xrp", "usdx", i(31536000))
-	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	suite.Equal(sdk.NewDec(tpb.Int64()).Mul(d("1.05")).TruncateInt().Int64(), tpa.Int64())
-}
-
 func (suite *SeizeTestSuite) TestApplyLiquidationPenalty() {
 	penalty := suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp", i(1000))
 	suite.Equal(i(50), penalty)

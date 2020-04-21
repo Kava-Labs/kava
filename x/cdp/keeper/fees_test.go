@@ -116,7 +116,7 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// note - time must be moved forward by a sufficient amount in order for additional
 	// fees to accumulate, in this example 60 seconds
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 60))
-	err := suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
+	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp", "xrp:usd")
 	suite.NoError(err) // check that we don't have any error
 
 	// cdp we expect fees to accumulate for
