@@ -30,21 +30,14 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 // UpdateFeesForAllCdps updates the fees for each of the CDPs
 func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, principalDenom string, marketID string) error {
 
-	// now iterate over ALL the cdps
 	k.IterateAllCdps(ctx, func(cdp types.CDP) bool {
-		// 1) Calculate additional fees
 
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
-		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
-		// now calculate and store additional fees
 		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
 
-		// Check if zero
-		// check if the additional fees are zero
 		if newFees.IsZero() {
-			// If zero, return false without updating cdp state
 			return false
 		}
 
@@ -54,7 +47,6 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, pr
 		newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(principalDenom)).Mul(savingsRate).RoundInt()
 		newFeesSurplus := newFees.AmountOf(principalDenom).Sub(newFeesSavings)
 
-		// check if either are zero
 		if newFeesSavings.IsZero() || newFeesSurplus.IsZero() {
 			return false
 		}
@@ -78,6 +70,9 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, pr
 		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 		k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+
+		k.SetCDP(ctx, cdp)
+
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
 	return nil
