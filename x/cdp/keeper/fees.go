@@ -27,31 +27,51 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 	return newFees
 }
 
-// TODO QUESTION - the functionality for this method is slightly different than handleNewDebt
-// handleNewDebt mints new coins in a slightly different way to UpdateFeesForAllCdps
-func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, marketID string) error {
-	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
-	if err != nil {
-		return err
-	}
-
-	liquidationRatio := k.getLiquidationRatio(ctx, collateralDenom)
-	priceDivLiqRatio := price.Price.Quo(liquidationRatio)
-	if priceDivLiqRatio.IsZero() {
-		priceDivLiqRatio = sdk.SmallestDec()
-	}
+// UpdateFeesForAllCdps updates the fees for each of the CDPs
+func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, principalDenom string, marketID string) error {
 
 	// now iterate over ALL the cdps
 	k.IterateAllCdps(ctx, func(cdp types.CDP) bool {
+		// 1) Calculate additional fees
+
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
 		// now calculate and store additional fees
-		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
+		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
 
-		// now add the additional fees to the accumulated fees for the cdp
-		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(additionalFees...)
+		// Check if zero
+		// check if the additional fees are zero
+		if newFees.IsZero() {
+			// If zero, return false without updating cdp state
+			return false
+		}
+
+		dp, _ := k.GetDebtParam(ctx, principalDenom)
+		savingsRate := dp.SavingsRate
+
+		newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(principalDenom)).Mul(savingsRate).RoundInt()
+		newFeesSurplus := newFees.AmountOf(principalDenom).Sub(newFeesSavings)
+
+		// check if either are zero
+		if newFeesSavings.IsZero() || newFeesSurplus.IsZero() {
+			return false
+		}
+
+		// mint debt coins to the cdp account
+		k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
+		previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, principalDenom)
+		feeCoins := sdk.NewCoins(sdk.NewCoin(principalDenom, previousDebt))
+		k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees...).AmountOf(principalDenom))
+
+		// mint surplus coins divided between the liquidator and savings module accounts.
+		k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSurplus)))
+		k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSavings)))
+
+		// TODO QUESTION DO WE STILL NEED TO UPDATE THE ACCUMULATED FEES SINCE WE ALREADY ADDED TO THE PRINCIPAL?
+		// now add the new fees fees to the accumulated fees for the cdp
+		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees...)
 
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
