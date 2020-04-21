@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -291,11 +290,11 @@ func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAd
 // Validate checks for that the weights are not negative and that lengths match.
 func (wa WeightedAddresses) Validate() error {
 	if len(wa.Addresses) != len(wa.Weights) {
-		return errors.New("number of addresses doesn't match number of weights")
+		return fmt.Errorf("number of addresses doesn't match number of weights, %d ≠ %d", len(wa.Addresses), len(wa.Weights))
 	}
 	for _, w := range wa.Weights {
 		if w.IsNegative() {
-			return errors.New("weights contain a negative amount")
+			return fmt.Errorf("weights contain a negative amount: %s", w)
 		}
 	}
 	return nil

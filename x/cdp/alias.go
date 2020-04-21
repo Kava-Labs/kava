@@ -65,7 +65,6 @@ var (
 	ErrInvalidWithdrawAmount    = types.ErrInvalidWithdrawAmount
 	ErrCdpNotAvailable          = types.ErrCdpNotAvailable
 	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
-	ErrPaymentExceedsDebt       = types.ErrPaymentExceedsDebt
 	ErrLoadingAugmentedCDP      = types.ErrLoadingAugmentedCDP
 	NewGenesisState             = types.NewGenesisState
 	DefaultGenesisState         = types.DefaultGenesisState
