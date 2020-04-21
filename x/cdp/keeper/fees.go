@@ -61,7 +61,6 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, pr
 		k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSurplus)))
 		k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSavings)))
 
-		// TODO QUESTION DO WE STILL NEED TO UPDATE THE ACCUMULATED FEES SINCE WE ALREADY ADDED TO THE PRINCIPAL?
 		// now add the new fees fees to the accumulated fees for the cdp
 		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees...)
 
