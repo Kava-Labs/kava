@@ -47,7 +47,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner (%s), denom (%s)", requestParams.Owner, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
 	}
 
 	augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
@@ -78,7 +78,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 
 	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner (%s), denom (%s)", requestParams.Owner, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
 	}
 
 	deposits := keeper.GetDeposits(ctx, cdp.ID)
@@ -105,7 +105,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 
 	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "could get collateralization ratio from absolute ratio")
+		return nil, sdkerrors.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
 	}
 
 	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, ratio)

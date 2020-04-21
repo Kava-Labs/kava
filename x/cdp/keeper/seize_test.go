@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"math/rand"
 	"testing"
 	"time"
@@ -170,7 +171,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Require().Error(err)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {

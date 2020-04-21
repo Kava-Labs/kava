@@ -13,7 +13,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner (%s), denom (%s)", owner, denom)
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, denom)
 	}
 	err := k.ValidatePrincipalDraw(ctx, principal)
 	if err != nil {
@@ -84,7 +84,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	// validation
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner (%s), denom (%s)", owner, denom)
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, denom)
 	}
 
 	// calculate fees

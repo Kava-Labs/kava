@@ -22,7 +22,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	}
 	_, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if found {
-		return sdkerrors.Wrapf(types.ErrCdpAlreadyExists, "owner (%s), denom (%s)", owner, collateral[0].Denom)
+		return sdkerrors.Wrapf(types.ErrCdpAlreadyExists, "owner %s, denom %s", owner, collateral[0].Denom)
 	}
 	err = k.ValidatePrincipalAdd(ctx, principal)
 	if err != nil {
@@ -388,11 +388,11 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 		totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, dc.Denom).Add(dc.Amount)
 		collateralLimit := cp.DebtLimit.AmountOf(dc.Denom)
 		if totalPrincipal.GT(collateralLimit) {
-			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > collateral debt limit %s", sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, collateralLimit)))
+			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > collateral debt limit %s", sdk.NewCoins(sdk.NewCoin(dc.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(dc.Denom, collateralLimit)))
 		}
 		globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(dc.Denom)
 		if totalPrincipal.GT(globalLimit) {
-			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "payment %s > global debt limit  %s", sdk.NewCoin(dc.Denom, totalPrincipal), sdk.NewCoin(dc.Denom, globalLimit))
+			return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > global debt limit  %s", sdk.NewCoin(dc.Denom, totalPrincipal), sdk.NewCoin(dc.Denom, globalLimit))
 		}
 	}
 	return nil
@@ -407,7 +407,7 @@ func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.C
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
 	if collateralizationRatio.LT(liquidationRatio) {
-		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "owner %s, collateral ratio %s, liquidation ratio %s", collateral[0].Denom, collateralizationRatio, liquidationRatio)
+		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ratio %s", collateral[0].Denom, collateralizationRatio, liquidationRatio)
 	}
 	return nil
 }

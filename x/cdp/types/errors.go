@@ -32,13 +32,11 @@ var (
 	//ErrDepositNotAvailable error for withdrawing deposits in liquidation
 	ErrDepositNotAvailable = sdkerrors.Register(ModuleName, 13, "deposit in liquidation")
 	// ErrInvalidWithdrawAmount error for invalid withdrawal amount
-	ErrInvalidWithdrawAmount = sdkerrors.Register(ModuleName, 14, "withdrawal amount exeeds deposit")
+	ErrInvalidWithdrawAmount = sdkerrors.Register(ModuleName, 14, "withdrawal amount exceeds deposit")
 	//ErrCdpNotAvailable error for depositing to a CDP in liquidation
 	ErrCdpNotAvailable = sdkerrors.Register(ModuleName, 15, "cannot modify cdp in liquidation")
 	// ErrBelowDebtFloor error for creating a cdp with debt below the minimum
-	ErrBelowDebtFloor = sdkerrors.Register(ModuleName, 16,  "proposed cdp debt is below minimum")
-	// ErrPaymentExceedsDebt error for repayments that are greater than the debt amount
-	ErrPaymentExceedsDebt = sdkerrors.Register(ModuleName, 17, "payment exceeds debt")
+	ErrBelowDebtFloor = sdkerrors.Register(ModuleName, 16, "proposed cdp debt is below minimum")
 	// ErrLoadingAugmentedCDP error loading augmented cdp
-	ErrLoadingAugmentedCDP   = sdkerrors.Register(ModuleName, 18, "augmented cdp could not be loaded from cdp")
+	ErrLoadingAugmentedCDP = sdkerrors.Register(ModuleName, 17, "augmented cdp could not be loaded from cdp")
 )
