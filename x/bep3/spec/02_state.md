@@ -7,10 +7,10 @@
 ```go
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`
-	MinBlockLock     int64          `json:"min_block_lock" yaml:"min_block_lock"`
-	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"`
-	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`
+	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // deputy's address on Kava
+	MinBlockLock     int64          `json:"min_block_lock" yaml:"min_block_lock"` // minimum swap expire height
+	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"` // maximum swap expire height
+	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"` // array of supported asset
 }
 
 // AssetParam governance parameters for each asset within a supported chain

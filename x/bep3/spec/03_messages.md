@@ -22,7 +22,7 @@ type MsgCreateAtomicSwap struct {
 
 ## Claim swap
 
-Swaps are claimed using the `MsgClaimAtomicSwap` message type.
+Active swaps are claimed using the `MsgClaimAtomicSwap` message type.
 
 ```go
 // MsgClaimAtomicSwap defines a AtomicSwap claim
@@ -37,7 +37,7 @@ type MsgClaimAtomicSwap struct {
 
 ## Refund swap
 
-Swaps are claimed using the `MsgRefundAtomicSwap` message type.
+Expired swaps are refunded using the `MsgRefundAtomicSwap` message type.
 
 ```go
 // MsgRefundAtomicSwap defines a refund msg
