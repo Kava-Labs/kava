@@ -21,8 +21,8 @@ import (
 )
 
 var (
-	ErrorNotEnoughCoins  = errors.New("account doesn't have enough coins")
-	ErrorCantReceiveBids = errors.New("auction can't receive bids (lot = 0 in reverse auction)")
+	errorNotEnoughCoins  = errors.New("account doesn't have enough coins")
+	errorCantReceiveBids = errors.New("auction can't receive bids (lot = 0 in reverse auction)")
 )
 
 // Simulation operation weights constants
@@ -76,7 +76,7 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {
 			account := ak.GetAccount(ctx, acc.Address)
 			_, err := generateBidAmount(r, params, auc, account, blockTime)
-			if err == ErrorNotEnoughCoins || err == ErrorCantReceiveBids {
+			if err == errorNotEnoughCoins || err == errorCantReceiveBids {
 				return false // keep searching
 			} else if err != nil {
 				panic(err) // raise errors
@@ -131,11 +131,11 @@ func generateBidAmount(
 	case types.DebtAuction:
 		// Check bidder has enough (stable coin) to pay in
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		// Check auction can still receive new bids
 		if a.Lot.Amount.Equal(sdk.ZeroInt()) {
-			return sdk.Coin{}, ErrorCantReceiveBids
+			return sdk.Coin{}, errorCantReceiveBids
 		}
 		// Generate a new lot amount (gov coin)
 		maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
@@ -159,7 +159,7 @@ func generateBidAmount(
 			),
 		)
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) { // gov coin
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		// Generate a new bid amount (gov coin)
 		amt, err := RandIntInclusive(r, minNewBidAmt, bidderBalance.AmountOf(a.Bid.Denom))
@@ -178,11 +178,11 @@ func generateBidAmount(
 		)
 		minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) {
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		// Check auction can still receive new bids
 		if a.IsReversePhase() && a.Lot.Amount.Equal(sdk.ZeroInt()) {
-			return sdk.Coin{}, ErrorCantReceiveBids
+			return sdk.Coin{}, errorCantReceiveBids
 		}
 		// Generate a new bid amount (collateral coin in reverse phase)
 		if a.IsReversePhase() {
