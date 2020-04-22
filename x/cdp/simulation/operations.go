@@ -79,6 +79,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
+		spendableCoins = spendableCoins.Sub(fees)
 
 		existingCDP, found := k.GetCdpByOwnerAndDenom(ctx, acc.GetAddress(), randCollateralParam.Denom)
 		if !found {
@@ -89,12 +90,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 			minCollateralDeposit = ShiftDec(minCollateralDeposit, randCollateralParam.ConversionFactor)
 			// convert to integer and always round up
 			minCollateralDepositRounded := minCollateralDeposit.TruncateInt().Add(sdk.OneInt())
-			if coins.AmountOf(randCollateralParam.Denom).LT(minCollateralDepositRounded) {
+			if spendableCoins.AmountOf(randCollateralParam.Denom).LT(minCollateralDepositRounded) {
 				// account doesn't have enough funds to open a cdp for the min debt amount
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "insufficient funds to open cdp", false, nil), nil, nil
 			}
 			// set the max collateral deposit to the amount of coins in the account
-			maxCollateralDeposit := coins.AmountOf(randCollateralParam.Denom)
+			maxCollateralDeposit := spendableCoins.AmountOf(randCollateralParam.Denom)
 
 			// randomly select a collateral deposit amount
 			collateralDeposit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(minCollateralDepositRounded.Int64()), int(maxCollateralDeposit.Int64()))))

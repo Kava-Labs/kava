@@ -23,6 +23,7 @@ import (
 var (
 	noOpMsg             = simulation.NoOpMsg(types.ModuleName)
 	ErrorNotEnoughCoins = errors.New("account doesn't have enough coins")
+	ErrorMaxLotZero     = errors.New("max auction lot <= 0")
 )
 
 // Simulation operation weights constants
@@ -74,8 +75,10 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		blockTime := ctx.BlockHeader().Time
 		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {
 			account := ak.GetAccount(ctx, acc.Address)
-			_, err := generateBidAmount(r, auc, account, blockTime)
+			_, err := generateBidAmount(r, ctx, keeper, auc, account, blockTime)
 			if err == ErrorNotEnoughCoins {
+				return false // keep searching
+			} else if err == ErrorMaxLotZero {
 				return false // keep searching
 			} else if err != nil {
 				panic(err) // raise errors
@@ -92,23 +95,19 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		}
 
 		// pick a bid amount for the chosen auction and bidder
-		amount, err := generateBidAmount(r, openAuction, bidderAcc, blockTime)
-		if err != nil {
+		amount, err := generateBidAmount(r, ctx, keeper, openAuction, bidderAcc, blockTime)
+		if err == ErrorMaxLotZero {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		} else if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		// create a msg
 		msg := types.NewMsgPlaceBid(openAuction.GetID(), bidder.Address, amount)
 
-		spendable := bidderAcc.SpendableCoins(ctx.BlockTime())
-		fees, err := simulation.RandomFees(r, ctx, spendable)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
-
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
-			fees,
+			sdk.NewCoins(),
 			helpers.DefaultGenTxGas,
 			chainID,
 			[]uint64{bidderAcc.GetAccountNumber()},
@@ -127,7 +126,9 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 	}
 }
 
-func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
+func generateBidAmount(
+	r *rand.Rand, ctx sdk.Context, k keeper.Keeper, auc types.Auction,
+	bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
 	bidderBalance := bidder.SpendableCoins(blockTime)
 
 	switch a := auc.(type) {
@@ -136,7 +137,16 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
 			return sdk.Coin{}, ErrorNotEnoughCoins
 		}
-		amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount // TODO min bid increments
+		maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+			sdk.MaxInt(
+				sdk.NewInt(1),
+				sdk.NewDecFromInt(a.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
+			),
+		)
+		if maxNewLotAmt.LTE(sdk.ZeroInt()) {
+			return sdk.Coin{}, ErrorMaxLotZero
+		}
+		amt, err := RandIntInclusive(r, sdk.ZeroInt(), maxNewLotAmt) // pick amount less than current lot amount // TODO min bid increments
 		if err != nil {
 			panic(err)
 		}
@@ -157,7 +167,16 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 			return sdk.Coin{}, ErrorNotEnoughCoins
 		}
 		if a.IsReversePhase() {
-			amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount
+			maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+				sdk.MaxInt(
+					sdk.NewInt(1),
+					sdk.NewDecFromInt(a.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+				),
+			)
+			if maxNewLotAmt.LTE(sdk.ZeroInt()) {
+				return sdk.Coin{}, ErrorMaxLotZero
+			}
+			amt, err := RandIntInclusive(r, sdk.ZeroInt(), maxNewLotAmt) // pick amount less than current lot amount
 			if err != nil {
 				panic(err)
 			}
@@ -168,7 +187,7 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 			panic(err)
 		}
 		// pick the MaxBid amount more frequently to increase chance auctions phase get into reverse phase
-		if r.Intn(10) == 0 { // 10%
+		if r.Intn(2) == 0 && bidderBalance.AmountOf(a.Bid.Denom).GTE(a.MaxBid.Amount) { // 50%
 			amt = a.MaxBid.Amount
 		}
 		return sdk.NewCoin(a.Bid.Denom, amt), nil // stable coin

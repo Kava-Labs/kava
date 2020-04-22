@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -50,4 +52,13 @@ func (msg MsgPlaceBid) GetSignBytes() []byte {
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgPlaceBid) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Bidder}
+}
+
+func (msg MsgPlaceBid) String() string {
+	// String implements the Stringer interface
+	return fmt.Sprintf(`Place Bid Message:
+	Auction ID:         %d
+	Bidder: %s
+	Amount: %s
+`, msg.AuctionID, msg.Bidder, msg.Amount)
 }
