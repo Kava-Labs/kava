@@ -31,8 +31,8 @@ const (
 	DepositAtomicSwap              = types.DepositAtomicSwap
 	EventTypeClaimAtomicSwap       = types.EventTypeClaimAtomicSwap
 	EventTypeCreateAtomicSwap      = types.EventTypeCreateAtomicSwap
-	EventTypeDepositAtomicSwap     = types.EventTypeDepositAtomicSwap
 	EventTypeRefundAtomicSwap      = types.EventTypeRefundAtomicSwap
+	EventTypeSwapExpired           = types.EventTypeSwapExpired
 	Expired                        = types.Expired
 	INVALID                        = types.INVALID
 	Incoming                       = types.Incoming
