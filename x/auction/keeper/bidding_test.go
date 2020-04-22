@@ -496,7 +496,7 @@ func TestAuctionBidding(t *testing.T) {
 					if oldBidder.Equals(supply.NewModuleAddress(oldAuction.GetInitiator())) {                  // handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
 						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), bank.GetCoins(ctx, oldBidder))
 					} else {
-						require.Equal(t, sdk.NewCoins(oldBidderOldCoins.Add(oldAuction.GetBid())...), sdk.NewCoins(bank.GetCoins(ctx, oldBidder)...))
+						require.Equal(t, cs(oldBidderOldCoins.Add(oldAuction.GetBid())...), bank.GetCoins(ctx, oldBidder))
 					}
 				}
 
