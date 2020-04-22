@@ -12,9 +12,7 @@ type Params struct {
 	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"`
 	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`
 }
-```
 
-```go
 // AssetParam governance parameters for each asset within a supported chain
 type AssetParam struct {
 	Denom  string  `json:"denom" yaml:"denom"`     // name of the asset
