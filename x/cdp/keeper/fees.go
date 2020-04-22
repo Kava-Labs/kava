@@ -28,9 +28,9 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 }
 
 // UpdateFeesForAllCdps updates the fees for each of the CDPs
-func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, principalDenom string, marketID string) error {
+func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) error {
 
-	k.IterateAllCdps(ctx, func(cdp types.CDP) bool {
+	k.IterateCdpsByDenom(ctx, collateralDenom, func(cdp types.CDP) bool {
 
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
@@ -41,25 +41,30 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string, pr
 			return false
 		}
 
-		dp, _ := k.GetDebtParam(ctx, principalDenom)
-		savingsRate := dp.SavingsRate
+		// note - only works if principal length is one
+		for _, dc := range cdp.Principal {
+			dp, found := k.GetDebtParam(ctx, dc.Denom)
+			if !found {
+				return false
+			}
+			savingsRate := dp.SavingsRate
 
-		newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(principalDenom)).Mul(savingsRate).RoundInt()
-		newFeesSurplus := newFees.AmountOf(principalDenom).Sub(newFeesSavings)
+			newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(dp.Denom)).Mul(savingsRate).RoundInt()
+			newFeesSurplus := newFees.AmountOf(dp.Denom).Sub(newFeesSavings)
 
-		if newFeesSavings.IsZero() || newFeesSurplus.IsZero() {
-			return false
+			if newFeesSavings.IsZero() || newFeesSurplus.IsZero() {
+				return false
+			}
+			// mint debt coins to the cdp account
+			k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
+			previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, dp.Denom)
+			feeCoins := sdk.NewCoins(sdk.NewCoin(dp.Denom, previousDebt))
+			k.SetTotalPrincipal(ctx, collateralDenom, dp.Denom, feeCoins.Add(newFees...).AmountOf(dp.Denom))
+
+			// mint surplus coins divided between the liquidator and savings module accounts.
+			k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+			k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
 		}
-
-		// mint debt coins to the cdp account
-		k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
-		previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, principalDenom)
-		feeCoins := sdk.NewCoins(sdk.NewCoin(principalDenom, previousDebt))
-		k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees...).AmountOf(principalDenom))
-
-		// mint surplus coins divided between the liquidator and savings module accounts.
-		k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSurplus)))
-		k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSavings)))
 
 		// now add the new fees fees to the accumulated fees for the cdp
 		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees...)

@@ -107,16 +107,17 @@ func (suite *FeeTestSuite) createCdps() {
 
 }
 
-// UpdateFeesForRiskyCdpsTest tests the functionality for updating the fees for risky CDPs
-func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
+// TestUpdateFees tests the functionality for updating the fees for CDPs
+func (suite *FeeTestSuite) TestUpdateFees() {
 	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
 	suite.createCdps()
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	// note - time must be moved forward by a sufficient amount in order for additional
 	// fees to accumulate, in this example 60 seconds
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 60))
-	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp", "usdx", "xrp:usd")
+	oldtime := suite.ctx.BlockTime()
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 600))
+	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp")
 	suite.NoError(err) // check that we don't have any error
 
 	// cdp we expect fees to accumulate for
@@ -124,15 +125,15 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// check fees are not zero
 	// check that the fees have been updated
 	suite.False(cdp1.AccumulatedFees.Empty())
-	// now check that we have the correct amount of fees overall (2 USDX for this scenario)
-	suite.Equal(sdk.NewInt(2), cdp1.AccumulatedFees.AmountOf("usdx"))
-
-	// cdp we expect fees to not accumulate for
+	// now check that we have the correct amount of fees overall (22 USDX for this scenario)
+	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.AmountOf("usdx"))
+	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
+	// cdp we expect fees to not accumulate for because of rounding
 	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
 
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.Empty())
-
+	suite.Equal(oldtime, cdp2.FeesUpdated)
 }
 
 func (suite *FeeTestSuite) TestGetSetPreviousBlockTime() {

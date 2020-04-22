@@ -20,8 +20,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 	for _, cp := range params.CollateralParams {
 
-		// TODO QUESTION - is `k.GetDebtDenom(ctx)` the correct way to get the principal denom?
-		err := k.UpdateFeesForAllCdps(ctx, cp.Denom, k.GetDebtDenom(ctx), cp.MarketID)
+		err := k.UpdateFeesForAllCdps(ctx, cp.Denom)
 
 		// handle if an error is returned then propagate up
 		if err != nil {
