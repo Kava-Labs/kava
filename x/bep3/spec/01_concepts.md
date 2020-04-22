@@ -1,15 +1,15 @@
 # Concepts
 
- BEP3 is a protocol for securely transferring assets between Binance Chain and Kava via Atomic Swaps. Tranactions are witnessed and relayed between the two blockchains by Binance's BEP3 deputy process. The deputy maintains an address on both chains and is responsible for delivering tokens upon the successful completion of an Atomic Swap. Learn more about the BEP3 deputy process [here](https://github.com/binance-chain/bep3-deputy).
+ BEP3 is a protocol for securely transferring assets between Kava and chains that implement the BEP3 protocol via Atomic Swaps such as Binance Chain. Tranactions are witnessed and relayed between the two blockchains by Binance's BEP3 deputy process. The deputy maintains an address on both chains and is responsible for delivering tokens upon the successful completion of an Atomic Swap. Learn more about the BEP3 deputy process [here](https://github.com/binance-chain/bep3-deputy).
 
 ## Requirements
-Binance Chain
-- The deputy’s Binance Chain testnet address is **tbnb1et8vmd0dgvswjnyaf73ez8ye0jehc8a7t7fljv**.
-- We recommend using https://testnet-dex.binance.org/ as Binance Chain’s API endpoint.
-
 Kava
 - The deputy’s Kava testnet-5000 address is **kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29**.
 - We recommend using http://kava-testnet-5000.kava.io:1317 as Kava’s API endpoint.
+
+Binance Chain
+- The deputy’s Binance Chain testnet address is **tbnb1et8vmd0dgvswjnyaf73ez8ye0jehc8a7t7fljv**.
+- We recommend using https://testnet-dex.binance.org/ as Binance Chain’s API endpoint.
 
 Kava's [JavaScript SDK](https://github.com/Kava-Labs/javascript-sdk) and Binance Chain’s [JavaScript SDK](https://github.com/binance-chain/javascript-sdk) can be used to create, claim, and refund swaps.
 
