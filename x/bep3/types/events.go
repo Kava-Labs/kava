@@ -1,13 +1,12 @@
 package types
 
-// bep3 module event types
+// Events for bep3 module
 const (
-	EventTypeCreateAtomicSwap  = "createAtomicSwap"
-	EventTypeDepositAtomicSwap = "depositAtomicSwap"
-	EventTypeClaimAtomicSwap   = "claimAtomicSwap"
-	EventTypeRefundAtomicSwap  = "refundAtomicSwap"
+	EventTypeCreateAtomicSwap = "create_atomic_swap"
+	EventTypeClaimAtomicSwap  = "claim_atomic_swap"
+	EventTypeRefundAtomicSwap = "refund_atomic_swap"
 
-	// Common
+	AttributeValueCategory       = ModuleName
 	AttributeKeySender           = "sender"
 	AttributeKeyRecipient        = "recipient"
 	AttributeKeyAtomicSwapID     = "atomic_swap_id"
@@ -18,13 +17,7 @@ const (
 	AttributeKeyAmount           = "amount"
 	AttributeKeyExpectedIncome   = "expected_income"
 	AttributeKeyDirection        = "direction"
-
-	// Claim
-	AttributeKeyClaimSender  = "claim_sender"
-	AttributeKeyRandomNumber = "random_number"
-
-	// Refund
-	AttributeKeyRefundSender = "refund_sender"
-
-	AttributeValueCategory = ModuleName
+	AttributeKeyClaimSender      = "claim_sender"
+	AttributeKeyRandomNumber     = "random_number"
+	AttributeKeyRefundSender     = "refund_sender"
 )
