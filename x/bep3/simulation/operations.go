@@ -82,7 +82,11 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 
 		// Check that the sender has coins of this type
 		senderAcc := ak.GetAccount(ctx, senderAddr)
-		availableAmount := senderAcc.GetCoins().AmountOf(asset.Denom)
+		fees, err := simulation.RandomFees(r, ctx, senderAcc.SpendableCoins(ctx.BlockTime()))
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
+		}
+		availableAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(asset.Denom)
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := availableAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
 		if amount.IsZero() {
@@ -100,11 +104,6 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 			senderAddr, recipient.Address, recipientOtherChain, senderOtherChain, randomNumberHash,
 			timestamp, coins, expectedIncome, heightSpan, crossChain,
 		)
-
-		fees, err := simulation.RandomFees(r, ctx, senderAcc.SpendableCoins(ctx.BlockTime()))
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
