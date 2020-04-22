@@ -137,7 +137,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 		// a cdp already exists, deposit to it, draw debt from it, or repay debt to it
 		// close 25% of the time
 		if canClose(acc, existingCDP, randDebtParam.Denom) && shouldClose(r) {
-			repaymentAmount := coins.AmountOf(randDebtParam.Denom)
+			repaymentAmount := spendableCoins.AmountOf(randDebtParam.Denom)
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, repaymentAmount)))
 
 			tx := helpers.GenTx(
@@ -160,7 +160,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 
 		// deposit 25% of the time
 		if hasCoins(acc, randCollateralParam.Denom) && shouldDeposit(r) {
-			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(acc.GetCoins().AmountOf(randCollateralParam.Denom).Int64()))))
+			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
 			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, randDepositAmount)))
 
 			tx := helpers.GenTx(
@@ -227,13 +227,13 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 		// repay debt 25% of the time
 		if hasCoins(acc, randDebtParam.Denom) {
 			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom)
-			maxRepay := acc.GetCoins().AmountOf(randDebtParam.Denom)
+			maxRepay := spendableCoins.AmountOf(randDebtParam.Denom)
 			payableDebt := debt.Sub(randDebtParam.DebtFloor)
 			if maxRepay.GT(payableDebt) {
 				maxRepay = payableDebt
 			}
 			randRepayAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
-			if debt.Equal(randDebtParam.DebtFloor) && acc.GetCoins().AmountOf(randDebtParam.Denom).GTE(debt) {
+			if debt.Equal(randDebtParam.DebtFloor) && spendableCoins.AmountOf(randDebtParam.Denom).GTE(debt) {
 				randRepayAmount = debt
 			}
 
