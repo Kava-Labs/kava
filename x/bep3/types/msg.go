@@ -129,6 +129,9 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	if msg.Timestamp <= 0 {
 		return errors.New("timestamp must be positive")
 	}
+	if len(msg.Amount) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "amount cannot be empty")
+	}
 	if !msg.Amount.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}

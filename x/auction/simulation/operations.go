@@ -21,8 +21,7 @@ import (
 )
 
 var (
-	noOpMsg             = simulation.NoOpMsg(types.ModuleName)
-	ErrorNotEnoughCoins = errors.New("account doesn't have enough coins")
+	errorNotEnoughCoins = errors.New("account doesn't have enough coins")
 )
 
 // Simulation operation weights constants
@@ -75,7 +74,7 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {
 			account := ak.GetAccount(ctx, acc.Address)
 			_, err := generateBidAmount(r, auc, account, blockTime)
-			if err == ErrorNotEnoughCoins {
+			if err == errorNotEnoughCoins {
 				return false // keep searching
 			} else if err != nil {
 				panic(err) // raise errors
@@ -134,7 +133,7 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 
 	case types.DebtAuction:
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount // TODO min bid increments
 		if err != nil {
@@ -144,7 +143,7 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 
 	case types.SurplusAuction:
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // gov coin // TODO account for bid increments
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		amt, err := RandIntInclusive(r, a.Bid.Amount, bidderBalance.AmountOf(a.Bid.Denom))
 		if err != nil {
@@ -154,7 +153,7 @@ func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Acco
 
 	case types.CollateralAuction:
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin // TODO account for bid increments (in forward phase)
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		if a.IsReversePhase() {
 			amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount
