@@ -18,10 +18,6 @@ import (
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
-	// Update fees
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// Move debt coins from cdp to liquidator account
