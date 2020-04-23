@@ -7,39 +7,62 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	// authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	// "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 
+	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 )
 
-var (
-	noOpMsg = simulation.NoOpMsg(types.ModuleName)
+// Simulation operation weights constants
+const (
+	OpWeightMsgClaimReward = "op_weight_msg_claim_reward"
 )
+
+// WeightedOperations returns all the operations from the module with their respective weights
+func WeightedOperations(
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, sk supply.Keeper, k keeper.Keeper,
+) simulation.WeightedOperations {
+	var weightMsgClaimReward int
+
+	appParams.GetOrGenerate(cdc, OpWeightMsgClaimReward, &weightMsgClaimReward, nil,
+		func(_ *rand.Rand) {
+			weightMsgClaimReward = appparams.DefaultWeightMsgClaimReward
+		},
+	)
+
+	return simulation.WeightedOperations{
+		simulation.NewWeightedOperation(
+			weightMsgClaimReward,
+			SimulateMsgClaimReward(ak, sk, k),
+		),
+	}
+}
 
 // SimulateMsgClaimReward generates a MsgClaimReward
 func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Keeper) simulation.Operation {
-	// handler := incentive.NewHandler(k)
-
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// Load only account types that can claim rewards
-		var accounts []authexported.Account
-		for _, acc := range accs {
-			account := ak.GetAccount(ctx, acc.Address)
-			switch account.(type) {
-			case *vesting.PeriodicVestingAccount, *auth.BaseAccount: // Valid: BaseAccount, PeriodicVestingAccount
-				accounts = append(accounts, account)
-				break
-			default: // Invalid: ValidatorVestingAccount, DelayedVestingAccount, ContinuousVestingAccount
-				break
-			}
-		}
+		// var accounts []authexported.Account
+		// for _, acc := range accs {
+		// 	account := ak.GetAccount(ctx, acc.Address)
+		// 	switch account.(type) {
+		// 	case *vesting.PeriodicVestingAccount, *auth.BaseAccount: // Valid: BaseAccount, PeriodicVestingAccount
+		// 		accounts = append(accounts, account)
+		// 		break
+		// 	default: // Invalid: ValidatorVestingAccount, DelayedVestingAccount, ContinuousVestingAccount
+		// 		break
+		// 	}
+		// }
 
 		// Load open claims and shuffle them to randomize
 		openClaims := types.Claims{}
@@ -56,8 +79,8 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 		kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
 
 		// Find address that has a claim of the same reward denom, then confirm it's distributable
-		claimer, claim, found := findValidAccountClaimPair(accounts, openClaims, func(acc authexported.Account, claim types.Claim) bool {
-			if claim.Owner.Equals(acc.GetAddress()) { // Account must be claim owner
+		claimer, claim, found := findValidAccountClaimPair(accs, openClaims, func(acc simulation.Account, claim types.Claim) bool {
+			if claim.Owner.Equals(acc.Address) { // Account must be claim owner
 				if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
 					// Validate that kavadist module has enough coins to distribute the claim
 					if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
@@ -74,31 +97,36 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 				"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 		}
 
-		msg := types.NewMsgClaimReward(claimer.GetAddress(), claim.Denom)
-		if err := msg.ValidateBasic(); err != nil {
-			return noOpMsg, nil, fmt.Errorf("expected MsgClaimReward to pass ValidateBasic: %s", err)
+		claimerAcc := ak.GetAccount(ctx, claimer.Address)
+		if claimerAcc == nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("couldn't find account %s", claimer.Address)
 		}
 
-		ok := submitMsg(ctx, handler, msg)
-		return simulation.NewOperationMsg(msg, ok, ""), nil, nil
+		msg := types.NewMsgClaimReward(claimer.Address, claim.Denom)
+		
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			sdk.NewCoins(), // TODO pick a random amount fees
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{claimerAcc.GetAccountNumber()},
+			[]uint64{claimerAcc.GetSequence()},
+			claimer.PrivKey,
+		)
+		
+		_, result, err := app.Deliver(tx)
+		if err != nil {
+			// to aid debugging, add the stack trace to the comment field of the returned opMsg
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
+		}
+		// to aid debugging, add the result log to the comment field
+		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
-}
-
-func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) (ok bool) {
-	ctx, write := ctx.CacheContext()
-	result := handler(ctx, msg)
-	ok = result.IsOK()
-	if ok {
-		write()
-	} else {
-		fmt.Println("Failed:", result.Log)
-	}
-	return ok
 }
 
 // findValidAccountClaimPair finds an account and reward claim for which the callback func returns true
-func findValidAccountClaimPair(accounts []authexported.Account, claims types.Claims,
-	cb func(authexported.Account, types.Claim) bool) (authexported.Account, types.Claim, bool) {
+func findValidAccountClaimPair(accounts []simulation.Account, claims types.Claims,
+	cb func(simulation.Account, types.Claim) bool) (simulation.Account, types.Claim, bool) {
 	for _, claim := range claims {
 		for _, acc := range accounts {
 			if isValid := cb(acc, claim); isValid {
@@ -106,5 +134,5 @@ func findValidAccountClaimPair(accounts []authexported.Account, claims types.Cla
 			}
 		}
 	}
-	return nil, types.Claim{}, false
+	return simulation.Account{}, types.Claim{}, false
 }
