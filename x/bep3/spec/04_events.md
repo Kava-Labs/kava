@@ -46,7 +46,7 @@ The `x/bep3` module emits the following events:
 
 ## BeginBlock
 
-| Type         | Attribute Key    | Attribute Value              |
-|--------------|------------------|------------------------------|
-| swap_expired | atomic_swap_id   | {swap ID}                    |
-| swap_expired | expiration_block | {block height at expiration} |
+| Type          | Attribute Key    | Attribute Value              |
+|---------------|------------------|------------------------------|
+| swaps_expired | atomic_swap_ids  | {array of swap IDs}          |
+| swaps_expired | expiration_block | {block height at expiration} |

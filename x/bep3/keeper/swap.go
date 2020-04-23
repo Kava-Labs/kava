@@ -235,21 +235,23 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
 	})
 
 	// Expire incomplete swaps (claimed swaps have already been removed from byBlock index)
+	var expiredSwapIDs []string
 	for _, id := range expiredSwaps {
 		atomicSwap, _ := k.GetAtomicSwap(ctx, id)
 		atomicSwap.Status = types.Expired
 		k.SetAtomicSwap(ctx, atomicSwap)
 		k.RemoveFromByBlockIndex(ctx, atomicSwap)
+		expiredSwapIDs = append(expiredSwapIDs, hex.EncodeToString(atomicSwap.GetSwapID()))
+	}
 
-		// Emit 'swap_expired' event
+	// Emit 'swaps_expired' event
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeSwapExpired,
-				sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
+				types.EventTypeSwapsExpired,
+				sdk.NewAttribute(types.AttributeKeyAtomicSwapIDs, fmt.Sprintf("%s", expiredSwapIDs)),
 				sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
 			),
 		)
-	}
 
 	return nil
 }
