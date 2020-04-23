@@ -100,7 +100,7 @@ func (suite *ModuleTestSuite) createCdps() {
 				tracker.debt += int64(debt)
 			}
 		}
-		suite.Nil(suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt)))))
+		suite.Nil(suite.keeper.AddCdp(suite.ctx, addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt))))
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
 		cdps[j] = c
@@ -150,7 +150,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 }
 
 func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
-	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], cs(c("xrp", 10000000000)), cs(c("usdx", 1000000000)))
+	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], c("xrp", 10000000000), c("usdx", 1000000000))
 	suite.NoError(err)
 	suite.Equal(i(1000000000), suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx"))
 	sk := suite.app.GetSupplyKeeper()

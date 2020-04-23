@@ -43,8 +43,8 @@ func (suite *HandlerTestSuite) TestMsgCreateCdp() {
 	ak.SetAccount(suite.ctx, acc)
 	msg := cdp.NewMsgCreateCDP(
 		addrs[0],
-		cs(c("xrp", 200000000)),
-		cs(c("usdx", 10000000)),
+		c("xrp", 200000000),
+		c("usdx", 10000000),
 	)
 	res, err := suite.handler(suite.ctx, msg)
 	suite.Require().NoError(err)

@@ -39,4 +39,6 @@ var (
 	ErrBelowDebtFloor = sdkerrors.Register(ModuleName, 16, "proposed cdp debt is below minimum")
 	// ErrLoadingAugmentedCDP error loading augmented cdp
 	ErrLoadingAugmentedCDP = sdkerrors.Register(ModuleName, 17, "augmented cdp could not be loaded from cdp")
+	// ErrInvalidDebtRequest error for invalid principal input length
+	ErrInvalidDebtRequest = sdkerrors.Register(ModuleName, 18, "only one principal type per cdp")
 )

@@ -103,7 +103,7 @@ func (suite *SeizeTestSuite) createCdps() {
 				tracker.debt += int64(debt)
 			}
 		}
-		err := suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt))))
+		err := suite.keeper.AddCdp(suite.ctx, addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt)))
 		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
@@ -130,8 +130,8 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.createCdps()
 	sk := suite.app.GetSupplyKeeper()
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
-	p := cdp.Principal[0].Amount
-	cl := cdp.Collateral[0].Amount
+	p := cdp.Principal.Amount
+	cl := cdp.Collateral.Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	err := suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
@@ -145,7 +145,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
-	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], c("xrp", 10))
 	suite.Require().Error(err)
 }
 
@@ -153,13 +153,13 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	suite.createCdps()
 	sk := suite.app.GetSupplyKeeper()
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
-	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 6999000000)))
+	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], c("xrp", 6999000000))
 	suite.NoError(err)
 	cdp, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
 	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
 	suite.Equal(2, len(deposits))
-	p := cdp.Principal[0].Amount
-	cl := cdp.Collateral[0].Amount
+	p := cdp.Principal.Amount
+	cl := cdp.Collateral.Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
@@ -170,7 +170,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
-	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
+	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], c("xrp", 10))
 	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 

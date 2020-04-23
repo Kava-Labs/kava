@@ -113,7 +113,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 			// randomly select a debt draw amount
 			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(randDebtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
 
-			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, collateralDeposit)), sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, debtDraw)))
+			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, collateralDeposit), sdk.NewCoin(randDebtParam.Denom, debtDraw))
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -137,7 +137,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 		// close 25% of the time
 		if canClose(acc, existingCDP, randDebtParam.Denom) && shouldClose(r) {
 			repaymentAmount := coins.AmountOf(randDebtParam.Denom)
-			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, repaymentAmount)))
+			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(randDebtParam.Denom, repaymentAmount))
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -160,7 +160,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 		// deposit 25% of the time
 		if hasCoins(acc, randCollateralParam.Denom) && shouldDeposit(r) {
 			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(acc.GetCoins().AmountOf(randCollateralParam.Denom).Int64()))))
-			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoins(sdk.NewCoin(randCollateralParam.Denom, randDepositAmount)))
+			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount))
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -182,12 +182,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 
 		// draw debt 25% of the time
 		if shouldDraw(r) {
-			collateralShifted := ShiftDec(sdk.NewDecFromInt(existingCDP.Collateral.AmountOf(randCollateralParam.Denom)), randCollateralParam.ConversionFactor.Neg())
+			collateralShifted := ShiftDec(sdk.NewDecFromInt(existingCDP.Collateral.Amount), randCollateralParam.ConversionFactor.Neg())
 			collateralValue := collateralShifted.Mul(priceShifted)
-			newFeesAccumulated := k.CalculateFees(ctx, existingCDP.Principal, sdk.NewInt(ctx.BlockTime().Unix()-existingCDP.FeesUpdated.Unix()), randCollateralParam.Denom).AmountOf(randDebtParam.Denom)
-			totalFees := existingCDP.AccumulatedFees.AmountOf(randCollateralParam.Denom).Add(newFeesAccumulated)
+			newFeesAccumulated := k.CalculateFees(ctx, existingCDP.Principal, sdk.NewInt(ctx.BlockTime().Unix()-existingCDP.FeesUpdated.Unix()), randCollateralParam.Denom).Amount
+			totalFees := existingCDP.AccumulatedFees.Amount.Add(newFeesAccumulated)
 			// given the current collateral value, calculate how much debt we could add while maintaining a valid liquidation ratio
-			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom).Add(totalFees)
+			debt := existingCDP.Principal.Amount.Add(totalFees)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
 			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
@@ -203,7 +203,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 			maxDraw := sdk.MinInt(maxDebt, availableAssetDebt)
 
 			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
-			msg := types.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randDrawAmount)))
+			msg := types.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(randDebtParam.Denom, randDrawAmount))
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -225,7 +225,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 
 		// repay debt 25% of the time
 		if hasCoins(acc, randDebtParam.Denom) {
-			debt := existingCDP.Principal.AmountOf(randDebtParam.Denom)
+			debt := existingCDP.Principal.Amount
 			maxRepay := acc.GetCoins().AmountOf(randDebtParam.Denom)
 			payableDebt := debt.Sub(randDebtParam.DebtFloor)
 			if maxRepay.GT(payableDebt) {
@@ -236,7 +236,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				randRepayAmount = debt
 			}
 
-			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoins(sdk.NewCoin(randDebtParam.Denom, randRepayAmount)))
+			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(randDebtParam.Denom, randRepayAmount))
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -283,6 +283,6 @@ func shouldClose(r *rand.Rand) bool {
 }
 
 func canClose(acc authexported.Account, c types.CDP, denom string) bool {
-	repaymentAmount := c.Principal.Add(c.AccumulatedFees...).AmountOf(denom)
+	repaymentAmount := c.Principal.Add(c.AccumulatedFees).Amount
 	return acc.GetCoins().AmountOf(denom).GTE(repaymentAmount)
 }

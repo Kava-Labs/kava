@@ -93,7 +93,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 			amount = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 500000000, 5000000000)
 			debt = simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 1000000000, 25000000000)
 		}
-		err = suite.keeper.AddCdp(suite.ctx, addrs[j], cs(c(collateral, int64(amount))), cs(c("usdx", int64(debt))))
+		err = suite.keeper.AddCdp(suite.ctx, addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt)))
 		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
@@ -113,7 +113,7 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Collateral[0].Denom)),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Collateral.Denom)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Nil(err)
@@ -154,7 +154,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByDenom() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsParams(suite.cdps[0].Collateral[0].Denom)),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsParams(suite.cdps[0].Collateral.Denom)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdps}, query)
 	suite.Nil(err)
@@ -181,9 +181,9 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	expectedBtcIds := []int{}
 	for _, cdp := range suite.cdps {
 		absoluteRatio := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
-		collateralizationRatio, err := suite.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(suite.ctx, cdp.Collateral[0].Denom, absoluteRatio)
+		collateralizationRatio, err := suite.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(suite.ctx, cdp.Collateral.Denom, absoluteRatio)
 		suite.Nil(err)
-		if cdp.Collateral[0].Denom == "xrp" {
+		if cdp.Collateral.Denom == "xrp" {
 			if collateralizationRatio.LT(xrpRatio) {
 				ratioCountXrp += 1
 				expectedXrpIds = append(expectedXrpIds, int(cdp.ID))
@@ -262,7 +262,7 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpDeposits}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Collateral[0].Denom)),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Collateral.Denom)),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdpDeposits}, query)
