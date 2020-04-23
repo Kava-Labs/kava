@@ -222,7 +222,7 @@ func TestSpendableCoinsValidatorVestingAccount(t *testing.T) {
 
 	// receive some coins
 	recvAmt := sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}
-	vva.SetCoins(vva.GetCoins().Add(recvAmt))
+	vva.SetCoins(vva.GetCoins().Add(recvAmt...))
 
 	// require that all vested coins (50%) are spendable plus any received after period 1 completes successfully
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}

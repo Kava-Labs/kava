@@ -5,14 +5,15 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/tendermint/tendermint/libs/kv"
+
 	"github.com/cosmos/cosmos-sdk/codec"
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding auction type
-func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
+func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.AuctionKeyPrefix):
 		var auctionA, auctionB types.Auction

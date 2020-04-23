@@ -1,11 +1,12 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -22,7 +23,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short: "transaction commands for the incentive module",
 	}
 
-	incentiveTxCmd.AddCommand(client.PostCommands(
+	incentiveTxCmd.AddCommand(flags.PostCommands(
 		getCmdClaim(cdc),
 	)...)
 
@@ -43,8 +44,9 @@ func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			owner, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err

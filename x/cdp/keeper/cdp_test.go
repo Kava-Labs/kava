@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -38,22 +39,29 @@ func (suite *CdpTestSuite) SetupTest() {
 }
 
 func (suite *CdpTestSuite) TestAddCdp() {
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	ak := suite.app.GetAccountKeeper()
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
 	ak.SetAccount(suite.ctx, acc)
 	err := suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200000000)), cs(c("usdx", 26000000)))
-	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 500000000)), cs(c("usdx", 26000000)))
-	suite.Error(err)
+	suite.Error(err) // insufficient balance
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200000000)), cs(c("xusd", 10000000)))
-	suite.Equal(types.CodeDebtNotSupported, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
+
+	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
+	acc2.SetCoins(cs(c("btc", 500000000000)))
+	ak.SetAccount(suite.ctx, acc2)
+	err = suite.keeper.AddCdp(suite.ctx, addrs[1], cs(c("btc", 500000000000)), cs(c("usdx", 500000000001)))
+	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
+
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pk := suite.app.GetPriceFeedKeeper()
 	_ = pk.SetCurrentPrices(ctx, "xrp:usd")
 	err = suite.keeper.AddCdp(ctx, addrs[0], cs(c("xrp", 100000000)), cs(c("usdx", 10000000)))
-	suite.Error(err)
+	suite.Error(err) // no prices in pricefeed
 
 	_ = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100000000)), cs(c("usdx", 10000000)))
@@ -69,7 +77,7 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(cs(c("usdx", 10000000), c("xrp", 100000000), c("btc", 500000000)), acc.GetCoins())
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("btc", 500000000)), cs(c("usdx", 26667000000)))
-	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("btc", 500000000)), cs(c("usdx", 100000000)))
 	suite.NoError(err)
@@ -83,9 +91,9 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Equal(cs(c("usdx", 110000000), c("xrp", 100000000)), acc.GetCoins())
 
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("lol", 100)), cs(c("usdx", 10)))
-	suite.Equal(types.CodeCollateralNotSupported, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCollateralNotSupported))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 100)), cs(c("usdx", 10)))
-	suite.Equal(types.CodeCdpAlreadyExists, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpAlreadyExists))
 }
 
 func (suite *CdpTestSuite) TestGetSetDenomByte() {
@@ -240,10 +248,10 @@ func (suite *CdpTestSuite) TestValidateCollateral() {
 	suite.NoError(err)
 	c = sdk.NewCoins(sdk.NewCoin("lol", sdk.NewInt(1)))
 	err = suite.keeper.ValidateCollateral(suite.ctx, c)
-	suite.Equal(types.CodeCollateralNotSupported, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCollateralNotSupported))
 	c = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1)), sdk.NewCoin("xrp", sdk.NewInt(1)))
 	err = suite.keeper.ValidateCollateral(suite.ctx, c)
-	suite.Equal(types.CodeCollateralLengthInvalid, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralLength))
 }
 
 func (suite *CdpTestSuite) TestValidatePrincipal() {
@@ -255,10 +263,10 @@ func (suite *CdpTestSuite) TestValidatePrincipal() {
 	suite.NoError(err)
 	d = sdk.NewCoins(sdk.NewCoin("xusd", sdk.NewInt(1)))
 	err = suite.keeper.ValidatePrincipalAdd(suite.ctx, d)
-	suite.Equal(types.CodeDebtNotSupported, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
 	d = sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000000000001)))
 	err = suite.keeper.ValidateDebtLimit(suite.ctx, "xrp", d)
-	suite.Equal(types.CodeExceedsDebtLimit, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
 	d = sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100000000)))
 	err = suite.keeper.ValidateDebtLimit(suite.ctx, "xrp", d)
 	suite.NoError(err)
@@ -283,16 +291,19 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 	cd := cdps()[1]
 	err := suite.keeper.MintDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
-	err = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
-	suite.Error(err)
+	suite.Require().Panics(func() {
+		_ = suite.keeper.MintDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
+	})
+
 	sk := suite.app.GetSupplyKeeper()
 	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(cs(c("debt", 10000000)), acc.GetCoins())
 
 	err = suite.keeper.BurnDebtCoins(suite.ctx, types.ModuleName, suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
 	suite.NoError(err)
-	err = suite.keeper.BurnDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
-	suite.Error(err)
+	suite.Require().Panics(func() {
+		_ = suite.keeper.BurnDebtCoins(suite.ctx, "notamodule", suite.keeper.GetDebtDenom(suite.ctx), cd.Principal)
+	})
 	sk = suite.app.GetSupplyKeeper()
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(sdk.Coins(nil), acc.GetCoins())

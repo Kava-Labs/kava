@@ -5,14 +5,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 const (
@@ -27,7 +30,7 @@ type QuerierTestSuite struct {
 	querier       sdk.Querier
 	addrs         []sdk.AccAddress
 	isSupplyDenom map[string]bool
-	swapIDs       []cmn.HexBytes
+	swapIDs       []tmbytes.HexBytes
 	isSwapID      map[string]bool
 }
 
@@ -55,7 +58,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.addrs = addrs
 
 	// Create atomic swaps and save IDs
-	var swapIDs []cmn.HexBytes
+	var swapIDs []tmbytes.HexBytes
 	isSwapID := make(map[string]bool)
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
@@ -87,7 +90,7 @@ func (suite *QuerierTestSuite) TestQueryAssetSupply() {
 	denom := "bnb"
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAssetSupply}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupply(cmn.HexBytes(denom))),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupply(tmbytes.HexBytes(denom))),
 	}
 
 	// Execute query and check the []byte result

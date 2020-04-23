@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
@@ -13,14 +14,14 @@ import (
 )
 
 // PayoutClaim sends the timelocked claim coins to the input address
-func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64) sdk.Error {
+func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64) error {
 	claim, found := k.GetClaim(ctx, addr, denom, id)
 	if !found {
-		return types.ErrClaimNotFound(k.codespace, addr, denom, id)
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, denom %s, address: %s", id, denom, addr)
 	}
 	claimPeriod, found := k.GetClaimPeriod(ctx, id, denom)
 	if !found {
-		return types.ErrClaimPeriodNotFound(k.codespace, denom, id)
+		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, denom: %s", id, denom)
 	}
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
 	if err != nil {
@@ -37,10 +38,10 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 }
 
 // SendTimeLockedCoinsToAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account, it is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
-func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) sdk.Error {
+func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
 	macc := k.supplyKeeper.GetModuleAccount(ctx, senderModule)
 	if !macc.GetCoins().IsAllGTE(amt) {
-		return types.ErrInsufficientModAccountBalance(k.codespace, senderModule)
+		return sdkerrors.Wrapf(types.ErrInsufficientModAccountBalance, "%s", senderModule)
 	}
 
 	// 0. Get the account from the account keeper and do a type switch, error if it's a validator vesting account or module account (can make this work for validator vesting later if necessary)
@@ -48,18 +49,18 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 
 	switch acc.(type) {
 	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:
-		return types.ErrInvalidAccountType(k.codespace, acc)
+		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	case *vesting.PeriodicVestingAccount:
 		return k.SendTimeLockedCoinsToPeriodicVestingAccount(ctx, senderModule, recipientAddr, amt, length)
 	case *auth.BaseAccount:
 		return k.SendTimeLockedCoinsToBaseAccount(ctx, senderModule, recipientAddr, amt, length)
 	default:
-		return types.ErrInvalidAccountType(k.codespace, acc)
+		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	}
 }
 
 // SendTimeLockedCoinsToPeriodicVestingAccount sends time-locked coins from the input module account to the recipient
-func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) sdk.Error {
+func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
 	if err != nil {
 		return err
@@ -69,7 +70,7 @@ func (k Keeper) SendTimeLockedCoinsToPeriodicVestingAccount(ctx sdk.Context, sen
 }
 
 // SendTimeLockedCoinsToBaseAccount sends time-locked coins from the input module account to the recipient, converting the recipient account to a vesting account
-func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) sdk.Error {
+func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
 	if err != nil {
 		return err
@@ -78,9 +79,9 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	// transition the account to a periodic vesting account:
 	bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 	newPeriods := vesting.Periods{types.NewPeriod(amt, length)}
-	bva, err2 := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
-	if err2 != nil {
-		return sdk.ErrInternal(sdk.AppendMsgToErr("error converting account to vesting account", err2.Error()))
+	bva, err := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
+	if err != nil {
+		return err
 	}
 	pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
 	k.accountKeeper.SetAccount(ctx, pva)
@@ -129,7 +130,7 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 	acc := k.accountKeeper.GetAccount(ctx, addr)
 	vacc := acc.(*vesting.PeriodicVestingAccount)
 	// Add the new vesting coins to OriginalVesting
-	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt)
+	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt...)
 	// update vesting periods
 	if vacc.EndTime < ctx.BlockTime().Unix() {
 		// edge case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
@@ -186,7 +187,7 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 			if lengthCounter < length {
 				newPeriods = append(newPeriods, period)
 			} else if lengthCounter == length {
-				newPeriod := types.NewPeriod(period.Amount.Add(amt), period.Length)
+				newPeriod := types.NewPeriod(period.Amount.Add(amt...), period.Length)
 				newPeriods = append(newPeriods, newPeriod)
 				appendRemaining = true
 			} else {

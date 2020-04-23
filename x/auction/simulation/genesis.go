@@ -88,7 +88,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		if !ok {
 			panic("can't convert Auction to GenesisAuction")
 		}
-		totalAuctionCoins = totalAuctionCoins.Add(a.GetModuleAccountCoins())
+		totalAuctionCoins = totalAuctionCoins.Add(a.GetModuleAccountCoins()...)
 	}
 	auctionGenesis.NextAuctionID = startingID + uint64(len(auctions))
 	auctionGenesis.Auctions = append(auctionGenesis.Auctions, auctions...)
@@ -112,7 +112,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		panic("bidder not found")
 	}
 	bidderCoins := sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000000))
-	if err := bidder.SetCoins(bidder.GetCoins().Add(bidderCoins)); err != nil {
+	if err := bidder.SetCoins(bidder.GetCoins().Add(bidderCoins...)); err != nil {
 		panic(err)
 	}
 	authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, bidder)
@@ -123,7 +123,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	// TODO find some way for this to happen automatically / move it elsewhere
 	var supplyGenesis supply.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
-	supplyGenesis.Supply = supplyGenesis.Supply.Add(totalAuctionCoins).Add(bidderCoins)
+	supplyGenesis.Supply = supplyGenesis.Supply.Add(totalAuctionCoins...).Add(bidderCoins...)
 	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
 
 	// TODO liquidator mod account doesn't need to be initialized for this example

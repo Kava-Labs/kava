@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,11 +27,11 @@ func TestDecodeDistributionStore(t *testing.T) {
 	oneCoin := sdk.NewCoin("coin", sdk.OneInt())
 	auction := types.NewSurplusAuction("me", oneCoin, "coin", time.Now().UTC())
 
-	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: types.AuctionKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&auction)},
-		cmn.KVPair{Key: types.AuctionByTimeKeyPrefix, Value: sdk.Uint64ToBigEndian(2)},
-		cmn.KVPair{Key: types.NextAuctionIDKey, Value: sdk.Uint64ToBigEndian(10)},
-		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
+	kvPairs := kv.Pairs{
+		kv.Pair{Key: types.AuctionKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&auction)},
+		kv.Pair{Key: types.AuctionByTimeKeyPrefix, Value: sdk.Uint64ToBigEndian(2)},
+		kv.Pair{Key: types.NextAuctionIDKey, Value: sdk.Uint64ToBigEndian(10)},
+		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
 	tests := []struct {

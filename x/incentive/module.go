@@ -22,7 +22,7 @@ import (
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModuleSimulation{}
+	_ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the incentive module.
@@ -69,28 +69,34 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(types.StoreKey, cdc)
 }
 
-// AppModuleSimulation defines the module simulation functions used by the cdp module.
-type AppModuleSimulation struct{} // TODO
-
 // RegisterStoreDecoder registers a decoder for cdp module's types
-func (AppModuleSimulation) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
 // GenerateGenesisState creates a randomized GenState of the cdp module
-func (AppModuleSimulation) GenerateGenesisState(simState *module.SimulationState) {
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
 // RandomizedParams creates randomized cdp param changes for the simulator.
-func (AppModuleSimulation) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
+}
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
+	return nil
+}
+
+// WeightedOperations returns the all the bep3 module operations with their respective weights.
+func (am AppModule) WeightedOperations(_ module.SimulationState) []sim.WeightedOperation {
+	return nil
 }
 
 // AppModule implements the sdk.AppModule interface.
 type AppModule struct {
 	AppModuleBasic
-	AppModuleSimulation
 
 	keeper       keeper.Keeper
 	supplyKeeper types.SupplyKeeper
