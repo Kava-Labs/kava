@@ -22,10 +22,10 @@ var (
 
 // RandomizedGenState generates a random GenesisState for incentive module
 func RandomizedGenState(simState *module.SimulationState) {
-	params := GenParams(simState.Rand)
-	rewardPeriods := GenRewardPeriods(simState.Rand, simState.GenTimestamp, params.Rewards)
-	claimPeriods := GenClaimPeriods(rewardPeriods)
-	claimPeriodIDs := GenNextClaimPeriodIds(claimPeriods)
+	params := genParams(simState.Rand)
+	rewardPeriods := genRewardPeriods(simState.Rand, simState.GenTimestamp, params.Rewards)
+	claimPeriods := genClaimPeriods(rewardPeriods)
+	claimPeriodIDs := genNextClaimPeriodIds(claimPeriods)
 
 	// New genesis state holds valid, linked reward periods, claim periods, and claim period IDs
 	incentiveGenesis := types.NewGenesisState(params, types.DefaultPreviousBlockTime,
@@ -38,17 +38,17 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(incentiveGenesis)
 }
 
-// GenParams generates random rewards and is active by default
-func GenParams(r *rand.Rand) types.Params {
-	params := types.NewParams(true, GenRewards(r))
+// genParams generates random rewards and is active by default
+func genParams(r *rand.Rand) types.Params {
+	params := types.NewParams(true, genRewards(r))
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}
 	return params
 }
 
-// GenRewards generates rewards for each specified collateral type
-func GenRewards(r *rand.Rand) types.Rewards {
+// genRewards generates rewards for each specified collateral type
+func genRewards(r *rand.Rand) types.Rewards {
 	var rewards types.Rewards
 	for _, denom := range CollateralDenoms {
 		active := true
@@ -66,8 +66,8 @@ func GenRewards(r *rand.Rand) types.Rewards {
 	return rewards
 }
 
-// GenRewardPeriods generates chronological reward periods for each given reward type
-func GenRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) types.RewardPeriods {
+// genRewardPeriods generates chronological reward periods for each given reward type
+func genRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) types.RewardPeriods {
 	var rewardPeriods types.RewardPeriods
 	for _, reward := range rewards {
 		rewardPeriodStart := timestamp
@@ -90,8 +90,8 @@ func GenRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) 
 	return rewardPeriods
 }
 
-// GenClaimPeriods loads valid claim periods for an array of reward periods
-func GenClaimPeriods(rewardPeriods types.RewardPeriods) types.ClaimPeriods {
+// genClaimPeriods loads valid claim periods for an array of reward periods
+func genClaimPeriods(rewardPeriods types.RewardPeriods) types.ClaimPeriods {
 	denomRewardPeriodsCount := make(map[string]uint64)
 	var claimPeriods types.ClaimPeriods
 	for _, rewardPeriod := range rewardPeriods {
@@ -109,8 +109,8 @@ func GenClaimPeriods(rewardPeriods types.RewardPeriods) types.ClaimPeriods {
 	return claimPeriods
 }
 
-// GenNextClaimPeriodIds returns an array of the most recent claim period IDs for each denom
-func GenNextClaimPeriodIds(cps types.ClaimPeriods) types.GenesisClaimPeriodIDs {
+// genNextClaimPeriodIds returns an array of the most recent claim period IDs for each denom
+func genNextClaimPeriodIds(cps types.ClaimPeriods) types.GenesisClaimPeriodIDs {
 	// Build a map of the most recent claim periods by denom
 	mostRecentClaimPeriodByDenom := make(map[string]uint64)
 	for _, cp := range cps {
@@ -137,14 +137,4 @@ func replaceOrAppendAccount(accounts []authexported.GenesisAccount, acc authexpo
 		}
 	}
 	return append(newAccounts, acc)
-}
-
-// GenActive generates active bool with 80% chance of true
-func GenActive(r *rand.Rand) bool {
-	threshold := 80
-	value := simulation.RandIntBetween(r, 1, 100)
-	if value > threshold {
-		return false
-	}
-	return true
 }
