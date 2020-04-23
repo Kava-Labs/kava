@@ -1,14 +1,15 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -25,7 +26,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short: "auction transactions subcommands",
 	}
 
-	auctionTxCmd.AddCommand(client.PostCommands(
+	auctionTxCmd.AddCommand(flags.PostCommands(
 		GetCmdPlaceBid(cdc),
 	)...)
 
@@ -45,8 +46,9 @@ $ %s tx %s bid 34 1000usdx --from myKeyName
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {

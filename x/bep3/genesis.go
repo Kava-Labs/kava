@@ -71,9 +71,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper SupplyKeeper, gs G
 			case Open:
 				// This index expires unclaimed swaps
 				keeper.InsertIntoByBlockIndex(ctx, swap)
-				incomingSupplies = incomingSupplies.Add(swap.Amount)
+				incomingSupplies = incomingSupplies.Add(swap.Amount...)
 			case Expired:
-				incomingSupplies = incomingSupplies.Add(swap.Amount)
+				incomingSupplies = incomingSupplies.Add(swap.Amount...)
 			case Completed:
 				// This index stores swaps until deletion
 				keeper.InsertIntoLongtermStorage(ctx, swap)
@@ -84,9 +84,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper SupplyKeeper, gs G
 			switch swap.Status {
 			case Open:
 				keeper.InsertIntoByBlockIndex(ctx, swap)
-				outgoingSupplies = outgoingSupplies.Add(swap.Amount)
+				outgoingSupplies = outgoingSupplies.Add(swap.Amount...)
 			case Expired:
-				outgoingSupplies = outgoingSupplies.Add(swap.Amount)
+				outgoingSupplies = outgoingSupplies.Add(swap.Amount...)
 			case Completed:
 				keeper.InsertIntoLongtermStorage(ctx, swap)
 			default:

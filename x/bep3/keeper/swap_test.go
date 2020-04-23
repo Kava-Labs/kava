@@ -5,15 +5,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/bep3/keeper"
 	"github.com/kava-labs/kava/x/bep3/types"
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 type AtomicSwapTestSuite struct {
@@ -25,9 +28,9 @@ type AtomicSwapTestSuite struct {
 	deputy             sdk.AccAddress
 	addrs              []sdk.AccAddress
 	timestamps         []int64
-	randomNumberHashes []cmn.HexBytes
-	swapIDs            []cmn.HexBytes
-	randomNumbers      []cmn.HexBytes
+	randomNumberHashes []tmbytes.HexBytes
+	swapIDs            []tmbytes.HexBytes
+	randomNumbers      []tmbytes.HexBytes
 }
 
 const (
@@ -65,8 +68,8 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 
 func (suite *AtomicSwapTestSuite) GenerateSwapDetails() {
 	var timestamps []int64
-	var randomNumberHashes []cmn.HexBytes
-	var randomNumbers []cmn.HexBytes
+	var randomNumberHashes []tmbytes.HexBytes
+	var randomNumbers []tmbytes.HexBytes
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap details
 		timestamp := ts(i)

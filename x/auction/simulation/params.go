@@ -17,29 +17,29 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 	// as strings in JSON (such as time.Duration) have the escaped quotes.
 	// TODO should we encode the values properly with ModuleCdc.MustMarshalJSON()?
 	return []simulation.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyBidDuration), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyBidDuration),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenBidDuration(r))
+				return fmt.Sprintf("%d", GenBidDuration(r))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyMaxAuctionDuration), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyMaxAuctionDuration),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenMaxAuctionDuration(r))
+				return fmt.Sprintf("%d", GenMaxAuctionDuration(r))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementCollateral), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementCollateral),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenIncrementCollateral(r))
+				return fmt.Sprintf("%d", GenIncrementCollateral(r))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementDebt), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementDebt),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenIncrementDebt(r))
+				return fmt.Sprintf("%d", GenIncrementDebt(r))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementSurplus), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyIncrementSurplus),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenIncrementSurplus(r))
+				return fmt.Sprintf("%d", GenIncrementSurplus(r))
 			},
 		),
 	}

@@ -33,16 +33,16 @@ func TestMsgCreateCDP(t *testing.T) {
 		{"create cdp empty owner", sdk.AccAddress{}, coinsSingle, coinsSingle, false},
 	}
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		msg := NewMsgCreateCDP(
 			tc.sender,
 			tc.collateral,
 			tc.principal,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			require.Error(t, msg.ValidateBasic(), "test: %v", tc.description)
 		}
 	}
 }
@@ -63,16 +63,16 @@ func TestMsgDeposit(t *testing.T) {
 		{"deposit empty depositor", addrs[0], sdk.AccAddress{}, coinsSingle, false},
 	}
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		msg := NewMsgDeposit(
 			tc.sender,
 			tc.depositor,
 			tc.collateral,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			require.Error(t, msg.ValidateBasic(), "test: %v", tc.description)
 		}
 	}
 }
@@ -93,16 +93,16 @@ func TestMsgWithdraw(t *testing.T) {
 		{"withdraw empty depositor", addrs[0], sdk.AccAddress{}, coinsSingle, false},
 	}
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		msg := NewMsgWithdraw(
 			tc.sender,
 			tc.depositor,
 			tc.collateral,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			require.Error(t, msg.ValidateBasic(), "test: %v", tc.description)
 		}
 	}
 }
@@ -122,16 +122,16 @@ func TestMsgDrawDebt(t *testing.T) {
 		{"draw debt empty denom", sdk.AccAddress{}, "", coinsSingle, false},
 	}
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		msg := NewMsgDrawDebt(
 			tc.sender,
 			tc.denom,
 			tc.principal,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			require.Error(t, msg.ValidateBasic(), "test: %v", tc.description)
 		}
 	}
 }
@@ -151,16 +151,16 @@ func TestMsgRepayDebt(t *testing.T) {
 		{"repay debt empty denom", sdk.AccAddress{}, "", coinsSingle, false},
 	}
 
-	for i, tc := range tests {
+	for _, tc := range tests {
 		msg := NewMsgRepayDebt(
 			tc.sender,
 			tc.denom,
 			tc.payment,
 		)
 		if tc.expectPass {
-			require.NoError(t, msg.ValidateBasic(), "test: %v", i)
+			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
 		} else {
-			require.Error(t, msg.ValidateBasic(), "test: %v", i)
+			require.Error(t, msg.ValidateBasic(), "test: %v", tc.description)
 		}
 	}
 }

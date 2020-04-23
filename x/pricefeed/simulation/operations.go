@@ -1,35 +1,62 @@
-package operations
+package simulation
 
 import (
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/kava-labs/kava/x/pricefeed"
+	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 var (
-	noOpMsg   = simulation.NoOpMsg(pricefeed.ModuleName)
+	noOpMsg   = simulation.NoOpMsg(types.ModuleName)
 	btcPrices = []sdk.Dec{}
 	bnbPrices = []sdk.Dec{}
 	xrpPrices = []sdk.Dec{}
 	genPrices sync.Once
 )
 
-// SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
-func SimulateMsgUpdatePrices(keeper keeper.Keeper, blocks int) simulation.Operation {
-	// get a pricefeed handler
-	handler := pricefeed.NewHandler(keeper)
+// Simulation operation weights constants
+const (
+	OpWeightMsgUpdatePrices = "op_weight_msg_update_prices"
+)
 
-	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
-		simulation.OperationMsg, []simulation.FutureOperation, error) {
+// WeightedOperations returns all the operations from the module with their respective weights
+func WeightedOperations(
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
+) simulation.WeightedOperations {
+	var weightMsgUpdatePrices int
+	// var numBlocks int
+
+	appParams.GetOrGenerate(cdc, OpWeightMsgUpdatePrices, &weightMsgUpdatePrices, nil,
+		func(_ *rand.Rand) {
+			weightMsgUpdatePrices = appparams.DefaultWeightMsgUpdatePrices
+		},
+	)
+
+	return simulation.WeightedOperations{
+		simulation.NewWeightedOperation(
+			weightMsgUpdatePrices,
+			SimulateMsgUpdatePrices(ak, k, 10000),
+		),
+	}
+}
+
+// SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
+func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks int) simulation.Operation {
+	return func(
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
+	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+
 		genPrices.Do(func() {
 			// generate a random walk for each asset exactly once, with observations equal to the number of blocks in the sim
 			for _, m := range keeper.GetMarkets(ctx) {
@@ -63,24 +90,46 @@ func SimulateMsgUpdatePrices(keeper keeper.Keeper, blocks int) simulation.Operat
 		randomMarket := pickRandomAsset(ctx, keeper, r)
 		marketID := randomMarket.MarketID
 		address := getRandomOracle(r, randomMarket)
+
+		oracle, found := simulation.FindAccount(accs, address)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
+		oracleAcc := ak.GetAccount(ctx, oracle.Address)
+		if oracleAcc == nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
 		price := pickNewRandomPrice(marketID, int(ctx.BlockHeight()))
 
 		// get the expiry time based off the current time
 		expiry := getExpiryTime(ctx)
 
 		// now create the msg to post price
-		msg := types.NewMsgPostPrice(address, marketID, price, expiry)
+		msg := types.NewMsgPostPrice(oracle.Address, marketID, price, expiry)
 
-		// Perform basic validation of the msg - don't submit errors that fail ValidateBasic, use unit tests for testing ValidateBasic
-		if err := msg.ValidateBasic(); err != nil {
-			return noOpMsg, nil, fmt.Errorf("expected msg to pass ValidateBasic: %s", msg.GetSignBytes())
+		spendable := oracleAcc.SpendableCoins(ctx.BlockTime())
+		fees, err := simulation.RandomFees(r, ctx, spendable)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		// now we submit the pricefeed update message
-		if ok := submitMsg(ctx, handler, msg); !ok {
-			return noOpMsg, nil, fmt.Errorf("could not submit pricefeed msg")
+		tx := helpers.GenTx(
+			[]sdk.Msg{msg},
+			fees,
+			helpers.DefaultGenTxGas,
+			chainID,
+			[]uint64{oracleAcc.GetAccountNumber()},
+			[]uint64{oracleAcc.GetSequence()},
+			oracle.PrivKey,
+		)
+
+		_, result, err := app.Deliver(tx)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, "pricefeed update submitted"), nil, nil
+		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
@@ -130,10 +179,9 @@ func pickNewRandomPrice(marketID string, blockHeight int) (newPrice sdk.Dec) {
 }
 
 // getRandomOracle picks a random oracle from the list of oracles
-func getRandomOracle(r *rand.Rand, market pricefeed.Market) sdk.AccAddress {
+func getRandomOracle(r *rand.Rand, market types.Market) sdk.AccAddress {
 	randomIndex := simulation.RandIntBetween(r, 0, len(market.Oracles))
-	oracle := market.Oracles[randomIndex]
-	return oracle
+	return market.Oracles[randomIndex]
 }
 
 // pickRandomAsset picks a random asset out of the assets with equal probability
@@ -143,25 +191,11 @@ func pickRandomAsset(ctx sdk.Context, keeper keeper.Keeper, r *rand.Rand) (marke
 	params := keeper.GetParams(ctx)
 	// now pick a random asset
 	randomIndex := simulation.RandIntBetween(r, 0, len(params.Markets))
-	market = params.Markets[randomIndex]
-	return market
+	return params.Markets[randomIndex]
 }
 
 // getExpiryTime gets a price expiry time by taking the current time and adding a delta to it
 func getExpiryTime(ctx sdk.Context) (t time.Time) {
 	// need to use the blocktime from the context as the context generates random start time when running simulations
-	t = ctx.BlockTime().Add(time.Second * 1000000)
-	return t
-}
-
-// submitMsg submits a message to the current instance of the keeper and returns a boolean whether the operation completed successfully or not
-func submitMsg(ctx sdk.Context, handler sdk.Handler, msg sdk.Msg) (ok bool) {
-	ctx, write := ctx.CacheContext()
-	got := handler(ctx, msg)
-
-	ok = got.IsOK()
-	if ok {
-		write()
-	}
-	return ok
+	return ctx.BlockTime().Add(time.Second * 1000000)
 }

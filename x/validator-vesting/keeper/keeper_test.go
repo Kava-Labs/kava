@@ -349,7 +349,7 @@ func TestHandleVestingDebtReturn(t *testing.T) {
 	require.Equal(t, sdk.NewCoins(sdk.NewInt64Coin(stakeDenom, 30000000)), vva.DebtAfterFailedVesting)
 
 	initialBalance := ak.GetAccount(ctx, TestAddrs[2]).GetCoins()
-	expectedBalance := initialBalance.Add(vva.DebtAfterFailedVesting)
+	expectedBalance := initialBalance.Add(vva.DebtAfterFailedVesting...)
 	// Context needs the block time because bank keeper calls 'SpendableCoins' by getting the header from the context.
 	ctx = ctx.WithBlockTime(now.Add(12 * time.Hour))
 	keeper.HandleVestingDebt(ctx, vva.Address, now.Add(12*time.Hour))

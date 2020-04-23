@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -53,7 +54,7 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 
 	t, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	suite.Equal(cs(c("usdx", 20000000)), t.Principal)
-	ctd := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees))
+	ctd := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees...))
 	suite.Equal(d("20.0"), ctd)
 	ts := suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("20.0"))
 	suite.Equal(0, len(ts))
@@ -69,7 +70,7 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.NoError(err)
 	t, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	suite.Equal(cs(c("usdx", 20000000), c("susd", 10000000)), t.Principal)
-	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees))
+	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees...))
 	suite.Equal(d("400000000").Quo(d("30000000")), ctd)
 	ts = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("400").Quo(d("30")))
 	suite.Equal(0, len(ts))
@@ -82,18 +83,18 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(cs(c("xrp", 400000000), c("debt", 30000000)), acc.GetCoins())
 
 	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[1], "xrp", cs(c("usdx", 10000000)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("xusd", 10000000)))
-	suite.Equal(types.CodeDebtNotSupported, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
 	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 311000000)))
-	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.NoError(err)
 
 	t, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	suite.Equal(cs(c("usdx", 10000000), c("susd", 10000000)), t.Principal)
-	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees))
+	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees...))
 	suite.Equal(d("20.0"), ctd)
 	ts = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("20.0"))
 	suite.Equal(0, len(ts))
@@ -110,7 +111,7 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 
 	t, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	suite.Equal(cs(c("usdx", 10000000)), t.Principal)
-	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees))
+	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees...))
 	suite.Equal(d("40.0"), ctd)
 	ts = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("40.0"))
 	suite.Equal(0, len(ts))
@@ -123,12 +124,12 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(cs(c("xrp", 400000000), c("debt", 10000000)), acc.GetCoins())
 
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("xusd", 10000000)))
-	suite.Equal(types.CodeInvalidPaymentDenom, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidPayment))
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[1], "xrp", cs(c("xusd", 10000000)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 9000000)))
-	suite.Equal(types.CodeBelowDebtFloor, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrBelowDebtFloor))
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", cs(c("usdx", 10000000)))
 	suite.NoError(err)
 

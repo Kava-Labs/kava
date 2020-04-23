@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -63,13 +65,13 @@ func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam,
 }
 
 // ValidateLiveAsset checks if an asset is both supported and active
-func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) sdk.Error {
+func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) error {
 	asset, found := k.GetAssetByDenom(ctx, coin.Denom)
 	if !found {
-		return types.ErrAssetNotSupported(k.codespace, coin.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 	if !asset.Active {
-		return types.ErrAssetNotActive(k.codespace, asset.Denom)
+		return sdkerrors.Wrap(types.ErrAssetNotActive, asset.Denom)
 	}
 	return nil
 }

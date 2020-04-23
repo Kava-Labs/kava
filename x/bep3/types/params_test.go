@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -204,10 +203,9 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 
 		err := params.Validate()
 		if tc.expectPass {
-			suite.Nil(err)
+			suite.Require().NoError(err, tc.name)
 		} else {
-			suite.NotNil(err)
-			suite.True(strings.Contains(err.Error(), tc.expectedErr))
+			suite.Require().Error(err, tc.name)
 		}
 	}
 }

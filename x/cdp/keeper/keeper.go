@@ -19,21 +19,22 @@ type Keeper struct {
 	supplyKeeper    types.SupplyKeeper
 	auctionKeeper   types.AuctionKeeper
 	accountKeeper   types.AccountKeeper
-	codespace       sdk.CodespaceType
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, ack types.AccountKeeper, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, ack types.AccountKeeper) Keeper {
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
+	}
 
 	return Keeper{
 		key:             key,
 		cdc:             cdc,
-		paramSubspace:   paramstore.WithKeyTable(types.ParamKeyTable()),
+		paramSubspace:   paramstore,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   ak,
 		supplyKeeper:    sk,
 		accountKeeper:   ack,
-		codespace:       codespace,
 	}
 }
 

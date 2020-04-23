@@ -15,13 +15,13 @@ import (
 // 3. moves debt coins from the cdp module to the liquidator module account,
 // 4. decrements the total amount of principal outstanding for that collateral type
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
-func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) sdk.Error {
+func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	// Update fees
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// Move debt coins from cdp to liquidator account
@@ -70,7 +70,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) sdk.Error {
 		coinsToDecrement := sdk.NewCoins(dc)
 		if feeAmount.IsPositive() {
 			feeCoins := sdk.NewCoins(sdk.NewCoin(dc.Denom, feeAmount))
-			coinsToDecrement = coinsToDecrement.Add(feeCoins)
+			coinsToDecrement = coinsToDecrement.Add(feeCoins...)
 		}
 		k.DecrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, coinsToDecrement)
 	}
@@ -100,11 +100,11 @@ func (k Keeper) HandleNewDebt(ctx sdk.Context, collateralDenom string, principal
 	k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
 	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSurplus)))
 	k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSavings)))
-	k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees).AmountOf(principalDenom))
+	k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees...).AmountOf(principalDenom))
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
-func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, liquidationRatio sdk.Dec) sdk.Error {
+func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, liquidationRatio sdk.Dec) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err

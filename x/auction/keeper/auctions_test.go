@@ -267,30 +267,31 @@ func TestStartSurplusAuction(t *testing.T) {
 		blockTime  time.Time
 		args       args
 		expectPass bool
+		expPanic   bool
 	}{
 		{
 			"normal",
 			someTime,
 			args{cdp.LiquidatorMacc, c("stable", 10), "gov"},
-			true,
+			true, false,
 		},
 		{
 			"no module account",
 			someTime,
 			args{"nonExistentModule", c("stable", 10), "gov"},
-			false,
+			false, true,
 		},
 		{
 			"not enough coins",
 			someTime,
 			args{cdp.LiquidatorMacc, c("stable", 101), "gov"},
-			false,
+			false, false,
 		},
 		{
 			"incorrect denom",
 			someTime,
 			args{cdp.LiquidatorMacc, c("notacoin", 10), "gov"},
-			false,
+			false, false,
 		},
 	}
 	for _, tc := range testCases {
@@ -308,7 +309,15 @@ func TestStartSurplusAuction(t *testing.T) {
 			keeper := tApp.GetAuctionKeeper()
 
 			// run function under test
-			id, err := keeper.StartSurplusAuction(ctx, tc.args.seller, tc.args.lot, tc.args.bidDenom)
+			var (
+				id  uint64
+				err error
+			)
+			if tc.expPanic {
+				require.Panics(t, func() { _, _ = keeper.StartSurplusAuction(ctx, tc.args.seller, tc.args.lot, tc.args.bidDenom) }, tc.name)
+			} else {
+				id, err = keeper.StartSurplusAuction(ctx, tc.args.seller, tc.args.lot, tc.args.bidDenom)
+			}
 
 			// check
 			sk := tApp.GetSupplyKeeper()
@@ -316,11 +325,11 @@ func TestStartSurplusAuction(t *testing.T) {
 			actualAuc, found := keeper.GetAuction(ctx, id)
 
 			if tc.expectPass {
-				require.NoError(t, err)
+				require.NoError(t, err, tc.name)
 				// check coins moved
-				require.Equal(t, initialLiquidatorCoins.Sub(cs(tc.args.lot)), liquidatorCoins)
+				require.Equal(t, initialLiquidatorCoins.Sub(cs(tc.args.lot)), liquidatorCoins, tc.name)
 				// check auction in store and is correct
-				require.True(t, found)
+				require.True(t, found, tc.name)
 				expectedAuction := types.Auction(types.SurplusAuction{BaseAuction: types.BaseAuction{
 					ID:              id,
 					Initiator:       tc.args.seller,
@@ -331,13 +340,13 @@ func TestStartSurplusAuction(t *testing.T) {
 					EndTime:         types.DistantFuture,
 					MaxEndTime:      types.DistantFuture,
 				}})
-				require.Equal(t, expectedAuction, actualAuc)
-			} else {
-				require.Error(t, err)
+				require.Equal(t, expectedAuction, actualAuc, tc.name)
+			} else if !tc.expPanic && !tc.expectPass {
+				require.Error(t, err, tc.name)
 				// check coins not moved
-				require.Equal(t, initialLiquidatorCoins, liquidatorCoins)
+				require.Equal(t, initialLiquidatorCoins, liquidatorCoins, tc.name)
 				// check auction not in store
-				require.False(t, found)
+				require.False(t, found, tc.name)
 			}
 		})
 	}

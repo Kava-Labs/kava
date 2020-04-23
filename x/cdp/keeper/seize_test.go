@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"math/rand"
 	"testing"
 	"time"
@@ -145,7 +146,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
@@ -170,7 +171,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {
