@@ -70,7 +70,6 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
@@ -153,7 +152,6 @@ func NewCDPGenStateMulti() app.GenesisState {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
@@ -211,7 +209,6 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}

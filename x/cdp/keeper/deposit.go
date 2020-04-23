@@ -40,12 +40,9 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 
 	k.SetDeposit(ctx, deposit)
 
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.Collateral = cdp.Collateral.Add(collateral...)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
@@ -71,15 +68,13 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees.Add(fees...))
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {
 		return err
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
 	if collateralizationRatio.LT(liquidationRatio) {
-		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "colateral %s, collateral ratio %s, liquidation ration %s", collateral[0].Denom, collateralizationRatio, liquidationRatio)
+		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ration %s", collateral[0].Denom, collateralizationRatio, liquidationRatio)
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -96,7 +91,6 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
