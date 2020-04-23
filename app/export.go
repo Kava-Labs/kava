@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -60,8 +61,17 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string
 
 	// withdraw all validator commission
 	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val staking.ValidatorI) (stop bool) {
+		accumCommission := app.distrKeeper.GetValidatorAccumulatedCommission(ctx, val.GetOperator())
+		if accumCommission.IsZero() {
+			return false
+		}
 		_, err := app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		if err != nil {
+			fmt.Printf(
+				`Failed to withdraw validator commission.
+				Validator: %s
+				`, val,
+			)
 			log.Fatal(err)
 		}
 		return false
