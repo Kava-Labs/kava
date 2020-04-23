@@ -10,6 +10,7 @@ const (
 	AddrByteCount                  = types.AddrByteCount
 	AttributeKeyAmount             = types.AttributeKeyAmount
 	AttributeKeyAtomicSwapID       = types.AttributeKeyAtomicSwapID
+	AttributeKeyAtomicSwapIDs      = types.AttributeKeyAtomicSwapIDs
 	AttributeKeyClaimSender        = types.AttributeKeyClaimSender
 	AttributeKeyDirection          = types.AttributeKeyDirection
 	AttributeKeyExpectedIncome     = types.AttributeKeyExpectedIncome
@@ -31,8 +32,8 @@ const (
 	DepositAtomicSwap              = types.DepositAtomicSwap
 	EventTypeClaimAtomicSwap       = types.EventTypeClaimAtomicSwap
 	EventTypeCreateAtomicSwap      = types.EventTypeCreateAtomicSwap
-	EventTypeDepositAtomicSwap     = types.EventTypeDepositAtomicSwap
 	EventTypeRefundAtomicSwap      = types.EventTypeRefundAtomicSwap
+	EventTypeSwapsExpired          = types.EventTypeSwapsExpired
 	Expired                        = types.Expired
 	INVALID                        = types.INVALID
 	Incoming                       = types.Incoming
@@ -135,7 +136,6 @@ type (
 	QueryAtomicSwapByID = types.QueryAtomicSwapByID
 	QueryAtomicSwaps    = types.QueryAtomicSwaps
 	SupplyKeeper        = types.SupplyKeeper
-	Swap                = types.Swap
 	SwapDirection       = types.SwapDirection
 	SwapStatus          = types.SwapStatus
 )

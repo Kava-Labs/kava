@@ -77,6 +77,9 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		timestamp, sender, recipient, senderOtherChain, recipientOtherChain, 0, types.Open,
 		crossChain, direction)
 
+	k.SetAtomicSwap(ctx, atomicSwap)
+	k.InsertIntoByBlockIndex(ctx, atomicSwap)
+
 	// Emit 'create_atomic_swap' event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -94,8 +97,6 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		),
 	)
 
-	k.SetAtomicSwap(ctx, atomicSwap)
-	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 	return nil
 }
 
@@ -103,7 +104,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", swapID)
+		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
 	}
 
 	// Only open atomic swaps can be claimed
@@ -148,6 +149,15 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		return err
 	}
 
+	// Complete swap
+	atomicSwap.Status = types.Completed
+	atomicSwap.ClosedBlock = ctx.BlockHeight()
+	k.SetAtomicSwap(ctx, atomicSwap)
+
+	// Remove from byBlock index and transition to longterm storage
+	k.RemoveFromByBlockIndex(ctx, atomicSwap)
+	k.InsertIntoLongtermStorage(ctx, atomicSwap)
+
 	// Emit 'claim_atomic_swap' event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -160,14 +170,6 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		),
 	)
 
-	// Complete swap
-	atomicSwap.Status = types.Completed
-	atomicSwap.ClosedBlock = ctx.BlockHeight()
-	k.SetAtomicSwap(ctx, atomicSwap)
-
-	// Remove from byBlock index and transition to longterm storage
-	k.RemoveFromByBlockIndex(ctx, atomicSwap)
-	k.InsertIntoLongtermStorage(ctx, atomicSwap)
 	return nil
 }
 
@@ -202,6 +204,14 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		return err
 	}
 
+	// Complete swap
+	atomicSwap.Status = types.Completed
+	atomicSwap.ClosedBlock = ctx.BlockHeight()
+	k.SetAtomicSwap(ctx, atomicSwap)
+
+	// Transition to longterm storage
+	k.InsertIntoLongtermStorage(ctx, atomicSwap)
+
 	// Emit 'refund_atomic_swap' event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -213,13 +223,6 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		),
 	)
 
-	// Complete swap
-	atomicSwap.Status = types.Completed
-	atomicSwap.ClosedBlock = ctx.BlockHeight()
-	k.SetAtomicSwap(ctx, atomicSwap)
-
-	// Transition to longterm storage
-	k.InsertIntoLongtermStorage(ctx, atomicSwap)
 	return nil
 }
 
@@ -232,12 +235,24 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
 	})
 
 	// Expire incomplete swaps (claimed swaps have already been removed from byBlock index)
+	var expiredSwapIDs []string
 	for _, id := range expiredSwaps {
-		swap, _ := k.GetAtomicSwap(ctx, id)
-		swap.Status = types.Expired
-		k.SetAtomicSwap(ctx, swap)
-		k.RemoveFromByBlockIndex(ctx, swap)
+		atomicSwap, _ := k.GetAtomicSwap(ctx, id)
+		atomicSwap.Status = types.Expired
+		k.SetAtomicSwap(ctx, atomicSwap)
+		k.RemoveFromByBlockIndex(ctx, atomicSwap)
+		expiredSwapIDs = append(expiredSwapIDs, hex.EncodeToString(atomicSwap.GetSwapID()))
 	}
+
+	// Emit 'swaps_expired' event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeSwapsExpired,
+				sdk.NewAttribute(types.AttributeKeyAtomicSwapIDs, fmt.Sprintf("%s", expiredSwapIDs)),
+				sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
+			),
+		)
+
 	return nil
 }
 

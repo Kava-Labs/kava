@@ -10,16 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Swap is an interface for handling common actions
-type Swap interface {
-	GetSwapID() tmbytes.HexBytes
-	GetModuleAccountCoins() sdk.Coins
-	Validate() error
-}
-
 // AtomicSwap contains the information for an atomic swap
 type AtomicSwap struct {
-	Swap                `json:"swap" yaml:"swap"`
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
 	ExpireHeight        int64            `json:"expire_height"  yaml:"expire_height"`
@@ -59,8 +51,8 @@ func (a AtomicSwap) GetSwapID() tmbytes.HexBytes {
 	return CalculateSwapID(a.RandomNumberHash, a.Sender, a.SenderOtherChain)
 }
 
-// GetModuleAccountCoins returns the swap's amount as sdk.Coins
-func (a AtomicSwap) GetModuleAccountCoins() sdk.Coins {
+// GetCoins returns the swap's amount as sdk.Coins
+func (a AtomicSwap) GetCoins() sdk.Coins {
 	return sdk.NewCoins(a.Amount...)
 }
 

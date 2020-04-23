@@ -128,7 +128,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 
 		if tc.expectPass {
 			suite.Nil(swap.Validate())
-			suite.Equal(tc.args.amount, swap.GetModuleAccountCoins())
+			suite.Equal(tc.args.amount, swap.GetCoins())
 			expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender, tc.args.senderOtherChain)
 			suite.Equal(tmbytes.HexBytes(expectedSwapID), swap.GetSwapID())
 		} else {
