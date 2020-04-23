@@ -1,9 +1,11 @@
 package types
 
 import (
+	"errors"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // ensure Msg interface compliance at compile time
@@ -30,12 +32,12 @@ func (msg MsgClaimReward) Route() string { return RouterKey }
 func (msg MsgClaimReward) Type() string { return "claim_reward" }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
-func (msg MsgClaimReward) ValidateBasic() sdk.Error {
+func (msg MsgClaimReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
-		return sdk.ErrInvalidAddress("invalid sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if strings.TrimSpace(msg.Denom) == "" {
-		return sdk.ErrInternal("invalid (empty) denom")
+		return errors.New("invalid (empty) denom")
 	}
 	return nil
 }

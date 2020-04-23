@@ -15,7 +15,6 @@ type Keeper struct {
 	accountKeeper types.AccountKeeper
 	cdc           *codec.Codec
 	cdpKeeper     types.CdpKeeper
-	codespace     sdk.CodespaceType
 	key           sdk.StoreKey
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
@@ -24,22 +23,17 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper,
-	cdpk types.CdpKeeper, ak types.AccountKeeper, codespace sdk.CodespaceType,
+	cdpk types.CdpKeeper, ak types.AccountKeeper,
 ) Keeper {
 
 	return Keeper{
 		accountKeeper: ak,
 		cdc:           cdc,
 		cdpKeeper:     cdpk,
-		codespace:     codespace,
 		key:           key,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 		supplyKeeper:  sk,
 	}
-}
-
-func (k Keeper) Codespace() sdk.CodespaceType {
-	return k.codespace
 }
 
 // GetRewardPeriod returns the reward period from the store for the input denom and a boolean for if it was found

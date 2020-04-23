@@ -306,7 +306,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.supplyKeeper,
 		app.cdpKeeper,
 		app.accountKeeper,
-		incentive.DefaultCodespace,
 	)
 
 	// register the staking hooks

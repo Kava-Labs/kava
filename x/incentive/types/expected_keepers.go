@@ -11,7 +11,7 @@ import (
 type SupplyKeeper interface {
 	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
 
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) sdk.Error
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
