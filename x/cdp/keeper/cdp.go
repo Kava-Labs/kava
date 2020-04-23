@@ -360,7 +360,7 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coins) error
 			return sdkerrors.Wrap(types.ErrDebtNotSupported, dc.Denom)
 		}
 		if dc.Amount.LT(dp.DebtFloor) {
-			return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoins(dc), dp.DebtFloor)
+			return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", dc, dp.DebtFloor)
 		}
 	}
 	return nil

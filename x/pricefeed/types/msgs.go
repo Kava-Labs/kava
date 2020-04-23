@@ -66,14 +66,11 @@ func (msg MsgPostPrice) ValidateBasic() error {
 	if strings.TrimSpace(msg.MarketID) == "" {
 		return errors.New("market id cannot be blank")
 	}
-	if msg.Price.LT(sdk.ZeroDec()) {
+	if msg.Price.IsNegative() {
 		return fmt.Errorf("price cannot be negative: %s", msg.Price.String())
 	}
 	if msg.Expiry.IsZero() {
 		return errors.New("must set an expiration time")
-	}
-	if msg.Expiry.UTC().Unix()-time.Now().UTC().Unix() < 0 {
-		return sdkerrors.Wrapf(ErrExpired, "%s", msg.Expiry.UTC().String())
 	}
 	return nil
 }
