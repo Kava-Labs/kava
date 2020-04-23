@@ -120,21 +120,19 @@ func validatePeriodsParams(i interface{}) error {
 	}
 
 	prevEnd := tmtime.Canonical(time.Unix(0, 0))
-	now := time.Now()
 	for _, pr := range periods {
 		if pr.End.Before(pr.Start) {
 			return fmt.Errorf("end time for period is before start time: %s", pr)
-		}
-
-		// check that the period is not expired
-		if pr.End.Before(now) {
-			return fmt.Errorf("period already expired: %s", pr)
 		}
 
 		if pr.Start.Before(prevEnd) {
 			return fmt.Errorf("periods must be in chronological order: %s", periods)
 		}
 		prevEnd = pr.End
+
+		if pr.Start.IsZero() || pr.End.IsZero() {
+			return fmt.Errorf("start or end time cannot be zero: %s", pr)
+		}
 
 		//TODO: validate period Inflation?
 	}

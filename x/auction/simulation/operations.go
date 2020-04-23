@@ -21,8 +21,8 @@ import (
 )
 
 var (
-	noOpMsg             = simulation.NoOpMsg(types.ModuleName)
-	ErrorNotEnoughCoins = errors.New("account doesn't have enough coins")
+	errorNotEnoughCoins  = errors.New("account doesn't have enough coins")
+	errorCantReceiveBids = errors.New("auction can't receive bids (lot = 0 in reverse auction)")
 )
 
 // Simulation operation weights constants
@@ -72,10 +72,11 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 
 		// search through auctions and an accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
 		blockTime := ctx.BlockHeader().Time
+		params := keeper.GetParams(ctx)
 		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {
 			account := ak.GetAccount(ctx, acc.Address)
-			_, err := generateBidAmount(r, auc, account, blockTime)
-			if err == ErrorNotEnoughCoins {
+			_, err := generateBidAmount(r, params, auc, account, blockTime)
+			if err == errorNotEnoughCoins || err == errorCantReceiveBids {
 				return false // keep searching
 			} else if err != nil {
 				panic(err) // raise errors
@@ -88,27 +89,21 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 
 		bidderAcc := ak.GetAccount(ctx, bidder.Address)
 		if bidderAcc == nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("couldn't find account %s", bidder.Address)
 		}
 
 		// pick a bid amount for the chosen auction and bidder
-		amount, err := generateBidAmount(r, openAuction, bidderAcc, blockTime)
-		if err != nil {
+		amount, err := generateBidAmount(r, params, openAuction, bidderAcc, blockTime)
+		if err != nil { // shouldn't happen given the checks above
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		// create a msg
+		// create and deliver a tx
 		msg := types.NewMsgPlaceBid(openAuction.GetID(), bidder.Address, amount)
-
-		spendable := bidderAcc.SpendableCoins(ctx.BlockTime())
-		fees, err := simulation.RandomFees(r, ctx, spendable)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
-		}
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
-			fees,
+			sdk.NewCoins(), // TODO pick a random amount fees
 			helpers.DefaultGenTxGas,
 			chainID,
 			[]uint64{bidderAcc.GetAccountNumber()},
@@ -118,60 +113,103 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			// to aid debugging, add the stack trace to the comment field of the returned opMsg
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
-
-		// Return an operationMsg indicating whether the msg was submitted successfully
-		// Using result.Log as the comment field as it contains any error message emitted by the keeper
+		// to aid debugging, add the result log to the comment field
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
-func generateBidAmount(r *rand.Rand, auc types.Auction, bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
+func generateBidAmount(
+	r *rand.Rand, params types.Params, auc types.Auction,
+	bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
 	bidderBalance := bidder.SpendableCoins(blockTime)
 
 	switch a := auc.(type) {
 
 	case types.DebtAuction:
+		// Check bidder has enough (stable coin) to pay in
 		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
-			return sdk.Coin{}, ErrorNotEnoughCoins
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
-		amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount // TODO min bid increments
+		// Check auction can still receive new bids
+		if a.Lot.Amount.Equal(sdk.ZeroInt()) {
+			return sdk.Coin{}, errorCantReceiveBids
+		}
+		// Generate a new lot amount (gov coin)
+		maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+			sdk.MaxInt(
+				sdk.NewInt(1),
+				sdk.NewDecFromInt(a.Lot.Amount).Mul(params.IncrementDebt).RoundInt(),
+			),
+		)
+		amt, err := RandIntInclusive(r, sdk.ZeroInt(), maxNewLotAmt) // maxNewLotAmt shouldn't be < 0 given the check above
 		if err != nil {
 			panic(err)
 		}
 		return sdk.NewCoin(a.Lot.Denom, amt), nil // gov coin
 
 	case types.SurplusAuction:
-		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // gov coin // TODO account for bid increments
-			return sdk.Coin{}, ErrorNotEnoughCoins
+		// Check the bidder has enough (gov coin) to pay in
+		minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
+			sdk.MaxInt(
+				sdk.NewInt(1),
+				sdk.NewDecFromInt(a.Bid.Amount).Mul(params.IncrementSurplus).RoundInt(),
+			),
+		)
+		if bidderBalance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) { // gov coin
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
-		amt, err := RandIntInclusive(r, a.Bid.Amount, bidderBalance.AmountOf(a.Bid.Denom))
+		// Generate a new bid amount (gov coin)
+		amt, err := RandIntInclusive(r, minNewBidAmt, bidderBalance.AmountOf(a.Bid.Denom))
 		if err != nil {
 			panic(err)
 		}
 		return sdk.NewCoin(a.Bid.Denom, amt), nil // gov coin
 
 	case types.CollateralAuction:
-		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin // TODO account for bid increments (in forward phase)
-			return sdk.Coin{}, ErrorNotEnoughCoins
+		// Check the bidder has enough (stable coin) to pay in
+		minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
+			sdk.MaxInt(
+				sdk.NewInt(1),
+				sdk.NewDecFromInt(a.Bid.Amount).Mul(params.IncrementCollateral).RoundInt(),
+			),
+		)
+		minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
+		if bidderBalance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) {
+			return sdk.Coin{}, errorNotEnoughCoins
 		}
+		// Check auction can still receive new bids
+		if a.IsReversePhase() && a.Lot.Amount.Equal(sdk.ZeroInt()) {
+			return sdk.Coin{}, errorCantReceiveBids
+		}
+		// Generate a new bid amount (collateral coin in reverse phase)
 		if a.IsReversePhase() {
-			amt, err := RandIntInclusive(r, sdk.ZeroInt(), a.Lot.Amount) // pick amount less than current lot amount
+			maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+				sdk.MaxInt(
+					sdk.NewInt(1),
+					sdk.NewDecFromInt(a.Lot.Amount).Mul(params.IncrementCollateral).RoundInt(),
+				),
+			)
+			amt, err := RandIntInclusive(r, sdk.ZeroInt(), maxNewLotAmt) // maxNewLotAmt shouldn't be < 0 given the check above
 			if err != nil {
 				panic(err)
 			}
 			return sdk.NewCoin(a.Lot.Denom, amt), nil // collateral coin
+
+			// Generate a new bid amount (stable coin in forward phase)
+		} else {
+			amt, err := RandIntInclusive(r, minNewBidAmt, sdk.MinInt(bidderBalance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
+			if err != nil {
+				panic(err)
+			}
+			// when the bidder has enough coins, pick the MaxBid amount more frequently to increase chance auctions phase get into reverse phase
+			if r.Intn(2) == 0 && bidderBalance.AmountOf(a.Bid.Denom).GTE(a.MaxBid.Amount) { // 50%
+				amt = a.MaxBid.Amount
+			}
+			return sdk.NewCoin(a.Bid.Denom, amt), nil // stable coin
 		}
-		amt, err := RandIntInclusive(r, a.Bid.Amount, sdk.MinInt(bidderBalance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
-		if err != nil {
-			panic(err)
-		}
-		// pick the MaxBid amount more frequently to increase chance auctions phase get into reverse phase
-		if r.Intn(10) == 0 { // 10%
-			amt = a.MaxBid.Amount
-		}
-		return sdk.NewCoin(a.Bid.Denom, amt), nil // stable coin
 
 	default:
 		return sdk.Coin{}, fmt.Errorf("unknown auction type")

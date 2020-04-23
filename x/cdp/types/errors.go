@@ -26,7 +26,7 @@ var (
 	// ErrInvalidDeposit error for invalid deposit
 	ErrInvalidDeposit = sdkerrors.Register(ModuleName, 10, "invalid deposit")
 	// ErrInvalidCollateral error for invalid collateral
-	ErrInvalidCollateral = sdkerrors.Register(ModuleName, 11, "oracle does not exist or not authorized")
+	ErrInvalidCollateral = sdkerrors.Register(ModuleName, 11, "collateral not supported")
 	// ErrInvalidPayment error for invalid payment
 	ErrInvalidPayment = sdkerrors.Register(ModuleName, 12, "invalid payment")
 	//ErrDepositNotAvailable error for withdrawing deposits in liquidation

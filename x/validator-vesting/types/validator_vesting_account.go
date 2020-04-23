@@ -274,9 +274,12 @@ func (vva *ValidatorVestingAccount) UnmarshalJSON(bz []byte) error {
 	}
 
 	ba := authtypes.NewBaseAccount(alias.Address, alias.Coins, pk, alias.AccountNumber, alias.Sequence)
-	bva, err := vestingtypes.NewBaseVestingAccount(ba, alias.OriginalVesting, alias.EndTime)
-	if err != nil {
-		return err
+	bva := &vestingtypes.BaseVestingAccount{
+		BaseAccount:      ba,
+		OriginalVesting:  alias.OriginalVesting,
+		DelegatedFree:    alias.DelegatedFree,
+		DelegatedVesting: alias.DelegatedVesting,
+		EndTime:          alias.EndTime,
 	}
 	pva := vestingtypes.NewPeriodicVestingAccountRaw(bva, alias.StartTime, alias.VestingPeriods)
 	vva.PeriodicVestingAccount = pva
