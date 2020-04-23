@@ -45,7 +45,7 @@ var sep = []byte(":")
 // - 0x05<depositState>:<cdpID>:<depositorAddr_bytes>: Deposit
 // - 0x06<denom>:totalPrincipal
 // - 0x07<denom>:feeRate
-// - 0x09:previousDistributionTime
+// - 0x08:previousDistributionTime
 
 // KVStore key prefixes
 var (
