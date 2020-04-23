@@ -20,14 +20,14 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 	}
 
 	return []simulation.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyActive), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyActive),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%t\"", active)
+				return fmt.Sprintf("%t", active)
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyPeriods), "",
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyPeriods),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%v\"", periods)
+				return fmt.Sprintf("%v", periods)
 			},
 		),
 	}

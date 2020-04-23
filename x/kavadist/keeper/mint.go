@@ -7,7 +7,7 @@ import (
 )
 
 // MintPeriodInflation mints new tokens according to the inflation schedule specified in the paramters
-func (k Keeper) MintPeriodInflation(ctx sdk.Context) sdk.Error {
+func (k Keeper) MintPeriodInflation(ctx sdk.Context) error {
 	params := k.GetParams(ctx)
 	if !params.Active {
 		ctx.EventManager().EmitEvent(
@@ -59,7 +59,7 @@ func (k Keeper) MintPeriodInflation(ctx sdk.Context) sdk.Error {
 	return nil
 }
 
-func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, timePeriods sdk.Int, denom string) sdk.Error {
+func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, timePeriods sdk.Int, denom string) error {
 	totalSupply := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom)
 	// used to scale accumulator calculations by 10^18
 	scalar := sdk.NewInt(1000000000000000000)

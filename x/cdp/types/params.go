@@ -2,9 +2,11 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
@@ -156,30 +158,49 @@ func ParamKeyTable() params.KeyTable {
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyGlobalDebtLimit, Value: &p.GlobalDebtLimit},
-		{Key: KeyCollateralParams, Value: &p.CollateralParams},
-		{Key: KeyDebtParams, Value: &p.DebtParams},
-		{Key: KeyCircuitBreaker, Value: &p.CircuitBreaker},
-		{Key: KeySurplusThreshold, Value: &p.SurplusAuctionThreshold},
-		{Key: KeyDebtThreshold, Value: &p.DebtAuctionThreshold},
-		{Key: KeyDistributionFrequency, Value: &p.SavingsDistributionFrequency},
+		params.NewParamSetPair(KeyGlobalDebtLimit, &p.GlobalDebtLimit, validateGlobalDebtLimitParam),
+		params.NewParamSetPair(KeyCollateralParams, &p.CollateralParams, validateCollateralParams),
+		params.NewParamSetPair(KeyDebtParams, &p.DebtParams, validateDebtParams),
+		params.NewParamSetPair(KeyCircuitBreaker, &p.CircuitBreaker, validateCircuitBreakerParam),
+		params.NewParamSetPair(KeySurplusThreshold, &p.SurplusAuctionThreshold, validateSurplusAuctionThresholdParam),
+		params.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
+		params.NewParamSetPair(KeyDistributionFrequency, &p.SavingsDistributionFrequency, validateSavingsDistributionFrequencyParam),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	// validate debt params
-	debtDenoms := make(map[string]int)
-	for _, dp := range p.DebtParams {
-		_, found := debtDenoms[dp.Denom]
-		if found {
-			return fmt.Errorf("duplicate debt denom: %s", dp.Denom)
-		}
-		if dp.SavingsRate.LT(sdk.ZeroDec()) || dp.SavingsRate.GT(sdk.OneDec()) {
-			return fmt.Errorf("savings rate should be between 0 and 1, is %s for %s", dp.SavingsRate, dp.Denom)
-		}
-		debtDenoms[dp.Denom] = 1
+	if err := validateGlobalDebtLimitParam(p.GlobalDebtLimit); err != nil {
+		return err
+	}
 
+	if err := validateCollateralParams(p.CollateralParams); err != nil {
+		return err
+	}
+
+	if err := validateDebtParams(p.DebtParams); err != nil {
+		return err
+	}
+
+	if err := validateCircuitBreakerParam(p.CircuitBreaker); err != nil {
+		return err
+	}
+
+	if err := validateSurplusAuctionThresholdParam(p.SurplusAuctionThreshold); err != nil {
+		return err
+	}
+
+	if err := validateDebtAuctionThresholdParam(p.DebtAuctionThreshold); err != nil {
+		return err
+	}
+
+	if err := validateSavingsDistributionFrequencyParam(p.SavingsDistributionFrequency); err != nil {
+		return err
+	}
+
+	debtDenoms := make(map[string]bool)
+	for _, dp := range p.DebtParams {
+		debtDenoms[dp.Denom] = true
 	}
 
 	// validate collateral params
@@ -187,38 +208,76 @@ func (p Params) Validate() error {
 	prefixDupMap := make(map[int]int)
 	collateralParamsDebtLimit := sdk.Coins{}
 	for _, cp := range p.CollateralParams {
+
+		prefix := int(cp.Prefix)
+		prefixDupMap[prefix] = 1
+		collateralDupMap[cp.Denom] = 1
+
+		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit...)
+
+		if cp.DebtLimit.IsAnyGT(p.GlobalDebtLimit) {
+			return fmt.Errorf("collateral debt limit for %s exceeds global debt limit: \n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
+				cp.Denom, p.GlobalDebtLimit, cp.DebtLimit)
+		}
+	}
+
+	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
+		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
+			p.GlobalDebtLimit, collateralParamsDebtLimit)
+	}
+
+	return nil
+}
+
+func validateGlobalDebtLimitParam(i interface{}) error {
+	globalDebtLimit, ok := i.(sdk.Coins)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if !globalDebtLimit.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "global debt limit %s", globalDebtLimit.String())
+	}
+
+	return nil
+}
+
+func validateCollateralParams(i interface{}) error {
+	collateralParams, ok := i.(CollateralParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	collateralDupMap := make(map[string]bool)
+	prefixDupMap := make(map[int]bool)
+	for _, cp := range collateralParams {
+		if strings.TrimSpace(cp.Denom) == "" {
+			return fmt.Errorf("debt denom cannot be blank %s", cp)
+		}
+
 		prefix := int(cp.Prefix)
 		if prefix < minCollateralPrefix || prefix > maxCollateralPrefix {
 			return fmt.Errorf("invalid prefix for collateral denom %s: %b", cp.Denom, cp.Prefix)
 		}
+
 		_, found := prefixDupMap[prefix]
 		if found {
 			return fmt.Errorf("duplicate prefix for collateral denom %s: %v", cp.Denom, []byte{cp.Prefix})
 		}
 
-		prefixDupMap[prefix] = 1
-		_, found = collateralDupMap[cp.Denom]
+		prefixDupMap[prefix] = true
 
+		_, found = collateralDupMap[cp.Denom]
 		if found {
 			return fmt.Errorf("duplicate collateral denom: %s", cp.Denom)
 		}
-		collateralDupMap[cp.Denom] = 1
 
-		if cp.DebtLimit.IsAnyNegative() {
+		collateralDupMap[cp.Denom] = true
+
+		if !cp.DebtLimit.IsValid() {
 			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)
 		}
-		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit)
 
-		for _, dc := range cp.DebtLimit {
-			_, found := debtDenoms[dc.Denom]
-			if !found {
-				return fmt.Errorf("debt limit for collateral %s contains invalid debt denom %s", cp.Denom, dc.Denom)
-			}
-		}
-		if cp.DebtLimit.IsAnyGT(p.GlobalDebtLimit) {
-			return fmt.Errorf("collateral debt limit for %s exceeds global debt limit: \n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
-				cp.Denom, p.GlobalDebtLimit, cp.DebtLimit)
-		}
 		if cp.LiquidationPenalty.LT(sdk.ZeroDec()) || cp.LiquidationPenalty.GT(sdk.OneDec()) {
 			return fmt.Errorf("liquidation penalty should be between 0 and 1, is %s for %s", cp.LiquidationPenalty, cp.Denom)
 		}
@@ -229,24 +288,82 @@ func (p Params) Validate() error {
 			return fmt.Errorf("stability fee must be ≥ 1.0, is %s for %s", cp.StabilityFee, cp.Denom)
 		}
 	}
-	if collateralParamsDebtLimit.IsAnyGT(p.GlobalDebtLimit) {
-		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
-			p.GlobalDebtLimit, collateralParamsDebtLimit)
+
+	return nil
+}
+
+func validateDebtParams(i interface{}) error {
+	debtParams, ok := i.(DebtParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	// validate global params
-	if p.GlobalDebtLimit.IsAnyNegative() {
-		return fmt.Errorf("global debt limit should be positive for all debt tokens, is %s", p.GlobalDebtLimit)
-	}
-	if !p.SurplusAuctionThreshold.IsPositive() {
-		return fmt.Errorf("surplus auction threshold should be positive, is %s", p.SurplusAuctionThreshold)
-	}
-	if !p.DebtAuctionThreshold.IsPositive() {
-		return fmt.Errorf("debt auction threshold should be positive, is %s", p.DebtAuctionThreshold)
+	// validate debt params
+	debtDenoms := make(map[string]bool)
+	for _, dp := range debtParams {
+		if strings.TrimSpace(dp.Denom) == "" {
+			return fmt.Errorf("debt denom cannot be blank %s", dp)
+		}
+
+		_, found := debtDenoms[dp.Denom]
+		if found {
+			return fmt.Errorf("duplicate debt denom: %s", dp.Denom)
+		}
+
+		if dp.SavingsRate.LT(sdk.ZeroDec()) || dp.SavingsRate.GT(sdk.OneDec()) {
+			return fmt.Errorf("savings rate should be between 0 and 1, is %s for %s", dp.SavingsRate, dp.Denom)
+		}
+
+		debtDenoms[dp.Denom] = true
 	}
 
-	if p.SavingsDistributionFrequency.Seconds() <= float64(0) {
-		return fmt.Errorf("savings distribution frequency should be positive, is %s", p.SavingsDistributionFrequency)
+	return nil
+}
+
+func validateCircuitBreakerParam(i interface{}) error {
+	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
 	}
+
+	return nil
+}
+
+func validateSurplusAuctionThresholdParam(i interface{}) error {
+	sat, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if !sat.IsPositive() {
+		return fmt.Errorf("surplus auction threshold should be positive: %s", sat)
+	}
+
+	return nil
+}
+
+func validateDebtAuctionThresholdParam(i interface{}) error {
+	dat, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if !dat.IsPositive() {
+		return fmt.Errorf("debt auction threshold should be positive: %s", dat)
+	}
+
+	return nil
+}
+
+func validateSavingsDistributionFrequencyParam(i interface{}) error {
+	sdf, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if sdf.Seconds() <= float64(0) {
+		return fmt.Errorf("savings distribution frequency should be positive: %s", sdf)
+	}
+
 	return nil
 }

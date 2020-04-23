@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tendermint/tendermint/libs/kv"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding cdp type
-func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
+func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.CdpIDKeyPrefix):
 		var cdpIDsA, cdpIDsB []uint64

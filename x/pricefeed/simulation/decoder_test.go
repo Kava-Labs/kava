@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,10 +28,10 @@ func TestDecodeDistributionStore(t *testing.T) {
 	currentPrice := types.CurrentPrice{MarketID: "current", Price: sdk.OneDec()}
 	postedPrice := []types.PostedPrice{{MarketID: "posted", Price: sdk.OneDec(), Expiry: time.Now().UTC()}}
 
-	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: []byte(types.CurrentPricePrefix), Value: cdc.MustMarshalBinaryBare(currentPrice)},
-		cmn.KVPair{Key: []byte(types.RawPriceFeedPrefix), Value: cdc.MustMarshalBinaryBare(postedPrice)},
-		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
+	kvPairs := kv.Pairs{
+		kv.Pair{Key: []byte(types.CurrentPricePrefix), Value: cdc.MustMarshalBinaryBare(currentPrice)},
+		kv.Pair{Key: []byte(types.RawPriceFeedPrefix), Value: cdc.MustMarshalBinaryBare(postedPrice)},
+		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
 	tests := []struct {

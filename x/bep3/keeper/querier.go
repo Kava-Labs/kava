@@ -1,15 +1,18 @@
 package keeper
 
 import (
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/bep3/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // NewQuerier is the module level router for state queries
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetAssetSupply:
 			return queryAssetSupply(ctx, req, keeper)
@@ -20,57 +23,57 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown bep3 query endpoint")
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
 
-func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAssetSupply
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	assetSupply, found := keeper.GetAssetSupply(ctx, []byte(requestParams.Denom))
 	if !found {
-		return nil, sdk.ErrInternal("Not found")
+		return nil, sdkerrors.Wrap(types.ErrAssetSupplyNotFound, string(requestParams.Denom))
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, assetSupply)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, assetSupply)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
 }
 
-func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAtomicSwapByID
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	// Lookup atomic swap
 	atomicSwap, found := keeper.GetAtomicSwap(ctx, requestParams.SwapID)
 	if !found {
-		return nil, sdk.ErrInternal("Not found")
+		return nil, sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", requestParams.SwapID)
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, atomicSwap)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, atomicSwap)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
 }
 
-func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err sdk.Error) {
+func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
 	var swaps types.AtomicSwaps
 
 	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
@@ -78,23 +81,23 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (re
 		return false
 	})
 
-	bz, err2 := codec.MarshalJSONIndent(keeper.cdc, swaps)
+	bz, err2 := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
 	if err2 != nil {
-		return nil, sdk.ErrInternal("could not marshal result to JSON")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
 }
 
 // query params in the bep3 store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, params)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }

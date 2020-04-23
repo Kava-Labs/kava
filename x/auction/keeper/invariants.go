@@ -21,7 +21,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 		ValidIndexInvariant(k))
 }
 
-// ModuleAccountInvariant checks that the module account's coins matches those stored in auctions
+// ModuleAccountInvariants checks that the module account's coins matches those stored in auctions
 func ModuleAccountInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 
@@ -31,7 +31,7 @@ func ModuleAccountInvariants(k Keeper) sdk.Invariant {
 			if !ok {
 				panic("stored auction type does not fulfill GenesisAuction interface")
 			}
-			totalAuctionCoins = totalAuctionCoins.Add(a.GetModuleAccountCoins())
+			totalAuctionCoins = totalAuctionCoins.Add(a.GetModuleAccountCoins()...)
 			return false
 		})
 

@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // ensure Msg interface compliance at compile time
@@ -31,12 +33,12 @@ func (msg MsgPlaceBid) Route() string { return RouterKey }
 func (msg MsgPlaceBid) Type() string { return "place_bid" }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
-func (msg MsgPlaceBid) ValidateBasic() sdk.Error {
+func (msg MsgPlaceBid) ValidateBasic() error {
 	if msg.Bidder.Empty() {
-		return sdk.ErrInvalidAddress("invalid (empty) bidder address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "bidder address cannot be empty")
 	}
 	if !msg.Amount.IsValid() {
-		return sdk.ErrInvalidCoins(fmt.Sprintf("invalid bid amount: %s", msg.Amount))
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bid amount %s", msg.Amount)
 	}
 	return nil
 }
@@ -50,4 +52,13 @@ func (msg MsgPlaceBid) GetSignBytes() []byte {
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgPlaceBid) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Bidder}
+}
+
+func (msg MsgPlaceBid) String() string {
+	// String implements the Stringer interface
+	return fmt.Sprintf(`Place Bid Message:
+	Auction ID:         %d
+	Bidder: %s
+	Amount: %s
+`, msg.AuctionID, msg.Bidder, msg.Amount)
 }

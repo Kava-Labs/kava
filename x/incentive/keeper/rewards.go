@@ -81,9 +81,10 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 			k.AddToClaim(ctx, cdp.Owner, rp.Denom, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
 			return false
 		})
-		if expired {
-			k.HandleRewardPeriodExpiry(ctx, rp)
+		if !expired {
+			return false
 		}
+		k.HandleRewardPeriodExpiry(ctx, rp)
 		return false
 	})
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())

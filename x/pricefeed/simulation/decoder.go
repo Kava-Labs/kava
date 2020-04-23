@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding pricefeed type
-func DecodeStore(cdc *codec.Codec, kvA, kvB cmn.KVPair) string {
+func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 	case bytes.Contains(kvA.Key, []byte(types.CurrentPricePrefix)):
 		var priceA, priceB types.CurrentPrice

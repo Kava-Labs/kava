@@ -3,18 +3,21 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/types"
-	"github.com/stretchr/testify/suite"
-	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 type AtomicSwapTestSuite struct {
 	suite.Suite
 	addrs              []sdk.AccAddress
 	timestamps         []int64
-	randomNumberHashes []cmn.HexBytes
+	randomNumberHashes []tmbytes.HexBytes
 }
 
 func (suite *AtomicSwapTestSuite) SetupTest() {
@@ -25,7 +28,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 
 	// Generate 10 timestamps and random number hashes
 	var timestamps []int64
-	var randomNumberHashes []cmn.HexBytes
+	var randomNumberHashes []tmbytes.HexBytes
 	for i := 0; i < 10; i++ {
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
@@ -43,7 +46,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 	type args struct {
 		amount              sdk.Coins
-		randomNumberHash    cmn.HexBytes
+		randomNumberHash    tmbytes.HexBytes
 		expireHeight        int64
 		timestamp           int64
 		sender              sdk.AccAddress
@@ -127,7 +130,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 			suite.Nil(swap.Validate())
 			suite.Equal(tc.args.amount, swap.GetModuleAccountCoins())
 			expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender, tc.args.senderOtherChain)
-			suite.Equal(cmn.HexBytes(expectedSwapID), swap.GetSwapID())
+			suite.Equal(tmbytes.HexBytes(expectedSwapID), swap.GetSwapID())
 		} else {
 			suite.Error(swap.Validate())
 		}

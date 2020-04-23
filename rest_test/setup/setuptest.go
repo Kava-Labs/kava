@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -398,8 +399,8 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 
 	// get the account number and sequence number
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-
-	txBldr := auth.NewTxBuilderFromCLI().
+	inBuf := bufio.NewReader(os.Stdin)
+	txBldr := auth.NewTxBuilderFromCLI(inBuf).
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
 		WithSequence(sequenceNumber).WithGas(500000)

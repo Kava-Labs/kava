@@ -6,8 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,17 +33,17 @@ func TestDecodeDistributionStore(t *testing.T) {
 	prevDistTime := time.Now().UTC()
 	cdp := types.CDP{ID: 1, FeesUpdated: prevDistTime, Collateral: oneCoins, Principal: oneCoins, AccumulatedFees: oneCoins}
 
-	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: types.CdpIDKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdpIds)},
-		cmn.KVPair{Key: types.CdpKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdp)},
-		cmn.KVPair{Key: types.CdpIDKey, Value: sdk.Uint64ToBigEndian(2)},
-		cmn.KVPair{Key: types.CollateralRatioIndexPrefix, Value: sdk.Uint64ToBigEndian(10)},
-		cmn.KVPair{Key: []byte(types.DebtDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
-		cmn.KVPair{Key: []byte(types.GovDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
-		cmn.KVPair{Key: []byte(types.DepositKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(deposit)},
-		cmn.KVPair{Key: []byte(types.PrincipalKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(principal)},
-		cmn.KVPair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevDistTime)},
-		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
+	kvPairs := kv.Pairs{
+		kv.Pair{Key: types.CdpIDKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdpIds)},
+		kv.Pair{Key: types.CdpKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdp)},
+		kv.Pair{Key: types.CdpIDKey, Value: sdk.Uint64ToBigEndian(2)},
+		kv.Pair{Key: types.CollateralRatioIndexPrefix, Value: sdk.Uint64ToBigEndian(10)},
+		kv.Pair{Key: []byte(types.DebtDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
+		kv.Pair{Key: []byte(types.GovDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
+		kv.Pair{Key: []byte(types.DepositKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(deposit)},
+		kv.Pair{Key: []byte(types.PrincipalKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(principal)},
+		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevDistTime)},
+		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
 	tests := []struct {

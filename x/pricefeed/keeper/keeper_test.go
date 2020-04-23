@@ -67,7 +67,8 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		time.Now().Add(1*time.Hour))
 	require.NoError(t, err)
 	// Get raw prices
-	rawPrices := keeper.GetRawPrices(ctx, "tstusd")
+	rawPrices, err := keeper.GetRawPrices(ctx, "tstusd")
+	require.NoError(t, err)
 	require.Equal(t, len(rawPrices), 1)
 	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.33")), true)
 	// Set price by oracle 2
@@ -77,7 +78,8 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
-	rawPrices = keeper.GetRawPrices(ctx, "tstusd")
+	rawPrices, err = keeper.GetRawPrices(ctx, "tstusd")
+	require.NoError(t, err)
 	require.Equal(t, len(rawPrices), 2)
 	require.Equal(t, rawPrices[1].Price.Equal(sdk.MustNewDecFromStr("0.35")), true)
 
@@ -87,7 +89,8 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		sdk.MustNewDecFromStr("0.37"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
-	rawPrices = keeper.GetRawPrices(ctx, "tstusd")
+	rawPrices, err = keeper.GetRawPrices(ctx, "tstusd")
+	require.NoError(t, err)
 	require.Equal(t, rawPrices[0].Price.Equal(sdk.MustNewDecFromStr("0.37")), true)
 }
 

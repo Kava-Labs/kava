@@ -1,8 +1,6 @@
 package types
 
-import (
-	cmn "github.com/tendermint/tendermint/libs/common"
-)
+import tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 const (
 	// QueryGetAssetSupply command for getting info about an asset's supply
@@ -17,11 +15,11 @@ const (
 
 // QueryAssetSupply contains the params for query 'custom/bep3/supply'
 type QueryAssetSupply struct {
-	Denom cmn.HexBytes `json:"denom" yaml:"denom"`
+	Denom tmbytes.HexBytes `json:"denom" yaml:"denom"`
 }
 
 // NewQueryAssetSupply creates a new QueryAssetSupply
-func NewQueryAssetSupply(denom cmn.HexBytes) QueryAssetSupply {
+func NewQueryAssetSupply(denom tmbytes.HexBytes) QueryAssetSupply {
 	return QueryAssetSupply{
 		Denom: denom,
 	}
@@ -29,11 +27,11 @@ func NewQueryAssetSupply(denom cmn.HexBytes) QueryAssetSupply {
 
 // QueryAtomicSwapByID contains the params for query 'custom/bep3/swap'
 type QueryAtomicSwapByID struct {
-	SwapID cmn.HexBytes `json:"swap_id" yaml:"swap_id"`
+	SwapID tmbytes.HexBytes `json:"swap_id" yaml:"swap_id"`
 }
 
 // NewQueryAtomicSwapByID creates a new QueryAtomicSwapByID
-func NewQueryAtomicSwapByID(swapBytes cmn.HexBytes) QueryAtomicSwapByID {
+func NewQueryAtomicSwapByID(swapBytes tmbytes.HexBytes) QueryAtomicSwapByID {
 	return QueryAtomicSwapByID{
 		SwapID: swapBytes,
 	}

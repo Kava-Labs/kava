@@ -60,7 +60,7 @@ func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAc
 
 	pk := mApp.ParamsKeeper
 
-	bk := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), bank.DefaultCodespace, blacklistedAddrs)
+	bk := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 
 	maccPerms := map[string][]string{
 		types.ModuleName:          {supply.Burner},
@@ -69,7 +69,7 @@ func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAc
 	}
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bk, maccPerms)
 	sk := staking.NewKeeper(
-		mApp.Cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace), staking.DefaultCodespace,
+		mApp.Cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace),
 	)
 
 	keeper := keeper.NewKeeper(

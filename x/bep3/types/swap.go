@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 // Swap is an interface for handling common actions
 type Swap interface {
-	GetSwapID() cmn.HexBytes
+	GetSwapID() tmbytes.HexBytes
 	GetModuleAccountCoins() sdk.Coins
 	Validate() error
 }
@@ -19,22 +20,22 @@ type Swap interface {
 // AtomicSwap contains the information for an atomic swap
 type AtomicSwap struct {
 	Swap                `json:"swap" yaml:"swap"`
-	Amount              sdk.Coins      `json:"amount"  yaml:"amount"`
-	RandomNumberHash    cmn.HexBytes   `json:"random_number_hash"  yaml:"random_number_hash"`
-	ExpireHeight        int64          `json:"expire_height"  yaml:"expire_height"`
-	Timestamp           int64          `json:"timestamp"  yaml:"timestamp"`
-	Sender              sdk.AccAddress `json:"sender"  yaml:"sender"`
-	Recipient           sdk.AccAddress `json:"recipient"  yaml:"recipient"`
-	SenderOtherChain    string         `json:"sender_other_chain"  yaml:"sender_other_chain"`
-	RecipientOtherChain string         `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
-	ClosedBlock         int64          `json:"closed_block"  yaml:"closed_block"`
-	Status              SwapStatus     `json:"status"  yaml:"status"`
-	CrossChain          bool           `json:"cross_chain"  yaml:"cross_chain"`
-	Direction           SwapDirection  `json:"direction"  yaml:"direction"`
+	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
+	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
+	ExpireHeight        int64            `json:"expire_height"  yaml:"expire_height"`
+	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
+	Sender              sdk.AccAddress   `json:"sender"  yaml:"sender"`
+	Recipient           sdk.AccAddress   `json:"recipient"  yaml:"recipient"`
+	SenderOtherChain    string           `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
+	ClosedBlock         int64            `json:"closed_block"  yaml:"closed_block"`
+	Status              SwapStatus       `json:"status"  yaml:"status"`
+	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
+	Direction           SwapDirection    `json:"direction"  yaml:"direction"`
 }
 
 // NewAtomicSwap returns a new AtomicSwap
-func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight, timestamp int64, sender,
+func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight, timestamp int64, sender,
 	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
 	status SwapStatus, crossChain bool, direction SwapDirection) AtomicSwap {
 	return AtomicSwap{
@@ -54,7 +55,7 @@ func NewAtomicSwap(amount sdk.Coins, randomNumberHash cmn.HexBytes, expireHeight
 }
 
 // GetSwapID calculates the ID of an atomic swap
-func (a AtomicSwap) GetSwapID() cmn.HexBytes {
+func (a AtomicSwap) GetSwapID() tmbytes.HexBytes {
 	return CalculateSwapID(a.RandomNumberHash, a.Sender, a.SenderOtherChain)
 }
 
