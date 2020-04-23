@@ -136,20 +136,6 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	suite.Equal(oldtime, cdp2.FeesUpdated)
 }
 
-func (suite *FeeTestSuite) TestGetSetPreviousBlockTime() {
-	now := tmtime.Now()
-
-	_, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.False(f)
-
-	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, now) })
-
-	bpt, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.True(f)
-	suite.Equal(now, bpt)
-
-}
-
 func TestFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(FeeTestSuite))
 }

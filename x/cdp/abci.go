@@ -70,6 +70,5 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		}
 		k.SetPreviousSavingsDistribution(ctx, ctx.BlockTime())
 	}
-	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 	return
 }
