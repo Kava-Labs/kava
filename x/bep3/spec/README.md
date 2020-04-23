@@ -1,17 +1,13 @@
-# bep3 module specification
+# `bep3` module specification
+
+<!-- TOC -->
+1. **[Concepts](01_concepts.md)**
+2. **[State](02_state.md)**
+3. **[Messages](03_messages.md)**
+4. **[Events](04_events.md)**
+5. **[Params](05_params.md)**
+6. **[BeginBlock](06_begin_block.md)**
 
 ## Abstract
 
-<!-- TODO: Create a abstract definition of what this module does, what functionality does it enable and how it can be used. -->
-
-## Contents
-
-// TODO: Create the below files if they are needed.
-<!-- 1. **[Concepts](01_concepts.md)**
-2. **[State](02_state.md)**
-3. **[Messages](03_messages.md)**
-4. **[Begin-Block](04_begin_block.md)**
-5. **[End-Block](06_end_bloc.md)**
-6. **[05_hooks](06_hooks.md)**
-7. **[Events](07_events.md)**
-8. **[Parameters](08_params.md)** -->
+`x/bep3` is an implementation of a Cosmos SDK Module that handles cross-chain Atomic Swaps between Kava and blockchains that implement the BEP3 protocol. Atomic Swaps are created, then either claimed before their expiration block or refunded after they've expired.
