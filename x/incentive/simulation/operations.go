@@ -1,4 +1,4 @@
-package operations
+package simulation
 
 import (
 	"fmt"
@@ -12,19 +12,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 )
 
 var (
-	noOpMsg = simulation.NoOpMsg(incentive.ModuleName)
+	noOpMsg = simulation.NoOpMsg(types.ModuleName)
 )
 
 // SimulateMsgClaimReward generates a MsgClaimReward
 func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Keeper) simulation.Operation {
-	handler := incentive.NewHandler(k)
+	// handler := incentive.NewHandler(k)
 
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account) (
 		simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -71,7 +70,7 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 			return false
 		})
 		if !found {
-			return simulation.NewOperationMsgBasic(incentive.ModuleName,
+			return simulation.NewOperationMsgBasic(types.ModuleName,
 				"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 		}
 

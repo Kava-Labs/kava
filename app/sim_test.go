@@ -26,11 +26,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	auctionsimops "github.com/kava-labs/kava/x/auction/simulation/operations"
-	bep3simops "github.com/kava-labs/kava/x/bep3/simulation/operations"
-	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation/operations"
-	incentivesimops "github.com/kava-labs/kava/x/incentive/simulation/operations"
-	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation/operations"
+	auctionsimops "github.com/kava-labs/kava/x/auction/simulation"
+	bep3simops "github.com/kava-labs/kava/x/bep3/simulation"
+	cdpsimops "github.com/kava-labs/kava/x/cdp/simulation"
+	incentivesimops "github.com/kava-labs/kava/x/incentive/simulation"
+	pricefeedsimops "github.com/kava-labs/kava/x/pricefeed/simulation"
 )
 
 // Simulation parameter constants
@@ -58,7 +58,6 @@ const (
 	OpWeightMsgCreateAtomicSwap                        = "op_weight_msg_create_atomic_Swap"
 	OpWeightMsgCdp                                     = "op_weight_msg_cdp"
 	OpWeightMsgClaimReward                             = "op_weight_msg_claim_reward"
-)
 )
 
 type StoreKeysPrefixes struct {
