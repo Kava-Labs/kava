@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -106,7 +107,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 
 	type errArgs struct {
 		expectErr bool
-		code      sdk.CodeType
+		errType   error
 	}
 
 	type vestingAccountTest struct {
@@ -128,7 +129,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name:      "insert period into an existing vesting schedule",
 			blockTime: time.Unix(100, 0),
 			args:      args{coins: cs(c("ukava", 100)), length: 5},
-			errArgs:   errArgs{expectErr: false, code: sdk.CodeType(0)},
+			errArgs:   errArgs{expectErr: false, errType: nil},
 			expectedPeriods: vesting.Periods{
 				vesting.Period{Length: int64(1), Amount: cs(c("ukava", 100))},
 				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
@@ -145,7 +146,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name:      "append period to the end of an existing vesting schedule",
 			blockTime: time.Unix(100, 0),
 			args:      args{coins: cs(c("ukava", 100)), length: 17},
-			errArgs:   errArgs{expectErr: false, code: sdk.CodeType(0)},
+			errArgs:   errArgs{expectErr: false, errType: nil},
 			expectedPeriods: vesting.Periods{
 				vesting.Period{Length: int64(1), Amount: cs(c("ukava", 100))},
 				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
@@ -163,7 +164,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name:      "append period to the end of a completed vesting schedule",
 			blockTime: time.Unix(120, 0),
 			args:      args{coins: cs(c("ukava", 100)), length: 5},
-			errArgs:   errArgs{expectErr: false, code: sdk.CodeType(0)},
+			errArgs:   errArgs{expectErr: false, errType: nil},
 			expectedPeriods: vesting.Periods{
 				vesting.Period{Length: int64(1), Amount: cs(c("ukava", 100))},
 				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
@@ -182,7 +183,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name:      "prepend period to to an upcoming vesting schedule",
 			blockTime: time.Unix(90, 0),
 			args:      args{coins: cs(c("ukava", 100)), length: 5},
-			errArgs:   errArgs{expectErr: false, code: sdk.CodeType(0)},
+			errArgs:   errArgs{expectErr: false, errType: nil},
 			expectedPeriods: vesting.Periods{
 				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
 				vesting.Period{Length: int64(6), Amount: cs(c("ukava", 100))},
@@ -202,7 +203,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name:      "add period that coincides with an existing end time",
 			blockTime: time.Unix(90, 0),
 			args:      args{coins: cs(c("ukava", 100)), length: 11},
-			errArgs:   errArgs{expectErr: false, code: sdk.CodeType(0)},
+			errArgs:   errArgs{expectErr: false, errType: nil},
 			expectedPeriods: vesting.Periods{
 				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
 				vesting.Period{Length: int64(6), Amount: cs(c("ukava", 200))},
@@ -222,7 +223,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			name:                    "insufficient module account balance",
 			blockTime:               time.Unix(90, 0),
 			args:                    args{coins: cs(c("ukava", 1000)), length: 11},
-			errArgs:                 errArgs{expectErr: true, code: types.CodeInsufficientBalance},
+			errArgs:                 errArgs{expectErr: true, errType: types.ErrInsufficientModAccountBalance},
 			expectedPeriods:         vesting.Periods{},
 			expectedOriginalVesting: sdk.Coins{},
 			expectedCoins:           sdk.Coins{},
@@ -236,7 +237,7 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			suite.ctx = suite.ctx.WithBlockTime(tc.blockTime)
 			err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[0], tc.args.coins, tc.args.length)
 			if tc.errArgs.expectErr {
-				suite.Equal(tc.errArgs.code, err.Result().Code)
+				suite.Require().True(errors.Is(err, tc.errArgs.errType))
 			} else {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(suite.addrs[0])
@@ -274,10 +275,10 @@ func (suite *KeeperTestSuite) TestSendCoinsToBaseAccount() {
 func (suite *KeeperTestSuite) TestSendCoinsToInvalidAccount() {
 	suite.setupChain()
 	err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, suite.addrs[2], cs(c("ukava", 100)), 5)
-	suite.Equal(types.CodeInvalidAccountType, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
 	macc := suite.getModuleAccount(cdp.ModuleName)
 	err = suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, kavadist.ModuleName, macc.GetAddress(), cs(c("ukava", 100)), 5)
-	suite.Equal(types.CodeInvalidAccountType, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
 }
 
 func (suite *KeeperTestSuite) TestPayoutClaim() {
@@ -318,10 +319,10 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 
 	// addrs[3] has no claims
 	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[3], "bnb", 1)
-	suite.Equal(types.CodeClaimNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrClaimNotFound))
 	// addrs[0] has an xrp claim, but there is not corresponding claim period
 	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[0], "xrp", 1)
-	suite.Equal(types.CodeClaimPeriodNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrClaimPeriodNotFound))
 }
 
 func (suite *KeeperTestSuite) TestDeleteExpiredClaimPeriods() {

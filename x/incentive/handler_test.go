@@ -65,8 +65,9 @@ func (suite *HandlerTestSuite) addClaim() {
 func (suite *HandlerTestSuite) TestMsgClaimReward() {
 	suite.addClaim()
 	msg := incentive.NewMsgClaimReward(suite.addrs[0], "bnb")
-	res := suite.handler(suite.ctx, msg)
-	suite.True(res.IsOK())
+	res, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+	suite.Require().NotNil(res)
 }
 func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
