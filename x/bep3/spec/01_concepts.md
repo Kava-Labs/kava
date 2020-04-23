@@ -2,7 +2,6 @@
 
  The BEP3 module implements the [BEP3 protocol](https://github.com/binance-chain/BEPs/blob/master/BEP3.md) for secure cross-chain asset transfers between Kava and other BEP3 compatible chains, such as Binance Chain. Tranactions are witnessed and relayed between the two blockchains by Binance's BEP3 deputy process. The deputy maintains an address on both chains and is responsible for delivering tokens upon the successful completion of an Atomic Swap. Learn more about the BEP3 deputy process [here](https://github.com/binance-chain/bep3-deputy).
 
-<!-- markdown-link-check-disable -->
 ## Requirements
 Kava
 - The deputy’s Kava testnet-5000 address is **kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29**.
@@ -13,7 +12,6 @@ Binance Chain
 - We recommend using https://testnet-dex.binance.org/ as Binance Chain’s API endpoint.
 
 Kava's [JavaScript SDK](https://github.com/Kava-Labs/javascript-sdk) and Binance Chain’s [JavaScript SDK](https://github.com/binance-chain/javascript-sdk) can be used to create, claim, and refund swaps.
-<!-- markdown-link-check-enable -->
 
 ## Binance Chain to Kava
 
