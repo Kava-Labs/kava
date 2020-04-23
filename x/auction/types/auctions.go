@@ -204,7 +204,7 @@ func (a CollateralAuction) GetType() string { return "collateral" }
 // It is used in genesis initialize the module account correctly.
 func (a CollateralAuction) GetModuleAccountCoins() sdk.Coins {
 	// a.Bid is paid out on bids, so is never stored in the module account
-	return sdk.NewCoins(a.Lot).Add(sdk.NewCoins(a.CorrespondingDebt))
+	return sdk.NewCoins(a.Lot).Add(sdk.NewCoins(a.CorrespondingDebt)...)
 }
 
 // IsReversePhase returns whether the auction has switched over to reverse phase or not.
@@ -276,24 +276,25 @@ type WeightedAddresses struct {
 }
 
 // NewWeightedAddresses returns a new list addresses with weights.
-func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, sdk.Error) {
+func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, error) {
 	wa := WeightedAddresses{
 		Addresses: addrs,
 		Weights:   weights,
 	}
 	if err := wa.Validate(); err != nil {
-		return WeightedAddresses{}, sdk.ErrInternal(err.Error())
+		return WeightedAddresses{}, err
 	}
 	return wa, nil
 }
 
+// Validate checks for that the weights are not negative and that lengths match.
 func (wa WeightedAddresses) Validate() error {
 	if len(wa.Addresses) != len(wa.Weights) {
-		return fmt.Errorf("number of addresses doesn't match number of weights")
+		return fmt.Errorf("number of addresses doesn't match number of weights, %d ≠ %d", len(wa.Addresses), len(wa.Weights))
 	}
 	for _, w := range wa.Weights {
 		if w.IsNegative() {
-			return fmt.Errorf("weights contain a negative amount")
+			return fmt.Errorf("weights contain a negative amount: %s", w)
 		}
 	}
 	return nil

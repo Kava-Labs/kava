@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -92,7 +93,7 @@ func (suite *AssetTestSuite) TestValidateLiveAsset() {
 	testCases := []struct {
 		name          string
 		args          args
-		expectedError sdk.CodeType
+		expectedError error
 		expectPass    bool
 	}{
 		{
@@ -100,7 +101,7 @@ func (suite *AssetTestSuite) TestValidateLiveAsset() {
 			args{
 				coin: c("bnb", 1),
 			},
-			sdk.CodeType(0),
+			nil,
 			true,
 		},
 		{
@@ -108,7 +109,7 @@ func (suite *AssetTestSuite) TestValidateLiveAsset() {
 			args{
 				coin: c("bad", 1),
 			},
-			types.CodeAssetNotSupported,
+			types.ErrAssetNotSupported,
 			false,
 		},
 		{
@@ -116,7 +117,7 @@ func (suite *AssetTestSuite) TestValidateLiveAsset() {
 			args{
 				coin: c("inc", 1),
 			},
-			types.CodeAssetNotActive,
+			types.ErrAssetNotActive,
 			false,
 		},
 	}
@@ -127,10 +128,10 @@ func (suite *AssetTestSuite) TestValidateLiveAsset() {
 			err := suite.keeper.ValidateLiveAsset(suite.ctx, tc.args.coin)
 
 			if tc.expectPass {
-				suite.NoError(err)
+				suite.Require().NoError(err)
 			} else {
-				suite.Error(err)
-				suite.Equal(tc.expectedError, err.Result().Code)
+				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expectedError))
 			}
 		})
 	}

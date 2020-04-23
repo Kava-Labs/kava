@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -23,7 +23,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "Querying commands for the cdp module",
 	}
 
-	cdpQueryCmd.AddCommand(client.GetCommands(
+	cdpQueryCmd.AddCommand(flags.GetCommands(
 		QueryCdpCmd(queryRoute, cdc),
 		QueryCdpsByDenomCmd(queryRoute, cdc),
 		QueryCdpsByDenomAndRatioCmd(queryRoute, cdc),
@@ -131,9 +131,9 @@ $ %s query %s cdps-by-ratio uatom 1.5
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Prepare params for querier
-			ratio, errSdk := sdk.NewDecFromStr(args[1])
-			if errSdk != nil {
-				return fmt.Errorf(errSdk.Error())
+			ratio, err := sdk.NewDecFromStr(args[1])
+			if err != nil {
+				return err
 			}
 			bz, err := cdc.MarshalJSON(types.QueryCdpsByRatioParams{
 				CollateralDenom: args[0],

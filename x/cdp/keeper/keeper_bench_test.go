@@ -115,7 +115,7 @@ func BenchmarkCdpIteration(b *testing.B) {
 
 }
 
-var errResult sdk.Error
+var errResult error
 
 func BenchmarkCdpCreation(b *testing.B) {
 	tApp := app.NewTestApp()

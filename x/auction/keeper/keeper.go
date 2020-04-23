@@ -18,7 +18,6 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
-	codespace     sdk.CodespaceType
 }
 
 // NewKeeper returns a new auction keeper.
@@ -26,11 +25,16 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.Suppl
 	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
+
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		supplyKeeper:  supplyKeeper,
 		storeKey:      storeKey,
 		cdc:           cdc,
-		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
+		paramSubspace: paramstore,
 	}
 }
 
@@ -46,17 +50,17 @@ func (k Keeper) SetNextAuctionID(ctx sdk.Context, id uint64) {
 }
 
 // GetNextAuctionID reads the next available global ID from store
-func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, sdk.Error) {
+func (k Keeper) GetNextAuctionID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextAuctionIDKey)
 	if bz == nil {
-		return 0, types.ErrInvalidInitialAuctionID(k.codespace)
+		return 0, types.ErrInvalidInitialAuctionID
 	}
 	return types.Uint64FromBytes(bz), nil
 }
 
 // IncrementNextAuctionID increments the next auction ID in the store by 1.
-func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) sdk.Error {
+func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) error {
 	id, err := k.GetNextAuctionID(ctx)
 	if err != nil {
 		return err
@@ -66,7 +70,7 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) sdk.Error {
 }
 
 // StoreNewAuction stores an auction, adding a new ID
-func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64, sdk.Error) {
+func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64, error) {
 	newAuctionID, err := k.GetNextAuctionID(ctx)
 	if err != nil {
 		return 0, err

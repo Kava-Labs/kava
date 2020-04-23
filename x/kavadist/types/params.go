@@ -33,6 +33,15 @@ type Period struct {
 	Inflation sdk.Dec   `json:"inflation" yaml:"inflation"` // example "1.000000003022265980"  - 10% inflation
 }
 
+// NewPeriod returns a new instance of Period
+func NewPeriod(start time.Time, end time.Time, inflation sdk.Dec) Period {
+	return Period{
+		Start:     start,
+		End:       end,
+		Inflation: inflation,
+	}
+}
+
 // String implements fmt.Stringer
 func (pr Period) String() string {
 	return fmt.Sprintf(`Period:
@@ -81,22 +90,52 @@ func ParamKeyTable() params.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyActive, Value: &p.Active},
-		{Key: KeyPeriods, Value: &p.Periods},
+		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
+		params.NewParamSetPair(KeyPeriods, &p.Periods, validatePeriodsParams),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
+	if err := validateActiveParam(p.Active); err != nil {
+		return err
+	}
+
+	return validatePeriodsParams(p.Periods)
+}
+
+func validateActiveParam(i interface{}) error {
+	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
+func validatePeriodsParams(i interface{}) error {
+	periods, ok := i.(Periods)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
 	prevEnd := tmtime.Canonical(time.Unix(0, 0))
-	for _, pr := range p.Periods {
+	for _, pr := range periods {
 		if pr.End.Before(pr.Start) {
 			return fmt.Errorf("end time for period is before start time: %s", pr)
 		}
+
 		if pr.Start.Before(prevEnd) {
-			return fmt.Errorf("periods must be in chronological order: %s", p.Periods)
+			return fmt.Errorf("periods must be in chronological order: %s", periods)
 		}
 		prevEnd = pr.End
+
+		if pr.Start.IsZero() || pr.End.IsZero() {
+			return fmt.Errorf("start or end time cannot be zero: %s", pr)
+		}
+
+		//TODO: validate period Inflation?
 	}
+
 	return nil
 }

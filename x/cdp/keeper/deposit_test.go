@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,10 +77,10 @@ func (suite *DepositTestSuite) TestDepositCollateral() {
 	suite.Equal(i(90000000), acc.GetCoins().AmountOf("xrp"))
 
 	err = suite.keeper.DepositCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("btc", 1)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 
 	err = suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 1)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 
 	err = suite.keeper.DepositCollateral(suite.ctx, suite.addrs[0], suite.addrs[1], cs(c("xrp", 10000000)))
 	suite.NoError(err)
@@ -94,17 +95,17 @@ func (suite *DepositTestSuite) TestDepositCollateral() {
 
 func (suite *DepositTestSuite) TestWithdrawCollateral() {
 	err := suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 400000000)))
-	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 321000000)))
-	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], cs(c("xrp", 10000000)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 
 	cd, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	cd.AccumulatedFees = cs(c("usdx", 1))
 	suite.keeper.SetCDP(suite.ctx, cd)
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 320000000)))
-	suite.Equal(types.CodeInvalidCollateralRatio, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], cs(c("xrp", 10000000)))
 	suite.NoError(err)
@@ -116,7 +117,7 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 	suite.Equal(i(110000000), acc.GetCoins().AmountOf("xrp"))
 
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[1], cs(c("xrp", 10000000)))
-	suite.Equal(types.CodeDepositNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrDepositNotFound))
 }
 
 func TestDepositTestSuite(t *testing.T) {

@@ -58,7 +58,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 		}
 		k.SetCDP(ctx, cdp)
 		k.IndexCdpByOwner(ctx, cdp)
-		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, ratio)
 		k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, cdp.Principal)
 	}

@@ -43,7 +43,7 @@ func (pd partialDeposits) SumDebt() (sum sdk.Int) {
 }
 
 // AuctionCollateral creates auctions from the input deposits which attempt to raise the corresponding amount of debt
-func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt sdk.Int, bidDenom string) sdk.Error {
+func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt sdk.Int, bidDenom string) error {
 	auctionSize := k.getAuctionSize(ctx, deposits[0].Amount[0].Denom)
 	partialAuctionDeposits := partialDeposits{}
 	totalCollateral := deposits.SumCollateral()
@@ -110,7 +110,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 }
 
 // CreateAuctionsFromDeposit creates auctions from the input deposit until there is less than auctionSize left on the deposit
-func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep types.Deposit, debt sdk.Int, totalCollateral sdk.Int, auctionSize sdk.Int, principalDenom string) (debtChange sdk.Int, collateralChange sdk.Int, err sdk.Error) {
+func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep types.Deposit, debt sdk.Int, totalCollateral sdk.Int, auctionSize sdk.Int, principalDenom string) (debtChange sdk.Int, collateralChange sdk.Int, err error) {
 	debtChange = sdk.ZeroInt()
 	collateralChange = sdk.ZeroInt()
 	depositAmount := dep.Amount[0].Amount
@@ -138,7 +138,7 @@ func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep types.Deposit, de
 }
 
 // CreateAuctionFromPartialDeposits creates an auction from the input partial deposits
-func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps partialDeposits, debt sdk.Int, collateral sdk.Int, auctionSize sdk.Int, bidDenom string) (debtChange, collateralChange sdk.Int, err sdk.Error) {
+func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps partialDeposits, debt sdk.Int, collateral sdk.Int, auctionSize sdk.Int, bidDenom string) (debtChange, collateralChange sdk.Int, err error) {
 
 	returnAddrs := []sdk.AccAddress{}
 	returnWeights := []sdk.Int{}
@@ -159,7 +159,7 @@ func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps pa
 
 // NetSurplusAndDebt burns surplus and debt coins equal to the minimum of surplus and debt balances held by the liquidator module account
 // for example, if there is 1000 debt and 100 surplus, 100 surplus and 100 debt are burned, netting to 900 debt
-func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) sdk.Error {
+func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 	totalSurplus := k.GetTotalSurplus(ctx, types.LiquidatorMacc)
 	debt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	netAmount := sdk.MinInt(totalSurplus, debt)
@@ -210,7 +210,7 @@ func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
 }
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
-func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) sdk.Error {
+func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 	k.NetSurplusAndDebt(ctx)
 	remainingDebt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	params := k.GetParams(ctx)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
@@ -39,7 +40,7 @@ func ParamKeyTable() params.KeyTable {
 // pairs of pricefeed module's parameters.
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeyMarkets, Value: &p.Markets},
+		params.NewParamSetPair(KeyMarkets, &p.Markets, validateMarketParams),
 	}
 }
 
@@ -54,11 +55,21 @@ func (p Params) String() string {
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
+	return validateMarketParams(p.Markets)
+}
+
+func validateMarketParams(i interface{}) error {
+	markets, ok := i.(Markets)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
 	// iterate over assets and verify them
-	for _, asset := range p.Markets {
-		if asset.MarketID == "" {
-			return fmt.Errorf("invalid market: %s. missing market ID", asset.String())
+	for _, asset := range markets {
+		if strings.TrimSpace(asset.MarketID) == "" {
+			return sdkerrors.Wrapf(ErrInvalidMarket, "market id for asset %s cannot be blank", asset)
 		}
 	}
+
 	return nil
 }

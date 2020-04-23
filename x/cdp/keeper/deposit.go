@@ -5,23 +5,24 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // DepositCollateral adds collateral to a cdp
-func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coins) sdk.Error {
+func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coins) error {
 	err := k.ValidateCollateral(ctx, collateral)
 	if err != nil {
 		return err
 	}
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateral[0].Denom)
 	}
 
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if found {
-		deposit.Amount = deposit.Amount.Add(collateral)
+		deposit.Amount = deposit.Amount.Add(collateral...)
 	} else {
 		deposit = types.NewDeposit(cdp.ID, depositor, collateral)
 	}
@@ -40,45 +41,45 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 	k.SetDeposit(ctx, deposit)
 
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
-	cdp.Collateral = cdp.Collateral.Add(collateral)
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	cdp.Collateral = cdp.Collateral.Add(collateral...)
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	return nil
 }
 
 // WithdrawCollateral removes collateral from a cdp if it does not put the cdp below the liquidation ratio
-func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coins) sdk.Error {
+func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coins) error {
 	err := k.ValidateCollateral(ctx, collateral)
 	if err != nil {
 		return err
 	}
 	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateral[0].Denom)
 	if !found {
-		return types.ErrCdpNotFound(k.codespace, owner, collateral[0].Denom)
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateral[0].Denom)
 	}
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if !found {
-		return types.ErrDepositNotFound(k.codespace, depositor, cdp.ID)
+		return sdkerrors.Wrapf(types.ErrDepositNotFound, "depositor %s, collateral %s", depositor, collateral[0].Denom)
 	}
 	if collateral.IsAnyGT(deposit.Amount) {
-		return types.ErrInvalidWithdrawAmount(k.codespace, collateral, deposit.Amount)
+		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 
 	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral[0].Denom)
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees.Add(fees))
+	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees.Add(fees...))
 	if err != nil {
 		return err
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateral[0].Denom)
 	if collateralizationRatio.LT(liquidationRatio) {
-		return types.ErrInvalidCollateralRatio(k.codespace, collateral[0].Denom, collateralizationRatio, liquidationRatio)
+		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "colateral %s, collateral ratio %s, liquidation ration %s", collateral[0].Denom, collateralizationRatio, liquidationRatio)
 	}
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -92,13 +93,13 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	if err != nil {
 		panic(err)
 	}
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 
 	deposit.Amount = deposit.Amount.Sub(collateral)

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // Assert ValidatorVestingAccount implements the vestexported.VestingAccount interface
@@ -143,7 +145,7 @@ func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins
 		x := blockTime.Unix() - currentPeriodStartTime
 		if x >= vva.VestingPeriods[i].Length {
 			if vva.VestingPeriodProgress[i].PeriodComplete {
-				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].Amount)
+				vestedCoins = vestedCoins.Add(vva.VestingPeriods[i].Amount...)
 			}
 			currentPeriodStartTime += vva.VestingPeriods[i].Length
 		} else {
@@ -161,7 +163,7 @@ func (vva ValidatorVestingAccount) GetFailedVestedCoins() sdk.Coins {
 	for i := 0; i < numberPeriods; i++ {
 		if vva.VestingPeriodProgress[i].PeriodComplete {
 			if !vva.VestingPeriodProgress[i].VestingSuccessful {
-				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].Amount)
+				failedVestedCoins = failedVestedCoins.Add(vva.VestingPeriods[i].Amount...)
 			}
 		} else {
 			break
@@ -199,6 +201,97 @@ func (vva ValidatorVestingAccount) Validate() error {
 	return vva.PeriodicVestingAccount.Validate()
 }
 
+type validatorVestingAccountPretty struct {
+	Address                sdk.AccAddress        `json:"address" yaml:"address"`
+	Coins                  sdk.Coins             `json:"coins" yaml:"coins"`
+	PubKey                 string                `json:"public_key" yaml:"public_key"`
+	AccountNumber          uint64                `json:"account_number" yaml:"account_number"`
+	Sequence               uint64                `json:"sequence" yaml:"sequence"`
+	OriginalVesting        sdk.Coins             `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree          sdk.Coins             `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting       sdk.Coins             `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime                int64                 `json:"end_time" yaml:"end_time"`
+	StartTime              int64                 `json:"start_time" yaml:"start_time"`
+	VestingPeriods         vestingtypes.Periods  `json:"vesting_periods" yaml:"vesting_periods"`
+	ValidatorAddress       sdk.ConsAddress       `json:"validator_address" yaml:"validator_address"`
+	ReturnAddress          sdk.AccAddress        `json:"return_address" yaml:"return_address"`
+	SigningThreshold       int64                 `json:"signing_threshold" yaml:"signing_threshold"`
+	CurrentPeriodProgress  CurrentPeriodProgress `json:"current_period_progress" yaml:"current_period_progress"`
+	VestingPeriodProgress  []VestingProgress     `json:"vesting_period_progress" yaml:"vesting_period_progress"`
+	DebtAfterFailedVesting sdk.Coins             `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
+}
+
+// MarshalJSON returns the JSON representation of a PeriodicVestingAccount.
+func (vva ValidatorVestingAccount) MarshalJSON() ([]byte, error) {
+	alias := validatorVestingAccountPretty{
+		Address:                vva.Address,
+		Coins:                  vva.Coins,
+		AccountNumber:          vva.AccountNumber,
+		Sequence:               vva.Sequence,
+		OriginalVesting:        vva.OriginalVesting,
+		DelegatedFree:          vva.DelegatedFree,
+		DelegatedVesting:       vva.DelegatedVesting,
+		EndTime:                vva.EndTime,
+		StartTime:              vva.StartTime,
+		VestingPeriods:         vva.VestingPeriods,
+		ValidatorAddress:       vva.ValidatorAddress,
+		ReturnAddress:          vva.ReturnAddress,
+		SigningThreshold:       vva.SigningThreshold,
+		CurrentPeriodProgress:  vva.CurrentPeriodProgress,
+		VestingPeriodProgress:  vva.VestingPeriodProgress,
+		DebtAfterFailedVesting: vva.DebtAfterFailedVesting,
+	}
+
+	if vva.PubKey != nil {
+		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.PubKey)
+		if err != nil {
+			return nil, err
+		}
+
+		alias.PubKey = pks
+	}
+
+	return json.Marshal(alias)
+}
+
+// UnmarshalJSON unmarshals raw JSON bytes into a PeriodicVestingAccount.
+func (vva *ValidatorVestingAccount) UnmarshalJSON(bz []byte) error {
+	var alias validatorVestingAccountPretty
+	if err := json.Unmarshal(bz, &alias); err != nil {
+		return err
+	}
+
+	var (
+		pk  crypto.PubKey
+		err error
+	)
+
+	if alias.PubKey != "" {
+		pk, err = sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, alias.PubKey)
+		if err != nil {
+			return err
+		}
+	}
+
+	ba := authtypes.NewBaseAccount(alias.Address, alias.Coins, pk, alias.AccountNumber, alias.Sequence)
+	bva := &vestingtypes.BaseVestingAccount{
+		BaseAccount:      ba,
+		OriginalVesting:  alias.OriginalVesting,
+		DelegatedFree:    alias.DelegatedFree,
+		DelegatedVesting: alias.DelegatedVesting,
+		EndTime:          alias.EndTime,
+	}
+	pva := vestingtypes.NewPeriodicVestingAccountRaw(bva, alias.StartTime, alias.VestingPeriods)
+	vva.PeriodicVestingAccount = pva
+	vva.ValidatorAddress = alias.ValidatorAddress
+	vva.ReturnAddress = alias.ReturnAddress
+	vva.SigningThreshold = alias.SigningThreshold
+	vva.CurrentPeriodProgress = alias.CurrentPeriodProgress
+	vva.VestingPeriodProgress = alias.VestingPeriodProgress
+	vva.DebtAfterFailedVesting = alias.DebtAfterFailedVesting
+	return nil
+}
+
 // MarshalYAML returns the YAML representation of an account.
 func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 	var bs []byte
@@ -206,7 +299,7 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 	var pubkey string
 
 	if vva.PubKey != nil {
-		pubkey, err = sdk.Bech32ifyAccPub(vva.PubKey)
+		pubkey, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.PubKey)
 		if err != nil {
 			return nil, err
 		}

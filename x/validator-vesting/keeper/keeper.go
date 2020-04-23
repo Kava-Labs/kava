@@ -138,7 +138,7 @@ func (k Keeper) SetVestingProgress(ctx sdk.Context, addr sdk.AccAddress, period 
 // AddDebt adds the input amount to DebtAfterFailedVesting field
 func (k Keeper) AddDebt(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
-	vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(amount)
+	vv.DebtAfterFailedVesting = vv.DebtAfterFailedVesting.Add(amount...)
 	k.ak.SetAccount(ctx, vv)
 }
 
