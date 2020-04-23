@@ -35,6 +35,8 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 
 		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
 
+		// exit without updating fees if amount has rounded down to zero
+		// cdp will get updated next block when newFees, newFeesSavings, newFeesSurplus >0
 		if newFees.IsZero() {
 			return false
 		}
@@ -50,7 +52,11 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 			newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(dp.Denom)).Mul(savingsRate).RoundInt()
 			newFeesSurplus := newFees.AmountOf(dp.Denom).Sub(newFeesSavings)
 
-			if newFeesSavings.IsZero() || newFeesSurplus.IsZero() {
+			// similar to checking for rounding to zero of all fees, but in this case we
+			// need to handle cases where we expect surplus or savings fees to be zero, namely
+			// if newFeesSavings = 0, check if savings rate is not zero
+			// if newFeesSurplus = 0, check if savings rate is not one
+			if (newFeesSavings.IsZero() && !savingsRate.IsZero()) || (newFeesSurplus.IsZero() && !savingsRate.Equal(sdk.OneDec())) {
 				return false
 			}
 			// mint debt coins to the cdp account
