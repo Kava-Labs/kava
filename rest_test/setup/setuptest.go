@@ -310,8 +310,8 @@ func getTestAddress() (address string) {
 }
 
 func getKeynameAndPassword() (keyname string, password string) {
-	keyname = "vlad"      // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password = "password" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	keyname = "vlad" // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	password = ""    // TODO - IMPORTANT this must match the keys in the startchain.sh script
 	return keyname, password
 }
 
@@ -386,6 +386,12 @@ func getKeybase() crkeys.Keybase {
 	// create a keybase
 	// IMPORTANT - TAKE THIS FROM COMMAND LINE PARAMETER and does NOT work with tilde i.e. ~/ does NOT work
 	keybase, err := keys.NewKeyBaseFromDir(os.Args[1])
+
+	fmt.Println("os.Args[1]: ")
+	fmt.Println(os.Args[1])
+	fmt.Println("Keybase: ")
+	fmt.Println(keybase)
+
 	if err != nil {
 		panic(err)
 	}
@@ -400,6 +406,8 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 	// get the account number and sequence number
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 	inBuf := bufio.NewReader(os.Stdin)
+
+	// TODO QUESTION - THIS PANICS BECAUSE WE AREN'T PASSING THE -keyring FLAG FROM COMMAND LINE
 	txBldr := auth.NewTxBuilderFromCLI(inBuf).
 		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).

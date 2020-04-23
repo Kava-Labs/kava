@@ -24,9 +24,9 @@ rm -rf $kvcliHome
 mkdir /tmp/kvdHome
 mkdir /tmp/kvcliHome
 # create validator key
-printf "$password\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home $kvcliHome
+printf "y\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home $kvcliHome
 # create faucet key
-printf "$password\n$faucet\n" | kvcli --home $kvcliHome keys add faucet --recover --home $kvcliHome
+printf "y\n$faucet\n" | kvcli --home $kvcliHome keys add faucet --recover --home $kvcliHome
 # function used to show that it is still loading
 showLoading() {
   mypid=$!
