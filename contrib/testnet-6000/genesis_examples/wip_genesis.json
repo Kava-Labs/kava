@@ -1,14 +1,15 @@
 {
-  "genesis_time": "2020-03-27T21:00:00Z",
+  "genesis_time": "2020-04-23T16:32:31.393515Z",
   "chain_id": "testing",
   "consensus_params": {
     "block": {
-      "max_bytes": "200000",
-      "max_gas": "2000000",
+      "max_bytes": "22020096",
+      "max_gas": "-1",
       "time_iota_ms": "1000"
     },
     "evidence": {
-      "max_age": "1000000"
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000"
     },
     "validator": {
       "pub_key_types": ["ed25519"]
@@ -18,12 +19,12 @@
   "app_state": {
   "auction": {
     "auctions": [],
-    "next_auction_id": "0",
+    "next_auction_id": "1",
     "params": {
       "bid_duration": "600000000000",
-      "increment_collateral": "0.01",
-      "increment_debt": "0.01",
-      "increment_surplus": "0.01",
+      "increment_collateral": "0.010000000000000000",
+      "increment_debt": "0.010000000000000000",
+      "increment_surplus": "0.010000000000000000",
       "max_auction_duration": "172800000000000"
     }
   },
@@ -41,8 +42,10 @@
     "send_enabled": true
   },
   "bep3": {
+    "assets_supplies": [],
+    "atomic_swaps": [],
     "params": {
-      "bnb_deputy_address": "kava15wmww3chakqllq4n3ksm37lx36qz067gxe6f0k",
+      "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
       "max_block_lock": "600",
       "min_block_lock": "80",
       "supported_assets": [
@@ -116,21 +119,29 @@
     }
   },
   "distribution": {
-    "base_proposer_reward": "0.010000000000000000",
-    "bonus_proposer_reward": "0.040000000000000000",
-    "community_tax": "0.000000000000000000",
     "delegator_starting_infos": [],
     "delegator_withdraw_infos": [],
     "fee_pool": {
       "community_pool": []
     },
     "outstanding_rewards": [],
+    "params": {
+      "base_proposer_reward": "0.010000000000000000",
+      "bonus_proposer_reward": "0.040000000000000000",
+      "community_tax": "0.000000000000000000",
+      "withdraw_addr_enabled": true
+    },
     "previous_proposer": "",
     "validator_accumulated_commissions": [],
     "validator_current_rewards": [],
     "validator_historical_rewards": [],
-    "validator_slash_events": [],
-    "withdraw_addr_enabled": true
+    "validator_slash_events": []
+  },
+  "evidence": {
+    "evidence": [],
+    "params": {
+      "max_evidence_age": "120000000000"
+    }
   },
   "genutil": {
     "gentxs": []
@@ -155,7 +166,7 @@
     },
     "votes": null,
     "voting_params": {
-      "voting_period": "3600000000000"
+      "voting_period": "600000000000"
     }
   },
   "kavadist": {
@@ -213,7 +224,6 @@
     "missed_blocks": {},
     "params": {
       "downtime_jail_duration": "600000000000",
-      "max_evidence_age": "3600000000000",
       "min_signed_per_window": "0.010000000000000000",
       "signed_blocks_window": "1000",
       "slash_fraction_double_sign": "0.050000000000000000",
@@ -228,6 +238,7 @@
     "last_validator_powers": null,
     "params": {
       "bond_denom": "ukava",
+      "historical_entries": 0,
       "max_entries": 7,
       "max_validators": 100,
       "unbonding_time": "3600000000000"
