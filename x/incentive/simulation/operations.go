@@ -19,6 +19,7 @@ import (
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
+	"github.com/kava-labs/kava/x/kavadist"
 )
 
 // Simulation operation weights constants
@@ -67,9 +68,6 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 			}
 		}
 
-		// fmt.Println("authexported.Account:", accounts[0])
-		// fmt.Println("simulation accs:", accs[0])
-
 		// Load open claims and shuffle them to randomize
 		openClaims := types.Claims{}
 		k.IterateClaims(ctx, func(claim types.Claim) bool {
@@ -81,8 +79,8 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 		})
 
 		// TODO: Load kavadist module account's current balance
-		// kavadistMacc := sk.GetModuleAccount(ctx, kavadist.KavaDistMacc)
-		// kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
+		kavadistMacc := sk.GetModuleAccount(ctx, kavadist.KavaDistMacc)
+		kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
 
 		// Find address that has a claim of the same reward denom, then confirm it's distributable
 		claimer, claim, found := findValidAccountClaimPair(accs, openClaims, func(acc simulation.Account, claim types.Claim) bool {
@@ -90,12 +88,9 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 				if claim.Owner.Equals(acc.Address) { // Account must be claim owner
 					if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
 						// Validate that kavadist module has enough coins to distribute the claim
-						return true
-						//  TODO: if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
-						// 	fmt.Println("claim reward:", claim.Reward)
-						// 	fmt.Println("kavadist balance:", kavadistBalance.AmountOf(claim.Reward.Denom), claim.Reward.Denom)
-						// 	return true
-						// }
+						if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
+							return true
+						}
 					}
 				}
 			}
@@ -106,33 +101,28 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 				"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 		}
 
-		fmt.Println("a")
-
 		claimerAcc := ak.GetAccount(ctx, claimer.Address)
 		if claimerAcc == nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("couldn't find account %s", claimer.Address)
 		}
-		fmt.Println("b")
 
 		msg := types.NewMsgClaimReward(claimer.Address, claim.Denom)
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
-			sdk.NewCoins(), // TODO pick a random amount fees
+			sdk.NewCoins(),
 			helpers.DefaultGenTxGas,
 			chainID,
 			[]uint64{claimerAcc.GetAccountNumber()},
 			[]uint64{claimerAcc.GetSequence()},
 			claimer.PrivKey,
 		)
-		fmt.Println("c")
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
 			// to aid debugging, add the stack trace to the comment field of the returned opMsg
 			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
-		fmt.Println("d")
 
 		// to aid debugging, add the result log to the comment field
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
