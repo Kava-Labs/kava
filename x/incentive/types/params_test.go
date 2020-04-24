@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -10,9 +11,14 @@ import (
 )
 
 type paramTest struct {
-	name       string
-	params     types.Params
+	name      string
+	params    types.Params
+	errResult errResult
+}
+
+type errResult struct {
 	expectPass bool
+	contains   string
 }
 
 type ParamTestSuite struct {
@@ -38,7 +44,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: true,
+			errResult: errResult{
+				expectPass: true,
+				contains:   "",
+			},
 		},
 		paramTest{
 			name: "valid - inactive",
@@ -55,7 +64,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: true,
+			errResult: errResult{
+				expectPass: true,
+				contains:   "",
+			},
 		},
 		paramTest{
 			name: "duplicate reward",
@@ -80,7 +92,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: false,
+			errResult: errResult{
+				expectPass: false,
+				contains:   "cannot have duplicate reward denoms",
+			},
 		},
 		paramTest{
 			name: "negative reward duration",
@@ -97,7 +112,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: false,
+			errResult: errResult{
+				expectPass: false,
+				contains:   "reward duration must be positive",
+			},
 		},
 		paramTest{
 			name: "negative time lock",
@@ -114,7 +132,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: false,
+			errResult: errResult{
+				expectPass: false,
+				contains:   "reward timelock must be non-negative",
+			},
 		},
 		paramTest{
 			name: "zero claim duration",
@@ -131,7 +152,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: false,
+			errResult: errResult{
+				expectPass: false,
+				contains:   "claim duration must be positive",
+			},
 		},
 		paramTest{
 			name: "zero reward",
@@ -148,7 +172,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: false,
+			errResult: errResult{
+				expectPass: false,
+				contains:   "reward amount must be positive",
+			},
 		},
 		paramTest{
 			name: "empty reward denom",
@@ -165,7 +192,10 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 				},
 			},
-			expectPass: false,
+			errResult: errResult{
+				expectPass: false,
+				contains:   "cannot have empty reward denom",
+			},
 		},
 	}
 }
@@ -174,10 +204,11 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	for _, t := range suite.tests {
 		suite.Run(t.name, func() {
 			err := t.params.Validate()
-			if t.expectPass {
+			if t.errResult.expectPass {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), t.errResult.contains))
 			}
 		})
 	}
