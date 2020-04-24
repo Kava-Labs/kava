@@ -7,17 +7,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	// authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	// "github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	// "github.com/cosmos/cosmos-sdk/x/supply"
 
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/kavadist"
 )
 
 // Simulation operation weights constants
@@ -27,7 +28,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, sk supply.Keeper, k keeper.Keeper,
+	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, sk types.SupplyKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightMsgClaimReward int
 
@@ -46,23 +47,28 @@ func WeightedOperations(
 }
 
 // SimulateMsgClaimReward generates a MsgClaimReward
-func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Keeper) simulation.Operation {
+func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keeper.Keeper) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// Load only account types that can claim rewards
-		// var accounts []authexported.Account
-		// for _, acc := range accs {
-		// 	account := ak.GetAccount(ctx, acc.Address)
-		// 	switch account.(type) {
-		// 	case *vesting.PeriodicVestingAccount, *auth.BaseAccount: // Valid: BaseAccount, PeriodicVestingAccount
-		// 		accounts = append(accounts, account)
-		// 		break
-		// 	default: // Invalid: ValidatorVestingAccount, DelayedVestingAccount, ContinuousVestingAccount
-		// 		break
-		// 	}
-		// }
+		var accounts []authexported.Account
+		validAccounts := make(map[string]bool)
+		for _, acc := range accs {
+			account := ak.GetAccount(ctx, acc.Address)
+			switch account.(type) {
+			case *vesting.PeriodicVestingAccount, *auth.BaseAccount: // Valid: BaseAccount, PeriodicVestingAccount
+				accounts = append(accounts, account)
+				validAccounts[account.GetAddress().String()] = true
+				break
+			default: // Invalid: ValidatorVestingAccount, DelayedVestingAccount, ContinuousVestingAccount
+				break
+			}
+		}
+
+		// fmt.Println("authexported.Account:", accounts[0])
+		// fmt.Println("simulation accs:", accs[0])
 
 		// Load open claims and shuffle them to randomize
 		openClaims := types.Claims{}
@@ -74,19 +80,22 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 			openClaims[i], openClaims[j] = openClaims[j], openClaims[i]
 		})
 
-		// Load kavadist module account's current balance
-		kavadistMacc := sk.GetModuleAccount(ctx, kavadist.KavaDistMacc)
-		kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
+		// TODO: Load kavadist module account's current balance
+		// kavadistMacc := sk.GetModuleAccount(ctx, kavadist.KavaDistMacc)
+		// kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
 
 		// Find address that has a claim of the same reward denom, then confirm it's distributable
 		claimer, claim, found := findValidAccountClaimPair(accs, openClaims, func(acc simulation.Account, claim types.Claim) bool {
-			if claim.Owner.Equals(acc.Address) { // Account must be claim owner
-				if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
-					// Validate that kavadist module has enough coins to distribute the claim
-					if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
-						fmt.Println("claim reward:", claim.Reward)
-						fmt.Println("kavadist balance:", kavadistBalance.AmountOf(claim.Reward.Denom), claim.Reward.Denom)
+			if validAccounts[acc.Address.String()] { // Address must be valid type
+				if claim.Owner.Equals(acc.Address) { // Account must be claim owner
+					if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
+						// Validate that kavadist module has enough coins to distribute the claim
 						return true
+						//  TODO: if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
+						// 	fmt.Println("claim reward:", claim.Reward)
+						// 	fmt.Println("kavadist balance:", kavadistBalance.AmountOf(claim.Reward.Denom), claim.Reward.Denom)
+						// 	return true
+						// }
 					}
 				}
 			}
@@ -97,13 +106,16 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 				"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 		}
 
+		fmt.Println("a")
+
 		claimerAcc := ak.GetAccount(ctx, claimer.Address)
 		if claimerAcc == nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("couldn't find account %s", claimer.Address)
 		}
+		fmt.Println("b")
 
 		msg := types.NewMsgClaimReward(claimer.Address, claim.Denom)
-		
+
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			sdk.NewCoins(), // TODO pick a random amount fees
@@ -113,12 +125,15 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk supply.Keeper, k keeper.Ke
 			[]uint64{claimerAcc.GetSequence()},
 			claimer.PrivKey,
 		)
-		
+		fmt.Println("c")
+
 		_, result, err := app.Deliver(tx)
 		if err != nil {
 			// to aid debugging, add the stack trace to the comment field of the returned opMsg
 			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
+		fmt.Println("d")
+
 		// to aid debugging, add the result log to the comment field
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
