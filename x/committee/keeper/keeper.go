@@ -45,14 +45,14 @@ func (k Keeper) GetCommittee(ctx sdk.Context, committeeID uint64) (types.Committ
 		return types.Committee{}, false
 	}
 	var committee types.Committee
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &committee)
+	k.cdc.MustUnmarshalBinaryBare(bz, &committee)
 	return committee, true
 }
 
 // SetCommittee puts a committee into the store.
 func (k Keeper) SetCommittee(ctx sdk.Context, committee types.Committee) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(committee)
+	bz := k.cdc.MustMarshalBinaryBare(committee)
 	store.Set(types.GetKeyFromID(committee.ID), bz)
 }
 
@@ -70,7 +70,7 @@ func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Commi
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var committee types.Committee
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &committee)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &committee)
 
 		if cb(committee) {
 			break
@@ -114,12 +114,12 @@ func (k Keeper) StoreNewProposal(ctx sdk.Context, pubProposal types.PubProposal,
 	if err != nil {
 		return 0, err
 	}
-	proposal := types.Proposal{
-		PubProposal: pubProposal,
-		ID:          newProposalID,
-		CommitteeID: committeeID,
-		Deadline:    deadline,
-	}
+	proposal := types.NewProposal(
+		pubProposal,
+		newProposalID,
+		committeeID,
+		deadline,
+	)
 
 	k.SetProposal(ctx, proposal)
 
@@ -138,14 +138,14 @@ func (k Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (types.Proposal,
 		return types.Proposal{}, false
 	}
 	var proposal types.Proposal
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposal)
+	k.cdc.MustUnmarshalBinaryBare(bz, &proposal)
 	return proposal, true
 }
 
 // SetProposal puts a proposal into the store.
 func (k Keeper) SetProposal(ctx sdk.Context, proposal types.Proposal) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(proposal)
+	bz := k.cdc.MustMarshalBinaryBare(proposal)
 	store.Set(types.GetKeyFromID(proposal.ID), bz)
 }
 
@@ -163,7 +163,7 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break
@@ -183,14 +183,14 @@ func (k Keeper) GetVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 		return types.Vote{}, false
 	}
 	var vote types.Vote
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &vote)
+	k.cdc.MustUnmarshalBinaryBare(bz, &vote)
 	return vote, true
 }
 
 // SetVote puts a vote into the store.
 func (k Keeper) SetVote(ctx sdk.Context, vote types.Vote) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(vote)
+	bz := k.cdc.MustMarshalBinaryBare(vote)
 	store.Set(types.GetVoteKey(vote.ProposalID, vote.Voter), bz)
 }
 
@@ -209,7 +209,7 @@ func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote ty
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
