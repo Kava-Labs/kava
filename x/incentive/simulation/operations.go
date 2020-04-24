@@ -5,16 +5,13 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-
-	// "github.com/cosmos/cosmos-sdk/x/supply"
 
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/incentive/keeper"
@@ -85,10 +82,17 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 		claimer, claim, found := findValidAccountClaimPair(accs, openClaims, func(acc simulation.Account, claim types.Claim) bool {
 			if validAccounts[acc.Address.String()] { // Address must be valid type
 				if claim.Owner.Equals(acc.Address) { // Account must be claim owner
-					if claim.Reward.Amount.IsPositive() { // Can't distribute 0 coins
-						// Validate that kavadist module has enough coins to distribute the claim
-						if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(claim.Reward.Amount) {
-							return true
+					allClaims, found := k.GetClaimsByAddressAndDenom(ctx, claim.Owner, claim.Denom)
+					if found { // found should always be true
+						var rewards sdk.Coins
+						for _, individualClaim := range allClaims {
+							rewards = rewards.Add(individualClaim.Reward)
+						}
+						if rewards.AmountOf(claim.Reward.Denom).IsPositive() { // Can't distribute 0 coins
+							// Validate that kavadist module has enough coins to distribute rewards
+							if kavadistBalance.AmountOf(claim.Reward.Denom).GTE(rewards.AmountOf(claim.Reward.Denom)) {
+								return true
+							}
 						}
 					}
 				}
