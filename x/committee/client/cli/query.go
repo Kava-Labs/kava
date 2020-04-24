@@ -17,27 +17,69 @@ import (
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	// Group gov queries under a subcommand
-	govQueryCmd := &cobra.Command{
+	queryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the governance module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	govQueryCmd.AddCommand(client.GetCommands(
+	queryCmd.AddCommand(client.GetCommands(
+		// committees
+		GetCmdQueryCommittee(queryRoute, cdc),
 		GetCmdQueryCommittees(queryRoute, cdc),
-
+		// proposals
 		GetCmdQueryProposal(queryRoute, cdc),
 		GetCmdQueryProposals(queryRoute, cdc),
-
+		// votes
 		GetCmdQueryVotes(queryRoute, cdc),
-
+		// other
 		GetCmdQueryProposer(queryRoute, cdc),
 		GetCmdQueryTally(queryRoute, cdc))...)
 
-	return govQueryCmd
+	return queryCmd
+}
+
+// ------------------------------------------
+//				Committees
+// ------------------------------------------
+
+// GetCmdQueryCommittee implements a query committee command.
+func GetCmdQueryCommittee(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "committee [committee-id]",
+		Args:    cobra.ExactArgs(1),
+		Short:   "Query details of a single committee",
+		Example: fmt.Sprintf("%s query %s committee 1", version.ClientName, types.ModuleName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare params for querier
+			committeeID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("committee-id %s not a valid uint", args[0])
+			}
+			bz, err := cdc.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
+			if err != nil {
+				return err
+			}
+
+			// Query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCommittee), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print result
+			committee := types.Committee{}
+			if err = cdc.UnmarshalJSON(res, &committee); err != nil {
+				return err
+			}
+			return cliCtx.PrintOutput(committee)
+		},
+	}
+	return cmd
 }
 
 // GetCmdQueryCommittees implements a query committees command.
@@ -67,6 +109,10 @@ func GetCmdQueryCommittees(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
+// ------------------------------------------
+//				Proposals
+// ------------------------------------------
+
 // GetCmdQueryProposal implements the query proposal command.
 func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
@@ -82,7 +128,7 @@ func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("proposal-id %s not a valid uint", args[0])
 			}
-			bz, err := cdc.MarshalJSON(types.NewQueryCommitteeParams(proposalID))
+			bz, err := cdc.MarshalJSON(types.NewQueryProposalParams(proposalID))
 			if err != nil {
 				return err
 			}
@@ -122,7 +168,7 @@ func GetCmdQueryProposals(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/proposals", queryRoute), bz)
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposals), bz)
 			if err != nil {
 				return err
 			}
@@ -138,6 +184,10 @@ func GetCmdQueryProposals(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 	return cmd
 }
+
+// ------------------------------------------
+//				Votes
+// ------------------------------------------
 
 // GetCmdQueryVotes implements the command to query for proposal votes.
 func GetCmdQueryVotes(queryRoute string, cdc *codec.Codec) *cobra.Command {
@@ -175,6 +225,10 @@ func GetCmdQueryVotes(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		},
 	}
 }
+
+// ------------------------------------------
+//				Other
+// ------------------------------------------
 
 func GetCmdQueryTally(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{

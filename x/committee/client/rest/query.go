@@ -190,7 +190,6 @@ func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Write response
-		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
