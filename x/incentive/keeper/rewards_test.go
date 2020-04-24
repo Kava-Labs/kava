@@ -206,7 +206,6 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	incentiveGS := types.NewGenesisState(
