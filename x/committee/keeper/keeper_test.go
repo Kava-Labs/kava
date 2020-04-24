@@ -37,12 +37,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	// setup test
 	com := types.Committee{
-		ID:                  12,
-		Description:         "This committee is for testing.",
-		Members:             suite.addresses,
-		Permissions:         []types.Permission{types.GodPermission{}},
-		VoteThreshold:       d("0.667"),
-		MaxProposalDuration: time.Hour * 24 * 7,
+		ID:               12,
+		Description:      "This committee is for testing.",
+		Members:          suite.addresses,
+		Permissions:      []types.Permission{types.GodPermission{}},
+		VoteThreshold:    d("0.667"),
+		ProposalDuration: time.Hour * 24 * 7,
 	}
 
 	// write and read from store

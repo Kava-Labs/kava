@@ -17,22 +17,22 @@ const MaxCommitteeDescriptionLength int = 5000
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
-	ID                  uint64           `json:"id" yaml:"id"`
-	Description         string           `json:"description" yaml:"description"`
-	Members             []sdk.AccAddress `json:"members" yaml:"members"`
-	Permissions         []Permission     `json:"permissions" yaml:"permissions"`
-	VoteThreshold       sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`
-	MaxProposalDuration time.Duration    `json:"max_proposal_duration" yaml:"max_proposal_duration"`
+	ID               uint64           `json:"id" yaml:"id"`
+	Description      string           `json:"description" yaml:"description"`
+	Members          []sdk.AccAddress `json:"members" yaml:"members"`
+	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
+	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`
+	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"`
 }
 
 func NewCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission, threshold sdk.Dec, duration time.Duration) Committee {
 	return Committee{
-		ID:                  id,
-		Description:         description,
-		Members:             members,
-		Permissions:         permissions,
-		VoteThreshold:       threshold,
-		MaxProposalDuration: duration,
+		ID:               id,
+		Description:      description,
+		Members:          members,
+		Permissions:      permissions,
+		VoteThreshold:    threshold,
+		ProposalDuration: duration,
 	}
 }
 
@@ -84,7 +84,7 @@ func (c Committee) Validate() error {
 		return fmt.Errorf("invalid threshold")
 	}
 
-	if c.MaxProposalDuration < 0 {
+	if c.ProposalDuration < 0 {
 		return fmt.Errorf("invalid time")
 	}
 
@@ -108,6 +108,15 @@ type Proposal struct {
 	ID          uint64    `json:"id" yaml:"id"`
 	CommitteeID uint64    `json:"committee_id" yaml:"committee_id"`
 	Deadline    time.Time `json:"deadline" yaml:"deadline"`
+}
+
+func NewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) Proposal {
+	return Proposal{
+		PubProposal: pubProposal,
+		ID:          id,
+		CommitteeID: committeeID,
+		Deadline:    deadline,
+	}
 }
 
 // HasExpiredBy calculates if the proposal will have expired by a certain time.

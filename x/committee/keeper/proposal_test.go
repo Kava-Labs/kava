@@ -17,12 +17,12 @@ import (
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
 	normalCom := types.Committee{
-		ID:                  12,
-		Description:         "This committee is for testing.",
-		Members:             suite.addresses[:2],
-		Permissions:         []types.Permission{types.GodPermission{}},
-		VoteThreshold:       d("0.667"),
-		MaxProposalDuration: time.Hour * 24 * 7,
+		ID:               12,
+		Description:      "This committee is for testing.",
+		Members:          suite.addresses[:2],
+		Permissions:      []types.Permission{types.GodPermission{}},
+		VoteThreshold:    d("0.667"),
+		ProposalDuration: time.Hour * 24 * 7,
 	}
 	noPermissionsCom := normalCom
 	noPermissionsCom.Permissions = []types.Permission{}
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				pr, found := keeper.GetProposal(ctx, id)
 				suite.True(found)
 				suite.Equal(tc.committeeID, pr.CommitteeID)
-				suite.Equal(ctx.BlockTime().Add(tc.committee.MaxProposalDuration), pr.Deadline)
+				suite.Equal(ctx.BlockTime().Add(tc.committee.ProposalDuration), pr.Deadline)
 			} else {
 				suite.NotNil(err)
 			}
@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestAddVote() {
 			name:       "proposal expired",
 			proposalID: types.DefaultNextProposalID,
 			voter:      normalCom.Members[0],
-			voteTime:   firstBlockTime.Add(normalCom.MaxProposalDuration),
+			voteTime:   firstBlockTime.Add(normalCom.ProposalDuration),
 			expectPass: false,
 		},
 	}
@@ -175,12 +175,12 @@ func (suite *KeeperTestSuite) TestAddVote() {
 
 func (suite *KeeperTestSuite) TestGetProposalResult() {
 	normalCom := types.Committee{
-		ID:                  12,
-		Description:         "This committee is for testing.",
-		Members:             suite.addresses[:5],
-		Permissions:         []types.Permission{types.GodPermission{}},
-		VoteThreshold:       d("0.667"),
-		MaxProposalDuration: time.Hour * 24 * 7,
+		ID:               12,
+		Description:      "This committee is for testing.",
+		Members:          suite.addresses[:5],
+		Permissions:      []types.Permission{types.GodPermission{}},
+		VoteThreshold:    d("0.667"),
+		ProposalDuration: time.Hour * 24 * 7,
 	}
 	var defaultID uint64 = 1
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
@@ -327,23 +327,23 @@ func (suite *KeeperTestSuite) TestCloseExpiredProposals() {
 
 	// Setup test state
 	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
-	testGenesis = types.NewGenesisState(
+	testGenesis := types.NewGenesisState(
 		3,
 		[]types.Committee{
 			{
-				ID:                  1,
-				Description:         "This committee is for testing.",
-				Members:             suite.addresses[:3],
-				Permissions:         []types.Permission{types.GodPermission{}},
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               1,
+				Description:      "This committee is for testing.",
+				Members:          suite.addresses[:3],
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 			{
-				ID:                  2,
-				Members:             suite.addresses[2:],
-				Permissions:         nil,
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               2,
+				Members:          suite.addresses[2:],
+				Permissions:      nil,
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 		},
 		[]types.Proposal{
@@ -367,16 +367,16 @@ func (suite *KeeperTestSuite) TestCloseExpiredProposals() {
 		},
 	)
 	suite.app.InitializeFromGenesisStates(
-		NewCommitteeGenesisState(suite.cdc, testGenesis),
+		NewCommitteeGenesisState(suite.app.Codec(), testGenesis),
 	)
 
 	// close proposals
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+	ctx := suite.app.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
 	suite.keeper.CloseExpiredProposals(ctx)
 
 	// check
 	for _, p := range testGenesis.Proposals {
-		_, found := k.GetProposal(ctx, p.ID)
+		_, found := suite.keeper.GetProposal(ctx, p.ID)
 		votes := getProposalVoteMap(suite.keeper, ctx)
 
 		if ctx.BlockTime().After(p.Deadline) {
@@ -389,15 +389,15 @@ func (suite *KeeperTestSuite) TestCloseExpiredProposals() {
 	}
 
 	// close (later time)
-	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime.Add(7 * 24 * time.Hour)})
+	ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime.Add(7 * 24 * time.Hour)})
 	suite.keeper.CloseExpiredProposals(ctx)
 
 	// check
 	for _, p := range testGenesis.Proposals {
-		_, found := k.GetProposal(ctx, p.ID)
+		_, found := suite.keeper.GetProposal(ctx, p.ID)
 		votes := getProposalVoteMap(suite.keeper, ctx)
 
-		if ctx.BlockTime().After(p.Deadline) {
+		if ctx.BlockTime().Equal(p.Deadline) || ctx.BlockTime().After(p.Deadline) {
 			suite.False(found)
 			suite.Empty(votes[p.ID])
 		} else {

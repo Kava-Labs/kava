@@ -30,7 +30,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Get a new ID and store the proposal
-	deadline := ctx.BlockTime().Add(com.MaxProposalDuration)
+	deadline := ctx.BlockTime().Add(com.ProposalDuration)
 	proposalID, err := k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
 	if err != nil {
 		return 0, err
