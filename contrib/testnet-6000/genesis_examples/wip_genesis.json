@@ -171,6 +171,13 @@
         "voting_period": "600000000000"
       }
     },
+    "incentive": {
+      "params": {
+        "active": true,
+        "rewards": []
+      },
+      "previous_block_time": "1970-01-01T00:00:00Z"
+    },
     "kavadist": {
       "params": {
         "active": true,
