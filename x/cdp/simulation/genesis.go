@@ -121,7 +121,6 @@ func randomCdpGenState(selection int) types.GenesisState {
 			DebtDenom:                types.DefaultDebtDenom,
 			GovDenom:                 types.DefaultGovDenom,
 			CDPs:                     types.CDPs{},
-			PreviousBlockTime:        types.DefaultPreviousBlockTime,
 			PreviousDistributionTime: types.DefaultPreviousDistributionTime,
 		}
 	case 1:
@@ -158,7 +157,6 @@ func randomCdpGenState(selection int) types.GenesisState {
 			DebtDenom:                types.DefaultDebtDenom,
 			GovDenom:                 types.DefaultGovDenom,
 			CDPs:                     types.CDPs{},
-			PreviousBlockTime:        types.DefaultPreviousBlockTime,
 			PreviousDistributionTime: types.DefaultPreviousDistributionTime,
 		}
 	default:

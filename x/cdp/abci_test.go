@@ -152,8 +152,6 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], cs(c("xrp", 10000000000)), cs(c("usdx", 1000000000)))
 	suite.NoError(err)
-	suite.keeper.SetPreviousBlockTime(suite.ctx, suite.ctx.BlockTime())
-	previousBlockTime, _ := suite.keeper.GetPreviousBlockTime(suite.ctx)
 	suite.Equal(i(1000000000), suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx"))
 	sk := suite.app.GetSupplyKeeper()
 	cdpMacc := sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
@@ -167,13 +165,10 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	suite.Equal(i(1000000900), (cdpMacc.GetCoins().AmountOf("debt")))
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
 
-	timeElapsed := sdk.NewInt(suite.ctx.BlockTime().Unix() - previousBlockTime.Unix())
-
-	fees := suite.keeper.CalculateFees(suite.ctx, cdp.Principal, timeElapsed, "xrp")
-	suite.Equal(i(928), fees.AmountOf("usdx"))
-
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
+	_, found := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	suite.False(found)
 }
 
 func TestModuleTestSuite(t *testing.T) {
