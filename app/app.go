@@ -7,6 +7,7 @@ import (
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -69,6 +70,7 @@ var (
 		pricefeed.AppModuleBasic{},
 		bep3.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
+		incentive.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -121,6 +123,7 @@ type App struct {
 	pricefeedKeeper pricefeed.Keeper
 	bep3Keeper      bep3.Keeper
 	kavadistKeeper  kavadist.Keeper
+	incentiveKeeper incentive.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -145,7 +148,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, evidence.StoreKey, validatorvesting.StoreKey,
 		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey,
-		kavadist.StoreKey,
+		kavadist.StoreKey, incentive.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -173,6 +176,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
 	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
+	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -295,6 +299,14 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		kavadistSubspace,
 		app.supplyKeeper,
 	)
+	app.incentiveKeeper = incentive.NewKeeper(
+		app.cdc,
+		keys[incentive.StoreKey],
+		incentiveSubspace,
+		app.supplyKeeper,
+		app.cdpKeeper,
+		app.accountKeeper,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -321,12 +333,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName)
+	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, incentive.ModuleName)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
 
@@ -335,7 +348,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, // TODO is this order ok?
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -363,6 +376,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

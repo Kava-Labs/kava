@@ -337,7 +337,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				suite.NotNil(actualSwap)
 
 				// Confirm swap contents
-				expectedSwap := types.Swap(
+				expectedSwap :=
 					types.AtomicSwap{
 						Amount:              tc.args.coins,
 						RandomNumberHash:    tc.args.randomNumberHash,
@@ -351,7 +351,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 						Status:              types.Open,
 						CrossChain:          tc.args.crossChain,
 						Direction:           tc.args.direction,
-					})
+					}
 				suite.Equal(expectedSwap, actualSwap)
 			} else {
 				suite.Error(err)

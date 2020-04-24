@@ -37,7 +37,6 @@ func queryAtomicSwapHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
 		swapID, err := types.HexToBytes(vars[restSwapID])
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

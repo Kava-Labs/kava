@@ -42,7 +42,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		kv.Pair{Key: []byte(types.GovDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
 		kv.Pair{Key: []byte(types.DepositKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(deposit)},
 		kv.Pair{Key: []byte(types.PrincipalKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(principal)},
-		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevDistTime)},
+		kv.Pair{Key: []byte(types.PreviousDistributionTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevDistTime)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
