@@ -112,7 +112,7 @@ func validateRewardsParam(i interface{}) error {
 			return fmt.Errorf("reward timelock must be non-negative, is %s for %s", reward.TimeLock.String(), reward.Denom)
 		}
 		if int(reward.ClaimDuration.Seconds()) <= 0 {
-			return fmt.Errorf("reward timelock must be positive, is %s for %s", reward.ClaimDuration.String(), reward.Denom)
+			return fmt.Errorf("claim duration must be positive, is %s for %s", reward.ClaimDuration.String(), reward.Denom)
 		}
 	}
 	return nil
