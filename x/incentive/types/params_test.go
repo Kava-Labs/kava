@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -10,8 +11,14 @@ import (
 )
 
 type paramTest struct {
-	params     types.Params
+	name      string
+	params    types.Params
+	errResult errResult
+}
+
+type errResult struct {
 	expectPass bool
+	contains   string
 }
 
 type ParamTestSuite struct {
@@ -21,129 +28,189 @@ type ParamTestSuite struct {
 }
 
 func (suite *ParamTestSuite) SetupTest() {
-	p1 := types.Params{
-		Active: true,
-		Rewards: types.Rewards{
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-				Duration:         time.Hour * 24 * 7,
-				TimeLock:         time.Hour * 8766,
-				ClaimDuration:    time.Hour * 24 * 14,
-			},
-		},
-	}
-	p2 := types.Params{
-		Active: true,
-		Rewards: types.Rewards{
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-				Duration:         time.Hour * 24 * 7,
-				TimeLock:         time.Hour * 8766,
-				ClaimDuration:    time.Hour * 24 * 14,
-			},
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-				Duration:         time.Hour * 24 * 7,
-				TimeLock:         time.Hour * 8766,
-				ClaimDuration:    time.Hour * 24 * 14,
-			},
-		},
-	}
-	p3 := types.Params{
-		Active: true,
-		Rewards: types.Rewards{
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-				Duration:         time.Hour * -24 * 7,
-				TimeLock:         time.Hour * 8766,
-				ClaimDuration:    time.Hour * 24 * 14,
-			},
-		},
-	}
-	p4 := types.Params{
-		Active: true,
-		Rewards: types.Rewards{
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-				Duration:         time.Hour * 24 * 7,
-				TimeLock:         time.Hour * -8766,
-				ClaimDuration:    time.Hour * 24 * 14,
-			},
-		},
-	}
-	p5 := types.Params{
-		Active: true,
-		Rewards: types.Rewards{
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-				Duration:         time.Hour * 24 * 7,
-				TimeLock:         time.Hour * 8766,
-				ClaimDuration:    time.Hour * 0,
-			},
-		},
-	}
-	p6 := types.Params{
-		Active: true,
-		Rewards: types.Rewards{
-			types.Reward{
-				Active:           true,
-				Denom:            "bnb",
-				AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(0)),
-				Duration:         time.Hour * 24 * 7,
-				TimeLock:         time.Hour * 8766,
-				ClaimDuration:    time.Hour * 0,
-			},
-		},
-	}
-
 	suite.tests = []paramTest{
 		paramTest{
-			params:     p1,
-			expectPass: true,
+			name: "valid - active",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: true,
+				contains:   "",
+			},
 		},
 		paramTest{
-			params:     p2,
-			expectPass: false,
+			name: "valid - inactive",
+			params: types.Params{
+				Active: false,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: true,
+				contains:   "",
+			},
 		},
 		paramTest{
-			params:     p3,
-			expectPass: false,
+			name: "duplicate reward",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: false,
+				contains:   "cannot have duplicate reward denoms",
+			},
 		},
 		paramTest{
-			params:     p4,
-			expectPass: false,
+			name: "negative reward duration",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * -24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: false,
+				contains:   "reward duration must be positive",
+			},
 		},
 		paramTest{
-			params:     p5,
-			expectPass: false,
+			name: "negative time lock",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * -8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: false,
+				contains:   "reward timelock must be non-negative",
+			},
 		},
 		paramTest{
-			params:     p6,
-			expectPass: false,
+			name: "zero claim duration",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 0,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: false,
+				contains:   "claim duration must be positive",
+			},
+		},
+		paramTest{
+			name: "zero reward",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "bnb",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(0)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: false,
+				contains:   "reward amount must be positive",
+			},
+		},
+		paramTest{
+			name: "empty reward denom",
+			params: types.Params{
+				Active: true,
+				Rewards: types.Rewards{
+					types.Reward{
+						Active:           true,
+						Denom:            "",
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(0)),
+						Duration:         time.Hour * 24 * 7,
+						TimeLock:         time.Hour * 8766,
+						ClaimDuration:    time.Hour * 24 * 14,
+					},
+				},
+			},
+			errResult: errResult{
+				expectPass: false,
+				contains:   "cannot have empty reward denom",
+			},
 		},
 	}
 }
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	for _, t := range suite.tests {
-		err := t.params.Validate()
-		if t.expectPass {
-			suite.NoError(err)
-		} else {
-			suite.Error(err)
-		}
+		suite.Run(t.name, func() {
+			err := t.params.Validate()
+			if t.errResult.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), t.errResult.contains))
+			}
+		})
 	}
 }
 

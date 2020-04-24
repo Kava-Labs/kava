@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -27,38 +25,53 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coins, periods sdk.
 	return newFees
 }
 
-// UpdateFeesForRiskyCdps calculates fees for risky CDPs
-// The overall logic is first select the CDPs with 10% of the liquidation ratio
-// Then we call calculate fees on each of those CDPs
-// Next we store the result of the fees in the cdp.AccumulatedFees field
-// Finally we set the cdp.FeesUpdated time to the current block time (ctx.BlockTime()) since that
-// is when we made the update
-func (k Keeper) UpdateFeesForRiskyCdps(ctx sdk.Context, collateralDenom string, marketID string) error {
+// UpdateFeesForAllCdps updates the fees for each of the CDPs
+func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) error {
 
-	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
-	if err != nil {
-		return err
-	}
+	k.IterateCdpsByDenom(ctx, collateralDenom, func(cdp types.CDP) bool {
 
-	liquidationRatio := k.getLiquidationRatio(ctx, collateralDenom)
-	priceDivLiqRatio := price.Price.Quo(liquidationRatio)
-	if priceDivLiqRatio.IsZero() {
-		priceDivLiqRatio = sdk.SmallestDec()
-	}
-	// NOTE - we have a fixed cutoff at 110% - this may or may not be changed in the future
-	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio).Mul(sdk.MustNewDecFromStr("1.1"))
-
-	// now iterate over all the cdps based on collateral ratio
-	k.IterateCdpsByCollateralRatio(ctx, collateralDenom, normalizedRatio, func(cdp types.CDP) bool {
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
-		// get the number of periods
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
-		// now calculate and store additional fees
-		additionalFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
+		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
 
-		// now add the additional fees to the accumulated fees for the cdp
-		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(additionalFees...)
+		// exit without updating fees if amount has rounded down to zero
+		// cdp will get updated next block when newFees, newFeesSavings, newFeesSurplus >0
+		if newFees.IsZero() {
+			return false
+		}
+
+		// note - only works if principal length is one
+		for _, dc := range cdp.Principal {
+			dp, found := k.GetDebtParam(ctx, dc.Denom)
+			if !found {
+				return false
+			}
+			savingsRate := dp.SavingsRate
+
+			newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(dp.Denom)).Mul(savingsRate).RoundInt()
+			newFeesSurplus := newFees.AmountOf(dp.Denom).Sub(newFeesSavings)
+
+			// similar to checking for rounding to zero of all fees, but in this case we
+			// need to handle cases where we expect surplus or savings fees to be zero, namely
+			// if newFeesSavings = 0, check if savings rate is not zero
+			// if newFeesSurplus = 0, check if savings rate is not one
+			if (newFeesSavings.IsZero() && !savingsRate.IsZero()) || (newFeesSurplus.IsZero() && !savingsRate.Equal(sdk.OneDec())) {
+				return false
+			}
+			// mint debt coins to the cdp account
+			k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
+			previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, dp.Denom)
+			feeCoins := sdk.NewCoins(sdk.NewCoin(dp.Denom, previousDebt))
+			k.SetTotalPrincipal(ctx, collateralDenom, dp.Denom, feeCoins.Add(newFees...).AmountOf(dp.Denom))
+
+			// mint surplus coins divided between the liquidator and savings module accounts.
+			k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+			k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		}
+
+		// now add the new fees fees to the accumulated fees for the cdp
+		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees...)
 
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
@@ -108,21 +121,4 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralDenom string, princ
 func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralDenom string, principalDenom string, total sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
 	store.Set([]byte(collateralDenom+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
-}
-
-// GetPreviousBlockTime get the blocktime for the previous block
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get([]byte{})
-	if b == nil {
-		return time.Time{}, false
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &blockTime)
-	return blockTime, true
-}
-
-// SetPreviousBlockTime set the time of the previous block
-func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(blockTime))
 }

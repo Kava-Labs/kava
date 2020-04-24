@@ -14,12 +14,11 @@ type GenesisState struct {
 	StartingCdpID            uint64    `json:"starting_cdp_id" yaml:"starting_cdp_id"`
 	DebtDenom                string    `json:"debt_denom" yaml:"debt_denom"`
 	GovDenom                 string    `json:"gov_denom" yaml:"gov_denom"`
-	PreviousBlockTime        time.Time `json:"previous_block_time" yaml:"previous_block_time"`
-	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml"previous_distribution_time"`
+	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml:"previous_distribution_time"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousBlockTime time.Time, previousDistTime time.Time) GenesisState {
+func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousDistTime time.Time) GenesisState {
 	return GenesisState{
 		Params:                   params,
 		CDPs:                     cdps,
@@ -27,23 +26,21 @@ func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID 
 		StartingCdpID:            startingCdpID,
 		DebtDenom:                debtDenom,
 		GovDenom:                 govDenom,
-		PreviousBlockTime:        previousBlockTime,
 		PreviousDistributionTime: previousDistTime,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
-	return GenesisState{
-		Params:                   DefaultParams(),
-		CDPs:                     CDPs{},
-		Deposits:                 Deposits{},
-		StartingCdpID:            DefaultCdpStartingID,
-		DebtDenom:                DefaultDebtDenom,
-		GovDenom:                 DefaultGovDenom,
-		PreviousBlockTime:        DefaultPreviousBlockTime,
-		PreviousDistributionTime: DefaultPreviousDistributionTime,
-	}
+	return NewGenesisState(
+		DefaultParams(),
+		CDPs{},
+		Deposits{},
+		DefaultCdpStartingID,
+		DefaultDebtDenom,
+		DefaultGovDenom,
+		DefaultPreviousDistributionTime,
+	)
 }
 
 // Validate performs basic validation of genesis data returning an
@@ -52,10 +49,6 @@ func (gs GenesisState) Validate() error {
 
 	if err := gs.Params.Validate(); err != nil {
 		return err
-	}
-
-	if gs.PreviousBlockTime.Equal(time.Time{}) {
-		return fmt.Errorf("previous block time not set")
 	}
 
 	if gs.PreviousDistributionTime.Equal(time.Time{}) {

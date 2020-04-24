@@ -70,10 +70,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
 	}
-	// only set the previous block time if it's different than default
-	if !gs.PreviousBlockTime.Equal(DefaultPreviousBlockTime) {
-		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
-	}
 }
 
 // ExportGenesis export genesis state for cdp module
@@ -95,14 +91,10 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	debtDenom := k.GetDebtDenom(ctx)
 	govDenom := k.GetGovDenom(ctx)
 
-	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
-	if !found {
-		previousBlockTime = DefaultPreviousBlockTime
-	}
 	previousDistributionTime, found := k.GetPreviousSavingsDistribution(ctx)
 	if !found {
 		previousDistributionTime = DefaultPreviousDistributionTime
 	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousBlockTime, previousDistributionTime)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime)
 }

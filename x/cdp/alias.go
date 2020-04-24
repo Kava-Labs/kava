@@ -110,7 +110,6 @@ var (
 	GovDenomKey                         = types.GovDenomKey
 	DepositKeyPrefix                    = types.DepositKeyPrefix
 	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix
-	PreviousBlockTimeKey                = types.PreviousBlockTimeKey
 	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
 	KeyGlobalDebtLimit                  = types.KeyGlobalDebtLimit
 	KeyCollateralParams                 = types.KeyCollateralParams
@@ -128,7 +127,6 @@ var (
 	DefaultGovDenom                     = types.DefaultGovDenom
 	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
 	DefaultDebtThreshold                = types.DefaultDebtThreshold
-	DefaultPreviousBlockTime            = types.DefaultPreviousBlockTime
 	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
 	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
 	MaxSortableDec                      = types.MaxSortableDec

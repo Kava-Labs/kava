@@ -25,11 +25,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 		return err
 	}
 
-	// fee calculation
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
-
-	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal...), cdp.AccumulatedFees.Add(fees...))
+	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal.Add(principal...), cdp.AccumulatedFees)
 	if err != nil {
 		return err
 	}
@@ -65,7 +61,6 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 
 	// update cdp state
 	cdp.Principal = cdp.Principal.Add(principal...)
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// increment total principal for the input collateral type
@@ -87,16 +82,13 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, denom)
 	}
 
-	// calculate fees
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
-	err := k.ValidatePaymentCoins(ctx, cdp, payment, cdp.Principal.Add(cdp.AccumulatedFees...).Add(fees...))
+	err := k.ValidatePaymentCoins(ctx, cdp, payment, cdp.Principal.Add(cdp.AccumulatedFees...))
 	if err != nil {
 		return err
 	}
 
 	// calculate fee and principal payment
-	feePayment, principalPayment := k.calculatePayment(ctx, cdp.Principal.Add(cdp.AccumulatedFees...).Add(fees...), cdp.AccumulatedFees.Add(fees...), payment)
+	feePayment, principalPayment := k.calculatePayment(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), cdp.AccumulatedFees, payment)
 
 	// send the payment from the sender to the cpd module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, feePayment.Add(principalPayment...))
@@ -142,7 +134,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	if !principalPayment.IsZero() {
 		cdp.Principal = cdp.Principal.Sub(principalPayment)
 	}
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...).Sub(feePayment)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Sub(feePayment)
 	cdp.FeesUpdated = ctx.BlockTime()
 
 	// decrement the total principal for the input collateral type
