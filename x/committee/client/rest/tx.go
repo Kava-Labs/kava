@@ -34,7 +34,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Parse and validate url params
 		vars := mux.Vars(r)
 		if len(vars[RestCommitteeID]) == 0 {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "committeeID required but not specified")
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("%s required but not specified", RestCommitteeID))
 			return
 		}
 		committeeID, ok := rest.ParseUint64OrReturnBadRequest(w, vars[RestCommitteeID])
@@ -78,7 +78,7 @@ func postVoteHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Parse and validate url params
 		vars := mux.Vars(r)
 		if len(vars[RestProposalID]) == 0 {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "proposalID required but not specified")
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("%s required but not specified", RestProposalID))
 			return
 		}
 		proposalID, ok := rest.ParseUint64OrReturnBadRequest(w, vars[RestProposalID])

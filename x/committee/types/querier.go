@@ -6,7 +6,6 @@ import (
 
 // Query endpoints supported by the Querier
 const (
-	//QueryParams     = "params"
 	QueryCommittees = "committees"
 	QueryCommittee  = "committee"
 	QueryProposals  = "proposals"

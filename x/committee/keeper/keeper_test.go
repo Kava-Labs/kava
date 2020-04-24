@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestGetSetProposal() {
+func (suite *KeeperTestSuite) TestGetSetDeleteProposal() {
 	// test setup
 	prop := types.Proposal{
 		ID:          12,
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestGetSetProposal() {
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestGetSetVote() {
+func (suite *KeeperTestSuite) TestGetSetDeleteVote() {
 	// test setup
 	vote := types.Vote{
 		ProposalID: 12,

@@ -190,6 +190,7 @@ func queryProposerHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Write response
+		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
@@ -209,7 +210,7 @@ func queryVotesOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Prepare params for querier
 		vars := mux.Vars(r)
 		if len(vars[RestProposalID]) == 0 {
-			err := errors.New("proposalID required but not specified")
+			err := errors.New(fmt.Sprintf("%s required but not specified", RestProposalID))
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -247,7 +248,7 @@ func queryTallyOnProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Prepare params for querier
 		vars := mux.Vars(r)
 		if len(vars[RestProposalID]) == 0 {
-			err := errors.New("proposalID required but not specified")
+			err := errors.New(fmt.Sprintf("%s required but not specified", RestProposalID))
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}

@@ -41,7 +41,7 @@ func (ccp CommitteeChangeProposal) GetTitle() string { return ccp.Title }
 // GetDescription returns the description of the proposal.
 func (ccp CommitteeChangeProposal) GetDescription() string { return ccp.Description }
 
-// GetDescription returns the routing key of the proposal.
+// ProposalRoute returns the routing key of the proposal.
 func (ccp CommitteeChangeProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of the proposal.
@@ -93,7 +93,7 @@ func (cdp CommitteeDeleteProposal) GetTitle() string { return cdp.Title }
 // GetDescription returns the description of the proposal.
 func (cdp CommitteeDeleteProposal) GetDescription() string { return cdp.Description }
 
-// GetDescription returns the routing key of the proposal.
+// ProposalRoute returns the routing key of the proposal.
 func (cdp CommitteeDeleteProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of the proposal.

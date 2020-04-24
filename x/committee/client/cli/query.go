@@ -40,7 +40,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return govQueryCmd
 }
 
-// GetCmdQueryProposals implements a query proposals command.
+// GetCmdQueryCommittees implements a query committees command.
 func GetCmdQueryCommittees(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "committees",

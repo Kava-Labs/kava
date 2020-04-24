@@ -29,7 +29,7 @@ func RegisterModuleCodec(cdc *codec.Codec) {
 	RegisterAppCodec(cdc)
 }
 
-// RegisterCodec registers the necessary types for the module
+// RegisterAppCodec registers the necessary types for the module
 func RegisterAppCodec(cdc *codec.Codec) {
 	// Proposals
 	// The app codec needs the gov.Content type registered. This is done by the gov module.
