@@ -71,7 +71,7 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	// note - time must be moved forward by a sufficient amount in order for additional
-	// fees to accumulate, in this example 60 seconds
+	// fees to accumulate, in this example 600 seconds
 	oldtime := suite.ctx.BlockTime()
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 600))
 	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp")
@@ -85,7 +85,7 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	// now check that we have the correct amount of fees overall (22 USDX for this scenario)
 	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.Amount)
 	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
-	// cdp we expect fees to not accumulate for because of rounding
+	// cdp we expect fees to not accumulate for because of rounding to zero
 	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
 
 	// check fees are zero
