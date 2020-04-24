@@ -68,10 +68,6 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 
 		absError := (sdk.OneDec().Sub(sdk.NewDecFromInt(bulkFees[0].Amount).Quo(sdk.NewDecFromInt(individualFees[0].Amount)))).Abs()
 
-		suite.T().Log(bulkFees)
-		suite.T().Log(individualFees)
-		suite.T().Log(absError)
-
 		suite.True(d("0.00001").GTE(absError))
 	}
 
@@ -95,28 +91,26 @@ func (suite *FeeTestSuite) createCdps() {
 
 	// now create two cdps with the addresses we just created
 	// use the created account to create a cdp that SHOULD have fees updated
-	// to get a ratio between 100 - 110% of liquidation ratio we can use 200xrp ($50) and 24 usdx (208% collateralization with liquidation ratio of 200%)
-	// create CDP for the first address
 	err := suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200000000)), cs(c("usdx", 24000000)))
 	suite.NoError(err) // check that no error was thrown
 
-	// use the other account to create a cdp that SHOULD NOT have fees updated - 500% collateralization
-	// create CDP for the second address
+	// use the other account to create a cdp that SHOULD NOT have fees updated
 	err = suite.keeper.AddCdp(suite.ctx, addrs[1], cs(c("xrp", 200000000)), cs(c("usdx", 10000000)))
 	suite.NoError(err) // check that no error was thrown
 
 }
 
-// UpdateFeesForRiskyCdpsTest tests the functionality for updating the fees for risky CDPs
-func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
+// TestUpdateFees tests the functionality for updating the fees for CDPs
+func (suite *FeeTestSuite) TestUpdateFees() {
 	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
 	suite.createCdps()
 
 	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
 	// note - time must be moved forward by a sufficient amount in order for additional
-	// fees to accumulate, in this example 60 seconds
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 60))
-	err := suite.keeper.UpdateFeesForRiskyCdps(suite.ctx, "xrp", "xrp:usd")
+	// fees to accumulate, in this example 600 seconds
+	oldtime := suite.ctx.BlockTime()
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 600))
+	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp")
 	suite.NoError(err) // check that we don't have any error
 
 	// cdp we expect fees to accumulate for
@@ -124,29 +118,15 @@ func (suite *FeeTestSuite) TestUpdateFeesForRiskyCdps() {
 	// check fees are not zero
 	// check that the fees have been updated
 	suite.False(cdp1.AccumulatedFees.Empty())
-	// now check that we have the correct amount of fees overall (2 USDX for this scenario)
-	suite.Equal(sdk.NewInt(2), cdp1.AccumulatedFees.AmountOf("usdx"))
-
-	// cdp we expect fees to not accumulate for
+	// now check that we have the correct amount of fees overall (22 USDX for this scenario)
+	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.AmountOf("usdx"))
+	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
+	// cdp we expect fees to not accumulate for because of rounding to zero
 	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
 
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.Empty())
-
-}
-
-func (suite *FeeTestSuite) TestGetSetPreviousBlockTime() {
-	now := tmtime.Now()
-
-	_, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.False(f)
-
-	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, now) })
-
-	bpt, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.True(f)
-	suite.Equal(now, bpt)
-
+	suite.Equal(oldtime, cdp2.FeesUpdated)
 }
 
 func TestFeeTestSuite(t *testing.T) {

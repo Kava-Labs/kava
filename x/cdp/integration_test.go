@@ -70,7 +70,6 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
@@ -153,7 +152,6 @@ func NewCDPGenStateMulti() app.GenesisState {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
@@ -203,19 +201,16 @@ func badGenStates() []badGenState {
 	g9.DebtDenom = ""
 
 	g10 := baseGenState()
-	g10.PreviousBlockTime = time.Time{}
+	g10.Params.CollateralParams[0].AuctionSize = i(-10)
 
 	g11 := baseGenState()
-	g11.Params.CollateralParams[0].AuctionSize = i(-10)
+	g11.Params.CollateralParams[0].LiquidationPenalty = d("5.0")
 
 	g12 := baseGenState()
-	g12.Params.CollateralParams[0].LiquidationPenalty = d("5.0")
+	g12.GovDenom = ""
 
 	g13 := baseGenState()
-	g13.GovDenom = ""
-
-	g14 := baseGenState()
-	g14.Params.DebtParams[0].SavingsRate = d("4.0")
+	g13.Params.DebtParams[0].SavingsRate = d("4.0")
 
 	return []badGenState{
 		badGenState{Genesis: g1, Reason: "duplicate collateral denom"},
@@ -226,11 +221,10 @@ func badGenStates() []badGenState {
 		badGenState{Genesis: g6, Reason: "duplicate debt denom"},
 		badGenState{Genesis: g8, Reason: "debt param not found in global debt limit"},
 		badGenState{Genesis: g9, Reason: "debt denom not set"},
-		badGenState{Genesis: g10, Reason: "previous block time not set"},
-		badGenState{Genesis: g11, Reason: "negative auction size"},
-		badGenState{Genesis: g12, Reason: "invalid liquidation penalty"},
-		badGenState{Genesis: g13, Reason: "gov denom not set"},
-		badGenState{Genesis: g14, Reason: "invalid savings rate"},
+		badGenState{Genesis: g10, Reason: "negative auction size"},
+		badGenState{Genesis: g11, Reason: "invalid liquidation penalty"},
+		badGenState{Genesis: g12, Reason: "gov denom not set"},
+		badGenState{Genesis: g13, Reason: "invalid savings rate"},
 	}
 }
 
@@ -280,7 +274,6 @@ func baseGenState() cdp.GenesisState {
 		DebtDenom:                cdp.DefaultDebtDenom,
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
-		PreviousBlockTime:        cdp.DefaultPreviousBlockTime,
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
 	}
 }

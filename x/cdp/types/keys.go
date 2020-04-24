@@ -45,8 +45,7 @@ var sep = []byte(":")
 // - 0x05<depositState>:<cdpID>:<depositorAddr_bytes>: Deposit
 // - 0x06<denom>:totalPrincipal
 // - 0x07<denom>:feeRate
-// - 0x08:previousBlockTime
-// - 0x09:previousDistributionTime
+// - 0x08:previousDistributionTime
 
 // KVStore key prefixes
 var (
@@ -58,8 +57,7 @@ var (
 	GovDenomKey                 = []byte{0x05}
 	DepositKeyPrefix            = []byte{0x06}
 	PrincipalKeyPrefix          = []byte{0x07}
-	PreviousBlockTimeKey        = []byte{0x08}
-	PreviousDistributionTimeKey = []byte{0x09}
+	PreviousDistributionTimeKey = []byte{0x08}
 )
 
 var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))

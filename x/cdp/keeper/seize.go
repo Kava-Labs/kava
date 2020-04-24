@@ -18,11 +18,6 @@ import (
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
-	// Update fees
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees...), periods, cdp.Collateral[0].Denom)
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(fees...)
-	cdp.FeesUpdated = ctx.BlockTime()
 
 	// Move debt coins from cdp to liquidator account
 	deposits := k.GetDeposits(ctx, cdp.ID)
@@ -78,29 +73,6 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
 	k.DeleteCDP(ctx, cdp)
 	return nil
-}
-
-// HandleNewDebt compounds the accumulated fees for the input collateral and principal coins.
-// the following operations are performed:
-// 1. The fees accumulated since the last block are calculated
-// 2. The fees are minted, split between the liquidator module account (surplus) and the savings rate module account (savings rate) according to the savings rate parameter.
-// 2. An equal amount of debt coins are minted in the cdp module account
-// 3. updates the total amount of principal for the input collateral type in the store,
-func (k Keeper) HandleNewDebt(ctx sdk.Context, collateralDenom string, principalDenom string, periods sdk.Int) {
-	dp, _ := k.GetDebtParam(ctx, principalDenom)
-	savingsRate := dp.SavingsRate
-	previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, principalDenom)
-	feeCoins := sdk.NewCoins(sdk.NewCoin(principalDenom, previousDebt))
-	newFees := k.CalculateFees(ctx, feeCoins, periods, collateralDenom)
-	if newFees.IsZero() {
-		return
-	}
-	newFeesSavings := sdk.NewDecFromInt(newFees.AmountOf(principalDenom)).Mul(savingsRate).RoundInt()
-	newFeesSurplus := newFees.AmountOf(principalDenom).Sub(newFeesSavings)
-	k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
-	k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSurplus)))
-	k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(principalDenom, newFeesSavings)))
-	k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, feeCoins.Add(newFees...).AmountOf(principalDenom))
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
