@@ -84,15 +84,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 		NewCommitteeGenesisState(suite.cdc, suite.testGenesis),
 	)
 
-	// Collect up votes into a map indexed by proposalID for convenience
-	suite.votes = map[uint64]([]types.Vote){}
-	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
-		suite.keeper.IterateVotes(suite.ctx, p.ID, func(v types.Vote) bool {
-			suite.votes[p.ID] = append(suite.votes[p.ID], v)
-			return false
-		})
-		return false
-	})
+	suite.votes = getProposalVoteMap(suite.keeper, suite.ctx)
 }
 
 func (suite *QuerierTestSuite) TestQueryCommittees() {

@@ -322,3 +322,87 @@ func (suite *KeeperTestSuite) TestValidatePubProposal() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestCloseExpiredProposals() {
+
+	// Setup test state
+	firstBlockTime := time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC)
+	testGenesis = types.NewGenesisState(
+		3,
+		[]types.Committee{
+			{
+				ID:                  1,
+				Description:         "This committee is for testing.",
+				Members:             suite.addresses[:3],
+				Permissions:         []types.Permission{types.GodPermission{}},
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
+			},
+			{
+				ID:                  2,
+				Members:             suite.addresses[2:],
+				Permissions:         nil,
+				VoteThreshold:       d("0.667"),
+				MaxProposalDuration: time.Hour * 24 * 7,
+			},
+		},
+		[]types.Proposal{
+			{
+				ID:          1,
+				CommitteeID: 1,
+				PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+				Deadline:    firstBlockTime.Add(7 * 24 * time.Hour),
+			},
+			{
+				ID:          2,
+				CommitteeID: 1,
+				PubProposal: gov.NewTextProposal("Another Title", "A description of this other proposal."),
+				Deadline:    firstBlockTime.Add(21 * 24 * time.Hour),
+			},
+		},
+		[]types.Vote{
+			{ProposalID: 1, Voter: suite.addresses[0]},
+			{ProposalID: 1, Voter: suite.addresses[1]},
+			{ProposalID: 2, Voter: suite.addresses[2]},
+		},
+	)
+	suite.app.InitializeFromGenesisStates(
+		NewCommitteeGenesisState(suite.cdc, testGenesis),
+	)
+
+	// close proposals
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime})
+	suite.keeper.CloseExpiredProposals(ctx)
+
+	// check
+	for _, p := range testGenesis.Proposals {
+		_, found := k.GetProposal(ctx, p.ID)
+		votes := getProposalVoteMap(suite.keeper, ctx)
+
+		if ctx.BlockTime().After(p.Deadline) {
+			suite.False(found)
+			suite.Empty(votes[p.ID])
+		} else {
+			suite.True(found)
+			suite.NotEmpty(votes[p.ID])
+		}
+	}
+
+	// close (later time)
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: firstBlockTime.Add(7 * 24 * time.Hour)})
+	suite.keeper.CloseExpiredProposals(ctx)
+
+	// check
+	for _, p := range testGenesis.Proposals {
+		_, found := k.GetProposal(ctx, p.ID)
+		votes := getProposalVoteMap(suite.keeper, ctx)
+
+		if ctx.BlockTime().After(p.Deadline) {
+			suite.False(found)
+			suite.Empty(votes[p.ID])
+		} else {
+			suite.True(found)
+			suite.NotEmpty(votes[p.ID])
+		}
+	}
+}

@@ -125,6 +125,27 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 	return nil
 }
 
+// CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.
+func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
+
+	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
+		if proposal.HasExpiredBy(ctx.BlockTime()) {
+
+			k.DeleteProposalAndVotes(ctx, proposal.ID)
+
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeProposalClose,
+					sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+					sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+					sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, types.AttributeValueProposalTimeout),
+				),
+			)
+		}
+		return false
+	})
+}
+
 // ValidatePubProposal checks if a pubproposal is valid.
 func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) sdk.Error {
 	if pubProposal == nil {
