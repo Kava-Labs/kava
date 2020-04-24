@@ -78,7 +78,6 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 			openClaims[i], openClaims[j] = openClaims[j], openClaims[i]
 		})
 
-		// TODO: Load kavadist module account's current balance
 		kavadistMacc := sk.GetModuleAccount(ctx, kavadist.KavaDistMacc)
 		kavadistBalance := kavadistMacc.SpendableCoins(ctx.BlockTime())
 
