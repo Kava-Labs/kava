@@ -49,7 +49,7 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 The proposal file must be the json encoded forms of the proposal type you want to submit.
 For example:
 %s
-`, mustGetExampleParameterChangeProposal(cdc)),
+`, MustGetExampleParameterChangeProposal(cdc)),
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -139,7 +139,7 @@ For example, to create or update a committee:
 
 and to delete a committee:
 %s
-`, mustGetExampleCommitteeChangeProposal(cdc), mustGetExampleCommitteeDeleteProposal(cdc)),
+`, MustGetExampleCommitteeChangeProposal(cdc), MustGetExampleCommitteeDeleteProposal(cdc)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -181,8 +181,8 @@ and to delete a committee:
 	return cmd
 }
 
-// mustGetExampleCommitteeChangeProposal is a helper function to return an example json proposal
-func mustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
+// MustGetExampleCommitteeChangeProposal is a helper function to return an example json proposal
+func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 	exampleChangeProposal := types.NewCommitteeChangeProposal(
 		"A Title",
 		"A description of this proposal.",
@@ -206,8 +206,8 @@ func mustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 	return string(exampleChangeProposalBz)
 }
 
-// mustGetExampleCommitteeDeleteProposal is a helper function to return an example json proposal
-func mustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
+// MustGetExampleCommitteeDeleteProposal is a helper function to return an example json proposal
+func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 	exampleDeleteProposal := types.NewCommitteeDeleteProposal(
 		"A Title",
 		"A description of this proposal.",
@@ -220,8 +220,8 @@ func mustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 	return string(exampleDeleteProposalBz)
 }
 
-// mustGetExampleParameterChangeProposal is a helper function to return an example json proposal
-func mustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+// MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
+func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
 	exampleParameterChangeProposal := params.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",
