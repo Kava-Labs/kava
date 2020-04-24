@@ -174,9 +174,22 @@
     "incentive": {
       "params": {
         "active": true,
-        "rewards": []
+        "rewards": [
+          {
+            "active": true,
+            "denom": "bnb",
+            "available_rewards": 
+            {
+              "amount": "50000000000",
+              "denom": "ukava"
+            },
+            "duration": "36288000000000000",
+            "time_lock": "1892160000000000000",
+            "claim_duration": "36288000000000000"
+          }
+        ]
       },
-      "previous_block_time": "1970-01-01T00:00:00Z"
+    "previous_block_time": "1970-01-01T00:00:00Z"
     },
     "kavadist": {
       "params": {
