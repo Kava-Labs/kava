@@ -413,12 +413,8 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 
 // LoadAugmentedCDP creates a new augmented CDP from an existing CDP
 func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, error) {
-	// calculate additional fees
-	periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-	fees := k.CalculateFees(ctx, cdp.Principal.Add(cdp.AccumulatedFees), periods, cdp.Collateral.Denom)
-	totalFees := cdp.AccumulatedFees.Add(fees)
 	// calculate collateralization ratio
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, totalFees)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {
 		return types.AugmentedCDP{}, err
 	}
@@ -426,7 +422,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 	// total debt is the sum of all oustanding principal and fees
 	var totalDebt int64
 	totalDebt += cdp.Principal.Amount.Int64()
-	totalDebt += cdp.AccumulatedFees.Add(fees).Amount.Int64()
+	totalDebt += cdp.AccumulatedFees.Amount.Int64()
 
 	// convert collateral value to debt coin
 	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)

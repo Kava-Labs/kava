@@ -61,7 +61,6 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 
 	// update cdp state
 	cdp.Principal = cdp.Principal.Add(principal)
-	cdp.FeesUpdated = ctx.BlockTime()
 
 	// increment total principal for the input collateral type
 	k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, principal)
@@ -132,7 +131,6 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		cdp.Principal = cdp.Principal.Sub(principalPayment)
 	}
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Sub(feePayment)
-	cdp.FeesUpdated = ctx.BlockTime()
 
 	// decrement the total principal for the input collateral type
 	k.DecrementTotalPrincipal(ctx, denom, feePayment.Add(principalPayment))
