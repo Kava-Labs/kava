@@ -163,7 +163,10 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 	if payment.Denom != debt.Denom {
 		return sdkerrors.Wrapf(types.ErrInvalidPayment, "cdp %d: expected %s, got %s", cdp.ID, debt.Denom, payment.Denom)
 	}
-	dp, _ := k.GetDebtParam(ctx, payment.Denom)
+	dp, found := k.GetDebtParam(ctx, payment.Denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidPayment, "payment denom %s not found", payment.Denom)
+	}
 	proposedBalance := cdp.Principal.Amount.Sub(payment.Amount)
 	if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
 		return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoin(payment.Denom, proposedBalance), dp.DebtFloor)

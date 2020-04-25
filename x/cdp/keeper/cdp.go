@@ -172,7 +172,10 @@ func (k Keeper) GetCdpByOwnerAndDenom(ctx sdk.Context, owner sdk.AccAddress, den
 func (k Keeper) GetCDP(ctx sdk.Context, collateralDenom string, cdpID uint64) (types.CDP, bool) {
 	// get store
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, _ := k.GetDenomPrefix(ctx, collateralDenom)
+	db, found := k.GetDenomPrefix(ctx, collateralDenom)
+	if !found {
+		return types.CDP{}, false
+	}
 	// get CDP
 	bz := store.Get(types.CdpKey(db, cdpID))
 	// unmarshal
@@ -187,7 +190,10 @@ func (k Keeper) GetCDP(ctx sdk.Context, collateralDenom string, cdpID uint64) (t
 // SetCDP sets a cdp in the store
 func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
+	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
+	if !found {
+		panic(fmt.Sprintf("invalid collateral denom %s", cdp.Collateral.Denom))
+	}
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(types.CdpKey(db, cdp.ID), bz)
 	return
@@ -196,7 +202,10 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) {
 // DeleteCDP deletes a cdp from the store
 func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, _ := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
+	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
+	if !found {
+		panic(fmt.Sprintf("invalid collateral denom %s", cdp.Collateral.Denom))
+	}
 	store.Delete(types.CdpKey(db, cdp.ID))
 
 }
@@ -374,11 +383,11 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateralDenom)
 	}
 	totalPrincipal := k.GetTotalPrincipal(ctx, collateralDenom, principal.Denom).Add(principal.Amount)
-	collateralLimit := cp.DebtLimit.AmountOf(principal.Denom)
+	collateralLimit := cp.DebtLimit.Amount
 	if totalPrincipal.GT(collateralLimit) {
 		return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > collateral debt limit %s", sdk.NewCoins(sdk.NewCoin(principal.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(principal.Denom, collateralLimit)))
 	}
-	globalLimit := k.GetParams(ctx).GlobalDebtLimit.AmountOf(principal.Denom)
+	globalLimit := k.GetParams(ctx).GlobalDebtLimit.Amount
 	if totalPrincipal.GT(globalLimit) {
 		return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > global debt limit  %s", sdk.NewCoin(principal.Denom, totalPrincipal), sdk.NewCoin(principal.Denom, globalLimit))
 	}

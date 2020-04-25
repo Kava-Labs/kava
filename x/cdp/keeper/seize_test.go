@@ -129,7 +129,8 @@ func (suite *SeizeTestSuite) setPrice(price sdk.Dec, market string) {
 func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	suite.createCdps()
 	sk := suite.app.GetSupplyKeeper()
-	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	cdp, found := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	suite.True(found)
 	p := cdp.Principal.Amount
 	cl := cdp.Collateral.Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
@@ -138,7 +139,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
 	suite.Equal(tpb.Sub(tpa), p)
 	auctionKeeper := suite.app.GetAuctionKeeper()
-	_, found := auctionKeeper.GetAuction(suite.ctx, auction.DefaultNextAuctionID)
+	_, found = auctionKeeper.GetAuction(suite.ctx, auction.DefaultNextAuctionID)
 	suite.True(found)
 	auctionMacc := sk.GetModuleAccount(suite.ctx, auction.ModuleName)
 	suite.Equal(cs(c("debt", p.Int64()), c("xrp", cl.Int64())), auctionMacc.GetCoins())
@@ -152,10 +153,12 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	suite.createCdps()
 	sk := suite.app.GetSupplyKeeper()
-	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	cdp, found := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	suite.True(found)
 	err := suite.keeper.DepositCollateral(suite.ctx, suite.addrs[1], suite.addrs[0], c("xrp", 6999000000))
 	suite.NoError(err)
-	cdp, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	cdp, found = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(2))
+	suite.True(found)
 	deposits := suite.keeper.GetDeposits(suite.ctx, cdp.ID)
 	suite.Equal(2, len(deposits))
 	p := cdp.Principal.Amount
@@ -180,7 +183,8 @@ func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	acc := sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	originalXrpCollateral := acc.GetCoins().AmountOf("xrp")
 	suite.setPrice(d("0.2"), "xrp:usd")
-	p, _ := suite.keeper.GetCollateral(suite.ctx, "xrp")
+	p, found := suite.keeper.GetCollateral(suite.ctx, "xrp")
+	suite.True(found)
 	suite.keeper.LiquidateCdps(suite.ctx, "xrp:usd", "xrp", p.LiquidationRatio)
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	finalXrpCollateral := acc.GetCoins().AmountOf("xrp")

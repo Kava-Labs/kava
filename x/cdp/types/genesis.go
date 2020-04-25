@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -55,9 +56,11 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("previous distribution time not set")
 	}
 
-	if gs.DebtDenom == "" {
+	if strings.TrimSpace(gs.DebtDenom) == "" {
 		return fmt.Errorf("debt denom not set")
-
+	}
+	if strings.TrimSpace(gs.GovDenom) == "" {
+		return fmt.Errorf("gov denom not set")
 	}
 
 	return nil

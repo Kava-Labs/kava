@@ -113,7 +113,6 @@ var (
 	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
 	KeyGlobalDebtLimit                  = types.KeyGlobalDebtLimit
 	KeyCollateralParams                 = types.KeyCollateralParams
-	KeyDebtParams                       = types.KeyDebtParams
 	KeyDistributionFrequency            = types.KeyDistributionFrequency
 	KeyCircuitBreaker                   = types.KeyCircuitBreaker
 	KeyDebtThreshold                    = types.KeyDebtThreshold
@@ -121,7 +120,6 @@ var (
 	DefaultGlobalDebt                   = types.DefaultGlobalDebt
 	DefaultCircuitBreaker               = types.DefaultCircuitBreaker
 	DefaultCollateralParams             = types.DefaultCollateralParams
-	DefaultDebtParams                   = types.DefaultDebtParams
 	DefaultCdpStartingID                = types.DefaultCdpStartingID
 	DefaultDebtDenom                    = types.DefaultDebtDenom
 	DefaultGovDenom                     = types.DefaultGovDenom

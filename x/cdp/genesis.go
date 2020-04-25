@@ -46,9 +46,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 
 	// set the per second fee rate for each collateral type
 	for _, cp := range gs.Params.CollateralParams {
-		for _, dp := range gs.Params.DebtParams {
-			k.SetTotalPrincipal(ctx, cp.Denom, dp.Denom, sdk.ZeroInt())
-		}
+		k.SetTotalPrincipal(ctx, cp.Denom, gs.Params.DebtParam.Denom, sdk.ZeroInt())
 	}
 
 	// add cdps

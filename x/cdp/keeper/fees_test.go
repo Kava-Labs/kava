@@ -78,7 +78,8 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	suite.NoError(err) // check that we don't have any error
 
 	// cdp we expect fees to accumulate for
-	cdp1, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	cdp1, found := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	suite.True(found)
 	// check fees are not zero
 	// check that the fees have been updated
 	suite.False(cdp1.AccumulatedFees.IsZero())
@@ -86,8 +87,8 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.Amount)
 	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
 	// cdp we expect fees to not accumulate for because of rounding to zero
-	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
-
+	cdp2, found := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
+	suite.True(found)
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.IsZero())
 	suite.Equal(oldtime, cdp2.FeesUpdated)

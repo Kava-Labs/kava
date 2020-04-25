@@ -52,7 +52,8 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	err := suite.keeper.AddPrincipal(suite.ctx, suite.addrs[0], "xrp", c("usdx", 10000000))
 	suite.NoError(err)
 
-	t, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
+	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
+	suite.True(found)
 	suite.Equal(c("usdx", 20000000), t.Principal)
 	ctd := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees))
 	suite.Equal(d("20.0"), ctd)
@@ -79,7 +80,8 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", c("usdx", 10000000))
 	suite.NoError(err)
 
-	t, _ = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
+	t, found = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
+	suite.True(found)
 	suite.Equal(c("usdx", 10000000), t.Principal)
 
 	ctd = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, t.Collateral, t.Principal.Add(t.AccumulatedFees))
@@ -88,8 +90,6 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	suite.Equal(0, len(ts))
 	ts = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", d("40.0").Add(sdk.SmallestDec()))
 	suite.Equal(ts[0], t)
-	tp = suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "susd")
-	suite.Equal(i(0), tp)
 	sk = suite.app.GetSupplyKeeper()
 	acc = sk.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(cs(c("xrp", 400000000), c("debt", 10000000)), acc.GetCoins())
@@ -104,7 +104,7 @@ func (suite *DrawTestSuite) TestAddRepayPrincipal() {
 	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[0], "xrp", c("usdx", 10000000))
 	suite.NoError(err)
 
-	_, found := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
+	_, found = suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	suite.False(found)
 	ts = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp", types.MaxSortableDec)
 	suite.Equal(0, len(ts))
@@ -174,7 +174,7 @@ func (suite *DrawTestSuite) TestModuleAccountFailure() {
 		acc := sk.GetModuleAccount(ctx, types.ModuleName)
 		ak := suite.app.GetAccountKeeper()
 		ak.RemoveAccount(ctx, acc)
-		_ = suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp", c("usdx", 10000000))
+		suite.keeper.RepayPrincipal(ctx, suite.addrs[0], "xrp", c("usdx", 10000000))
 	})
 }
 

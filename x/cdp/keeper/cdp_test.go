@@ -59,11 +59,13 @@ func (suite *CdpTestSuite) TestAddCdp() {
 
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pk := suite.app.GetPriceFeedKeeper()
-	_ = pk.SetCurrentPrices(ctx, "xrp:usd")
+	err = pk.SetCurrentPrices(ctx, "xrp:usd")
+	suite.Error(err)
 	err = suite.keeper.AddCdp(ctx, addrs[0], c("xrp", 100000000), c("usdx", 10000000))
 	suite.Error(err) // no prices in pricefeed
 
-	_ = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
+	err = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
+	suite.NoError(err)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 100000000), c("usdx", 10000000))
 	suite.NoError(err)
 	id := suite.keeper.GetNextCdpID(suite.ctx)

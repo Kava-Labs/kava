@@ -61,7 +61,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 		}
 
 		randCollateralParam := collateralParams[r.Intn(len(collateralParams))]
-		randDebtAsset := randCollateralParam.DebtLimit[r.Intn(len(randCollateralParam.DebtLimit))]
+		randDebtAsset := randCollateralParam.DebtLimit
 		randDebtParam, _ := k.GetDebtParam(ctx, randDebtAsset.Denom)
 		if coins.AmountOf(randCollateralParam.Denom).IsZero() {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
@@ -104,7 +104,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 			// calculate the max amount of debt that could be drawn for the chosen deposit
 			maxDebtDraw := collateralDepositValue.Quo(randCollateralParam.LiquidationRatio).TruncateInt()
 			// check that the debt limit hasn't been reached
-			availableAssetDebt := randCollateralParam.DebtLimit.AmountOf(randDebtParam.Denom).Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
+			availableAssetDebt := randCollateralParam.DebtLimit.Amount.Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
 			if availableAssetDebt.LTE(randDebtParam.DebtFloor) {
 				// debt limit has been reached
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot open cdp", false, nil), nil, nil
@@ -196,7 +196,7 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
 			}
 			// check if the debt limit has been reached
-			availableAssetDebt := randCollateralParam.DebtLimit.AmountOf(randDebtParam.Denom).Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
+			availableAssetDebt := randCollateralParam.DebtLimit.Amount.Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, randDebtParam.Denom))
 			if availableAssetDebt.LTE(sdk.OneInt()) {
 				// debt limit has been reached
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot draw more debt", false, nil), nil, nil

@@ -168,27 +168,24 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 	if netAmount.IsZero() {
 		return nil
 	}
+	// burn debt coins equal to netAmount
 	err := k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
 	if err != nil {
 		return err
 	}
-	for netAmount.GT(sdk.ZeroInt()) {
-		for _, dp := range k.GetParams(ctx).DebtParams {
-			balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
-			if balance.LT(netAmount) {
-				err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
-				if err != nil {
-					return err
-				}
-				netAmount = netAmount.Sub(balance)
-			} else {
-				err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, netAmount)))
-				if err != nil {
-					return err
-				}
-				netAmount = sdk.ZeroInt()
-			}
+	// burn stable coins equal to netAmount
+	dp := k.GetParams(ctx).DebtParam
+	balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+	if balance.LT(netAmount) {
+		err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
+		if err != nil {
+			return err
 		}
+		return nil
+	}
+	err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, netAmount)))
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -197,10 +194,9 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
 	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
 	totalSurplus := sdk.ZeroInt()
-	for _, dp := range k.GetParams(ctx).DebtParams {
-		surplus := acc.GetCoins().AmountOf(dp.Denom)
-		totalSurplus = totalSurplus.Add(surplus)
-	}
+	dp := k.GetParams(ctx).DebtParam
+	surplus := acc.GetCoins().AmountOf(dp.Denom)
+	totalSurplus = totalSurplus.Add(surplus)
 	return totalSurplus
 }
 
@@ -223,14 +219,12 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 		}
 	}
 
-	for _, dp := range params.DebtParams {
-		surplus := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
-		if surplus.GTE(params.SurplusAuctionThreshold) {
-			surplusLot := sdk.NewCoin(dp.Denom, surplus)
-			_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
-			if err != nil {
-				return err
-			}
+	surplus := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(params.DebtParam.Denom)
+	if surplus.GTE(params.SurplusAuctionThreshold) {
+		surplusLot := sdk.NewCoin(params.DebtParam.Denom, surplus)
+		_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
+		if err != nil {
+			return err
 		}
 	}
 	return nil
