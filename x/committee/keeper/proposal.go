@@ -78,6 +78,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 }
 
 // GetProposalResult calculates if a proposal currently has enough votes to pass.
+// TODO rename GetProposalTally?
 func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk.Error) {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
@@ -114,18 +115,19 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 		return types.ErrUnknownProposal(k.codespace, proposalID)
 	}
 
-	// Run the proposal's changes through the associated handler, but using a cached version of state to ensure changes are not permanent if an error occurs.
-	handler := k.router.GetRoute(pr.ProposalRoute())
-	cacheCtx, writeCache := ctx.CacheContext()
-	if err := handler(cacheCtx, pr.PubProposal); err != nil {
+	if err := k.ValidatePubProposal(ctx, pr.PubProposal); err != nil {
 		return err
 	}
-	// write state to the underlying multi-store
-	writeCache()
+	handler := k.router.GetRoute(pr.ProposalRoute())
+	if err := handler(ctx, pr.PubProposal); err != nil {
+		// the handler should not error as it was checked in ValidatePubProposal
+		panic(fmt.Sprintf("unexpected handler error: %s", err))
+	}
 	return nil
 }
 
 // CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.
+// TODO rename to RemoveExpiredProposals?
 func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
 
 	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
@@ -147,7 +149,7 @@ func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
 }
 
 // ValidatePubProposal checks if a pubproposal is valid.
-func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) sdk.Error {
+func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) (returnErr sdk.Error) {
 	if pubProposal == nil {
 		return types.ErrInvalidPubProposal(k.codespace, "pub proposal cannot be nil")
 	}
@@ -162,6 +164,17 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 	// Run the proposal's changes through the associated handler using a cached version of state to ensure changes are not permanent.
 	cacheCtx, _ := ctx.CacheContext()
 	handler := k.router.GetRoute(pubProposal.ProposalRoute())
+
+	// Handle an edge case where a param change proposal causes the proposal handler to panic.
+	// A param change proposal with a registered subspace value but unregistered key value will cause a panic in the param change proposal handler.
+	// This defer will catch panics and return a normal error: `recover()` gets the panic value, then the enclosing function's return value is swapped for an error.
+	// reference: https://stackoverflow.com/questions/33167282/how-to-return-a-value-in-a-go-function-that-panics?noredirect=1&lq=1
+	defer func() {
+		if r := recover(); r != nil {
+			returnErr = types.ErrInvalidPubProposal(k.codespace, fmt.Sprintf("proposal handler panicked: %s", r))
+		}
+	}()
+
 	if err := handler(cacheCtx, pubProposal); err != nil {
 		return err
 	}
@@ -169,6 +182,7 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 }
 
 // DeleteProposalAndVotes removes a proposal and its associated votes.
+// TODO move to keeper.go
 func (k Keeper) DeleteProposalAndVotes(ctx sdk.Context, proposalID uint64) {
 	var votes []types.Vote
 	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {

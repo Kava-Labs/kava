@@ -15,8 +15,6 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
-
 type KeeperTestSuite struct {
 	suite.Suite
 
