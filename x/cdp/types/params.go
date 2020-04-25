@@ -13,20 +13,27 @@ import (
 
 // Parameter keys
 var (
-	KeyGlobalDebtLimit                  = []byte("GlobalDebtLimit")
-	KeyCollateralParams                 = []byte("CollateralParams")
-	KeyDebtParam                        = []byte("DebtParam")
-	KeyDistributionFrequency            = []byte("DistributionFrequency")
-	KeyCircuitBreaker                   = []byte("CircuitBreaker")
-	KeyDebtThreshold                    = []byte("DebtThreshold")
-	KeySurplusThreshold                 = []byte("SurplusThreshold")
-	DefaultGlobalDebt                   = sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt())
-	DefaultCircuitBreaker               = false
-	DefaultCollateralParams             = CollateralParams{}
-	DefaultDebtParam                    = DebtParam{}
+	KeyGlobalDebtLimit       = []byte("GlobalDebtLimit")
+	KeyCollateralParams      = []byte("CollateralParams")
+	KeyDebtParam             = []byte("DebtParam")
+	KeyDistributionFrequency = []byte("DistributionFrequency")
+	KeyCircuitBreaker        = []byte("CircuitBreaker")
+	KeyDebtThreshold         = []byte("DebtThreshold")
+	KeySurplusThreshold      = []byte("SurplusThreshold")
+	DefaultGlobalDebt        = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
+	DefaultCircuitBreaker    = false
+	DefaultCollateralParams  = CollateralParams{}
+	DefaultDebtParam         = DebtParam{
+		Denom:            "usdx",
+		ReferenceAsset:   "usd",
+		ConversionFactor: sdk.NewInt(6),
+		DebtFloor:        sdk.NewInt(10000000),
+		SavingsRate:      sdk.MustNewDecFromStr("0.95"),
+	}
 	DefaultCdpStartingID                = uint64(1)
 	DefaultDebtDenom                    = "debt"
 	DefaultGovDenom                     = "ukava"
+	DefaultStableDenom                  = "usdx"
 	DefaultSurplusThreshold             = sdk.NewInt(1000000000)
 	DefaultDebtThreshold                = sdk.NewInt(1000000000)
 	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
@@ -133,7 +140,9 @@ func (dp DebtParam) String() string {
 	Denom: %s
 	Reference Asset: %s
 	Conversion Factor: %s
-	Debt Floor %s`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor)
+	Debt Floor %s
+	Savings  Rate %s
+	`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor, dp.SavingsRate)
 }
 
 // DebtParams array of DebtParam
@@ -311,9 +320,6 @@ func validateDebtParam(i interface{}) error {
 	debtParam, ok := i.(DebtParam)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if (DebtParam{}) == debtParam { // default value OK
-		return nil
 	}
 	if strings.TrimSpace(debtParam.Denom) == "" {
 		return fmt.Errorf("debt denom cannot be blank %s", debtParam)
