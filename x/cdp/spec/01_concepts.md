@@ -4,16 +4,29 @@
 
 CDPs enable the creation of a stable asset by collateralization with another on chain asset.
 
-A CDP is scoped to one collateral type. It has one primary owner, and a set of "depositors". The depositors can deposit and withdraw collateral to the CDP. The owner can draw stable assets (creating debt) and repay them to cancel the debt.
+A CDP is scoped to one collateral type. It has one primary owner, and a set of "depositors". The depositors can deposit and withdraw collateral to the CDP. The owner can draw stable assets (creating debt), deposit and withdraw collateral, and repay stable assets to cancel the debt.
 
-Once created stable assets are free to be transferred between users, but a CDP owner must repay their debt to get their collateral back.
+Once created, stable assets are free to be transferred between users, but a CDP owner must repay their debt to get their collateral back.
 
 User interactions with this module:
 
-- create a new cdp by depositing some type of coin as collateral
-- withdraw newly minted stable coin from this CDP (up to a fraction of the value of the collateral)
+- create a new CDP by depositing a supported coin as collateral and minting debt
+- deposit to a CDP controlled a different owner address
+- withdraw deposited collateral, if it doesn't put the CDP below the liquidation ratio
+- issue stable coins from this CDP (up to a fraction of the value of the collateral)
 - repay debt by paying back stable coins (including paying any fees accrued)
 - remove collateral and close CDP
+
+Module interactions:
+
+- fees for all CDPs are updated each block
+- the value of fees (surplus) is divded between users, via the savings rate, and owners of the governance token, via burning governance tokens proportional to surplus
+- the value of an asset that is supported for CDPs is determined by querying an external pricefeed
+- if the price of an asset puts a CDP below the liquidation ratio, the CDP is liquidated
+- liquidated collateral is divided into lots and sent to an external auction module
+- collateral that is returned from the auction module is returned to the account that deposited that collateral
+- if auctions do not recover the desired amount of debt, debt auctions are triggered after a certain threshold of global debt is reached
+- surplus auctions are triggered after a certain threshold of surplus is triggered
 
 ## Liquidation & Stability System
 
@@ -35,13 +48,13 @@ The cdp module uses two module accounts - one to hold debt coins associated with
 
 When a user repays stable asset withdrawn from a CDP, they must also pay a fee.
 
-This is calculated according to the amount of stable asset withdrawn and the time withdrawn for. Like interest on a loan fees grow at a compounding percentage of original debt.
+This is calculated according to the amount of stable asset withdrawn and the time withdrawn for. Like interest on a loan, fees grow at a compounding percentage of original debt.
 
 Fees create incentives to open or close CDPs and can be changed by governance to help keep the system functioning through changing market conditions.
 
 A further fee is applied on liquidation of a CDP. Normally when the collateral is sold to cover the debt, any excess not sold is returned to the CDP holder. The liquidation fee reduces the amount of excess collateral returned, representing a cut that the system takes.
 
-Fees accumulate to the system before being automatically sold at auction for governance token. These are then burned, acting as incentive for safe governance of the system.
+Fees accumulate to the system and are split between the savings rate and surplus. Fees accumulated by the savings rate are distributed directly to holders of stable coins at a specified frequency. Savings rate distributions are proportional to tokens held. For example, if an account holds 1% of all stable coins, they will receive 1% of the savings rate distribution. Fees accumulated as surplus are automatically sold at auction for governance token once a certain threshold is reached. The governance tokens raised at auction are then burned, acting as incentive for safe governance of the system.
 
 ## Governance
 
@@ -52,6 +65,7 @@ Governance is important for actions such as:
 - enabling CDPs to be created with new collateral assets
 - changing fee rates to incentivize behavior
 - increasing the debt ceiling to allow more stable asset to be created
+- increasing/decreasing the savings rate to promote stability of the debt asset
 
 ## Dependency: supply
 

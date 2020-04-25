@@ -2,30 +2,26 @@
 
 At the start of every block the BeginBlocker of the cdp module:
 
-- updates total CDP fees
-- update fees for individual "risky" CDPs
+- updates fees for CDPs
 - liquidates CDPs under the collateral ratio
 - nets out system debt and, if necessary, starts auctions to re-balance it
-- records the last block time
+- pays out the savings rate if sufficient time has past
+- records the last savings rate distribution, if one occurred
 
 ## Update Fees
 
-- The total fees accumulated since the last block across all CDPs are calculated.
-- An equal amount of debt coins are minted and sent to the system's CDP module account.
-- An equal amount of stable asset coins are minted and sent to the system's liquidator module account
-
-## Update risky cdps
-
-- UpdateFeesForRiskyCdps calculates fees for risky CDPs
-- Select the CDPs with 10% of the liquidation ratio - the risky CDPs
-- Calculate additional accumulated fees on each of those CDPs
-- Update the fees updated time for the CDP to the current block time
+- The total fees accumulated since the last block for each CDP are calculated.
+- If the fee amount is non-zero:
+  - Set the updated value for fees
+  - Set the fees updated time for the CDP to the current block time
+  - An equal amount of debt coins are minted and sent to the system's CDP module account.
+  - An equal amount of stable asset coins are minted and sent to the system's liquidator module account
+  - Increment total principal.
 
 ## Liquidate CDP
 
 - Get every cdp that is under the liquidation ratio for its collateral type.
 - For each cdp:
-  - Calculate and update fees since last update.
   - Remove all collateral and internal debt coins from cdp and deposits and delete it. Send the coins to the liquidator module account.
   - Start auctions of a fixed size from this collateral (with any remainder in a smaller sized auction), sending collateral and debt coins to the auction module account.
   - Decrement total principal.
@@ -42,7 +38,3 @@ At the start of every block the BeginBlocker of the cdp module:
 - If `SavingsDistributionFrequency` seconds have elapsed since the previous distribution, the savings rate is applied to all accounts that hold stable asset.
 - Each account that holds stable asset is distributed a ratable portion of the surplus that is apportioned to the savings rate.
 - If distribution occurred, the time of the distribution is recorded.
-
-## Update Previous Block Time
-
-The current block time is recorded.
