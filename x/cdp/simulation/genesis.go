@@ -32,6 +32,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 			sdk.NewCoin("xrp", sdk.NewInt(int64(simState.Rand.Intn(100000000000)))),
 			sdk.NewCoin("btc", sdk.NewInt(int64(simState.Rand.Intn(500000000)))),
 			sdk.NewCoin("usdx", sdk.NewInt(int64(simState.Rand.Intn(1000000000)))),
+			sdk.NewCoin("ukava", sdk.NewInt(int64(simState.Rand.Intn(500000000000)))),
 		)
 		err := acc.SetCoins(acc.GetCoins().Add(coinsToAdd...))
 		if err != nil {
