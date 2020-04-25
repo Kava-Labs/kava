@@ -103,7 +103,8 @@ func (suite *DepositTestSuite) TestWithdrawCollateral() {
 
 	cd, _ := suite.keeper.GetCDP(suite.ctx, "xrp", uint64(1))
 	cd.AccumulatedFees = c("usdx", 1)
-	suite.keeper.SetCDP(suite.ctx, cd)
+	err = suite.keeper.SetCDP(suite.ctx, cd)
+	suite.NoError(err)
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[0], suite.addrs[0], c("xrp", 320000000))
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 

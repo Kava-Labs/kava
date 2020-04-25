@@ -23,7 +23,7 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 
 // UpdateFeesForAllCdps updates the fees for each of the CDPs
 func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) error {
-
+	var iterationErr error
 	k.IterateCdpsByDenom(ctx, collateralDenom, func(cdp types.CDP) bool {
 
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
@@ -71,9 +71,16 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 		cdp.FeesUpdated = ctx.BlockTime()
 		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
-		k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+		err := k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+		if err != nil {
+			iterationErr = err
+			return true
+		}
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
+	if iterationErr != nil {
+		return iterationErr
+	}
 	return nil
 }
 

@@ -45,7 +45,10 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 
 	cdp.Collateral = cdp.Collateral.Add(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -92,7 +95,10 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	if err != nil {
+		return err
+	}
 
 	deposit.Amount = deposit.Amount.Sub(collateral)
 	if deposit.Amount.IsZero() {

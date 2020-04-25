@@ -242,7 +242,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "collateral debt limit exceeds global debt limit",
+				contains:   "sum of collateral debt limits",
 			},
 		},
 		{
@@ -321,7 +321,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "collateral denom cannot be blank",
+				contains:   "collateral denom invalid",
 			},
 		},
 		{
@@ -615,7 +615,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "debt denom cannot be blank",
+				contains:   "debt denom invalid",
 			},
 		},
 		{

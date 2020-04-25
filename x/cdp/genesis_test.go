@@ -54,7 +54,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "debt denom not set",
+				contains:   "debt denom invalid",
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "gov denom not set",
+				contains:   "gov denom invalid",
 			},
 		},
 		{

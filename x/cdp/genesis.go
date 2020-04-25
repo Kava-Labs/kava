@@ -54,7 +54,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 		if cdp.ID == gs.StartingCdpID {
 			panic(fmt.Sprintf("starting cdp id is assigned to an existing cdp: %s", cdp))
 		}
-		k.SetCDP(ctx, cdp)
+		err := k.SetCDP(ctx, cdp)
+		if err != nil {
+			panic(fmt.Sprintf("error setting cdp: %v", err))
+		}
 		k.IndexCdpByOwner(ctx, cdp)
 		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral.Denom, cdp.ID, ratio)

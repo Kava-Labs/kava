@@ -25,20 +25,20 @@ var (
 	ErrDepositNotFound = sdkerrors.Register(ModuleName, 9, "deposit not found")
 	// ErrInvalidDeposit error for invalid deposit
 	ErrInvalidDeposit = sdkerrors.Register(ModuleName, 10, "invalid deposit")
-	// ErrInvalidCollateral error for invalid collateral
-	ErrInvalidCollateral = sdkerrors.Register(ModuleName, 11, "collateral not supported")
 	// ErrInvalidPayment error for invalid payment
-	ErrInvalidPayment = sdkerrors.Register(ModuleName, 12, "invalid payment")
+	ErrInvalidPayment = sdkerrors.Register(ModuleName, 11, "invalid payment")
 	//ErrDepositNotAvailable error for withdrawing deposits in liquidation
-	ErrDepositNotAvailable = sdkerrors.Register(ModuleName, 13, "deposit in liquidation")
+	ErrDepositNotAvailable = sdkerrors.Register(ModuleName, 12, "deposit in liquidation")
 	// ErrInvalidWithdrawAmount error for invalid withdrawal amount
-	ErrInvalidWithdrawAmount = sdkerrors.Register(ModuleName, 14, "withdrawal amount exceeds deposit")
+	ErrInvalidWithdrawAmount = sdkerrors.Register(ModuleName, 13, "withdrawal amount exceeds deposit")
 	//ErrCdpNotAvailable error for depositing to a CDP in liquidation
-	ErrCdpNotAvailable = sdkerrors.Register(ModuleName, 15, "cannot modify cdp in liquidation")
+	ErrCdpNotAvailable = sdkerrors.Register(ModuleName, 14, "cannot modify cdp in liquidation")
 	// ErrBelowDebtFloor error for creating a cdp with debt below the minimum
-	ErrBelowDebtFloor = sdkerrors.Register(ModuleName, 16, "proposed cdp debt is below minimum")
+	ErrBelowDebtFloor = sdkerrors.Register(ModuleName, 15, "proposed cdp debt is below minimum")
 	// ErrLoadingAugmentedCDP error loading augmented cdp
-	ErrLoadingAugmentedCDP = sdkerrors.Register(ModuleName, 17, "augmented cdp could not be loaded from cdp")
+	ErrLoadingAugmentedCDP = sdkerrors.Register(ModuleName, 16, "augmented cdp could not be loaded from cdp")
 	// ErrInvalidDebtRequest error for invalid principal input length
-	ErrInvalidDebtRequest = sdkerrors.Register(ModuleName, 18, "only one principal type per cdp")
+	ErrInvalidDebtRequest = sdkerrors.Register(ModuleName, 17, "only one principal type per cdp")
+	// ErrDenomPrefixNotFound error for denom prefix not found
+	ErrDenomPrefixNotFound = sdkerrors.Register(ModuleName, 18, "denom prefix not found")
 )

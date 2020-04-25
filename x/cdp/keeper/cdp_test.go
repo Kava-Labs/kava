@@ -123,7 +123,8 @@ func (suite *CdpTestSuite) TestGetNextCdpID() {
 func (suite *CdpTestSuite) TestGetSetCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), c("usdx", 1), tmtime.Canonical(time.Now()))
-	suite.keeper.SetCDP(suite.ctx, cdp)
+	err := suite.keeper.SetCDP(suite.ctx, cdp)
+	suite.NoError(err)
 
 	t, found := suite.keeper.GetCDP(suite.ctx, "xrp", types.DefaultCdpStartingID)
 	suite.True(found)
@@ -138,7 +139,8 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 func (suite *CdpTestSuite) TestGetSetCdpId() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), c("usdx", 1), tmtime.Canonical(time.Now()))
-	suite.keeper.SetCDP(suite.ctx, cdp)
+	err := suite.keeper.SetCDP(suite.ctx, cdp)
+	suite.NoError(err)
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdp)
 	id, found := suite.keeper.GetCdpID(suite.ctx, addrs[0], "xrp")
 	suite.True(found)
@@ -152,7 +154,8 @@ func (suite *CdpTestSuite) TestGetSetCdpId() {
 func (suite *CdpTestSuite) TestGetSetCdpByOwnerAndDenom() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), c("usdx", 1), tmtime.Canonical(time.Now()))
-	suite.keeper.SetCDP(suite.ctx, cdp)
+	err := suite.keeper.SetCDP(suite.ctx, cdp)
+	suite.NoError(err)
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdp)
 	t, found := suite.keeper.GetCdpByOwnerAndDenom(suite.ctx, addrs[0], "xrp")
 	suite.True(found)
@@ -184,7 +187,8 @@ func (suite *CdpTestSuite) TestSetCdpByCollateralRatio() {
 func (suite *CdpTestSuite) TestIterateCdps() {
 	cdps := cdps()
 	for _, c := range cdps {
-		suite.keeper.SetCDP(suite.ctx, c)
+		err := suite.keeper.SetCDP(suite.ctx, c)
+		suite.NoError(err)
 		suite.keeper.IndexCdpByOwner(suite.ctx, c)
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
 		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral.Denom, c.ID, cr)
@@ -196,7 +200,8 @@ func (suite *CdpTestSuite) TestIterateCdps() {
 func (suite *CdpTestSuite) TestIterateCdpsByDenom() {
 	cdps := cdps()
 	for _, c := range cdps {
-		suite.keeper.SetCDP(suite.ctx, c)
+		err := suite.keeper.SetCDP(suite.ctx, c)
+		suite.NoError(err)
 		suite.keeper.IndexCdpByOwner(suite.ctx, c)
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
 		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral.Denom, c.ID, cr)
@@ -220,7 +225,8 @@ func (suite *CdpTestSuite) TestIterateCdpsByDenom() {
 func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	cdps := cdps()
 	for _, c := range cdps {
-		suite.keeper.SetCDP(suite.ctx, c)
+		err := suite.keeper.SetCDP(suite.ctx, c)
+		suite.NoError(err)
 		suite.keeper.IndexCdpByOwner(suite.ctx, c)
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
 		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral.Denom, c.ID, cr)
@@ -267,11 +273,12 @@ func (suite *CdpTestSuite) TestValidatePrincipal() {
 
 func (suite *CdpTestSuite) TestCalculateCollateralizationRatio() {
 	c := cdps()[1]
-	suite.keeper.SetCDP(suite.ctx, c)
+	err := suite.keeper.SetCDP(suite.ctx, c)
+	suite.NoError(err)
 	suite.keeper.IndexCdpByOwner(suite.ctx, c)
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
 	suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral.Denom, c.ID, cr)
-	cr, err := suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees)
+	cr, err = suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees)
 	suite.NoError(err)
 	suite.Equal(d("2.5"), cr)
 	c.AccumulatedFees = sdk.NewCoin("usdx", i(10000000))

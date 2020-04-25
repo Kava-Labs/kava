@@ -90,7 +90,10 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 
 	// set the cdp, deposit, and indexes in the store
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)
-	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	if err != nil {
+		return err
+	}
 	k.IndexCdpByOwner(ctx, cdp)
 	k.SetDeposit(ctx, deposit)
 	k.SetNextCdpID(ctx, id+1)
@@ -98,9 +101,13 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 }
 
 // SetCdpAndCollateralRatioIndex sets the cdp and collateral ratio index in the store
-func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) {
-	k.SetCDP(ctx, cdp)
+func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) error {
+	err := k.SetCDP(ctx, cdp)
+	if err != nil {
+		return err
+	}
 	k.IndexCdpByCollateralRatio(ctx, cdp.Collateral.Denom, cdp.ID, ratio)
+	return nil
 }
 
 // MintDebtCoins mints debt coins in the cdp module account
@@ -188,25 +195,26 @@ func (k Keeper) GetCDP(ctx sdk.Context, collateralDenom string, cdpID uint64) (t
 }
 
 // SetCDP sets a cdp in the store
-func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) {
+func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		panic(fmt.Sprintf("invalid collateral denom %s", cdp.Collateral.Denom))
+		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(types.CdpKey(db, cdp.ID), bz)
-	return
+	return nil
 }
 
 // DeleteCDP deletes a cdp from the store
-func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) {
+func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		panic(fmt.Sprintf("invalid collateral denom %s", cdp.Collateral.Denom))
+		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	store.Delete(types.CdpKey(db, cdp.ID))
+	return nil
 
 }
 

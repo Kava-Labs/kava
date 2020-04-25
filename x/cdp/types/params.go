@@ -46,7 +46,7 @@ var (
 // Params governance parameters for cdp module
 type Params struct {
 	CollateralParams             CollateralParams `json:"collateral_params" yaml:"collateral_params"`
-	DebtParam                    DebtParam        `json:"debt_params" yaml:"debt_params"`
+	DebtParam                    DebtParam        `json:"debt_param" yaml:"debt_param"`
 	GlobalDebtLimit              sdk.Coin         `json:"global_debt_limit" yaml:"global_debt_limit"`
 	SurplusAuctionThreshold      sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
 	DebtAuctionThreshold         sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
@@ -237,14 +237,13 @@ func (p Params) Validate() error {
 		collateralParamsDebtLimit = collateralParamsDebtLimit.Add(cp.DebtLimit.Amount)
 
 		if cp.DebtLimit.Amount.GT(p.GlobalDebtLimit.Amount) {
-			return fmt.Errorf("collateral debt limit for %s exceeds global debt limit: \n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
-				cp.Denom, p.GlobalDebtLimit, cp.DebtLimit)
+			return fmt.Errorf("collateral debt limit %s exceeds global debt limit: %s", cp.DebtLimit, p.GlobalDebtLimit)
 		}
 	}
 
 	if collateralParamsDebtLimit.GT(p.GlobalDebtLimit.Amount) {
-		return fmt.Errorf("collateral debt limit exceeds global debt limit:\n\tglobal debt limit: %s\n\tcollateral debt limits: %s",
-			p.GlobalDebtLimit, collateralParamsDebtLimit)
+		return fmt.Errorf("sum of collateral debt limits %s exceeds global debt limit %s",
+			collateralParamsDebtLimit, p.GlobalDebtLimit)
 	}
 
 	return nil
@@ -272,9 +271,10 @@ func validateCollateralParams(i interface{}) error {
 	collateralDupMap := make(map[string]bool)
 	prefixDupMap := make(map[int]bool)
 	for _, cp := range collateralParams {
-		if strings.TrimSpace(cp.Denom) == "" {
-			return fmt.Errorf("collateral denom cannot be blank %s", cp)
+		if err := sdk.ValidateDenom(cp.Denom); err != nil {
+			return fmt.Errorf("collateral denom invalid %s", cp.Denom)
 		}
+
 		if strings.TrimSpace(cp.MarketID) == "" {
 			return fmt.Errorf("market id cannot be blank %s", cp)
 		}
@@ -321,9 +321,10 @@ func validateDebtParam(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if strings.TrimSpace(debtParam.Denom) == "" {
-		return fmt.Errorf("debt denom cannot be blank %s", debtParam)
+	if err := sdk.ValidateDenom(debtParam.Denom); err != nil {
+		return fmt.Errorf("debt denom invalid %s", debtParam.Denom)
 	}
+
 	if debtParam.SavingsRate.LT(sdk.ZeroDec()) || debtParam.SavingsRate.GT(sdk.OneDec()) {
 		return fmt.Errorf("savings rate should be between 0 and 1, is %s for %s", debtParam.SavingsRate, debtParam.Denom)
 	}
