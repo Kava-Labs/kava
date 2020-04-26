@@ -14,8 +14,6 @@ import (
 	"github.com/kava-labs/kava/x/committee"
 )
 
-func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
-
 type ModuleTestSuite struct {
 	suite.Suite
 

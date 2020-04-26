@@ -334,6 +334,19 @@ func (suite *KeeperTestSuite) TestValidatePubProposal() {
 			),
 			expectErr: true,
 		},
+		{
+			name: "invalid (proposal handler fails - invalid json)",
+			pubProposal: params.NewParameterChangeProposal(
+				"A Title",
+				"A description of this proposal.",
+				[]params.ParamChange{{
+					Subspace: cdptypes.ModuleName,
+					Key:      string(cdptypes.KeyGlobalDebtLimit),
+					Value:    `{"denom": "usdx",`,
+				}},
+			),
+			expectErr: true,
+		},
 	}
 
 	for _, tc := range testcases {

@@ -1,8 +1,11 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -26,4 +29,9 @@ func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vo
 		return false
 	})
 	return proposalVoteMap
+}
+
+// NewCommitteeGenesisState marshals a committee genesis state into json for use in initializing test apps.
+func NewCommitteeGenesisState(cdc *codec.Codec, gs committee.GenesisState) app.GenesisState {
+	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
 }

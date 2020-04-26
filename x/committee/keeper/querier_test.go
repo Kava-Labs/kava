@@ -13,7 +13,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -23,10 +22,6 @@ const (
 )
 
 var testTime time.Time = time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
-
-func NewCommitteeGenesisState(cdc *codec.Codec, gs committee.GenesisState) app.GenesisState {
-	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
-}
 
 type QuerierTestSuite struct {
 	suite.Suite
