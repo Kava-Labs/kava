@@ -18,3 +18,15 @@ func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func NewCommitteeGenesisState(cdc *codec.Codec, gs types.GenesisState) app.GenesisState {
 	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(gs)}
 }
+
+var _ types.PubProposal = UnregisteredPubProposal{}
+
+// UnregisteredPubProposal is a pubproposal type that is not registered on the amino codec.
+type UnregisteredPubProposal struct{}
+
+func (UnregisteredPubProposal) GetTitle() string         { return "unregistered" }
+func (UnregisteredPubProposal) GetDescription() string   { return "unregistered" }
+func (UnregisteredPubProposal) ProposalRoute() string    { return "unregistered" }
+func (UnregisteredPubProposal) ProposalType() string     { return "unregistered" }
+func (UnregisteredPubProposal) ValidateBasic() sdk.Error { return nil }
+func (UnregisteredPubProposal) String() string           { return "unregistered" }

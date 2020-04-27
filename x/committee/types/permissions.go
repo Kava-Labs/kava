@@ -52,7 +52,7 @@ func (perm ParamChangePermission) Allows(p gov.Content) bool {
 func (perm ParamChangePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type          string        `yaml:"type"`
-		AllowedParams AllowedParams `yaml:"allowed_params`
+		AllowedParams AllowedParams `yaml:"allowed_params"`
 	}{
 		Type:          "param_change_permission",
 		AllowedParams: perm.AllowedParams,
@@ -76,7 +76,21 @@ func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
 	return false
 }
 
-// TODO add more permissions?
-// - limit parameter changes to be within small ranges
-// - allow community spend proposals
-// - allow committee change proposals
+// TextPermission allows any text governance proposal.
+type TextPermission struct{}
+
+var _ Permission = TextPermission{}
+
+func (TextPermission) Allows(p gov.Content) bool {
+	_, ok := p.(gov.TextProposal)
+	return ok
+}
+
+func (TextPermission) MarshalYAML() (interface{}, error) {
+	valueToMarshal := struct {
+		Type string `yaml:"type"`
+	}{
+		Type: "text_permission",
+	}
+	return valueToMarshal, nil
+}

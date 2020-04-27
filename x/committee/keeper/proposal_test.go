@@ -259,14 +259,14 @@ func committeeGenState(cdc *codec.Codec, committees []types.Committee, proposals
 	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
 }
 
-type UnregisteredProposal struct {
+type UnregisteredPubProposal struct {
 	gov.TextProposal
 }
 
-func (UnregisteredProposal) ProposalRoute() string { return "unregistered" }
-func (UnregisteredProposal) ProposalType() string  { return "unregistered" }
+func (UnregisteredPubProposal) ProposalRoute() string { return "unregistered" }
+func (UnregisteredPubProposal) ProposalType() string  { return "unregistered" }
 
-var _ types.PubProposal = UnregisteredProposal{}
+var _ types.PubProposal = UnregisteredPubProposal{}
 
 func (suite *KeeperTestSuite) TestValidatePubProposal() {
 
@@ -300,7 +300,7 @@ func (suite *KeeperTestSuite) TestValidatePubProposal() {
 		},
 		{
 			name:        "invalid (unregistered)",
-			pubProposal: UnregisteredProposal{gov.TextProposal{Title: "A Title", Description: "A description of this proposal."}},
+			pubProposal: UnregisteredPubProposal{gov.TextProposal{Title: "A Title", Description: "A description of this proposal."}},
 			expectErr:   true,
 		},
 		{

@@ -112,6 +112,22 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Invalid() {
 	})
 }
 
+func (suite *HandlerTestSuite) TestSubmitProposalMsg_Unregistered() {
+	msg := types.NewMsgSubmitProposal(
+		UnregisteredPubProposal{},
+		suite.addresses[0],
+		1,
+	)
+
+	res := suite.handler(suite.ctx, msg)
+
+	suite.False(res.IsOK())
+	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
+		suite.Fail("proposal found when none should exist")
+		return true
+	})
+}
+
 func (suite *HandlerTestSuite) TestMsgAddVote_ProposalPass() {
 	previousCDPDebtThreshold := suite.app.GetCDPKeeper().GetParams(suite.ctx).DebtAuctionThreshold
 	newDebtThreshold := previousCDPDebtThreshold.Add(i(1000000))

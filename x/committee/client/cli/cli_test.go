@@ -16,8 +16,8 @@ type CLITestSuite struct {
 }
 
 func (suite *CLITestSuite) SetupTest() {
-	ahpp := app.NewTestApp()
-	suite.cdc = ahpp.Codec()
+	tApp := app.NewTestApp()
+	suite.cdc = tApp.Codec()
 }
 
 func (suite *CLITestSuite) TestExampleCommitteeChangeProposal() {
