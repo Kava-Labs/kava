@@ -1,12 +1,13 @@
 package cdp_test
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
-
 	"github.com/stretchr/testify/suite"
 )
 
@@ -18,16 +19,86 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) TestInvalidGenState() {
-	tApp := app.NewTestApp()
-	for _, gs := range badGenStates() {
-
-		appGS := app.GenesisState{"cdp": cdp.ModuleCdc.MustMarshalJSON(gs.Genesis)}
-		suite.Panics(func() {
-			tApp.InitializeFromGenesisStates(
-				NewPricefeedGenStateMulti(),
-				appGS,
-			)
-		}, gs.Reason)
+	type args struct {
+		params       cdp.Params
+		cdps         cdp.CDPs
+		deposits     cdp.Deposits
+		startingID   uint64
+		debtDenom    string
+		govDenom     string
+		prevDistTime time.Time
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	type genesisTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	testCases := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{
+			name: "empty debt denom",
+			args: args{
+				params:       cdp.DefaultParams(),
+				cdps:         cdp.CDPs{},
+				deposits:     cdp.Deposits{},
+				debtDenom:    "",
+				govDenom:     cdp.DefaultGovDenom,
+				prevDistTime: cdp.DefaultPreviousDistributionTime,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "debt denom invalid",
+			},
+		},
+		{
+			name: "empty gov denom",
+			args: args{
+				params:       cdp.DefaultParams(),
+				cdps:         cdp.CDPs{},
+				deposits:     cdp.Deposits{},
+				debtDenom:    cdp.DefaultDebtDenom,
+				govDenom:     "",
+				prevDistTime: cdp.DefaultPreviousDistributionTime,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "gov denom invalid",
+			},
+		},
+		{
+			name: "empty distribution time",
+			args: args{
+				params:       cdp.DefaultParams(),
+				cdps:         cdp.CDPs{},
+				deposits:     cdp.Deposits{},
+				debtDenom:    cdp.DefaultDebtDenom,
+				govDenom:     cdp.DefaultGovDenom,
+				prevDistTime: time.Time{},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "previous distribution time not set",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			gs := cdp.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID, tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime)
+			err := gs.Validate()
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
 	}
 }
 

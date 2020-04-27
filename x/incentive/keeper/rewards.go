@@ -72,7 +72,7 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 		rewardsThisPeriod := rp.Reward.Amount.Mul(timeElapsed)
 		id := k.GetNextClaimPeriodID(ctx, rp.Denom)
 		k.cdpKeeper.IterateCdpsByDenom(ctx, rp.Denom, func(cdp cdptypes.CDP) bool {
-			rewardsShare := sdk.NewDecFromInt(cdp.Principal.AmountOf(types.PrincipalDenom).Add(cdp.AccumulatedFees.AmountOf(types.PrincipalDenom))).Quo(sdk.NewDecFromInt(totalPrincipal))
+			rewardsShare := sdk.NewDecFromInt(cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)).Quo(sdk.NewDecFromInt(totalPrincipal))
 			// sanity check - don't create zero claims
 			if rewardsShare.IsZero() {
 				return false

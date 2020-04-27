@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/gorilla/mux"
 	"github.com/kava-labs/kava/x/incentive/client/cli"
@@ -90,23 +91,25 @@ func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedP
 }
 
 // WeightedOperations returns the all the bep3 module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []sim.WeightedOperation {
-	return nil
+func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.supplyKeeper, am.keeper)
 }
 
 // AppModule implements the sdk.AppModule interface.
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       keeper.Keeper
-	supplyKeeper types.SupplyKeeper
+	keeper        Keeper
+	accountKeeper auth.AccountKeeper
+	supplyKeeper  SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper, supplyKeeper SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
+		accountKeeper:  accountKeeper,
 		supplyKeeper:   supplyKeeper,
 	}
 }
