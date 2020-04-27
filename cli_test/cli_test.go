@@ -397,8 +397,9 @@ func TestKavaCLICreateValidator(t *testing.T) {
 	barAddr := f.KeyAddress(keyBar)
 	barVal := sdk.ValAddress(barAddr)
 
-	consPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, ed25519.GenPrivKey().PubKey())
+	consPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeValPub, ed25519.GenPrivKey().PubKey())
 	require.NoError(t, err)
+	require.NotEmpty(t, consPubKey)
 
 	sendTokens := sdk.TokensFromConsensusPower(10)
 	f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "-y")
