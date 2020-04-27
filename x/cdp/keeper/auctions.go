@@ -12,11 +12,11 @@ const (
 
 type partialDeposit struct {
 	Depositor sdk.AccAddress
-	Amount    sdk.Coins
+	Amount    sdk.Coin
 	DebtShare sdk.Int
 }
 
-func newPartialDeposit(depositor sdk.AccAddress, amount sdk.Coins, ds sdk.Int) partialDeposit {
+func newPartialDeposit(depositor sdk.AccAddress, amount sdk.Coin, ds sdk.Int) partialDeposit {
 	return partialDeposit{
 		Depositor: depositor,
 		Amount:    amount,
@@ -29,7 +29,7 @@ type partialDeposits []partialDeposit
 func (pd partialDeposits) SumCollateral() (sum sdk.Int) {
 	sum = sdk.ZeroInt()
 	for _, d := range pd {
-		sum = sum.Add(d.Amount[0].Amount)
+		sum = sum.Add(d.Amount.Amount)
 	}
 	return
 }
@@ -44,7 +44,7 @@ func (pd partialDeposits) SumDebt() (sum sdk.Int) {
 
 // AuctionCollateral creates auctions from the input deposits which attempt to raise the corresponding amount of debt
 func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt sdk.Int, bidDenom string) error {
-	auctionSize := k.getAuctionSize(ctx, deposits[0].Amount[0].Denom)
+	auctionSize := k.getAuctionSize(ctx, deposits[0].Amount.Denom)
 	partialAuctionDeposits := partialDeposits{}
 	totalCollateral := deposits.SumCollateral()
 	for totalCollateral.GT(sdk.ZeroInt()) {
@@ -52,8 +52,8 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 			if dep.Amount.IsZero() {
 				continue
 			}
-			collateralAmount := dep.Amount[0].Amount
-			collateralDenom := dep.Amount[0].Denom
+			collateralAmount := dep.Amount.Amount
+			collateralDenom := dep.Amount.Denom
 			// create auctions from individual deposits that are larger than the auction size
 			debtChange, collateralChange, err := k.CreateAuctionsFromDeposit(ctx, dep, debt, totalCollateral, auctionSize, bidDenom)
 			if err != nil {
@@ -61,7 +61,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 			}
 			debt = debt.Sub(debtChange)
 			totalCollateral = totalCollateral.Sub(collateralChange)
-			dep.Amount = sdk.NewCoins(sdk.NewCoin(collateralDenom, collateralAmount.Sub(collateralChange)))
+			dep.Amount = sdk.NewCoin(collateralDenom, collateralAmount.Sub(collateralChange))
 			collateralAmount = collateralAmount.Sub(collateralChange)
 			// if there is leftover collateral that is less than a lot
 			if !dep.Amount.IsZero() {
@@ -73,11 +73,11 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 					// append the deposit to the partial deposits and zero out the deposit
 					pd := newPartialDeposit(dep.Depositor, dep.Amount, debtCoveredByDeposit)
 					partialAuctionDeposits = append(partialAuctionDeposits, pd)
-					dep.Amount = sdk.NewCoins(sdk.NewCoin(collateralDenom, sdk.ZeroInt()))
+					dep.Amount = sdk.NewCoin(collateralDenom, sdk.ZeroInt())
 				} else {
 					// if the sum of partial deposits now makes a lot
-					partialCollateral := sdk.NewCoins(sdk.NewCoin(collateralDenom, auctionSize.Sub(partialAuctionDeposits.SumCollateral())))
-					partialAmount := partialCollateral[0].Amount
+					partialCollateral := sdk.NewCoin(collateralDenom, auctionSize.Sub(partialAuctionDeposits.SumCollateral()))
+					partialAmount := partialCollateral.Amount
 					partialDebt := (partialAmount.Quo(collateralAmount)).Mul(debtCoveredByDeposit)
 
 					// create a partial deposit from the deposit
@@ -93,7 +93,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 					totalCollateral = totalCollateral.Sub(collateralChange)
 					// reset partial deposits and update the deposit amount
 					partialAuctionDeposits = partialDeposits{}
-					dep.Amount = sdk.NewCoins(sdk.NewCoin(collateralDenom, collateralAmount.Sub(partialAmount)))
+					dep.Amount = sdk.NewCoin(collateralDenom, collateralAmount.Sub(partialAmount))
 				}
 			}
 			deposits[i] = dep
@@ -110,11 +110,13 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 }
 
 // CreateAuctionsFromDeposit creates auctions from the input deposit until there is less than auctionSize left on the deposit
-func (k Keeper) CreateAuctionsFromDeposit(ctx sdk.Context, dep types.Deposit, debt sdk.Int, totalCollateral sdk.Int, auctionSize sdk.Int, principalDenom string) (debtChange sdk.Int, collateralChange sdk.Int, err error) {
+func (k Keeper) CreateAuctionsFromDeposit(
+	ctx sdk.Context, dep types.Deposit, debt sdk.Int, totalCollateral sdk.Int, auctionSize sdk.Int,
+	principalDenom string) (debtChange sdk.Int, collateralChange sdk.Int, err error) {
 	debtChange = sdk.ZeroInt()
 	collateralChange = sdk.ZeroInt()
-	depositAmount := dep.Amount[0].Amount
-	depositDenom := dep.Amount[0].Denom
+	depositAmount := dep.Amount.Amount
+	depositDenom := dep.Amount.Denom
 	for depositAmount.GTE(auctionSize) {
 		// figure out how much debt is covered by one lots worth of collateral
 		depositDebtAmount := (sdk.NewDecFromInt(auctionSize).Quo(sdk.NewDecFromInt(totalCollateral))).Mul(sdk.NewDecFromInt(debt)).RoundInt()
@@ -142,13 +144,13 @@ func (k Keeper) CreateAuctionFromPartialDeposits(ctx sdk.Context, partialDeps pa
 
 	returnAddrs := []sdk.AccAddress{}
 	returnWeights := []sdk.Int{}
-	depositDenom := partialDeps[0].Amount[0].Denom
+	depositDenom := partialDeps[0].Amount.Denom
 	for _, pd := range partialDeps {
 		returnAddrs = append(returnAddrs, pd.Depositor)
 		returnWeights = append(returnWeights, pd.DebtShare)
 	}
 	penalty := k.ApplyLiquidationPenalty(ctx, depositDenom, partialDeps.SumDebt())
-	_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(partialDeps[0].Amount[0].Denom, auctionSize), sdk.NewCoin(bidDenom, partialDeps.SumDebt().Add(penalty)), returnAddrs, returnWeights, sdk.NewCoin(k.GetDebtDenom(ctx), partialDeps.SumDebt()))
+	_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, sdk.NewCoin(partialDeps[0].Amount.Denom, auctionSize), sdk.NewCoin(bidDenom, partialDeps.SumDebt().Add(penalty)), returnAddrs, returnWeights, sdk.NewCoin(k.GetDebtDenom(ctx), partialDeps.SumDebt()))
 	if err != nil {
 		return sdk.ZeroInt(), sdk.ZeroInt(), err
 	}
@@ -166,27 +168,24 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 	if netAmount.IsZero() {
 		return nil
 	}
+	// burn debt coins equal to netAmount
 	err := k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
 	if err != nil {
 		return err
 	}
-	for netAmount.GT(sdk.ZeroInt()) {
-		for _, dp := range k.GetParams(ctx).DebtParams {
-			balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
-			if balance.LT(netAmount) {
-				err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
-				if err != nil {
-					return err
-				}
-				netAmount = netAmount.Sub(balance)
-			} else {
-				err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, netAmount)))
-				if err != nil {
-					return err
-				}
-				netAmount = sdk.ZeroInt()
-			}
+	// burn stable coins equal to netAmount
+	dp := k.GetParams(ctx).DebtParam
+	balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+	if balance.LT(netAmount) {
+		err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, balance)))
+		if err != nil {
+			return err
 		}
+		return nil
+	}
+	err = k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, netAmount)))
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -195,10 +194,9 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
 	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
 	totalSurplus := sdk.ZeroInt()
-	for _, dp := range k.GetParams(ctx).DebtParams {
-		surplus := acc.GetCoins().AmountOf(dp.Denom)
-		totalSurplus = totalSurplus.Add(surplus)
-	}
+	dp := k.GetParams(ctx).DebtParam
+	surplus := acc.GetCoins().AmountOf(dp.Denom)
+	totalSurplus = totalSurplus.Add(surplus)
 	return totalSurplus
 }
 
@@ -221,14 +219,12 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 		}
 	}
 
-	for _, dp := range params.DebtParams {
-		surplus := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
-		if surplus.GTE(params.SurplusAuctionThreshold) {
-			surplusLot := sdk.NewCoin(dp.Denom, surplus)
-			_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
-			if err != nil {
-				return err
-			}
+	surplus := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(params.DebtParam.Denom)
+	if surplus.GTE(params.SurplusAuctionThreshold) {
+		surplusLot := sdk.NewCoin(params.DebtParam.Denom, surplus)
+		_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
+		if err != nil {
+			return err
 		}
 	}
 	return nil

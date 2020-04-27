@@ -39,7 +39,7 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
@@ -47,7 +47,7 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 				{
 					Denom:              asset,
 					LiquidationRatio:   liquidationRatio,
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					DebtLimit:          sdk.NewInt64Coin("usdx", 1000000000000),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty: d("0.05"),
 					AuctionSize:        i(100),
@@ -56,14 +56,12 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 					MarketID:           asset + ":usd",
 				},
 			},
-			DebtParams: cdp.DebtParams{
-				{
-					Denom:            "usdx",
-					ReferenceAsset:   "usd",
-					ConversionFactor: i(6),
-					DebtFloor:        i(10000000),
-					SavingsRate:      d("0.9"),
-				},
+			DebtParam: cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: i(6),
+				DebtFloor:        i(10000000),
+				SavingsRate:      d("0.9"),
 			},
 		},
 		StartingCdpID:            cdp.DefaultCdpStartingID,
@@ -103,7 +101,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000), sdk.NewInt64Coin("susd", 1000000000000)),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
@@ -111,7 +109,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:              "xrp",
 					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
+					DebtLimit:          sdk.NewInt64Coin("usdx", 500000000000),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty: d("0.05"),
 					AuctionSize:        i(7000000000),
@@ -122,7 +120,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 				{
 					Denom:              "btc",
 					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 500000000000), sdk.NewInt64Coin("susd", 500000000000)),
+					DebtLimit:          sdk.NewInt64Coin("usdx", 500000000000),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty: d("0.025"),
 					AuctionSize:        i(10000000),
@@ -131,21 +129,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 					ConversionFactor:   i(8),
 				},
 			},
-			DebtParams: cdp.DebtParams{
-				{
-					Denom:            "usdx",
-					ReferenceAsset:   "usd",
-					ConversionFactor: i(6),
-					DebtFloor:        i(10000000),
-					SavingsRate:      d("0.95"),
-				},
-				{
-					Denom:            "susd",
-					ReferenceAsset:   "usd",
-					ConversionFactor: i(6),
-					DebtFloor:        i(10000000),
-					SavingsRate:      d("0.95"),
-				},
+			DebtParam: cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: i(6),
+				DebtFloor:        i(10000000),
+				SavingsRate:      d("0.95"),
 			},
 		},
 		StartingCdpID:            cdp.DefaultCdpStartingID,
@@ -160,7 +149,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 func NewCDPGenStateHighDebtLimit() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 100000000000000), sdk.NewInt64Coin("susd", 100000000000000)),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 100000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
@@ -168,7 +157,7 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 				{
 					Denom:              "xrp",
 					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 50000000000000), sdk.NewInt64Coin("susd", 50000000000000)),
+					DebtLimit:          sdk.NewInt64Coin("usdx", 50000000000000),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty: d("0.05"),
 					AuctionSize:        i(7000000000),
@@ -179,7 +168,7 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 				{
 					Denom:              "btc",
 					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 50000000000000), sdk.NewInt64Coin("susd", 50000000000000)),
+					DebtLimit:          sdk.NewInt64Coin("usdx", 50000000000000),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty: d("0.025"),
 					AuctionSize:        i(10000000),
@@ -188,21 +177,12 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 					ConversionFactor:   i(8),
 				},
 			},
-			DebtParams: cdp.DebtParams{
-				{
-					Denom:            "usdx",
-					ReferenceAsset:   "usd",
-					ConversionFactor: i(6),
-					DebtFloor:        i(10000000),
-					SavingsRate:      d("0.95"),
-				},
-				{
-					Denom:            "susd",
-					ReferenceAsset:   "usd",
-					ConversionFactor: i(6),
-					DebtFloor:        i(10000000),
-					SavingsRate:      d("0.95"),
-				},
+			DebtParam: cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: i(6),
+				DebtFloor:        i(10000000),
+				SavingsRate:      d("0.95"),
 			},
 		},
 		StartingCdpID:            cdp.DefaultCdpStartingID,
@@ -216,10 +196,10 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 
 func cdps() (cdps cdp.CDPs) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(10000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8000000))), tmtime.Canonical(time.Now()))
-	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(100000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10000000))), tmtime.Canonical(time.Now()))
-	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoins(sdk.NewCoin("btc", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10000000))), tmtime.Canonical(time.Now()))
-	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(1000000000))), sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(500000000))), tmtime.Canonical(time.Now()))
+	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoin("xrp", sdk.NewInt(10000000)), sdk.NewCoin("usdx", sdk.NewInt(8000000)), tmtime.Canonical(time.Now()))
+	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoin("xrp", sdk.NewInt(100000000)), sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()))
+	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoin("btc", sdk.NewInt(1000000000)), sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()))
+	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoin("xrp", sdk.NewInt(1000000000)), sdk.NewCoin("usdx", sdk.NewInt(500000000)), tmtime.Canonical(time.Now()))
 	cdps = append(cdps, c1, c2, c3, c4)
 	return
 }

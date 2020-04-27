@@ -42,7 +42,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
@@ -73,7 +73,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
@@ -100,7 +100,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
 	}
 
 	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
@@ -133,7 +133,7 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
 	}
 
 	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)

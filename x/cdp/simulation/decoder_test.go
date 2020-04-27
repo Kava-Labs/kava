@@ -27,7 +27,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 
 	cdpIds := []uint64{1, 2, 3, 4, 5}
 	denom := "denom"
-	oneCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.OneInt()))
+	oneCoins := sdk.NewCoin(denom, sdk.OneInt())
 	deposit := types.Deposit{CdpID: 1, Amount: oneCoins}
 	principal := sdk.OneInt()
 	prevDistTime := time.Now().UTC()

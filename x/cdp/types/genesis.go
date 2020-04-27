@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisState is the state that must be provided at genesis.
@@ -55,9 +57,12 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("previous distribution time not set")
 	}
 
-	if gs.DebtDenom == "" {
-		return fmt.Errorf("debt denom not set")
+	if err := sdk.ValidateDenom(gs.DebtDenom); err != nil {
+		return fmt.Errorf(fmt.Sprintf("debt denom invalid: %v", err))
+	}
 
+	if err := sdk.ValidateDenom(gs.GovDenom); err != nil {
+		return fmt.Errorf(fmt.Sprintf("gov denom invalid: %v", err))
 	}
 
 	return nil

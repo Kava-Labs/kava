@@ -38,7 +38,7 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Resul
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)
-	id, _ := k.GetCdpID(ctx, msg.Sender, msg.Collateral[0].Denom)
+	id, _ := k.GetCdpID(ctx, msg.Sender, msg.Collateral.Denom)
 
 	return &sdk.Result{
 		Data:   GetCdpIDBytes(id),
