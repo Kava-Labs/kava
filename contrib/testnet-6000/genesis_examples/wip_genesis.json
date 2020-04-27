@@ -67,46 +67,32 @@
       "gov_denom": "ukava",
       "params": {
         "circuit_breaker": false,
-        "collateral_params": [
-          {
-            "auction_size": "50000000000",
-            "conversion_factor": "8",
-            "debt_limit": [
-              {
-                "amount": "2000000000000",
-                "denom": "usdx"
-              }
-            ],
-            "denom": "bnb",
-            "liquidation_penalty": "0.05",
-            "liquidation_ratio": "2.0",
-            "market_id": "bnb:usd",
-            "prefix": 1,
-            "stability_fee": "1.0000000007829977"
-          }
-        ],
+        "collateral_param": {
+          "auction_size": "50000000000",
+          "conversion_factor": "8",
+          "debt_limit": {
+              "amount": "2000000000000",
+              "denom": "usdx"
+          },
+          "denom": "bnb",
+          "liquidation_penalty": "0.05",
+          "liquidation_ratio": "2.0",
+          "market_id": "bnb:usd",
+          "prefix": 1,
+          "stability_fee": "1.0000000007829977"
+        },
         "debt_auction_threshold": "10000000000",
-        "debt_params": [
-          {
+        "debt_param": {
             "conversion_factor": "6",
             "debt_floor": "10000000",
-            "debt_limit": [
-              {
-                "amount": "2000000000000",
-                "denom": "usdx"
-              }
-            ],
             "denom": "usdx",
             "reference_asset": "usd",
             "savings_rate": "0.95"
-          }
-        ],
-        "global_debt_limit": [
-          {
+          },
+        "global_debt_limit": {
             "amount": "2000000000000",
             "denom": "usdx"
-          }
-        ],
+        },
         "savings_distribution_frequency": "120000000000",
         "surplus_auction_threshold": "1000000000"
       },
