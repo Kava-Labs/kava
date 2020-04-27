@@ -15,7 +15,7 @@ import (
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/postprice", types.ModuleName), postPriceHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc(fmt.Sprintf("/%s/postprice", types.ModuleName), postPriceHandlerFn(cliCtx)).Methods("POST")
 
 }
 

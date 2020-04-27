@@ -1,0 +1,15 @@
+{
+  "base_req": {
+    "from": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
+    "memo": "",
+    "chain_id": "testing",
+    "account_number": "1",
+    "sequence": "0",
+    "gas": "500000",
+    "gas_adjustment": "1.0",
+    "simulate": false
+  },
+  "from": "kava1vry5lhegzlulehuutcr7nmdlmktw88awp0a39p",
+  "swap_id": "3ca20f0152f03b0aabe73e7aa1ddf78b9048ede5a9a73846e1ef53bebbfa4185",
+  "random_number": "e3d0a98b459f72231da69c3bd771c1e721fef4be83c14b80dc805ba71019eebe"
+}

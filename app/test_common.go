@@ -28,8 +28,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
@@ -49,6 +52,10 @@ type TestApp struct {
 }
 
 func NewTestApp() TestApp {
+	config := sdk.GetConfig()
+	SetBech32AddressPrefixes(config)
+	SetBip44CoinType(config)
+
 	db := tmdb.NewMemDB()
 	app := NewApp(log.NewNopLogger(), db, nil, true, 0)
 	return TestApp{App: *app}
@@ -68,6 +75,9 @@ func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper
 func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }
 func (tApp TestApp) GetCDPKeeper() cdp.Keeper             { return tApp.cdpKeeper }
 func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefeedKeeper }
+func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
+func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
+func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
 
 // This calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states

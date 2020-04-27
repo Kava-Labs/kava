@@ -41,3 +41,5 @@ AWS Batch allows for "array jobs" which are a way of specifying many duplicates 
 
 - click on the compute environment name, to get details, then click the link ECS Cluster Name to get details on the actual machines running
 - for array jobs, click the job name to get details of the individual jobs
+
+## Sims - TODO

@@ -7,9 +7,24 @@ import (
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper, gs GenesisState) {
+
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
+	}
+
+	// check if the module accounts exists
+	cdpModuleAcc := sk.GetModuleAccount(ctx, ModuleName)
+	if cdpModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
+	}
+	liqModuleAcc := sk.GetModuleAccount(ctx, LiquidatorMacc)
+	if liqModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", LiquidatorMacc))
+	}
+	savingsRateMacc := sk.GetModuleAccount(ctx, SavingsRateMacc)
+	if savingsRateMacc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", SavingsRateMacc))
 	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
@@ -43,7 +58,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState)
 		}
 		k.SetCDP(ctx, cdp)
 		k.IndexCdpByOwner(ctx, cdp)
-		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
 		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, ratio)
 		k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, cdp.Principal)
 	}
@@ -54,10 +69,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, gs GenesisState)
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
-	}
-	// only set the previous block time if it's different than default
-	if !gs.PreviousBlockTime.Equal(DefaultPreviousBlockTime) {
-		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
 	}
 }
 
@@ -80,10 +91,10 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	debtDenom := k.GetDebtDenom(ctx)
 	govDenom := k.GetGovDenom(ctx)
 
-	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+	previousDistributionTime, found := k.GetPreviousSavingsDistribution(ctx)
 	if !found {
-		previousBlockTime = DefaultPreviousBlockTime
+		previousDistributionTime = DefaultPreviousDistributionTime
 	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousBlockTime)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime)
 }

@@ -1,16 +1,20 @@
 package keeper
 
 import (
+	"fmt"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // NewQuerier returns a new querier function
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
 		switch path[0] {
 		case types.QueryGetCdp:
 			return queryGetCdp(ctx, req, keeper)
@@ -23,85 +27,85 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryGetCdpDeposits:
 			return queryGetDeposits(ctx, req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown cdp query endpoint")
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
 	}
 }
 
 // query a specific cdp
-func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
 	if !found {
-		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
 	}
 
 	augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
 	if err != nil {
-		return nil, types.ErrLoadingAugmentedCDP(keeper.codespace, cdp.ID)
+		return nil, sdkerrors.Wrap(types.ErrLoadingAugmentedCDP, fmt.Sprintf("%v: %d", err.Error(), cdp.ID))
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDP)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDP)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 
 }
 
 // query deposits on a particular cdp
-func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpDeposits
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
 	if !found {
-		return nil, types.ErrCdpNotFound(keeper.codespace, requestParams.Owner, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
 	}
 
 	deposits := keeper.GetDeposits(ctx, cdp.ID)
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, deposits)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, deposits)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 
 }
 
 // query cdps with matching denom and ratio LESS THAN the input ratio
-func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpsByRatioParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
 	}
 
 	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could get collateralization ratio from absolute ratio", err.Error()))
+		return nil, sdkerrors.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
 	}
 
 	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, ratio)
@@ -113,23 +117,23 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 		}
 	}
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDPs)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
 // query all cdps with matching collateral denom
-func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpsParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &requestParams)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
 	if !valid {
-		return nil, types.ErrInvalidCollateralDenom(keeper.codespace, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralDenom)
 	}
 
 	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
@@ -141,22 +145,22 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 		}
 	}
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDPs)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
 // query params in the cdp store
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Get params
 	params := keeper.GetParams(ctx)
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, params)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }

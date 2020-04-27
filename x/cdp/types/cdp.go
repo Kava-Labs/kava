@@ -39,7 +39,7 @@ func (cdp CDP) String() string {
 	Collateral Type: %s
 	Collateral: %s
 	Principal: %s
-	Fees: %s
+	AccumulatedFees: %s
 	Fees Last Updated: %s`,
 		cdp.Owner,
 		cdp.ID,

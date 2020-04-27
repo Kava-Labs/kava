@@ -1,48 +1,22 @@
 package types
 
 import (
-	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	// DefaultCodespace codespace for the module
-	DefaultCodespace sdk.CodespaceType = ModuleName
+// DONTCOVER
 
-	// CodeEmptyInput error code for empty input errors
-	CodeEmptyInput sdk.CodeType = 1
-	// CodeExpired error code for expired prices
-	CodeExpired sdk.CodeType = 2
-	// CodeInvalidPrice error code for all input prices expired
-	CodeInvalidPrice sdk.CodeType = 3
-	// CodeInvalidAsset error code for invalid asset
-	CodeInvalidAsset sdk.CodeType = 4
-	// CodeInvalidOracle error code for invalid oracle
-	CodeInvalidOracle sdk.CodeType = 5
+var (
+	// ErrEmptyInput error for empty input
+	ErrEmptyInput = sdkerrors.Register(ModuleName, 2, "input must not be empty")
+	// ErrExpired error for posted price messages with expired price
+	ErrExpired = sdkerrors.Register(ModuleName, 3, "price is expired")
+	// ErrNoValidPrice error for posted price messages with expired price
+	ErrNoValidPrice = sdkerrors.Register(ModuleName, 4, "all input prices are expired")
+	// ErrInvalidMarket error for posted price messages for invalid markets
+	ErrInvalidMarket = sdkerrors.Register(ModuleName, 5, "market does not exist")
+	// ErrInvalidOracle error for posted price messages for invalid oracles
+	ErrInvalidOracle = sdkerrors.Register(ModuleName, 6, "oracle does not exist or not authorized")
+	// ErrAssetNotFound error for not found asset
+	ErrAssetNotFound = sdkerrors.Register(ModuleName, 7, "asset not found")
 )
-
-// ErrEmptyInput Error constructor
-func ErrEmptyInput(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeEmptyInput, fmt.Sprintf("Input must not be empty."))
-}
-
-// ErrExpired Error constructor for posted price messages with expired price
-func ErrExpired(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeExpired, fmt.Sprintf("Price is expired."))
-}
-
-// ErrNoValidPrice Error constructor for posted price messages with expired price
-func ErrNoValidPrice(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidPrice, fmt.Sprintf("All input prices are expired."))
-}
-
-// ErrInvalidMarket Error constructor for posted price messages for invalid markets
-func ErrInvalidMarket(codespace sdk.CodespaceType, marketId string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidAsset, fmt.Sprintf("market %s does not exist", marketId))
-}
-
-// ErrInvalidOracle Error constructor for posted price messages for invalid oracles
-func ErrInvalidOracle(codespace sdk.CodespaceType, addr sdk.AccAddress) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidOracle, fmt.Sprintf("oracle %s does not exist or not authorized", addr))
-}

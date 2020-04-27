@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"math/rand"
 	"testing"
 	"time"
@@ -145,7 +146,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateral() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
@@ -170,7 +171,7 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	acc := ak.GetAccount(suite.ctx, suite.addrs[1])
 	suite.Equal(p.Int64(), acc.GetCoins().AmountOf("usdx").Int64())
 	err = suite.keeper.WithdrawCollateral(suite.ctx, suite.addrs[1], suite.addrs[1], cs(c("xrp", 10)))
-	suite.Equal(types.CodeCdpNotFound, err.Result().Code)
+	suite.Require().True(errors.Is(err, types.ErrCdpNotFound))
 }
 
 func (suite *SeizeTestSuite) TestLiquidateCdps() {
@@ -186,14 +187,6 @@ func (suite *SeizeTestSuite) TestLiquidateCdps() {
 	seizedXrpCollateral := originalXrpCollateral.Sub(finalXrpCollateral)
 	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
 	suite.Equal(len(suite.liquidations.xrp), xrpLiquidations)
-}
-
-func (suite *SeizeTestSuite) TestHandleNewDebt() {
-	suite.createCdps()
-	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	suite.keeper.HandleNewDebt(suite.ctx, "xrp", "usdx", i(31536000))
-	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
-	suite.Equal(sdk.NewDec(tpb.Int64()).Mul(d("1.05")).TruncateInt().Int64(), tpa.Int64())
 }
 
 func (suite *SeizeTestSuite) TestApplyLiquidationPenalty() {

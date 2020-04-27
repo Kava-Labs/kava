@@ -2,12 +2,13 @@
 
 The cdp module contains the following parameters:
 
-| Key              | Type                    | Example                            | Description                                                      |
-|------------------|-------------------------|------------------------------------|------------------------------------------------------------------|
-| CollateralParams | array (CollateralParam) | [{see below}]                      | array of params for each enabled collateral type                 |
-| DebtParams       | array (DebtParam)       | [{see below}]                      | array of params for each enabled pegged asset                    |
-| GlobalDebtLimit  | array (coin)            | [{"denom":"usdx","amount":"1000"}] | maximum pegged assets that can be minted across the whole system |
-| CircuitBreaker   | bool                    | false                              | flag to disable user interactions with the system                |
+| Key                          | Type                    | Example                            | Description                                                      |
+|------------------            |-------------------------|------------------------------------|------------------------------------------------------------------|
+| CollateralParams             | array (CollateralParam) | [{see below}]                      | array of params for each enabled collateral type                 |
+| DebtParams                   | array (DebtParam)       | [{see below}]                      | array of params for each enabled pegged asset                    |
+| GlobalDebtLimit              | array (coin)            | [{"denom":"usdx","amount":"1000"}] | maximum pegged assets that can be minted across the whole system |
+| SavingsDistributionFrequency | string (int)            | "84600"                            | number of seconds between distribution of the savings rate|
+| CircuitBreaker               | bool                    | false                              | flag to disable user interactions with the system                |
 
 Each CollateralParam has the following parameters:
 
