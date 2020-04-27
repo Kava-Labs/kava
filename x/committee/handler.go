@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
@@ -11,7 +12,7 @@ import (
 
 // NewHandler creates an sdk.Handler for committee messages
 func NewHandler(k keeper.Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
@@ -20,16 +21,15 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case types.MsgVote:
 			return handleMsgVote(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized %s msg type: %T", types.ModuleName, msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
 }
 
-func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubmitProposal) sdk.Result {
+func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubmitProposal) (*sdk.Result, error) {
 	proposalID, err := k.SubmitProposal(ctx, msg.Proposer, msg.CommitteeID, msg.PubProposal)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -40,28 +40,28 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Data:   GetKeyFromID(proposalID),
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }
 
-func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Result {
+func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) (*sdk.Result, error) {
 	// get the proposal just to add fields to the event
 	proposal, found := k.GetProposal(ctx, msg.ProposalID)
 	if !found {
-		return ErrUnknownProposal(DefaultCodespace, msg.ProposalID).Result()
+		return nil, sdkerrors.Wrapf(ErrUnknownProposal, "%d", msg.ProposalID)
 	}
 
 	err := k.AddVote(ctx, msg.ProposalID, msg.Voter)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	// Enact a proposal if it has enough votes
 	passes, err := k.GetProposalResult(ctx, msg.ProposalID)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 	if passes {
 		err = k.EnactProposal(ctx, msg.ProposalID)
@@ -89,5 +89,5 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) sdk.Resu
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

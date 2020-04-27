@@ -4,24 +4,25 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
 // SubmitProposal adds a proposal to a committee so that it can be voted on.
-func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committeeID uint64, pubProposal types.PubProposal) (uint64, sdk.Error) {
+func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committeeID uint64, pubProposal types.PubProposal) (uint64, error) {
 	// Limit proposals to only be submitted by committee members
 	com, found := k.GetCommittee(ctx, committeeID)
 	if !found {
-		return 0, types.ErrUnknownCommittee(k.codespace, committeeID)
+		return 0, sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", committeeID)
 	}
 	if !com.HasMember(proposer) {
-		return 0, sdk.ErrUnauthorized("proposer not member of committee")
+		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "proposer not member of committee")
 	}
 
 	// Check committee has permissions to enact proposal.
 	if !com.HasPermissionsFor(pubProposal) {
-		return 0, sdk.ErrUnauthorized("committee does not have permissions to enact proposal")
+		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
 	// Check proposal is valid
@@ -47,21 +48,22 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 }
 
 // AddVote submits a vote on a proposal.
-func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) sdk.Error {
+func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress) error {
 	// Validate
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return types.ErrUnknownProposal(k.codespace, proposalID)
+		return sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
 	if pr.HasExpiredBy(ctx.BlockTime()) {
-		return types.ErrProposalExpired(k.codespace, ctx.BlockTime(), pr.Deadline)
+		return sdkerrors.Wrapf(types.ErrProposalExpired, "%s ≥ %s", ctx.BlockTime(), pr.Deadline)
+
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
-		return types.ErrUnknownCommittee(k.codespace, pr.CommitteeID)
+		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
 	if !com.HasMember(voter) {
-		return sdk.ErrUnauthorized("voter must be a member of committee")
+		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
 	}
 
 	// Store vote, overwriting any prior vote
@@ -78,14 +80,14 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 }
 
 // GetProposalResult calculates if a proposal currently has enough votes to pass.
-func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk.Error) {
+func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, error) {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return false, types.ErrUnknownProposal(k.codespace, proposalID)
+		return false, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
-		return false, types.ErrUnknownCommittee(k.codespace, pr.CommitteeID)
+		return false, sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
 
 	numVotes := k.TallyVotes(ctx, proposalID)
@@ -104,10 +106,10 @@ func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
 }
 
 // EnactProposal makes the changes proposed in a proposal.
-func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
+func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) error {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return types.ErrUnknownProposal(k.codespace, proposalID)
+		return sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
 
 	if err := k.ValidatePubProposal(ctx, pr.PubProposal); err != nil {
@@ -144,16 +146,16 @@ func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
 }
 
 // ValidatePubProposal checks if a pubproposal is valid.
-func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) (returnErr sdk.Error) {
+func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) (returnErr error) {
 	if pubProposal == nil {
-		return types.ErrInvalidPubProposal(k.codespace, "pub proposal cannot be nil")
+		return sdkerrors.Wrap(types.ErrInvalidPubProposal, "pub proposal cannot be nil")
 	}
 	if err := pubProposal.ValidateBasic(); err != nil {
 		return err
 	}
 
 	if !k.router.HasRoute(pubProposal.ProposalRoute()) {
-		return types.ErrNoProposalHandlerExists(k.codespace, pubProposal)
+		return sdkerrors.Wrapf(types.ErrNoProposalHandlerExists, "%T", pubProposal)
 	}
 
 	// Run the proposal's changes through the associated handler using a cached version of state to ensure changes are not permanent.
@@ -166,7 +168,7 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 	// reference: https://stackoverflow.com/questions/33167282/how-to-return-a-value-in-a-go-function-that-panics?noredirect=1&lq=1
 	defer func() {
 		if r := recover(); r != nil {
-			returnErr = types.ErrInvalidPubProposal(k.codespace, fmt.Sprintf("proposal handler panicked: %s", r))
+			returnErr = sdkerrors.Wrapf(types.ErrInvalidPubProposal, "proposal handler panicked: %s", r)
 		}
 	}()
 

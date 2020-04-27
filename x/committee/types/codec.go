@@ -24,7 +24,6 @@ func RegisterModuleCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(distribution.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal", nil)
 	cdc.RegisterConcrete(params.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal", nil)
 	cdc.RegisterConcrete(gov.TextProposal{}, "cosmos-sdk/TextProposal", nil)
-	cdc.RegisterConcrete(gov.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal", nil)
 
 	RegisterAppCodec(cdc)
 }
@@ -43,6 +42,7 @@ func RegisterAppCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
 	cdc.RegisterConcrete(ParamChangePermission{}, "kava/ParamChangePermission", nil)
+	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
 
 	// Msgs
 	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)

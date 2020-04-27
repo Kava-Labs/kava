@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -34,12 +35,12 @@ func (msg MsgSubmitProposal) Route() string { return RouterKey }
 func (msg MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgSubmitProposal) ValidateBasic() sdk.Error {
+func (msg MsgSubmitProposal) ValidateBasic() error {
 	if msg.PubProposal == nil {
-		return ErrInvalidPubProposal(DefaultCodespace, "pub proposal cannot be nil")
+		return sdkerrors.Wrap(ErrInvalidPubProposal, "pub proposal cannot be nil")
 	}
 	if msg.Proposer.Empty() {
-		return sdk.ErrInvalidAddress(msg.Proposer.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "proposer address cannot be empty")
 	}
 
 	return msg.PubProposal.ValidateBasic()
@@ -74,9 +75,9 @@ func (msg MsgVote) Route() string { return RouterKey }
 func (msg MsgVote) Type() string { return TypeMsgVote }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
-func (msg MsgVote) ValidateBasic() sdk.Error {
+func (msg MsgVote) ValidateBasic() error {
 	if msg.Voter.Empty() {
-		return sdk.ErrInvalidAddress(msg.Voter.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "voter address cannot be empty")
 	}
 	return nil
 }

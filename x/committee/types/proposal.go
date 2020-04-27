@@ -3,7 +3,7 @@ package types
 import (
 	"gopkg.in/yaml.v2"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -48,12 +48,12 @@ func (ccp CommitteeChangeProposal) ProposalRoute() string { return RouterKey }
 func (ccp CommitteeChangeProposal) ProposalType() string { return ProposalTypeCommitteeChange }
 
 // ValidateBasic runs basic stateless validity checks
-func (ccp CommitteeChangeProposal) ValidateBasic() sdk.Error {
-	if err := govtypes.ValidateAbstract(DefaultCodespace, ccp); err != nil {
+func (ccp CommitteeChangeProposal) ValidateBasic() error {
+	if err := govtypes.ValidateAbstract(ccp); err != nil {
 		return err
 	}
 	if err := ccp.NewCommittee.Validate(); err != nil {
-		return ErrInvalidCommittee(DefaultCodespace, err.Error())
+		return sdkerrors.Wrap(ErrInvalidCommittee, err.Error())
 	}
 	return nil
 }
@@ -100,11 +100,8 @@ func (cdp CommitteeDeleteProposal) ProposalRoute() string { return RouterKey }
 func (cdp CommitteeDeleteProposal) ProposalType() string { return ProposalTypeCommitteeDelete }
 
 // ValidateBasic runs basic stateless validity checks
-func (cdp CommitteeDeleteProposal) ValidateBasic() sdk.Error {
-	if err := govtypes.ValidateAbstract(DefaultCodespace, cdp); err != nil {
-		return err
-	}
-	return nil
+func (cdp CommitteeDeleteProposal) ValidateBasic() error {
+	return govtypes.ValidateAbstract(cdp)
 }
 
 // String implements the Stringer interface.

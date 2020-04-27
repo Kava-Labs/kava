@@ -20,7 +20,7 @@ import (
 // NewDistributionGenesisWithPool creates a default distribution genesis state with some coins in the community pool.
 func NewDistributionGenesisWithPool(communityPoolCoins sdk.Coins) app.GenesisState {
 	gs := distribution.DefaultGenesisState()
-	gs.FeePool = distribution.FeePool{CommunityPool: sdk.NewDecCoins(communityPoolCoins)}
+	gs.FeePool = distribution.FeePool{CommunityPool: sdk.NewDecCoinsFromCoins(communityPoolCoins...)}
 	return app.GenesisState{distribution.ModuleName: distribution.ModuleCdc.MustMarshalJSON(gs)}
 }
 
@@ -81,9 +81,9 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Valid() {
 		1,
 	)
 
-	res := suite.handler(suite.ctx, msg)
+	res, err := suite.handler(suite.ctx, msg)
 
-	suite.True(res.IsOK())
+	suite.NoError(err)
 	_, found := suite.keeper.GetProposal(suite.ctx, types.Uint64FromBytes(res.Data))
 	suite.True(found)
 }
@@ -104,9 +104,9 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Invalid() {
 		committeeID,
 	)
 
-	res := suite.handler(suite.ctx, msg)
+	_, err := suite.handler(suite.ctx, msg)
 
-	suite.False(res.IsOK())
+	suite.Error(err)
 	suite.Empty(
 		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
 		"proposal found when none should exist",
@@ -122,9 +122,9 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Unregistered() {
 		committeeID,
 	)
 
-	res := suite.handler(suite.ctx, msg)
+	_, err := suite.handler(suite.ctx, msg)
 
-	suite.False(res.IsOK())
+	suite.Error(err)
 	suite.Empty(
 		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
 		"proposal found when none should exist",
@@ -147,16 +147,16 @@ func (suite *HandlerTestSuite) TestMsgAddVote_ProposalPass() {
 		suite.addresses[0],
 		1,
 	)
-	res := suite.handler(suite.ctx, msg)
-	suite.True(res.IsOK())
+	res, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
 	proposalID := types.Uint64FromBytes(res.Data)
-	res = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
-	suite.True(res.IsOK())
+	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
+	suite.NoError(err)
 
 	// Add a vote to make the proposal pass
-	res = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
+	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
 
-	suite.True(res.IsOK())
+	suite.NoError(err)
 	// Check the param has been updated
 	suite.Equal(newDebtThreshold, suite.app.GetCDPKeeper().GetParams(suite.ctx).DebtAuctionThreshold)
 	// Check proposal and votes are gone
@@ -181,19 +181,19 @@ func (suite *HandlerTestSuite) TestMsgAddVote_ProposalFail() {
 		suite.addresses[0],
 		1,
 	)
-	res := suite.handler(suite.ctx, msg)
-	suite.True(res.IsOK())
+	res, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
 	proposalID := types.Uint64FromBytes(res.Data)
-	res = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
-	suite.True(res.IsOK())
+	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
+	suite.NoError(err)
 
 	// invalidate the proposal by emptying community pool
 	suite.app.GetDistrKeeper().DistributeFromFeePool(suite.ctx, suite.communityPoolAmt, suite.addresses[0])
 
 	// Add a vote to make the proposal pass
-	res = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
+	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
 
-	suite.True(res.IsOK())
+	suite.NoError(err)
 	// Check the proposal was not enacted
 	suite.Equal(recipientCoins, suite.app.GetBankKeeper().GetCoins(suite.ctx, recipient))
 	// Check proposal and votes are gone

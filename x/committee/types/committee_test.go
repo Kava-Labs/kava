@@ -37,7 +37,6 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
 					},
 				}}},
 			pubProposal: params.NewParameterChangeProposal(
@@ -47,8 +46,8 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
-						Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+						Value: `{"denom": "usdx", "amount": "1000000"}`,
 					},
 				},
 			),
@@ -62,7 +61,6 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
-							Subkey:   "",
 						},
 					}},
 				TextPermission{},
@@ -78,7 +76,6 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
-							Subkey:   "",
 						},
 					}},
 				GodPermission{},
@@ -90,8 +87,8 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					{
 						Subspace: "cdp",
 						Key:      "CollateralParams",
-						Subkey:   "",
-						Value:    `[]`,
+
+						Value: `[]`,
 					},
 				},
 			),
@@ -107,8 +104,8 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					{
 						Subspace: "cdp",
 						Key:      "CollateralParams",
-						Subkey:   "",
-						Value:    `[]`,
+
+						Value: `[]`,
 					},
 				},
 			),
@@ -123,7 +120,6 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
-							Subkey:   "",
 						},
 					}},
 				ParamChangePermission{
@@ -131,7 +127,6 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						{
 							Subspace: "cdp",
 							Key:      "DebtParams",
-							Subkey:   "",
 						},
 					}},
 			},
@@ -142,14 +137,14 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
-						Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+						Value: `{"denom": "usdx", "amount": "1000000"}`,
 					},
 					{
 						Subspace: "cdp",
 						Key:      "DebtParams",
-						Subkey:   "",
-						Value:    `[]`,
+
+						Value: `[]`,
 					},
 				},
 			),
@@ -163,7 +158,6 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
-							Subkey:   "",
 						},
 					}},
 			},

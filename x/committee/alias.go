@@ -16,12 +16,6 @@ const (
 	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
 	AttributeValueProposalPassed    = types.AttributeValueProposalPassed
 	AttributeValueProposalTimeout   = types.AttributeValueProposalTimeout
-	CodeInvalidCommittee            = types.CodeInvalidCommittee
-	CodeInvalidGenesis              = types.CodeInvalidGenesis
-	CodeInvalidProposal             = types.CodeInvalidProposal
-	CodeProposalExpired             = types.CodeProposalExpired
-	CodeUnknownItem                 = types.CodeUnknownItem
-	DefaultCodespace                = types.DefaultCodespace
 	DefaultNextProposalID           = types.DefaultNextProposalID
 	DefaultParamspace               = types.DefaultParamspace
 	EventTypeProposalClose          = types.EventTypeProposalClose
@@ -50,14 +44,6 @@ var (
 	NewKeeper                  = keeper.NewKeeper
 	NewQuerier                 = keeper.NewQuerier
 	DefaultGenesisState        = types.DefaultGenesisState
-	ErrInvalidCommittee        = types.ErrInvalidCommittee
-	ErrInvalidGenesis          = types.ErrInvalidGenesis
-	ErrInvalidPubProposal      = types.ErrInvalidPubProposal
-	ErrNoProposalHandlerExists = types.ErrNoProposalHandlerExists
-	ErrProposalExpired         = types.ErrProposalExpired
-	ErrUnknownCommittee        = types.ErrUnknownCommittee
-	ErrUnknownProposal         = types.ErrUnknownProposal
-	ErrUnknownVote             = types.ErrUnknownVote
 	GetKeyFromID               = types.GetKeyFromID
 	GetVoteKey                 = types.GetVoteKey
 	NewCommittee               = types.NewCommittee
@@ -66,6 +52,7 @@ var (
 	NewGenesisState            = types.NewGenesisState
 	NewMsgSubmitProposal       = types.NewMsgSubmitProposal
 	NewMsgVote                 = types.NewMsgVote
+	NewProposal                = types.NewProposal
 	NewQueryCommitteeParams    = types.NewQueryCommitteeParams
 	NewQueryProposalParams     = types.NewQueryProposalParams
 	NewQueryVoteParams         = types.NewQueryVoteParams
@@ -75,12 +62,20 @@ var (
 	Uint64FromBytes            = types.Uint64FromBytes
 
 	// variable aliases
-	ProposalHandler    = client.ProposalHandler
-	CommitteeKeyPrefix = types.CommitteeKeyPrefix
-	ModuleCdc          = types.ModuleCdc
-	NextProposalIDKey  = types.NextProposalIDKey
-	ProposalKeyPrefix  = types.ProposalKeyPrefix
-	VoteKeyPrefix      = types.VoteKeyPrefix
+	ProposalHandler            = client.ProposalHandler
+	CommitteeKeyPrefix         = types.CommitteeKeyPrefix
+	ErrInvalidCommittee        = types.ErrInvalidCommittee
+	ErrInvalidGenesis          = types.ErrInvalidGenesis
+	ErrInvalidPubProposal      = types.ErrInvalidPubProposal
+	ErrNoProposalHandlerExists = types.ErrNoProposalHandlerExists
+	ErrProposalExpired         = types.ErrProposalExpired
+	ErrUnknownCommittee        = types.ErrUnknownCommittee
+	ErrUnknownProposal         = types.ErrUnknownProposal
+	ErrUnknownVote             = types.ErrUnknownVote
+	ModuleCdc                  = types.ModuleCdc
+	NextProposalIDKey          = types.NextProposalIDKey
+	ProposalKeyPrefix          = types.ProposalKeyPrefix
+	VoteKeyPrefix              = types.VoteKeyPrefix
 )
 
 type (
@@ -101,5 +96,6 @@ type (
 	QueryCommitteeParams    = types.QueryCommitteeParams
 	QueryProposalParams     = types.QueryProposalParams
 	QueryVoteParams         = types.QueryVoteParams
+	TextPermission          = types.TextPermission
 	Vote                    = types.Vote
 )

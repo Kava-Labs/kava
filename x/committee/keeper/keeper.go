@@ -6,30 +6,29 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
 type Keeper struct {
-	cdc       *codec.Codec
-	storeKey  sdk.StoreKey
-	codespace sdk.CodespaceType
+	cdc      *codec.Codec
+	storeKey sdk.StoreKey
 
 	// Proposal router
 	router govtypes.Router
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
 	router.Seal()
 
 	return Keeper{
-		cdc:       cdc,
-		storeKey:  storeKey,
-		codespace: codespace,
-		router:    router,
+		cdc:      cdc,
+		storeKey: storeKey,
+		router:   router,
 	}
 }
 
@@ -99,17 +98,17 @@ func (k Keeper) SetNextProposalID(ctx sdk.Context, id uint64) {
 }
 
 // GetNextProposalID reads the next available global ID from store
-func (k Keeper) GetNextProposalID(ctx sdk.Context) (uint64, sdk.Error) {
+func (k Keeper) GetNextProposalID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextProposalIDKey)
 	if bz == nil {
-		return 0, types.ErrInvalidGenesis(k.codespace, "next proposal ID not set at genesis")
+		return 0, sdkerrors.Wrap(types.ErrInvalidGenesis, "next proposal ID not set at genesis")
 	}
 	return types.Uint64FromBytes(bz), nil
 }
 
 // IncrementNextProposalID increments the next proposal ID in the store by 1.
-func (k Keeper) IncrementNextProposalID(ctx sdk.Context) sdk.Error {
+func (k Keeper) IncrementNextProposalID(ctx sdk.Context) error {
 	id, err := k.GetNextProposalID(ctx)
 	if err != nil {
 		return err
@@ -119,7 +118,7 @@ func (k Keeper) IncrementNextProposalID(ctx sdk.Context) sdk.Error {
 }
 
 // StoreNewProposal stores a proposal, adding a new ID
-func (k Keeper) StoreNewProposal(ctx sdk.Context, pubProposal types.PubProposal, committeeID uint64, deadline time.Time) (uint64, sdk.Error) {
+func (k Keeper) StoreNewProposal(ctx sdk.Context, pubProposal types.PubProposal, committeeID uint64, deadline time.Time) (uint64, error) {
 	newProposalID, err := k.GetNextProposalID(ctx)
 	if err != nil {
 		return 0, err

@@ -19,22 +19,18 @@ func (suite *PermissionsTestSuite) SetupTest() {
 		{
 			Subspace: "cdp",
 			Key:      "DebtThreshold",
-			Subkey:   "",
 		},
 		{
 			Subspace: "cdp",
 			Key:      "SurplusThreshold",
-			Subkey:   "",
 		},
 		{
 			Subspace: "cdp",
 			Key:      "CollateralParams",
-			Subkey:   "",
 		},
 		{
 			Subspace: "auction",
 			Key:      "BidDuration",
-			Subkey:   "",
 		},
 	}
 }
@@ -56,8 +52,8 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
-						Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+						Value: `{"denom": "usdx", "amount": "1000000"}`,
 					},
 				},
 			),
@@ -73,14 +69,14 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
-						Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+						Value: `{"denom": "usdx", "amount": "1000000"}`,
 					},
 					{
 						Subspace: "cdp",
 						Key:      "CollateralParams",
-						Subkey:   "",
-						Value:    `[]`,
+
+						Value: `[]`,
 					},
 				},
 			),
@@ -96,8 +92,8 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 					{
 						Subspace: "cdp",
 						Key:      "GlobalDebtLimit",
-						Subkey:   "",
-						Value:    `{"denom": "usdx", "amount": "1000000000"}`,
+
+						Value: `{"denom": "usdx", "amount": "1000000000"}`,
 					},
 				},
 			),
@@ -113,8 +109,8 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
-						Value:    `[{"denom": "usdx", "amount": "1000000"}]`,
+
+						Value: `[{"denom": "usdx", "amount": "1000000"}]`,
 					},
 				},
 			),
@@ -160,8 +156,8 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 			testParam: params.ParamChange{
 				Subspace: "cdp",
 				Key:      "DebtThreshold",
-				Subkey:   "",
-				Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+				Value: `{"denom": "usdx", "amount": "1000000"}`,
 			},
 			expectContained: true,
 		},
@@ -171,8 +167,8 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 			testParam: params.ParamChange{
 				Subspace: "",
 				Key:      "DebtThreshold",
-				Subkey:   "",
-				Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+				Value: `{"denom": "usdx", "amount": "1000000"}`,
 			},
 			expectContained: false,
 		},
@@ -182,8 +178,8 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 			testParam: params.ParamChange{
 				Subspace: "cdp",
 				Key:      "",
-				Subkey:   "",
-				Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+				Value: `{"denom": "usdx", "amount": "1000000"}`,
 			},
 			expectContained: false,
 		},
@@ -193,8 +189,8 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 			testParam: params.ParamChange{
 				Subspace: "cdp",
 				Key:      "DebtThreshold",
-				Subkey:   "",
-				Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+				Value: `{"denom": "usdx", "amount": "1000000"}`,
 			},
 			expectContained: false,
 		},
@@ -204,8 +200,8 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 			testParam: params.ParamChange{
 				Subspace: "cdp",
 				Key:      "DebtThreshold",
-				Subkey:   "",
-				Value:    `{"denom": "usdx", "amount": "1000000"}`,
+
+				Value: `{"denom": "usdx", "amount": "1000000"}`,
 			},
 			expectContained: false,
 		},
@@ -256,13 +252,11 @@ func (suite *PermissionsTestSuite) TestTextPermission_Allows() {
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
-						Subkey:   "",
 						Value:    `{"denom": "usdx", "amount": "1000000"}`,
 					},
 					{
 						Subspace: "cdp",
 						Key:      "CollateralParams",
-						Subkey:   "",
 						Value:    `[]`,
 					},
 				},

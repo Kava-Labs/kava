@@ -76,13 +76,12 @@ func (perm ParamChangePermission) MarshalYAML() (interface{}, error) {
 type AllowedParam struct {
 	Subspace string `json:"subspace" yaml:"subspace"`
 	Key      string `json:"key" yaml:"key"`
-	Subkey   string `json:"subkey,omitempty" yaml:"subkey,omitempty"`
 }
 type AllowedParams []AllowedParam
 
 func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
 	for _, p := range allowed {
-		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key && paramChange.Subkey == p.Subkey {
+		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key {
 			return true
 		}
 	}
