@@ -42,11 +42,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 
 func queryCommittees(ctx sdk.Context, path []string, _ abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
 
-	committees := []types.Committee{}
-	keeper.IterateCommittees(ctx, func(com types.Committee) bool {
-		committees = append(committees, com)
-		return false
-	})
+	committees := keeper.GetCommittees(ctx)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, committees)
 	if err != nil {
@@ -85,13 +81,7 @@ func queryProposals(ctx sdk.Context, path []string, req abci.RequestQuery, keepe
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 
-	proposals := []types.Proposal{}
-	keeper.IterateProposals(ctx, func(p types.Proposal) bool {
-		if p.CommitteeID == params.CommitteeID {
-			proposals = append(proposals, p)
-		}
-		return false
-	})
+	proposals := keeper.GetProposalsByCommittee(ctx, params.CommitteeID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, proposals)
 	if err != nil {
@@ -131,11 +121,7 @@ func queryVotes(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 
-	votes := []types.Vote{}
-	keeper.IterateVotes(ctx, params.ProposalID, func(v types.Vote) bool {
-		votes = append(votes, v)
-		return false
-	})
+	votes := keeper.GetVotesByProposal(ctx, params.ProposalID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, votes)
 	if err != nil {

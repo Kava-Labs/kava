@@ -99,11 +99,7 @@ func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk
 // TallyVotes counts all the votes on a proposal
 func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
 
-	var votes []types.Vote
-	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
-		votes = append(votes, vote)
-		return false
-	})
+	votes := k.GetVotesByProposal(ctx, proposalID)
 
 	return int64(len(votes))
 }
@@ -179,19 +175,4 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 		return err
 	}
 	return nil
-}
-
-// DeleteProposalAndVotes removes a proposal and its associated votes.
-// TODO move to keeper.go
-func (k Keeper) DeleteProposalAndVotes(ctx sdk.Context, proposalID uint64) {
-	var votes []types.Vote
-	k.IterateVotes(ctx, proposalID, func(vote types.Vote) bool {
-		votes = append(votes, vote)
-		return false
-	})
-
-	k.DeleteProposal(ctx, proposalID)
-	for _, v := range votes {
-		k.DeleteVote(ctx, v.ProposalID, v.Voter)
-	}
 }

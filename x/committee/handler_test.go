@@ -89,6 +89,7 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Valid() {
 }
 
 func (suite *HandlerTestSuite) TestSubmitProposalMsg_Invalid() {
+	var committeeID uint64 = 1
 	msg := types.NewMsgSubmitProposal(
 		params.NewParameterChangeProposal(
 			"A Title",
@@ -100,32 +101,34 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Invalid() {
 			}},
 		),
 		suite.addresses[0],
-		1,
+		committeeID,
 	)
 
 	res := suite.handler(suite.ctx, msg)
 
 	suite.False(res.IsOK())
-	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
-		suite.Fail("proposal found when none should exist")
-		return true
-	})
+	suite.Empty(
+		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
+		"proposal found when none should exist",
+	)
+
 }
 
 func (suite *HandlerTestSuite) TestSubmitProposalMsg_Unregistered() {
+	var committeeID uint64 = 1
 	msg := types.NewMsgSubmitProposal(
 		UnregisteredPubProposal{},
 		suite.addresses[0],
-		1,
+		committeeID,
 	)
 
 	res := suite.handler(suite.ctx, msg)
 
 	suite.False(res.IsOK())
-	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
-		suite.Fail("proposal found when none should exist")
-		return true
-	})
+	suite.Empty(
+		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
+		"proposal found when none should exist",
+	)
 }
 
 func (suite *HandlerTestSuite) TestMsgAddVote_ProposalPass() {
@@ -159,10 +162,10 @@ func (suite *HandlerTestSuite) TestMsgAddVote_ProposalPass() {
 	// Check proposal and votes are gone
 	_, found := suite.keeper.GetProposal(suite.ctx, proposalID)
 	suite.False(found)
-	suite.keeper.IterateVotes(suite.ctx, proposalID, func(v types.Vote) bool {
-		suite.Fail("vote found when there should be none")
-		return true
-	})
+	suite.Empty(
+		suite.keeper.GetVotesByProposal(suite.ctx, proposalID),
+		"vote found when there should be none",
+	)
 }
 
 func (suite *HandlerTestSuite) TestMsgAddVote_ProposalFail() {
@@ -196,10 +199,10 @@ func (suite *HandlerTestSuite) TestMsgAddVote_ProposalFail() {
 	// Check proposal and votes are gone
 	_, found := suite.keeper.GetProposal(suite.ctx, proposalID)
 	suite.False(found)
-	suite.keeper.IterateVotes(suite.ctx, proposalID, func(v types.Vote) bool {
-		suite.Fail("vote found when there should be none")
-		return true
-	})
+	suite.Empty(
+		suite.keeper.GetVotesByProposal(suite.ctx, proposalID),
+		"vote found when there should be none",
+	)
 }
 
 func TestHandlerTestSuite(t *testing.T) {

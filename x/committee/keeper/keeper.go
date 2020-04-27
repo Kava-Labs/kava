@@ -78,6 +78,16 @@ func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Commi
 	}
 }
 
+// GetCommittees returns all stored committees.
+func (k Keeper) GetCommittees(ctx sdk.Context) []types.Committee {
+	results := []types.Committee{}
+	k.IterateCommittees(ctx, func(com types.Committee) bool {
+		results = append(results, com)
+		return false
+	})
+	return results
+}
+
 // ------------------------------------------
 //				Proposals
 // ------------------------------------------
@@ -171,6 +181,39 @@ func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposa
 	}
 }
 
+// GetProposals returns all stored proposals.
+func (k Keeper) GetProposals(ctx sdk.Context) []types.Proposal {
+	results := []types.Proposal{}
+	k.IterateProposals(ctx, func(prop types.Proposal) bool {
+		results = append(results, prop)
+		return false
+	})
+	return results
+}
+
+// GetProposalsByCommittee returns all proposals for one committee.
+func (k Keeper) GetProposalsByCommittee(ctx sdk.Context, committeeID uint64) []types.Proposal {
+	results := []types.Proposal{}
+	k.IterateProposals(ctx, func(prop types.Proposal) bool {
+		if prop.CommitteeID == committeeID {
+			results = append(results, prop)
+		}
+		return false
+	})
+	return results
+}
+
+// DeleteProposalAndVotes removes a proposal and its associated votes.
+func (k Keeper) DeleteProposalAndVotes(ctx sdk.Context, proposalID uint64) {
+
+	votes := k.GetVotesByProposal(ctx, proposalID)
+
+	k.DeleteProposal(ctx, proposalID)
+	for _, v := range votes {
+		k.DeleteVote(ctx, v.ProposalID, v.Voter)
+	}
+}
+
 // ------------------------------------------
 //				Votes
 // ------------------------------------------
@@ -200,11 +243,10 @@ func (k Keeper) DeleteVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddr
 	store.Delete(types.GetVoteKey(proposalID, voter))
 }
 
-// IterateVotes provides an iterator over all stored votes for a given proposal.
+// IterateVotes provides an iterator over all stored votes.
 // For each vote, cb will be called. If cb returns true, the iterator will close and stop.
-func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote types.Vote) (stop bool)) {
-	// iterate over the section of the votes store that has all votes for a particular proposal
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), append(types.VoteKeyPrefix, types.GetKeyFromID(proposalID)...))
+func (k Keeper) IterateVotes(ctx sdk.Context, cb func(vote types.Vote) (stop bool)) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -215,4 +257,26 @@ func (k Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vote ty
 			break
 		}
 	}
+}
+
+// GetVotes returns all stored votes.
+func (k Keeper) GetVotes(ctx sdk.Context) []types.Vote {
+	results := []types.Vote{}
+	k.IterateVotes(ctx, func(vote types.Vote) bool {
+		results = append(results, vote)
+		return false
+	})
+	return results
+}
+
+// GetVotesByProposal returns all votes for one proposal.
+func (k Keeper) GetVotesByProposal(ctx sdk.Context, proposalID uint64) []types.Vote {
+	results := []types.Vote{}
+	k.IterateVotes(ctx, func(vote types.Vote) bool {
+		if vote.ProposalID == proposalID {
+			results = append(results, vote)
+		}
+		return false
+	})
+	return results
 }

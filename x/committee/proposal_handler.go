@@ -28,16 +28,12 @@ func handleCommitteeChangeProposal(ctx sdk.Context, k Keeper, committeeProposal 
 	}
 
 	// Remove all committee's ongoing proposals
-	var proposals []Proposal
 	k.IterateProposals(ctx, func(p Proposal) bool {
 		if p.CommitteeID == committeeProposal.NewCommittee.ID {
-			proposals = append(proposals, p)
+			k.DeleteProposalAndVotes(ctx, p.ID)
 		}
 		return false
 	})
-	for _, p := range proposals { // split loops to avoid updating the db while iterating
-		k.DeleteProposalAndVotes(ctx, p.ID)
-	}
 
 	// update/create the committee
 	k.SetCommittee(ctx, committeeProposal.NewCommittee)
@@ -50,16 +46,12 @@ func handleCommitteeDeleteProposal(ctx sdk.Context, k Keeper, committeeProposal 
 	}
 
 	// Remove all committee's ongoing proposals
-	var proposals []Proposal
 	k.IterateProposals(ctx, func(p Proposal) bool {
 		if p.CommitteeID == committeeProposal.CommitteeID {
-			proposals = append(proposals, p)
+			k.DeleteProposalAndVotes(ctx, p.ID)
 		}
 		return false
 	})
-	for _, p := range proposals { // split loops to avoid updating the db while iterating
-		k.DeleteProposalAndVotes(ctx, p.ID)
-	}
 
 	k.DeleteCommittee(ctx, committeeProposal.CommitteeID)
 	return nil
