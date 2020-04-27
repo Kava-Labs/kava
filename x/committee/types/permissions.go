@@ -13,6 +13,15 @@ func init() {
 	gov.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
 }
 
+// Permission is anything with a method that validates whether a proposal is allowed by it or not.
+type Permission interface {
+	Allows(PubProposal) bool
+}
+
+// ------------------------------------------
+//				GodPermission
+// ------------------------------------------
+
 // GodPermission allows any governance proposal. It is used mainly for testing.
 type GodPermission struct{}
 
@@ -28,6 +37,10 @@ func (GodPermission) MarshalYAML() (interface{}, error) {
 	}
 	return valueToMarshal, nil
 }
+
+// ------------------------------------------
+//				ParamChangePermission
+// ------------------------------------------
 
 // ParamChangeProposal only allows changes to certain params
 type ParamChangePermission struct {
@@ -75,6 +88,10 @@ func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
 	}
 	return false
 }
+
+// ------------------------------------------
+//				TextPermission
+// ------------------------------------------
 
 // TextPermission allows any text governance proposal.
 type TextPermission struct{}

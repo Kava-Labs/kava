@@ -78,7 +78,6 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 }
 
 // GetProposalResult calculates if a proposal currently has enough votes to pass.
-// TODO rename GetProposalTally?
 func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64) (bool, sdk.Error) {
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
@@ -123,23 +122,23 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) sdk.Error {
 }
 
 // CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.
-// TODO rename to RemoveExpiredProposals?
 func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
 
 	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
-		if proposal.HasExpiredBy(ctx.BlockTime()) {
-
-			k.DeleteProposalAndVotes(ctx, proposal.ID)
-
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeProposalClose,
-					sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
-					sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
-					sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, types.AttributeValueProposalTimeout),
-				),
-			)
+		if !proposal.HasExpiredBy(ctx.BlockTime()) {
+			return false
 		}
+
+		k.DeleteProposalAndVotes(ctx, proposal.ID)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeProposalClose,
+				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, types.AttributeValueProposalTimeout),
+			),
+		)
 		return false
 	})
 }

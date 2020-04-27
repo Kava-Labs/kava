@@ -21,8 +21,8 @@ type Committee struct {
 	Description      string           `json:"description" yaml:"description"`
 	Members          []sdk.AccAddress `json:"members" yaml:"members"`
 	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
-	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`
-	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"`
+	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage of members that must vote for a proposal to pass.
+	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
 }
 
 func NewCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission, threshold sdk.Dec, duration time.Duration) Committee {
@@ -80,20 +80,16 @@ func (c Committee) Validate() error {
 		return fmt.Errorf("invalid description")
 	}
 
-	if c.VoteThreshold.IsNil() || c.VoteThreshold.IsNegative() || c.VoteThreshold.GT(sdk.NewDec(1)) {
+	// threshold must be in the range (0,1]
+	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
 		return fmt.Errorf("invalid threshold")
 	}
 
 	if c.ProposalDuration < 0 {
-		return fmt.Errorf("invalid time")
+		return fmt.Errorf("invalid proposal duration")
 	}
 
 	return nil
-}
-
-// Permission is anything with a method that validates whether a proposal is allowed by it or not.
-type Permission interface {
-	Allows(PubProposal) bool
 }
 
 // ------------------------------------------
