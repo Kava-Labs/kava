@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -42,7 +42,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 		},
 		Proposals: []Proposal{
-			{ID: 1, CommitteeID: 1, PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
+			{ID: 1, CommitteeID: 1, PubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
 		},
 		Votes: []Vote{
 			{ProposalID: 1, Voter: addresses[0]},
@@ -114,7 +114,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					testGenesis.Proposals,
 					Proposal{
 						ID:          testGenesis.NextProposalID,
-						PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+						PubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."),
 						CommitteeID: 247, // doesn't exist
 					}),
 				Votes: testGenesis.Votes,

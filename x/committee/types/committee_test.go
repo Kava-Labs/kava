@@ -4,15 +4,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/suite"
 )
 
 var _ PubProposal = UnregisteredPubProposal{}
 
 type UnregisteredPubProposal struct {
-	gov.TextProposal
+	govtypes.TextProposal
 }
 
 func (UnregisteredPubProposal) ProposalRoute() string { return "unregistered" }
@@ -39,10 +39,10 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						Key:      "DebtThreshold",
 					},
 				}}},
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description of this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -65,7 +65,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					}},
 				TextPermission{},
 			},
-			pubProposal:          gov.NewTextProposal("A Proposal Title", "A description of this proposal"),
+			pubProposal:          govtypes.NewTextProposal("A Proposal Title", "A description of this proposal"),
 			expectHasPermissions: true,
 		},
 		{
@@ -80,10 +80,10 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 					}},
 				GodPermission{},
 			},
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description of this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "CollateralParams",
@@ -97,10 +97,10 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		{
 			name:        "no permissions",
 			permissions: nil,
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description of this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "CollateralParams",
@@ -130,10 +130,10 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						},
 					}},
 			},
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description of this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -161,7 +161,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						},
 					}},
 			},
-			pubProposal:          UnregisteredPubProposal{gov.TextProposal{"A Title", "A description."}},
+			pubProposal:          UnregisteredPubProposal{govtypes.TextProposal{"A Title", "A description."}},
 			expectHasPermissions: false,
 		},
 	}

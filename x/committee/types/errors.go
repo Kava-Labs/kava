@@ -4,7 +4,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// TODO nums ok?
 var (
 	ErrUnknownCommittee        = sdkerrors.Register(ModuleName, 2, "committee not found")
 	ErrInvalidCommittee        = sdkerrors.Register(ModuleName, 3, "invalid committee")

@@ -3,8 +3,8 @@ package types
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -45,10 +45,10 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 		{
 			name:          "normal (single param)",
 			allowedParams: suite.exampleAllowedParams,
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description for this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -62,10 +62,10 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 		{
 			name:          "normal (multiple params)",
 			allowedParams: suite.exampleAllowedParams,
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description for this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -85,10 +85,10 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 		{
 			name:          "not allowed (not in list)",
 			allowedParams: suite.exampleAllowedParams,
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description for this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "GlobalDebtLimit",
@@ -102,10 +102,10 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 		{
 			name:          "not allowed (nil allowed params)",
 			allowedParams: nil,
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description for this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -119,7 +119,7 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 		{
 			name:          "not allowed (mismatched pubproposal type)",
 			allowedParams: suite.exampleAllowedParams,
-			pubProposal:   gov.NewTextProposal("A Title", "A description of this proposal."),
+			pubProposal:   govtypes.NewTextProposal("A Title", "A description of this proposal."),
 			expectAllowed: false,
 		},
 		{
@@ -147,13 +147,13 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 	testcases := []struct {
 		name            string
 		allowedParams   AllowedParams
-		testParam       params.ParamChange
+		testParam       paramstypes.ParamChange
 		expectContained bool
 	}{
 		{
 			name:          "normal",
 			allowedParams: suite.exampleAllowedParams,
-			testParam: params.ParamChange{
+			testParam: paramstypes.ParamChange{
 				Subspace: "cdp",
 				Key:      "DebtThreshold",
 
@@ -164,7 +164,7 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 		{
 			name:          "missing subspace",
 			allowedParams: suite.exampleAllowedParams,
-			testParam: params.ParamChange{
+			testParam: paramstypes.ParamChange{
 				Subspace: "",
 				Key:      "DebtThreshold",
 
@@ -175,7 +175,7 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 		{
 			name:          "missing key",
 			allowedParams: suite.exampleAllowedParams,
-			testParam: params.ParamChange{
+			testParam: paramstypes.ParamChange{
 				Subspace: "cdp",
 				Key:      "",
 
@@ -186,7 +186,7 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 		{
 			name:          "empty list",
 			allowedParams: AllowedParams{},
-			testParam: params.ParamChange{
+			testParam: paramstypes.ParamChange{
 				Subspace: "cdp",
 				Key:      "DebtThreshold",
 
@@ -197,7 +197,7 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 		{
 			name:          "nil list",
 			allowedParams: nil,
-			testParam: params.ParamChange{
+			testParam: paramstypes.ParamChange{
 				Subspace: "cdp",
 				Key:      "DebtThreshold",
 
@@ -208,13 +208,13 @@ func (suite *PermissionsTestSuite) TestAllowedParams_Contains() {
 		{
 			name:            "no param change",
 			allowedParams:   suite.exampleAllowedParams,
-			testParam:       params.ParamChange{},
+			testParam:       paramstypes.ParamChange{},
 			expectContained: false,
 		},
 		{
 			name:            "empty list and no param change",
 			allowedParams:   AllowedParams{},
-			testParam:       params.ParamChange{},
+			testParam:       paramstypes.ParamChange{},
 			expectContained: false,
 		},
 	}
@@ -237,7 +237,7 @@ func (suite *PermissionsTestSuite) TestTextPermission_Allows() {
 	}{
 		{
 			name: "normal",
-			pubProposal: gov.NewTextProposal(
+			pubProposal: govtypes.NewTextProposal(
 				"A Title",
 				"A description for this proposal.",
 			),
@@ -245,10 +245,10 @@ func (suite *PermissionsTestSuite) TestTextPermission_Allows() {
 		},
 		{
 			name: "not allowed (wrong pubproposal type)",
-			pubProposal: params.NewParameterChangeProposal(
+			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
 				"A description for this proposal.",
-				[]params.ParamChange{
+				[]paramstypes.ParamChange{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -280,6 +280,7 @@ func (suite *PermissionsTestSuite) TestTextPermission_Allows() {
 		})
 	}
 }
+
 func TestPermissionsTestSuite(t *testing.T) {
 	suite.Run(t, new(PermissionsTestSuite))
 }
