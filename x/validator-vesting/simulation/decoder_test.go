@@ -5,14 +5,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/kv"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-
 	"github.com/kava-labs/kava/x/validator-vesting/types"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/libs/kv"
+)
+
+var (
+	pk1   = ed25519.GenPrivKey().PubKey()
+	addr1 = sdk.AccAddress(pk1.Address())
 )
 
 func makeTestCodec() (cdc *codec.Codec) {
@@ -28,11 +32,10 @@ func makeTestCodec() (cdc *codec.Codec) {
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
-	acc := types.ValidatorVestingAccount{SigningThreshold: 1}
 	now := time.Now().UTC()
 
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: types.ValidatorVestingAccountPrefix, Value: cdc.MustMarshalBinaryBare(acc)},
+		kv.Pair{Key: append(types.ValidatorVestingAccountPrefix, addr1.Bytes()...), Value: []byte{0}},
 		kv.Pair{Key: types.BlocktimeKey, Value: cdc.MustMarshalBinaryLengthPrefixed(now)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
@@ -41,7 +44,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"ValidatorVestingAccount", fmt.Sprintf("%v\n%v", acc, acc)},
+		{"ValidatorVestingAccount", fmt.Sprintf("%v\n%v", addr1, addr1)},
 		{"BlockTime", fmt.Sprintf("%s\n%s", now, now)},
 		{"other", ""},
 	}
