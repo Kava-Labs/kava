@@ -151,8 +151,7 @@ func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, denom string) (u
 func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint64, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 	bz := store.Get(owner)
-	// TODO figure out why this is necessary
-	if bz == nil || bytes.Equal(bz, []byte{0}) {
+	if bz == nil {
 		return []uint64{}, false
 	}
 	var cdpIDs []uint64
@@ -296,9 +295,9 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 	}
 	if len(updatedCdpIds) == 0 {
 		store.Delete(cdp.Owner)
+		return
 	}
 	store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(updatedCdpIds))
-
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
