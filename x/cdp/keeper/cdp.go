@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -271,13 +270,8 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 		store.Set(cdp.Owner, idBytes)
 		return
 	}
-	for _, id := range cdpIDs {
-		if id == cdp.ID {
-			return
-		}
-		cdpIDs = append(cdpIDs, cdp.ID)
-		store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(cdpIDs))
-	}
+	cdpIDs = append(cdpIDs, cdp.ID)
+	store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(cdpIDs))
 }
 
 // RemoveCdpOwnerIndex deletes the cdp id from the store's index of cdps by owner
