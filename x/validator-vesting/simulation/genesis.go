@@ -73,6 +73,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 	}
 	newAuthGenesis := authtypes.NewGenesisState(authGenState.Params, newGenesisAccs)
 	simState.GenState[authtypes.ModuleName] = simState.Cdc.MustMarshalJSON(newAuthGenesis)
+	vestGenState := types.DefaultGenesisState()
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(vestGenState)
 }
 
 func getRandomValidatorConsAddr(simState *module.SimulationState, rint int) sdk.ConsAddress {
