@@ -66,7 +66,7 @@ func (suite *SavingsTestSuite) TestGetSetPreviousDistributionTime() {
 	now := tmtime.Now()
 
 	_, f := suite.keeper.GetPreviousSavingsDistribution(suite.ctx)
-	suite.False(f)
+	suite.True(f)
 
 	suite.NotPanics(func() { suite.keeper.SetPreviousSavingsDistribution(suite.ctx, now) })
 
