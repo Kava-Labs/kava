@@ -67,6 +67,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 	k.SetGovDenom(ctx, gs.GovDenom)
+	k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
