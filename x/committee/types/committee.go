@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const MaxCommitteeDescriptionLength int = 5000
+const MaxCommitteeDescriptionLength int = 512
 
 // ------------------------------------------
 //				Committees

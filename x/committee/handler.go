@@ -57,35 +57,37 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) (*sdk.Re
 	if err != nil {
 		return nil, err
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
+		),
+	)
 
 	// Enact a proposal if it has enough votes
 	passes, err := k.GetProposalResult(ctx, msg.ProposalID)
 	if err != nil {
 		return nil, err
 	}
-	if passes {
-		err = k.EnactProposal(ctx, msg.ProposalID)
-		outcome := types.AttributeValueProposalPassed
-		if err != nil {
-			outcome = types.AttributeValueProposalFailed
-		}
-		k.DeleteProposalAndVotes(ctx, msg.ProposalID)
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeProposalClose,
-				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
-				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
-				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
-			),
-		)
+	if !passes {
+		return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 	}
+
+	err = k.EnactProposal(ctx, msg.ProposalID)
+	outcome := types.AttributeValueProposalPassed
+	if err != nil {
+		outcome = types.AttributeValueProposalFailed
+	}
+
+	k.DeleteProposalAndVotes(ctx, msg.ProposalID)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Voter.String()),
+			types.EventTypeProposalClose,
+			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+			sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
 		),
 	)
 
