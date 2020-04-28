@@ -99,7 +99,7 @@ func TestKavaCLIMinimumFees(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server with minimum fees
+	// start kvd server with minimum fees
 	minGasPrice, _ := sdk.NewDecFromStr("0.000006")
 	fees := fmt.Sprintf(
 		"--minimum-gas-prices=%s,%s",
@@ -137,7 +137,7 @@ func TestKavaCLIGasPrices(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server with minimum fees
+	// start kvd server with minimum fees
 	minGasPrice, _ := sdk.NewDecFromStr("0.000006")
 	proc := f.GDStart(fmt.Sprintf("--minimum-gas-prices=%s", sdk.NewDecCoinFromDec(feeDenom, minGasPrice)))
 	defer proc.Stop(false)
@@ -171,7 +171,7 @@ func TestKavaCLIFeesDeduction(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server with minimum fees
+	// start kvd server with minimum fees
 	minGasPrice, _ := sdk.NewDecFromStr("0.000006")
 	proc := f.GDStart(fmt.Sprintf("--minimum-gas-prices=%s", sdk.NewDecCoinFromDec(feeDenom, minGasPrice)))
 	defer proc.Stop(false)
@@ -224,7 +224,7 @@ func TestKavaCLISend(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -294,7 +294,7 @@ func TestKavaCLIConfirmTx(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -330,7 +330,7 @@ func TestKavaCLIGasAuto(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -390,7 +390,7 @@ func TestKavaCLICreateValidator(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -477,13 +477,13 @@ func TestKavaCLIQueryRewards(t *testing.T) {
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
 
-	genFile := filepath.Join(f.KavadHome, "config", "genesis.json")
+	genFile := filepath.Join(f.KvdHome, "config", "genesis.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(genFile)
 	require.NoError(t, err)
 	genDoc.AppState, err = cdc.MarshalJSON(genesisState)
 	require.NoError(t, genDoc.SaveAs(genFile))
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -498,7 +498,7 @@ func TestKavaCLIQuerySupply(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -515,7 +515,7 @@ func TestKavaCLISubmitProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -736,7 +736,7 @@ func TestKavaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
 
-	genFile := filepath.Join(f.KavadHome, "config", "genesis.json")
+	genFile := filepath.Join(f.KvdHome, "config", "genesis.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(genFile)
 	require.NoError(t, err)
 	genDoc.AppState, err = cdc.MarshalJSON(genesisState)
@@ -807,7 +807,7 @@ func TestKavaCLIQueryTxPagination(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -857,7 +857,7 @@ func TestKavaCLIValidateSignatures(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -907,7 +907,7 @@ func TestKavaCLISendGenerateSignAndBroadcast(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -991,7 +991,7 @@ func TestKavaCLIMultisignInsufficientCosigners(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server with minimum fees
+	// start kvd server with minimum fees
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1044,7 +1044,7 @@ func TestKavaCLIEncode(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1082,7 +1082,7 @@ func TestKavaCLIMultisignSortSignatures(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server with minimum fees
+	// start kvd server with minimum fees
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1147,7 +1147,7 @@ func TestKavaCLIMultisign(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server with minimum fees
+	// start kvd server with minimum fees
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1223,7 +1223,7 @@ func TestKavaCLIConfig(t *testing.T) {
 	f.CLIConfig("trace", "false")
 	f.CLIConfig("indent", "true")
 
-	config, err := ioutil.ReadFile(path.Join(f.KavacliHome, "config", "config.toml"))
+	config, err := ioutil.ReadFile(path.Join(f.KvcliHome, "config", "config.toml"))
 	require.NoError(t, err)
 	expectedConfig := fmt.Sprintf(`broadcast-mode = "block"
 chain-id = "%s"
@@ -1335,7 +1335,7 @@ func TestSlashingGetParams(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1355,7 +1355,7 @@ func TestValidateGenesis(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start kavad server
+	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
