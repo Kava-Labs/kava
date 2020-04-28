@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -96,9 +96,12 @@ func (c Committee) Validate() error {
 //				Proposals
 // ------------------------------------------
 
-// PubProposal is an interface that all gov proposals defined in other modules must satisfy.
-type PubProposal = gov.Content
+// PubProposal is the interface that all proposals must fulfill to be submitted to a committee.
+// Proposal types can be created external to this module. For example a ParamChangeProposal, or CommunityPoolSpendProposal.
+// It is pinned to the equivalent type in the gov module to create compatability between proposal types.
+type PubProposal govtypes.Content
 
+// Proposal is an internal record of a governance proposal submitted to a committee.
 type Proposal struct {
 	PubProposal `json:"pub_proposal" yaml:"pub_proposal"`
 	ID          uint64    `json:"id" yaml:"id"`

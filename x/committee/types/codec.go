@@ -2,39 +2,32 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-// ModuleCdc generic sealed codec to be used throughout module
+// ModuleCdc is a generic codec to be used throughout module
 var ModuleCdc *codec.Codec
 
 func init() {
 	cdc := codec.New()
-	RegisterModuleCodec(cdc)
-	ModuleCdc = cdc.Seal()
+	RegisterCodec(cdc)
+	ModuleCdc = cdc
+	// ModuleCdc is not sealed so that other modules can register their own pubproposal and/or permission types.
+
+	// Register external module pubproposal types. Ideally these would be registered within the modules' types pkg init function.
+	// However registration happens here as a work-around.
+	RegisterProposalTypeCodec(distrtypes.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal")
+	RegisterProposalTypeCodec(paramstypes.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal")
+	RegisterProposalTypeCodec(govtypes.TextProposal{}, "cosmos-sdk/TextProposal")
 }
 
-// TODO decide if not using gov's Content type would be better
+// RegisterCodec registers the necessary types for the module
+func RegisterCodec(cdc *codec.Codec) {
 
-func RegisterModuleCodec(cdc *codec.Codec) {
-	cdc.RegisterInterface((*gov.Content)(nil), nil) // registering the Content interface on the ModuleCdc will not conflict with gov.
-	// Ideally dist and params would register their proposals on here at their init. However don't want to fork them so:
-	cdc.RegisterConcrete(distribution.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal", nil)
-	cdc.RegisterConcrete(params.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal", nil)
-	cdc.RegisterConcrete(gov.TextProposal{}, "cosmos-sdk/TextProposal", nil)
-
-	RegisterAppCodec(cdc)
-}
-
-// RegisterAppCodec registers the necessary types for the module
-func RegisterAppCodec(cdc *codec.Codec) {
 	// Proposals
-	// The app codec needs the gov.Content type registered. This is done by the gov module.
-	// Ideally it would registered here as well in case these modules are ever used separately.
-	// However amino panics if you register the same interface a second time. So leaving it out for now.
-	// cdc.RegisterInterface((*gov.Content)(nil), nil)
+	cdc.RegisterInterface((*PubProposal)(nil), nil)
 	cdc.RegisterConcrete(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal", nil)
 	cdc.RegisterConcrete(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal", nil)
 
@@ -49,9 +42,15 @@ func RegisterAppCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgVote{}, "kava/MsgVote", nil)
 }
 
-// RegisterProposalTypeCodec registers an external proposal content type defined
-// in another module for the internal ModuleCdc. This allows the MsgSubmitProposal
-// to be correctly Amino encoded and decoded.
+// RegisterPermissionTypeCodec allows external modules to register their own permission types on
+// the internal ModuleCdc. This allows the MsgSubmitProposal to be correctly Amino encoded and
+// decoded (when the msg contains a CommitteeChangeProposal).
+func RegisterPermissionTypeCodec(o interface{}, name string) {
+	ModuleCdc.RegisterConcrete(o, name, nil)
+}
+
+// RegisterProposalTypeCodec allows external modules to register their own pubproposal types on the
+// internal ModuleCdc. This allows the MsgSubmitProposal to be correctly Amino encoded and decoded.
 func RegisterProposalTypeCodec(o interface{}, name string) {
 	ModuleCdc.RegisterConcrete(o, name, nil)
 }

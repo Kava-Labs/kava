@@ -41,25 +41,25 @@ const (
 
 var (
 	// function aliases
-	NewKeeper                  = keeper.NewKeeper
-	NewQuerier                 = keeper.NewQuerier
-	DefaultGenesisState        = types.DefaultGenesisState
-	GetKeyFromID               = types.GetKeyFromID
-	GetVoteKey                 = types.GetVoteKey
-	NewCommittee               = types.NewCommittee
-	NewCommitteeChangeProposal = types.NewCommitteeChangeProposal
-	NewCommitteeDeleteProposal = types.NewCommitteeDeleteProposal
-	NewGenesisState            = types.NewGenesisState
-	NewMsgSubmitProposal       = types.NewMsgSubmitProposal
-	NewMsgVote                 = types.NewMsgVote
-	NewProposal                = types.NewProposal
-	NewQueryCommitteeParams    = types.NewQueryCommitteeParams
-	NewQueryProposalParams     = types.NewQueryProposalParams
-	NewQueryVoteParams         = types.NewQueryVoteParams
-	RegisterAppCodec           = types.RegisterAppCodec
-	RegisterModuleCodec        = types.RegisterModuleCodec
-	RegisterProposalTypeCodec  = types.RegisterProposalTypeCodec
-	Uint64FromBytes            = types.Uint64FromBytes
+	NewKeeper                   = keeper.NewKeeper
+	NewQuerier                  = keeper.NewQuerier
+	DefaultGenesisState         = types.DefaultGenesisState
+	GetKeyFromID                = types.GetKeyFromID
+	GetVoteKey                  = types.GetVoteKey
+	NewCommittee                = types.NewCommittee
+	NewCommitteeChangeProposal  = types.NewCommitteeChangeProposal
+	NewCommitteeDeleteProposal  = types.NewCommitteeDeleteProposal
+	NewGenesisState             = types.NewGenesisState
+	NewMsgSubmitProposal        = types.NewMsgSubmitProposal
+	NewMsgVote                  = types.NewMsgVote
+	NewProposal                 = types.NewProposal
+	NewQueryCommitteeParams     = types.NewQueryCommitteeParams
+	NewQueryProposalParams      = types.NewQueryProposalParams
+	NewQueryVoteParams          = types.NewQueryVoteParams
+	RegisterCodec               = types.RegisterCodec
+	RegisterPermissionTypeCodec = types.RegisterPermissionTypeCodec
+	RegisterProposalTypeCodec   = types.RegisterProposalTypeCodec
+	Uint64FromBytes             = types.Uint64FromBytes
 
 	// variable aliases
 	ProposalHandler            = client.ProposalHandler

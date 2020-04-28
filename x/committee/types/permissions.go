@@ -1,16 +1,17 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 func init() {
-	// CommitteeChange/Delete proposals need to be registered on gov's ModuleCdc.
+	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
 	// But since these proposals contain Permissions, these types also need registering:
-	gov.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
-	gov.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
-	gov.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
+	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
+	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
+	govtypes.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
+	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
 }
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
@@ -27,7 +28,7 @@ type GodPermission struct{}
 
 var _ Permission = GodPermission{}
 
-func (GodPermission) Allows(gov.Content) bool { return true }
+func (GodPermission) Allows(PubProposal) bool { return true }
 
 func (GodPermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
@@ -49,8 +50,8 @@ type ParamChangePermission struct {
 
 var _ Permission = ParamChangePermission{}
 
-func (perm ParamChangePermission) Allows(p gov.Content) bool {
-	proposal, ok := p.(params.ParameterChangeProposal)
+func (perm ParamChangePermission) Allows(p PubProposal) bool {
+	proposal, ok := p.(paramstypes.ParameterChangeProposal)
 	if !ok {
 		return false
 	}
@@ -79,7 +80,7 @@ type AllowedParam struct {
 }
 type AllowedParams []AllowedParam
 
-func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
+func (allowed AllowedParams) Contains(paramChange paramstypes.ParamChange) bool {
 	for _, p := range allowed {
 		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key {
 			return true
@@ -97,8 +98,8 @@ type TextPermission struct{}
 
 var _ Permission = TextPermission{}
 
-func (TextPermission) Allows(p gov.Content) bool {
-	_, ok := p.(gov.TextProposal)
+func (TextPermission) Allows(p PubProposal) bool {
+	_, ok := p.(govtypes.TextProposal)
 	return ok
 }
 

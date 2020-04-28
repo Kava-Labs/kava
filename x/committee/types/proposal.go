@@ -12,19 +12,24 @@ const (
 	ProposalTypeCommitteeDelete = "CommitteeDelete"
 )
 
-// CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
-type CommitteeChangeProposal struct {
-	Title        string    `json:"title" yaml:"title"`
-	Description  string    `json:"description" yaml:"description"`
-	NewCommittee Committee `json:"new_committee" yaml:"new_committee"`
-}
-
-var _ govtypes.Content = CommitteeChangeProposal{}
+// ensure proposal types fulfill the PubProposal interface and the gov Content interface.
+var _, _ govtypes.Content = CommitteeChangeProposal{}, CommitteeDeleteProposal{}
+var _, _ PubProposal = CommitteeChangeProposal{}, CommitteeDeleteProposal{}
 
 func init() {
 	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
 	govtypes.RegisterProposalType(ProposalTypeCommitteeChange)
 	govtypes.RegisterProposalTypeCodec(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal")
+
+	govtypes.RegisterProposalType(ProposalTypeCommitteeDelete)
+	govtypes.RegisterProposalTypeCodec(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal")
+}
+
+// CommitteeChangeProposal is a gov proposal for creating a new committee or modifying an existing one.
+type CommitteeChangeProposal struct {
+	Title        string    `json:"title" yaml:"title"`
+	Description  string    `json:"description" yaml:"description"`
+	NewCommittee Committee `json:"new_committee" yaml:"new_committee"`
 }
 
 func NewCommitteeChangeProposal(title string, description string, newCommittee Committee) CommitteeChangeProposal {
@@ -69,14 +74,6 @@ type CommitteeDeleteProposal struct {
 	Title       string `json:"title" yaml:"title"`
 	Description string `json:"description" yaml:"description"`
 	CommitteeID uint64 `json:"committee_id" yaml:"committee_id"`
-}
-
-var _ govtypes.Content = CommitteeDeleteProposal{}
-
-func init() {
-	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
-	govtypes.RegisterProposalType(ProposalTypeCommitteeDelete)
-	govtypes.RegisterProposalTypeCodec(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal")
 }
 
 func NewCommitteeDeleteProposal(title string, description string, committeeID uint64) CommitteeDeleteProposal {
