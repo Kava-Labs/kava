@@ -147,6 +147,8 @@ func InitFixtures(t *testing.T) (f *Fixtures) {
 	// reset test state
 	f.UnsafeResetAll()
 
+	f.CLIConfig("keyring-backend", "test")
+
 	// ensure keystore has foo and bar keys
 	f.KeysDelete(keyFoo)
 	f.KeysDelete(keyBar)

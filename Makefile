@@ -135,7 +135,7 @@ test:
 test-rest:
 	rest_test/./run_all_tests_from_make.sh
 
-test-cli:
+test-cli: build
 	@go test ./cli_test -tags cli_test -v -p 4
 
 # Kick start lots of sims on an AWS cluster.
