@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -31,7 +33,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand(client.PostCommands(
+	txCmd.AddCommand(flags.PostCommands(
 		GetCmdVote(cdc),
 		GetCmdSubmitProposal(cdc),
 	)...)
@@ -49,11 +51,12 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 The proposal file must be the json encoded forms of the proposal type you want to submit.
 For example:
 %s
-`, mustGetExampleParameterChangeProposal(cdc)),
+`, MustGetExampleParameterChangeProposal(cdc)),
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Get proposing address
@@ -102,7 +105,8 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 		Long:    "Submit a yes vote for the proposal with id [proposal-id].",
 		Example: fmt.Sprintf("%s tx %s vote 2", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Get voting address
@@ -139,10 +143,11 @@ For example, to create or update a committee:
 
 and to delete a committee:
 %s
-`, mustGetExampleCommitteeChangeProposal(cdc), mustGetExampleCommitteeDeleteProposal(cdc)),
+`, MustGetExampleCommitteeChangeProposal(cdc), MustGetExampleCommitteeDeleteProposal(cdc)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Get proposing address
@@ -181,15 +186,15 @@ and to delete a committee:
 	return cmd
 }
 
-// mustGetExampleCommitteeChangeProposal is a helper function to return an example json proposal
-func mustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
+// MustGetExampleCommitteeChangeProposal is a helper function to return an example json proposal
+func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 	exampleChangeProposal := types.NewCommitteeChangeProposal(
 		"A Title",
 		"A description of this proposal.",
 		types.NewCommittee(
 			1,
 			"The description of this committee.",
-			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddres")))},
+			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddress")))},
 			[]types.Permission{
 				types.ParamChangePermission{
 					AllowedParams: types.AllowedParams{{Subspace: "cdp", Key: "CircuitBreaker"}},
@@ -206,8 +211,8 @@ func mustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 	return string(exampleChangeProposalBz)
 }
 
-// mustGetExampleCommitteeDeleteProposal is a helper function to return an example json proposal
-func mustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
+// MustGetExampleCommitteeDeleteProposal is a helper function to return an example json proposal
+func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 	exampleDeleteProposal := types.NewCommitteeDeleteProposal(
 		"A Title",
 		"A description of this proposal.",
@@ -220,8 +225,8 @@ func mustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 	return string(exampleDeleteProposalBz)
 }
 
-// mustGetExampleParameterChangeProposal is a helper function to return an example json proposal
-func mustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
+// MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
+func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
 	exampleParameterChangeProposal := params.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",

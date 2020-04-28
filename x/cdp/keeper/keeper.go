@@ -18,30 +18,23 @@ type Keeper struct {
 	pricefeedKeeper types.PricefeedKeeper
 	supplyKeeper    types.SupplyKeeper
 	auctionKeeper   types.AuctionKeeper
-	codespace       sdk.CodespaceType
+	accountKeeper   types.AccountKeeper
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, codespace sdk.CodespaceType) Keeper {
-
-	// ensure cdp module account is set
-	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
-	}
-
-	// ensure liquidator module account is set
-	if addr := sk.GetModuleAddress(types.LiquidatorMacc); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.LiquidatorMacc))
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper, ak types.AuctionKeeper, sk types.SupplyKeeper, ack types.AccountKeeper) Keeper {
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
 		key:             key,
 		cdc:             cdc,
-		paramSubspace:   paramstore.WithKeyTable(types.ParamKeyTable()),
+		paramSubspace:   paramstore,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   ak,
 		supplyKeeper:    sk,
-		codespace:       codespace,
+		accountKeeper:   ack,
 	}
 }
 

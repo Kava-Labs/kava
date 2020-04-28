@@ -15,8 +15,6 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
-
 type KeeperTestSuite struct {
 	suite.Suite
 
@@ -37,12 +35,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	// setup test
 	com := types.Committee{
-		ID:                  12,
-		Description:         "This committee is for testing.",
-		Members:             suite.addresses,
-		Permissions:         []types.Permission{types.GodPermission{}},
-		VoteThreshold:       d("0.667"),
-		MaxProposalDuration: time.Hour * 24 * 7,
+		ID:               12,
+		Description:      "This committee is for testing.",
+		Members:          suite.addresses,
+		Permissions:      []types.Permission{types.GodPermission{}},
+		VoteThreshold:    d("0.667"),
+		ProposalDuration: time.Hour * 24 * 7,
 	}
 
 	// write and read from store
@@ -61,7 +59,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteCommittee() {
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestGetSetProposal() {
+func (suite *KeeperTestSuite) TestGetSetDeleteProposal() {
 	// test setup
 	prop := types.Proposal{
 		ID:          12,
@@ -86,7 +84,7 @@ func (suite *KeeperTestSuite) TestGetSetProposal() {
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestGetSetVote() {
+func (suite *KeeperTestSuite) TestGetSetDeleteVote() {
 	// test setup
 	vote := types.Vote{
 		ProposalID: 12,

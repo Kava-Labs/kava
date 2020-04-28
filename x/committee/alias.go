@@ -16,12 +16,6 @@ const (
 	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
 	AttributeValueProposalPassed    = types.AttributeValueProposalPassed
 	AttributeValueProposalTimeout   = types.AttributeValueProposalTimeout
-	CodeInvalidCommittee            = types.CodeInvalidCommittee
-	CodeInvalidGenesis              = types.CodeInvalidGenesis
-	CodeInvalidProposal             = types.CodeInvalidProposal
-	CodeProposalExpired             = types.CodeProposalExpired
-	CodeUnknownItem                 = types.CodeUnknownItem
-	DefaultCodespace                = types.DefaultCodespace
 	DefaultNextProposalID           = types.DefaultNextProposalID
 	DefaultParamspace               = types.DefaultParamspace
 	EventTypeProposalClose          = types.EventTypeProposalClose
@@ -47,13 +41,29 @@ const (
 
 var (
 	// function aliases
-	NewKeeper                  = keeper.NewKeeper
-	NewQuerier                 = keeper.NewQuerier
-	RegisterInvariants         = keeper.RegisterInvariants
-	ValidCommitteesInvariant   = keeper.ValidCommitteesInvariant
-	ValidProposalsInvariant    = keeper.ValidProposalsInvariant
-	ValidVotesInvariant        = keeper.ValidVotesInvariant
-	DefaultGenesisState        = types.DefaultGenesisState
+	NewKeeper                   = keeper.NewKeeper
+	NewQuerier                  = keeper.NewQuerier
+	DefaultGenesisState         = types.DefaultGenesisState
+	GetKeyFromID                = types.GetKeyFromID
+	GetVoteKey                  = types.GetVoteKey
+	NewCommittee                = types.NewCommittee
+	NewCommitteeChangeProposal  = types.NewCommitteeChangeProposal
+	NewCommitteeDeleteProposal  = types.NewCommitteeDeleteProposal
+	NewGenesisState             = types.NewGenesisState
+	NewMsgSubmitProposal        = types.NewMsgSubmitProposal
+	NewMsgVote                  = types.NewMsgVote
+	NewProposal                 = types.NewProposal
+	NewQueryCommitteeParams     = types.NewQueryCommitteeParams
+	NewQueryProposalParams      = types.NewQueryProposalParams
+	NewQueryVoteParams          = types.NewQueryVoteParams
+	RegisterCodec               = types.RegisterCodec
+	RegisterPermissionTypeCodec = types.RegisterPermissionTypeCodec
+	RegisterProposalTypeCodec   = types.RegisterProposalTypeCodec
+	Uint64FromBytes             = types.Uint64FromBytes
+
+	// variable aliases
+	ProposalHandler            = client.ProposalHandler
+	CommitteeKeyPrefix         = types.CommitteeKeyPrefix
 	ErrInvalidCommittee        = types.ErrInvalidCommittee
 	ErrInvalidGenesis          = types.ErrInvalidGenesis
 	ErrInvalidPubProposal      = types.ErrInvalidPubProposal
@@ -62,29 +72,10 @@ var (
 	ErrUnknownCommittee        = types.ErrUnknownCommittee
 	ErrUnknownProposal         = types.ErrUnknownProposal
 	ErrUnknownVote             = types.ErrUnknownVote
-	GetKeyFromID               = types.GetKeyFromID
-	GetVoteKey                 = types.GetVoteKey
-	NewCommittee               = types.NewCommittee
-	NewCommitteeChangeProposal = types.NewCommitteeChangeProposal
-	NewCommitteeDeleteProposal = types.NewCommitteeDeleteProposal
-	NewGenesisState            = types.NewGenesisState
-	NewMsgSubmitProposal       = types.NewMsgSubmitProposal
-	NewMsgVote                 = types.NewMsgVote
-	NewQueryCommitteeParams    = types.NewQueryCommitteeParams
-	NewQueryProposalParams     = types.NewQueryProposalParams
-	NewQueryVoteParams         = types.NewQueryVoteParams
-	RegisterAppCodec           = types.RegisterAppCodec
-	RegisterModuleCodec        = types.RegisterModuleCodec
-	RegisterProposalTypeCodec  = types.RegisterProposalTypeCodec
-	Uint64FromBytes            = types.Uint64FromBytes
-
-	// variable aliases
-	ProposalHandler    = client.ProposalHandler
-	CommitteeKeyPrefix = types.CommitteeKeyPrefix
-	ModuleCdc          = types.ModuleCdc
-	NextProposalIDKey  = types.NextProposalIDKey
-	ProposalKeyPrefix  = types.ProposalKeyPrefix
-	VoteKeyPrefix      = types.VoteKeyPrefix
+	ModuleCdc                  = types.ModuleCdc
+	NextProposalIDKey          = types.NextProposalIDKey
+	ProposalKeyPrefix          = types.ProposalKeyPrefix
+	VoteKeyPrefix              = types.VoteKeyPrefix
 )
 
 type (

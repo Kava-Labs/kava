@@ -38,19 +38,19 @@ func (suite *ProposalHandlerTestSuite) SetupTest() {
 		2,
 		[]committee.Committee{
 			{
-				ID:                  1,
-				Description:         "This committee is for testing.",
-				Members:             suite.addresses[:3],
-				Permissions:         []types.Permission{types.GodPermission{}},
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               1,
+				Description:      "This committee is for testing.",
+				Members:          suite.addresses[:3],
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 			{
-				ID:                  2,
-				Members:             suite.addresses[2:],
-				Permissions:         nil,
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               2,
+				Members:          suite.addresses[2:],
+				Permissions:      nil,
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 		},
 		[]committee.Proposal{
@@ -74,10 +74,10 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID:                  34,
-					Members:             suite.addresses[:1],
-					VoteThreshold:       d("1"),
-					MaxProposalDuration: time.Hour * 24,
+					ID:               34,
+					Members:          suite.addresses[:1],
+					VoteThreshold:    d("1"),
+					ProposalDuration: time.Hour * 24,
 				},
 			),
 			expectPass: true,
@@ -88,11 +88,11 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID:                  suite.testGenesis.Committees[0].ID,
-					Members:             suite.addresses, // add new members
-					Permissions:         suite.testGenesis.Committees[0].Permissions,
-					VoteThreshold:       suite.testGenesis.Committees[0].VoteThreshold,
-					MaxProposalDuration: suite.testGenesis.Committees[0].MaxProposalDuration,
+					ID:               suite.testGenesis.Committees[0].ID,
+					Members:          suite.addresses, // add new members
+					Permissions:      suite.testGenesis.Committees[0].Permissions,
+					VoteThreshold:    suite.testGenesis.Committees[0].VoteThreshold,
+					ProposalDuration: suite.testGenesis.Committees[0].ProposalDuration,
 				},
 			),
 			expectPass: true,
@@ -112,11 +112,11 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 				"A Title",
 				"A proposal description.",
 				committee.Committee{
-					ID:                  suite.testGenesis.Committees[0].ID,
-					Members:             append(suite.addresses, suite.addresses[0]), // duplicate address
-					Permissions:         suite.testGenesis.Committees[0].Permissions,
-					VoteThreshold:       suite.testGenesis.Committees[0].VoteThreshold,
-					MaxProposalDuration: suite.testGenesis.Committees[0].MaxProposalDuration,
+					ID:               suite.testGenesis.Committees[0].ID,
+					Members:          append(suite.addresses, suite.addresses[0]), // duplicate address
+					Permissions:      suite.testGenesis.Committees[0].Permissions,
+					VoteThreshold:    suite.testGenesis.Committees[0].VoteThreshold,
+					ProposalDuration: suite.testGenesis.Committees[0].ProposalDuration,
 				},
 			),
 			expectPass: false,
@@ -133,19 +133,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
-			// get proposals and votes for target committee
-			var proposals []committee.Proposal
-			var votes []committee.Vote
-			suite.keeper.IterateProposals(suite.ctx, func(p committee.Proposal) bool {
-				if p.CommitteeID == tc.proposal.NewCommittee.ID {
-					proposals = append(proposals, p)
-					suite.keeper.IterateVotes(suite.ctx, p.ID, func(v committee.Vote) bool {
-						votes = append(votes, v)
-						return false
-					})
-				}
-				return false
-			})
+			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.ID)
 
 			// Run
 			err := handler(suite.ctx, tc.proposal)
@@ -153,19 +141,15 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			// Check
 			if tc.expectPass {
 				suite.NoError(err)
-				// check proposal is accurate
+				// check committee is accurate
 				actualCom, found := suite.keeper.GetCommittee(suite.ctx, tc.proposal.NewCommittee.ID)
 				suite.True(found)
 				suite.Equal(tc.proposal.NewCommittee, actualCom)
 
 				// check proposals and votes for this committee have been removed
-				for _, p := range proposals {
-					_, found := suite.keeper.GetProposal(suite.ctx, p.ID)
-					suite.False(found)
-				}
-				for _, v := range votes {
-					_, found := suite.keeper.GetVote(suite.ctx, v.ProposalID, v.Voter)
-					suite.False(found)
+				suite.Empty(suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.NewCommittee.ID))
+				for _, p := range oldProposals {
+					suite.Empty(suite.keeper.GetVotesByProposal(suite.ctx, p.ID))
 				}
 			} else {
 				suite.Error(err)
@@ -211,19 +195,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 			suite.ctx = suite.app.NewContext(true, abci.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
-			// get proposals and votes for target committee
-			var proposals []committee.Proposal
-			var votes []committee.Vote
-			suite.keeper.IterateProposals(suite.ctx, func(p committee.Proposal) bool {
-				if p.CommitteeID == tc.proposal.CommitteeID {
-					proposals = append(proposals, p)
-					suite.keeper.IterateVotes(suite.ctx, p.ID, func(v committee.Vote) bool {
-						votes = append(votes, v)
-						return false
-					})
-				}
-				return false
-			})
+			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.CommitteeID)
 
 			// Run
 			err := handler(suite.ctx, tc.proposal)
@@ -231,18 +203,14 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 			// Check
 			if tc.expectPass {
 				suite.NoError(err)
-				// check proposal is accurate
+				// check committee has been removed
 				_, found := suite.keeper.GetCommittee(suite.ctx, tc.proposal.CommitteeID)
 				suite.False(found)
 
 				// check proposals and votes for this committee have been removed
-				for _, p := range proposals {
-					_, found := suite.keeper.GetProposal(suite.ctx, p.ID)
-					suite.False(found)
-				}
-				for _, v := range votes {
-					_, found := suite.keeper.GetVote(suite.ctx, v.ProposalID, v.Voter)
-					suite.False(found)
+				suite.Empty(suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.CommitteeID))
+				for _, p := range oldProposals {
+					suite.Empty(suite.keeper.GetVotesByProposal(suite.ctx, p.ID))
 				}
 			} else {
 				suite.Error(err)

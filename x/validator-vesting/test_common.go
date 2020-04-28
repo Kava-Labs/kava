@@ -18,8 +18,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/keeper"
-	"github.com/kava-labs/kava/x/validator-vesting/internal/types"
+	"github.com/kava-labs/kava/x/validator-vesting/keeper"
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 var (
@@ -60,7 +60,7 @@ func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAc
 
 	pk := mApp.ParamsKeeper
 
-	bk := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), bank.DefaultCodespace, blacklistedAddrs)
+	bk := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 
 	maccPerms := map[string][]string{
 		types.ModuleName:          {supply.Burner},
@@ -69,7 +69,7 @@ func getMockApp(t *testing.T, numGenAccs int, genState types.GenesisState, genAc
 	}
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bk, maccPerms)
 	sk := staking.NewKeeper(
-		mApp.Cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace), staking.DefaultCodespace,
+		mApp.Cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace),
 	)
 
 	keeper := keeper.NewKeeper(

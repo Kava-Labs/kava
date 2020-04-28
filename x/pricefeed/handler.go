@@ -1,20 +1,18 @@
 package pricefeed
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewHandler handles all pricefeed type messages
 func NewHandler(k Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
 		case MsgPostPrice:
 			return HandleMsgPostPrice(ctx, k, msg)
 		default:
-			errMsg := fmt.Sprintf("unrecognized pricefeed message type: %T", msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
 }
@@ -26,15 +24,15 @@ func NewHandler(k Keeper) sdk.Handler {
 func HandleMsgPostPrice(
 	ctx sdk.Context,
 	k Keeper,
-	msg MsgPostPrice) sdk.Result {
+	msg MsgPostPrice) (*sdk.Result, error) {
 
 	_, err := k.GetOracle(ctx, msg.MarketID, msg.From)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 	_, err = k.SetPrice(ctx, msg.From, msg.MarketID, msg.Price, msg.Expiry)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -45,5 +43,5 @@ func HandleMsgPostPrice(
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

@@ -1,18 +1,27 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 func init() {
-	// CommitteeChange/Delete proposals need to be registered on gov's ModuleCdc.
+	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
 	// But since these proposals contain Permissions, these types also need registering:
-	gov.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
-	gov.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
-	gov.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
-	gov.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
+	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
+	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
+	govtypes.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
+	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
 }
+
+// Permission is anything with a method that validates whether a proposal is allowed by it or not.
+type Permission interface {
+	Allows(PubProposal) bool
+}
+
+// ------------------------------------------
+//				GodPermission
+// ------------------------------------------
 
 // GodPermission allows any governance proposal. It is used mainly for testing.
 type GodPermission struct{}
@@ -30,6 +39,10 @@ func (GodPermission) MarshalYAML() (interface{}, error) {
 	return valueToMarshal, nil
 }
 
+// ------------------------------------------
+//				ParamChangePermission
+// ------------------------------------------
+
 // ParamChangeProposal only allows changes to certain params
 type ParamChangePermission struct {
 	AllowedParams AllowedParams `json:"allowed_params" yaml:"allowed_params"`
@@ -38,7 +51,7 @@ type ParamChangePermission struct {
 var _ Permission = ParamChangePermission{}
 
 func (perm ParamChangePermission) Allows(p PubProposal) bool {
-	proposal, ok := p.(params.ParameterChangeProposal)
+	proposal, ok := p.(paramstypes.ParameterChangeProposal)
 	if !ok {
 		return false
 	}
@@ -53,7 +66,7 @@ func (perm ParamChangePermission) Allows(p PubProposal) bool {
 func (perm ParamChangePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type          string        `yaml:"type"`
-		AllowedParams AllowedParams `yaml:"allowed_params`
+		AllowedParams AllowedParams `yaml:"allowed_params"`
 	}{
 		Type:          "param_change_permission",
 		AllowedParams: perm.AllowedParams,
@@ -64,25 +77,29 @@ func (perm ParamChangePermission) MarshalYAML() (interface{}, error) {
 type AllowedParam struct {
 	Subspace string `json:"subspace" yaml:"subspace"`
 	Key      string `json:"key" yaml:"key"`
-	Subkey   string `json:"subkey,omitempty" yaml:"subkey,omitempty"`
 }
 type AllowedParams []AllowedParam
 
-func (allowed AllowedParams) Contains(paramChange params.ParamChange) bool {
+func (allowed AllowedParams) Contains(paramChange paramstypes.ParamChange) bool {
 	for _, p := range allowed {
-		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key && paramChange.Subkey == p.Subkey {
+		if paramChange.Subspace == p.Subspace && paramChange.Key == p.Key {
 			return true
 		}
 	}
 	return false
 }
 
+// ------------------------------------------
+//				TextPermission
+// ------------------------------------------
+
+// TextPermission allows any text governance proposal.
 type TextPermission struct{}
 
 var _ Permission = TextPermission{}
 
 func (TextPermission) Allows(p PubProposal) bool {
-	_, ok := p.(gov.TextProposal)
+	_, ok := p.(govtypes.TextProposal)
 	return ok
 }
 
@@ -94,8 +111,3 @@ func (TextPermission) MarshalYAML() (interface{}, error) {
 	}
 	return valueToMarshal, nil
 }
-
-// TODO add more permissions?
-// - limit parameter changes to be within small ranges
-// - allow community spend proposals
-// - allow committee change proposals

@@ -33,21 +33,9 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 	if err != nil {
 		panic(err)
 	}
-	committees := []types.Committee{}
-	keeper.IterateCommittees(ctx, func(com types.Committee) bool {
-		committees = append(committees, com)
-		return false
-	})
-	proposals := []types.Proposal{}
-	votes := []types.Vote{}
-	keeper.IterateProposals(ctx, func(p types.Proposal) bool {
-		proposals = append(proposals, p)
-		keeper.IterateVotes(ctx, p.ID, func(v types.Vote) bool {
-			votes = append(votes, v)
-			return false
-		})
-		return false
-	})
+	committees := keeper.GetCommittees(ctx)
+	proposals := keeper.GetProposals(ctx)
+	votes := keeper.GetVotes(ctx)
 
 	return types.NewGenesisState(
 		nextID,

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -47,7 +48,7 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 		suite.NoError(err)
 		c := sdk.NewCoins(sdk.NewCoin("usdx", ri))
 		coins = append(coins, c)
-		total = total.Add(cs(sdk.NewCoin("usdx", ri)))
+		total = total.Add(sdk.NewCoin("usdx", ri))
 	}
 
 	numBlocks := []int{100, 1000, 10000, 100000}
@@ -56,38 +57,76 @@ func (suite *FeeTestSuite) TestCalculateFeesPrecisionLoss() {
 		bulkFees := sdk.NewCoins()
 		individualFees := sdk.NewCoins()
 		for x := 0; x < nb; x++ {
-			fee := suite.keeper.CalculateFees(suite.ctx, total.Add(bulkFees), i(7), "xrp")
-			bulkFees = bulkFees.Add(fee)
+			fee := suite.keeper.CalculateFees(suite.ctx, total.Add(bulkFees...), i(7), "xrp")
+			bulkFees = bulkFees.Add(fee...)
 		}
 
 		for _, cns := range coins {
 			fee := suite.keeper.CalculateFees(suite.ctx, cns, i(int64(nb*7)), "xrp")
-			individualFees = individualFees.Add(fee)
+			individualFees = individualFees.Add(fee...)
 		}
 
 		absError := (sdk.OneDec().Sub(sdk.NewDecFromInt(bulkFees[0].Amount).Quo(sdk.NewDecFromInt(individualFees[0].Amount)))).Abs()
-
-		suite.T().Log(bulkFees)
-		suite.T().Log(individualFees)
-		suite.T().Log(absError)
 
 		suite.True(d("0.00001").GTE(absError))
 	}
 
 }
 
-func (suite *FeeTestSuite) TestGetSetPreviousBlockTime() {
-	now := tmtime.Now()
+// createCdps is a helper function to create two CDPs each with zero fees
+func (suite *FeeTestSuite) createCdps() {
+	// create 2 accounts in the state and give them some coins
+	// create two private key pair addresses
+	_, addrs := app.GeneratePrivKeyAddressPairs(2)
+	ak := suite.app.GetAccountKeeper()
+	// setup the first account
+	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
+	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
 
-	_, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.False(f)
+	ak.SetAccount(suite.ctx, acc)
+	// now setup the second account
+	acc2 := ak.NewAccountWithAddress(suite.ctx, addrs[1])
+	acc2.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
+	ak.SetAccount(suite.ctx, acc2)
 
-	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, now) })
+	// now create two cdps with the addresses we just created
+	// use the created account to create a cdp that SHOULD have fees updated
+	err := suite.keeper.AddCdp(suite.ctx, addrs[0], cs(c("xrp", 200000000)), cs(c("usdx", 24000000)))
+	suite.NoError(err) // check that no error was thrown
 
-	bpt, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.True(f)
-	suite.Equal(now, bpt)
+	// use the other account to create a cdp that SHOULD NOT have fees updated
+	err = suite.keeper.AddCdp(suite.ctx, addrs[1], cs(c("xrp", 200000000)), cs(c("usdx", 10000000)))
+	suite.NoError(err) // check that no error was thrown
 
+}
+
+// TestUpdateFees tests the functionality for updating the fees for CDPs
+func (suite *FeeTestSuite) TestUpdateFees() {
+	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
+	suite.createCdps()
+
+	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
+	// note - time must be moved forward by a sufficient amount in order for additional
+	// fees to accumulate, in this example 600 seconds
+	oldtime := suite.ctx.BlockTime()
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 600))
+	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp")
+	suite.NoError(err) // check that we don't have any error
+
+	// cdp we expect fees to accumulate for
+	cdp1, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	// check fees are not zero
+	// check that the fees have been updated
+	suite.False(cdp1.AccumulatedFees.Empty())
+	// now check that we have the correct amount of fees overall (22 USDX for this scenario)
+	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.AmountOf("usdx"))
+	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
+	// cdp we expect fees to not accumulate for because of rounding to zero
+	cdp2, _ := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
+
+	// check fees are zero
+	suite.True(cdp2.AccumulatedFees.Empty())
+	suite.Equal(oldtime, cdp2.FeesUpdated)
 }
 
 func TestFeeTestSuite(t *testing.T) {

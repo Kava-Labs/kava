@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -25,24 +25,24 @@ func TestGenesisState_Validate(t *testing.T) {
 		NextProposalID: 2,
 		Committees: []Committee{
 			{
-				ID:                  1,
-				Description:         "This committee is for testing.",
-				Members:             addresses[:3],
-				Permissions:         []Permission{GodPermission{}},
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               1,
+				Description:      "This committee is for testing.",
+				Members:          addresses[:3],
+				Permissions:      []Permission{GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 			{
-				ID:                  2,
-				Description:         "This committee is also for testing.",
-				Members:             addresses[2:],
-				Permissions:         nil,
-				VoteThreshold:       d("0.8"),
-				MaxProposalDuration: time.Hour * 24 * 21,
+				ID:               2,
+				Description:      "This committee is also for testing.",
+				Members:          addresses[2:],
+				Permissions:      nil,
+				VoteThreshold:    d("0.8"),
+				ProposalDuration: time.Hour * 24 * 21,
 			},
 		},
 		Proposals: []Proposal{
-			{ID: 1, CommitteeID: 1, PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
+			{ID: 1, CommitteeID: 1, PubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."), Deadline: testTime.Add(7 * 24 * time.Hour)},
 		},
 		Votes: []Vote{
 			{ProposalID: 1, Voter: addresses[0]},
@@ -114,7 +114,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					testGenesis.Proposals,
 					Proposal{
 						ID:          testGenesis.NextProposalID,
-						PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+						PubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."),
 						CommitteeID: 247, // doesn't exist
 					}),
 				Votes: testGenesis.Votes,

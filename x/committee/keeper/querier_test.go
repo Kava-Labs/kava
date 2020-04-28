@@ -13,7 +13,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -23,10 +22,6 @@ const (
 )
 
 var testTime time.Time = time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
-
-func NewCommitteeGenesisState(cdc *codec.Codec, gs committee.GenesisState) app.GenesisState {
-	return app.GenesisState{committee.ModuleName: cdc.MustMarshalJSON(gs)}
-}
 
 type QuerierTestSuite struct {
 	suite.Suite
@@ -55,19 +50,19 @@ func (suite *QuerierTestSuite) SetupTest() {
 		3,
 		[]types.Committee{
 			{
-				ID:                  1,
-				Description:         "This committee is for testing.",
-				Members:             suite.addresses[:3],
-				Permissions:         []types.Permission{types.GodPermission{}},
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               1,
+				Description:      "This committee is for testing.",
+				Members:          suite.addresses[:3],
+				Permissions:      []types.Permission{types.GodPermission{}},
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 			{
-				ID:                  2,
-				Members:             suite.addresses[2:],
-				Permissions:         nil,
-				VoteThreshold:       d("0.667"),
-				MaxProposalDuration: time.Hour * 24 * 7,
+				ID:               2,
+				Members:          suite.addresses[2:],
+				Permissions:      nil,
+				VoteThreshold:    d("0.667"),
+				ProposalDuration: time.Hour * 24 * 7,
 			},
 		},
 		[]types.Proposal{
@@ -84,15 +79,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 		NewCommitteeGenesisState(suite.cdc, suite.testGenesis),
 	)
 
-	// Collect up votes into a map indexed by proposalID for convenience
-	suite.votes = map[uint64]([]types.Vote){}
-	suite.keeper.IterateProposals(suite.ctx, func(p types.Proposal) bool {
-		suite.keeper.IterateVotes(suite.ctx, p.ID, func(v types.Vote) bool {
-			suite.votes[p.ID] = append(suite.votes[p.ID], v)
-			return false
-		})
-		return false
-	})
+	suite.votes = getProposalVoteMap(suite.keeper, suite.ctx)
 }
 
 func (suite *QuerierTestSuite) TestQueryCommittees() {

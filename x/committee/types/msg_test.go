@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
@@ -18,17 +18,17 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:       "normal",
-			msg:        MsgSubmitProposal{gov.NewTextProposal("A Title", "A proposal description."), addr, 3},
+			msg:        MsgSubmitProposal{govtypes.NewTextProposal("A Title", "A proposal description."), addr, 3},
 			expectPass: true,
 		},
 		{
 			name:       "empty address",
-			msg:        MsgSubmitProposal{gov.NewTextProposal("A Title", "A proposal description."), nil, 3},
+			msg:        MsgSubmitProposal{govtypes.NewTextProposal("A Title", "A proposal description."), nil, 3},
 			expectPass: false,
 		},
 		{
 			name:       "invalid proposal",
-			msg:        MsgSubmitProposal{gov.TextProposal{}, addr, 3},
+			msg:        MsgSubmitProposal{govtypes.TextProposal{}, addr, 3},
 			expectPass: false,
 		},
 	}
