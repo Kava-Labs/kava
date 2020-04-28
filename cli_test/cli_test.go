@@ -14,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -24,20 +23,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
-
-	"github.com/kava-labs/kava/app"
 )
 
-func TestKavaCLIKeysAddMultisig(t *testing.T) {
+func TestKvCLIKeysAddMultisig(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
 	// key names order does not matter
 	f.KeysAdd("msig1", "--multisig-threshold=2",
 		fmt.Sprintf("--multisig=%s,%s", keyBar, keyBaz))
+	ke1Address1 := f.KeysShow("msig1").Address
+	f.KeysDelete("msig1")
+
 	f.KeysAdd("msig2", "--multisig-threshold=2",
 		fmt.Sprintf("--multisig=%s,%s", keyBaz, keyBar))
-	require.Equal(t, f.KeysShow("msig1").Address, f.KeysShow("msig2").Address)
+	require.Equal(t, ke1Address1, f.KeysShow("msig2").Address)
+	f.KeysDelete("msig2")
 
 	f.KeysAdd("msig3", "--multisig-threshold=2",
 		fmt.Sprintf("--multisig=%s,%s", keyBar, keyBaz),
@@ -51,7 +52,7 @@ func TestKavaCLIKeysAddMultisig(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIKeysAddRecover(t *testing.T) {
+func TestKvCLIKeysAddRecover(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -95,7 +96,7 @@ func TestKavaCLIKeysAddRecoverHDPath(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIMinimumFees(t *testing.T) {
+func TestKvCLIMinimumFees(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -133,7 +134,7 @@ func TestKavaCLIMinimumFees(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIGasPrices(t *testing.T) {
+func TestKvCLIGasPrices(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -167,7 +168,7 @@ func TestKavaCLIGasPrices(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIFeesDeduction(t *testing.T) {
+func TestKvCLIFeesDeduction(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -220,7 +221,7 @@ func TestKavaCLIFeesDeduction(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLISend(t *testing.T) {
+func TestKvCLISend(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -236,8 +237,15 @@ func TestKavaCLISend(t *testing.T) {
 	startTokens := sdk.TokensFromConsensusPower(50)
 	require.Equal(t, startTokens, fooAcc.GetCoins().AmountOf(denom))
 
-	// Send some tokens from one account to the other
 	sendTokens := sdk.TokensFromConsensusPower(10)
+
+	// It does not allow to send in offline mode
+	success, _, stdErr := f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "-y", "--offline")
+	require.Contains(t, stdErr, "no RPC client is defined in offline mode")
+	require.False(f.T, success)
+	tests.WaitForNextNBlocksTM(1, f.Port)
+
+	// Send some tokens from one account to the other
 	f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "-y")
 	tests.WaitForNextNBlocksTM(1, f.Port)
 
@@ -248,7 +256,7 @@ func TestKavaCLISend(t *testing.T) {
 	require.Equal(t, startTokens.Sub(sendTokens), fooAcc.GetCoins().AmountOf(denom))
 
 	// Test --dry-run
-	success, _, _ := f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "--dry-run")
+	success, _, _ = f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "--dry-run")
 	require.True(t, success)
 
 	// Test --generate-only
@@ -289,42 +297,7 @@ func TestKavaCLISend(t *testing.T) {
 	f.Cleanup()
 }
 
-// Note: this was removed from kava due to update in sdk PR#4062 but is now working
-func TestKavaCLIConfirmTx(t *testing.T) {
-	t.Parallel()
-	f := InitFixtures(t)
-
-	// start kvd server
-	proc := f.GDStart()
-	defer proc.Stop(false)
-
-	// Save key addresses for later use
-	fooAddr := f.KeyAddress(keyFoo)
-	barAddr := f.KeyAddress(keyBar)
-
-	fooAcc := f.QueryAccount(fooAddr)
-	startTokens := sdk.TokensFromConsensusPower(50)
-	require.Equal(t, startTokens, fooAcc.GetCoins().AmountOf(denom))
-
-	// send some tokens from one account to the other
-	sendTokens := sdk.TokensFromConsensusPower(10)
-	f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "-y")
-	tests.WaitForNextNBlocksTM(1, f.Port)
-
-	// ensure account balances match expected
-	barAcc := f.QueryAccount(barAddr)
-	require.Equal(t, sendTokens, barAcc.GetCoins().AmountOf(denom))
-
-	// send some tokens from one account to the other (cancelling confirmation)
-	f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "-n")
-	tests.WaitForNextNBlocksTM(1, f.Port)
-
-	// ensure account balances match expected
-	barAcc = f.QueryAccount(barAddr)
-	require.Equal(t, sendTokens, barAcc.GetCoins().AmountOf(denom))
-}
-
-func TestKavaCLIGasAuto(t *testing.T) {
+func TestKvCLIGasAuto(t *testing.T) {
 	// https://github.com/cosmos/cosmos-sdk/pull/5179
 	t.Skip()
 	t.Parallel()
@@ -372,9 +345,8 @@ func TestKavaCLIGasAuto(t *testing.T) {
 	success, stdout, stderr := f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "--gas=auto", "-y")
 	require.NotEmpty(t, stderr)
 	require.True(t, success)
-	cdc := app.MakeCodec()
 	sendResp := sdk.TxResponse{}
-	err := cdc.UnmarshalJSON([]byte(stdout), &sendResp)
+	err := f.cdc.UnmarshalJSON([]byte(stdout), &sendResp)
 	require.Nil(t, err)
 	require.True(t, sendResp.GasWanted >= sendResp.GasUsed)
 	tests.WaitForNextNBlocksTM(1, f.Port)
@@ -386,7 +358,7 @@ func TestKavaCLIGasAuto(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLICreateValidator(t *testing.T) {
+func TestKvCLICreateValidator(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -397,9 +369,7 @@ func TestKavaCLICreateValidator(t *testing.T) {
 	barAddr := f.KeyAddress(keyBar)
 	barVal := sdk.ValAddress(barAddr)
 
-	consPubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeValPub, ed25519.GenPrivKey().PubKey())
-	require.NoError(t, err)
-	require.NotEmpty(t, consPubKey)
+	consPubKey := sdk.MustBech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, ed25519.GenPrivKey().PubKey())
 
 	sendTokens := sdk.TokensFromConsensusPower(10)
 	f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "-y")
@@ -410,9 +380,9 @@ func TestKavaCLICreateValidator(t *testing.T) {
 
 	// Generate a create validator transaction and ensure correctness
 	success, stdout, stderr := f.TxStakingCreateValidator(barAddr.String(), consPubKey, sdk.NewInt64Coin(denom, 2), "--generate-only")
-
 	require.True(f.T, success)
 	require.Empty(f.T, stderr)
+
 	msg := f.unmarshalStdTx(f.T, stdout)
 	require.NotZero(t, msg.Fee.Gas)
 	require.Equal(t, len(msg.Msgs), 1)
@@ -420,7 +390,7 @@ func TestKavaCLICreateValidator(t *testing.T) {
 
 	// Test --dry-run
 	newValTokens := sdk.TokensFromConsensusPower(2)
-	success, _, _ = f.TxStakingCreateValidator(keyBar, consPubKey, sdk.NewCoin(denom, newValTokens), "--dry-run")
+	success, _, _ = f.TxStakingCreateValidator(barAddr.String(), consPubKey, sdk.NewCoin(denom, newValTokens), "--dry-run")
 	require.True(t, success)
 
 	// Create the validator
@@ -461,26 +431,25 @@ func TestKavaCLICreateValidator(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIQueryRewards(t *testing.T) {
+func TestKvCLIQueryRewards(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
-	cdc := app.MakeCodec()
 
 	genesisState := f.GenesisState()
-	inflationMin := sdk.MustNewDecFromStr("10000.0")
+	inflationMin := sdk.MustNewDecFromStr("1.0")
 	var mintData mint.GenesisState
-	cdc.UnmarshalJSON(genesisState[mint.ModuleName], &mintData)
+	f.cdc.UnmarshalJSON(genesisState[mint.ModuleName], &mintData)
 	mintData.Minter.Inflation = inflationMin
 	mintData.Params.InflationMin = inflationMin
-	mintData.Params.InflationMax = sdk.MustNewDecFromStr("15000.0")
-	mintDataBz, err := cdc.MarshalJSON(mintData)
+	mintData.Params.InflationMax = sdk.MustNewDecFromStr("1.0")
+	mintDataBz, err := f.cdc.MarshalJSON(mintData)
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
 
 	genFile := filepath.Join(f.KvdHome, "config", "genesis.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(genFile)
 	require.NoError(t, err)
-	genDoc.AppState, err = cdc.MarshalJSON(genesisState)
+	genDoc.AppState, err = f.cdc.MarshalJSON(genesisState)
 	require.NoError(t, genDoc.SaveAs(genFile))
 
 	// start kvd server
@@ -494,7 +463,7 @@ func TestKavaCLIQueryRewards(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIQuerySupply(t *testing.T) {
+func TestKvCLIQuerySupply(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -511,7 +480,7 @@ func TestKavaCLIQuerySupply(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLISubmitProposal(t *testing.T) {
+func TestKvCLISubmitProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -551,8 +520,8 @@ func TestKavaCLISubmitProposal(t *testing.T) {
 	f.TxGovSubmitProposal(keyFoo, "Text", "Test", "test", sdk.NewCoin(denom, proposalTokens), "-y")
 	tests.WaitForNextNBlocksTM(1, f.Port)
 
-	// Ensure transaction tags can be queried
-	searchResult := f.QueryTxs(1, 50, "message.action:submit_proposal", fmt.Sprintf("message.sender:%s", fooAddr))
+	// Ensure transaction events can be queried
+	searchResult := f.QueryTxs(1, 50, "message.action=submit_proposal", fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, searchResult.Txs, 1)
 
 	// Ensure deposit was deducted
@@ -595,8 +564,8 @@ func TestKavaCLISubmitProposal(t *testing.T) {
 	deposit = f.QueryGovDeposit(1, fooAddr)
 	require.Equal(t, proposalTokens.Add(depositTokens), deposit.Amount.AmountOf(denom))
 
-	// Ensure tags are set on the transaction
-	searchResult = f.QueryTxs(1, 50, "message.action:deposit", fmt.Sprintf("message.sender:%s", fooAddr))
+	// Ensure events are set on the transaction
+	searchResult = f.QueryTxs(1, 50, "message.action=deposit", fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, searchResult.Txs, 1)
 
 	// Ensure account has expected amount of funds
@@ -632,8 +601,8 @@ func TestKavaCLISubmitProposal(t *testing.T) {
 	require.Equal(t, uint64(1), votes[0].ProposalID)
 	require.Equal(t, gov.OptionYes, votes[0].Option)
 
-	// Ensure tags are applied to voting transaction properly
-	searchResult = f.QueryTxs(1, 50, "message.action:vote", fmt.Sprintf("message.sender:%s", fooAddr))
+	// Ensure events are applied to voting transaction properly
+	searchResult = f.QueryTxs(1, 50, "message.action=vote", fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, searchResult.Txs, 1)
 
 	// Ensure no proposals in deposit period
@@ -649,13 +618,14 @@ func TestKavaCLISubmitProposal(t *testing.T) {
 	tests.WaitForNextNBlocksTM(1, f.Port)
 
 	// Test limit on proposals query
-	proposalsQuery = f.QueryGovProposals("--limit=1")
-	require.Equal(t, uint64(2), proposalsQuery[0].ProposalID)
+	proposalsQuery = f.QueryGovProposals("--limit=2")
+	require.Len(t, proposalsQuery, 2)
+	require.Equal(t, uint64(1), proposalsQuery[0].ProposalID)
 
 	f.Cleanup()
 }
 
-func TestKavaCLISubmitParamChangeProposal(t *testing.T) {
+func TestKvCLISubmitParamChangeProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -679,12 +649,7 @@ func TestKavaCLISubmitParamChangeProposal(t *testing.T) {
       "value": 105
     }
   ],
-  "deposit": [
-    {
-      "denom": "stake",
-      "amount": "%s"
-    }
-  ]
+  "deposit": "%sstake"
 }
 `, proposalTokens.String())
 
@@ -694,8 +659,8 @@ func TestKavaCLISubmitParamChangeProposal(t *testing.T) {
 	f.TxGovSubmitParamChangeProposal(keyFoo, proposalFile.Name(), sdk.NewCoin(denom, proposalTokens), "-y")
 	tests.WaitForNextNBlocksTM(1, f.Port)
 
-	// ensure transaction tags can be queried
-	txsPage := f.QueryTxs(1, 50, "message.action:submit_proposal", fmt.Sprintf("message.sender:%s", fooAddr))
+	// ensure transaction events can be queried
+	txsPage := f.QueryTxs(1, 50, "message.action=submit_proposal", fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPage.Txs, 1)
 
 	// ensure deposit was deducted
@@ -719,27 +684,26 @@ func TestKavaCLISubmitParamChangeProposal(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
+func TestKvCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
 	// create some inflation
-	cdc := app.MakeCodec()
 	genesisState := f.GenesisState()
-	inflationMin := sdk.MustNewDecFromStr("10000.0")
+	inflationMin := sdk.MustNewDecFromStr("1.0")
 	var mintData mint.GenesisState
-	cdc.UnmarshalJSON(genesisState[mint.ModuleName], &mintData)
+	f.cdc.UnmarshalJSON(genesisState[mint.ModuleName], &mintData)
 	mintData.Minter.Inflation = inflationMin
 	mintData.Params.InflationMin = inflationMin
-	mintData.Params.InflationMax = sdk.MustNewDecFromStr("15000.0")
-	mintDataBz, err := cdc.MarshalJSON(mintData)
+	mintData.Params.InflationMax = sdk.MustNewDecFromStr("1.0")
+	mintDataBz, err := f.cdc.MarshalJSON(mintData)
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
 
 	genFile := filepath.Join(f.KvdHome, "config", "genesis.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(genFile)
 	require.NoError(t, err)
-	genDoc.AppState, err = cdc.MarshalJSON(genesisState)
+	genDoc.AppState, err = f.cdc.MarshalJSON(genesisState)
 	require.NoError(t, genDoc.SaveAs(genFile))
 
 	proc := f.GDStart()
@@ -758,28 +722,18 @@ func TestKavaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
   "title": "Community Pool Spend",
   "description": "Spend from community pool",
   "recipient": "%s",
-  "amount": [
-    {
-      "denom": "%s",
-      "amount": "1"
-    }
-  ],
-  "deposit": [
-    {
-      "denom": "%s",
-      "amount": "%s"
-    }
-  ]
+  "amount": "1%s",
+  "deposit": "%s%s"
 }
-`, fooAddr, sdk.DefaultBondDenom, sdk.DefaultBondDenom, proposalTokens.String())
+`, fooAddr, sdk.DefaultBondDenom, proposalTokens.String(), sdk.DefaultBondDenom)
 	proposalFile := WriteToNewTempFile(t, proposal)
 
 	// create the param change proposal
 	f.TxGovSubmitCommunityPoolSpendProposal(keyFoo, proposalFile.Name(), sdk.NewCoin(denom, proposalTokens), "-y")
 	tests.WaitForNextNBlocksTM(1, f.Port)
 
-	// ensure transaction tags can be queried
-	txsPage := f.QueryTxs(1, 50, "message.action:submit_proposal", fmt.Sprintf("message.sender:%s", fooAddr))
+	// ensure transaction events can be queried
+	txsPage := f.QueryTxs(1, 50, "message.action=submit_proposal", fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPage.Txs, 1)
 
 	// ensure deposit was deducted
@@ -803,7 +757,11 @@ func TestKavaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIQueryTxPagination(t *testing.T) {
+func TestKvCLIQueryTxPagination(t *testing.T) {
+	// Skip until https://github.com/tendermint/tendermint/issues/4432 has been
+	// resolved and included in a release.
+	t.SkipNow()
+
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -824,36 +782,40 @@ func TestKavaCLIQueryTxPagination(t *testing.T) {
 	}
 
 	// perPage = 15, 2 pages
-	txsPage1 := f.QueryTxs(1, 15, fmt.Sprintf("message.sender:%s", fooAddr))
+	txsPage1 := f.QueryTxs(1, 15, fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPage1.Txs, 15)
 	require.Equal(t, txsPage1.Count, 15)
-	txsPage2 := f.QueryTxs(2, 15, fmt.Sprintf("message.sender:%s", fooAddr))
+	txsPage2 := f.QueryTxs(2, 15, fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPage2.Txs, 15)
 	require.NotEqual(t, txsPage1.Txs, txsPage2.Txs)
 
 	// perPage = 16, 2 pages
-	txsPage1 = f.QueryTxs(1, 16, fmt.Sprintf("message.sender:%s", fooAddr))
+	txsPage1 = f.QueryTxs(1, 16, fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPage1.Txs, 16)
-	txsPage2 = f.QueryTxs(2, 16, fmt.Sprintf("message.sender:%s", fooAddr))
+	txsPage2 = f.QueryTxs(2, 16, fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPage2.Txs, 14)
 	require.NotEqual(t, txsPage1.Txs, txsPage2.Txs)
 
 	// perPage = 50
-	txsPageFull := f.QueryTxs(1, 50, fmt.Sprintf("message.sender:%s", fooAddr))
+	txsPageFull := f.QueryTxs(1, 50, fmt.Sprintf("message.sender=%s", fooAddr))
 	require.Len(t, txsPageFull.Txs, 30)
-	require.Equal(t, txsPageFull.Txs, append(txsPage1.Txs, txsPage2.Txs...))
+
+	expected := txsPageFull.Txs
+	got := append(txsPage1.Txs, txsPage2.Txs...)
+
+	require.Equal(t, expected, got)
 
 	// perPage = 0
-	f.QueryTxsInvalid(errors.New("ERROR: page must greater than 0"), 0, 50, fmt.Sprintf("message.sender:%s", fooAddr))
+	f.QueryTxsInvalid(errors.New("ERROR: page must greater than 0"), 0, 50, fmt.Sprintf("message.sender=%s", fooAddr))
 
 	// limit = 0
-	f.QueryTxsInvalid(errors.New("ERROR: limit must greater than 0"), 1, 0, fmt.Sprintf("message.sender:%s", fooAddr))
+	f.QueryTxsInvalid(errors.New("ERROR: limit must greater than 0"), 1, 0, fmt.Sprintf("message.sender=%s", fooAddr))
 
 	// Cleanup testing directories
 	f.Cleanup()
 }
 
-func TestKavaCLIValidateSignatures(t *testing.T) {
+func TestKvCLIValidateSignatures(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -874,9 +836,8 @@ func TestKavaCLIValidateSignatures(t *testing.T) {
 	defer os.Remove(unsignedTxFile.Name())
 
 	// validate we can successfully sign
-	success, stdout, stderr = f.TxSign(keyFoo, unsignedTxFile.Name())
+	success, stdout, _ = f.TxSign(keyFoo, unsignedTxFile.Name())
 	require.True(t, success)
-	require.Empty(t, stderr)
 	stdTx := f.unmarshalStdTx(t, stdout)
 	require.Equal(t, len(stdTx.Msgs), 1)
 	require.Equal(t, 1, len(stdTx.GetSignatures()))
@@ -903,7 +864,7 @@ func TestKavaCLIValidateSignatures(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLISendGenerateSignAndBroadcast(t *testing.T) {
+func TestKvCLISendGenerateSignAndBroadcast(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -951,6 +912,17 @@ func TestKavaCLISendGenerateSignAndBroadcast(t *testing.T) {
 	require.Equal(t, fmt.Sprintf("Signers:\n  0: %v\n\nSignatures:\n\n", fooAddr.String()), stdout)
 
 	// Test sign
+
+	// Does not work in offline mode
+	success, stdout, stderr = f.TxSign(keyFoo, unsignedTxFile.Name(), "--offline")
+	require.Contains(t, stderr, "required flag(s) \"account-number\", \"sequence\" not set")
+	require.False(t, success)
+
+	// But works offline if we set account number and sequence
+	success, _, _ = f.TxSign(keyFoo, unsignedTxFile.Name(), "--offline", "--account-number", "1", "--sequence", "1")
+	require.True(t, success)
+
+	// Sign transaction
 	success, stdout, _ = f.TxSign(keyFoo, unsignedTxFile.Name())
 	require.True(t, success)
 	msg = f.unmarshalStdTx(t, stdout)
@@ -974,6 +946,13 @@ func TestKavaCLISendGenerateSignAndBroadcast(t *testing.T) {
 	require.Equal(t, startTokens, fooAcc.GetCoins().AmountOf(denom))
 
 	// Test broadcast
+
+	// Does not work in offline mode
+	success, _, stderr = f.TxBroadcast(signedTxFile.Name(), "--offline")
+	require.Contains(t, stderr, "cannot broadcast tx during offline mode")
+	require.False(t, success)
+	tests.WaitForNextNBlocksTM(1, f.Port)
+
 	success, stdout, _ = f.TxBroadcast(signedTxFile.Name())
 	require.True(t, success)
 	tests.WaitForNextNBlocksTM(1, f.Port)
@@ -987,7 +966,7 @@ func TestKavaCLISendGenerateSignAndBroadcast(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIMultisignInsufficientCosigners(t *testing.T) {
+func TestKvCLIMultisignInsufficientCosigners(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -1040,15 +1019,13 @@ func TestKavaCLIMultisignInsufficientCosigners(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIEncode(t *testing.T) {
+func TestKvCLIEncode(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
 	// start kvd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
-
-	cdc := app.MakeCodec()
 
 	// Build a testing transaction and write it to disk
 	barAddr := f.KeyAddress(keyBar)
@@ -1074,11 +1051,11 @@ func TestKavaCLIEncode(t *testing.T) {
 
 	// Check that the transaction decodes as epxceted
 	var decodedTx auth.StdTx
-	require.Nil(t, cdc.UnmarshalBinaryLengthPrefixed(decodedBytes, &decodedTx))
+	require.Nil(t, f.cdc.UnmarshalBinaryBare(decodedBytes, &decodedTx))
 	require.Equal(t, "deadbeef", decodedTx.Memo)
 }
 
-func TestKavaCLIMultisignSortSignatures(t *testing.T) {
+func TestKvCLIMultisignSortSignatures(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -1143,7 +1120,7 @@ func TestKavaCLIMultisignSortSignatures(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIMultisign(t *testing.T) {
+func TestKvCLIMultisign(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -1189,6 +1166,14 @@ func TestKavaCLIMultisign(t *testing.T) {
 	defer os.Remove(barSignatureFile.Name())
 
 	// Multisign
+
+	// Does not work in offline mode
+	success, stdout, _ = f.TxMultisign(unsignedTxFile.Name(), keyFooBarBaz, []string{
+		fooSignatureFile.Name(), barSignatureFile.Name()}, "--offline")
+	require.Contains(t, "couldn't verify signature", stdout)
+	require.False(t, success)
+
+	// Success multisign
 	success, stdout, _ = f.TxMultisign(unsignedTxFile.Name(), keyFooBarBaz, []string{
 		fooSignatureFile.Name(), barSignatureFile.Name()})
 	require.True(t, success)
@@ -1209,7 +1194,7 @@ func TestKavaCLIMultisign(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestKavaCLIConfig(t *testing.T) {
+func TestKvCLIConfig(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 	node := fmt.Sprintf("%s:%s", f.RPCAddr, f.Port)
@@ -1222,12 +1207,14 @@ func TestKavaCLIConfig(t *testing.T) {
 	f.CLIConfig("chain-id", f.ChainID)
 	f.CLIConfig("trace", "false")
 	f.CLIConfig("indent", "true")
+	f.CLIConfig("keyring-backend", "test")
 
 	config, err := ioutil.ReadFile(path.Join(f.KvcliHome, "config", "config.toml"))
 	require.NoError(t, err)
 	expectedConfig := fmt.Sprintf(`broadcast-mode = "block"
 chain-id = "%s"
 indent = true
+keyring-backend = "test"
 node = "%s"
 output = "text"
 trace = false
@@ -1238,7 +1225,7 @@ trust-node = true
 	f.Cleanup()
 }
 
-func TestKavadCollectGentxs(t *testing.T) {
+func TestKvdCollectGentxs(t *testing.T) {
 	t.Parallel()
 	var customMaxBytes, customMaxGas int64 = 99999999, 1234567
 	f := NewFixtures(t)
@@ -1258,7 +1245,7 @@ func TestKavadCollectGentxs(t *testing.T) {
 	f.CLIConfig("output", "json")
 
 	// Run init
-	f.GDInit(keyFoo)
+	f.KvInit(keyFoo)
 
 	// Customise genesis.json
 
@@ -1286,7 +1273,7 @@ func TestKavadCollectGentxs(t *testing.T) {
 	f.Cleanup(gentxDir)
 }
 
-func TestKavadAddGenesisAccount(t *testing.T) {
+func TestKvdAddGenesisAccount(t *testing.T) {
 	t.Parallel()
 	f := NewFixtures(t)
 
@@ -1305,7 +1292,7 @@ func TestKavadAddGenesisAccount(t *testing.T) {
 	f.CLIConfig("output", "json")
 
 	// Run init
-	f.GDInit(keyFoo)
+	f.KvInit(keyFoo)
 
 	// Add account to genesis.json
 	bazCoins := sdk.Coins{
@@ -1317,9 +1304,7 @@ func TestKavadAddGenesisAccount(t *testing.T) {
 	f.AddGenesisAccount(f.KeyAddress(keyBar), bazCoins)
 	genesisState := f.GenesisState()
 
-	cdc := app.MakeCodec()
-
-	authGenState := auth.GetGenesisStateFromAppState(cdc, genesisState)
+	authGenState := auth.GetGenesisStateFromAppState(f.cdc, genesisState)
 	accounts := authGenState.Accounts
 
 	require.Equal(t, accounts[0].GetAddress(), f.KeyAddress(keyFoo))

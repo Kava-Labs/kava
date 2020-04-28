@@ -162,8 +162,8 @@ func InitFixtures(t *testing.T) (f *Fixtures) {
 	// ensure that CLI output is in JSON format
 	f.CLIConfig("output", "json")
 
-	// NOTE: GDInit sets the ChainID
-	f.GDInit(keyFoo)
+	// NOTE: KvInit sets the ChainID
+	f.KvInit(keyFoo)
 
 	f.CLIConfig("chain-id", f.ChainID)
 	f.CLIConfig("broadcast-mode", "block")
@@ -208,9 +208,9 @@ func (f *Fixtures) UnsafeResetAll(flags ...string) {
 	require.NoError(f.T, err)
 }
 
-// GDInit is kavad init
-// NOTE: GDInit sets the ChainID for the Fixtures instance
-func (f *Fixtures) GDInit(moniker string, flags ...string) {
+// KvInit is kavad init
+// NOTE: KvInit sets the ChainID for the Fixtures instance
+func (f *Fixtures) KvInit(moniker string, flags ...string) {
 	cmd := fmt.Sprintf("%s init -o --home=%s %s", f.KvdBinary, f.KvdHome, moniker)
 	_, stderr := tests.ExecuteT(f.T, addFlags(cmd, flags), clientkeys.DefaultKeyPass)
 
