@@ -78,7 +78,7 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 			}
 
 			if !com.HasPermissionsFor(proposal.PubProposal) {
-				validationErr = fmt.Errorf("proposal not permitted for committee (%+v)", com)
+				validationErr = fmt.Errorf("proposal not permitted for committee %+v", com)
 				return true
 			}
 
