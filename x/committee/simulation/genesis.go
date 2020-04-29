@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -20,32 +19,43 @@ const (
 	maxTimePerBlock time.Duration = 10000 * time.Second
 	// Calculate the average block time
 	AverageBlockTime time.Duration = (maxTimePerBlock - minTimePerBlock) / 2
+
+	FallbackCommitteeID uint64 = 0
 )
 
 // RandomizedGenState generates a random GenesisState for the module
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
-	allowedParams := GetAllowedParamKeys()
 
+	// Create a always present committee with god permissions to ensure any randomly generated proposal can always be submitted.
+	fallbackCommittee := types.NewCommittee(
+		FallbackCommitteeID,
+		"A committee with god permissions that will always be in state and not deleted. It ensures any generated proposal can always be submitted and voted on.",
+		RandomAddresses(r, simState.Accounts),
+		[]types.Permission{types.GodPermission{}},
+		sdk.MustNewDecFromStr("0.5"),
+		AverageBlockTime*10,
+	)
+
+	// Create other committees
 	numCommittees := r.Intn(100)
-	var committees []types.Committee
+	committees := []types.Committee{fallbackCommittee}
 	for i := 0; i < numCommittees; i++ {
-		com, err := RandomCommittee(r, simState.Accounts, allowedParams)
+		com, err := RandomCommittee(r, firstNAccounts(25, simState.Accounts), paramChangeToAllowedParams(simState.ParamChanges))
 		if err != nil {
 			panic(err)
 		}
 		committees = append(committees, com)
 	}
 
-	// TODO Proposals or votes aren't generated. Should these be removed from committee's genesis state?
+	// Add genesis state to simState
 	genesisState := types.NewGenesisState(
 		types.DefaultNextProposalID,
 		committees,
 		[]types.Proposal{},
 		[]types.Vote{},
 	)
-
-	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, genesisState))
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, []byte{})
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
 }
 
@@ -59,18 +69,21 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 		members = RandomAddresses(r, availableAccs)
 	}
 
-	// pick committee duration
+	// pick proposal duration
 	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*100)
 	if err != nil {
 		return types.Committee{}, err
 	}
 
+	// pick committee vote threshold, must be in interval (0,1]
+	threshold := simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1").Sub(sdk.SmallestDec())).Add(sdk.SmallestDec())
+
 	return types.NewCommittee(
-		r.Uint64(),
+		r.Uint64(), // could collide with other committees, but unlikely
 		simulation.RandStringOfLength(r, r.Intn(types.MaxCommitteeDescriptionLength+1)),
 		members,
 		RandomPermissions(r, allowedParams),
-		simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1.00")),
+		threshold,
 		dur,
 	), nil
 }
@@ -103,6 +116,20 @@ func RandomPermissions(r *rand.Rand, allowedParams []types.AllowedParam) []types
 			})
 	}
 	return permissions
+}
+
+func paramChangeToAllowedParams(paramChanges []simulation.ParamChange) []types.AllowedParam {
+	var allowedParams []types.AllowedParam
+	for _, pc := range paramChanges {
+		allowedParams = append(
+			allowedParams,
+			types.AllowedParam{
+				Subspace: pc.Subspace,
+				Key:      pc.Key,
+			},
+		)
+	}
+	return allowedParams
 }
 
 // TODO move to common location

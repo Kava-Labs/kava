@@ -62,31 +62,30 @@ func (c Committee) Validate() error {
 	for _, m := range c.Members {
 		// check there are no duplicate members
 		if _, ok := addressMap[m.String()]; ok {
-			return fmt.Errorf("duplicate member found in committee, %s", m)
+			return fmt.Errorf("committe cannot have duplicate members, %s", m)
 		}
 		// check for valid addresses
 		if m.Empty() {
-			return fmt.Errorf("committee %d invalid: found empty member address", c.ID)
+			return fmt.Errorf("committee cannot have empty member address")
 		}
 		addressMap[m.String()] = true
-
 	}
 
 	if len(c.Members) == 0 {
-		return fmt.Errorf("committee %d invalid: cannot have zero members", c.ID)
+		return fmt.Errorf("committee cannot have zero members")
 	}
 
 	if len(c.Description) > MaxCommitteeDescriptionLength {
-		return fmt.Errorf("invalid description")
+		return fmt.Errorf("description length %d longer than max allowed %d", len(c.Description), MaxCommitteeDescriptionLength)
 	}
 
 	// threshold must be in the range (0,1]
 	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
-		return fmt.Errorf("invalid threshold")
+		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
 	}
 
 	if c.ProposalDuration < 0 {
-		return fmt.Errorf("invalid proposal duration")
+		return fmt.Errorf("invalid proposal duration: %s", c.ProposalDuration)
 	}
 
 	return nil

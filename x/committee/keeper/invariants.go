@@ -102,29 +102,26 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 func ValidVotesInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 
-		voteIterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
-		defer voteIterator.Close()
-
 		var validationErr error
 		var invalidVote types.Vote
-		for ; voteIterator.Valid(); voteIterator.Next() {
-			var vote types.Vote
-			k.cdc.MustUnmarshalBinaryLengthPrefixed(voteIterator.Value(), &vote)
+		k.IterateVotes(ctx, func(vote types.Vote) bool {
 
 			if _, found := k.GetProposal(ctx, vote.ProposalID); !found {
 				validationErr = fmt.Errorf("vote refers to non existant proposal ID '%d'", vote.ProposalID)
 				invalidVote = vote
-				break
+				return true
 			}
 
 			if vote.Voter.Empty() {
 				validationErr = fmt.Errorf("empty voter address")
 				invalidVote = vote
-				break
+				return true
 			}
 
 			// TODO check voter is a committee member?
-		}
+
+			return false
+		})
 
 		broken := validationErr != nil
 		invariantMessage := sdk.FormatInvariant(

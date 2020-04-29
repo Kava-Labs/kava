@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -18,8 +18,8 @@ import (
 func makeTestCodec() (cdc *codec.Codec) {
 	cdc = codec.New()
 	sdk.RegisterCodec(cdc)
-	gov.RegisterCodec(cdc)
-	types.RegisterAppCodec(cdc)
+	govtypes.RegisterCodec(cdc)
+	types.RegisterCodec(cdc)
 	return cdc
 }
 
@@ -30,7 +30,7 @@ func TestDecodeStore(t *testing.T) {
 		12,
 		"This committee is for testing.",
 		nil,
-		[]types.Permission{types.GodPermission{}},
+		[]types.Permission{types.TextPermission{}},
 		sdk.MustNewDecFromStr("0.667"),
 		time.Hour*24*7,
 	)
@@ -38,19 +38,19 @@ func TestDecodeStore(t *testing.T) {
 		ID:          34,
 		CommitteeID: 12,
 		Deadline:    time.Date(1998, time.January, 1, 1, 0, 0, 0, time.UTC),
-		PubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+		PubProposal: govtypes.NewTextProposal("A Title", "A description of this proposal."),
 	}
 	vote := types.Vote{
 		ProposalID: 9,
 		Voter:      nil,
 	}
 
-	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: types.CommitteeKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&committee)},
-		cmn.KVPair{Key: types.ProposalKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&proposal)},
-		cmn.KVPair{Key: types.VoteKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&vote)},
-		cmn.KVPair{Key: types.NextProposalIDKey, Value: sdk.Uint64ToBigEndian(10)},
-		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
+	kvPairs := kv.Pairs{
+		kv.Pair{Key: types.CommitteeKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&committee)},
+		kv.Pair{Key: types.ProposalKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&proposal)},
+		kv.Pair{Key: types.VoteKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&vote)},
+		kv.Pair{Key: types.NextProposalIDKey, Value: sdk.Uint64ToBigEndian(10)},
+		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
 	tests := []struct {
