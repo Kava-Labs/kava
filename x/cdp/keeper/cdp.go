@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -271,6 +272,7 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 		return
 	}
 	cdpIDs = append(cdpIDs, cdp.ID)
+	sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
 	store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(cdpIDs))
 }
 
