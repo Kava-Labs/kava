@@ -9,7 +9,7 @@ import (
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-// SupplyKeeper defines the expected supply keeper for module accounts
+// SupplyKeeper defines the expected supply keeper for module accounts  (noalias)
 type SupplyKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
@@ -25,7 +25,7 @@ type SupplyKeeper interface {
 	GetSupply(ctx sdk.Context) (supply supplyexported.SupplyI)
 }
 
-// PricefeedKeeper defines the expected interface for the pricefeed
+// PricefeedKeeper defines the expected interface for the pricefeed  (noalias)
 type PricefeedKeeper interface {
 	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, error)
 	GetParams(sdk.Context) pftypes.Params
@@ -45,4 +45,5 @@ type AuctionKeeper interface {
 // AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
 	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 }
