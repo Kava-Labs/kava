@@ -24,9 +24,9 @@ rm -rf $kvcliHome
 mkdir /tmp/kvdHome
 mkdir /tmp/kvcliHome
 # create validator key
-printf "y\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home $kvcliHome
+printf "$validatorMnemonic\n" | kvcli keys add vlad --recover --home $kvcliHome --keyring-backend test
 # create faucet key
-printf "y\n$faucet\n" | kvcli --home $kvcliHome keys add faucet --recover --home $kvcliHome
+printf "$faucet\n" | kvcli --home $kvcliHome keys add faucet --recover --home $kvcliHome --keyring-backend test
 
 kvcli keys migrate --home "/tmp/kvcliHome"
 

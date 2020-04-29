@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkrest "github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -28,23 +28,19 @@ import (
 )
 
 func init() {
+	version.Name = "kava"
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	app.SetBip44CoinType(config)
 	config.Seal()
+	keybase = getKeybase()
 }
 
 var (
-	myKeybase crkeys.Keybase
+	keybase crkeys.Keybase
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Printf("Please include the kvcli home directory as a command line argument\n")
-		fmt.Printf("For example: ./setuptest /tmp/kvcliHome\n")
-		fmt.Printf("Exiting...goodbye!\n")
-		return
-	}
 
 	// setup messages send to blockchain so it is in the correct state for testing
 	sendProposal()
@@ -387,8 +383,8 @@ func sendUndelegation() {
 
 func getKeybase() crkeys.Keybase {
 
-	if myKeybase != nil {
-		return myKeybase
+	if keybase != nil {
+		return keybase
 	}
 
 	// create a keybase
@@ -396,26 +392,13 @@ func getKeybase() crkeys.Keybase {
 	// myKeybase, err := keys.NewKeyBaseFromDir("/tmp/kvcliHome")
 
 	inBuf := strings.NewReader("")
-	myKeybase, err := crkeys.NewKeyring(sdk.KeyringServiceName(),
-		"test", "/tmp/kvcliHome/keys", inBuf)
-
-	fmt.Println("os.Args[1]: ")
-	fmt.Println(os.Args[1])
-	fmt.Println("Keybase: ")
-	fmt.Println(myKeybase)
-
-	// fmt.Println("Keybase: ")
-	// fmt.Println(myKeybase.CreateAccount)
-
-	fmt.Println("Keybase list keys: ")
-	fmt.Println(myKeybase.List())
-	fmt.Println("Keybase vlad: ")
-	fmt.Println(myKeybase.Get("vlad"))
+	keybase, err := crkeys.NewKeyring(sdk.KeyringServiceName(),
+		"test", "/tmp/kvcliHome", inBuf)
 
 	if err != nil {
 		panic(err)
 	}
-	return myKeybase
+	return keybase
 }
 
 // sendMsgToBlockchain sends a message to the blockchain via the rest api
