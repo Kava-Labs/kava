@@ -6,12 +6,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
-	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -81,6 +78,9 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 
 			// update members
 			if r.Intn(100) < 50 {
+				if len(accs) == 0 {
+					panic("must have at least one account availabel to use as committee member")
+				}
 				var members []sdk.AccAddress
 				for len(members) < 1 {
 					members = RandomAddresses(r, firstNAccounts(25, accs)) // limit num members to avoid overflowing hardcoded gov ops gas limit
@@ -125,6 +125,7 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 	}
 }
 
+/*
 // Example custom ParamChangeProposal generator to only generate change to interesting cdp params.
 // This allows more control over what params are changed within a simulation.
 func SimulateCDPParamChangeProposalContent(cdpKeeper cdpkeeper.Keeper, paramChangePool []simulation.ParamChange) simulation.ContentSimulatorFn {
@@ -160,7 +161,7 @@ func SimulateCDPParamChangeProposalContent(cdpKeeper cdpkeeper.Keeper, paramChan
 		)
 	}
 }
-
+*/
 func firstNAccounts(n int, accs []simulation.Account) []simulation.Account {
 	if n < 0 {
 		panic(fmt.Sprintf("n must be ≥ 0"))

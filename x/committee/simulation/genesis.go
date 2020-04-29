@@ -27,10 +27,13 @@ const (
 func RandomizedGenState(simState *module.SimulationState) {
 	r := simState.Rand
 
-	// Create a always present committee with god permissions to ensure any randomly generated proposal can always be submitted.
+	// Create an always present committee with god permissions to ensure any randomly generated proposal can always be submitted.
+	// Without this, proposals can often not be submitted as there aren't any committees with the right set of permissions available.
+	// It provides more control over how often different proposal types happen during simulation.
+	// It also makes the code simpler--proposals can just be randomly generated and submitted without having to comply to permissions that happen to be available at the time.
 	fallbackCommittee := types.NewCommittee(
 		FallbackCommitteeID,
-		"A committee with god permissions that will always be in state and not deleted. It ensures any generated proposal can always be submitted and voted on.",
+		"A committee with god permissions that will always be in state and not deleted. It ensures any generated proposal can always be submitted and passed.",
 		RandomAddresses(r, simState.Accounts),
 		[]types.Permission{types.GodPermission{}},
 		sdk.MustNewDecFromStr("0.5"),
@@ -70,7 +73,7 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 	}
 
 	// pick proposal duration
-	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*100)
+	dur, err := RandomPositiveDuration(r, 0, AverageBlockTime*10)
 	if err != nil {
 		return types.Committee{}, err
 	}

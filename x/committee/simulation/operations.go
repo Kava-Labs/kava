@@ -26,28 +26,10 @@ type AccountKeeper interface {
 	GetAccount(sdk.Context, sdk.AccAddress) authexported.Account
 }
 
-// WeightedOperations returns all the operations from the module with their respective weights
+// WeightedOperations creates an operation (with weight) for each type of proposal generator.
+// Custom proposal generators can be added for more control over types of proposal submitted, eg to increase likelyhood of particular cdp param changes.
 func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak AccountKeeper,
 	k keeper.Keeper, wContents []simulation.WeightedProposalContent) simulation.WeightedOperations {
-	/*
-		create a list of weighted operations
-		- submit proposal
-
-		gov creates a different op for every content simulator
-
-		calling the submitproposal op creates future ops that send votes
-
-		gov: pick weights of proposals, submit according to those weights
-		com: available proposals to submit depends on proposals available and committees' permissions (former static, later not)
-		solution: only export one wop, it tries it's best to pick proposals according to their weights, but accounts for available committes.
-	*/
-	// create the equivalent of ContenSimulatorFns but allow permissions to be passed in
-	// - text content - just convert func call type
-	// - community pool spend -
-	// respect the content weights
-
-	// TODO create wops for each pubproposal simulator (we'll have some custom ones)
-	// for example a paramchange pubproposal generator that only changes interesing cdp params
 
 	var wops simulation.WeightedOperations
 
@@ -58,8 +40,9 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 			continue
 		}
 		var weight int
+		// TODO this doesn't allow weights to be different from what they are in the gov module
 		appParams.GetOrGenerate(cdc, wContent.AppParamsKey, &weight, nil,
-			func(_ *rand.Rand) { weight = wContent.DefaultWeight }) // we might want different weights
+			func(_ *rand.Rand) { weight = wContent.DefaultWeight })
 
 		wops = append(
 			wops,
@@ -72,55 +55,27 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 	return wops
 }
 
-// proposal type -> []permissiontypes
-
-/*
-Original gov sets the propabilities various proposals are run, then picks the type of proposal accordingly, and puts it into a submitProposal msg.
-This model doesn't work in committees as they have permissions - some proposal types will not be able to be submitted as there may currently be no committees with permissions for it.
-
-The simulator picks an operation with probability = op_weight / total_op_weights
-
-Solutions
-- ignore the problem, pick a proposal according to the weights, try and submit it anyway. - this will lead to a lot of failures, wasted time, and will result in skewed probabilities
-- ignore the weights, pick a committee at random, then randomly pick a proposal that fits - no wasted time, but no control over likelihood of various proposals
-
-*/
-
-/*
-   - pick random committee
-   - generate a pubproposal (sending in the permissions)
-   - genrate and deliver the msg
-   - if successful schedule future operations
-
-   - pick a random proposal type (according to weights)
-   - find a committee that allows this type
-   - generate proposal (pass in permissions)
-   - ...
-*/
-
-// This func tries to find an accepting committee (ignoring the special one), and falls back to the special one
-// for each submit proposal it also generates voting future ops
-// if the special committee isn't there (like when using an existing genesis) just noop instead of falling back (same as naive solution)
+// SimulateMsgSubmitProposal creates a proposal using the passed contentSimulatorFn and tries to find a committee that has permissions for it. If it can't then it uses the fallback committee.
+// If the fallback committee isn't there (eg when using an non-generated genesis) and no committee can be found this emits a no-op msg and doesn't do anything.
+// For each submit proposal msg, future ops for the vote messages are generated. Sometimes it doesn't run enough votes to allow the proposal to timeout - the likelihood of this happening is controlled by a parameter.
 func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
-		// 1) submit proposal
+		// 1) Send  a submit proposal msg
 
 		committees := k.GetCommittees(ctx)
-
 		// shuffle committees to ensure proposals are distributed across them evenly
 		r.Shuffle(len(committees), func(i, j int) {
 			committees[i], committees[j] = committees[j], committees[i]
 		})
-
-		// move fallback committee to the end
+		// move fallback committee to the end of slice
 		for i, c := range committees {
 			if c.ID == FallbackCommitteeID {
 				// switch places with last element
 				committees[i], committees[len(committees)-1] = committees[len(committees)-1], committees[i]
 			}
 		}
-
+		// pick a committee that has permissions for proposal
 		pp := types.PubProposal(contentSim(r, ctx, accs))
 		var selectedCommittee types.Committee
 		var found bool
@@ -132,29 +87,25 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 			}
 		}
 		if !found {
-			// This should only happen if not using the generated genesis state
+			// fallback committee was not present, this should only happen if not using the generated genesis state
 			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no committee has permissions for proposal)", "", false, nil), nil, nil
 		}
 
+		// create the msg and tx
 		proposer := selectedCommittee.Members[r.Intn(len(selectedCommittee.Members))] // won't panic as committees must have ≥ 1 members
 		msg := types.NewMsgSubmitProposal(
 			pp,
 			proposer,
 			selectedCommittee.ID,
 		)
-
 		account := ak.GetAccount(ctx, proposer)
 		fees, err := simulation.RandomFees(r, ctx, account.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-
-		var proposerPrivKey crypto.PrivKey
-		for _, a := range accs {
-			if a.Address.Equals(proposer) {
-				proposerPrivKey = a.PrivKey
-				break
-			}
+		proposerPrivKey, err := getPrivKey(accs, proposer)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
@@ -183,7 +134,7 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("can't find proposal with ID '%d'", proposalID)
 		}
 
-		// pick the voters (addresses that will submit vote msgs)
+		// pick the voters
 		// num voters determined by whether the proposal should pass or not
 		numMembers := int64(len(selectedCommittee.Members))
 		majority := selectedCommittee.VoteThreshold.Mul(sdk.NewInt(numMembers).ToDec()).Ceil().TruncateInt64()
@@ -198,12 +149,12 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 		// schedule vote operations
 		var futureOps []simulation.FutureOperation
 		for _, v := range voters {
-			rt, err := RandomTime(r, ctx.BlockTime(), proposal.Deadline)
+			voteTime, err := RandomTime(r, ctx.BlockTime(), proposal.Deadline)
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("random time generation failed: %w", err)
 			}
 			fop := simulation.FutureOperation{
-				BlockTime: rt,
+				BlockTime: voteTime,
 				Op:        SimulateMsgVote(k, ak, v, proposal.ID),
 			}
 			futureOps = append(futureOps, fop)
@@ -214,7 +165,6 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 }
 
 func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, proposalID uint64) simulation.Operation {
-
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (
 		opMsg simulation.OperationMsg, fOps []simulation.FutureOperation, err error) {
 
@@ -226,12 +176,9 @@ func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, pr
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		var voterPrivKey crypto.PrivKey
-		for _, a := range accs {
-			if a.Address.Equals(voter) {
-				voterPrivKey = a.PrivKey
-				break
-			}
+		voterPrivKey, err := getPrivKey(accs, voter)
+		if err != nil {
+			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -254,6 +201,15 @@ func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, pr
 	}
 }
 
+func getPrivKey(accs []simulation.Account, addr sdk.Address) (crypto.PrivKey, error) {
+	for _, a := range accs {
+		if a.Address.Equals(addr) {
+			return a.PrivKey, nil
+		}
+	}
+	return nil, fmt.Errorf("address not in accounts %s", addr)
+}
+
 // TODO move random funcs to common location
 
 func RandomTime(r *rand.Rand, inclusiveMin, exclusiveMax time.Time) (time.Time, error) {
@@ -273,6 +229,7 @@ func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int
 	if inclusiveMin.GT(inclusiveMax) {
 		return sdk.Int{}, fmt.Errorf("min larger than max")
 	}
+	simulation.RandIntBetween()
 	return RandInt(r, inclusiveMin, inclusiveMax.Add(sdk.OneInt()))
 }
 
