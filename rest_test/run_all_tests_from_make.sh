@@ -1,8 +1,7 @@
 #! /bin/bash
 
 # kill kava if it is already running
-pgrep kvd | xargs kill
-pgrep kvcli | xargs kill
+pkill kvd && pkill kvcli
 
 # TODO import from development environment in envkey
 password=""
@@ -27,8 +26,6 @@ mkdir /tmp/kvcliHome
 printf "$validatorMnemonic\n" | kvcli keys add vlad --recover --home $kvcliHome --keyring-backend test
 # create faucet key
 printf "$faucet\n" | kvcli --home $kvcliHome keys add faucet --recover --home $kvcliHome --keyring-backend test
-
-kvcli keys migrate --home "/tmp/kvcliHome"
 
 # function used to show that it is still loading
 showLoading() {
@@ -68,7 +65,7 @@ jq '.app_state.mint.params.blocks_per_year = "31540000"' $genesis > $genesis.tmp
 jq '.app_state.pricefeed.params.markets += [{"active": true, "base_asset": "xrp", "market_id": "xrp:usd", "oracles": ["kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"], "quote_asset": "usd"}, {"active": true, "base_asset": "btc", "market_id": "btc:usd", "oracles": ["kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"], "quote_asset": "usd"}]' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
 jq '.app_state.pricefeed.posted_prices += [{"expiry": "2050-01-01T00:00:00Z", "market_id": "btc:usd", "oracle_address": "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c", "price": "8700.0"}, {"expiry": "2050-01-01T00:00:00Z", "market_id": "xrp:usd", "oracle_address": "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c", "price": "0.25"}]' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
 # now update cdp params
-jq '.app_state.cdp.params = { "circuit_breaker": false, "collateral_params": [ { "auction_size": "10000000000", "conversion_factor": "8", "debt_limit": [ { "amount": "1000000000", "denom": "usdx" } ], "denom": "btc", "liquidation_penalty": "0.05", "liquidation_ratio": "1.5", "market_id": "btc:usd", "prefix": 0, "stability_fee": "1.0000000007829977" }, { "auction_size": "100000000", "conversion_factor": "6", "debt_limit": [ { "amount": "10000000", "denom": "usdx" } ], "denom": "xrp", "liquidation_penalty": "0.1", "liquidation_ratio": "2.0", "market_id": "xrp:usd", "prefix": 1, "stability_fee": "1.0000000007829977"} ], "debt_auction_threshold": "9000000", "debt_params": [ { "conversion_factor": "6", "debt_floor": "10000000", "debt_limit": [ { "amount": "2000000000000", "denom": "usdx" } ], "denom": "usdx", "reference_asset": "usd",  "savings_rate": "0.95" } ], "global_debt_limit": [ { "amount": "2000000000000", "denom": "usdx" } ], "surplus_auction_threshold": "9000000", "savings_distribution_frequency": "120000000000" }' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
+jq '.app_state.cdp.params = { "circuit_breaker": false, "collateral_params": [ { "auction_size": "10000000000", "conversion_factor": "8", "debt_limit": { "amount": "1000000000000", "denom": "usdx" }, "denom": "btc", "liquidation_penalty": "0.05", "liquidation_ratio": "1.5", "market_id": "btc:usd", "prefix": 0, "stability_fee": "1.0000000007829977" }, { "auction_size": "100000000", "conversion_factor": "6", "debt_limit": { "amount": "1000000000000", "denom": "usdx" }, "denom": "xrp", "liquidation_penalty": "0.1", "liquidation_ratio": "2.0", "market_id": "xrp:usd", "prefix": 1, "stability_fee": "1.0000000007829977"} ], "debt_auction_threshold": "10000000000", "debt_param": { "conversion_factor": "6", "debt_floor": "10000000",  "denom": "usdx", "reference_asset": "usd",  "savings_rate": "0.95" }, "global_debt_limit": { "amount": "2000000000000", "denom": "usdx" }, "surplus_auction_threshold": "10000000000", "savings_distribution_frequency": "43200000000000" }' $genesis > $genesis.tmp && mv $genesis.tmp $genesis
 # start the blockchain in the background, wait until it starts making blocks
 {
 kvd start --home $kvdHome & kvdPid="$!"
