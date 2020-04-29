@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.SupplyKeeper, gs GenesisState) {
 
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
