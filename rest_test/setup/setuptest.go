@@ -129,8 +129,8 @@ func sendBtcCdp() {
 	// sender, collateral, principal
 	msg := cdp.NewMsgCreateCDP(
 		addr,
-		sdk.NewCoins(sdk.NewInt64Coin("btc", 200000000)),
-		sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000)),
+		sdk.NewInt64Coin("btc", 200000000),
+		sdk.NewInt64Coin("usdx", 10000000),
 	)
 
 	// helper methods for transactions
@@ -162,8 +162,8 @@ func sendXrpCdp() {
 	// sender, collateral, principal
 	msg := cdp.NewMsgCreateCDP(
 		addr,
-		sdk.NewCoins(sdk.NewInt64Coin("xrp", 200000000)),
-		sdk.NewCoins(sdk.NewInt64Coin("usdx", 10000000)),
+		sdk.NewInt64Coin("xrp", 200000000),
+		sdk.NewInt64Coin("usdx", 10000000),
 	)
 
 	// helper methods for transactions

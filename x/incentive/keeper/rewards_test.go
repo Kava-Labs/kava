@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 	// need incentive params for one collateral
 	cdpGS := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
@@ -183,7 +183,7 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 				{
 					Denom:              "bnb",
 					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewCoins(sdk.NewInt64Coin("usdx", 1000000000000)),
+					DebtLimit:          sdk.NewInt64Coin("usdx", 1000000000000),
 					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty: d("0.05"),
 					AuctionSize:        i(10000000000),
@@ -192,14 +192,12 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 					ConversionFactor:   i(8),
 				},
 			},
-			DebtParams: cdp.DebtParams{
-				{
-					Denom:            "usdx",
-					ReferenceAsset:   "usd",
-					ConversionFactor: i(6),
-					DebtFloor:        i(10000000),
-					SavingsRate:      d("0.95"),
-				},
+			DebtParam: cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: i(6),
+				DebtFloor:        i(10000000),
+				SavingsRate:      d("0.95"),
 			},
 		},
 		StartingCdpID:            cdp.DefaultCdpStartingID,
@@ -239,11 +237,11 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 	suite.ctx = ctx
 	// create 3 cdps
 	cdpKeeper := tApp.GetCDPKeeper()
-	err := cdpKeeper.AddCdp(suite.ctx, addrs[0], cs(c("bnb", 10000000000)), cs(c("usdx", 10000000)))
+	err := cdpKeeper.AddCdp(suite.ctx, addrs[0], c("bnb", 10000000000), c("usdx", 10000000))
 	suite.Require().NoError(err)
-	err = cdpKeeper.AddCdp(suite.ctx, addrs[1], cs(c("bnb", 100000000000)), cs(c("usdx", 100000000)))
+	err = cdpKeeper.AddCdp(suite.ctx, addrs[1], c("bnb", 100000000000), c("usdx", 100000000))
 	suite.Require().NoError(err)
-	err = cdpKeeper.AddCdp(suite.ctx, addrs[2], cs(c("bnb", 1000000000000)), cs(c("usdx", 1000000000)))
+	err = cdpKeeper.AddCdp(suite.ctx, addrs[2], c("bnb", 1000000000000), c("usdx", 1000000000))
 	suite.Require().NoError(err)
 	// total usd is 1110
 

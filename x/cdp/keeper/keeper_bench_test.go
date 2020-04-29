@@ -14,6 +14,7 @@ import (
 
 // saving the result to a module level variable ensures the compiler doesn't optimize the test away
 var coinsResult sdk.Coins
+var coinResult sdk.Coin
 
 // Note - the iteration benchmarks take a long time to stabilize, to get stable results use:
 // go test -benchmem -bench ^(BenchmarkAccountIteration)$ -benchtime 60s  -timeout 2h
@@ -83,7 +84,7 @@ func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
 	)
 	cdpKeeper := tApp.GetCDPKeeper()
 	for i := 0; i < n; i++ {
-		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i], cs(c("usdx", 100000000)))
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000))
 		if err != nil {
 			panic("failed to create cdp")
 		}
@@ -106,7 +107,7 @@ func BenchmarkCdpIteration(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				cdpKeeper.IterateAllCdps(ctx, func(c cdp.CDP) (stop bool) {
-					coinsResult = c.Principal
+					coinResult = c.Principal
 					return false
 				})
 			}
@@ -135,7 +136,7 @@ func BenchmarkCdpCreation(b *testing.B) {
 	cdpKeeper := tApp.GetCDPKeeper()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i], cs(c("usdx", 100000000)))
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000))
 		if err != nil {
 			b.Error("unexpected error")
 		}

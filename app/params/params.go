@@ -12,4 +12,5 @@ const (
 	DefaultWeightMsgCreateAtomicSwap int = 100
 	DefaultWeightMsgUpdatePrices     int = 100
 	DefaultWeightMsgCdp              int = 100
+	DefaultWeightMsgClaimReward      int = 100
 )
