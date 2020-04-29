@@ -14,7 +14,6 @@ func RandomAddresses(r *rand.Rand, accs []simulation.Account) []sdk.AccAddress {
 	r.Shuffle(len(accs), func(i, j int) {
 		accs[i], accs[j] = accs[j], accs[i]
 	})
-	simulation.Rand
 
 	var addresses []sdk.AccAddress
 	numAddresses := r.Intn(len(accs) + 1)
@@ -54,7 +53,6 @@ func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int
 	if inclusiveMin.GT(inclusiveMax) {
 		return sdk.Int{}, fmt.Errorf("min larger than max")
 	}
-	simulation.RandIntBetween()
 	return RandInt(r, inclusiveMin, inclusiveMax.Add(sdk.OneInt()))
 }
 

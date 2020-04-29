@@ -25,6 +25,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"github.com/kava-labs/kava/x/committee"
 )
 
 type StoreKeysPrefixes struct {
@@ -162,6 +164,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[supply.StoreKey], newApp.keys[supply.StoreKey], [][]byte{}},
 		{app.keys[params.StoreKey], newApp.keys[params.StoreKey], [][]byte{}},
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
+		{app.keys[committee.StoreKey], newApp.keys[committee.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
