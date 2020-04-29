@@ -6,11 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -25,6 +20,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/bep3"
+	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/kavadist"
+	"github.com/kava-labs/kava/x/pricefeed"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
 )
 
 type StoreKeysPrefixes struct {
@@ -162,6 +168,13 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[supply.StoreKey], newApp.keys[supply.StoreKey], [][]byte{}},
 		{app.keys[params.StoreKey], newApp.keys[params.StoreKey], [][]byte{}},
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
+		{app.keys[auction.StoreKey], newApp.keys[auction.StoreKey], [][]byte{}},
+		{app.keys[bep3.StoreKey], newApp.keys[bep3.StoreKey], [][]byte{}},
+		{app.keys[cdp.StoreKey], newApp.keys[cdp.StoreKey], [][]byte{}},
+		{app.keys[incentive.StoreKey], newApp.keys[incentive.StoreKey], [][]byte{}},
+		{app.keys[kavadist.StoreKey], newApp.keys[kavadist.StoreKey], [][]byte{}},
+		{app.keys[pricefeed.StoreKey], newApp.keys[pricefeed.StoreKey], [][]byte{}},
+		{app.keys[validatorvesting.StoreKey], newApp.keys[validatorvesting.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
@@ -170,8 +183,9 @@ func TestAppImportExport(t *testing.T) {
 
 		failedKVAs, failedKVBs := sdk.DiffKVStores(storeA, storeB, skp.Prefixes)
 		require.Equal(t, len(failedKVAs), len(failedKVBs), "unequal sets of key-values to compare")
-
-		fmt.Printf("compared %d key/value pairs between %s and %s\n", len(failedKVAs), skp.A, skp.B)
+		if len(failedKVAs) != 0 {
+			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A, skp.B)
+		}
 		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(), app.SimulationManager().StoreDecoders, app.Codec(), failedKVAs, failedKVBs))
 	}
 }

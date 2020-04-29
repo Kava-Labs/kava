@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -23,7 +22,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper,
+	appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper,
 	k keeper.Keeper, pfk types.PricefeedKeeper,
 ) simulation.WeightedOperations {
 	var weightMsgCdp int
@@ -43,7 +42,7 @@ func WeightedOperations(
 }
 
 // SimulateMsgCdp generates a MsgCreateCdp or MsgDepositCdp with random values.
-func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedKeeper) simulation.Operation {
+func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.PricefeedKeeper) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -125,12 +124,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				simAccount.PrivKey,
 			)
 
-			_, result, err := app.Deliver(tx)
+			_, _, err := app.Deliver(tx)
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+			return simulation.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// a cdp already exists, deposit to it, draw debt from it, or repay debt to it
@@ -149,12 +148,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				simAccount.PrivKey,
 			)
 
-			_, result, err := app.Deliver(tx)
+			_, _, err := app.Deliver(tx)
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+			return simulation.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// deposit 25% of the time
@@ -172,12 +171,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				simAccount.PrivKey,
 			)
 
-			_, result, err := app.Deliver(tx)
+			_, _, err := app.Deliver(tx)
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+			return simulation.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// draw debt 25% of the time
@@ -215,12 +214,13 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				simAccount.PrivKey,
 			)
 
-			_, result, err := app.Deliver(tx)
+			_, _, err := app.Deliver(tx)
+
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+			return simulation.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// repay debt 25% of the time
@@ -248,12 +248,12 @@ func SimulateMsgCdp(ak auth.AccountKeeper, k keeper.Keeper, pfk types.PricefeedK
 				simAccount.PrivKey,
 			)
 
-			_, result, err := app.Deliver(tx)
+			_, _, err := app.Deliver(tx)
 			if err != nil {
 				return simulation.NoOpMsg(types.ModuleName), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+			return simulation.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		return simulation.NoOpMsg(types.ModuleName), nil, nil

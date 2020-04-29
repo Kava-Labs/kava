@@ -11,13 +11,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/cdp/client/cli"
 	"github.com/kava-labs/kava/x/cdp/client/rest"
 	"github.com/kava-labs/kava/x/cdp/simulation"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 var (
@@ -76,13 +76,13 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper          Keeper
-	accountKeeper   auth.AccountKeeper
-	pricefeedKeeper PricefeedKeeper
-	supplyKeeper    SupplyKeeper
+	accountKeeper   types.AccountKeeper
+	pricefeedKeeper types.PricefeedKeeper
+	supplyKeeper    types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper, pricefeedKeeper PricefeedKeeper, supplyKeeper SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, pricefeedKeeper types.PricefeedKeeper, supplyKeeper types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		keeper:          keeper,

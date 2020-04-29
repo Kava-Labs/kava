@@ -142,8 +142,6 @@ type (
 	AugmentedCDPs          = types.AugmentedCDPs
 	Deposit                = types.Deposit
 	Deposits               = types.Deposits
-	SupplyKeeper           = types.SupplyKeeper
-	PricefeedKeeper        = types.PricefeedKeeper
 	GenesisState           = types.GenesisState
 	MsgCreateCDP           = types.MsgCreateCDP
 	MsgDeposit             = types.MsgDeposit
