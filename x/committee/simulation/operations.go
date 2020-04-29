@@ -2,9 +2,7 @@ package simulation
 
 import (
 	"fmt"
-	"math/big"
 	"math/rand"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/kava-labs/kava/x/committee/keeper"
 	"github.com/kava-labs/kava/x/committee/types"
@@ -103,9 +100,9 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		proposerPrivKey, err := getPrivKey(accs, proposer)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+		proposerAcc, found := simulation.FindAccount(accs, proposer)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("address not in account list")
 		}
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
@@ -114,7 +111,7 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			proposerPrivKey,
+			proposerAcc.PrivKey,
 		)
 		// submit tx
 		_, result, err := app.Deliver(tx)
@@ -176,9 +173,9 @@ func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, pr
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		voterPrivKey, err := getPrivKey(accs, voter)
-		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+		voterAcc, found := simulation.FindAccount(accs, voter)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("address not in account list")
 		}
 
 		tx := helpers.GenTx(
@@ -188,7 +185,7 @@ func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, pr
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
-			voterPrivKey,
+			voterAcc.PrivKey,
 		)
 
 		_, result, err := app.Deliver(tx)
@@ -199,50 +196,4 @@ func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, pr
 		// to aid debugging, add the result log to the comment field
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
-}
-
-func getPrivKey(accs []simulation.Account, addr sdk.Address) (crypto.PrivKey, error) {
-	for _, a := range accs {
-		if a.Address.Equals(addr) {
-			return a.PrivKey, nil
-		}
-	}
-	return nil, fmt.Errorf("address not in accounts %s", addr)
-}
-
-// TODO move random funcs to common location
-
-func RandomTime(r *rand.Rand, inclusiveMin, exclusiveMax time.Time) (time.Time, error) {
-	if exclusiveMax.Before(inclusiveMin) {
-		return time.Time{}, fmt.Errorf("max must be > min")
-	}
-	period := exclusiveMax.Sub(inclusiveMin)
-	subPeriod, err := RandomPositiveDuration(r, 0, period)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return inclusiveMin.Add(subPeriod), nil
-}
-
-// RandInt randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
-func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int, error) {
-	if inclusiveMin.GT(inclusiveMax) {
-		return sdk.Int{}, fmt.Errorf("min larger than max")
-	}
-	simulation.RandIntBetween()
-	return RandInt(r, inclusiveMin, inclusiveMax.Add(sdk.OneInt()))
-}
-
-// RandInt randomly generates an sdk.Int in the range [inclusiveMin, exclusiveMax). It works for negative and positive integers.
-func RandInt(r *rand.Rand, inclusiveMin, exclusiveMax sdk.Int) (sdk.Int, error) {
-	// validate input
-	if inclusiveMin.GTE(exclusiveMax) {
-		return sdk.Int{}, fmt.Errorf("min larger or equal to max")
-	}
-	// shift the range to start at 0
-	shiftedRange := exclusiveMax.Sub(inclusiveMin) // should always be positive given the check above
-	// randomly pick from the shifted range
-	shiftedRandInt := sdk.NewIntFromBigInt(new(big.Int).Rand(r, shiftedRange.BigInt()))
-	// shift back to the original range
-	return shiftedRandInt.Add(inclusiveMin), nil
 }

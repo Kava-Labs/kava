@@ -91,19 +91,6 @@ func RandomCommittee(r *rand.Rand, availableAccs []simulation.Account, allowedPa
 	), nil
 }
 
-func RandomAddresses(r *rand.Rand, accs []simulation.Account) []sdk.AccAddress {
-	r.Shuffle(len(accs), func(i, j int) {
-		accs[i], accs[j] = accs[j], accs[i]
-	})
-
-	var addresses []sdk.AccAddress
-	numAddresses := r.Intn(len(accs) + 1)
-	for i := 0; i < numAddresses; i++ {
-		addresses = append(addresses, accs[i].Address)
-	}
-	return addresses
-}
-
 func RandomPermissions(r *rand.Rand, allowedParams []types.AllowedParam) []types.Permission {
 	var permissions []types.Permission
 	if r.Intn(100) < 50 {
@@ -133,18 +120,4 @@ func paramChangeToAllowedParams(paramChanges []simulation.ParamChange) []types.A
 		)
 	}
 	return allowedParams
-}
-
-// TODO move to common location
-func RandomPositiveDuration(r *rand.Rand, inclusiveMin, exclusiveMax time.Duration) (time.Duration, error) {
-	min := int64(inclusiveMin)
-	max := int64(exclusiveMax)
-	if min < 0 || max < 0 {
-		return 0, fmt.Errorf("min and max must be positive")
-	}
-	if min >= max {
-		return 0, fmt.Errorf("max must be < min")
-	}
-	randPositiveInt64 := r.Int63n(max-min) + min
-	return time.Duration(randPositiveInt64), nil
 }
