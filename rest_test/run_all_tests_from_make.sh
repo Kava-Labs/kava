@@ -54,11 +54,11 @@ kvd --home $kvdHome init --chain-id=testing vlad # doesn't need to be the same a
 } > /dev/null 2>&1
 kvcli --home $kvcliHome config chain-id testing # or set trust-node true
 # add validator account to genesis
-kvd --home $kvdHome add-genesis-account $(kvcli --home $kvcliHome keys show vlad -a) 10000000000000stake,1000000000000xrp,100000000000btc
+kvd --home $kvdHome add-genesis-account $(kvcli keys show vlad -a --keyring-backend test --home $kvcliHome) 10000000000000stake,1000000000000xrp,100000000000btc
 # add faucet account to genesis
-kvd --home $kvdHome add-genesis-account $(kvcli --home $kvcliHome keys show faucet -a) 10000000000000stake,1000000000000xrp,100000000000btc
+kvd --home $kvdHome add-genesis-account $(kvcli keys show faucet -a --keyring-backend test --home $kvcliHome) 10000000000000stake,1000000000000xrp,100000000000btc
 # Create a delegation tx for the validator and add to genesis
-printf "$password\n" | kvd --home $kvdHome gentx --name vlad --home-client $kvcliHome
+kvd --home $kvdHome gentx --name vlad --home-client $kvcliHome --keyring-backend test
 {
 kvd --home $kvdHome collect-gentxs
 } > /dev/null 2>&1
@@ -86,7 +86,7 @@ printf "\n"
 rm -f rest_test/setuptest
 go build rest_test/setup/setuptest.go & showLoading "Building go test file, please wait"
 # run the go code to send transactions to the chain and set it up correctly
-./setuptest $kvcliHome
+./setuptest
 printf "\n"
 printf "Blockchain setup completed"
 printf "\n\n"
