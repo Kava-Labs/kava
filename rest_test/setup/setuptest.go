@@ -1,15 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkrest "github.com/cosmos/cosmos-sdk/types/rest"
@@ -34,6 +33,10 @@ func init() {
 	app.SetBip44CoinType(config)
 	config.Seal()
 }
+
+var (
+	myKeybase crkeys.Keybase
+)
 
 func main() {
 	if len(os.Args) < 2 {
@@ -383,20 +386,36 @@ func sendUndelegation() {
 }
 
 func getKeybase() crkeys.Keybase {
+
+	if myKeybase != nil {
+		return myKeybase
+	}
+
 	// create a keybase
 	// IMPORTANT - TAKE THIS FROM COMMAND LINE PARAMETER and does NOT work with tilde i.e. ~/ does NOT work
-	keybase, err := keys.NewKeyBaseFromDir(os.Args[1])
+	// myKeybase, err := keys.NewKeyBaseFromDir("/tmp/kvcliHome")
+
+	inBuf := strings.NewReader("")
+	myKeybase, err := crkeys.NewKeyring(sdk.KeyringServiceName(),
+		"test", "/tmp/kvcliHome/keys", inBuf)
 
 	fmt.Println("os.Args[1]: ")
 	fmt.Println(os.Args[1])
 	fmt.Println("Keybase: ")
-	fmt.Println(keybase)
+	fmt.Println(myKeybase)
+
+	// fmt.Println("Keybase: ")
+	// fmt.Println(myKeybase.CreateAccount)
+
+	fmt.Println("Keybase list keys: ")
+	fmt.Println(myKeybase.List())
+	fmt.Println("Keybase vlad: ")
+	fmt.Println(myKeybase.Get("vlad"))
 
 	if err != nil {
 		panic(err)
 	}
-
-	return keybase
+	return myKeybase
 }
 
 // sendMsgToBlockchain sends a message to the blockchain via the rest api
@@ -405,18 +424,27 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 
 	// get the account number and sequence number
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
-	inBuf := bufio.NewReader(os.Stdin)
 
-	// TODO QUESTION - THIS PANICS BECAUSE WE AREN'T PASSING THE -keyring FLAG FROM COMMAND LINE
-	txBldr := auth.NewTxBuilderFromCLI(inBuf).
-		WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
+	// inBuf := bufio.NewReader(os.Stdin)
+	// inBuf := strings.NewReader("--keyring-backend file --home /tmp/kvcliHome")
+
+	// TODO QUESTION - THIS PANICS BECAUSE WE AREN'T PASSING THE -keyring FLAG FROM COMMAND LINE.
+	txBldr := auth.NewTxBuilder(
+		authclient.GetTxEncoder(cdc), accountNumber, sequenceNumber, 500000, 0,
+		true, "testing", "memo", sdk.NewCoins(), sdk.NewDecCoins(),
+	).WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
 		WithSequence(sequenceNumber).WithGas(500000)
+
+	// txBldr := auth.NewTxBuilderFromCLI(inBuf).
+	// 	WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
+	// 	WithKeybase(keybase).WithAccountNumber(accountNumber).
+	// 	WithSequence(sequenceNumber).WithGas(500000)
 
 	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
 	// fmt.Printf("%+v", txBldr.Keybase())
-	txBytes, err := txBldr.BuildAndSign("vlad", "password", msg)
+	txBytes, err := txBldr.BuildAndSign("vlad", "", msg)
 	if err != nil {
 		panic(err)
 	}

@@ -5,7 +5,7 @@ pgrep kvd | xargs kill
 pgrep kvcli | xargs kill
 
 # TODO import from development environment in envkey
-password="password"
+password=""
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
 #   address: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
 #   address: kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
@@ -27,6 +27,9 @@ mkdir /tmp/kvcliHome
 printf "y\n$validatorMnemonic\n" | kvcli keys add vlad --recover --home $kvcliHome
 # create faucet key
 printf "y\n$faucet\n" | kvcli --home $kvcliHome keys add faucet --recover --home $kvcliHome
+
+kvcli keys migrate --home "/tmp/kvcliHome"
+
 # function used to show that it is still loading
 showLoading() {
   mypid=$!
@@ -83,7 +86,7 @@ printf "\n"
 rm -f rest_test/setuptest
 go build rest_test/setup/setuptest.go & showLoading "Building go test file, please wait"
 # run the go code to send transactions to the chain and set it up correctly
-./setuptest $kvcliHome & showLoading "Sending messages to blockchain"
+./setuptest $kvcliHome
 printf "\n"
 printf "Blockchain setup completed"
 printf "\n\n"
