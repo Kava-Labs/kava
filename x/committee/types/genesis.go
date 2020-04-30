@@ -81,7 +81,7 @@ func (gs GenesisState) Validate() error {
 
 		// check committee exists
 		if !committeeMap[p.CommitteeID] {
-			return fmt.Errorf("proposal refers to non existant committee; proposal: %+v", p)
+			return fmt.Errorf("proposal refers to non existent committee; proposal: %+v", p)
 		}
 
 		// validate pubProposal
@@ -94,7 +94,7 @@ func (gs GenesisState) Validate() error {
 	for _, v := range gs.Votes {
 		// check proposal exists
 		if !proposalMap[v.ProposalID] {
-			return fmt.Errorf("vote refers to non existant proposal; vote: %+v", v)
+			return fmt.Errorf("vote refers to non existent proposal; vote: %+v", v)
 		}
 		// validate address
 		if v.Voter.Empty() {

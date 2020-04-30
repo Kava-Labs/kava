@@ -2,6 +2,7 @@ package incentive
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/incentive/keeper"
 )
 

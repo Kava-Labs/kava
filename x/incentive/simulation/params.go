@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 

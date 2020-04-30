@@ -245,13 +245,13 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
 	}
 
 	// Emit 'swaps_expired' event
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeSwapsExpired,
-				sdk.NewAttribute(types.AttributeKeyAtomicSwapIDs, fmt.Sprintf("%s", expiredSwapIDs)),
-				sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
-			),
-		)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSwapsExpired,
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapIDs, fmt.Sprintf("%s", expiredSwapIDs)),
+			sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
+		),
+	)
 
 	return nil
 }

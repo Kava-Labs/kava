@@ -254,7 +254,7 @@ func TestGetFailedVestedCoins(t *testing.T) {
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
 
 	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
-	// require that period 1 coins are failed if the period completed unsucessfully.
+	// require that period 1 coins are failed if the period completed unsuccessfully.
 	require.Equal(t,
 		sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)},
 		vva.GetFailedVestedCoins(),
@@ -362,7 +362,7 @@ func TestTrackUndelegationPeriodicVestingAcc(t *testing.T) {
 	require.Nil(t, vva.DelegatedFree)
 	require.Nil(t, vva.DelegatedVesting)
 
-	// successfuly vest period 1 and delegate to two validators
+	// successfully vest period 1 and delegate to two validators
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})

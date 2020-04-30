@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 type msgTest struct {
@@ -23,17 +24,17 @@ type MsgTestSuite struct {
 
 func (suite *MsgTestSuite) SetupTest() {
 	tests := []msgTest{
-		msgTest{
+		{
 			from:       sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
 			denom:      "bnb",
 			expectPass: true,
 		},
-		msgTest{
+		{
 			from:       sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
 			denom:      "",
 			expectPass: false,
 		},
-		msgTest{
+		{
 			from:       sdk.AccAddress{},
 			denom:      "bnb",
 			expectPass: false,

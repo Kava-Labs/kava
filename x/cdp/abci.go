@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/cdp/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // BeginBlocker compounds the debt in outstanding cdps and liquidates cdps that are below the required collateralization ratio

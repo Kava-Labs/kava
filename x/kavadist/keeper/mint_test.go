@@ -5,12 +5,13 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/kavadist/keeper"
-	"github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/kavadist/keeper"
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 type MintTestSuite struct {

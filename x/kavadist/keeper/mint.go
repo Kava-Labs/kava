@@ -2,11 +2,12 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// MintPeriodInflation mints new tokens according to the inflation schedule specified in the paramters
+// MintPeriodInflation mints new tokens according to the inflation schedule specified in the parameters
 func (k Keeper) MintPeriodInflation(ctx sdk.Context) error {
 	params := k.GetParams(ctx)
 	if !params.Active {

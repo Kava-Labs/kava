@@ -9,8 +9,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 	"github.com/tendermint/tendermint/libs/cli"
+
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"

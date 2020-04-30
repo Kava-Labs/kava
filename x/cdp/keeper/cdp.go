@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -431,7 +432,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 		return types.AugmentedCDP{}, err
 	}
 
-	// total debt is the sum of all oustanding principal and fees
+	// total debt is the sum of all outstanding principal and fees
 	var totalDebt int64
 	totalDebt += cdp.Principal.Amount.Int64()
 	totalDebt += cdp.AccumulatedFees.Amount.Int64()

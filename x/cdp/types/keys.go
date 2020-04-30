@@ -140,7 +140,7 @@ func CollateralRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
 func SplitCollateralRatioKey(key []byte) (denom byte, cdpID uint64, ratio sdk.Dec) {
 
-	cdpID = GetCdpIDFromBytes(key[len(key)-8 : len(key)])
+	cdpID = GetCdpIDFromBytes(key[len(key)-8:])
 	split := bytes.Split(key[:len(key)-8], sep)
 	denom = split[0][0]
 

@@ -6,8 +6,9 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 type paramTest struct {
@@ -29,7 +30,7 @@ type ParamTestSuite struct {
 
 func (suite *ParamTestSuite) SetupTest() {
 	suite.tests = []paramTest{
-		paramTest{
+		{
 			name: "valid - active",
 			params: types.Params{
 				Active: true,
@@ -49,7 +50,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "",
 			},
 		},
-		paramTest{
+		{
 			name: "valid - inactive",
 			params: types.Params{
 				Active: false,
@@ -69,7 +70,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "",
 			},
 		},
-		paramTest{
+		{
 			name: "duplicate reward",
 			params: types.Params{
 				Active: true,
@@ -97,7 +98,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "cannot have duplicate reward denoms",
 			},
 		},
-		paramTest{
+		{
 			name: "negative reward duration",
 			params: types.Params{
 				Active: true,
@@ -117,7 +118,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "reward duration must be positive",
 			},
 		},
-		paramTest{
+		{
 			name: "negative time lock",
 			params: types.Params{
 				Active: true,
@@ -137,7 +138,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "reward timelock must be non-negative",
 			},
 		},
-		paramTest{
+		{
 			name: "zero claim duration",
 			params: types.Params{
 				Active: true,
@@ -157,7 +158,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "claim duration must be positive",
 			},
 		},
-		paramTest{
+		{
 			name: "zero reward",
 			params: types.Params{
 				Active: true,
@@ -177,7 +178,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				contains:   "reward amount must be positive",
 			},
 		},
-		paramTest{
+		{
 			name: "empty reward denom",
 			params: types.Params{
 				Active: true,

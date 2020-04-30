@@ -100,7 +100,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 		{
 			name: "invalid title",
 			proposal: committee.NewCommitteeChangeProposal(
-				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fullfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
+				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fulfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
 				"A proposal description.",
 				suite.testGenesis.Committees[0],
 			),
@@ -177,7 +177,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 		{
 			name: "invalid title",
 			proposal: committee.NewCommitteeDeleteProposal(
-				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fullfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
+				"A Title That Is Much Too Long And Really Quite Unreasonable Given That It Is Trying To Fulfill The Roll Of An Acceptable Governance Proposal Title That Should Succinctly Communicate The Goal And Contents Of The Proposed Proposal To All Parties Involved",
 				"A proposal description.",
 				suite.testGenesis.Committees[1].ID,
 			),

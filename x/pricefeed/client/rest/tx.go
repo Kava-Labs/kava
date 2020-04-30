@@ -10,8 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
-	"github.com/kava-labs/kava/x/pricefeed/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
