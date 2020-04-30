@@ -126,21 +126,23 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	case types.Incoming:
 		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
-			break
+			return err
 		}
 		err = k.IncrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
-			break
+			return err
 		}
 		err = k.DecrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
 	default:
-		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
-	}
-
-	if err != nil {
-		return err
+		return fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
 	}
 
 	// Send intended recipient coins
@@ -216,7 +218,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRefundAtomicSwap,
-			sdk.NewAttribute(types.AttributeKeyRefundSender, fmt.Sprintf("%s", from)),
+			sdk.NewAttribute(types.AttributeKeyRefundSender, from),
 			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", atomicSwap.Sender)),
 			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
 			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),

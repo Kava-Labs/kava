@@ -61,8 +61,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Delete CDP from state
 	k.RemoveCdpOwnerIndex(ctx, cdp)
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
-	k.DeleteCDP(ctx, cdp)
-	return nil
+	return k.DeleteCDP(ctx, cdp)
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio

@@ -199,7 +199,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(types.CdpKey(db, cdp.ID), bz)
@@ -211,7 +211,7 @@ func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	store.Delete(types.CdpKey(db, cdp.ID))
 	return nil

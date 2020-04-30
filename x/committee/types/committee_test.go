@@ -162,7 +162,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						},
 					}},
 			},
-			pubProposal:          UnregisteredPubProposal{govtypes.TextProposal{"A Title", "A description."}},
+			pubProposal:          UnregisteredPubProposal{govtypes.TextProposal{Title: "A Title", Description: "A description."}},
 			expectHasPermissions: false,
 		},
 	}
