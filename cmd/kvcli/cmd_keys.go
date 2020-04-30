@@ -16,18 +16,28 @@ import (
 NOTE TO FUTURE IMPLEMENTERS
 This monkey patches the sdk `keys` command, therefore needs to be reviewed on any sdk updates.
 
-Where a bip44 coin type is used (cosmos-sdk 18de630d):
-- adding local keys
-	- global variable `sdk.Config.CoinType` is used to derive the key from a mnemonic (supplied by user or generated), but only the private key is stored
-- adding ledger keys
-	- global variable `sdk.Config.CoinType` is used to reference a key on a ledger device, bip44 path (not private key) is stored locally
-- signing txs with local keys
+The patch adds support for using kava's legacy bip44 coin type to the cli.
+Coin types are used to create a bip44 derivation path, which is used as a mapping from mnemonic to private key.
+
+In cosmos-sdk v0.38.3, all private keys are stored without reference to the mnemonic or bip44 derivation path, except ledger keys.
+Ledger keys are just references to a private key on a ledger device. They contain the bip44 derivation path.
+To patch the cli, we only need to modify:
+- when new ledger references are created
+- anything to do with converting a mnemonic to a private key.
+
+These only happen in `kvcli keys add` cmd.
+For private key generation, use a --legacy-hd-path flag to enable old coin type.
+The current cosmos ledger app (v1.5.3) only supports the legacy coin type. So we only need to ensure ledger reference creation doesn't use the new coin type.
+
+Signing txs:
+- with local keys
 	- the stored the priv key is used to sign, mnemonics or bip44 paths not involved
-- signing txs with ledger
+- with ledger
 	- the stored bip44 path is used to instruct the ledger which key to sign with
 */
 
 const flagLegacyHDPath = "legacy-hd-path"
+const flagHDPath = "hd-path" // this is copied from keys add cmd because it's not exported
 
 // getModifiedKeysCmd returns the standard cosmos-sdk/client/keys cmd but modified to support new and old bip44 coin types supported by kava.
 func getModifiedKeysCmd() *cobra.Command {
@@ -69,18 +79,20 @@ func monkeyPatchCmdKeysAdd(keysAddCmd *cobra.Command) {
 	// replace the run function with a wrapped version that sets the old coin type in the global config
 	oldRun := keysAddCmd.RunE
 	keysAddCmd.RunE = func(cmd *cobra.Command, args []string) error {
-		preExistingCoinType := sdk.GetConfig().GetCoinType()
 
+		if !viper.GetBool(flagLegacyHDPath) && viper.GetBool(flags.FlagUseLedger) {
+			return fmt.Errorf("cosmos ledger app only supports legacy bip44 coin type, must use --%s flag when adding ledger key", flagLegacyHDPath)
+		}
+		if viper.GetBool(flagLegacyHDPath) && viper.IsSet(flagHDPath) {
+			return fmt.Errorf("cannot use a custom hd path (--%s) and legacy bip44 coin type (--%s) at the same time", flagHDPath, flagLegacyHDPath)
+		}
 		if viper.GetBool(flagLegacyHDPath) {
+			preExistingCoinType := sdk.GetConfig().GetCoinType()
 			sdk.GetConfig().SetCoinType(sdk.CoinType) // set old coin type
 			err := oldRun(cmd, args)
-			sdk.GetConfig().SetCoinType(preExistingCoinType) // revert to preexisting coin type
+			sdk.GetConfig().SetCoinType(preExistingCoinType) // revert to pre-existing coin type
 			return err
-		} else {
-			if viper.GetBool(flags.FlagUseLedger) {
-				return fmt.Errorf("cosmos ledger app only supports legacy bip44 coin type, must use --%s flag when adding ledger key", flagLegacyHDPath)
-			}
-			return oldRun(cmd, args)
 		}
+		return oldRun(cmd, args)
 	}
 }
