@@ -11,6 +11,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 
 	"github.com/stretchr/testify/suite"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )

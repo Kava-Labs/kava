@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/tendermint/tendermint/crypto"
 	tmtime "github.com/tendermint/tendermint/types/time"
 

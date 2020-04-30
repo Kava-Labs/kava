@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"

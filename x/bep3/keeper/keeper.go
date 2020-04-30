@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/kava-labs/kava/x/bep3/types"

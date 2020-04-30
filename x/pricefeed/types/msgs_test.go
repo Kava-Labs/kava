@@ -3,8 +3,10 @@ package types
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
