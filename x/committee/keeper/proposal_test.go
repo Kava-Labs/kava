@@ -288,7 +288,7 @@ func (suite *KeeperTestSuite) TestValidatePubProposal() {
 				[]params.ParamChange{{
 					Subspace: cdptypes.ModuleName,
 					Key:      string(cdptypes.KeyGlobalDebtLimit),
-					Value:    string(types.ModuleCdc.MustMarshalJSON(cs(c("usdx", 100000000000)))),
+					Value:    string(types.ModuleCdc.MustMarshalJSON(c("usdx", 100000000000))),
 				}},
 			),
 			expectErr: false,
