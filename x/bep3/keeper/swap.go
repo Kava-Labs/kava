@@ -218,7 +218,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRefundAtomicSwap,
-			sdk.NewAttribute(types.AttributeKeyRefundSender, from),
+			sdk.NewAttribute(types.AttributeKeyRefundSender, fmt.Sprintf("%s", from)),
 			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", atomicSwap.Sender)),
 			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
 			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
