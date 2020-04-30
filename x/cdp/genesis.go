@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.SupplyKeeper, gs GenesisState) {
 
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
@@ -46,9 +47,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 
 	// set the per second fee rate for each collateral type
 	for _, cp := range gs.Params.CollateralParams {
-		for _, dp := range gs.Params.DebtParams {
-			k.SetTotalPrincipal(ctx, cp.Denom, dp.Denom, sdk.ZeroInt())
-		}
+		k.SetTotalPrincipal(ctx, cp.Denom, gs.Params.DebtParam.Denom, sdk.ZeroInt())
 	}
 
 	// add cdps
@@ -56,16 +55,20 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 		if cdp.ID == gs.StartingCdpID {
 			panic(fmt.Sprintf("starting cdp id is assigned to an existing cdp: %s", cdp))
 		}
-		k.SetCDP(ctx, cdp)
+		err := k.SetCDP(ctx, cdp)
+		if err != nil {
+			panic(fmt.Sprintf("error setting cdp: %v", err))
+		}
 		k.IndexCdpByOwner(ctx, cdp)
-		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
-		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral[0].Denom, cdp.ID, ratio)
-		k.IncrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, cdp.Principal)
+		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral.Denom, cdp.ID, ratio)
+		k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, cdp.Principal.Add(cdp.AccumulatedFees))
 	}
 
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 	k.SetGovDenom(ctx, gs.GovDenom)
+	k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)

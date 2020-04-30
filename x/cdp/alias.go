@@ -50,22 +50,6 @@ var (
 	NewAugmentedCDP             = types.NewAugmentedCDP
 	RegisterCodec               = types.RegisterCodec
 	NewDeposit                  = types.NewDeposit
-	ErrCdpAlreadyExists         = types.ErrCdpAlreadyExists
-	ErrInvalidCollateralLength  = types.ErrInvalidCollateralLength
-	ErrCollateralNotSupported   = types.ErrCollateralNotSupported
-	ErrDebtNotSupported         = types.ErrDebtNotSupported
-	ErrExceedsDebtLimit         = types.ErrExceedsDebtLimit
-	ErrInvalidCollateralRatio   = types.ErrInvalidCollateralRatio
-	ErrCdpNotFound              = types.ErrCdpNotFound
-	ErrDepositNotFound          = types.ErrDepositNotFound
-	ErrInvalidDeposit           = types.ErrInvalidDeposit
-	ErrInvalidPayment           = types.ErrInvalidPayment
-	ErrDepositNotAvailable      = types.ErrDepositNotAvailable
-	ErrInvalidCollateral        = types.ErrInvalidCollateral
-	ErrInvalidWithdrawAmount    = types.ErrInvalidWithdrawAmount
-	ErrCdpNotAvailable          = types.ErrCdpNotAvailable
-	ErrBelowDebtFloor           = types.ErrBelowDebtFloor
-	ErrLoadingAugmentedCDP      = types.ErrLoadingAugmentedCDP
 	NewGenesisState             = types.NewGenesisState
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetCdpIDBytes               = types.GetCdpIDBytes
@@ -102,6 +86,23 @@ var (
 
 	// variable aliases
 	ModuleCdc                           = types.ModuleCdc
+	ErrCdpAlreadyExists                 = types.ErrCdpAlreadyExists
+	ErrInvalidCollateralLength          = types.ErrInvalidCollateralLength
+	ErrCollateralNotSupported           = types.ErrCollateralNotSupported
+	ErrDebtNotSupported                 = types.ErrDebtNotSupported
+	ErrExceedsDebtLimit                 = types.ErrExceedsDebtLimit
+	ErrInvalidCollateralRatio           = types.ErrInvalidCollateralRatio
+	ErrCdpNotFound                      = types.ErrCdpNotFound
+	ErrDepositNotFound                  = types.ErrDepositNotFound
+	ErrInvalidDeposit                   = types.ErrInvalidDeposit
+	ErrInvalidPayment                   = types.ErrInvalidPayment
+	ErrDepositNotAvailable              = types.ErrDepositNotAvailable
+	ErrInvalidWithdrawAmount            = types.ErrInvalidWithdrawAmount
+	ErrCdpNotAvailable                  = types.ErrCdpNotAvailable
+	ErrBelowDebtFloor                   = types.ErrBelowDebtFloor
+	ErrLoadingAugmentedCDP              = types.ErrLoadingAugmentedCDP
+	ErrInvalidDebtRequest               = types.ErrInvalidDebtRequest
+	ErrDenomPrefixNotFound              = types.ErrDenomPrefixNotFound
 	CdpIDKeyPrefix                      = types.CdpIDKeyPrefix
 	CdpKeyPrefix                        = types.CdpKeyPrefix
 	CollateralRatioIndexPrefix          = types.CollateralRatioIndexPrefix
@@ -113,7 +114,7 @@ var (
 	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
 	KeyGlobalDebtLimit                  = types.KeyGlobalDebtLimit
 	KeyCollateralParams                 = types.KeyCollateralParams
-	KeyDebtParams                       = types.KeyDebtParams
+	KeyDebtParam                        = types.KeyDebtParam
 	KeyDistributionFrequency            = types.KeyDistributionFrequency
 	KeyCircuitBreaker                   = types.KeyCircuitBreaker
 	KeyDebtThreshold                    = types.KeyDebtThreshold
@@ -121,10 +122,11 @@ var (
 	DefaultGlobalDebt                   = types.DefaultGlobalDebt
 	DefaultCircuitBreaker               = types.DefaultCircuitBreaker
 	DefaultCollateralParams             = types.DefaultCollateralParams
-	DefaultDebtParams                   = types.DefaultDebtParams
+	DefaultDebtParam                    = types.DefaultDebtParam
 	DefaultCdpStartingID                = types.DefaultCdpStartingID
 	DefaultDebtDenom                    = types.DefaultDebtDenom
 	DefaultGovDenom                     = types.DefaultGovDenom
+	DefaultStableDenom                  = types.DefaultStableDenom
 	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
 	DefaultDebtThreshold                = types.DefaultDebtThreshold
 	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
@@ -140,8 +142,6 @@ type (
 	AugmentedCDPs          = types.AugmentedCDPs
 	Deposit                = types.Deposit
 	Deposits               = types.Deposits
-	SupplyKeeper           = types.SupplyKeeper
-	PricefeedKeeper        = types.PricefeedKeeper
 	GenesisState           = types.GenesisState
 	MsgCreateCDP           = types.MsgCreateCDP
 	MsgDeposit             = types.MsgDeposit

@@ -22,16 +22,17 @@ The CDP's collateral always equal to the total of the deposits.
 type CDP struct {
     ID              uint64
     Owner           sdk.AccAddress
-    Collateral      sdk.Coins
-    Principal       sdk.Coins
-    AccumulatedFees sdk.Coins
+    Collateral      sdk.Coin
+    Principal       sdk.Coin
+    AccumulatedFees sdk.Coin
     FeesUpdated     time.Time
 }
 ```
 
-CDPs are stored with a couple of database indexes for faster lookup:
+CDPs are stored with three database indexes for faster lookup:
 
 - by collateral ratio - to look up cdps that are close to the liquidation ratio
+- by collateral denom - to look up cdps with a particular collateral asset
 - by owner index - to look up cdps that an address is the owner of
 
 ## Deposit
@@ -42,7 +43,7 @@ A Deposit is a struct recording collateral added to a CDP by one address. The ad
 type Deposit struct {
     CdpID         uint64
     Depositor     sdk.AccAddress
-    Amount        sdk.Coins
+    Amount        sdk.Coin
 }
 ```
 
@@ -58,10 +59,14 @@ A global counter used to create unique CDP ids.
 
 The name of the internal debt coin. Its value can be configured at genesis.
 
+## GovDenom
+
+The name of the internal governance coin. Its value can be configured at genesis.
+
 ## Total Principle
 
-Sum of all non seized debt plus accumulated fees. This is used to calculate the new debt created every block due to the fee interest rate.
+Sum of all non seized debt plus accumulated fees.
 
-## Previous Block Time
+## Previous Savings Distribution Time
 
-A record of the last block time used to calculate fees.
+A record of the last block time when the savings rate was distributed

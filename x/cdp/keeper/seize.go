@@ -17,17 +17,11 @@ import (
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees...))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 
 	// Move debt coins from cdp to liquidator account
 	deposits := k.GetDeposits(ctx, cdp.ID)
-	debt := sdk.ZeroInt()
-	for _, pc := range cdp.Principal {
-		debt = debt.Add(pc.Amount)
-	}
-	for _, dc := range cdp.AccumulatedFees {
-		debt = debt.Add(dc.Amount)
-	}
+	debt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	if modAccountDebt.LT(debt) {
 		debt = modAccountDebt
@@ -48,29 +42,24 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 				sdk.NewAttribute(types.AttributeKeyDepositor, fmt.Sprintf("%s", dep.Depositor)),
 			),
 		)
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, dep.Amount)
+		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
 		if err != nil {
 			return err
 		}
 		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 	}
-	err = k.AuctionCollateral(ctx, deposits, debt, cdp.Principal[0].Denom)
+	err = k.AuctionCollateral(ctx, deposits, debt, cdp.Principal.Denom)
 	if err != nil {
 		return err
 	}
 
 	// Decrement total principal for this collateral type
-	for _, dc := range cdp.Principal {
-		feeAmount := cdp.AccumulatedFees.AmountOf(dc.Denom)
-		coinsToDecrement := sdk.NewCoins(dc)
-		if feeAmount.IsPositive() {
-			feeCoins := sdk.NewCoins(sdk.NewCoin(dc.Denom, feeAmount))
-			coinsToDecrement = coinsToDecrement.Add(feeCoins...)
-		}
-		k.DecrementTotalPrincipal(ctx, cdp.Collateral[0].Denom, coinsToDecrement)
-	}
+	coinsToDecrement := cdp.Principal.Add(cdp.AccumulatedFees)
+	k.DecrementTotalPrincipal(ctx, cdp.Collateral.Denom, coinsToDecrement)
+
+	// Delete CDP from state
 	k.RemoveCdpOwnerIndex(ctx, cdp)
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral[0].Denom, cdp.ID, oldCollateralToDebtRatio)
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
 	k.DeleteCDP(ctx, cdp)
 	return nil
 }

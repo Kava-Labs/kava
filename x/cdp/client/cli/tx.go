@@ -53,11 +53,11 @@ $ %s tx %s create 10000000uatom 1000usdx --from myKeyName
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			collateral, err := sdk.ParseCoins(args[0])
+			collateral, err := sdk.ParseCoin(args[0])
 			if err != nil {
 				return err
 			}
-			debt, err := sdk.ParseCoins(args[1])
+			debt, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
@@ -88,7 +88,7 @@ $ %s tx %s deposit kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom --f
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			collateral, err := sdk.ParseCoins(args[1])
+			collateral, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
@@ -123,7 +123,7 @@ $ %s tx %s withdraw kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom --
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			collateral, err := sdk.ParseCoins(args[1])
+			collateral, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
@@ -158,7 +158,7 @@ $ %s tx %s draw uatom 1000usdx --from myKeyName
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			debt, err := sdk.ParseCoins(args[1])
+			debt, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}
@@ -189,7 +189,7 @@ $ %s tx %s repay uatom 1000usdx --from myKeyName
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			payment, err := sdk.ParseCoins(args[1])
+			payment, err := sdk.ParseCoin(args[1])
 			if err != nil {
 				return err
 			}

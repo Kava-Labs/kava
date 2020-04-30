@@ -18,8 +18,8 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 type PostCdpReq struct {
 	BaseReq    rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Sender     sdk.AccAddress `json:"sender" yaml:"sender"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
-	Principal  sdk.Coins      `json:"principal" yaml:"principal"`
+	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
+	Principal  sdk.Coin       `json:"principal" yaml:"principal"`
 }
 
 // PostDepositReq defines the properties of cdp request's body.
@@ -27,7 +27,7 @@ type PostDepositReq struct {
 	BaseReq    rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
 	Depositor  sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
 }
 
 // PostWithdrawalReq defines the properties of cdp request's body.
@@ -35,7 +35,7 @@ type PostWithdrawalReq struct {
 	BaseReq    rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`
 	Depositor  sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	Collateral sdk.Coins      `json:"collateral" yaml:"collateral"`
+	Collateral sdk.Coin       `json:"collateral" yaml:"collateral"`
 }
 
 // PostDrawReq defines the properties of cdp request's body.
@@ -43,7 +43,7 @@ type PostDrawReq struct {
 	BaseReq   rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Owner     sdk.AccAddress `json:"owner" yaml:"owner"`
 	Denom     string         `json:"denom" yaml:"denom"`
-	Principal sdk.Coins      `json:"principal" yaml:"principal"`
+	Principal sdk.Coin       `json:"principal" yaml:"principal"`
 }
 
 // PostRepayReq defines the properties of cdp request's body.
@@ -51,5 +51,5 @@ type PostRepayReq struct {
 	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Owner   sdk.AccAddress `json:"owner" yaml:"owner"`
 	Denom   string         `json:"denom" yaml:"denom"`
-	Payment sdk.Coins      `json:"payment" yaml:"payment"`
+	Payment sdk.Coin       `json:"payment" yaml:"payment"`
 }
