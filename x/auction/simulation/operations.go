@@ -111,13 +111,13 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			bidder.PrivKey,
 		)
 
-		_, result, err := app.Deliver(tx)
+		_, _, err = app.Deliver(tx)
 		if err != nil {
 			// to aid debugging, add the stack trace to the comment field of the returned opMsg
 			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 		// to aid debugging, add the result log to the comment field
-		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
