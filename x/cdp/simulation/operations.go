@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
@@ -134,7 +133,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 		// a cdp already exists, deposit to it, draw debt from it, or repay debt to it
 		// close 25% of the time
-		if canClose(acc, existingCDP, debtParam.Denom) && shouldClose(r) {
+		if canClose(spendableCoins, existingCDP, debtParam.Denom) && shouldClose(r) {
 			repaymentAmount := spendableCoins.AmountOf(debtParam.Denom)
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(debtParam.Denom, repaymentAmount))
 
@@ -157,7 +156,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 		}
 
 		// deposit 25% of the time
-		if hasCoins(acc, randCollateralParam.Denom) && shouldDeposit(r) {
+		if hasCoins(spendableCoins, randCollateralParam.Denom) && shouldDeposit(r) {
 			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
 			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount))
 
@@ -224,16 +223,21 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 		}
 
 		// repay debt 25% of the time
-		if hasCoins(acc, debtParam.Denom) {
+		if hasCoins(spendableCoins, debtParam.Denom) {
 			debt := existingCDP.Principal.Amount
-			maxRepay := spendableCoins.AmountOf(debtParam.Denom)
 			payableDebt := debt.Sub(debtParam.DebtFloor)
-			if maxRepay.GT(payableDebt) {
-				maxRepay = payableDebt
+			if payableDebt.IsZero() {
+				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cannot make partial repayment, cdp at debt floor", false, nil), nil, nil
 			}
-			randRepayAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
-			if debt.Equal(debtParam.DebtFloor) && spendableCoins.AmountOf(debtParam.Denom).GTE(debt) {
-				randRepayAmount = debt
+			maxRepay := sdk.MinInt(
+				spendableCoins.AmountOf(debtParam.Denom),
+				payableDebt,
+			)
+			var randRepayAmount sdk.Int
+			if maxRepay.Equal(sdk.OneInt()) {
+				randRepayAmount = sdk.OneInt()
+			} else {
+				randRepayAmount = sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
 			}
 
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(debtParam.Denom, randRepayAmount))
@@ -272,8 +276,8 @@ func shouldDeposit(r *rand.Rand) bool {
 	return value > threshold
 }
 
-func hasCoins(acc authexported.Account, denom string) bool {
-	return acc.GetCoins().AmountOf(denom).IsPositive()
+func hasCoins(spendableCoins sdk.Coins, denom string) bool {
+	return spendableCoins.AmountOf(denom).IsPositive()
 }
 
 func shouldClose(r *rand.Rand) bool {
@@ -282,7 +286,7 @@ func shouldClose(r *rand.Rand) bool {
 	return value > threshold
 }
 
-func canClose(acc authexported.Account, c types.CDP, denom string) bool {
+func canClose(spendableCoins sdk.Coins, c types.CDP, denom string) bool {
 	repaymentAmount := c.Principal.Add(c.AccumulatedFees).Amount
-	return acc.GetCoins().AmountOf(denom).GTE(repaymentAmount)
+	return spendableCoins.AmountOf(denom).GTE(repaymentAmount)
 }
