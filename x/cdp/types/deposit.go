@@ -10,11 +10,11 @@ import (
 type Deposit struct {
 	CdpID     uint64         `json:"cdp_id" yaml:"cdp_id"`       //  cdpID of the cdp
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` //  Address of the depositor
-	Amount    sdk.Coins      `json:"amount" yaml:"amount"`       //  Deposit amount
+	Amount    sdk.Coin       `json:"amount" yaml:"amount"`       //  Deposit amount
 }
 
 // NewDeposit creates a new Deposit object
-func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coins) Deposit {
+func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coin) Deposit {
 	return Deposit{cdpID, depositor, amount}
 }
 
@@ -56,7 +56,7 @@ func (ds Deposits) SumCollateral() (sum sdk.Int) {
 	sum = sdk.ZeroInt()
 	for _, d := range ds {
 		if !d.Amount.IsZero() {
-			sum = sum.Add(d.Amount[0].Amount)
+			sum = sum.Add(d.Amount.Amount)
 		}
 	}
 	return

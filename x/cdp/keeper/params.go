@@ -32,11 +32,9 @@ func (k Keeper) GetCollateral(ctx sdk.Context, denom string) (types.CollateralPa
 
 // GetDebtParam returns the debt param with matching denom
 func (k Keeper) GetDebtParam(ctx sdk.Context, denom string) (types.DebtParam, bool) {
-	params := k.GetParams(ctx)
-	for _, dp := range params.DebtParams {
-		if dp.Denom == denom {
-			return dp, true
-		}
+	dp := k.GetParams(ctx).DebtParam
+	if dp.Denom == denom {
+		return dp, true
 	}
 	return types.DebtParam{}, false
 }

@@ -56,17 +56,15 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 	}
 	distTimeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistTime.Unix())
 	if distTimeElapsed.GTE(sdk.NewInt(int64(params.SavingsDistributionFrequency.Seconds()))) {
-		for _, dp := range params.DebtParams {
-			err := k.DistributeSavingsRate(ctx, dp.Denom)
-			if err != nil {
-				ctx.EventManager().EmitEvent(
-					sdk.NewEvent(
-						EventTypeBeginBlockerFatal,
-						sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
-						sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
-					),
-				)
-			}
+		err := k.DistributeSavingsRate(ctx, params.DebtParam.Denom)
+		if err != nil {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					EventTypeBeginBlockerFatal,
+					sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
+					sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
+				),
+			)
 		}
 		k.SetPreviousSavingsDistribution(ctx, ctx.BlockTime())
 	}

@@ -12,15 +12,15 @@ import (
 type CDP struct {
 	ID              uint64         `json:"id" yaml:"id"`                 // unique id for cdp
 	Owner           sdk.AccAddress `json:"owner" yaml:"owner"`           // Account that authorizes changes to the CDP
-	Collateral      sdk.Coins      `json:"collateral" yaml:"collateral"` // Amount of collateral stored in this CDP
-	Principal       sdk.Coins      `json:"principal" yaml:"principal"`
-	AccumulatedFees sdk.Coins      `json:"accumulated_fees" yaml:"accumulated_fees"`
+	Collateral      sdk.Coin       `json:"collateral" yaml:"collateral"` // Amount of collateral stored in this CDP
+	Principal       sdk.Coin       `json:"principal" yaml:"principal"`
+	AccumulatedFees sdk.Coin       `json:"accumulated_fees" yaml:"accumulated_fees"`
 	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"` // Amount of stable coin drawn from this CDP
 }
 
 // NewCDP creates a new CDP object
-func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coins, principal sdk.Coins, time time.Time) CDP {
-	var fees sdk.Coins
+func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, principal sdk.Coin, time time.Time) CDP {
+	fees := sdk.NewCoin(principal.Denom, sdk.ZeroInt())
 	return CDP{
 		ID:              id,
 		Owner:           owner,
@@ -43,7 +43,7 @@ func (cdp CDP) String() string {
 	Fees Last Updated: %s`,
 		cdp.Owner,
 		cdp.ID,
-		cdp.Collateral[0].Denom,
+		cdp.Collateral.Denom,
 		cdp.Collateral,
 		cdp.Principal,
 		cdp.AccumulatedFees,
@@ -101,7 +101,7 @@ func (augCDP AugmentedCDP) String() string {
 	Collateralization ratio: %s`,
 		augCDP.Owner,
 		augCDP.ID,
-		augCDP.Collateral[0].Denom,
+		augCDP.Collateral.Denom,
 		augCDP.Collateral,
 		augCDP.CollateralValue,
 		augCDP.Principal,
