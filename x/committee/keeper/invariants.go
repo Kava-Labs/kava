@@ -73,7 +73,7 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 
 			com, found := k.GetCommittee(ctx, proposal.CommitteeID)
 			if !found {
-				validationErr = fmt.Errorf("proposal refers to non existant committee ID '%d'", proposal.CommitteeID)
+				validationErr = fmt.Errorf("proposal has no committee %d", proposal.CommitteeID)
 				return true
 			}
 
@@ -105,20 +105,28 @@ func ValidVotesInvariant(k Keeper) sdk.Invariant {
 		var validationErr error
 		var invalidVote types.Vote
 		k.IterateVotes(ctx, func(vote types.Vote) bool {
-
-			if _, found := k.GetProposal(ctx, vote.ProposalID); !found {
-				validationErr = fmt.Errorf("vote refers to non existant proposal ID '%d'", vote.ProposalID)
-				invalidVote = vote
-				return true
-			}
+			invalidVote = vote
 
 			if vote.Voter.Empty() {
 				validationErr = fmt.Errorf("empty voter address")
-				invalidVote = vote
 				return true
 			}
 
-			// TODO check voter is a committee member?
+			proposal, found := k.GetProposal(ctx, vote.ProposalID)
+			if !found {
+				validationErr = fmt.Errorf("vote has no proposal %d", vote.ProposalID)
+				return true
+			}
+
+			com, found := k.GetCommittee(ctx, proposal.CommitteeID)
+			if !found {
+				validationErr = fmt.Errorf("vote's proposal has no committee %d", proposal.CommitteeID)
+				return true
+			}
+			if !com.HasMember(vote.Voter) {
+				validationErr = fmt.Errorf("voter is not a member of committee %+v", com)
+				return true
+			}
 
 			return false
 		})
