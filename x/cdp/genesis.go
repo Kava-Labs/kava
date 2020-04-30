@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.SupplyKeeper, gs GenesisState) {
 
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
@@ -61,12 +62,13 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk PricefeedKeeper, sk SupplyKeeper,
 		k.IndexCdpByOwner(ctx, cdp)
 		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral.Denom, cdp.ID, ratio)
-		k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, cdp.Principal)
+		k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, cdp.Principal.Add(cdp.AccumulatedFees))
 	}
 
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 	k.SetGovDenom(ctx, gs.GovDenom)
+	k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)

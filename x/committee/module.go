@@ -1,4 +1,4 @@
-package cdp
+package committee
 
 import (
 	"encoding/json"
@@ -11,13 +11,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/kava-labs/kava/x/cdp/client/cli"
-	"github.com/kava-labs/kava/x/cdp/client/rest"
-	"github.com/kava-labs/kava/x/cdp/simulation"
-	"github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/committee/client/cli"
+	"github.com/kava-labs/kava/x/committee/client/rest"
+	"github.com/kava-labs/kava/x/committee/simulation"
 )
 
 var (
@@ -29,7 +29,7 @@ var (
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
 
-// Name get module name
+// Name gets the module name
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
@@ -54,17 +54,17 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	return gs.Validate()
 }
 
-// RegisterRESTRoutes registers the REST routes for the cdp module.
+// RegisterRESTRoutes registers the REST routes for the module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the cdp module.
+// GetTxCmd returns the root tx command for the module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+	return cli.GetTxCmd(StoreKey, cdc)
 }
 
-// GetQueryCmd returns the root query command for the auction module.
+// GetQueryCmd returns the root query command for the module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
@@ -75,20 +75,16 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper          Keeper
-	accountKeeper   types.AccountKeeper
-	pricefeedKeeper types.PricefeedKeeper
-	supplyKeeper    types.SupplyKeeper
+	keeper        Keeper
+	accountKeeper auth.AccountKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, pricefeedKeeper types.PricefeedKeeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper) AppModule {
 	return AppModule{
-		AppModuleBasic:  AppModuleBasic{},
-		keeper:          keeper,
-		accountKeeper:   accountKeeper,
-		pricefeedKeeper: pricefeedKeeper,
-		supplyKeeper:    supplyKeeper,
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         keeper,
+		accountKeeper:  accountKeeper,
 	}
 }
 
@@ -102,7 +98,7 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route module message route name
 func (AppModule) Route() string {
-	return ModuleName
+	return RouterKey
 }
 
 // NewHandler module handler
@@ -112,7 +108,7 @@ func (am AppModule) NewHandler() sdk.Handler {
 
 // QuerierRoute module querier route name
 func (AppModule) QuerierRoute() string {
-	return ModuleName
+	return QuerierRoute
 }
 
 // NewQuerierHandler module querier
@@ -124,7 +120,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.pricefeedKeeper, am.supplyKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 
 	return []abci.ValidatorUpdate{}
 }
@@ -147,27 +143,27 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 //____________________________________________________________________________
 
-// GenerateGenesisState creates a randomized GenState of the cdp module
+// GenerateGenesisState creates a randomized GenState for the module
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
-// ProposalContents doesn't return any content functions for governance proposals.
+// TODO
 func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
 	return nil
 }
 
-// RandomizedParams returns nil because cdp has no params.
+// RandomizedParams returns functions that generate params for the module.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return simulation.ParamChanges(r)
+	return nil
 }
 
-// RegisterStoreDecoder registers a decoder for cdp module's types
+// RegisterStoreDecoder registers a decoder for the module's types
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns the all the cdp module operations with their respective weights.
+// WeightedOperations returns the all the auction module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, am.pricefeedKeeper)
+	return nil // TODO simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }
