@@ -642,9 +642,14 @@ func TestKvCLISubmitParamChangeProposal(t *testing.T) {
       "value": 105
     }
   ],
-  "deposit": "%sstake"
+  "deposit": [
+    {
+      "denom": "%s",
+      "amount": "%s"
+    }
+  ]
 }
-`, proposalTokens.String())
+`, sdk.DefaultBondDenom, proposalTokens.String())
 
 	proposalFile := WriteToNewTempFile(t, proposal)
 
@@ -715,10 +720,20 @@ func TestKvCLISubmitCommunityPoolSpendProposal(t *testing.T) {
   "title": "Community Pool Spend",
   "description": "Spend from community pool",
   "recipient": "%s",
-  "amount": "1%s",
-  "deposit": "%s%s"
+  "amount": [
+    {
+      "denom": "%s",
+      "amount": "1"
+    }
+  ],
+  "deposit": [
+    {
+      "denom": "%s",
+      "amount": "%s"
+    }
+  ]
 }
-`, fooAddr, sdk.DefaultBondDenom, proposalTokens.String(), sdk.DefaultBondDenom)
+`, fooAddr, sdk.DefaultBondDenom, sdk.DefaultBondDenom, proposalTokens.String())
 	proposalFile := WriteToNewTempFile(t, proposal)
 
 	// create the param change proposal
