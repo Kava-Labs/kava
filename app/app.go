@@ -4,14 +4,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/bep3"
-	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/incentive"
-	"github.com/kava-labs/kava/x/kavadist"
-	"github.com/kava-labs/kava/x/pricefeed"
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -37,6 +29,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/bep3"
+	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/kavadist"
+	"github.com/kava-labs/kava/x/pricefeed"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 const (
@@ -59,7 +60,7 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler),
+		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler, committee.ProposalHandler),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -68,6 +69,7 @@ var (
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
+		committee.AppModuleBasic{},
 		bep3.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		incentive.AppModuleBasic{},
@@ -121,6 +123,7 @@ type App struct {
 	auctionKeeper   auction.Keeper
 	cdpKeeper       cdp.Keeper
 	pricefeedKeeper pricefeed.Keeper
+	committeeKeeper committee.Keeper
 	bep3Keeper      bep3.Keeper
 	kavadistKeeper  kavadist.Keeper
 	incentiveKeeper incentive.Keeper
@@ -148,7 +151,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, evidence.StoreKey, validatorvesting.StoreKey,
 		auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey,
-		kavadist.StoreKey, incentive.StoreKey,
+		kavadist.StoreKey, incentive.StoreKey, committee.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -245,11 +248,27 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	evidenceKeeper.SetRouter(evidenceRouter)
 	app.evidenceKeeper = *evidenceKeeper
 
+	// create committee keeper with router
+	committeeGovRouter := gov.NewRouter()
+	committeeGovRouter.
+		AddRoute(gov.RouterKey, gov.ProposalHandler).
+		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
+	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
+	app.committeeKeeper = committee.NewKeeper(
+		app.cdc,
+		keys[committee.StoreKey],
+		committeeGovRouter, // TODO blacklist module addresses?
+	)
+
+	// create gov keeper with router
 	govRouter := gov.NewRouter()
 	govRouter.
 		AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(committee.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc,
 		keys[gov.StoreKey],
@@ -334,12 +353,15 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
+		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, incentive.ModuleName)
+	// Auction.BeginBlocker will close out expired auctions and pay debt back to cdp.
+	// So it should be run before cdp.BeginBlocker which cancels out debt with stable and starts more auctions.
+	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName, validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName, bep3.ModuleName, incentive.ModuleName, committee.ModuleName)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
 
@@ -348,7 +370,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		validatorvesting.ModuleName, distr.ModuleName,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName,
+		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
+		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
