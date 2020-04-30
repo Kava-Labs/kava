@@ -116,7 +116,6 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			// to aid debugging, add the stack trace to the comment field of the returned opMsg
 			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
-		// to aid debugging, add the result log to the comment field
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
