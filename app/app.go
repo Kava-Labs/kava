@@ -401,6 +401,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
+		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
