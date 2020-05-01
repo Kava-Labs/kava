@@ -311,6 +311,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.cdc,
 		keys[bep3.StoreKey],
 		app.supplyKeeper,
+		app.accountKeeper,
 		bep3Subspace,
 	)
 	app.kavadistKeeper = kavadist.NewKeeper(

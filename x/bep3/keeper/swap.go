@@ -55,6 +55,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	switch direction {
 	case types.Incoming:
+		// If recipient's account doesn't exist, register it in state
+		recipientAcc := k.accountKeeper.GetAccount(ctx, recipient)
+		if recipientAcc == nil {
+			newAcc := k.accountKeeper.NewAccountWithAddress(ctx, recipient)
+			k.accountKeeper.SetAccount(ctx, newAcc)
+		}
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])

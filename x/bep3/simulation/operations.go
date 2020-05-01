@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
@@ -28,7 +27,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
+	appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightCreateAtomicSwap int
 
@@ -47,7 +46,7 @@ func WeightedOperations(
 }
 
 // SimulateMsgCreateAtomicSwap generates a MsgCreateAtomicSwap with random values
-func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulation.Operation {
+func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -143,7 +142,7 @@ func SimulateMsgCreateAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper) simulat
 	}
 }
 
-func operationClaimAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper, swapID []byte, randomNumber []byte) simulation.Operation {
+func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []byte, randomNumber []byte) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
@@ -176,7 +175,7 @@ func operationClaimAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper, swapID []b
 	}
 }
 
-func operationRefundAtomicSwap(ak auth.AccountKeeper, k keeper.Keeper, swapID []byte) simulation.Operation {
+func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []byte) simulation.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
