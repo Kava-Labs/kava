@@ -200,7 +200,7 @@ func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coin, fees sdk.Coin, 
 
 	feePayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
 	principalPayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
-	overpayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
+	var overpayment sdk.Coin
 	if !payment.Amount.IsPositive() {
 		return feePayment, principalPayment
 	}

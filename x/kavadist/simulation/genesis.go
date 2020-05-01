@@ -79,8 +79,5 @@ func genRandomInflation(r *rand.Rand) sdk.Dec {
 func genRandomActive(r *rand.Rand) bool {
 	threshold := 50
 	value := simulation.RandIntBetween(r, 1, 100)
-	if value > threshold {
-		return true
-	}
-	return false
+	return value > threshold
 }
