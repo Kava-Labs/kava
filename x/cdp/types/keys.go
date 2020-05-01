@@ -60,9 +60,6 @@ var (
 	PreviousDistributionTimeKey = []byte{0x08}
 )
 
-var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))
-var lenNegativeDec = len(SortableDecBytes(sdk.OneDec().Neg()))
-
 // GetCdpIDBytes returns the byte representation of the cdpID
 func GetCdpIDBytes(cdpID uint64) (cdpIDBz []byte) {
 	cdpIDBz = make([]byte, 8)

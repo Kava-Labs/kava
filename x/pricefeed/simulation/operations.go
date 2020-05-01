@@ -18,7 +18,6 @@ import (
 )
 
 var (
-	noOpMsg   = simulation.NoOpMsg(types.ModuleName)
 	btcPrices = []sdk.Dec{}
 	bnbPrices = []sdk.Dec{}
 	xrpPrices = []sdk.Dec{}
