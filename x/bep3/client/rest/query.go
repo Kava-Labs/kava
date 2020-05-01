@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
+
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 

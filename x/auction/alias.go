@@ -12,29 +12,29 @@ import (
 // ALIASGEN: github.com/kava-labs/kava/x/auction/types
 
 const (
-	EventTypeAuctionStart                 = types.EventTypeAuctionStart
-	EventTypeAuctionBid                   = types.EventTypeAuctionBid
-	EventTypeAuctionClose                 = types.EventTypeAuctionClose
-	AttributeValueCategory                = types.AttributeValueCategory
-	AttributeKeyAuctionID                 = types.AttributeKeyAuctionID
-	AttributeKeyAuctionType               = types.AttributeKeyAuctionType
-	AttributeKeyBidder                    = types.AttributeKeyBidder
-	AttributeKeyBidDenom                  = types.AttributeKeyBidDenom
-	AttributeKeyLotDenom                  = types.AttributeKeyLotDenom
-	AttributeKeyBidAmount                 = types.AttributeKeyBidAmount
-	AttributeKeyLotAmount                 = types.AttributeKeyLotAmount
-	AttributeKeyEndTime                   = types.AttributeKeyEndTime
-	DefaultNextAuctionID                  = types.DefaultNextAuctionID
-	ModuleName                            = types.ModuleName
-	StoreKey                              = types.StoreKey
-	RouterKey                             = types.RouterKey
-	DefaultParamspace                     = types.DefaultParamspace
-	QuerierRoute                          = types.QuerierRoute
-	DefaultMaxAuctionDuration             = types.DefaultMaxAuctionDuration
-	DefaultBidDuration                    = types.DefaultBidDuration
-	QueryGetAuction                       = types.QueryGetAuction
-	QueryGetAuctions                      = types.QueryGetAuctions
-	QueryGetParams                        = types.QueryGetParams
+	EventTypeAuctionStart     = types.EventTypeAuctionStart
+	EventTypeAuctionBid       = types.EventTypeAuctionBid
+	EventTypeAuctionClose     = types.EventTypeAuctionClose
+	AttributeValueCategory    = types.AttributeValueCategory
+	AttributeKeyAuctionID     = types.AttributeKeyAuctionID
+	AttributeKeyAuctionType   = types.AttributeKeyAuctionType
+	AttributeKeyBidder        = types.AttributeKeyBidder
+	AttributeKeyBidDenom      = types.AttributeKeyBidDenom
+	AttributeKeyLotDenom      = types.AttributeKeyLotDenom
+	AttributeKeyBidAmount     = types.AttributeKeyBidAmount
+	AttributeKeyLotAmount     = types.AttributeKeyLotAmount
+	AttributeKeyEndTime       = types.AttributeKeyEndTime
+	DefaultNextAuctionID      = types.DefaultNextAuctionID
+	ModuleName                = types.ModuleName
+	StoreKey                  = types.StoreKey
+	RouterKey                 = types.RouterKey
+	DefaultParamspace         = types.DefaultParamspace
+	QuerierRoute              = types.QuerierRoute
+	DefaultMaxAuctionDuration = types.DefaultMaxAuctionDuration
+	DefaultBidDuration        = types.DefaultBidDuration
+	QueryGetAuction           = types.QueryGetAuction
+	QueryGetAuctions          = types.QueryGetAuctions
+	QueryGetParams            = types.QueryGetParams
 )
 
 var (

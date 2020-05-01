@@ -4,8 +4,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/bep3/types"
+
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }

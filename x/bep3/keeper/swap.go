@@ -126,21 +126,23 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	case types.Incoming:
 		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
-			break
+			return err
 		}
 		err = k.IncrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
-			break
+			return err
 		}
 		err = k.DecrementCurrentAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
 	default:
-		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
-	}
-
-	if err != nil {
-		return err
+		return fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
 	}
 
 	// Send intended recipient coins
@@ -245,13 +247,13 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
 	}
 
 	// Emit 'swaps_expired' event
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeSwapsExpired,
-				sdk.NewAttribute(types.AttributeKeyAtomicSwapIDs, fmt.Sprintf("%s", expiredSwapIDs)),
-				sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
-			),
-		)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSwapsExpired,
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapIDs, fmt.Sprintf("%s", expiredSwapIDs)),
+			sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
+		),
+	)
 
 	return nil
 }

@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -20,6 +22,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
+
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
@@ -27,10 +34,6 @@ import (
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
 )
 
 type StoreKeysPrefixes struct {

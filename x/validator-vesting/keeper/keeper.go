@@ -7,8 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
-	"github.com/kava-labs/kava/x/validator-vesting/types"
+
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 // Keeper of the validatorvesting store
@@ -155,34 +157,38 @@ func (k Keeper) ResetCurrentPeriodProgress(ctx sdk.Context, addr sdk.AccAddress)
 func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTime time.Time) {
 	vv := k.GetAccountFromAuthKeeper(ctx, addr)
 
-	if !vv.DebtAfterFailedVesting.IsZero() {
-		spendableCoins := vv.SpendableCoins(blockTime)
-		if spendableCoins.IsAllGTE(vv.DebtAfterFailedVesting) {
-			if vv.ReturnAddress != nil {
-				err := k.bk.SendCoins(ctx, addr, vv.ReturnAddress, vv.DebtAfterFailedVesting)
-				if err != nil {
-					panic(err)
-				}
-			} else {
-				err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, vv.DebtAfterFailedVesting)
-				if err != nil {
-					panic(err)
-				}
-				err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, vv.DebtAfterFailedVesting)
-				if err != nil {
-					panic(err)
-				}
+	if vv.DebtAfterFailedVesting.IsZero() {
+		return
+	}
+	spendableCoins := vv.SpendableCoins(blockTime)
+	if spendableCoins.IsAllGTE(vv.DebtAfterFailedVesting) {
+		if vv.ReturnAddress != nil {
+			err := k.bk.SendCoins(ctx, addr, vv.ReturnAddress, vv.DebtAfterFailedVesting)
+			if err != nil {
+				panic(err)
 			}
-			k.ResetDebt(ctx, addr)
 		} else {
-			// iterate over all delegations made from the validator vesting account and undelegate
-			// note that we cannot safely undelegate only an amount of shares that covers the debt,
-			// because the value of those shares could change if a validator gets slashed.
-			k.stakingKeeper.IterateDelegations(ctx, vv.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
-				k.stakingKeeper.Undelegate(ctx, d.GetDelegatorAddr(), d.GetValidatorAddr(), d.GetShares())
-				return false
-			})
+			err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, vv.DebtAfterFailedVesting)
+			if err != nil {
+				panic(err)
+			}
+			err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, vv.DebtAfterFailedVesting)
+			if err != nil {
+				panic(err)
+			}
 		}
+		k.ResetDebt(ctx, addr)
+	} else {
+		// iterate over all delegations made from the validator vesting account and undelegate
+		// note that we cannot safely undelegate only an amount of shares that covers the debt,
+		// because the value of those shares could change if a validator gets slashed.
+		k.stakingKeeper.IterateDelegations(ctx, vv.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
+			_, err := k.stakingKeeper.Undelegate(ctx, d.GetDelegatorAddr(), d.GetValidatorAddr(), d.GetShares())
+			if err != nil {
+				panic(err)
+			}
+			return false
+		})
 	}
 }
 

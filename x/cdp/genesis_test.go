@@ -5,10 +5,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/stretchr/testify/suite"
 )
 
 type GenesisTestSuite struct {

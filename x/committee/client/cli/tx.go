@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/kava-labs/kava/x/committee/types"

@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -141,7 +142,10 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	// and remove the cdp and indexes from the store
 	if cdp.Principal.IsZero() && cdp.AccumulatedFees.IsZero() {
 		k.ReturnCollateral(ctx, cdp)
-		k.DeleteCDP(ctx, cdp)
+		if err := k.DeleteCDP(ctx, cdp); err != nil {
+			return err
+		}
+
 		k.RemoveCdpOwnerIndex(ctx, cdp)
 
 		// emit cdp close event

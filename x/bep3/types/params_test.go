@@ -3,10 +3,12 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type ParamsTestSuite struct {

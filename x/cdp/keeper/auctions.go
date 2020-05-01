@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -209,7 +210,9 @@ func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
 func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
-	k.NetSurplusAndDebt(ctx)
+	if err := k.NetSurplusAndDebt(ctx); err != nil {
+		return err
+	}
 	remainingDebt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	params := k.GetParams(ctx)
 	if remainingDebt.GTE(params.DebtAuctionThreshold) {

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/codec"
 	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkrest "github.com/cosmos/cosmos-sdk/types/rest"
@@ -21,11 +22,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/pricefeed"
-	"github.com/tendermint/go-amino"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func init() {
@@ -394,7 +396,7 @@ func getKeybase() crkeys.Keybase {
 }
 
 // sendMsgToBlockchain sends a message to the blockchain via the rest api
-func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
+func sendMsgToBlockchain(cdc *codec.Codec, address string, keyname string,
 	password string, msg []sdk.Msg, keybase crkeys.Keybase) {
 
 	// get the account number and sequence number
@@ -450,7 +452,7 @@ func sendMsgToBlockchain(cdc *amino.Codec, address string, keyname string,
 }
 
 // getAccountNumberAndSequenceNumber gets an account number and sequence number from the blockchain
-func getAccountNumberAndSequenceNumber(cdc *amino.Codec, address string) (accountNumber uint64, sequenceNumber uint64) {
+func getAccountNumberAndSequenceNumber(cdc *codec.Codec, address string) (accountNumber uint64, sequenceNumber uint64) {
 
 	// we need to setup the account number and sequence in order to have a valid transaction
 	resp, err := http.Get("http://localhost:1317/auth/accounts/" + address)

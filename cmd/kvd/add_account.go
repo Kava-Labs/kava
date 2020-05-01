@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -22,6 +21,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 const (

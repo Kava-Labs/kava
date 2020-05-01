@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"strings"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func (suite *KeeperTestSuite) TestQuerier() {

@@ -9,6 +9,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/cdp/types"
 )

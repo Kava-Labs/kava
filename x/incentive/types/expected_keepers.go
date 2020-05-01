@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 

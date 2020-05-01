@@ -3,10 +3,12 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type accountTest struct {
@@ -22,7 +24,7 @@ type AccountTestSuite struct {
 
 func (suite *AccountTestSuite) SetupTest() {
 	tests := []accountTest{
-		accountTest{
+		{
 			periods: vesting.Periods{
 				vesting.Period{
 					Length: int64(100),

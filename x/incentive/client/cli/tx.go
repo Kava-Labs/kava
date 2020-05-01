@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,8 +14,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/spf13/cobra"
 )
 
 // GetTxCmd returns the transaction cli commands for the incentive module

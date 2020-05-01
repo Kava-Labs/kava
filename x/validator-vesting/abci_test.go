@@ -4,13 +4,16 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+
 	"github.com/kava-labs/kava/x/validator-vesting/keeper"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
@@ -260,7 +263,7 @@ func TestBeginBlockerSuccessfulPeriod(t *testing.T) {
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// t.Log(vva.MarshalYAML())
-	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{{true, true}, {false, false}, {false, false}}, vva.VestingPeriodProgress)
 }
 
 func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
@@ -320,8 +323,8 @@ func TestBeginBlockerUnsuccessfulPeriod(t *testing.T) {
 	}
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	// check that the period was unsucessful
-	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, false}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
+	// check that the period was unsuccessful
+	require.Equal(t, []types.VestingProgress{{true, false}, {false, false}, {false, false}}, vva.VestingPeriodProgress)
 	// check that there is debt after the period.
 	require.Equal(t, sdk.Coins{sdk.NewInt64Coin("stake", 30000000)}, vva.DebtAfterFailedVesting)
 

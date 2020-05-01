@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -198,7 +199,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(types.CdpKey(db, cdp.ID), bz)
@@ -210,7 +211,7 @@ func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	store.Delete(types.CdpKey(db, cdp.ID))
 	return nil
@@ -431,7 +432,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 		return types.AugmentedCDP{}, err
 	}
 
-	// total debt is the sum of all oustanding principal and fees
+	// total debt is the sum of all outstanding principal and fees
 	var totalDebt int64
 	totalDebt += cdp.Principal.Amount.Int64()
 	totalDebt += cdp.AccumulatedFees.Amount.Int64()

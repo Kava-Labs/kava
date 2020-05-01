@@ -3,9 +3,10 @@ package types
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type PermissionsTestSuite struct {

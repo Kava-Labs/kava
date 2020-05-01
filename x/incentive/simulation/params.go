@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -17,10 +18,7 @@ const (
 func genActive(r *rand.Rand) bool {
 	threshold := 80
 	value := simulation.RandIntBetween(r, 1, 100)
-	if value > threshold {
-		return false
-	}
-	return true
+	return value <= threshold
 }
 
 // ParamChanges defines the parameters that can be modified by param change proposals

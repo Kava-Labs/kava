@@ -7,16 +7,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
 	pfkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 const (
