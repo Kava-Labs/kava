@@ -27,10 +27,6 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey,
 	sk types.SupplyKeeper, ak types.AccountKeeper,
 	paramstore subspace.Subspace,
 ) Keeper {
-	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
-	}
-
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
