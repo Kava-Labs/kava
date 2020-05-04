@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 

@@ -8,6 +8,7 @@ import (
 // NewHandler creates an sdk.Handler for cdp messages
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case MsgCreateCDP:
 			return handleMsgCreateCDP(ctx, k, msg)

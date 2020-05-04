@@ -4,8 +4,10 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"

@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -55,14 +56,27 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 			return false
 		}
 		// mint debt coins to the cdp account
-		k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
+		err := k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
+		if err != nil {
+			iterationErr = err
+			return true
+		}
 		previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, dp.Denom)
 		newDebt := previousDebt.Add(newFees.Amount)
 		k.SetTotalPrincipal(ctx, collateralDenom, dp.Denom, newDebt)
 
 		// mint surplus coins divided between the liquidator and savings module accounts.
-		k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
-		k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		err = k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+		if err != nil {
+			iterationErr = err
+			return true
+		}
+
+		err = k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		if err != nil {
+			iterationErr = err
+			return true
+		}
 
 		// now add the new fees fees to the accumulated fees for the cdp
 		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees)
@@ -71,7 +85,7 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 		cdp.FeesUpdated = ctx.BlockTime()
 		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
 		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
-		err := k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+		err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 		if err != nil {
 			iterationErr = err
 			return true

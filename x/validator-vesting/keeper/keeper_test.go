@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
+
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
@@ -152,7 +154,7 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	ak.SetAccount(ctx, vva)
 
 	// require all vesting period tracking variables to be zero after validator vesting account is initialized
-	require.Equal(t, []types.VestingProgress{types.VestingProgress{false, false}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{{false, false}, {false, false}, {false, false}}, vva.VestingPeriodProgress)
 
 	// period 0 passes with all blocks signed
 	vva.CurrentPeriodProgress.MissedBlocks = 0
@@ -164,7 +166,7 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	// require that debt is zerox
 	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
 	// require that the first vesting progress variable is successful
-	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{{true, true}, {false, false}, {false, false}}, vva.VestingPeriodProgress)
 
 	// require that the missing block counter has reset
 	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
@@ -183,7 +185,7 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	// require that debt is zero
 	require.Equal(t, sdk.Coins(nil), vva.DebtAfterFailedVesting)
 	// require that the first vesting progress variable is successful
-	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, true}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{{true, true}, {false, false}, {false, false}}, vva.VestingPeriodProgress)
 
 	// require that the missing block counter has reset
 	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
@@ -199,7 +201,7 @@ func TestUpdateVestedCoinsProgress(t *testing.T) {
 	// require that period 1 coins have become debt
 	require.Equal(t, sdk.NewCoins(sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)), vva.DebtAfterFailedVesting)
 	// require that the first vesting progress variable is {true, false}
-	require.Equal(t, []types.VestingProgress{types.VestingProgress{true, false}, types.VestingProgress{false, false}, types.VestingProgress{false, false}}, vva.VestingPeriodProgress)
+	require.Equal(t, []types.VestingProgress{{true, false}, {false, false}, {false, false}}, vva.VestingPeriodProgress)
 	// require that the missing block counter has reset
 	require.Equal(t, types.CurrentPeriodProgress{0, 0}, vva.CurrentPeriodProgress)
 }

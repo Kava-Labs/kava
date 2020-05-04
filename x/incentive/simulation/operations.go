@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -51,15 +50,12 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// Load only account types that can claim rewards
-		var accounts []authexported.Account
 		validAccounts := make(map[string]bool)
 		for _, acc := range accs {
 			account := ak.GetAccount(ctx, acc.Address)
 			switch account.(type) {
 			case *vesting.PeriodicVestingAccount, *auth.BaseAccount: // Valid: BaseAccount, PeriodicVestingAccount
-				accounts = append(accounts, account)
 				validAccounts[account.GetAddress().String()] = true
-				break
 			default: // Invalid: ValidatorVestingAccount, DelayedVestingAccount, ContinuousVestingAccount
 				break
 			}

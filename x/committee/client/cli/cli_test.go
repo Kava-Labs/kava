@@ -3,8 +3,9 @@ package cli_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee/client/cli"

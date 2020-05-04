@@ -2,6 +2,7 @@ package validatorvesting
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 

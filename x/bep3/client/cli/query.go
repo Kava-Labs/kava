@@ -6,11 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cobra"
+
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/x/bep3/types"

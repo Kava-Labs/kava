@@ -11,6 +11,7 @@ import (
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 

@@ -5,13 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
-	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 type CdpTestSuite struct {

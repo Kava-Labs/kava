@@ -7,8 +7,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/validator-vesting/types"
+
 	"github.com/tendermint/tendermint/libs/kv"
+
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding auth type

@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	amino "github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -79,7 +79,7 @@ func main() {
 	}
 }
 
-func queryCmd(cdc *amino.Codec) *cobra.Command {
+func queryCmd(cdc *codec.Codec) *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:     "query",
 		Aliases: []string{"q"},
@@ -102,7 +102,7 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 	return queryCmd
 }
 
-func txCmd(cdc *amino.Codec) *cobra.Command {
+func txCmd(cdc *codec.Codec) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:   "tx",
 		Short: "Transactions subcommands",

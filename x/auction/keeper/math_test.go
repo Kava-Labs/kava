@@ -3,8 +3,9 @@ package keeper
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestSplitIntIntoWeightedBuckets(t *testing.T) {

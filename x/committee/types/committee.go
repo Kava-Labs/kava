@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	yaml "gopkg.in/yaml.v2"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"gopkg.in/yaml.v2"
 )
 
 const MaxCommitteeDescriptionLength int = 512
@@ -97,7 +98,7 @@ func (c Committee) Validate() error {
 
 // PubProposal is the interface that all proposals must fulfill to be submitted to a committee.
 // Proposal types can be created external to this module. For example a ParamChangeProposal, or CommunityPoolSpendProposal.
-// It is pinned to the equivalent type in the gov module to create compatability between proposal types.
+// It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
 type PubProposal govtypes.Content
 
 // Proposal is an internal record of a governance proposal submitted to a committee.

@@ -5,10 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/pricefeed"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // Avoid cluttering test cases with long function names
@@ -21,11 +22,11 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
-				pricefeed.Market{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
-			pricefeed.PostedPrice{
+			{
 				MarketID:      asset + ":usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         price,
@@ -77,18 +78,18 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
-				pricefeed.Market{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-				pricefeed.Market{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
-			pricefeed.PostedPrice{
+			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("8000.00"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
-			pricefeed.PostedPrice{
+			{
 				MarketID:      "xrp:usd",
 				OracleAddress: sdk.AccAddress{},
 				Price:         sdk.MustNewDecFromStr("0.25"),

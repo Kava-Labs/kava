@@ -9,12 +9,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	dbm "github.com/tendermint/tm-db"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtime "github.com/tendermint/tendermint/types/time"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -25,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
@@ -170,9 +172,12 @@ func ValidatorVestingTestAccount() *types.ValidatorVestingAccount {
 	testConsAddr := sdk.ConsAddress(testPk.Address())
 	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
-	bacc.SetCoins(origCoins)
+	err := bacc.SetCoins(origCoins)
+	if err != nil {
+		panic(err)
+	}
 	vva := types.NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
-	err := vva.Validate()
+	err = vva.Validate()
 	if err != nil {
 		panic(err)
 	}
@@ -194,9 +199,12 @@ func ValidatorVestingTestAccounts(numAccounts int) []*types.ValidatorVestingAcco
 		testConsAddr := sdk.ConsAddress(testPk[i].Address())
 		origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
 		bacc := auth.NewBaseAccountWithAddress(testAddr[i])
-		bacc.SetCoins(origCoins)
+		err := bacc.SetCoins(origCoins)
+		if err != nil {
+			panic(err)
+		}
 		vva := types.NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
-		err := vva.Validate()
+		err = vva.Validate()
 		if err != nil {
 			panic(err)
 		}
@@ -216,9 +224,12 @@ func ValidatorVestingDelegatorTestAccount(startTime time.Time) *types.ValidatorV
 	testConsAddr := sdk.ConsAddress(testPk.Address())
 	origCoins := sdk.Coins{sdk.NewInt64Coin(stakeDenom, 60000000)}
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
-	bacc.SetCoins(origCoins)
+	err := bacc.SetCoins(origCoins)
+	if err != nil {
+		panic(err)
+	}
 	vva := types.NewValidatorVestingAccount(&bacc, startTime.Unix(), periods, testConsAddr, nil, 90)
-	err := vva.Validate()
+	err = vva.Validate()
 	if err != nil {
 		panic(err)
 	}

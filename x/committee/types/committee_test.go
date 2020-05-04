@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/stretchr/testify/suite"
 )
 
 var _ PubProposal = UnregisteredPubProposal{}
@@ -161,7 +162,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 						},
 					}},
 			},
-			pubProposal:          UnregisteredPubProposal{govtypes.TextProposal{"A Title", "A description."}},
+			pubProposal:          UnregisteredPubProposal{govtypes.TextProposal{Title: "A Title", Description: "A description."}},
 			expectHasPermissions: false,
 		},
 	}

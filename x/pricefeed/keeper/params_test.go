@@ -3,12 +3,15 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/pricefeed/keeper"
 )
 
 type KeeperTestSuite struct {

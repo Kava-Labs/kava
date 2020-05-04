@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -19,7 +20,7 @@ func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod)
 
 // CreateNewRewardPeriod creates a new reward period from the input reward
 func (k Keeper) CreateNewRewardPeriod(ctx sdk.Context, reward types.Reward) {
-	// reward periods store the amount of rewards payed PER SECOND
+	// reward periods store the amount of rewards paid PER SECOND
 	rewardsPerSecond := sdk.NewDecFromInt(reward.AvailableRewards.Amount).Quo(sdk.NewDecFromInt(sdk.NewInt(int64(reward.Duration.Seconds())))).TruncateInt()
 	rewardCoinPerSecond := sdk.NewCoin(reward.AvailableRewards.Denom, rewardsPerSecond)
 	rp := types.RewardPeriod{
