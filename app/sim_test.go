@@ -8,6 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -23,13 +27,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
-
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
@@ -178,6 +179,7 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[kavadist.StoreKey], newApp.keys[kavadist.StoreKey], [][]byte{}},
 		{app.keys[pricefeed.StoreKey], newApp.keys[pricefeed.StoreKey], [][]byte{}},
 		{app.keys[validatorvesting.StoreKey], newApp.keys[validatorvesting.StoreKey], [][]byte{}},
+		{app.keys[committee.StoreKey], newApp.keys[committee.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {
