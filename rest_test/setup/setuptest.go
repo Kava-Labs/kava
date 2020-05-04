@@ -225,7 +225,7 @@ func sendDeposit() {
 
 	// create a deposit transaction to send to the proposal
 	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000))
-	deposit := gov.NewMsgDeposit(addr, 1, amount) // TODO IMPORTANT '1' must match 'x-example' in swagger.yaml
+	deposit := gov.NewMsgDeposit(addr, 1, amount) // Note: '1' must match 'x-example' in swagger.yaml
 	depositToSend := []sdk.Msg{deposit}
 
 	sendMsgToBlockchain(cdc, address, keyname, password, depositToSend, keybase)
@@ -252,7 +252,7 @@ func sendVote() {
 	// NOW SEND THE VOTE
 
 	// create a vote on a proposal to send to the blockchain
-	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes) // TODO IMPORTANT '1' must match 'x-example' in swagger.yaml
+	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes) // Note: '1' must match 'x-example' in swagger.yaml
 
 	// send a vote to the blockchain
 	voteToSend := []sdk.Msg{vote}
@@ -272,7 +272,7 @@ func sendCoins() {
 		panic(err)
 	}
 
-	addrTo, err := sdk.AccAddressFromBech32("kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz") // TODO IMPORTANT this is the faucet address
+	addrTo, err := sdk.AccAddressFromBech32("kava1ls82zzghsx0exkpr52m8vht5jqs3un0ceysshz") // Note: must match the faucet address
 	if err != nil {
 		panic(err)
 	}
@@ -286,7 +286,7 @@ func sendCoins() {
 	// create coins
 	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 2000000))
 
-	coins := bank.NewMsgSend(addrFrom, addrTo, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
+	coins := bank.NewMsgSend(addrFrom, addrTo, amount) // Note: '1' must match 'x-example' in swagger.yaml
 	coinsToSend := []sdk.Msg{coins}
 
 	// NOW SEND THE COINS
@@ -297,14 +297,14 @@ func sendCoins() {
 }
 
 func getTestAddress() (address string) {
-	// the test address - TODO IMPORTANT make sure this lines up with startchain.sh
+	// the test address - Note: this must match with startchain.sh
 	address = "kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c"
 	return address
 }
 
 func getKeynameAndPassword() (keyname string, password string) {
-	keyname = "vlad" // TODO - IMPORTANT this must match the keys in the startchain.sh script
-	password = ""    // TODO - IMPORTANT this must match the keys in the startchain.sh script
+	keyname = "vlad" // Note: this must match the keys in the startchain.sh script
+	password = ""    // Note: this must match the keys in the startchain.sh script
 	return keyname, password
 }
 
@@ -402,10 +402,6 @@ func sendMsgToBlockchain(cdc *codec.Codec, address string, keyname string,
 	// get the account number and sequence number
 	accountNumber, sequenceNumber := getAccountNumberAndSequenceNumber(cdc, address)
 
-	// inBuf := bufio.NewReader(os.Stdin)
-	// inBuf := strings.NewReader("--keyring-backend file --home /tmp/kvcliHome")
-
-	// TODO QUESTION - THIS PANICS BECAUSE WE AREN'T PASSING THE -keyring FLAG FROM COMMAND LINE.
 	txBldr := auth.NewTxBuilder(
 		authclient.GetTxEncoder(cdc), accountNumber, sequenceNumber, 500000, 0,
 		true, "testing", "memo", sdk.NewCoins(), sdk.NewDecCoins(),
@@ -413,14 +409,8 @@ func sendMsgToBlockchain(cdc *codec.Codec, address string, keyname string,
 		WithKeybase(keybase).WithAccountNumber(accountNumber).
 		WithSequence(sequenceNumber).WithGas(500000)
 
-	// txBldr := auth.NewTxBuilderFromCLI(inBuf).
-	// 	WithTxEncoder(authclient.GetTxEncoder(cdc)).WithChainID("testing").
-	// 	WithKeybase(keybase).WithAccountNumber(accountNumber).
-	// 	WithSequence(sequenceNumber).WithGas(500000)
-
 	// build and sign the transaction
 	// this is the *Amino* encoded version of the transaction
-	// fmt.Printf("%+v", txBldr.Keybase())
 	txBytes, err := txBldr.BuildAndSign("vlad", "", msg)
 	if err != nil {
 		panic(err)
