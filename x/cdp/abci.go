@@ -25,6 +25,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		err := k.UpdateFeesForAllCdps(ctx, cp.Denom)
 
 		// handle if an error is returned then propagate up
+		// TODO: panic here probably for mainnet (optional: have a bool that says panic or no)
 		if err != nil {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(

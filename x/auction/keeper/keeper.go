@@ -74,6 +74,7 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) error {
 func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64, error) {
 	newAuctionID, err := k.GetNextAuctionID(ctx)
 	if err != nil {
+		// TODO: We might want to panic on this condition
 		return 0, err
 	}
 	auction = auction.WithID(newAuctionID)

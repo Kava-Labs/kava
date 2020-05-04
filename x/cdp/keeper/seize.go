@@ -13,8 +13,8 @@ import (
 // 1. updates the fees for the input cdp,
 // 2. sends collateral for all deposits from the cdp module to the liquidator module account
 // 3. Applies the liquidation penalty and mints the corresponding amount of debt coins in the cdp module
-// 3. moves debt coins from the cdp module to the liquidator module account,
-// 4. decrements the total amount of principal outstanding for that collateral type
+// 4. moves debt coins from the cdp module to the liquidator module account,
+// 5. decrements the total amount of principal outstanding for that collateral type
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
