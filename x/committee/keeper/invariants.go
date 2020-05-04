@@ -9,7 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-// RegisterInvariants registers all staking invariants
+// RegisterInvariants registers all committee invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 
 	ir.RegisterRoute(types.ModuleName, "valid-committees",
