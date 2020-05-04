@@ -52,14 +52,6 @@ func main() {
 	sendUndelegation()
 	sendCoins()
 
-	sendProposal()
-	sendDeposit()
-	sendVote()
-	sendDelegation()
-	sendUndelegation()
-
-	sendCoins()
-
 	// create an XRP cdp and send to blockchain
 	sendXrpCdp()
 
@@ -233,7 +225,7 @@ func sendDeposit() {
 
 	// create a deposit transaction to send to the proposal
 	amount := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000))
-	deposit := gov.NewMsgDeposit(addr, 2, amount) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
+	deposit := gov.NewMsgDeposit(addr, 1, amount) // TODO IMPORTANT '1' must match 'x-example' in swagger.yaml
 	depositToSend := []sdk.Msg{deposit}
 
 	sendMsgToBlockchain(cdc, address, keyname, password, depositToSend, keybase)
@@ -260,7 +252,7 @@ func sendVote() {
 	// NOW SEND THE VOTE
 
 	// create a vote on a proposal to send to the blockchain
-	vote := gov.NewMsgVote(addr, uint64(2), types.OptionYes) // TODO IMPORTANT '2' must match 'x-example' in swagger.yaml
+	vote := gov.NewMsgVote(addr, uint64(1), types.OptionYes) // TODO IMPORTANT '1' must match 'x-example' in swagger.yaml
 
 	// send a vote to the blockchain
 	voteToSend := []sdk.Msg{vote}
