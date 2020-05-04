@@ -7,9 +7,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	kavadistTypes "github.com/kava-labs/kava/x/kavadist/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // Parameter keys and default values

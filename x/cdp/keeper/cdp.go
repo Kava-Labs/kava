@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -197,7 +199,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(cdp)
 	store.Set(types.CdpKey(db, cdp.ID), bz)
@@ -209,7 +211,7 @@ func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	db, found := k.GetDenomPrefix(ctx, cdp.Collateral.Denom)
 	if !found {
-		sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	store.Delete(types.CdpKey(db, cdp.ID))
 	return nil
@@ -271,6 +273,7 @@ func (k Keeper) IndexCdpByOwner(ctx sdk.Context, cdp types.CDP) {
 		return
 	}
 	cdpIDs = append(cdpIDs, cdp.ID)
+	sort.Slice(cdpIDs, func(i, j int) bool { return cdpIDs[i] < cdpIDs[j] })
 	store.Set(cdp.Owner, k.cdc.MustMarshalBinaryLengthPrefixed(cdpIDs))
 }
 
@@ -331,7 +334,6 @@ func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
-	return
 }
 
 // SetGovDenom set the denom of the governance token in the system
@@ -341,7 +343,6 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
-	return
 }
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
@@ -429,7 +430,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 		return types.AugmentedCDP{}, err
 	}
 
-	// total debt is the sum of all oustanding principal and fees
+	// total debt is the sum of all outstanding principal and fees
 	var totalDebt int64
 	totalDebt += cdp.Principal.Amount.Int64()
 	totalDebt += cdp.AccumulatedFees.Amount.Int64()

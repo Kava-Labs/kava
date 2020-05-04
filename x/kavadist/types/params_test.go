@@ -4,9 +4,11 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 type paramTest struct {
@@ -68,15 +70,15 @@ func (suite *ParamTestSuite) SetupTest() {
 	}
 
 	suite.tests = []paramTest{
-		paramTest{
+		{
 			params:     p1,
 			expectPass: true,
 		},
-		paramTest{
+		{
 			params:     p2,
 			expectPass: false,
 		},
-		paramTest{
+		{
 			params:     p3,
 			expectPass: false,
 		},

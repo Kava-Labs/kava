@@ -60,9 +60,6 @@ var (
 	PreviousDistributionTimeKey = []byte{0x08}
 )
 
-var lenPositiveDec = len(SortableDecBytes(sdk.OneDec()))
-var lenNegativeDec = len(SortableDecBytes(sdk.OneDec().Neg()))
-
 // GetCdpIDBytes returns the byte representation of the cdpID
 func GetCdpIDBytes(cdpID uint64) (cdpIDBz []byte) {
 	cdpIDBz = make([]byte, 8)
@@ -140,7 +137,7 @@ func CollateralRatioKey(denomByte byte, cdpID uint64, ratio sdk.Dec) []byte {
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
 func SplitCollateralRatioKey(key []byte) (denom byte, cdpID uint64, ratio sdk.Dec) {
 
-	cdpID = GetCdpIDFromBytes(key[len(key)-8 : len(key)])
+	cdpID = GetCdpIDFromBytes(key[len(key)-8:])
 	split := bytes.Split(key[:len(key)-8], sep)
 	denom = split[0][0]
 

@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -125,16 +124,4 @@ func genNextClaimPeriodIds(cps types.ClaimPeriods) types.GenesisClaimPeriodIDs {
 		claimPeriodIDs = append(claimPeriodIDs, claimPeriodID)
 	}
 	return claimPeriodIDs
-}
-
-// In a list of accounts, replace the first account found with the same address. If not found, append the account.
-func replaceOrAppendAccount(accounts []authexported.GenesisAccount, acc authexported.GenesisAccount) []authexported.GenesisAccount {
-	newAccounts := accounts
-	for i, a := range accounts {
-		if a.GetAddress().Equals(acc.GetAddress()) {
-			newAccounts[i] = acc
-			return newAccounts
-		}
-	}
-	return append(newAccounts, acc)
 }

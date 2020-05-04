@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -35,5 +36,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	if !found {
 		previousBlockTime = DefaultPreviousBlockTime
 	}
-	return NewGenesisState(params,previousBlockTime)
+	return NewGenesisState(params, previousBlockTime)
 }
