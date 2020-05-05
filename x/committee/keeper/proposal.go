@@ -162,6 +162,7 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 	cacheCtx, _ := ctx.CacheContext()
 	handler := k.router.GetRoute(pubProposal.ProposalRoute())
 
+	// TODO: Maybe make a PR to the SDK to fix this?
 	// Handle an edge case where a param change proposal causes the proposal handler to panic.
 	// A param change proposal with a registered subspace value but unregistered key value will cause a panic in the param change proposal handler.
 	// This defer will catch panics and return a normal error: `recover()` gets the panic value, then the enclosing function's return value is swapped for an error.

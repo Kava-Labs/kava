@@ -268,6 +268,7 @@ func (k Keeper) GetVotes(ctx sdk.Context) []types.Vote {
 	return results
 }
 
+// TODO: Might as well use a more specific iterator with the ProposalID as the prefix
 // GetVotesByProposal returns all votes for one proposal.
 func (k Keeper) GetVotesByProposal(ctx sdk.Context, proposalID uint64) []types.Vote {
 	results := []types.Vote{}

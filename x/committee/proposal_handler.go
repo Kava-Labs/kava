@@ -44,6 +44,7 @@ func handleCommitteeDeleteProposal(ctx sdk.Context, k Keeper, committeeProposal 
 		return sdkerrors.Wrap(ErrInvalidPubProposal, err.Error())
 	}
 
+	// TODO: Move deletion of proposals into keeper function
 	// Remove all committee's ongoing proposals
 	k.IterateProposals(ctx, func(p Proposal) bool {
 		if p.CommitteeID != committeeProposal.CommitteeID {
