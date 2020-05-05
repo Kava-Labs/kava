@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -12,8 +13,8 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -21,6 +22,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
@@ -46,21 +48,27 @@ func AddGenesisAccountCmd(
  the account address or key name and a list of initial coins. If a key name is given,
  the address will be looked up in the local Keybase. The list of initial tokens must
  contain valid denominations. Accounts may optionally be supplied with vesting parameters.
- If the account is a periodic or validator vesting account, vesting periods must be suppleid
+ If the account is a periodic or validator vesting account, vesting periods must be supplied
  via a JSON file using the 'vesting-periods-file' flag or 'validator-vesting-file' flag,
  respectively.
  Example:
  %s add-genesis-account <account-name> <amount> --vesting-amount <amount> --vesting-end-time <unix-timestamp> --vesting-start-time <unix-timestamp> --vesting-periods <path/to/vesting.json>`, version.ClientName),
 		),
 		Args: cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
 
 			addr, err := sdk.AccAddressFromBech32(args[0])
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			if err != nil {
 				// attempt to lookup address from Keybase if no address was provided
-				kb, err := keys.NewKeyBaseFromDir(viper.GetString(flagClientHome))
+				kb, err := keys.NewKeyring(
+					sdk.KeyringServiceName(),
+					viper.GetString(flags.FlagKeyringBackend),
+					viper.GetString(flagClientHome),
+					inBuf,
+				)
 				if err != nil {
 					return err
 				}
