@@ -66,13 +66,13 @@ func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
 }
 
 func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
-	expireOffset := int64((index * 15) + 360) // Default expire height + offet to match timestamp
-	timestamp := ts(index)                    // One minute apart
+	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
+	timestamp := ts(index)                     // One minute apart
 	randomNumber, _ := types.GenerateSecureRandomNumber()
-	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+	randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 	return types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-		ctx.BlockHeight()+expireOffset, timestamp, TestUser1, TestUser2,
+		uint64(ctx.BlockHeight())+expireOffset, timestamp, TestUser1, TestUser2,
 		TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open, true,
 		types.Incoming)
 }

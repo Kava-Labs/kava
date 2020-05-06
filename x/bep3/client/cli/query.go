@@ -6,13 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/spf13/cobra"
-
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/spf13/cobra"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -22,8 +21,11 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	// Group bep3 queries under a subcommand
 	bep3QueryCmd := &cobra.Command{
-		Use:   "bep3",
-		Short: "Querying commands for the bep3 module",
+		Use:                        "bep3",
+		Short:                      "Querying commands for the bep3 module",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
 	}
 
 	bep3QueryCmd.AddCommand(flags.GetCommands(
@@ -70,7 +72,7 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 			if err != nil {
 				return err
 			}
-			randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 			// Prepare random number, timestamp, and hash for output
 			randomNumberStr := fmt.Sprintf("Random number: %s\n", randomNumber)
@@ -93,7 +95,7 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Parse query params
-			randomNumberHash, err := types.HexToBytes(args[0])
+			randomNumberHash, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}
@@ -148,7 +150,7 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Decode swapID's hex encoded string to []byte
-			swapID, err := types.HexToBytes(args[0])
+			swapID, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}

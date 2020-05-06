@@ -37,17 +37,17 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 }
 
 // GenMinBlockLock randomized MinBlockLock
-func GenMinBlockLock(r *rand.Rand) int64 {
+func GenMinBlockLock(r *rand.Rand) uint64 {
 	min := int(types.AbsoluteMinimumBlockLock)
 	max := int(types.AbsoluteMaximumBlockLock)
-	return int64(r.Intn(max-min) + min)
+	return uint64(r.Intn(max-min) + min)
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
-func GenMaxBlockLock(r *rand.Rand, minBlockLock int64) int64 {
+func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
 	min := int(minBlockLock)
 	max := int(types.AbsoluteMaximumBlockLock)
-	return int64(r.Intn(max-min) + min)
+	return uint64(r.Intn(max-min) + min)
 }
 
 // GenSupportedAssets gets randomized SupportedAssets
@@ -101,7 +101,7 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 	bnbDeputy := GenRandBnbDeputy(simState.Rand)
 
 	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
-	minBlockLock := int64(types.AbsoluteMinimumBlockLock)
+	minBlockLock := types.AbsoluteMinimumBlockLock
 	maxBlockLock := minBlockLock * 2
 
 	var supportedAssets types.AssetParams

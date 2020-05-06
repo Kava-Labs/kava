@@ -62,11 +62,11 @@ func (suite *QuerierTestSuite) SetupTest() {
 	isSwapID := make(map[string]bool)
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
-		expireHeight := int64(360)
+		expireHeight := uint64(360)
 		amount := cs(c("bnb", 100))
 		timestamp := ts(0)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 		// Create atomic swap and check err
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,

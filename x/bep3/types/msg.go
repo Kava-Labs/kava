@@ -13,11 +13,10 @@ import (
 )
 
 const (
-	CreateAtomicSwap  = "createAtomicSwap"
-	DepositAtomicSwap = "depositAtomicSwap"
-	ClaimAtomicSwap   = "claimAtomicSwap"
-	RefundAtomicSwap  = "refundAtomicSwap"
-	CalcSwapID        = "calcSwapID"
+	CreateAtomicSwap = "createAtomicSwap"
+	ClaimAtomicSwap  = "claimAtomicSwap"
+	RefundAtomicSwap = "refundAtomicSwap"
+	CalcSwapID       = "calcSwapID"
 
 	Int64Size               = 8
 	RandomNumberHashLength  = 32
@@ -48,14 +47,14 @@ type MsgCreateAtomicSwap struct {
 	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
 	ExpectedIncome      string           `json:"expected_income"  yaml:"expected_income"`
-	HeightSpan          int64            `json:"height_span"  yaml:"height_span"`
+	HeightSpan          uint64           `json:"height_span"  yaml:"height_span"`
 	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
 }
 
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
 func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash tmbytes.HexBytes, timestamp int64,
-	amount sdk.Coins, expectedIncome string, heightSpan int64, crossChain bool) MsgCreateAtomicSwap {
+	amount sdk.Coins, expectedIncome string, heightSpan uint64, crossChain bool) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
 		From:                from,
 		To:                  to,

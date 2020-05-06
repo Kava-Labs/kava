@@ -1,13 +1,13 @@
 package rest
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/gorilla/mux"
 
 	"github.com/kava-labs/kava/x/bep3/types"
 )
@@ -38,7 +38,7 @@ func queryAtomicSwapHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		swapID, err := types.HexToBytes(vars[restSwapID])
+		swapID, err := hex.DecodeString(vars[restSwapID])
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

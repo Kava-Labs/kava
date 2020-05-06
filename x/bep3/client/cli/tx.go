@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,8 +26,11 @@ import (
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	bep3TxCmd := &cobra.Command{
-		Use:   "bep3",
-		Short: "bep3 transactions subcommands",
+		Use:                        "bep3",
+		Short:                      "bep3 transactions subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
 	}
 
 	bep3TxCmd.AddCommand(flags.PostCommands(
@@ -77,10 +81,10 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 			// Print random number, timestamp, and hash to user's console
-			fmt.Printf("\nRandom number: %s\n", hex.EncodeToString(randomNumber.Bytes()))
+			fmt.Printf("\nRandom number: %s\n", hex.EncodeToString(randomNumber))
 			fmt.Printf("Timestamp: %d\n", timestamp)
 			fmt.Printf("Random number hash: %s\n\n", hex.EncodeToString(randomNumberHash))
 
@@ -91,7 +95,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 
 			expectedIncome := args[5]
 
-			heightSpan, err := strconv.ParseInt(args[6], 10, 64)
+			heightSpan, err := strconv.ParseUint(args[6], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -130,7 +134,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			swapID, err := types.HexToBytes(args[0])
+			swapID, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}
@@ -139,7 +143,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("random-number cannot be empty")
 			}
 
-			randomNumber, err := types.HexToBytes(args[1])
+			randomNumber, err := hex.DecodeString(args[1])
 			if err != nil {
 				return err
 			}
@@ -170,7 +174,7 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			swapID, err := types.HexToBytes(args[0])
+			swapID, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}

@@ -74,11 +74,11 @@ func (suite *AtomicSwapTestSuite) GenerateSwapDetails() {
 		// Set up atomic swap details
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 		timestamps = append(timestamps, timestamp)
 		randomNumberHashes = append(randomNumberHashes, randomNumberHash)
-		randomNumbers = append(randomNumbers, randomNumber.Bytes())
+		randomNumbers = append(randomNumbers, randomNumber)
 	}
 	suite.timestamps = timestamps
 	suite.randomNumberHashes = randomNumberHashes
@@ -90,7 +90,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 	type args struct {
 		randomNumberHash    []byte
 		timestamp           int64
-		heightSpan          int64
+		heightSpan          uint64
 		sender              sdk.AccAddress
 		recipient           sdk.AccAddress
 		senderOtherChain    string
@@ -113,7 +113,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
@@ -132,7 +132,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.addrs[1],
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
@@ -151,7 +151,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[1],
 				timestamp:           suite.timestamps[1],
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
@@ -170,7 +170,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[2],
 				timestamp:           suite.timestamps[2] - 2000,
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[3],
 				senderOtherChain:    TestSenderOtherChain,
@@ -189,7 +189,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[3],
 				timestamp:           suite.timestamps[3] + 5000,
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[4],
 				senderOtherChain:    TestSenderOtherChain,
@@ -208,7 +208,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[4],
 				timestamp:           suite.timestamps[4],
-				heightSpan:          int64(5),
+				heightSpan:          uint64(5),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[5],
 				senderOtherChain:    TestSenderOtherChain,
@@ -227,7 +227,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[5],
 				timestamp:           suite.timestamps[5],
-				heightSpan:          int64(1000000),
+				heightSpan:          uint64(1000000),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[6],
 				senderOtherChain:    TestSenderOtherChain,
@@ -246,7 +246,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[6],
 				timestamp:           suite.timestamps[6],
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[7],
 				senderOtherChain:    TestSenderOtherChain,
@@ -265,7 +265,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          int64(360),
+				heightSpan:          uint64(360),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
@@ -341,7 +341,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 					types.AtomicSwap{
 						Amount:              tc.args.coins,
 						RandomNumberHash:    tc.args.randomNumberHash,
-						ExpireHeight:        suite.ctx.BlockHeight() + tc.args.heightSpan,
+						ExpireHeight:        uint64(suite.ctx.BlockHeight()) + tc.args.heightSpan,
 						Timestamp:           tc.args.timestamp,
 						Sender:              tc.args.sender,
 						Recipient:           tc.args.recipient,
@@ -419,7 +419,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			suite.ctx,
 			args{
 				swapID:       []byte{},
-				randomNumber: invalidRandomNumber.Bytes(),
+				randomNumber: invalidRandomNumber,
 				direction:    types.Incoming,
 			},
 			false,
@@ -462,7 +462,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 
 			// Create atomic swap
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				int64(360), sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
+				uint64(360), sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				expectedClaimAmount, expectedClaimAmount.String(), true)
 			suite.NoError(err)
 
@@ -616,7 +616,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			}
 
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				int64(360), sender, suite.addrs[8], TestSenderOtherChain, TestRecipientOtherChain,
+				uint64(360), sender, suite.addrs[8], TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, expectedRefundAmount.String(), true)
 			suite.NoError(err)
 

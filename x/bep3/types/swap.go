@@ -17,7 +17,7 @@ import (
 type AtomicSwap struct {
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
-	ExpireHeight        int64            `json:"expire_height"  yaml:"expire_height"`
+	ExpireHeight        uint64           `json:"expire_height"  yaml:"expire_height"`
 	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
 	Sender              sdk.AccAddress   `json:"sender"  yaml:"sender"`
 	Recipient           sdk.AccAddress   `json:"recipient"  yaml:"recipient"`
@@ -30,8 +30,8 @@ type AtomicSwap struct {
 }
 
 // NewAtomicSwap returns a new AtomicSwap
-func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight, timestamp int64, sender,
-	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
+func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight uint64, timestamp int64,
+	sender, recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
 	status SwapStatus, crossChain bool, direction SwapDirection) AtomicSwap {
 	return AtomicSwap{
 		Amount:              amount,

@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestInsertIntoByBlockIndex() {
 
 	// Block index lacks getter methods, must use iteration to get count of swaps in store
 	var swapIDs [][]byte
-	suite.keeper.IterateAtomicSwapsByBlock(suite.ctx, uint64(atomicSwap.ExpireHeight+1), func(id []byte) bool {
+	suite.keeper.IterateAtomicSwapsByBlock(suite.ctx, atomicSwap.ExpireHeight+1, func(id []byte) bool {
 		swapIDs = append(swapIDs, id)
 		return false
 	})
@@ -145,7 +145,7 @@ func (suite *KeeperTestSuite) TestRemoveFromByBlockIndex() {
 
 	// Check stored data in block index
 	var swapIDsPre [][]byte
-	suite.keeper.IterateAtomicSwapsByBlock(suite.ctx, uint64(atomicSwap.ExpireHeight+1), func(id []byte) bool {
+	suite.keeper.IterateAtomicSwapsByBlock(suite.ctx, atomicSwap.ExpireHeight+1, func(id []byte) bool {
 		swapIDsPre = append(swapIDsPre, id)
 		return false
 	})
@@ -155,7 +155,7 @@ func (suite *KeeperTestSuite) TestRemoveFromByBlockIndex() {
 
 	// Check stored data not in block index
 	var swapIDsPost [][]byte
-	suite.keeper.IterateAtomicSwapsByBlock(suite.ctx, uint64(atomicSwap.ExpireHeight+1), func(id []byte) bool {
+	suite.keeper.IterateAtomicSwapsByBlock(suite.ctx, atomicSwap.ExpireHeight+1, func(id []byte) bool {
 		swapIDsPost = append(swapIDsPost, id)
 		return false
 	})
@@ -178,10 +178,10 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 		// Initialize a new atomic swap (different randomNumberHash = different swap IDs)
 		timestamp := tmtime.Now().Add(time.Duration(i) * time.Minute).Unix()
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-			blockCtx.BlockHeight(), timestamp, TestUser1, TestUser2,
+			uint64(blockCtx.BlockHeight()), timestamp, TestUser1, TestUser2,
 			TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open,
 			true, types.Incoming)
 
@@ -269,10 +269,10 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 	for i := 0; i < 8; i++ {
 		timestamp := tmtime.Now().Unix()
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-			suite.ctx.BlockHeight(), timestamp, TestUser1, TestUser2,
+			uint64(suite.ctx.BlockHeight()), timestamp, TestUser1, TestUser2,
 			TestSenderOtherChain, TestRecipientOtherChain, 100, types.Open,
 			true, types.Incoming)
 

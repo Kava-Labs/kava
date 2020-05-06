@@ -40,7 +40,7 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 		timestamp           int64
 		amount              sdk.Coins
 		expectedIncome      string
-		heightSpan          int64
+		heightSpan          uint64
 		crossChain          bool
 		expectPass          bool
 	}{
