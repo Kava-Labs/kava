@@ -1,13 +1,9 @@
 package cdp
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-
-	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // BeginBlocker compounds the debt in outstanding cdps and liquidates cdps that are below the required collateralization ratio
@@ -26,48 +22,25 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 		// handle if an error is returned then propagate up
 		if err != nil {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					EventTypeBeginBlockerFatal,
-					sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
-					sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
-				),
-			)
+			panic(err)
 		}
 
 		err = k.LiquidateCdps(ctx, cp.MarketID, cp.Denom, cp.LiquidationRatio)
 		if err != nil {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					EventTypeBeginBlockerFatal,
-					sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
-					sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
-				),
-			)
+			panic(err)
 		}
 	}
 	err := k.RunSurplusAndDebtAuctions(ctx)
 	if err != nil {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				EventTypeBeginBlockerFatal,
-				sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
-				sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
-			),
-		)
+		panic(err)
 	}
 	distTimeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistTime.Unix())
-	if distTimeElapsed.GTE(sdk.NewInt(int64(params.SavingsDistributionFrequency.Seconds()))) {
-		err := k.DistributeSavingsRate(ctx, params.DebtParam.Denom)
-		if err != nil {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					EventTypeBeginBlockerFatal,
-					sdk.NewAttribute(sdk.AttributeKeyModule, fmt.Sprintf("%s", ModuleName)),
-					sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", err)),
-				),
-			)
-		}
-		k.SetPreviousSavingsDistribution(ctx, ctx.BlockTime())
+	if !distTimeElapsed.GTE(sdk.NewInt(int64(params.SavingsDistributionFrequency.Seconds()))) {
+		return
 	}
+	err = k.DistributeSavingsRate(ctx, params.DebtParam.Denom)
+	if err != nil {
+		panic(err)
+	}
+	k.SetPreviousSavingsDistribution(ctx, ctx.BlockTime())
 }

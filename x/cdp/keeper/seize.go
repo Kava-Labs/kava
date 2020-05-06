@@ -68,7 +68,8 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, liquidationRatio sdk.Dec) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
-		return err
+		handlePricefeedError(ctx)
+		return nil
 	}
 	priceDivLiqRatio := price.Price.Quo(liquidationRatio)
 	if priceDivLiqRatio.IsZero() {
