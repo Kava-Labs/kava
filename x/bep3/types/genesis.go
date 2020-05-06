@@ -61,12 +61,18 @@ func (gs GenesisState) Validate() error {
 
 		denoms[asset.Denom] = true
 	}
+
 	ids := map[string]bool{}
-	for _, a := range gs.AtomicSwaps {
-		if ids[hex.EncodeToString(a.GetSwapID())] {
-			return fmt.Errorf("found duplicate atomic swap ID %s", hex.EncodeToString(a.GetSwapID()))
+	for _, swap := range gs.AtomicSwaps {
+		if ids[hex.EncodeToString(swap.GetSwapID())] {
+			return fmt.Errorf("found duplicate atomic swap ID %s", hex.EncodeToString(swap.GetSwapID()))
 		}
-		ids[hex.EncodeToString(a.GetSwapID())] = true
+
+		if err := swap.Validate(); err != nil {
+			return err
+		}
+
+		ids[hex.EncodeToString(swap.GetSwapID())] = true
 	}
 	return nil
 }
