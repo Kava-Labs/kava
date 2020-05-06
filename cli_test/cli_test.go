@@ -92,6 +92,18 @@ func TestKavaCLIKeysAddRecoverHDPath(t *testing.T) {
 	f.KeysAddRecoverHDPath("test-recoverH5", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 2, 17, "--legacy-hd-path")
 	require.Equal(t, "kava1v9plmhvyhgxk3th9ydacm7j4z357s3nhhmy0tv", f.KeyAddress("test-recoverH5").String())
 
+	exitSuccess, _, _ := f.KeysAddRecover("test-recover-fail", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", "--legacy-hd-path --hd-path 44'/459'/0'/0/0")
+	require.False(t, exitSuccess)
+
+	// test -hd-path flag
+	exitSuccess, _, _ = f.KeysAddRecover("test-recoverH6", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", "--hd-path 44'/459'/0'/0/0")
+	require.True(t, exitSuccess)
+	require.Equal(t, "kava1rsjxn2e4dfl3a2qzuzzjvvgjmmate383g9q4cz", f.KeyAddress("test-recoverH6").String())
+
+	exitSuccess, _, _ = f.KeysAddRecover("test-recoverH7", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", "--hd-path 44'/459'/2'/0/17")
+	require.True(t, exitSuccess)
+	require.Equal(t, "kava1xvsfnksmhr887skcfrm4pe3va54tkmrtw7wyer", f.KeyAddress("test-recoverH7").String())
+
 	// Cleanup testing directories
 	f.Cleanup()
 }

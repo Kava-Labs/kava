@@ -43,6 +43,10 @@ var (
 	// function aliases
 	NewKeeper                   = keeper.NewKeeper
 	NewQuerier                  = keeper.NewQuerier
+	RegisterInvariants          = keeper.RegisterInvariants
+	ValidCommitteesInvariant    = keeper.ValidCommitteesInvariant
+	ValidProposalsInvariant     = keeper.ValidProposalsInvariant
+	ValidVotesInvariant         = keeper.ValidVotesInvariant
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetKeyFromID                = types.GetKeyFromID
 	GetVoteKey                  = types.GetVoteKey
