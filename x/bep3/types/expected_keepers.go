@@ -21,10 +21,3 @@ type AccountKeeper interface {
 	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 	SetAccount(ctx sdk.Context, acc authexported.Account)
 }
-
-// AccountKeeper defines the expected account keeper (noalias)
-type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
-	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
-	SetAccount(ctx sdk.Context, acc authexported.Account)
-}
