@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // AssetSupply contains information about an asset's supply
@@ -24,6 +25,23 @@ func NewAssetSupply(denom string, incomingSupply, outgoingSupply, currentSupply,
 		CurrentSupply:  currentSupply,
 		Limit:          limit,
 	}
+}
+
+// Validate performs a basic validation of an asset supply fields.
+func (a AssetSupply) Validate() error {
+	if !a.IncomingSupply.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "incoming supply %s", a.IncomingSupply)
+	}
+	if !a.OutgoingSupply.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "outgoing supply %s", a.OutgoingSupply)
+	}
+	if !a.CurrentSupply.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "current supply %s", a.CurrentSupply)
+	}
+	if !a.Limit.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "limit %s", a.Limit)
+	}
+	return sdk.ValidateDenom(a.Denom)
 }
 
 // String implements stringer
