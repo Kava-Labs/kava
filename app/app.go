@@ -89,7 +89,7 @@ var (
 		cdp.ModuleName:              {supply.Minter, supply.Burner},
 		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
 		cdp.SavingsRateMacc:         {supply.Minter},
-		bep3.ModuleName:             {supply.Minter, supply.Burner},
+		bep3.ModuleName:             nil,
 		kavadist.ModuleName:         {supply.Minter},
 	}
 )
