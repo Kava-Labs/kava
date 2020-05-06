@@ -73,6 +73,22 @@ func (suite *GenesisTestSuite) TestValidate() {
 			false,
 		},
 		{
+			"invalid swap",
+			args{
+				swaps:    types.AtomicSwaps{types.AtomicSwap{Amount: sdk.Coins{sdk.Coin{Denom: "INVALIDDENOM", Amount: sdk.NewInt(-1)}}}},
+				supplies: types.AssetSupplies{},
+			},
+			false,
+		},
+		{
+			"invalid supply",
+			args{
+				swaps:    types.AtomicSwaps{},
+				supplies: types.AssetSupplies{types.AssetSupply{Denom: ""}},
+			},
+			false,
+		},
+		{
 			"duplicate supplies",
 			args{
 				swaps:    types.AtomicSwaps{},
@@ -93,7 +109,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 
 			err := gs.Validate()
 			if tc.expectPass {
-				suite.Nil(err)
+				suite.NoError(err)
 			} else {
 				suite.Error(err)
 			}
