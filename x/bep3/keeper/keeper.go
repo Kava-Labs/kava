@@ -19,10 +19,14 @@ type Keeper struct {
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
+	accountKeeper types.AccountKeeper
 }
 
 // NewKeeper creates a bep3 keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey,
+	sk types.SupplyKeeper, ak types.AccountKeeper,
+	paramstore subspace.Subspace,
+) Keeper {
 	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
@@ -36,6 +40,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, params
 		cdc:           cdc,
 		paramSubspace: paramstore,
 		supplyKeeper:  sk,
+		accountKeeper: ak,
 	}
 	return keeper
 }
