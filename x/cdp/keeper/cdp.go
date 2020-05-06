@@ -334,7 +334,6 @@ func (k Keeper) SetDebtDenom(ctx sdk.Context, denom string) {
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DebtDenomKey)
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
-	return
 }
 
 // SetGovDenom set the denom of the governance token in the system
@@ -344,7 +343,6 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 	}
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(denom))
-	return
 }
 
 // ValidateCollateral validates that a collateral is valid for use in cdps

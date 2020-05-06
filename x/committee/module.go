@@ -95,7 +95,9 @@ func (AppModule) Name() string {
 }
 
 // RegisterInvariants register module invariants
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	RegisterInvariants(ir, am.keeper)
+}
 
 // Route module message route name
 func (AppModule) Route() string {
@@ -149,12 +151,12 @@ func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
-// TODO
-func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return nil
+// ProposalContents returns functions that generate gov proposals for the module
+func (am AppModule) ProposalContents(simState module.SimulationState) []sim.WeightedProposalContent {
+	return simulation.ProposalContents(am.keeper, simState.ParamChanges)
 }
 
-// RandomizedParams returns functions that generate params for the module.
+// RandomizedParams returns functions that generate params for the module
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return nil
 }
@@ -164,7 +166,7 @@ func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns the all the auction module operations with their respective weights.
+// WeightedOperations returns the module operations for use in simulations
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil // TODO simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
+	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, simState.Contents)
 }
