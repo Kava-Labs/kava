@@ -54,14 +54,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 
 	// add cdps
 	for _, cdp := range gs.CDPs {
-		err := cdp.Validate()
-		if err != nil {
-			panic(fmt.Sprintf("invalid cdp in gensis state: %v", err))
-		}
 		if cdp.ID == gs.StartingCdpID {
 			panic(fmt.Sprintf("starting cdp id is assigned to an existing cdp: %s", cdp))
 		}
-		err = k.SetCDP(ctx, cdp)
+		err := k.SetCDP(ctx, cdp)
 		if err != nil {
 			panic(fmt.Sprintf("error setting cdp: %v", err))
 		}
@@ -77,10 +73,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 	k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
 
 	for _, d := range gs.Deposits {
-		err := d.Validate()
-		if err != nil {
-			panic(fmt.Sprintf("invalid cdp deposit in gensis state: %v", err))
-		}
 		k.SetDeposit(ctx, d)
 	}
 }
