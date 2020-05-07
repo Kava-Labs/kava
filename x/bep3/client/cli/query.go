@@ -85,7 +85,7 @@ func QueryCalcRandomNumberHashCmd(queryRoute string, cdc *codec.Codec) *cobra.Co
 			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 			// Prepare random number, timestamp, and hash for output
-			randomNumberStr := fmt.Sprintf("Random number: %s\n", randomNumber)
+			randomNumberStr := fmt.Sprintf("Random number: %s\n", string(randomNumber))
 			timestampStr := fmt.Sprintf("Timestamp: %d\n", timestamp)
 			randomNumberHashStr := fmt.Sprintf("Random number hash: %s", hex.EncodeToString(randomNumberHash))
 			output := []string{randomNumberStr, timestampStr, randomNumberHashStr}

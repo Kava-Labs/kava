@@ -84,7 +84,7 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 			// Print random number, timestamp, and hash to user's console
-			fmt.Printf("\nRandom number: %s\n", hex.EncodeToString(randomNumber))
+			fmt.Printf("\nRandom number: %s\n", string(randomNumber))
 			fmt.Printf("Timestamp: %d\n", timestamp)
 			fmt.Printf("Random number hash: %s\n\n", hex.EncodeToString(randomNumberHash))
 
@@ -139,11 +139,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			if len(strings.TrimSpace(args[1])) == 0 {
 				return fmt.Errorf("random-number cannot be empty")
 			}
-
-			randomNumber, err := hex.DecodeString(args[1])
-			if err != nil {
-				return err
-			}
+			randomNumber := []byte(args[1])
 
 			msg := types.NewMsgClaimAtomicSwap(from, swapID, randomNumber)
 
