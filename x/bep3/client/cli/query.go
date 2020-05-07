@@ -223,7 +223,7 @@ Example:
 $ kvcli q bep3 swaps --involve=kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
 $ kvcli q bep3 swaps --expiration=280
 $ kvcli q bep3 swaps --status=(Open|Completed|Expired)
-$ kvcli q bep3 swaps --Direction=(Incoming|Outgoing)
+$ kvcli q bep3 swaps --direction=(Incoming|Outgoing)
 $ kvcli q bep3 swaps --page=2 --limit=100
 `,
 		),
@@ -269,7 +269,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 			if len(strSwapDirection) != 0 {
 				swapDirection := types.NewSwapDirectionFromString(strSwapDirection)
 				if !types.ValidSwapDirection(swapDirection) {
-					return fmt.Errorf("invalid swap status %s", strSwapDirection)
+					return fmt.Errorf("invalid swap direction %s", strSwapDirection)
 				}
 				params.Direction = swapDirection
 			}
