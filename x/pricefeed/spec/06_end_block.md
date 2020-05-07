@@ -1,6 +1,6 @@
-# Begin Block
+# End Block
 
-At the start of each block, the current price is calculated as the median of all raw prices for each market. The logic is as follows:
+At the end of each block, the current price is calculated as the median of all raw prices for each market. The logic is as follows:
 
 ```go
 // EndBlocker updates the current pricefeed
