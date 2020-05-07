@@ -114,9 +114,21 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
+		// Get maximum valid amount
+		maximumAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(denom)
+		// The maximum amount for outgoing swaps is limited by the asset's current supply
+		if recipient.Equals(deputyAcc) {
+			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, []byte(denom))
+			if !foundAssetSupply {
+				return noOpMsg, nil, fmt.Errorf("no asset supply found")
+			}
+			if maximumAmount.GT(assetSupply.CurrentSupply.Amount) {
+				maximumAmount = assetSupply.CurrentSupply.Amount
+			}
+		}
+
 		// Get an amount of coins between 0.1 and 2% of total coins
-		availableAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(denom)
-		amount := availableAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
+		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
 		if amount.IsZero() {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
 		}
