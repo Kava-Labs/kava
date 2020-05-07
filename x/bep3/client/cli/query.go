@@ -260,7 +260,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 
 			if len(strSwapStatus) != 0 {
 				swapStatus := types.NewSwapStatusFromString(strSwapStatus)
-				if !types.ValidSwapStatus(swapStatus) {
+				if !swapStatus.IsValid() {
 					return fmt.Errorf("invalid swap status %s", strSwapStatus)
 				}
 				params.Status = swapStatus
@@ -268,7 +268,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 
 			if len(strSwapDirection) != 0 {
 				swapDirection := types.NewSwapDirectionFromString(strSwapDirection)
-				if !types.ValidSwapDirection(swapDirection) {
+				if !swapDirection.IsValid() {
 					return fmt.Errorf("invalid swap direction %s", strSwapDirection)
 				}
 				params.Direction = swapDirection

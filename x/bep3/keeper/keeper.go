@@ -123,12 +123,12 @@ func (k Keeper) GetAtomicSwapsFiltered(ctx sdk.Context, params types.QueryAtomic
 		}
 
 		// match status (if supplied/valid)
-		if types.ValidSwapStatus(params.Status) {
+		if params.Status.IsValid() {
 			matchStatus = s.Status == params.Status
 		}
 
 		// match direction (if supplied/valid)
-		if types.ValidSwapDirection(params.Direction) {
+		if params.Direction.IsValid() {
 			matchDirection = s.Direction == params.Direction
 		}
 

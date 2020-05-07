@@ -111,7 +111,7 @@ func queryAtomicSwapsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		if x := r.URL.Query().Get(RestStatus); len(x) != 0 {
 			swapStatus = types.NewSwapStatusFromString(x)
-			if !types.ValidSwapStatus(swapStatus) {
+			if !swapStatus.IsValid() {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid swap status %s", swapStatus))
 				return
 			}
@@ -119,7 +119,7 @@ func queryAtomicSwapsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		if x := r.URL.Query().Get(RestDirection); len(x) != 0 {
 			swapDirection = types.NewSwapDirectionFromString(x)
-			if !types.ValidSwapDirection(swapDirection) {
+			if !swapDirection.IsValid() {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid swap direction %s", swapDirection))
 				return
 			}

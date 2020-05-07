@@ -197,8 +197,8 @@ func (status *SwapStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ValidSwapStatus returns true if the swap status is valid and false otherwise.
-func ValidSwapStatus(status SwapStatus) bool {
+// IsValid returns true if the swap status is valid and false otherwise.
+func (status SwapStatus) IsValid() bool {
 	if status == Open ||
 		status == Completed ||
 		status == Expired {
@@ -256,8 +256,8 @@ func (direction *SwapDirection) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// ValidSwapDirection returns true if the swap direction is valid and false otherwise.
-func ValidSwapDirection(direction SwapDirection) bool {
+// IsValid returns true if the swap direction is valid and false otherwise.
+func (direction SwapDirection) IsValid() bool {
 	if direction == Incoming ||
 		direction == Outgoing {
 		return true
