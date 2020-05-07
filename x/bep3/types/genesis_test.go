@@ -98,22 +98,19 @@ func (suite *GenesisTestSuite) TestValidate() {
 		}}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
-		suite.Run(tc.name, func() {
-			var gs types.GenesisState
-			if tc.name == "default" {
-				gs = types.DefaultGenesisState()
-			} else {
-				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.supplies)
-			}
+		var gs types.GenesisState
+		if tc.name == "default" {
+			gs = types.DefaultGenesisState()
+		} else {
+			gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.supplies)
+		}
 
-			err := gs.Validate()
-			if tc.expectPass {
-				suite.NoError(err)
-			} else {
-				suite.Error(err)
-			}
-		})
+		err := gs.Validate()
+		if tc.expectPass {
+			suite.Require().NoError(err, tc.name)
+		} else {
+			suite.Require().Error(err, tc.name)
+		}
 	}
 }
 
