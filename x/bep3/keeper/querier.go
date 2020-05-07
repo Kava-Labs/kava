@@ -91,24 +91,6 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 	return bz, nil
 }
 
-// func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
-// 	var swaps types.AtomicSwaps
-
-// 	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
-// 		swaps = append(swaps, s)
-// 		return false
-// 	})
-
-// 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
-// 	if err != nil {
-// 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-// 	}
-
-// 	return bz, nil
-// }
-
-// func queryAtomicSwaps(ctx sdk.Context, _ []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-
 func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var params types.QueryAtomicSwaps
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
