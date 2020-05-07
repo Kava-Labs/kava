@@ -14,7 +14,6 @@ type MsgCreateAtomicSwap struct {
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
 	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
-	ExpectedIncome      string           `json:"expected_income"  yaml:"expected_income"`
 	HeightSpan          int64            `json:"height_span"  yaml:"height_span"`
 	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
 }

@@ -70,8 +70,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 		// Create atomic swap and check err
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount,
-			amount.String(), true)
+			addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount, true)
 		suite.Nil(err)
 
 		// Calculate swap ID and save

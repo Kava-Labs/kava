@@ -45,9 +45,9 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdCreateAtomicSwap cli command for creating atomic swaps
 func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
+		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [height-span] [cross-chain]",
 		Short: "create a new atomic swap",
-		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 now 100bnb 100bnb 360 true --from validator",
+		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 now 100bnb 360 true --from validator",
 			version.ClientName, types.ModuleName),
 		Args: cobra.ExactArgs(8),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -93,22 +93,19 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			expectedIncome := args[5]
-
-			heightSpan, err := strconv.ParseUint(args[6], 10, 64)
+			heightSpan, err := strconv.ParseUint(args[5], 10, 64)
 			if err != nil {
 				return err
 			}
 
-			crossChain, err := strconv.ParseBool(args[7])
+			crossChain, err := strconv.ParseBool(args[6])
 			if err != nil {
 				return err
 			}
 
 			msg := types.NewMsgCreateAtomicSwap(
-				from, to, recipientOtherChain, senderOtherChain, randomNumberHash,
-				timestamp, coins, expectedIncome, heightSpan, crossChain,
-			)
+				from, to, recipientOtherChain, senderOtherChain,
+				randomNumberHash, timestamp, coins, heightSpan, crossChain)
 
 			err = msg.ValidateBasic()
 			if err != nil {

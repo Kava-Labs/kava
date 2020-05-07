@@ -13,7 +13,6 @@ const (
 	AttributeKeyAtomicSwapIDs      = types.AttributeKeyAtomicSwapIDs
 	AttributeKeyClaimSender        = types.AttributeKeyClaimSender
 	AttributeKeyDirection          = types.AttributeKeyDirection
-	AttributeKeyExpectedIncome     = types.AttributeKeyExpectedIncome
 	AttributeKeyExpireHeight       = types.AttributeKeyExpireHeight
 	AttributeKeyRandomNumber       = types.AttributeKeyRandomNumber
 	AttributeKeyRandomNumberHash   = types.AttributeKeyRandomNumberHash

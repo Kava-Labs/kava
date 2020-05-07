@@ -15,7 +15,7 @@ import (
 // CreateAtomicSwap creates a new atomic swap.
 func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan uint64,
 	sender sdk.AccAddress, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
-	amount sdk.Coins, expectedIncome string, crossChain bool) error {
+	amount sdk.Coins, crossChain bool) error {
 	// TODO: add unparam linter
 	// TODO: expectedIncome is not used in this function (only for event), consider removing
 	// Confirm that this is not a duplicate swap
@@ -101,8 +101,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			sdk.NewAttribute(types.AttributeKeyTimestamp, fmt.Sprintf("%d", atomicSwap.Timestamp)),
 			sdk.NewAttribute(types.AttributeKeySenderOtherChain, atomicSwap.SenderOtherChain),
 			sdk.NewAttribute(types.AttributeKeyExpireHeight, fmt.Sprintf("%d", atomicSwap.ExpireHeight)),
-			sdk.NewAttribute(types.AttributeKeyAmount, atomicSwap.Amount[0].String()),
-			sdk.NewAttribute(types.AttributeKeyExpectedIncome, expectedIncome),
+			sdk.NewAttribute(types.AttributeKeyAmount, atomicSwap.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDirection, atomicSwap.Direction.String()),
 		),
 	)

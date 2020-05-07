@@ -133,7 +133,6 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(denom, amount))
-		expectedIncome := coins.String()
 
 		// We're assuming that sims are run with -NumBlocks=100
 		heightSpan := uint64(55)
@@ -141,7 +140,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		msg := types.NewMsgCreateAtomicSwap(
 			sender.Address, recipient.Address, recipientOtherChain, senderOtherChain,
-			randomNumberHash, timestamp, coins, expectedIncome, heightSpan, crossChain,
+			randomNumberHash, timestamp, coins, heightSpan, crossChain,
 		)
 
 		tx := helpers.GenTx(

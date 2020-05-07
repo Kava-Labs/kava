@@ -46,7 +46,6 @@ type MsgCreateAtomicSwap struct {
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
 	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
-	ExpectedIncome      string           `json:"expected_income"  yaml:"expected_income"`
 	HeightSpan          uint64           `json:"height_span"  yaml:"height_span"`
 	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
 }
@@ -54,7 +53,7 @@ type MsgCreateAtomicSwap struct {
 // NewMsgCreateAtomicSwap initializes a new MsgCreateAtomicSwap
 func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOtherChain,
 	senderOtherChain string, randomNumberHash tmbytes.HexBytes, timestamp int64,
-	amount sdk.Coins, expectedIncome string, heightSpan uint64, crossChain bool) MsgCreateAtomicSwap {
+	amount sdk.Coins, heightSpan uint64, crossChain bool) MsgCreateAtomicSwap {
 	return MsgCreateAtomicSwap{
 		From:                from,
 		To:                  to,
@@ -63,7 +62,6 @@ func NewMsgCreateAtomicSwap(from sdk.AccAddress, to sdk.AccAddress, recipientOth
 		RandomNumberHash:    randomNumberHash,
 		Timestamp:           timestamp,
 		Amount:              amount,
-		ExpectedIncome:      expectedIncome,
 		HeightSpan:          heightSpan,
 		CrossChain:          crossChain,
 	}
@@ -77,9 +75,9 @@ func (msg MsgCreateAtomicSwap) Type() string { return CreateAtomicSwap }
 
 // String prints the MsgCreateAtomicSwap
 func (msg MsgCreateAtomicSwap) String() string {
-	return fmt.Sprintf("AtomicSwap{%v#%v#%v#%v#%v#%v#%v#%v#%v#%v}",
+	return fmt.Sprintf("AtomicSwap{%v#%v#%v#%v#%v#%v#%v#%v#%v}",
 		msg.From, msg.To, msg.RecipientOtherChain, msg.SenderOtherChain,
-		msg.RandomNumberHash, msg.Timestamp, msg.Amount, msg.ExpectedIncome,
+		msg.RandomNumberHash, msg.Timestamp, msg.Amount,
 		msg.HeightSpan, msg.CrossChain)
 }
 
@@ -133,16 +131,6 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	}
 	if !msg.Amount.IsValid() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
-	}
-	if len(msg.ExpectedIncome) > MaxExpectedIncomeLength {
-		return fmt.Errorf("the length of expected income should be less than %d", MaxExpectedIncomeLength)
-	}
-	expectedIncomeCoins, err := sdk.ParseCoins(msg.ExpectedIncome)
-	if err != nil || expectedIncomeCoins == nil {
-		return fmt.Errorf("expected income %s must be in valid format e.g. 10000ukava", msg.ExpectedIncome)
-	}
-	if expectedIncomeCoins.IsAnyGT(msg.Amount) {
-		return fmt.Errorf("expected income %s cannot be greater than amount %s", msg.ExpectedIncome, msg.Amount.String())
 	}
 	if msg.HeightSpan <= 0 {
 		return errors.New("height span must be positive")

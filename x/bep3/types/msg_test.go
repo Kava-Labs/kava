@@ -39,16 +39,15 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 		randomNumberHash    tmbytes.HexBytes
 		timestamp           int64
 		amount              sdk.Coins
-		expectedIncome      string
 		heightSpan          uint64
 		crossChain          bool
 		expectPass          bool
 	}{
-		{"normal", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, "50000bnb", 500, false, true},
-		{"cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, "50000bnb", 80000, true, true},
-		{"with other chain fields", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, "50000bnb", 500, false, false},
-		{"cross-cross no other chain fields", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, "50000bnb", 500, true, false},
-		{"zero coins", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsZero, "50000bnb", 500, true, false},
+		{"normal", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, 500, false, true},
+		{"cross-chain", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, 80000, true, true},
+		{"with other chain fields", binanceAddrs[0], kavaAddrs[0], kavaAddrs[0].String(), binanceAddrs[0].String(), randomNumberHash, timestampInt64, coinsSingle, 500, false, false},
+		{"cross-cross no other chain fields", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsSingle, 500, true, false},
+		{"zero coins", binanceAddrs[0], kavaAddrs[0], "", "", randomNumberHash, timestampInt64, coinsZero, 500, true, false},
 	}
 
 	for i, tc := range tests {
@@ -60,7 +59,6 @@ func TestMsgCreateAtomicSwap(t *testing.T) {
 			tc.randomNumberHash,
 			tc.timestamp,
 			tc.amount,
-			tc.expectedIncome,
 			tc.heightSpan,
 			tc.crossChain,
 		)
