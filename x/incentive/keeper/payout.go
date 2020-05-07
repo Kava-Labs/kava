@@ -29,6 +29,7 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 		return err
 	}
 
+	k.DeleteClaim(ctx, addr, denom, id)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
