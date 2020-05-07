@@ -98,10 +98,10 @@ func (a AtomicSwap) Validate() error {
 	if a.ClosedBlock == 0 {
 		return errors.New("closed block cannot be 0")
 	}
-	if a.Status == NULL {
+	if a.Status == NULL || a.Status > 3 {
 		return errors.New("swap status cannot be nil")
 	}
-	if a.Direction == INVALID {
+	if a.Direction == INVALID || a.Direction > 2 {
 		return errors.New("invalid swap direction")
 	}
 	return nil

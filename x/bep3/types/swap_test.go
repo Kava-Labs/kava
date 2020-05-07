@@ -44,95 +44,205 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 }
 
 func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
-	type args struct {
-		amount              sdk.Coins
-		randomNumberHash    tmbytes.HexBytes
-		expireHeight        int64
-		timestamp           int64
-		sender              sdk.AccAddress
-		recipient           sdk.AccAddress
-		recipientOtherChain string
-		senderOtherChain    string
-		closedBlock         int64
-		status              types.SwapStatus
-		crossChain          bool
-		direction           types.SwapDirection
-	}
 	testCases := []struct {
-		description string
-		args        args
-		expectPass  bool
+		msg        string
+		swap       types.AtomicSwap
+		expectPass bool
 	}{
 		{
-			"normal",
-			args{
-				amount:              cs(c("bnb", 50000)),
-				randomNumberHash:    suite.randomNumberHashes[0],
-				expireHeight:        int64(360),
-				timestamp:           suite.timestamps[0],
-				sender:              suite.addrs[0],
-				recipient:           suite.addrs[5],
-				recipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
-				senderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
-				closedBlock:         1,
-				status:              types.Open,
-				crossChain:          true,
-				direction:           types.Incoming,
+			"valid Swap",
+			types.AtomicSwap{
+				Amount:              cs(c("bnb", 50000)),
+				RandomNumberHash:    suite.randomNumberHashes[0],
+				ExpireHeight:        360,
+				Timestamp:           suite.timestamps[0],
+				Sender:              suite.addrs[0],
+				Recipient:           suite.addrs[5],
+				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
+				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
+				ClosedBlock:         1,
+				Status:              types.Open,
+				CrossChain:          true,
+				Direction:           types.Incoming,
 			},
 			true,
 		},
 		{
-			"invalid random number hash length",
-			args{
-				amount:              cs(c("bnb", 50000)),
-				randomNumberHash:    suite.randomNumberHashes[1][0:20],
-				expireHeight:        int64(360),
-				timestamp:           suite.timestamps[1],
-				sender:              suite.addrs[1],
-				recipient:           suite.addrs[5],
-				recipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
-				senderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
-				closedBlock:         1,
-				status:              types.Open,
-				crossChain:          true,
-				direction:           types.Incoming,
+			"invalid amount",
+			types.AtomicSwap{
+				Amount: sdk.Coins{sdk.Coin{Denom: "BNB", Amount: sdk.NewInt(10)}},
 			},
 			false,
 		},
 		{
-			"invalid amount",
-			args{
-				amount:              cs(c("bnb", 0)),
-				randomNumberHash:    suite.randomNumberHashes[2],
-				expireHeight:        int64(360),
-				timestamp:           suite.timestamps[2],
-				sender:              suite.addrs[2],
-				recipient:           suite.addrs[5],
-				recipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
-				senderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
-				closedBlock:         1,
-				status:              types.Open,
-				crossChain:          true,
-				direction:           types.Incoming,
+			"amount not positive",
+			types.AtomicSwap{
+				Amount: cs(c("bnb", 0)),
+			},
+			false,
+		},
+		{
+			"invalid random number hash length",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[1][0:20],
+			},
+			false,
+		},
+		{
+			"exp height 0",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     0,
+			},
+			false,
+		},
+		{
+			"timestamp 0",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     10,
+				Timestamp:        0,
+			},
+			false,
+		},
+		{
+			"empty sender",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     10,
+				Timestamp:        10,
+				Sender:           nil,
+			},
+			false,
+		},
+		{
+			"empty recipient",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     10,
+				Timestamp:        10,
+				Sender:           suite.addrs[0],
+				Recipient:        nil,
+			},
+			false,
+		},
+		{
+			"invalid sender length",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     10,
+				Timestamp:        10,
+				Sender:           suite.addrs[0][:10],
+				Recipient:        suite.addrs[5],
+			},
+			false,
+		},
+		{
+			"invalid recipient length",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     10,
+				Timestamp:        10,
+				Sender:           suite.addrs[0],
+				Recipient:        suite.addrs[5][:10],
+			},
+			false,
+		},
+		{
+			"invalid sender other chain",
+			types.AtomicSwap{
+				Amount:           cs(c("bnb", 50000)),
+				RandomNumberHash: suite.randomNumberHashes[0],
+				ExpireHeight:     10,
+				Timestamp:        10,
+				Sender:           suite.addrs[0],
+				Recipient:        suite.addrs[5],
+				SenderOtherChain: "",
+			},
+			false,
+		},
+		{
+			"invalid recipient other chain",
+			types.AtomicSwap{
+				Amount:              cs(c("bnb", 50000)),
+				RandomNumberHash:    suite.randomNumberHashes[0],
+				ExpireHeight:        10,
+				Timestamp:           10,
+				Sender:              suite.addrs[0],
+				Recipient:           suite.addrs[5],
+				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
+				RecipientOtherChain: "",
+			},
+			false,
+		},
+		{
+			"closed block 0",
+			types.AtomicSwap{
+				Amount:              cs(c("bnb", 50000)),
+				RandomNumberHash:    suite.randomNumberHashes[0],
+				ExpireHeight:        10,
+				Timestamp:           10,
+				Sender:              suite.addrs[0],
+				Recipient:           suite.addrs[5],
+				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
+				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
+				ClosedBlock:         0,
+			},
+			false,
+		},
+		{
+			"invalid status 0",
+			types.AtomicSwap{
+				Amount:              cs(c("bnb", 50000)),
+				RandomNumberHash:    suite.randomNumberHashes[0],
+				ExpireHeight:        10,
+				Timestamp:           10,
+				Sender:              suite.addrs[0],
+				Recipient:           suite.addrs[5],
+				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
+				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
+				ClosedBlock:         1,
+				Status:              types.NULL,
+			},
+			false,
+		},
+		{
+			"invalid direction ",
+			types.AtomicSwap{
+				Amount:              cs(c("bnb", 50000)),
+				RandomNumberHash:    suite.randomNumberHashes[0],
+				ExpireHeight:        10,
+				Timestamp:           10,
+				Sender:              suite.addrs[0],
+				Recipient:           suite.addrs[5],
+				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
+				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
+				ClosedBlock:         1,
+				Status:              types.Open,
+				Direction:           types.INVALID,
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		// Create atomic swap
-		swap := types.NewAtomicSwap(tc.args.amount, tc.args.randomNumberHash, tc.args.expireHeight,
-			tc.args.timestamp, tc.args.sender, tc.args.recipient, tc.args.senderOtherChain,
-			tc.args.recipientOtherChain, tc.args.closedBlock, tc.args.status, tc.args.crossChain,
-			tc.args.direction)
 
+		err := tc.swap.Validate()
 		if tc.expectPass {
-			suite.Nil(swap.Validate())
-			suite.Equal(tc.args.amount, swap.GetCoins())
-			expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender, tc.args.senderOtherChain)
-			suite.Equal(tmbytes.HexBytes(expectedSwapID), swap.GetSwapID())
+			suite.Require().NoError(err, tc.msg)
+			suite.Require().Equal(tc.swap.Amount, tc.swap.GetCoins())
+
+			expectedSwapID := types.CalculateSwapID(tc.swap.RandomNumberHash, tc.swap.Sender, tc.swap.SenderOtherChain)
+			suite.Require().Equal(tmbytes.HexBytes(expectedSwapID), tc.swap.GetSwapID())
 		} else {
-			suite.Error(swap.Validate())
+			suite.Require().Error(err)
 		}
 
 	}
