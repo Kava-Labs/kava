@@ -133,7 +133,7 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAtomicSwaps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAtomicSwaps(1, 100)),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAtomicSwaps(1, 100, sdk.AccAddress{}, 0, types.Open, types.Incoming)),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetAtomicSwaps}, query)
