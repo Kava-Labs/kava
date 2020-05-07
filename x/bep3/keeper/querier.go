@@ -53,12 +53,10 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 }
 
 func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
-	var assets types.AssetSupplies
-
-	keeper.IterateAssetSupplies(ctx, func(a types.AssetSupply) bool {
-		assets = append(assets, a)
-		return false
-	})
+	assets := keeper.GetAllAssetSupplies(ctx)
+	if assets == nil {
+		assets = types.AssetSupplies{}
+	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, assets)
 	if err != nil {

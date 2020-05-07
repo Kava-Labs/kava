@@ -89,7 +89,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", assetParam.Limit.Add(i(1)).Int64()),
-						Limit:          c("bnb", assetParam.Limit.Int64()),
+						SupplyLimit:    c("bnb", assetParam.Limit.Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -121,7 +121,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 						IncomingSupply: c("bnb", assetParam.Limit.Add(i(1)).Int64()),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", 0),
-						Limit:          c("bnb", assetParam.Limit.Int64()),
+						SupplyLimit:    c("bnb", assetParam.Limit.Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -154,7 +154,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 						IncomingSupply: c("bnb", halfLimit),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", overHalfLimit),
-						Limit:          c("bnb", assetParam.Limit.Int64()),
+						SupplyLimit:    c("bnb", assetParam.Limit.Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -171,7 +171,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 						IncomingSupply: c("fake", 0),
 						OutgoingSupply: c("fake", 0),
 						CurrentSupply:  c("fake", 0),
-						Limit:          c("fake", StandardSupplyLimit.Int64()),
+						SupplyLimit:    c("fake", StandardSupplyLimit.Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}

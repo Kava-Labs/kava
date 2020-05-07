@@ -128,6 +128,27 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	suite.True(suite.isSwapID[hex.EncodeToString(swap.GetSwapID())])
 }
 
+func (suite *QuerierTestSuite) TestQueryAssetSupplies() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	// Set up request query
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAssetSupplies}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupplies(1, 100)),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetAssetSupplies}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	var supplies types.AssetSupplies
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &supplies))
+
+	// Check that returned value matches asset supplies in state
+	storeSupplies := suite.keeper.GetAllAssetSupplies(ctx)
+	suite.Equal(len(storeSupplies), len(supplies))
+	suite.Equal(supplies, storeSupplies)
+}
+
 func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query

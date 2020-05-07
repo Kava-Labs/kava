@@ -43,7 +43,7 @@ func (suite *AssetTestSuite) SetupTest() {
 		IncomingSupply: c("bnb", 5),
 		OutgoingSupply: c("bnb", 5),
 		CurrentSupply:  c("bnb", 40),
-		Limit:          c("bnb", 50),
+		SupplyLimit:    c("bnb", 50),
 	}
 	keeper.SetAssetSupply(ctx, supply, []byte(supply.Denom))
 

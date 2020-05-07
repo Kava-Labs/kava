@@ -171,7 +171,7 @@ func QueryGetAssetSuppliesCmd(queryRoute string, cdc *codec.Codec) *cobra.Comman
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(assetSupplies.String())
+			return cliCtx.PrintOutput(assetSupplies)
 		},
 	}
 }
