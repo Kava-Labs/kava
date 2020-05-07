@@ -108,7 +108,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
 				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber, timestamp)
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := bep3.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
@@ -141,7 +141,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
 				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber, timestamp)
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := bep3.NewAtomicSwap(cs(c("bnb", halfLimit)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
@@ -185,7 +185,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
 				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber, timestamp)
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := bep3.NewAtomicSwap(cs(c("fake", 500000)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
@@ -202,7 +202,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				timestamp := ts(0)
 				randomNumber, _ := bep3.GenerateSecureRandomNumber()
-				randomNumberHash := bep3.CalculateRandomHash(randomNumber, timestamp)
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := bep3.NewAtomicSwap(cs(c("bnb", 5000)), randomNumberHash,
 					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, bep3.NULL, true, bep3.Incoming)

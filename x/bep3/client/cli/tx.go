@@ -81,10 +81,10 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
+			randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 			// Print random number, timestamp, and hash to user's console
-			fmt.Printf("\nRandom number: %s\n", string(randomNumber))
+			fmt.Printf("\nRandom number: %s\n", string(randomNumber[:]))
 			fmt.Printf("Timestamp: %d\n", timestamp)
 			fmt.Printf("Random number hash: %s\n\n", hex.EncodeToString(randomNumberHash))
 

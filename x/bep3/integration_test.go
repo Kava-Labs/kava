@@ -76,7 +76,7 @@ func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.As
 	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
 	timestamp := ts(index)                     // One minute apart
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
-	randomNumberHash := bep3.CalculateRandomHash(randomNumber, timestamp)
+	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 	swap := bep3.NewAtomicSwap(cs(coin), randomNumberHash,
 		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
 		TestRecipientOtherChain, 1, bep3.Open, true, bep3.Incoming)

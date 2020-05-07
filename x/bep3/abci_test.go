@@ -56,7 +56,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		amount := cs(c("bnb", int64(100)))
 		timestamp := ts(i)
 		randomNumber, _ := bep3.GenerateSecureRandomNumber()
-		randomNumberHash := bep3.CalculateRandomHash(randomNumber, timestamp)
+		randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 
 		// Create atomic swap and check err to confirm creation
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
@@ -67,7 +67,7 @@ func (suite *ABCITestSuite) ResetKeeper() {
 		// Store swap's calculated ID and secret random number
 		swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
-		randomNumbers = append(randomNumbers, randomNumber)
+		randomNumbers = append(randomNumbers, randomNumber[:])
 	}
 	suite.swapIDs = swapIDs
 	suite.randomNumbers = randomNumbers

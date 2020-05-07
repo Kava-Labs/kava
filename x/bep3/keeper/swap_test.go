@@ -73,11 +73,11 @@ func (suite *AtomicSwapTestSuite) GenerateSwapDetails() {
 		// Set up atomic swap details
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 		timestamps = append(timestamps, timestamp)
 		randomNumberHashes = append(randomNumberHashes, randomNumberHash)
-		randomNumbers = append(randomNumbers, randomNumber)
+		randomNumbers = append(randomNumbers, randomNumber[:])
 	}
 	suite.timestamps = timestamps
 	suite.randomNumberHashes = randomNumberHashes
@@ -408,7 +408,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			suite.ctx,
 			args{
 				swapID:       []byte{},
-				randomNumber: invalidRandomNumber,
+				randomNumber: invalidRandomNumber[:],
 				direction:    types.Incoming,
 			},
 			false,

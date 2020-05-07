@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsByBlock() {
 		// Initialize a new atomic swap (different randomNumberHash = different swap IDs)
 		timestamp := tmtime.Now().Add(time.Duration(i) * time.Minute).Unix()
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 			uint64(blockCtx.BlockHeight()), timestamp, TestUser1, TestUser2,
@@ -269,7 +269,7 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 	for i := 0; i < 8; i++ {
 		timestamp := tmtime.Now().Unix()
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 		atomicSwap := types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
 			uint64(suite.ctx.BlockHeight()), timestamp, TestUser1, TestUser2,

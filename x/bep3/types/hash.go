@@ -14,7 +14,7 @@ import (
 )
 
 // GenerateSecureRandomNumber generates cryptographically strong pseudo-random number
-func GenerateSecureRandomNumber() ([]byte, error) {
+func GenerateSecureRandomNumber() ([64]byte, error) {
 	// Max is a 256-bits integer i.e. 2^256
 	max := new(big.Int)
 	max.Exp(big.NewInt(2), big.NewInt(256), nil)
@@ -22,11 +22,12 @@ func GenerateSecureRandomNumber() ([]byte, error) {
 	// Generate number in the range [0, max]
 	randomNumber, err := rand.Int(rand.Reader, max)
 	if err != nil {
-		return []byte{}, errors.New("random number generation error")
+		return [64]byte{}, errors.New("random number generation error")
 	}
 
 	// Ensure length of 64 for hexadecimal encoding by padding with 0s
-	paddedNumber := []byte(fmt.Sprintf("%064x", randomNumber))
+	var paddedNumber [64]byte
+	copy(paddedNumber[:], fmt.Sprintf("%064x", randomNumber))
 	return paddedNumber, nil
 }
 
