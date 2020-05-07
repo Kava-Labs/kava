@@ -237,7 +237,7 @@
             description: Tx hash
             required: true
             type: string
-            x-example: 4B2C3449FF2647BD51B54C32761FE4EBE7AE024BBE2A9898972A69BEB82D97C2
+            x-example: FFC8D0E5D52D330AD315E950E5C18A9D65FC640156B9A95B5AEF07DDAE32E61D
         responses:
           200:
             description: Tx with the provided hash
@@ -400,13 +400,9 @@
                 owner:
                   $ref: '#/definitions/Address'
                 collateral:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CoinCollateral'
+                  $ref: '#/definitions/CoinCollateral'
                 principal:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CoinPrincipal'
+                  $ref: '#/definitions/CoinPrincipal'
         responses:
           200:
             description: Tx was successfully generated
@@ -450,9 +446,7 @@
                 depositor:
                   $ref: '#/definitions/Address'
                 collateral:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CoinCollateral'
+                  $ref: '#/definitions/CoinCollateral'
         responses:
           200:
             description: Tx was successfully generated
@@ -496,9 +490,7 @@
                 depositor:
                   $ref: '#/definitions/Address'
                 collateral:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CoinCollateral'
+                  $ref: '#/definitions/CoinCollateral'
         responses:
           200:
             description: Tx was successfully generated
@@ -540,9 +532,7 @@
                 owner:
                   $ref: '#/definitions/Address'
                 principal:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CoinPrincipal'
+                  $ref: '#/definitions/CoinPrincipal'
         responses:
           200:
             description: Tx was successfully generated
@@ -584,9 +574,7 @@
                 owner:
                   $ref: '#/definitions/Address'
                 payment:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CoinPrincipal'
+                  $ref: '#/definitions/CoinPrincipal'
         responses:
           200:
             description: Tx was successfully generated
@@ -725,7 +713,7 @@
             description: Server internal error
     /cdp/cdps/cdp/deposits/{owner}/{denom}:
       get:
-        summary: Get the deposits associated with the cdp owned by the input owner address and with colalteral type equal to the input collateral denom
+        summary: Get the deposits associated with the cdp owned by the input owner address and with collateral type equal to the input collateral denom
         tags:
           - CDP
         produces:
@@ -1888,7 +1876,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
         responses:
           200:
             description: OK
@@ -1911,7 +1899,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
         responses:
           200:
             description: OK
@@ -1934,7 +1922,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
         responses:
           200:
             description: OK
@@ -1966,7 +1954,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
           - description: ''
             name: post_deposit_body
             in: body
@@ -2007,7 +1995,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: "2"
+            x-example: "1"
           - type: string
             description: Bech32 depositor address
             name: depositor
@@ -2039,7 +2027,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
         responses:
           200:
             description: OK
@@ -2071,7 +2059,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
           - description: valid value of `"option"` field can be `"yes"`, `"no"`, `"no_with_veto"` and `"abstain"`
             name: post_vote_body
             in: body
@@ -2111,7 +2099,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
           - type: string
             description: Bech32 voter address
             name: voter
@@ -2143,7 +2131,7 @@
             name: proposalId
             required: true
             in: path
-            x-example: '2'
+            x-example: '1'
         responses:
           200:
             description: OK
@@ -3098,9 +3086,7 @@
           type: string
           example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         amount:
-          type: array
-          items:
-            $ref: '#/definitions/CoinCollateral'
+          $ref: '#/definitions/CoinCollateral'
     PricefeedParameters:
       type: object
       properties:

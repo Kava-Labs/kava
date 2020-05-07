@@ -135,7 +135,6 @@ type (
 	QueryAssetSupply    = types.QueryAssetSupply
 	QueryAtomicSwapByID = types.QueryAtomicSwapByID
 	QueryAtomicSwaps    = types.QueryAtomicSwaps
-	SupplyKeeper        = types.SupplyKeeper
 	SwapDirection       = types.SwapDirection
 	SwapStatus          = types.SwapStatus
 )
