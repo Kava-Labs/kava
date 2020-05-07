@@ -12,26 +12,25 @@ import (
 
 // nolint
 const (
-	EventTypeMarketPriceUpdated   = types.EventTypeMarketPriceUpdated
-	EventTypeOracleUpdatedPrice   = types.EventTypeOracleUpdatedPrice
-	EventTypeNoValidPrices        = types.EventTypeNoValidPrices
-	AttributeValueCategory        = types.AttributeValueCategory
-	AttributeMarketID             = types.AttributeMarketID
-	AttributeMarketPrice          = types.AttributeMarketPrice
-	AttributeOracle               = types.AttributeOracle
-	AttributeExpiry               = types.AttributeExpiry
-	AttributeKeyPriceUpdateFailed = types.AttributeKeyPriceUpdateFailed
-	ModuleName                    = types.ModuleName
-	StoreKey                      = types.StoreKey
-	RouterKey                     = types.RouterKey
-	QuerierRoute                  = types.QuerierRoute
-	DefaultParamspace             = types.DefaultParamspace
-	TypeMsgPostPrice              = types.TypeMsgPostPrice
-	QueryGetParams                = types.QueryGetParams
-	QueryMarkets                  = types.QueryMarkets
-	QueryOracles                  = types.QueryOracles
-	QueryRawPrices                = types.QueryRawPrices
-	QueryPrice                    = types.QueryPrice
+	EventTypeMarketPriceUpdated = types.EventTypeMarketPriceUpdated
+	EventTypeOracleUpdatedPrice = types.EventTypeOracleUpdatedPrice
+	EventTypeNoValidPrices      = types.EventTypeNoValidPrices
+	AttributeValueCategory      = types.AttributeValueCategory
+	AttributeMarketID           = types.AttributeMarketID
+	AttributeMarketPrice        = types.AttributeMarketPrice
+	AttributeOracle             = types.AttributeOracle
+	AttributeExpiry             = types.AttributeExpiry
+	ModuleName                  = types.ModuleName
+	StoreKey                    = types.StoreKey
+	RouterKey                   = types.RouterKey
+	QuerierRoute                = types.QuerierRoute
+	DefaultParamspace           = types.DefaultParamspace
+	TypeMsgPostPrice            = types.TypeMsgPostPrice
+	QueryGetParams              = types.QueryGetParams
+	QueryMarkets                = types.QueryMarkets
+	QueryOracles                = types.QueryOracles
+	QueryRawPrices              = types.QueryRawPrices
+	QueryPrice                  = types.QueryPrice
 )
 
 // nolint

@@ -1,11 +1,8 @@
-package pricefeed
+# Begin Block
 
-import (
-	"fmt"
+At the start of each block, the current price is calculated as the median of all raw prices for each market. The logic is as follows:
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
+```go
 // EndBlocker updates the current pricefeed
 func EndBlocker(ctx sdk.Context, k Keeper) {
 	// Update the current price of each asset.
@@ -26,3 +23,4 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 	}
 	return
 }
+```
