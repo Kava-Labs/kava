@@ -36,7 +36,7 @@ func (d Deposit) Validate() error {
 	if d.Depositor.Empty() {
 		return errors.New("depositor cannot be empty")
 	}
-	if d.Amount.IsValid() {
+	if !d.Amount.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit %s", d.Amount)
 	}
 	return nil

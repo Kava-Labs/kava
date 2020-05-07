@@ -61,13 +61,13 @@ func (cdp CDP) Validate() error {
 	if cdp.Owner.Empty() {
 		return errors.New("cdp owner cannot be empty")
 	}
-	if cdp.Collateral.IsValid() {
+	if !cdp.Collateral.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral %s", cdp.Collateral)
 	}
-	if cdp.Principal.IsValid() {
+	if !cdp.Principal.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal %s", cdp.Principal)
 	}
-	if cdp.AccumulatedFees.IsValid() {
+	if !cdp.AccumulatedFees.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "acumulated fees %s", cdp.AccumulatedFees)
 	}
 	if cdp.FeesUpdated.IsZero() {
