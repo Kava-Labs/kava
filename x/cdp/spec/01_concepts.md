@@ -11,7 +11,7 @@ Once created, stable assets are free to be transferred between users, but a CDP 
 User interactions with this module:
 
 - create a new CDP by depositing a supported coin as collateral and minting debt
-- deposit to a CDP controlled a different owner address
+- deposit to a CDP controlled by a different owner address
 - withdraw deposited collateral, if it doesn't put the CDP below the liquidation ratio
 - issue stable coins from this CDP (up to a fraction of the value of the collateral)
 - repay debt by paying back stable coins (including paying any fees accrued)
@@ -73,4 +73,10 @@ The CDP module relies on a supply keeper to move assets between its module accou
 
 ## Dependency: pricefeed
 
-The CDP module needs to know the current price of collateral assets in order to determine if CDPs are under collateralized. This is provided by a "pricefeed" module that returns a price for a given collateral in units (usually US Dollars) which are the target for the stable asset.
+The CDP module needs to know the current price of collateral assets in order to determine if CDPs are under collateralized. This is provided by a "pricefeed" module that returns a price for a given collateral in units (usually US Dollars) which are the target for the stable asset. The status of the pricefeed for each collateral is checked at the beginning of each block. In the event that the pricefeed does not return a price for a collateral asset:
+
+1. Liquidation of CDPs is suspended until a price is reported
+2. Accumulation of fees is suspended until a price is reported
+3. Withdrawal of collateral is suspended until a price is reported
+4. Creation of new CDPs is suspended until a price is reported
+5. Drawing of additional debt off of existing CDPs is suspended until a price is reported

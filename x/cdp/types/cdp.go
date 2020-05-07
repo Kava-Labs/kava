@@ -1,11 +1,13 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // CDP is the state of a single collateralized debt position.
@@ -51,6 +53,29 @@ func (cdp CDP) String() string {
 	))
 }
 
+// Validate performs a basic validation of the CDP fields.
+func (cdp CDP) Validate() error {
+	if cdp.ID == 0 {
+		return errors.New("cdp id cannot be 0")
+	}
+	if cdp.Owner.Empty() {
+		return errors.New("cdp owner cannot be empty")
+	}
+	if cdp.Collateral.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral %s", cdp.Collateral)
+	}
+	if cdp.Principal.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal %s", cdp.Principal)
+	}
+	if cdp.AccumulatedFees.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "acumulated fees %s", cdp.AccumulatedFees)
+	}
+	if cdp.FeesUpdated.IsZero() {
+		return errors.New("cdp updated fee time cannot be zero")
+	}
+	return nil
+}
+
 // CDPs a collection of CDP objects
 type CDPs []CDP
 
@@ -61,6 +86,16 @@ func (cdps CDPs) String() string {
 		out += cdp.String() + "\n"
 	}
 	return out
+}
+
+// Validate validates each CDP
+func (cdps CDPs) Validate() error {
+	for _, cdp := range cdps {
+		if err := cdp.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // AugmentedCDP provides additional information about an active CDP

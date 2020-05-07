@@ -42,6 +42,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 		if !found {
 			panic(fmt.Sprintf("%s collateral not found in pricefeed", col.Denom))
 		}
+		_ = k.UpdatePricefeedStatus(ctx, col.MarketID)
 	}
 
 	k.SetParams(ctx, gs.Params)

@@ -18,9 +18,13 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 	for _, cp := range params.CollateralParams {
 
+		ok := k.UpdatePricefeedStatus(ctx, cp.MarketID)
+		if !ok {
+			continue
+		}
+
 		err := k.UpdateFeesForAllCdps(ctx, cp.Denom)
 
-		// handle if an error is returned then propagate up
 		if err != nil {
 			panic(err)
 		}

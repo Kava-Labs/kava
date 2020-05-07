@@ -60,10 +60,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 		surplusDistributed = surplusDistributed.Add(interest)
 		return false
 	})
-	if iterationErr != nil {
-		return iterationErr
-	}
-	return nil
+	return iterationErr
 }
 
 // GetPreviousSavingsDistribution get the time of the previous savings rate distribution

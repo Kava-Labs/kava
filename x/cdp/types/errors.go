@@ -41,4 +41,6 @@ var (
 	ErrInvalidDebtRequest = sdkerrors.Register(ModuleName, 17, "only one principal type per cdp")
 	// ErrDenomPrefixNotFound error for denom prefix not found
 	ErrDenomPrefixNotFound = sdkerrors.Register(ModuleName, 18, "denom prefix not found")
+	// ErrPricefeedDown error for when a price for the input denom is not found
+	ErrPricefeedDown = sdkerrors.Register(ModuleName, 19, "no price found for collateral")
 )
