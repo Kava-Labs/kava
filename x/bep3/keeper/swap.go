@@ -16,8 +16,6 @@ import (
 func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan uint64,
 	sender sdk.AccAddress, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
 	amount sdk.Coins, crossChain bool) error {
-	// TODO: add unparam linter
-	// TODO: expectedIncome is not used in this function (only for event), consider removing
 	// Confirm that this is not a duplicate swap
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
