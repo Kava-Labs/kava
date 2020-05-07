@@ -10,6 +10,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
+// REST Variable names
+// nolint
+const (
+	RestExpiration = "expiration"
+	RestInvolve    = "involve"
+	RestStatus     = "status"
+	RestDirection  = "direction"
+)
+
 // RegisterRoutes registers bep3-related REST handlers to a router
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	registerQueryRoutes(cliCtx, r)

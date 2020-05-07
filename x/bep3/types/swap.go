@@ -197,6 +197,16 @@ func (status *SwapStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// ValidSwapStatus returns true if the swap status is valid and false otherwise.
+func ValidSwapStatus(status SwapStatus) bool {
+	if status == Open ||
+		status == Completed ||
+		status == Expired {
+		return true
+	}
+	return false
+}
+
 // SwapDirection is the direction of an AtomicSwap
 type SwapDirection byte
 
@@ -244,4 +254,13 @@ func (direction *SwapDirection) UnmarshalJSON(data []byte) error {
 	}
 	*direction = NewSwapDirectionFromString(s)
 	return nil
+}
+
+// ValidSwapDirection returns true if the swap direction is valid and false otherwise.
+func ValidSwapDirection(direction SwapDirection) bool {
+	if direction == Incoming ||
+		direction == Outgoing {
+		return true
+	}
+	return false
 }

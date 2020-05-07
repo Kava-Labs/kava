@@ -16,6 +16,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetAssetSupply:
 			return queryAssetSupply(ctx, req, keeper)
+		case types.QueryGetAssetSupplies:
+			return queryAssetSupplies(ctx, req, keeper)
 		case types.QueryGetAtomicSwap:
 			return queryAtomicSwap(ctx, req, keeper)
 		case types.QueryGetAtomicSwaps:
@@ -50,6 +52,22 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 	return bz, nil
 }
 
+func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+	var assets types.AssetSupplies
+
+	keeper.IterateAssetSupplies(ctx, func(a types.AssetSupply) bool {
+		assets = append(assets, a)
+		return false
+	})
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, assets)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
 func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAtomicSwapByID
@@ -73,16 +91,38 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 	return bz, nil
 }
 
-func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
-	var swaps types.AtomicSwaps
+// func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+// 	var swaps types.AtomicSwaps
 
-	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
-		swaps = append(swaps, s)
-		return false
-	})
+// 	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
+// 		swaps = append(swaps, s)
+// 		return false
+// 	})
 
-	bz, err2 := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
-	if err2 != nil {
+// 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
+// 	if err != nil {
+// 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+// 	}
+
+// 	return bz, nil
+// }
+
+// func queryAtomicSwaps(ctx sdk.Context, _ []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+
+func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryAtomicSwaps
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	swaps := keeper.GetAtomicSwapsFiltered(ctx, params)
+	if swaps == nil {
+		swaps = types.AtomicSwaps{}
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
+	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
