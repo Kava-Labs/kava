@@ -21,12 +21,10 @@ func (suite *GenesisTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
-	count := 10
-	suite.swaps = atomicSwaps(count)
+	coin := sdk.NewCoin("kava", sdk.OneInt())
+	suite.swaps = atomicSwaps(10)
 
-	incomingSupply := int64(count * 50000)
-	supply := types.NewAssetSupply("bnb", c("bnb", incomingSupply),
-		c("bnb", 0), c("bnb", 0), c("bnb", 100000000000))
+	supply := types.NewAssetSupply("kava", coin, coin, coin, coin)
 	suite.supplies = types.AssetSupplies{supply}
 }
 
