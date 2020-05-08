@@ -99,7 +99,7 @@ func (a AtomicSwap) Validate() error {
 		return errors.New("closed block cannot be 0")
 	}
 	if a.Status == NULL || a.Status > 3 {
-		return errors.New("swap status cannot be nil")
+		return errors.New("invalid swap status")
 	}
 	if a.Direction == INVALID || a.Direction > 2 {
 		return errors.New("invalid swap direction")
