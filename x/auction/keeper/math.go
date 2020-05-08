@@ -11,8 +11,7 @@ import (
 // https://en.wikipedia.org/wiki/Largest_remainder_method
 // see also: https://stackoverflow.com/questions/13483430/how-to-make-rounded-percentages-add-up-to-100
 func splitIntIntoWeightedBuckets(amount sdk.Int, buckets []sdk.Int) []sdk.Int {
-	// TODO: ideally change algorithm to work with -ve numbers. Limiting to +ve numbers until them
-	// TODO: negative buckets don't make sense in this context
+	// Limit input to +ve numbers as algorithm hasn't been designed to work with -ve numbers.
 	if amount.IsNegative() {
 		panic("negative amount")
 	}

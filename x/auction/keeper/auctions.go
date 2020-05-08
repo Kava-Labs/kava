@@ -36,7 +36,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
-			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
 		),
 	)
@@ -77,7 +77,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
-			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
 		),
 	)
@@ -122,9 +122,9 @@ func (k Keeper) StartCollateralAuction(
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
-			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
-			sdk.NewAttribute(types.AttributeKeyMaxBidAmount, auction.MaxBid.String()),
+			sdk.NewAttribute(types.AttributeKeyMaxBid, auction.MaxBid.String()),
 		),
 	)
 	return auctionID, nil
@@ -352,7 +352,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		return a, err
 	}
 	for i, payout := range lotPayouts {
-		// if due to rounding, for whatever reason, the lot amount is 0, don't execute the following code
+		// if the payout amount is 0, don't send 0 coins
 		if payout.IsPositive() {
 			err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
 			if err != nil {
@@ -488,7 +488,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 		sdk.NewEvent(
 			types.EventTypeAuctionClose,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
-			// TODO: add closed height here to facilitate the query of the auction after it closes
+			sdk.NewAttribute(types.AttributeKeyCloseBlock, fmt.Sprintf("%d", ctx.BlockHeight()))
 		),
 	)
 	return nil
