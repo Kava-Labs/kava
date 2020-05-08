@@ -101,8 +101,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral, uint64(j+1))
 		suite.True(f)
 		cdps[j] = c
-		aCDP, err := suite.keeper.LoadAugmentedCDP(suite.ctx, c)
-		suite.NoError(err)
+		aCDP := suite.keeper.LoadAugmentedCDP(suite.ctx, c)
 		augmentedCDPs[j] = aCDP
 	}
 

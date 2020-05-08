@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -50,10 +48,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
 	}
 
-	augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
-	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrLoadingAugmentedCDP, fmt.Sprintf("%v: %d", err.Error(), cdp.ID))
-	}
+	augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDP)
 	if err != nil {
@@ -112,10 +107,8 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	// augment CDPs by adding collateral value and collateralization ratio
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
-		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
-		if err == nil {
-			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
-		}
+		augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
+		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 	}
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDPs)
 	if err != nil {
@@ -140,10 +133,8 @@ func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	// augment CDPs by adding collateral value and collateralization ratio
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
-		augmentedCDP, err := keeper.LoadAugmentedCDP(ctx, cdp)
-		if err == nil {
-			augmentedCDPs = append(augmentedCDPs, augmentedCDP)
-		}
+		augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
+		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
 	}
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedCDPs)
 	if err != nil {
