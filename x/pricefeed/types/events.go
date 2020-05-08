@@ -6,10 +6,9 @@ const (
 	EventTypeOracleUpdatedPrice = "oracle_updated_price"
 	EventTypeNoValidPrices      = "no_valid_prices"
 
-	AttributeValueCategory        = ModuleName
-	AttributeMarketID             = "market_id"
-	AttributeMarketPrice          = "market_price"
-	AttributeOracle               = "oracle"
-	AttributeExpiry               = "expiry"
-	AttributeKeyPriceUpdateFailed = "price_update_failed"
+	AttributeValueCategory = ModuleName
+	AttributeMarketID      = "market_id"
+	AttributeMarketPrice   = "market_price"
+	AttributeOracle        = "oracle"
+	AttributeExpiry        = "expiry"
 )
