@@ -74,7 +74,6 @@ func (k Keeper) IncrementNextAuctionID(ctx sdk.Context) error {
 func (k Keeper) StoreNewAuction(ctx sdk.Context, auction types.Auction) (uint64, error) {
 	newAuctionID, err := k.GetNextAuctionID(ctx)
 	if err != nil {
-		// TODO: We might want to panic on this condition
 		return 0, err
 	}
 	auction = auction.WithID(newAuctionID)
@@ -129,7 +128,7 @@ func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) {
 }
 
 // InsertIntoByTimeIndex adds an auction ID and end time into the byTime index.
-func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) { // TODO make private, and find way to make tests work
+func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), types.Uint64ToBytes(auctionID))
 }
