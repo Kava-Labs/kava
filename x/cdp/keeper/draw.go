@@ -200,7 +200,7 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 // owed - Principal + AccumulatedFees
 // fees - AccumulatedFees
 // CONTRACT: owned and payment denoms must be checked before calling this function.
-func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coin, fees sdk.Coin, payment sdk.Coin) (sdk.Coin, sdk.Coin) {
+func (k Keeper) calculatePayment(ctx sdk.Context, owed, fees, payment sdk.Coin) (sdk.Coin, sdk.Coin) {
 	// divides repayment into principal and fee components, with fee payment applied first.
 
 	feePayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())

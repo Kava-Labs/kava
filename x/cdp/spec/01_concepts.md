@@ -77,6 +77,6 @@ The CDP module needs to know the current price of collateral assets in order to 
 
 1. Liquidation of CDPs is suspended until a price is reported
 2. Accumulation of fees is suspended until a price is reported
-3. Withdrawal of collateral is suspended until a price is reported
+3. Deposits and withdrawals of collateral are suspended until a price is reported
 4. Creation of new CDPs is suspended until a price is reported
 5. Drawing of additional debt off of existing CDPs is suspended until a price is reported

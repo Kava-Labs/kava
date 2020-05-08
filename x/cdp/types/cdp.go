@@ -68,7 +68,7 @@ func (cdp CDP) Validate() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal %s", cdp.Principal)
 	}
 	if !cdp.AccumulatedFees.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "acumulated fees %s", cdp.AccumulatedFees)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "accumulated fees %s", cdp.AccumulatedFees)
 	}
 	if cdp.FeesUpdated.IsZero() {
 		return errors.New("cdp updated fee time cannot be zero")
