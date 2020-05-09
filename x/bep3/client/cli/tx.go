@@ -45,23 +45,23 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdCreateAtomicSwap cli command for creating atomic swaps
 func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [height-span] [cross-chain]",
+		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [height-span]",
 		Short: "create a new atomic swap",
-		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 now 100bnb 360 true --from validator",
+		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 now 100bnb 360 --from validator",
 			version.ClientName, types.ModuleName),
-		Args: cobra.ExactArgs(7),
+		Args: cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain)
+			from := cliCtx.GetFromAddress() // same as Kava executor's deputy address
 			to, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			recipientOtherChain := args[1] // same as OtherExecutor.DeputyAddress
+			recipientOtherChain := args[1] // same as the other executor's deputy address
 			senderOtherChain := args[2]
 
 			// Timestamp defaults to time.Now() unless it's explicitly set
@@ -98,14 +98,10 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			crossChain, err := strconv.ParseBool(args[6])
-			if err != nil {
-				return err
-			}
-
 			msg := types.NewMsgCreateAtomicSwap(
 				from, to, recipientOtherChain, senderOtherChain,
-				randomNumberHash, timestamp, coins, heightSpan, crossChain)
+				randomNumberHash, timestamp, coins, heightSpan,
+			)
 
 			err = msg.ValidateBasic()
 			if err != nil {

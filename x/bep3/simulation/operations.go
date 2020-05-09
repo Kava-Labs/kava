@@ -136,11 +136,10 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		// We're assuming that sims are run with -NumBlocks=100
 		heightSpan := uint64(55)
-		crossChain := true
 
 		msg := types.NewMsgCreateAtomicSwap(
 			sender.Address, recipient.Address, recipientOtherChain, senderOtherChain,
-			randomNumberHash, timestamp, coins, heightSpan, crossChain,
+			randomNumberHash, timestamp, coins, heightSpan,
 		)
 
 		tx := helpers.GenTx(

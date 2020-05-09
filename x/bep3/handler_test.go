@@ -70,8 +70,9 @@ func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
 	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 
 	msg := bep3.NewMsgCreateAtomicSwap(
-		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain, TestSenderOtherChain,
-		randomNumberHash, timestamp, amount, uint64(300), true)
+		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain,
+		TestSenderOtherChain, randomNumberHash, timestamp, amount,
+		uint64(300))
 
 	res, err := suite.handler(suite.ctx, msg)
 	suite.Require().NoError(err)
