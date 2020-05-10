@@ -15,6 +15,8 @@
       description: Auction module APIs
     - name: BEP3
       description: BEP3 module APIs
+    - name: Incentive
+      description: Incentive module APIs
     - name: Pricefeed
       description: Auction module APIs
     - name: Auth
@@ -38,7 +40,7 @@
       description: Query app version
   schemes:
     - https
-  host: kava-testnet-4000.kava.io
+  host: kava-testnet-6000.kava.io
   securityDefinitions:
     kms:
       type: basic
@@ -671,6 +673,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   x-nullable: true
@@ -706,6 +709,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   x-nullable: true
@@ -741,6 +745,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -778,7 +783,7 @@
                 height_span:
                   $ref: '#/definitions/HeightSpan'
                 cross_chain:
-                  true
+                  $ref: '#/definitions/CrossChain'
         responses:
           200:
             description: The transaction was successfully generated
@@ -788,6 +793,165 @@
             description: Invalid request
           500:
             description: Internal server error
+    /bep3/swap/claim:
+      post:
+        summary: Generate a claim atomic swap transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - BEP3
+        parameters:
+          - in: body
+            name: Create atomic swap request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                from:
+                  $ref: '#/definitions/Address'
+                swap_id:
+                  type: string
+                  example: "3ca20f0152f03b0aabe73e7aa1ddf78b9048ede5a9a73846e1ef53bebbfa4185"
+                random_number:
+                  type: string
+                  example: "e3d0a98b459f72231da69c3bd771c1e721fef4be83c14b80dc805ba71019eebe"
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /bep3/swap/refund:
+      post:
+        summary: Generate a refund atomic swap transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - BEP3
+        parameters:
+          - in: body
+            name: Create atomic swap request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                from:
+                  $ref: '#/definitions/Address'
+                swap_id:
+                  type: string
+                  example: "1b00244021ec239867e5b8c44bcd98e40f3148806a8c0a8fd3418872986becba"
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /bep3/swap/{swap-id}:
+      get:
+        summary: Get the atomic swap object associated with the input swap ID
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: swap-id
+            description: the swap ID
+            type: string
+            x-example: 1b00244021ec239867e5b8c44bcd98e40f3148806a8c0a8fd3418872986becba
+        responses:
+          200:
+            description: Atomic swap
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: 548883
+                result:
+                  $ref: '#/definitions/AtomicSwapResponse'
+          500:
+            description: Server internal error
+    /bep3/swaps:
+      get:
+        summary: Get all atomic swaps
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        parameters:
+        responses:
+          200:
+            description: All atomic swaps
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/AtomicSwapResponse'
+          500:
+            description: Server internal error
+    /bep3/suppy/{denom}:
+      get:
+        summary: Get the asset supply for the input denom
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: denom
+            x-example: bnb
+        responses:
+          200:
+            description: Asset supply
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: '#/definitions/AssetSupplyResponse'
+          500:
+            description: Server internal error
+    /bep3/parameters:
+      get:
+        summary: Get the current parameters of the BEP3 module
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        responses:
+          200:
+            description: BEP3 module parameters
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: 548883
+                result:
+                  type: object
+                  $ref: '#/definitions/Bep3ParamsResponse'
+          500:
+            description: Server internal error
     /auction/auctions/{id}/bids:
       post:
         summary: Generate a place bid transaction
@@ -852,6 +1016,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -948,6 +1113,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -976,6 +1142,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -1004,6 +1171,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -1032,6 +1200,94 @@
               $ref: '#/definitions/Price'
           500:
             description: Internal Server Error
+    /incentive/claim:
+      post:
+        summary: Claim USDX incentive rewards
+        tags:
+          - Incentive
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Incentive claim body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                denom:
+                  type: string
+                  example: bnb
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /incentive/claims/{owner}/{denom}:
+      get:
+        summary: Get outstanding claims for the input owner and denom
+        tags:
+          - Incentive
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            required: true
+            type: string
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: bnb
+        responses:
+          200:
+            description: USDX Incentive Claims
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/ClaimResponse'
+          500:
+            description: Server internal error
+    /incentive/parameters:
+      get:
+        summary: Get the current parameters of the incentive module
+        tags:
+          - Incentive
+        produces:
+          - application/json
+        responses:
+          200:
+            description: USDX Incentive Claims
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/IncentiveParams'
+          500:
+            description: Server internal error
     /bank/balances/{address}:
       get:
         summary: Get the account balances
@@ -1054,6 +1310,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Coin"
@@ -1159,6 +1416,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Delegation"
@@ -1255,6 +1513,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/UnbondingDelegation"
@@ -1362,6 +1621,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Redelegation"
@@ -1436,6 +1696,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Validator"
@@ -1503,6 +1764,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Validator"
@@ -1553,6 +1815,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Delegation"
@@ -1582,6 +1845,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/UnbondingDelegation"
@@ -1814,6 +2078,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -1853,6 +2118,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -1974,6 +2240,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2079,6 +2346,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2284,6 +2552,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   $ref: '#/definitions/DelegatorTotalRewards'
           400:
@@ -2346,6 +2615,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2404,6 +2674,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   $ref: "#/definitions/Address"
           400:
@@ -2485,6 +2756,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2514,6 +2786,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2564,6 +2837,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2800,11 +3074,15 @@
     Timestamp:
       type: string
       description: unix timestamp
-      example: 1585252531
+      example: "1585252531"
     HeightSpan:
       type: string
       description: span of blocks for which an atomic swap is valid
-      example: 3600
+      example: "3600"
+    CrossChain:
+      type: boolean
+      description: boolean for if the swap is a cross-chain swap
+      example: true
     DeputyAddress:
       type: string
       description: bep3 deputy
@@ -2821,7 +3099,7 @@
           example: ukava
         amount:
           type: string
-          example: '50'
+          example: '50000'
     CoinBNB:
       type: object
       properties:
@@ -3095,29 +3373,29 @@
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
-          example: 'Sent via Cosmos Voyager 🚀'
+          example: 'a memo'
         chain_id:
           type: string
           example: 'testing'
         account_number:
           type: string
-          example: '0'
+          example: '1'
         sequence:
           type: string
-          example: '5'
+          example: '0'
         gas:
           type: string
           example: '200000'
         gas_adjustment:
           type: string
-          example: '1.2'
+          example: '1.0'
         fees:
           type: array
           items:
             $ref: '#/definitions/Coin'
         simulate:
           type: boolean
-          example: true
+          example: false
           description: Estimate gas for a transaction (cannot be used in conjunction with generate_only)
     TendermintValidator:
       type: object
@@ -3133,6 +3411,131 @@
         proposer_priority:
           type: string
           example: '1000'
+    AtomicSwapResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: FFEA80A3D9A42427CC12DB957866C6D428C16AA5EA6D9A4A756EF04BF9F2FF06
+        status:
+          type: string
+          example: Completed
+        amount:
+          $ref: '#/definitions/CoinBNB'
+        random_number_hash:
+          type: string
+          example: 0b1e35e991bf052be230ae8dd3ff90b69a610160d28a9eb3c0701395f9d2b291
+        expire_hieght:
+          type: string
+          example: 532463
+        timestamp:
+          type: string
+          example: 1589020884
+        sender:
+          $ref: '#/definitions/Address'
+        recipient:
+          $ref: '#/definitions/Address2'
+        sender_other_chain:
+          $ref: '#/definitions/BinanceChainAddress'
+        recipient_other_chain:
+          $ref: '#/definitions/BinanceChainAddress2'
+        closed_block:
+          type: string
+          example: 532105
+        cross_chain:
+          $ref: '#/definitions/CrossChain'
+        direction:
+          type: string
+          example: Incoming
+    AssetSupplyResponse:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: bnb
+        incoming_supply:
+          $ref: '#/definitions/CoinBNB'
+        outgoing_supply:
+          $ref: '#/definitions/CoinBNB'
+        current_supply:
+          $ref: '#/definitions/CoinBNB'
+        limit:
+          $ref: '#/definitions/CoinBNB'
+    Bep3ParamsResponse:
+      type: object
+      properties:
+        bnb_deputy_address:
+          type: string
+          example: kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29
+        min_block_lock:
+          type: string
+          example: 80
+        max_block_lock:
+          type: string
+          example: 3600
+        supported_assets:
+          type: array
+          items:
+            $ref: '#/definitions/Bep3Asset'
+    Bep3Asset:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: bnb
+        coin_id:
+          type: string
+          example: 714
+        limit:
+          type: string
+          example: "100"
+        active:
+          type: boolean
+          example: true
+    ClaimResponse:
+      type: object
+      properties:
+        owner:
+          type: string
+          example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+        reward:
+          $ref: '#/definitions/Coin'
+        denom:
+          type: string
+          example: bnb
+        claim_period_id:
+          type: string
+          example: 1
+    IncentiveParams:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        rewards:
+          type: array
+          items:
+            $ref: '#/definitions/Reward'
+    Reward:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        denom:
+          type: string
+          example: bnb
+        available_rewards:
+          $ref: '#/definitions/Coin'
+        duration:
+          type: string
+          example: 36800000000000
+        time_lock:
+          type: string
+          example: 36800000000000
+        claim_duration:
+          type: string
+          example: 36800000000000
     CdpResponse:
       type: object
       properties:
