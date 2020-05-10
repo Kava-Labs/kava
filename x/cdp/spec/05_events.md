@@ -18,10 +18,12 @@ The cdp module emits the following events:
 
 ### MsgWithdraw
 
-| Type    | Attribute Key | Attribute Value  |
-|---------|---------------|------------------|
-| message | module        | cdp              |
-| message | sender        | {sender address} |
+| Type    | Attribute Key  | Attribute Value       |
+|---------|--------------- |-----------------------|
+| message | cdp_withdrawal | {collateral amount}   |
+| message | cdp_id         | {cdp_id}              |
+| message | module         | cdp                   |
+| message | sender         | {sender address}      |
 
 ### MsgDeposit
 
@@ -43,10 +45,13 @@ The cdp module emits the following events:
 
 ### MsgRepayDebt
 
-| Type    | Attribute Key | Attribute Value  |
-|---------|---------------|------------------|
-| message | module        | cdp              |
-| message | sender        | {sender address} |
+| Type          | Attribute Key | Attribute Value    |
+|---------------|---------------|--------------------|
+| cdp_repayment | amount        | {repayment amount} |
+| cdp_repayment | cdp_id        | {cdp id}           |
+| cdp_close     | cdp_id        | {cdp id}           |
+| message       | module        | cdp                |
+| message       | sender        | {sender address}   |
 
 ## BeginBlock
 
@@ -54,6 +59,6 @@ The cdp module emits the following events:
 |-------------------------|---------------|---------------------|
 | cdp_liquidation         | module        | cdp                 |
 | cdp_liquidation         | cdp_id        | {cdp id}            |
-| cdp_liquidation         | depositor     | {depositor address} |
+| cdp_liquidation         | deposit       | {deposit}           |
 | cdp_begin_blocker_error | module        | cdp                 |
 | cdp_begin_blocker_error | error_message | {error}             |

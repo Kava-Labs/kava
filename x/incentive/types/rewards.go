@@ -25,8 +25,8 @@ func (rp RewardPeriod) String() string {
 	End: %s,
 	Reward: %s,
 	Claim End: %s,
-	Claim Time Lock: %s`,
-		rp.Denom, rp.Start, rp.End, rp.Reward, rp.ClaimEnd, rp.ClaimTimeLock)
+	Claim Time Lock: %s
+	`, rp.Denom, rp.Start, rp.End, rp.Reward, rp.ClaimEnd, rp.ClaimTimeLock)
 }
 
 // NewRewardPeriod returns a new RewardPeriod
@@ -50,6 +50,16 @@ type ClaimPeriod struct {
 	ID       uint64        `json:"id" yaml:"id"`
 	End      time.Time     `json:"end" yaml:"end"`
 	TimeLock time.Duration `json:"time_lock" yaml:"time_lock"`
+}
+
+// String implements fmt.Stringer
+func (cp ClaimPeriod) String() string {
+	return fmt.Sprintf(`Claim Period:
+	Denom: %s,
+	ID: %d,
+	End: %s,
+	Claim Time Lock: %s
+	`, cp.Denom, cp.ID, cp.End, cp.TimeLock)
 }
 
 // NewClaimPeriod returns a new ClaimPeriod
@@ -89,9 +99,24 @@ func (c Claim) String() string {
 	Owner: %s,
 	Denom: %s,
 	Reward: %s,
-	Claim Period ID: %d,`,
-		c.Owner, c.Denom, c.Reward, c.ClaimPeriodID)
+	Claim Period ID: %d,
+	`, c.Owner, c.Denom, c.Reward, c.ClaimPeriodID)
 }
 
 // Claims array of Claim
 type Claims []Claim
+
+// NewRewardPeriodFromReward returns a new reward period from the input reward and block time
+func NewRewardPeriodFromReward(reward Reward, blockTime time.Time) RewardPeriod {
+	// note: reward periods store the amount of rewards paid PER SECOND
+	rewardsPerSecond := sdk.NewDecFromInt(reward.AvailableRewards.Amount).Quo(sdk.NewDecFromInt(sdk.NewInt(int64(reward.Duration.Seconds())))).TruncateInt()
+	rewardCoinPerSecond := sdk.NewCoin(reward.AvailableRewards.Denom, rewardsPerSecond)
+	return RewardPeriod{
+		Denom:         reward.Denom,
+		Start:         blockTime,
+		End:           blockTime.Add(reward.Duration),
+		Reward:        rewardCoinPerSecond,
+		ClaimEnd:      blockTime.Add(reward.Duration).Add(reward.ClaimDuration),
+		ClaimTimeLock: reward.TimeLock,
+	}
+}

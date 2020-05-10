@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
@@ -58,10 +59,11 @@ func NewTestApp() TestApp {
 	SetBip44CoinType(config)
 
 	db := tmdb.NewMemDB()
-	app := NewApp(log.NewNopLogger(), db, nil, true, 0)
+	app := NewApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, 0)
 	return TestApp{App: *app}
 }
 
+// nolint
 func (tApp TestApp) GetAccountKeeper() auth.AccountKeeper { return tApp.accountKeeper }
 func (tApp TestApp) GetBankKeeper() bank.Keeper           { return tApp.bankKeeper }
 func (tApp TestApp) GetSupplyKeeper() supply.Keeper       { return tApp.supplyKeeper }
@@ -71,6 +73,7 @@ func (tApp TestApp) GetMintKeeper() mint.Keeper           { return tApp.mintKeep
 func (tApp TestApp) GetDistrKeeper() distribution.Keeper  { return tApp.distrKeeper }
 func (tApp TestApp) GetGovKeeper() gov.Keeper             { return tApp.govKeeper }
 func (tApp TestApp) GetCrisisKeeper() crisis.Keeper       { return tApp.crisisKeeper }
+func (tApp TestApp) GetUpgradeKeeper() upgrade.Keeper     { return tApp.upgradeKeeper }
 func (tApp TestApp) GetParamsKeeper() params.Keeper       { return tApp.paramsKeeper }
 func (tApp TestApp) GetVVKeeper() validatorvesting.Keeper { return tApp.vvKeeper }
 func (tApp TestApp) GetAuctionKeeper() auction.Keeper     { return tApp.auctionKeeper }

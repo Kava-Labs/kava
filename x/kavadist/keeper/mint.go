@@ -81,7 +81,7 @@ func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, ti
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeKavaDist,
-			sdk.NewAttribute(types.AttributeKeyInflation, amountToMint.String()),
+			sdk.NewAttribute(types.AttributeKeyInflation, sdk.NewCoin(denom, amountToMint).String()),
 		),
 	)
 	return nil

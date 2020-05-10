@@ -22,7 +22,7 @@ const (
 	EventTypeCdpLiquidation         = types.EventTypeCdpLiquidation
 	EventTypeBeginBlockerFatal      = types.EventTypeBeginBlockerFatal
 	AttributeKeyCdpID               = types.AttributeKeyCdpID
-	AttributeKeyDepositor           = types.AttributeKeyDepositor
+	AttributeKeyDeposit             = types.AttributeKeyDeposit
 	AttributeValueCategory          = types.AttributeValueCategory
 	AttributeKeyError               = types.AttributeKeyError
 	ModuleName                      = types.ModuleName

@@ -74,6 +74,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 			types.EventTypeProposalVote,
 			sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", com.ID)),
 			sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", pr.ID)),
+			sdk.NewAttribute(types.AttributeKeyVoter, voter.String()),
 		),
 	)
 	return nil

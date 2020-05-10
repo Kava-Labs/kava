@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -29,10 +27,13 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 		return err
 	}
 
+	k.DeleteClaim(ctx, addr, denom, id)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", addr)),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
 		),
 	)
 	return nil
@@ -103,6 +104,13 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 			return false
 		})
 		k.DeleteClaimPeriod(ctx, cp.ID, cp.Denom)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeClaimPeriodExpiry,
+				sdk.NewAttribute(types.AttributeKeyClaimPeriod, cp.String()),
+			),
+		)
+
 		return false
 	})
 }
