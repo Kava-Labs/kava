@@ -22,14 +22,14 @@ func TestAssetSupplyValidate(t *testing.T) {
 		},
 		{
 			"invalid incoming supply",
-			AssetSupply{IncomingSupply: sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}},
+			AssetSupply{IncomingSupply: invalidCoin},
 			false,
 		},
 		{
 			"invalid outgoing supply",
 			AssetSupply{
 				IncomingSupply: coin,
-				OutgoingSupply: sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)},
+				OutgoingSupply: invalidCoin,
 			},
 			false,
 		},
@@ -38,7 +38,7 @@ func TestAssetSupplyValidate(t *testing.T) {
 			AssetSupply{
 				IncomingSupply: coin,
 				OutgoingSupply: coin,
-				CurrentSupply:  sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)},
+				CurrentSupply:  invalidCoin,
 			},
 			false,
 		},
@@ -48,7 +48,7 @@ func TestAssetSupplyValidate(t *testing.T) {
 				IncomingSupply: coin,
 				OutgoingSupply: coin,
 				CurrentSupply:  coin,
-				Limit:          sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)},
+				Limit:          invalidCoin,
 			},
 			false,
 		},

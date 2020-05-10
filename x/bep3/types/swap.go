@@ -59,7 +59,7 @@ func (a AtomicSwap) GetCoins() sdk.Coins {
 	return sdk.NewCoins(a.Amount...)
 }
 
-// Validate verifies that recipient is not empty
+// Validate performs a basic validation of an atomic swap fields.
 func (a AtomicSwap) Validate() error {
 	if !a.Amount.IsValid() {
 		return fmt.Errorf("invalid amount: %s", a.Amount)
@@ -88,7 +88,7 @@ func (a AtomicSwap) Validate() error {
 	if len(a.Recipient) != AddrByteCount {
 		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Recipient))
 	}
-	// NOTE: we don't validate from bech32 because we don't know the prefix
+	// NOTE: These adresses may not have a bech32 prefix.
 	if strings.TrimSpace(a.SenderOtherChain) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender other chain cannot be blank")
 	}
@@ -145,6 +145,7 @@ func (swaps AtomicSwaps) String() string {
 // SwapStatus is the status of an AtomicSwap
 type SwapStatus byte
 
+// swap statuses
 const (
 	NULL      SwapStatus = 0x00
 	Open      SwapStatus = 0x01
