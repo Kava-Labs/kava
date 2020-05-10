@@ -19,6 +19,8 @@
       description: Incentive module APIs
     - name: Pricefeed
       description: Auction module APIs
+    - name: Committee
+      description: Committee module APIs
     - name: Auth
       description: Authenticate accounts
     - name: Bank
@@ -1288,6 +1290,277 @@
                     $ref: '#/definitions/IncentiveParams'
           500:
             description: Server internal error
+    /committee/committees/{committee-id}/proposals:
+      post:
+        summary: Create a new proposal for a committee
+        tags:
+          - Committee
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: committee-id
+            required: true
+            type: string
+            x-example: 1
+          - in: body
+            name: proposal request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                pub_proposal:
+                  $ref: '#/definitions/PubProposal'
+                proposer:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+      get:
+        summary: Query proposals
+        description: Query all proposals for a committee
+        produces:
+          - application/json
+        tags:
+          - Committee
+        parameters:
+          - in: path
+            name: committee-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Committee governance proposals
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/CommitteeProposal"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}/votes:
+      post:
+        summary: Create a new vote for a proposal
+        tags:
+          - Committee
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+          - in: body
+            name: proposal request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                voter:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+      get:
+        summary: Query proposal votes
+        description: Query proposal votes by proposal ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Votes
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/CommitteeVote"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/committees:
+      get:
+        summary: Query committees
+        description: Query all committees
+        tags:
+          - Committee
+        produces:
+          - application/json
+        responses:
+          200:
+            description: Committees
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Committee"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/committees/{committee-id}:
+      get:
+        summary: Query committee
+        description: Query committee by ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: committee-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Committee
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: "#/definitions/Committee"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}:
+      get:
+        summary: Query proposal
+        description: Query proposal by ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Proposal
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: "#/definitions/CommitteeProposal"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}/propser:
+      get:
+        summary: Query proposer
+        description: Query proposer by proposal ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Proposer
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: "#/definitions/Proposer"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}/tally:
+      get:
+        summary: Query proposal tally
+        description: Query proposal tally by proposal ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Vote tally
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: string
+                  example: "3"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
     /bank/balances/{address}:
       get:
         summary: Get the account balances
@@ -3536,6 +3809,15 @@
         claim_duration:
           type: string
           example: 36800000000000
+    PubProposal:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "the title of the proposal"
+        description:
+          type: string
+          example: "the description of the proposal"
     CdpResponse:
       type: object
       properties:
@@ -3732,8 +4014,10 @@
       properties:
         proposal_id:
           type: string
+          example: 1
         proposer:
           type: string
+          example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
     Deposit:
       type: object
       properties:
@@ -3769,6 +4053,70 @@
           type: string
         option:
           type: string
+    CommitteeVote:
+      type: object
+      properties:
+        voter:
+          type: string
+        proposal_id:
+          type: string
+    CommitteeProposal:
+      type: object
+      properties:
+        pub_proposal:
+          $ref: '#/definitions/PubProposal'
+        id:
+          type: string
+          example: 1
+        committee_id:
+          type: string
+          example: 1
+        deadline:
+          type: string
+          example: '2020-05-10T16:18:43.752522893Z'
+    Committee:
+      type:
+        object
+      properties:
+        id:
+          type: string
+          example: 1
+        description:
+          type: string
+          example: description of committee
+        members:
+          type: array
+          items:
+            $ref: '#/definitions/Address'
+        permissions:
+          type: array
+          items:
+            $ref: '#/definitions/Permission'
+        vote_threshold:
+          type: string
+          example: "0.5"
+        proposal_duration:
+          type: string
+          example: "3600000000000"
+    Permission:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "param_change_permission"
+        allowed_params:
+          type: array
+          items:
+            $ref: '#/definitions/AllowedParam'
+    AllowedParam:
+      type: object
+      properties:
+        subspace:
+          type: string
+          example: cdp
+        key:
+          type: string
+          example: collateral_params
     Validator:
       type: object
       properties:
