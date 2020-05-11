@@ -278,19 +278,14 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
 		if tc.expectPass {
-			suite.Run(tc.name, func() {
-				suite.NotPanics(func() {
-					suite.app.InitializeFromGenesisStates(tc.genState())
-				})
-			})
+			suite.NotPanics(func() {
+				suite.app.InitializeFromGenesisStates(tc.genState())
+			}, tc.name)
 		} else {
-			suite.Run(tc.name, func() {
-				suite.Panics(func() {
-					suite.app.InitializeFromGenesisStates(tc.genState())
-				})
-			})
+			suite.Panics(func() {
+				suite.app.InitializeFromGenesisStates(tc.genState())
+			}, tc.name)
 		}
 	}
 }

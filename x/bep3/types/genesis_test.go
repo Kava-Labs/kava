@@ -21,12 +21,10 @@ func (suite *GenesisTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
-	count := 10
-	suite.swaps = atomicSwaps(count)
+	coin := sdk.NewCoin("kava", sdk.OneInt())
+	suite.swaps = atomicSwaps(10)
 
-	incomingSupply := int64(count * 50000)
-	supply := types.NewAssetSupply("bnb", c("bnb", incomingSupply),
-		c("bnb", 0), c("bnb", 0), c("bnb", 100000000000))
+	supply := types.NewAssetSupply("kava", coin, coin, coin, coin)
 	suite.supplies = types.AssetSupplies{supply}
 }
 
@@ -73,6 +71,22 @@ func (suite *GenesisTestSuite) TestValidate() {
 			false,
 		},
 		{
+			"invalid swap",
+			args{
+				swaps:    types.AtomicSwaps{types.AtomicSwap{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				supplies: types.AssetSupplies{},
+			},
+			false,
+		},
+		{
+			"invalid supply",
+			args{
+				swaps:    types.AtomicSwaps{},
+				supplies: types.AssetSupplies{types.AssetSupply{Denom: "Invalid Denom"}},
+			},
+			false,
+		},
+		{
 			"duplicate supplies",
 			args{
 				swaps:    types.AtomicSwaps{},
@@ -82,22 +96,19 @@ func (suite *GenesisTestSuite) TestValidate() {
 		}}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
-		suite.Run(tc.name, func() {
-			var gs types.GenesisState
-			if tc.name == "default" {
-				gs = types.DefaultGenesisState()
-			} else {
-				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.supplies)
-			}
+		var gs types.GenesisState
+		if tc.name == "default" {
+			gs = types.DefaultGenesisState()
+		} else {
+			gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.supplies)
+		}
 
-			err := gs.Validate()
-			if tc.expectPass {
-				suite.Nil(err)
-			} else {
-				suite.Error(err)
-			}
-		})
+		err := gs.Validate()
+		if tc.expectPass {
+			suite.Require().NoError(err, tc.name)
+		} else {
+			suite.Require().Error(err, tc.name)
+		}
 	}
 }
 
