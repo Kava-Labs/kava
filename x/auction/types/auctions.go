@@ -287,15 +287,23 @@ func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAd
 	return wa, nil
 }
 
-// Validate checks for that the weights are not negative and that lengths match.
+// Validate checks for that the weights are not negative, not all zero, and the lengths match.
 func (wa WeightedAddresses) Validate() error {
+	if len(wa.Weights) < 1 {
+		return fmt.Errorf("must be at least 1 weighted address")
+	}
 	if len(wa.Addresses) != len(wa.Weights) {
 		return fmt.Errorf("number of addresses doesn't match number of weights, %d ≠ %d", len(wa.Addresses), len(wa.Weights))
 	}
+	totalWeight := sdk.ZeroInt()
 	for _, w := range wa.Weights {
 		if w.IsNegative() {
 			return fmt.Errorf("weights contain a negative amount: %s", w)
 		}
+		totalWeight = totalWeight.Add(w)
+	}
+	if !totalWeight.IsPositive() {
+		return fmt.Errorf("total weight must be positive")
 	}
 	return nil
 }
