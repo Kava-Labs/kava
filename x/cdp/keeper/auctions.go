@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -60,6 +62,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 			if err != nil {
 				return err
 			}
+			fmt.Printf("AuctionCollateral:createFromD:loop%d:liquidator:%s\n", i, k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc))
 			debt = debt.Sub(debtChange)
 			totalCollateral = totalCollateral.Sub(collateralChange)
 			dep.Amount = sdk.NewCoin(collateralDenom, collateralAmount.Sub(collateralChange))
@@ -68,7 +71,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 			if !dep.Amount.IsZero() {
 				// figure out how much debt this deposit accounts for
 				// (depositCollateral / totalCollateral) * totalDebtFromCDP
-				debtCoveredByDeposit := (collateralAmount.Quo(totalCollateral)).Mul(debt)
+				debtCoveredByDeposit := collateralAmount.Mul(debt).Quo(totalCollateral) // integer division (ie rounds down)
 				// if adding this deposit to the other partial deposits is less than a lot
 				if (partialAuctionDeposits.SumCollateral().Add(collateralAmount)).LT(auctionSize) {
 					// append the deposit to the partial deposits and zero out the deposit
@@ -79,7 +82,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 					// if the sum of partial deposits now makes a lot
 					partialCollateral := sdk.NewCoin(collateralDenom, auctionSize.Sub(partialAuctionDeposits.SumCollateral()))
 					partialAmount := partialCollateral.Amount
-					partialDebt := (partialAmount.Quo(collateralAmount)).Mul(debtCoveredByDeposit)
+					partialDebt := partialAmount.Mul(debtCoveredByDeposit).Quo(collateralAmount) // integer division (ie rounds down)
 
 					// create a partial deposit from the deposit
 					partialDep := newPartialDeposit(dep.Depositor, partialCollateral, partialDebt)
@@ -90,6 +93,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 					if err != nil {
 						return err
 					}
+					fmt.Printf("AuctionCollateral:createFromPD:loop%d:liquidator:%s\n", i, k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc))
 					debt = debt.Sub(debtChange)
 					totalCollateral = totalCollateral.Sub(collateralChange)
 					// reset partial deposits and update the deposit amount

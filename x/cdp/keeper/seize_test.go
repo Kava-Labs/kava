@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -166,6 +167,10 @@ func (suite *SeizeTestSuite) TestSeizeCollateralMultiDeposit() {
 	p := cdp.Principal.Amount
 	cl := cdp.Collateral.Amount
 	tpb := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")
+	fmt.Printf("%s\n", cdp)
+	fmt.Printf("%s\n", deposits)
+	fmt.Printf("cdpaccount: %s\n", suite.app.GetSupplyKeeper().GetModuleAccount(suite.ctx, types.ModuleName))
+	fmt.Printf("liquidator: %s\n", suite.app.GetSupplyKeeper().GetModuleAccount(suite.ctx, types.LiquidatorMacc))
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)
 	suite.NoError(err)
 	tpa := suite.keeper.GetTotalPrincipal(suite.ctx, "xrp", "usdx")

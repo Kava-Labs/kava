@@ -32,6 +32,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("SeizeCollateral:liquidator: %s\n", k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc))
 
 	// liquidate deposits and send collateral from cdp to liquidator
 	for _, dep := range deposits {
@@ -49,6 +50,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 		}
 		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 	}
+	fmt.Printf("SeizeCollateral:liquidator: %s\n", k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc))
 	err = k.AuctionCollateral(ctx, deposits, debt, cdp.Principal.Denom)
 	if err != nil {
 		return err
