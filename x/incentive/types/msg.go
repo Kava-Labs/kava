@@ -1,9 +1,6 @@
 package types
 
 import (
-	"errors"
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -36,10 +33,7 @@ func (msg MsgClaimReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if strings.TrimSpace(msg.Denom) == "" {
-		return errors.New("invalid (empty) denom")
-	}
-	return nil
+	return sdk.ValidateDenom(msg.Denom)
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.
