@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,14 +68,38 @@ func (a BaseAuction) GetType() string { return "base" }
 
 // Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
-	if a.EndTime.After(a.MaxEndTime) {
-		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)
+	if a.ID == 0 {
+		return errors.New("auction id cannot be zero")
+	}
+	if strings.TrimSpace(a.Initiator) == "" {
+		return errors.New("auction initiator cannot be blank")
 	}
 	if !a.Lot.IsValid() {
 		return fmt.Errorf("invalid lot: %s", a.Lot)
 	}
+	if a.Bidder.Empty() {
+		return errors.New("auction bidder cannot be empty")
+	}
+	if len(a.Bidder) != sdk.AddrLen {
+		return fmt.Errorf("the expected bidder address length is %d, actual length is %d", sdk.AddrLen, len(a.Bidder))
+	}
+	if len(a.Bidder.Bytes()) != sdk.AddrLen {
+		return errors.New("auction bidder cannot be empty")
+	}
 	if !a.Bid.IsValid() {
 		return fmt.Errorf("invalid bid: %s", a.Bid)
+	}
+	if a.EndTime.IsZero() || a.MaxEndTime.IsZero() {
+		return errors.New("end time cannot be zero")
+	}
+	if a.EndTime.After(a.MaxEndTime) {
+		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)
+	}
+	if a.HasReceivedBids && !a.Bid.IsPositive() {
+		return fmt.Errorf("cannot have a zero value bid when auction has a true HasReceivedBids flag value")
+	}
+	if !a.HasReceivedBids && a.Bid.IsPositive() {
+		return fmt.Errorf("cannot have a positive value bid when auction has a false HasReceivedBids flag value")
 	}
 	return nil
 }
@@ -154,6 +180,7 @@ func (a DebtAuction) GetModuleAccountCoins() sdk.Coins {
 // GetPhase returns the direction of a debt auction, which never changes.
 func (a DebtAuction) GetPhase() string { return "reverse" }
 
+// Validate validates the DebtAuction fields values.
 func (a DebtAuction) Validate() error {
 	if !a.CorrespondingDebt.IsValid() {
 		return fmt.Errorf("invalid corresponding debt: %s", a.CorrespondingDebt)
@@ -221,6 +248,7 @@ func (a CollateralAuction) GetPhase() string {
 	return "forward"
 }
 
+// Validate validates the CollateralAuction fields values.
 func (a CollateralAuction) Validate() error {
 	if !a.CorrespondingDebt.IsValid() {
 		return fmt.Errorf("invalid corresponding debt: %s", a.CorrespondingDebt)
@@ -292,9 +320,16 @@ func (wa WeightedAddresses) Validate() error {
 	if len(wa.Addresses) != len(wa.Weights) {
 		return fmt.Errorf("number of addresses doesn't match number of weights, %d ≠ %d", len(wa.Addresses), len(wa.Weights))
 	}
-	for _, w := range wa.Weights {
-		if w.IsNegative() {
-			return fmt.Errorf("weights contain a negative amount: %s", w)
+
+	for i := range wa.Addresses {
+		if wa.Addresses[i].Empty() {
+			return fmt.Errorf("address %d cannot be empty", i)
+		}
+		if len(wa.Addresses[i]) != sdk.AddrLen {
+			return fmt.Errorf("address %d has an invalid length: expectd %d, got %d", i, sdk.AddrLen, len(wa.Addresses[i]))
+		}
+		if wa.Weights[i].IsNegative() {
+			return fmt.Errorf("weight %d contains a negative amount: %s", i, wa.Weights[i])
 		}
 	}
 	return nil
