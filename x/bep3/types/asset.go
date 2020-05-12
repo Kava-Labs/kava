@@ -38,8 +38,8 @@ func (a AssetSupply) Validate() error {
 	if !a.CurrentSupply.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "current supply %s", a.CurrentSupply)
 	}
-	if !a.Limit.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "limit %s", a.Limit)
+	if !a.SupplyLimit.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "supply limit %s", a.SupplyLimit)
 	}
 	return sdk.ValidateDenom(a.Denom)
 }
