@@ -8,9 +8,10 @@ const (
 
 // Default simulation operation weights for messages and gov proposals
 const (
-	DefaultWeightMsgPlaceBid         int = 75
-	DefaultWeightMsgCreateAtomicSwap int = 50
-	DefaultWeightMsgUpdatePrices     int = 50
-	DefaultWeightMsgCdp              int = 100
-	DefaultWeightMsgClaimReward      int = 50
+	DefaultWeightMsgPlaceBid              int = 75
+	DefaultWeightMsgCreateAtomicSwap      int = 50
+	DefaultWeightMsgUpdatePrices          int = 50
+	DefaultWeightMsgCdp                   int = 100
+	DefaultWeightMsgClaimReward           int = 50
+	OpWeightSubmitCommitteeChangeProposal int = 50
 )

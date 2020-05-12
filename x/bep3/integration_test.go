@@ -79,7 +79,7 @@ func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.As
 	randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
 	swap := bep3.NewAtomicSwap(cs(coin), randomNumberHash,
 		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
-		TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
+		TestRecipientOtherChain, 1, bep3.Open, true, bep3.Incoming)
 
 	supply := bep3.NewAssetSupply(coin.Denom, coin, c(coin.Denom, 0),
 		c(coin.Denom, 0), c(coin.Denom, StandardSupplyLimit.Int64()))

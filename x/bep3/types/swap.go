@@ -3,11 +3,14 @@ package types
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strings"
 
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // AtomicSwap contains the information for an atomic swap
@@ -56,19 +59,50 @@ func (a AtomicSwap) GetCoins() sdk.Coins {
 	return sdk.NewCoins(a.Amount...)
 }
 
-// Validate verifies that recipient is not empty
+// Validate performs a basic validation of an atomic swap fields.
 func (a AtomicSwap) Validate() error {
-	if len(a.Sender) != AddrByteCount {
-		return fmt.Errorf(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Sender)))
-	}
-	if len(a.Recipient) != AddrByteCount {
-		return fmt.Errorf(fmt.Sprintf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Recipient)))
-	}
-	if len(a.RandomNumberHash) != RandomNumberHashLength {
-		return fmt.Errorf(fmt.Sprintf("the length of random number hash should be %d", RandomNumberHashLength))
+	if !a.Amount.IsValid() {
+		return fmt.Errorf("invalid amount: %s", a.Amount)
 	}
 	if !a.Amount.IsAllPositive() {
-		return fmt.Errorf(fmt.Sprintf("the swapped out coin must be positive"))
+		return fmt.Errorf("the swapped out coin must be positive: %s", a.Amount)
+	}
+	if len(a.RandomNumberHash) != RandomNumberHashLength {
+		return fmt.Errorf("the length of random number hash should be %d", RandomNumberHashLength)
+	}
+	if a.ExpireHeight == 0 {
+		return errors.New("expire height cannot be 0")
+	}
+	if a.Timestamp == 0 {
+		return errors.New("timestamp cannot be 0")
+	}
+	if a.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender cannot be empty")
+	}
+	if a.Recipient.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient cannot be empty")
+	}
+	if len(a.Sender) != AddrByteCount {
+		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Sender))
+	}
+	if len(a.Recipient) != AddrByteCount {
+		return fmt.Errorf("the expected address length is %d, actual length is %d", AddrByteCount, len(a.Recipient))
+	}
+	// NOTE: These adresses may not have a bech32 prefix.
+	if strings.TrimSpace(a.SenderOtherChain) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender other chain cannot be blank")
+	}
+	if strings.TrimSpace(a.RecipientOtherChain) == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient other chain cannot be blank")
+	}
+	if a.ClosedBlock == 0 {
+		return errors.New("closed block cannot be 0")
+	}
+	if a.Status == NULL || a.Status > 3 {
+		return errors.New("invalid swap status")
+	}
+	if a.Direction == INVALID || a.Direction > 2 {
+		return errors.New("invalid swap direction")
 	}
 	return nil
 }
@@ -111,6 +145,7 @@ func (swaps AtomicSwaps) String() string {
 // SwapStatus is the status of an AtomicSwap
 type SwapStatus byte
 
+// swap statuses
 const (
 	NULL      SwapStatus = 0x00
 	Open      SwapStatus = 0x01
