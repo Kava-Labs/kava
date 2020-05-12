@@ -351,7 +351,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	for i, payout := range lotPayouts {
 		// if the payout amount is 0, don't send 0 coins
 		if !payout.IsPositive() {
-			break
+			continue
 		}
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
 		if err != nil {
