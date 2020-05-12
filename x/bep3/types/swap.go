@@ -95,7 +95,7 @@ func (a AtomicSwap) Validate() error {
 	if strings.TrimSpace(a.RecipientOtherChain) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient other chain cannot be blank")
 	}
-	if a.ClosedBlock == 0 {
+	if a.Status == Completed && a.ClosedBlock == 0 {
 		return errors.New("closed block cannot be 0")
 	}
 	if a.Status == NULL || a.Status > 3 {
