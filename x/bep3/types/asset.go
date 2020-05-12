@@ -51,7 +51,8 @@ func (a AssetSupply) String() string {
 		Incoming supply:    %s
 		Outgoing supply:    %s
 		Current supply:     %s
-		Supply limit:       %s`,
+		Supply limit:       %s
+		`,
 		a.Denom, a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.SupplyLimit)
 }
 

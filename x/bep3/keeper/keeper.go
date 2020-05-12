@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -101,50 +100,6 @@ func (k Keeper) GetAllAtomicSwaps(ctx sdk.Context) (atomicSwaps types.AtomicSwap
 		return false
 	})
 	return
-}
-
-// GetAtomicSwapsFiltered retrieves atomic swaps filtered by a given set of params.
-// If no filters are provided, all atomic swaps will be returned in paginated form.
-func (k Keeper) GetAtomicSwapsFiltered(ctx sdk.Context, params types.QueryAtomicSwaps) types.AtomicSwaps {
-	swaps := k.GetAllAtomicSwaps(ctx)
-	filteredSwaps := make(types.AtomicSwaps, 0, len(swaps))
-
-	for _, s := range swaps {
-		matchInvolve, matchExpiration, matchStatus, matchDirection := true, true, true, true
-
-		// match involved address (if supplied)
-		if len(params.Involve) > 0 {
-			matchInvolve = s.Sender.Equals(params.Involve) || s.Recipient.Equals(params.Involve)
-		}
-
-		// match expiration block limit (if supplied)
-		if params.Expiration > 0 {
-			matchExpiration = s.ExpireHeight <= params.Expiration
-		}
-
-		// match status (if supplied/valid)
-		if params.Status.IsValid() {
-			matchStatus = s.Status == params.Status
-		}
-
-		// match direction (if supplied/valid)
-		if params.Direction.IsValid() {
-			matchDirection = s.Direction == params.Direction
-		}
-
-		if matchInvolve && matchExpiration && matchStatus && matchDirection {
-			filteredSwaps = append(filteredSwaps, s)
-		}
-	}
-
-	start, end := client.Paginate(len(filteredSwaps), params.Page, params.Limit, 100)
-	if start < 0 || end < 0 {
-		filteredSwaps = types.AtomicSwaps{}
-	} else {
-		filteredSwaps = filteredSwaps[start:end]
-	}
-
-	return filteredSwaps
 }
 
 // ------------------------------------------

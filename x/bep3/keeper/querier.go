@@ -3,6 +3,7 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -96,7 +97,8 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	swaps := keeper.GetAtomicSwapsFiltered(ctx, params)
+	unfilteredSwaps := keeper.GetAllAtomicSwaps(ctx)
+	swaps := filterAtomicSwaps(ctx, unfilteredSwaps, params)
 	if swaps == nil {
 		swaps = types.AtomicSwaps{}
 	}
@@ -120,4 +122,47 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
+}
+
+// getAtomicSwapsFiltered retrieves atomic swaps filtered by a given set of params.
+// If no filters are provided, all atomic swaps will be returned in paginated form.
+func filterAtomicSwaps(ctx sdk.Context, swaps types.AtomicSwaps, params types.QueryAtomicSwaps) types.AtomicSwaps {
+	filteredSwaps := make(types.AtomicSwaps, 0, len(swaps))
+
+	for _, s := range swaps {
+		matchInvolve, matchExpiration, matchStatus, matchDirection := true, true, true, true
+
+		// match involved address (if supplied)
+		if len(params.Involve) > 0 {
+			matchInvolve = s.Sender.Equals(params.Involve) || s.Recipient.Equals(params.Involve)
+		}
+
+		// match expiration block limit (if supplied)
+		if params.Expiration > 0 {
+			matchExpiration = s.ExpireHeight <= params.Expiration
+		}
+
+		// match status (if supplied/valid)
+		if params.Status.IsValid() {
+			matchStatus = s.Status == params.Status
+		}
+
+		// match direction (if supplied/valid)
+		if params.Direction.IsValid() {
+			matchDirection = s.Direction == params.Direction
+		}
+
+		if matchInvolve && matchExpiration && matchStatus && matchDirection {
+			filteredSwaps = append(filteredSwaps, s)
+		}
+	}
+
+	start, end := client.Paginate(len(filteredSwaps), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		filteredSwaps = types.AtomicSwaps{}
+	} else {
+		filteredSwaps = filteredSwaps[start:end]
+	}
+
+	return filteredSwaps
 }
