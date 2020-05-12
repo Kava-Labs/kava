@@ -83,9 +83,6 @@ func (a BaseAuction) Validate() error {
 	if len(a.Bidder) != sdk.AddrLen {
 		return fmt.Errorf("the expected bidder address length is %d, actual length is %d", sdk.AddrLen, len(a.Bidder))
 	}
-	if len(a.Bidder.Bytes()) != sdk.AddrLen {
-		return errors.New("auction bidder cannot be empty")
-	}
 	if !a.Bid.IsValid() {
 		return fmt.Errorf("invalid bid: %s", a.Bid)
 	}
@@ -202,7 +199,8 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 			Bid:             bid,                                      // amount that the buyer is buying - doesn't change over course of auction
 			HasReceivedBids: false,                                    // new auctions don't have any bids
 			EndTime:         endTime,
-			MaxEndTime:      endTime},
+			MaxEndTime:      endTime,
+		},
 		CorrespondingDebt: debt,
 	}
 	return auction
@@ -326,7 +324,7 @@ func (wa WeightedAddresses) Validate() error {
 			return fmt.Errorf("address %d cannot be empty", i)
 		}
 		if len(wa.Addresses[i]) != sdk.AddrLen {
-			return fmt.Errorf("address %d has an invalid length: expectd %d, got %d", i, sdk.AddrLen, len(wa.Addresses[i]))
+			return fmt.Errorf("address %d has an invalid length: expected %d, got %d", i, sdk.AddrLen, len(wa.Addresses[i]))
 		}
 		if wa.Weights[i].IsNegative() {
 			return fmt.Errorf("weight %d contains a negative amount: %s", i, wa.Weights[i])
