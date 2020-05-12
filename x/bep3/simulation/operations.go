@@ -133,15 +133,13 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(denom, amount))
-		expectedIncome := coins.String()
 
 		// We're assuming that sims are run with -NumBlocks=100
-		heightSpan := int64(55)
-		crossChain := true
+		heightSpan := uint64(55)
 
 		msg := types.NewMsgCreateAtomicSwap(
 			sender.Address, recipient.Address, recipientOtherChain, senderOtherChain,
-			randomNumberHash, timestamp, coins, expectedIncome, heightSpan, crossChain,
+			randomNumberHash, timestamp, coins, heightSpan,
 		)
 
 		tx := helpers.GenTx(
@@ -164,14 +162,14 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		swapID := types.CalculateSwapID(msg.RandomNumberHash, msg.From, msg.SenderOtherChain)
 		if r.Intn(100) < 50 {
 			// Claim future operation
-			executionBlock := ctx.BlockHeight() + (msg.HeightSpan / 2)
+			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan/2
 			futureOp = simulation.FutureOperation{
 				BlockHeight: int(executionBlock),
 				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber.BigInt().Bytes()),
 			}
 		} else {
 			// Refund future operation
-			executionBlock := ctx.BlockHeight() + msg.HeightSpan
+			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan
 			futureOp = simulation.FutureOperation{
 				BlockHeight: int(executionBlock),
 				Op:          operationRefundAtomicSwap(ak, k, swapID),

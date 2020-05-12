@@ -20,11 +20,11 @@ var (
 	KeyMaxBlockLock     = []byte("MaxBlockLock")
 	KeySupportedAssets  = []byte("SupportedAssets")
 
-	AbsoluteMaximumBlockLock int64 = 10000
-	AbsoluteMinimumBlockLock int64 = 50
-	DefaultMinBlockLock      int64 = 80
-	DefaultMaxBlockLock      int64 = 600
-	DefaultSupportedAssets         = AssetParams{
+	AbsoluteMaximumBlockLock uint64 = 10000
+	AbsoluteMinimumBlockLock uint64 = 50
+	DefaultMinBlockLock      uint64 = 80
+	DefaultMaxBlockLock      uint64 = 600
+	DefaultSupportedAssets          = AssetParams{
 		AssetParam{
 			Denom:  "bnb",
 			CoinID: 714,
@@ -37,8 +37,8 @@ var (
 // Params governance parameters for bep3 module
 type Params struct {
 	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // Bnbchain deputy address
-	MinBlockLock     int64          `json:"min_block_lock" yaml:"min_block_lock"`         // AtomicSwap minimum block lock
-	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"`         // AtomicSwap maximum block lock
+	MinBlockLock     uint64         `json:"min_block_lock" yaml:"min_block_lock"`         // AtomicSwap minimum block lock
+	MaxBlockLock     uint64         `json:"max_block_lock" yaml:"max_block_lock"`         // AtomicSwap maximum block lock
 	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`     // Supported assets
 }
 
@@ -53,7 +53,7 @@ func (p Params) String() string {
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock int64, supportedAssets AssetParams,
+func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
 ) Params {
 	return Params{
 		BnbDeputyAddress: bnbDeputyAddress,
@@ -159,7 +159,7 @@ func validateBnbDeputyAddressParam(i interface{}) error {
 }
 
 func validateMinBlockLockParam(i interface{}) error {
-	minBlockLock, ok := i.(int64)
+	minBlockLock, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -172,7 +172,7 @@ func validateMinBlockLockParam(i interface{}) error {
 }
 
 func validateMaxBlockLockParam(i interface{}) error {
-	maxBlockLock, ok := i.(int64)
+	maxBlockLock, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

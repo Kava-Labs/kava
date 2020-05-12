@@ -4,15 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// BeginBlocker runs at the start of every block
+// BeginBlocker on every block expires outdated atomic swaps and removes closed
+// swap from long term storage (default storage time of 1 week)
 func BeginBlocker(ctx sdk.Context, k Keeper) {
-	err := k.UpdateExpiredAtomicSwaps(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	err = k.DeleteClosedAtomicSwapsFromLongtermStorage(ctx)
-	if err != nil {
-		panic(err)
-	}
+	k.UpdateExpiredAtomicSwaps(ctx)
+	k.DeleteClosedAtomicSwapsFromLongtermStorage(ctx)
 }

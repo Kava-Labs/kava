@@ -32,7 +32,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	for i := 0; i < 10; i++ {
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 		timestamps = append(timestamps, timestamp)
 		randomNumberHashes = append(randomNumberHashes, randomNumberHash)
 	}

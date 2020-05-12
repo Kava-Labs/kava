@@ -62,16 +62,15 @@ func (suite *QuerierTestSuite) SetupTest() {
 	isSwapID := make(map[string]bool)
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
-		expireHeight := int64(360)
+		expireHeight := uint64(360)
 		amount := cs(c("bnb", 100))
 		timestamp := ts(0)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 		// Create atomic swap and check err
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount,
-			amount.String(), true)
+			addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount, true)
 		suite.Nil(err)
 
 		// Calculate swap ID and save
@@ -129,12 +128,33 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	suite.True(suite.isSwapID[hex.EncodeToString(swap.GetSwapID())])
 }
 
+func (suite *QuerierTestSuite) TestQueryAssetSupplies() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	// Set up request query
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAssetSupplies}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupplies(1, 100)),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetAssetSupplies}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	var supplies types.AssetSupplies
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &supplies))
+
+	// Check that returned value matches asset supplies in state
+	storeSupplies := suite.keeper.GetAllAssetSupplies(ctx)
+	suite.Equal(len(storeSupplies), len(supplies))
+	suite.Equal(supplies, storeSupplies)
+}
+
 func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAtomicSwaps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAtomicSwaps(1, 100)),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAtomicSwaps(1, 100, sdk.AccAddress{}, 0, types.Open, types.Incoming)),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetAtomicSwaps}, query)

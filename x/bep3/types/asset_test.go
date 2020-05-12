@@ -43,12 +43,12 @@ func TestAssetSupplyValidate(t *testing.T) {
 			false,
 		},
 		{
-			"invalid limit",
+			"invalid supply limit",
 			AssetSupply{
 				IncomingSupply: coin,
 				OutgoingSupply: coin,
 				CurrentSupply:  coin,
-				Limit:          invalidCoin,
+				SupplyLimit:    invalidCoin,
 			},
 			false,
 		},

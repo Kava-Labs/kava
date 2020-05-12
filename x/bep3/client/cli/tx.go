@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,8 +26,11 @@ import (
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	bep3TxCmd := &cobra.Command{
-		Use:   "bep3",
-		Short: "bep3 transactions subcommands",
+		Use:                        "bep3",
+		Short:                      "bep3 transactions subcommands",
+		DisableFlagParsing:         true,
+		SuggestionsMinimumDistance: 2,
+		RunE:                       client.ValidateCmd,
 	}
 
 	bep3TxCmd.AddCommand(flags.PostCommands(
@@ -41,23 +45,23 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // GetCmdCreateAtomicSwap cli command for creating atomic swaps
 func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [expected-income] [height-span] [cross-chain]",
+		Use:   "create [to] [recipient-other-chain] [sender-other-chain] [timestamp] [coins] [height-span]",
 		Short: "create a new atomic swap",
-		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 now 100bnb 100bnb 360 true --from validator",
+		Example: fmt.Sprintf("%s tx %s create kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7 bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7 now 100bnb 360 --from validator",
 			version.ClientName, types.ModuleName),
-		Args: cobra.ExactArgs(8),
+		Args: cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			from := cliCtx.GetFromAddress() // same as KavaExecutor.DeputyAddress (for cross-chain)
+			from := cliCtx.GetFromAddress() // same as Kava executor's deputy address
 			to, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
 
-			recipientOtherChain := args[1] // same as OtherExecutor.DeputyAddress
+			recipientOtherChain := args[1] // same as the other executor's deputy address
 			senderOtherChain := args[2]
 
 			// Timestamp defaults to time.Now() unless it's explicitly set
@@ -77,10 +81,10 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+			randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 			// Print random number, timestamp, and hash to user's console
-			fmt.Printf("\nRandom number: %s\n", hex.EncodeToString(randomNumber.Bytes()))
+			fmt.Printf("\nRandom number: %s\n", string(randomNumber[:]))
 			fmt.Printf("Timestamp: %d\n", timestamp)
 			fmt.Printf("Random number hash: %s\n\n", hex.EncodeToString(randomNumberHash))
 
@@ -89,21 +93,14 @@ func GetCmdCreateAtomicSwap(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			expectedIncome := args[5]
-
-			heightSpan, err := strconv.ParseInt(args[6], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			crossChain, err := strconv.ParseBool(args[7])
+			heightSpan, err := strconv.ParseUint(args[5], 10, 64)
 			if err != nil {
 				return err
 			}
 
 			msg := types.NewMsgCreateAtomicSwap(
-				from, to, recipientOtherChain, senderOtherChain, randomNumberHash,
-				timestamp, coins, expectedIncome, heightSpan, crossChain,
+				from, to, recipientOtherChain, senderOtherChain,
+				randomNumberHash, timestamp, coins, heightSpan,
 			)
 
 			err = msg.ValidateBasic()
@@ -130,7 +127,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			swapID, err := types.HexToBytes(args[0])
+			swapID, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}
@@ -138,11 +135,7 @@ func GetCmdClaimAtomicSwap(cdc *codec.Codec) *cobra.Command {
 			if len(strings.TrimSpace(args[1])) == 0 {
 				return fmt.Errorf("random-number cannot be empty")
 			}
-
-			randomNumber, err := types.HexToBytes(args[1])
-			if err != nil {
-				return err
-			}
+			randomNumber := []byte(args[1])
 
 			msg := types.NewMsgClaimAtomicSwap(from, swapID, randomNumber)
 
@@ -170,7 +163,7 @@ func GetCmdRefundAtomicSwap(cdc *codec.Codec) *cobra.Command {
 
 			from := cliCtx.GetFromAddress()
 
-			swapID, err := types.HexToBytes(args[0])
+			swapID, err := hex.DecodeString(args[0])
 			if err != nil {
 				return err
 			}

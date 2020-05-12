@@ -37,8 +37,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		if !found {
 			panic(fmt.Sprintf("invalid asset supply: %s is not a supported asset", coin.Denom))
 		}
-		if !coin.Limit.Equal(supply.Limit.Amount) {
-			panic(fmt.Sprintf("supported asset limit %s does not equal asset supply %s", coin.Limit, supply.Limit.Amount))
+		if !coin.Limit.Equal(supply.SupplyLimit.Amount) {
+			panic(fmt.Sprintf("supported asset limit %s does not equal asset supply %s", coin.Limit, supply.SupplyLimit.Amount))
 		}
 
 		// Increment current, incoming, and outgoing asset supplies
