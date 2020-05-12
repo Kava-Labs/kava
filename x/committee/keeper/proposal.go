@@ -67,7 +67,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	}
 
 	// Store vote, overwriting any prior vote
-	k.SetVote(ctx, types.Vote{ProposalID: proposalID, Voter: voter})
+	k.SetVote(ctx, types.NewVote(proposalID, voter))
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

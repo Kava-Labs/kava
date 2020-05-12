@@ -107,8 +107,8 @@ func ValidVotesInvariant(k Keeper) sdk.Invariant {
 		k.IterateVotes(ctx, func(vote types.Vote) bool {
 			invalidVote = vote
 
-			if vote.Voter.Empty() {
-				validationErr = fmt.Errorf("empty voter address")
+			if err := vote.Validate(); err != nil {
+				validationErr = err
 				return true
 			}
 

@@ -141,4 +141,16 @@ type Vote struct {
 	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
 }
 
-// TODO: Add constructor, validation, String()
+func NewVote(proposalID uint64, voter sdk.AccAddress) Vote {
+	return Vote{
+		ProposalID: proposalID,
+		Voter:      voter,
+	}
+}
+
+func (v Vote) Validate() error {
+	if v.Voter.Empty() {
+		return fmt.Errorf("voter address cannot be empty")
+	}
+	return nil
+}
