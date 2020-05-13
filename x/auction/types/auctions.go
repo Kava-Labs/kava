@@ -68,19 +68,18 @@ func (a BaseAuction) GetType() string { return "base" }
 
 // Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
-	if a.ID == 0 {
-		return errors.New("auction id cannot be zero")
-	}
+	// ID can be 0 for surplus, Debt and collateral auctions
 	if strings.TrimSpace(a.Initiator) == "" {
 		return errors.New("auction initiator cannot be blank")
 	}
 	if !a.Lot.IsValid() {
 		return fmt.Errorf("invalid lot: %s", a.Lot)
 	}
-	if a.Bidder.Empty() {
+	// NOTE: bidder can be nil for Surplus and Collateral auctions
+	if a.Bidder != nil && a.Bidder.Empty() {
 		return errors.New("auction bidder cannot be empty")
 	}
-	if len(a.Bidder) != sdk.AddrLen {
+	if a.Bidder != nil && len(a.Bidder) != sdk.AddrLen {
 		return fmt.Errorf("the expected bidder address length is %d, actual length is %d", sdk.AddrLen, len(a.Bidder))
 	}
 	if !a.Bid.IsValid() {

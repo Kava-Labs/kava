@@ -108,11 +108,6 @@ func TestBaseAuctionValidate(t *testing.T) {
 			true,
 		},
 		{
-			"0 id",
-			BaseAuction{ID: 0},
-			false,
-		},
-		{
 			"blank initiator",
 			BaseAuction{
 				ID:        1,
@@ -135,7 +130,7 @@ func TestBaseAuctionValidate(t *testing.T) {
 				ID:        1,
 				Initiator: testAccAddress1,
 				Lot:       c("kava", 1),
-				Bidder:    nil,
+				Bidder:    sdk.AccAddress{},
 			},
 			false,
 		},
