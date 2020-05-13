@@ -170,14 +170,9 @@ func validateBnbDeputyAddressParam(i interface{}) error {
 }
 
 func validateBnbDeputyFixedFeeParam(i interface{}) error {
-	bnbDeputyFixedFee, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	// Sanity check (impossible for an unsigned integer to be negative)
-	if bnbDeputyFixedFee < 0 {
-		return fmt.Errorf("deputy fixed fee %d cannot be negative", bnbDeputyFixedFee)
 	}
 
 	return nil
