@@ -28,10 +28,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	type LoadParams func() types.Params
 
 	type args struct {
-		bnbDeputyAddress sdk.AccAddress
-		minBlockLock     uint64
-		maxBlockLock     uint64
-		supportedAssets  types.AssetParams
+		bnbDeputyAddress  sdk.AccAddress
+		bnbDeputyFixedFee uint64
+		minBlockLock      uint64
+		maxBlockLock      uint64
+		supportedAssets   types.AssetParams
 	}
 
 	testCases := []struct {
@@ -43,10 +44,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "default",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
-				supportedAssets:  types.DefaultSupportedAssets,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
+				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -54,10 +56,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "minimum block lock below limit",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     1,
-				maxBlockLock:     types.DefaultMaxBlockLock,
-				supportedAssets:  types.DefaultSupportedAssets,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      1,
+				maxBlockLock:      types.DefaultMaxBlockLock,
+				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  false,
 			expectedErr: "minimum block lock cannot be less than",
@@ -65,10 +68,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "minimum block lock above limit",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     500000,
-				maxBlockLock:     types.DefaultMaxBlockLock,
-				supportedAssets:  types.DefaultSupportedAssets,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      500000,
+				maxBlockLock:      types.DefaultMaxBlockLock,
+				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  false,
 			expectedErr: "maximum block lock must be greater than minimum block lock",
@@ -76,10 +80,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "maximum block lock below limit",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     1,
-				supportedAssets:  types.DefaultSupportedAssets,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      1,
+				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  false,
 			expectedErr: "maximum block lock must be greater than minimum block lock",
@@ -87,10 +92,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "maximum block lock above limit",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     100000000,
-				supportedAssets:  types.DefaultSupportedAssets,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      100000000,
+				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  false,
 			expectedErr: "maximum block lock cannot be greater than",
@@ -98,9 +104,10 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "empty asset denom",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "",
@@ -116,9 +123,10 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "negative asset coin ID",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
@@ -134,9 +142,10 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "negative asset limit",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
@@ -152,9 +161,10 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "duplicate asset denom",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
@@ -176,9 +186,10 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "duplicate asset coin ID",
 			args: args{
-				bnbDeputyAddress: suite.addr,
-				minBlockLock:     types.DefaultMinBlockLock,
-				maxBlockLock:     types.DefaultMaxBlockLock,
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
 					types.AssetParam{
 						Denom:  "bnb",
@@ -200,8 +211,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	}
 
 	for _, tc := range testCases {
-		params := types.NewParams(tc.args.bnbDeputyAddress, tc.args.minBlockLock,
-			tc.args.maxBlockLock, tc.args.supportedAssets)
+		params := types.NewParams(tc.args.bnbDeputyAddress, tc.args.bnbDeputyFixedFee,
+			tc.args.minBlockLock, tc.args.maxBlockLock, tc.args.supportedAssets)
 
 		err := params.Validate()
 		if tc.expectPass {

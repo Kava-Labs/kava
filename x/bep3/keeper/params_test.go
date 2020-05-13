@@ -46,6 +46,14 @@ func (suite *ParamsTestSuite) TestGetSetBnbDeputyAddress() {
 	suite.Equal(suite.addrs[1], addr)
 }
 
+func (suite *ParamsTestSuite) TestGetBnbDeputyFixedFee() {
+	params := suite.keeper.GetParams(suite.ctx)
+	bnbDeputyFixedFee := params.BnbDeputyFixedFee
+
+	res := suite.keeper.GetBnbDeputyFixedFee(suite.ctx)
+	suite.Equal(bnbDeputyFixedFee, res)
+}
+
 func (suite *ParamsTestSuite) TestGetMaxBlockLock() {
 	params := suite.keeper.GetParams(suite.ctx)
 	maxBlockLock := params.MaxBlockLock

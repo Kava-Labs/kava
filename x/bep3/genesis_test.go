@@ -68,6 +68,15 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			expectPass: true,
 		},
 		{
+			name: "0 deputy fees",
+			genState: func() app.GenesisState {
+				gs := baseGenState(suite.addrs[0])
+				gs.Params.BnbDeputyFixedFee = 0
+				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+			},
+			expectPass: true,
+		},
+		{
 			name: "incoming supply doesn't match amount in incoming atomic swaps",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
