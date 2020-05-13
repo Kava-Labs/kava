@@ -29,8 +29,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 
 	type args struct {
 		bnbDeputyAddress sdk.AccAddress
-		minBlockLock     int64
-		maxBlockLock     int64
+		minBlockLock     uint64
+		maxBlockLock     uint64
 		supportedAssets  types.AssetParams
 	}
 

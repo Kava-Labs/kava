@@ -17,7 +17,7 @@ import (
 type AtomicSwap struct {
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
-	ExpireHeight        int64            `json:"expire_height"  yaml:"expire_height"`
+	ExpireHeight        uint64           `json:"expire_height"  yaml:"expire_height"`
 	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
 	Sender              sdk.AccAddress   `json:"sender"  yaml:"sender"`
 	Recipient           sdk.AccAddress   `json:"recipient"  yaml:"recipient"`
@@ -30,8 +30,8 @@ type AtomicSwap struct {
 }
 
 // NewAtomicSwap returns a new AtomicSwap
-func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight, timestamp int64, sender,
-	recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
+func NewAtomicSwap(amount sdk.Coins, randomNumberHash tmbytes.HexBytes, expireHeight uint64, timestamp int64,
+	sender, recipient sdk.AccAddress, senderOtherChain string, recipientOtherChain string, closedBlock int64,
 	status SwapStatus, crossChain bool, direction SwapDirection) AtomicSwap {
 	return AtomicSwap{
 		Amount:              amount,
@@ -95,7 +95,7 @@ func (a AtomicSwap) Validate() error {
 	if strings.TrimSpace(a.RecipientOtherChain) == "" {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient other chain cannot be blank")
 	}
-	if a.ClosedBlock == 0 {
+	if a.Status == Completed && a.ClosedBlock == 0 {
 		return errors.New("closed block cannot be 0")
 	}
 	if a.Status == NULL || a.Status > 3 {
@@ -197,6 +197,16 @@ func (status *SwapStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// IsValid returns true if the swap status is valid and false otherwise.
+func (status SwapStatus) IsValid() bool {
+	if status == Open ||
+		status == Completed ||
+		status == Expired {
+		return true
+	}
+	return false
+}
+
 // SwapDirection is the direction of an AtomicSwap
 type SwapDirection byte
 
@@ -244,4 +254,13 @@ func (direction *SwapDirection) UnmarshalJSON(data []byte) error {
 	}
 	*direction = NewSwapDirectionFromString(s)
 	return nil
+}
+
+// IsValid returns true if the swap direction is valid and false otherwise.
+func (direction SwapDirection) IsValid() bool {
+	if direction == Incoming ||
+		direction == Outgoing {
+		return true
+	}
+	return false
 }

@@ -1,8 +1,7 @@
 package types
 
 import (
-	"encoding/binary"
-	"encoding/hex"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -23,7 +22,7 @@ const (
 )
 
 // DefaultLongtermStorageDuration is 1 week (assuming a block time of 7 seconds)
-const DefaultLongtermStorageDuration int64 = 86400
+const DefaultLongtermStorageDuration uint64 = 86400
 
 // Key prefixes
 var (
@@ -34,34 +33,6 @@ var (
 )
 
 // GetAtomicSwapByHeightKey is used by the AtomicSwapByBlock index and AtomicSwapLongtermStorage index
-func GetAtomicSwapByHeightKey(height int64, swapID []byte) []byte {
-	return append(Uint64ToBytes(uint64(height)), swapID...)
-}
-
-// Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.
-func Uint64ToBytes(id uint64) []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, uint64(id))
-	return bz
-}
-
-// Uint64FromBytes converts some fixed length bytes back into a uint64.
-func Uint64FromBytes(bz []byte) uint64 {
-	return binary.BigEndian.Uint64(bz)
-}
-
-// BytesToHex converts data from []byte to a hex-encoded string
-func BytesToHex(data []byte) string {
-	encodedData := make([]byte, hex.EncodedLen(len(data)))
-	hex.Encode(encodedData, data)
-	return string(encodedData)
-}
-
-// HexToBytes converts data from a hex-encoded string to []bytes
-func HexToBytes(data string) ([]byte, error) {
-	decodedData, err := hex.DecodeString(data)
-	if err != nil {
-		return []byte{}, err
-	}
-	return decodedData, nil
+func GetAtomicSwapByHeightKey(height uint64, swapID []byte) []byte {
+	return append(sdk.Uint64ToBigEndian(height), swapID...)
 }

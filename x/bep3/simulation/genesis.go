@@ -37,31 +37,31 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 }
 
 // GenMinBlockLock randomized MinBlockLock
-func GenMinBlockLock(r *rand.Rand) int64 {
+func GenMinBlockLock(r *rand.Rand) uint64 {
 	min := int(types.AbsoluteMinimumBlockLock)
 	max := int(types.AbsoluteMaximumBlockLock)
-	return int64(r.Intn(max-min) + min)
+	return uint64(r.Intn(max-min) + min)
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
-func GenMaxBlockLock(r *rand.Rand, minBlockLock int64) int64 {
+func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
 	min := int(minBlockLock)
 	max := int(types.AbsoluteMaximumBlockLock)
-	return int64(r.Intn(max-min) + min)
+	return uint64(r.Intn(max-min) + min)
 }
 
 // GenSupportedAssets gets randomized SupportedAssets
 func GenSupportedAssets(r *rand.Rand) types.AssetParams {
-	var assets types.AssetParams
+
 	numAssets := (r.Intn(10) + 1)
+	assets := make(types.AssetParams, numAssets+1)
 	for i := 0; i < numAssets; i++ {
 		denom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
 		asset := genSupportedAsset(r, denom)
-		assets = append(assets, asset)
+		assets[i] = asset
 	}
 	// Add bnb, btc, or xrp as a supported asset for interactions with other modules
-	stableAsset := genSupportedAsset(r, ConsistentDenoms[r.Intn(3)])
-	assets = append(assets, stableAsset)
+	assets[len(assets)-1] = genSupportedAsset(r, ConsistentDenoms[r.Intn(3)])
 
 	return assets
 }
@@ -91,6 +91,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	// Update supply to match amount of coins in auth
 	var supplyGenesis supply.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
+
 	for _, deputyCoin := range totalCoins {
 		supplyGenesis.Supply = supplyGenesis.Supply.Add(deputyCoin...)
 	}
@@ -101,7 +102,7 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 	bnbDeputy := GenRandBnbDeputy(simState.Rand)
 
 	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
-	minBlockLock := int64(types.AbsoluteMinimumBlockLock)
+	minBlockLock := types.AbsoluteMinimumBlockLock
 	maxBlockLock := minBlockLock * 2
 
 	var supportedAssets types.AssetParams
@@ -122,8 +123,7 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 	return bep3Genesis
 }
 
-func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.GenesisState) (
-	auth.GenesisState, []sdk.Coins) {
+func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.GenesisState) (auth.GenesisState, []sdk.Coins) {
 	var authGenesis auth.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
 

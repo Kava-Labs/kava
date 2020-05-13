@@ -47,31 +47,32 @@ func (suite *HandlerTestSuite) SetupTest() {
 }
 
 func (suite *HandlerTestSuite) AddAtomicSwap() (tmbytes.HexBytes, tmbytes.HexBytes) {
-	expireHeight := int64(360)
+	expireHeight := uint64(360)
 	amount := cs(c("bnb", int64(50000)))
 	timestamp := ts(0)
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
-	randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 
 	// Create atomic swap and check err to confirm creation
 	err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
 		suite.addrs[0], suite.addrs[1], TestSenderOtherChain, TestRecipientOtherChain,
-		amount, amount.String(), true)
+		amount, true)
 	suite.Nil(err)
 
 	swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
-	return swapID, randomNumber.Bytes()
+	return swapID, randomNumber[:]
 }
 
 func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
 	amount := cs(c("bnb", int64(10000)))
 	timestamp := ts(0)
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
-	randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 
 	msg := bep3.NewMsgCreateAtomicSwap(
-		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain, TestSenderOtherChain,
-		randomNumberHash, timestamp, amount, amount.String(), int64(300), true)
+		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain,
+		TestSenderOtherChain, randomNumberHash, timestamp, amount,
+		uint64(300))
 
 	res, err := suite.handler(suite.ctx, msg)
 	suite.Require().NoError(err)
@@ -81,9 +82,9 @@ func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
 func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
 	// Attempt claim msg on fake atomic swap
 	badRandomNumber, _ := bep3.GenerateSecureRandomNumber()
-	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber.Bytes(), ts(0))
+	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber[:], ts(0))
 	badSwapID := bep3.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
-	badMsg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], badSwapID, badRandomNumber.Bytes())
+	badMsg := bep3.NewMsgClaimAtomicSwap(suite.addrs[0], badSwapID, badRandomNumber[:])
 	badRes, err := suite.handler(suite.ctx, badMsg)
 	suite.Require().Error(err)
 	suite.Require().Nil(badRes)
@@ -99,7 +100,7 @@ func (suite *HandlerTestSuite) TestMsgClaimAtomicSwap() {
 func (suite *HandlerTestSuite) TestMsgRefundAtomicSwap() {
 	// Attempt refund msg on fake atomic swap
 	badRandomNumber, _ := bep3.GenerateSecureRandomNumber()
-	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber.Bytes(), ts(0))
+	badRandomNumberHash := bep3.CalculateRandomHash(badRandomNumber[:], ts(0))
 	badSwapID := bep3.CalculateSwapID(badRandomNumberHash, suite.addrs[0], TestSenderOtherChain)
 	badMsg := bep3.NewMsgRefundAtomicSwap(suite.addrs[0], badSwapID)
 	badRes, err := suite.handler(suite.ctx, badMsg)

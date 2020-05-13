@@ -13,17 +13,17 @@ type AssetSupply struct {
 	IncomingSupply sdk.Coin `json:"incoming_supply"  yaml:"incoming_supply"`
 	OutgoingSupply sdk.Coin `json:"outgoing_supply"  yaml:"outgoing_supply"`
 	CurrentSupply  sdk.Coin `json:"current_supply"  yaml:"current_supply"`
-	Limit          sdk.Coin `json:"limit"  yaml:"limit"`
+	SupplyLimit    sdk.Coin `json:"supply_limit"  yaml:"supply_limit"`
 }
 
 // NewAssetSupply initializes a new AssetSupply
-func NewAssetSupply(denom string, incomingSupply, outgoingSupply, currentSupply, limit sdk.Coin) AssetSupply {
+func NewAssetSupply(denom string, incomingSupply, outgoingSupply, currentSupply, supplyLimit sdk.Coin) AssetSupply {
 	return AssetSupply{
 		Denom:          denom,
 		IncomingSupply: incomingSupply,
 		OutgoingSupply: outgoingSupply,
 		CurrentSupply:  currentSupply,
-		Limit:          limit,
+		SupplyLimit:    supplyLimit,
 	}
 }
 
@@ -38,31 +38,23 @@ func (a AssetSupply) Validate() error {
 	if !a.CurrentSupply.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "current supply %s", a.CurrentSupply)
 	}
-	if !a.Limit.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "limit %s", a.Limit)
+	if !a.SupplyLimit.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "supply limit %s", a.SupplyLimit)
 	}
 	return sdk.ValidateDenom(a.Denom)
 }
 
 // String implements stringer
 func (a AssetSupply) String() string {
-	return fmt.Sprintf("Asset Supply"+
-		"\n    Denom:              %s"+
-		"\n    Incoming supply:    %s"+
-		"\n    Outgoing supply:    %s"+
-		"\n    Current supply:     %s"+
-		"\n    Limit:       %s"+
-		a.Denom, a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.Limit)
+	return fmt.Sprintf(`
+	%s supply:
+		Incoming supply:    %s
+		Outgoing supply:    %s
+		Current supply:     %s
+		Supply limit:       %s
+		`,
+		a.Denom, a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.SupplyLimit)
 }
 
 // AssetSupplies is a slice of AssetSupply
 type AssetSupplies []AssetSupply
-
-// String implements stringer
-func (supplies AssetSupplies) String() string {
-	out := ""
-	for _, supply := range supplies {
-		out += supply.String() + "\n"
-	}
-	return out
-}
