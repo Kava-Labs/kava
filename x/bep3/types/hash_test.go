@@ -36,7 +36,7 @@ func (suite *HashTestSuite) TestGenerateSecureRandomNumber() {
 	secureRandomNumber, err := types.GenerateSecureRandomNumber()
 	suite.Nil(err)
 	suite.NotNil(secureRandomNumber)
-	suite.Equal(64, len(secureRandomNumber))
+	suite.Equal(32, len(secureRandomNumber))
 }
 
 func (suite *HashTestSuite) TestCalculateRandomHash() {
