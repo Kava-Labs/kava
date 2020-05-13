@@ -292,7 +292,6 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 		suite.Run(tc.name, func() {
 			// Increment current asset supply to support outgoing swaps
 			if tc.args.direction == types.Outgoing {
-				// TODO: does this panic if incrementing after supply is reduced to 0?
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coins[0])
 				suite.Nil(err)
 			}

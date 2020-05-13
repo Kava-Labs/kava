@@ -120,11 +120,11 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
-			BnbDeputyAddress: bnbDeputy.Address,
-			BnbDeputyFixedFee:   bnbDeputyFixedFee,
-			MinBlockLock:     minBlockLock,
-			MaxBlockLock:     maxBlockLock,
-			SupportedAssets:  supportedAssets,
+			BnbDeputyAddress:  bnbDeputy.Address,
+			BnbDeputyFixedFee: bnbDeputyFixedFee,
+			MinBlockLock:      minBlockLock,
+			MaxBlockLock:      maxBlockLock,
+			SupportedAssets:   supportedAssets,
 		},
 	}
 
