@@ -15,11 +15,13 @@ const (
 
 // Parameter keys
 var (
-	KeyBnbDeputyAddress = []byte("BnbDeputyAddress")
-	KeyMinBlockLock     = []byte("MinBlockLock")
-	KeyMaxBlockLock     = []byte("MaxBlockLock")
-	KeySupportedAssets  = []byte("SupportedAssets")
+	KeyBnbDeputyAddress  = []byte("BnbDeputyAddress")
+	KeyBnbDeputyFixedFee = []byte("BnbDeputyFixedFee")
+	KeyMinBlockLock      = []byte("MinBlockLock")
+	KeyMaxBlockLock      = []byte("MaxBlockLock")
+	KeySupportedAssets   = []byte("SupportedAssets")
 
+	DefaultBnbDeputyFixedFee uint64 = 1000
 	AbsoluteMaximumBlockLock uint64 = 10000
 	AbsoluteMinimumBlockLock uint64 = 50
 	DefaultMinBlockLock      uint64 = 80
@@ -36,30 +38,33 @@ var (
 
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // Bnbchain deputy address
-	MinBlockLock     uint64         `json:"min_block_lock" yaml:"min_block_lock"`         // AtomicSwap minimum block lock
-	MaxBlockLock     uint64         `json:"max_block_lock" yaml:"max_block_lock"`         // AtomicSwap maximum block lock
-	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"`     // Supported assets
+	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
+	BnbDeputyFixedFee uint64         `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
+	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // AtomicSwap minimum block lock
+	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // AtomicSwap maximum block lock
+	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Bnbchain deputy address: %s,
+	Deputy fixed fee (BNB): %d,
 	Min block lock: %d,
 	Max block lock: %d,
 	Supported assets: %s`,
-		p.BnbDeputyAddress.String(), p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
+		p.BnbDeputyAddress.String(), p.BnbDeputyFixedFee, p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
+func NewParams(bnbDeputyAddress sdk.AccAddress, bnbDeputyFixedFee, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
 ) Params {
 	return Params{
-		BnbDeputyAddress: bnbDeputyAddress,
-		MinBlockLock:     minBlockLock,
-		MaxBlockLock:     maxBlockLock,
-		SupportedAssets:  supportedAssets,
+		BnbDeputyAddress:  bnbDeputyAddress,
+		BnbDeputyFixedFee: bnbDeputyFixedFee,
+		MinBlockLock:      minBlockLock,
+		MaxBlockLock:      maxBlockLock,
+		SupportedAssets:   supportedAssets,
 	}
 }
 
@@ -70,7 +75,8 @@ func DefaultParams() Params {
 		panic(err)
 	}
 
-	return NewParams(defaultBnbDeputyAddress, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
+	return NewParams(defaultBnbDeputyAddress, DefaultBnbDeputyFixedFee,
+		DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain
@@ -114,6 +120,7 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateBnbDeputyAddressParam),
+		params.NewParamSetPair(KeyBnbDeputyFixedFee, &p.BnbDeputyFixedFee, validateBnbDeputyFixedFeeParam),
 		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateMinBlockLockParam),
 		params.NewParamSetPair(KeyMaxBlockLock, &p.MaxBlockLock, validateMaxBlockLockParam),
 		params.NewParamSetPair(KeySupportedAssets, &p.SupportedAssets, validateSupportedAssetsParams),
@@ -123,6 +130,10 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
 	if err := validateBnbDeputyAddressParam(p.BnbDeputyAddress); err != nil {
+		return err
+	}
+
+	if err := validateBnbDeputyFixedFeeParam(p.BnbDeputyFixedFee); err != nil {
 		return err
 	}
 
@@ -153,6 +164,15 @@ func validateBnbDeputyAddressParam(i interface{}) error {
 
 	if len(addr.Bytes()) != sdk.AddrLen {
 		return fmt.Errorf("bnb deputy address invalid bytes length got %d, want %d", len(addr.Bytes()), sdk.AddrLen)
+	}
+
+	return nil
+}
+
+func validateBnbDeputyFixedFeeParam(i interface{}) error {
+	_, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
 	return nil

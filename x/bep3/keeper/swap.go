@@ -62,13 +62,17 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			newAcc := k.accountKeeper.NewAccountWithAddress(ctx, recipient)
 			k.accountKeeper.SetAccount(ctx, newAcc)
 		}
+		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
+		// Amount in outgoing swaps must be greater than the deputy's fixed fee.
+		if amount[0].Amount.Uint64() <= k.GetBnbDeputyFixedFee(ctx) {
+			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
+		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", direction.String())
 	}
-
 	if err != nil {
 		return err
 	}

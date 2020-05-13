@@ -47,7 +47,8 @@
       "assets_supplies": [],
       "atomic_swaps": [],
       "params": {
-        "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
+        "bnb_deputy_address": "kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29",
+        "bnb_deputy_fixed_fee": "1000",
         "max_block_lock": "600",
         "min_block_lock": "80",
         "supported_assets": [

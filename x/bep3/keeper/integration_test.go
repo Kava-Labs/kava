@@ -31,12 +31,13 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewBep3GenStateMulti(deputy sdk.AccAddress) app.GenesisState {
+func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress: deputy,
-			MinBlockLock:     types.DefaultMinBlockLock, // 80
-			MaxBlockLock:     types.DefaultMaxBlockLock, // 360
+			BnbDeputyAddress:  deputyAddress,
+			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
+			MinBlockLock:      types.DefaultMinBlockLock,      // 80
+			MaxBlockLock:      types.DefaultMaxBlockLock,      // 360
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
