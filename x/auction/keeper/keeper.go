@@ -128,7 +128,7 @@ func (k Keeper) DeleteAuction(ctx sdk.Context, auctionID uint64) {
 }
 
 // InsertIntoByTimeIndex adds an auction ID and end time into the byTime index.
-func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) { // TODO make private, and find way to make tests work
+func (k Keeper) InsertIntoByTimeIndex(ctx sdk.Context, endTime time.Time, auctionID uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	store.Set(types.GetAuctionByTimeKey(endTime, auctionID), types.Uint64ToBytes(auctionID))
 }

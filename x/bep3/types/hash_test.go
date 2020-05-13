@@ -36,24 +36,24 @@ func (suite *HashTestSuite) TestGenerateSecureRandomNumber() {
 	secureRandomNumber, err := types.GenerateSecureRandomNumber()
 	suite.Nil(err)
 	suite.NotNil(secureRandomNumber)
-	suite.Equal(64, len(secureRandomNumber.Text(16)))
+	suite.Equal(64, len(secureRandomNumber))
 }
 
 func (suite *HashTestSuite) TestCalculateRandomHash() {
 	randomNumber, _ := types.GenerateSecureRandomNumber()
-	hash := types.CalculateRandomHash(randomNumber.Bytes(), suite.timestamps[0])
+	hash := types.CalculateRandomHash(randomNumber[:], suite.timestamps[0])
 	suite.NotNil(hash)
 	suite.Equal(32, len(hash))
 }
 
 func (suite *HashTestSuite) TestCalculateSwapID() {
 	randomNumber, _ := types.GenerateSecureRandomNumber()
-	hash := types.CalculateRandomHash(randomNumber.Bytes(), suite.timestamps[3])
+	hash := types.CalculateRandomHash(randomNumber[:], suite.timestamps[3])
 	swapID := types.CalculateSwapID(hash, suite.addrs[3], suite.addrs[5].String())
 	suite.NotNil(swapID)
 	suite.Equal(32, len(swapID))
 
-	diffHash := types.CalculateRandomHash(randomNumber.Bytes(), suite.timestamps[2])
+	diffHash := types.CalculateRandomHash(randomNumber[:], suite.timestamps[2])
 	diffSwapID := types.CalculateSwapID(diffHash, suite.addrs[3], suite.addrs[5].String())
 	suite.NotEqual(swapID, diffSwapID)
 }

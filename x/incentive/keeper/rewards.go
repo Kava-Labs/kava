@@ -20,18 +20,15 @@ func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod)
 
 // CreateNewRewardPeriod creates a new reward period from the input reward
 func (k Keeper) CreateNewRewardPeriod(ctx sdk.Context, reward types.Reward) {
-	// reward periods store the amount of rewards paid PER SECOND
-	rewardsPerSecond := sdk.NewDecFromInt(reward.AvailableRewards.Amount).Quo(sdk.NewDecFromInt(sdk.NewInt(int64(reward.Duration.Seconds())))).TruncateInt()
-	rewardCoinPerSecond := sdk.NewCoin(reward.AvailableRewards.Denom, rewardsPerSecond)
-	rp := types.RewardPeriod{
-		Denom:         reward.Denom,
-		Start:         ctx.BlockTime(),
-		End:           ctx.BlockTime().Add(reward.Duration),
-		Reward:        rewardCoinPerSecond,
-		ClaimEnd:      ctx.BlockTime().Add(reward.Duration).Add(reward.ClaimDuration),
-		ClaimTimeLock: reward.TimeLock,
-	}
+	rp := types.NewRewardPeriodFromReward(reward, ctx.BlockTime())
 	k.SetRewardPeriod(ctx, rp)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRewardPeriod,
+			sdk.NewAttribute(types.AttributeKeyRewardPeriod, rp.String()),
+		),
+	)
 }
 
 // CreateAndDeleteRewardPeriods creates reward periods for active rewards that don't already have a reward period and deletes reward periods for inactive rewards that currently have a reward period
@@ -95,6 +92,12 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, denom string, end time.Time, timeLock time.Duration) {
 	id := k.GetNextClaimPeriodID(ctx, denom)
 	claimPeriod := types.NewClaimPeriod(denom, id, end, timeLock)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaimPeriod,
+			sdk.NewAttribute(types.AttributeKeyClaimPeriod, claimPeriod.String()),
+		),
+	)
 	k.SetClaimPeriod(ctx, claimPeriod)
 	k.SetNextClaimPeriodID(ctx, denom, id+1)
 }

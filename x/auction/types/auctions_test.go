@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -24,48 +25,65 @@ const (
 	TestAccAddress2         = "kava1pdfav2cjhry9k79nu6r8kgknnjtq6a7rcr0qlr"
 )
 
+func d(amount string) sdk.Dec               { return sdk.MustNewDecFromStr(amount) }
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+func i(n int64) sdk.Int                     { return sdk.NewInt(n) }
+func is(ns ...int64) (is []sdk.Int) {
+	for _, n := range ns {
+		is = append(is, sdk.NewInt(n))
+	}
+	return
+}
+
 func TestNewWeightedAddresses(t *testing.T) {
 
 	tests := []struct {
-		name       string
-		addresses  []sdk.AccAddress
-		weights    []sdk.Int
-		expectpass bool
+		name        string
+		addresses   []sdk.AccAddress
+		weights     []sdk.Int
+		expectedErr error
 	}{
 		{
-			"normal",
-			[]sdk.AccAddress{
+			name: "normal",
+			addresses: []sdk.AccAddress{
 				sdk.AccAddress([]byte(TestAccAddress1)),
 				sdk.AccAddress([]byte(TestAccAddress2)),
 			},
-			[]sdk.Int{
-				sdk.NewInt(6),
-				sdk.NewInt(8),
-			},
-			true,
+			weights:     is(6, 8),
+			expectedErr: nil,
 		},
 		{
-			"mismatched",
-			[]sdk.AccAddress{
+			name: "mismatched",
+			addresses: []sdk.AccAddress{
 				sdk.AccAddress([]byte(TestAccAddress1)),
 				sdk.AccAddress([]byte(TestAccAddress2)),
 			},
-			[]sdk.Int{
-				sdk.NewInt(6),
-			},
-			false,
+			weights:     is(6),
+			expectedErr: fmt.Errorf("number of addresses doesn't match number of weights, %d ≠ %d", 2, 1),
 		},
 		{
-			"negativeWeight",
-			[]sdk.AccAddress{
+			name: "negativeWeight",
+			addresses: []sdk.AccAddress{
 				sdk.AccAddress([]byte(TestAccAddress1)),
 				sdk.AccAddress([]byte(TestAccAddress2)),
 			},
-			[]sdk.Int{
-				sdk.NewInt(6),
-				sdk.NewInt(-8),
+			weights:     is(6, -8),
+			expectedErr: fmt.Errorf("weights contain a negative amount: %s", i(-8)),
+		},
+		{
+			name: "zero total weights",
+			addresses: []sdk.AccAddress{
+				sdk.AccAddress([]byte(TestAccAddress1)),
+				sdk.AccAddress([]byte(TestAccAddress2)),
 			},
-			false,
+			weights:     is(0, 0),
+			expectedErr: fmt.Errorf("total weight must be positive"),
+		},
+		{
+			name:        "no weights",
+			addresses:   nil,
+			weights:     nil,
+			expectedErr: fmt.Errorf("must be at least 1 weighted address"),
 		},
 	}
 
@@ -75,27 +93,16 @@ func TestNewWeightedAddresses(t *testing.T) {
 			// Attempt to instantiate new WeightedAddresses
 			weightedAddresses, err := NewWeightedAddresses(tc.addresses, tc.weights)
 
-			if tc.expectpass {
-				// Confirm there is no error
-				require.Nil(t, err)
-
+			if tc.expectedErr != nil {
+				// Confirm the error
+				require.EqualError(t, err, tc.expectedErr.Error())
+			} else {
+				require.NoError(t, err)
 				// Check addresses, weights
 				require.Equal(t, tc.addresses, weightedAddresses.Addresses)
 				require.Equal(t, tc.weights, weightedAddresses.Weights)
-			} else {
-				// Confirm that there is an error
-				require.NotNil(t, err)
-
-				switch tc.name {
-				case "mismatched":
-					require.Contains(t, err.Error(), "number of addresses doesn't match number of weights")
-				case "negativeWeight":
-					require.Contains(t, err.Error(), "weights contain a negative amount")
-				default:
-					// Unexpected error state
-					t.Fail()
-				}
 			}
+
 		})
 	}
 }

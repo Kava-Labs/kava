@@ -48,7 +48,6 @@ type AtomicSwap struct {
 	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
 	ClosedBlock         int64            `json:"closed_block"  yaml:"closed_block"`
 	Status              SwapStatus       `json:"status"  yaml:"status"`
-	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
 	Direction           SwapDirection    `json:"direction"  yaml:"direction"`
 }
 

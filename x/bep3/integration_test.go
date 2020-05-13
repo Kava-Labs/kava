@@ -73,13 +73,13 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 
 func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.AssetSupply) {
 	coin := c(DenomMap[index], 50000)
-	expireOffset := int64((index * 15) + 360) // Default expire height + offet to match timestamp
-	timestamp := ts(index)                    // One minute apart
+	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
+	timestamp := ts(index)                     // One minute apart
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
-	randomNumberHash := bep3.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 	swap := bep3.NewAtomicSwap(cs(coin), randomNumberHash,
 		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
-		TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
+		TestRecipientOtherChain, 1, bep3.Open, true, bep3.Incoming)
 
 	supply := bep3.NewAssetSupply(coin.Denom, coin, c(coin.Denom, 0),
 		c(coin.Denom, 0), c(coin.Denom, StandardSupplyLimit.Int64()))

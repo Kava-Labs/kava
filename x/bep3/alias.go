@@ -13,7 +13,6 @@ const (
 	AttributeKeyAtomicSwapIDs      = types.AttributeKeyAtomicSwapIDs
 	AttributeKeyClaimSender        = types.AttributeKeyClaimSender
 	AttributeKeyDirection          = types.AttributeKeyDirection
-	AttributeKeyExpectedIncome     = types.AttributeKeyExpectedIncome
 	AttributeKeyExpireHeight       = types.AttributeKeyExpireHeight
 	AttributeKeyRandomNumber       = types.AttributeKeyRandomNumber
 	AttributeKeyRandomNumberHash   = types.AttributeKeyRandomNumberHash
@@ -29,7 +28,6 @@ const (
 	CreateAtomicSwap               = types.CreateAtomicSwap
 	DefaultLongtermStorageDuration = types.DefaultLongtermStorageDuration
 	DefaultParamspace              = types.DefaultParamspace
-	DepositAtomicSwap              = types.DepositAtomicSwap
 	EventTypeClaimAtomicSwap       = types.EventTypeClaimAtomicSwap
 	EventTypeCreateAtomicSwap      = types.EventTypeCreateAtomicSwap
 	EventTypeRefundAtomicSwap      = types.EventTypeRefundAtomicSwap
@@ -61,7 +59,6 @@ var (
 	NewKeeper                  = keeper.NewKeeper
 	NewQuerier                 = keeper.NewQuerier
 	RegisterRoutes             = rest.RegisterRoutes
-	BytesToHex                 = types.BytesToHex
 	CalculateRandomHash        = types.CalculateRandomHash
 	CalculateSwapID            = types.CalculateSwapID
 	DefaultGenesisState        = types.DefaultGenesisState
@@ -83,7 +80,6 @@ var (
 	ErrSwapNotRefundable       = types.ErrSwapNotRefundable
 	GenerateSecureRandomNumber = types.GenerateSecureRandomNumber
 	GetAtomicSwapByHeightKey   = types.GetAtomicSwapByHeightKey
-	HexToBytes                 = types.HexToBytes
 	NewAssetSupply             = types.NewAssetSupply
 	NewAtomicSwap              = types.NewAtomicSwap
 	NewGenesisState            = types.NewGenesisState
@@ -98,8 +94,6 @@ var (
 	NewSwapStatusFromString    = types.NewSwapStatusFromString
 	ParamKeyTable              = types.ParamKeyTable
 	RegisterCodec              = types.RegisterCodec
-	Uint64FromBytes            = types.Uint64FromBytes
-	Uint64ToBytes              = types.Uint64ToBytes
 
 	// variable aliases
 	AbsoluteMaximumBlockLock        = types.AbsoluteMaximumBlockLock

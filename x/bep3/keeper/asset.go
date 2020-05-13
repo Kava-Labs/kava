@@ -15,8 +15,8 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	}
 
 	// Resulting current supply must be under asset's limit
-	if !supply.Limit.IsGTE(supply.CurrentSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supply.Limit)
+	if !supply.SupplyLimit.IsGTE(supply.CurrentSupply.Add(coin)) {
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supply.SupplyLimit)
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Add(coin)
@@ -51,8 +51,8 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 
 	// 	Result of (current + incoming + amount) must be under asset's limit
 	totalSupply := supply.CurrentSupply.Add(supply.IncomingSupply)
-	if !supply.Limit.IsGTE(totalSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supply.Limit)
+	if !supply.SupplyLimit.IsGTE(totalSupply.Add(coin)) {
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supply.SupplyLimit)
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Add(coin)

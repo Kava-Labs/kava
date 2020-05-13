@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestParams_Validate(t *testing.T) {
@@ -105,5 +103,3 @@ func TestParams_Validate(t *testing.T) {
 		})
 	}
 }
-
-func d(amount string) sdk.Dec { return sdk.MustNewDecFromStr(amount) }

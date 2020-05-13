@@ -32,31 +32,32 @@ func (k Keeper) CreateAuctionsFromDeposit(
 	ctx sdk.Context, collateral sdk.Coin, returnAddr sdk.AccAddress, debt, auctionSize sdk.Int,
 	principalDenom string) (err error) {
 
-	amountToAuction := sdk.NewInt(collateral.Amount.Int64())
-	totalCollateralAmount := sdk.NewInt(collateral.Amount.Int64())
-	remainingDebt := sdk.NewInt(debt.Int64())
-	for amountToAuction.GT(sdk.ZeroInt()) {
-		for amountToAuction.GT(auctionSize) {
-			debtCoveredByAuction := (sdk.NewDecFromInt(auctionSize).Quo(sdk.NewDecFromInt(totalCollateralAmount))).Mul(sdk.NewDecFromInt(debt)).RoundInt()
-			penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, debtCoveredByAuction)
-			_, err := k.auctionKeeper.StartCollateralAuction(
-				ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, auctionSize), sdk.NewCoin(principalDenom, debtCoveredByAuction.Add(penalty)), []sdk.AccAddress{returnAddr},
-				[]sdk.Int{auctionSize}, sdk.NewCoin(k.GetDebtDenom(ctx), debtCoveredByAuction))
-			if err != nil {
-				return err
-			}
-			amountToAuction = amountToAuction.Sub(auctionSize)
-			remainingDebt = remainingDebt.Sub(debtCoveredByAuction)
-		}
-		penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, remainingDebt)
+	amountToAuction := collateral.Amount
+	totalCollateralAmount := collateral.Amount
+	remainingDebt := debt
+	if !amountToAuction.IsPositive() {
+		return nil
+	}
+	for amountToAuction.GT(auctionSize) {
+		debtCoveredByAuction := (sdk.NewDecFromInt(auctionSize).Quo(sdk.NewDecFromInt(totalCollateralAmount))).Mul(sdk.NewDecFromInt(debt)).RoundInt()
+		penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, debtCoveredByAuction)
 		_, err := k.auctionKeeper.StartCollateralAuction(
-			ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, amountToAuction), sdk.NewCoin(principalDenom, remainingDebt.Add(penalty)), []sdk.AccAddress{returnAddr},
-			[]sdk.Int{amountToAuction}, sdk.NewCoin(k.GetDebtDenom(ctx), remainingDebt))
+			ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, auctionSize), sdk.NewCoin(principalDenom, debtCoveredByAuction.Add(penalty)), []sdk.AccAddress{returnAddr},
+			[]sdk.Int{auctionSize}, sdk.NewCoin(k.GetDebtDenom(ctx), debtCoveredByAuction))
 		if err != nil {
 			return err
 		}
-		amountToAuction = sdk.ZeroInt()
+		amountToAuction = amountToAuction.Sub(auctionSize)
+		remainingDebt = remainingDebt.Sub(debtCoveredByAuction)
 	}
+	penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, remainingDebt)
+	_, err = k.auctionKeeper.StartCollateralAuction(
+		ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, amountToAuction), sdk.NewCoin(principalDenom, remainingDebt.Add(penalty)), []sdk.AccAddress{returnAddr},
+		[]sdk.Int{amountToAuction}, sdk.NewCoin(k.GetDebtDenom(ctx), remainingDebt))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
