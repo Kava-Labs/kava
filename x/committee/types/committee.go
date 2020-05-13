@@ -6,6 +6,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
@@ -50,9 +51,9 @@ func (c Committee) HasMember(addr sdk.AccAddress) bool {
 
 // HasPermissionsFor returns whether the committee is authorized to enact a proposal.
 // As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
-func (c Committee) HasPermissionsFor(proposal PubProposal) bool {
+func (c Committee) HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool {
 	for _, p := range c.Permissions {
-		if p.Allows(proposal) {
+		if p.Allows(ctx, appCdc, pk, proposal) {
 			return true
 		}
 	}

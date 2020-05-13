@@ -45,7 +45,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 			wops,
 			simulation.NewWeightedOperation(
 				weight,
-				SimulateMsgSubmitProposal(ak, k, wContent.ContentSimulatorFn),
+				SimulateMsgSubmitProposal(cdc, ak, k, wContent.ContentSimulatorFn),
 			),
 		)
 	}
@@ -55,7 +55,7 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 // SimulateMsgSubmitProposal creates a proposal using the passed contentSimulatorFn and tries to find a committee that has permissions for it. If it can't then it uses the fallback committee.
 // If the fallback committee isn't there (eg when using an non-generated genesis) and no committee can be found this emits a no-op msg and doesn't do anything.
 // For each submit proposal msg, future ops for the vote messages are generated. Sometimes it doesn't run enough votes to allow the proposal to timeout - the likelihood of this happening is controlled by a parameter.
-func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn) simulation.Operation {
+func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keeper, contentSim simulation.ContentSimulatorFn) simulation.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
 		// 1) Send  a submit proposal msg
@@ -77,7 +77,7 @@ func SimulateMsgSubmitProposal(ak AccountKeeper, k keeper.Keeper, contentSim sim
 		var selectedCommittee types.Committee
 		var found bool
 		for _, c := range committees {
-			if c.HasPermissionsFor(pp) {
+			if c.HasPermissionsFor(ctx, cdc, k.ParamKeeper, pp) {
 				selectedCommittee = c
 				found = true
 				break

@@ -71,16 +71,17 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 				}
 			}
 
-			com, found := k.GetCommittee(ctx, proposal.CommitteeID)
+			_, found := k.GetCommittee(ctx, proposal.CommitteeID)
 			if !found {
 				validationErr = fmt.Errorf("proposal has no committee %d", proposal.CommitteeID)
 				return true
 			}
 
-			if !com.HasPermissionsFor(proposal.PubProposal) {
-				validationErr = fmt.Errorf("proposal not permitted for committee %+v", com)
-				return true
-			}
+			// TODO permissions might not always be valid
+			// if !com.HasPermissionsFor(proposal.PubProposal) {
+			// 	validationErr = fmt.Errorf("proposal not permitted for committee %+v", com)
+			// 	return true
+			// }
 
 			return false
 		})

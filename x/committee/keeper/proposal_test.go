@@ -15,7 +15,34 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/types"
+	"github.com/kava-labs/kava/x/pricefeed"
 )
+
+func newCDPGenesisState(params cdptypes.Params) app.GenesisState {
+	genesis := cdptypes.DefaultGenesisState()
+	genesis.Params = params
+	return app.GenesisState{cdptypes.ModuleName: cdptypes.ModuleCdc.MustMarshalJSON(genesis)}
+}
+
+// TODO move to common test package
+func newPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
+	pfGenesis := pricefeed.GenesisState{
+		Params: pricefeed.Params{
+			Markets: []pricefeed.Market{
+				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+			},
+		},
+		PostedPrices: []pricefeed.PostedPrice{
+			{
+				MarketID:      asset + ":usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         price,
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
+		},
+	}
+	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
+}
 
 func (suite *KeeperTestSuite) TestSubmitProposal() {
 	normalCom := types.Committee{
@@ -26,8 +53,59 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 		VoteThreshold:    d("0.667"),
 		ProposalDuration: time.Hour * 24 * 7,
 	}
+
 	noPermissionsCom := normalCom
 	noPermissionsCom.Permissions = []types.Permission{}
+
+	paramChangePermissionsCom := normalCom
+	paramChangePermissionsCom.Permissions = []types.Permission{
+		types.SubParamChangePermission{
+			AllowedParams: types.AllowedParams{
+				{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtThreshold)},
+				{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyCollateralParams)},
+			},
+			AllowedCollateralParams: types.AllowedCollateralParams{
+				types.AllowedCollateralParam{
+					Denom:        "bnb",
+					DebtLimit:    true,
+					StabilityFee: true,
+				},
+			},
+		},
+	}
+
+	[]types.Permission{
+		types.TextPermission{},
+		types.SubParamChangePermission{
+			AllowedParams: types.AllowedParams{
+				{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtThreshold)},
+			},
+			AllowedCollateralParams: types.AllowedCollateralParams{},
+		}
+	}
+
+	testCP := cdptypes.CollateralParams{{
+		Denom:              "bnb",
+		LiquidationRatio:   d("1.5"),
+		DebtLimit:          c("usdx", 1000000000000),
+		StabilityFee:       d("1.000000001547125958"), // %5 apr
+		LiquidationPenalty: d("0.05"),
+		AuctionSize:        i(100),
+		Prefix:             0x20,
+		ConversionFactor:   i(6),
+		MarketID:           "bnb:usd",
+	}}
+	testCDPParams := cdptypes.DefaultParams()
+	testCDPParams.CollateralParams = testCP
+	testCDPParams.GlobalDebtLimit = testCP[0].DebtLimit
+
+	newValidCP := make(cdptypes.CollateralParams, len(testCP))
+	copy(newValidCP, testCP)
+	newValidCP[0].DebtLimit = c("usdx", 500000000000)
+
+	newInvalidCP := make(cdptypes.CollateralParams, len(testCP))
+	copy(newInvalidCP, testCP)
+	newInvalidCP[0].MarketID = "btc:usd"
 
 	testcases := []struct {
 		name        string
@@ -38,9 +116,24 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 		expectErr   bool
 	}{
 		{
-			name:        "normal",
+			name:        "normal text proposal",
 			committee:   normalCom,
 			pubProposal: gov.NewTextProposal("A Title", "A description of this proposal."),
+			proposer:    normalCom.Members[0],
+			committeeID: normalCom.ID,
+			expectErr:   false,
+		},
+		{
+			name:      "normal param change proposal",
+			committee: normalCom,
+			pubProposal: params.NewParameterChangeProposal(
+				"A Title", "A description of this proposal.",
+				[]params.ParamChange{
+					{
+						Subspace: "cdp", Key: string(cdptypes.KeyDebtThreshold), Value: string(suite.app.Codec().MustMarshalJSON(i(1000000))),
+					},
+				},
+			),
 			proposer:    normalCom.Members[0],
 			committeeID: normalCom.ID,
 			expectErr:   false,
@@ -77,6 +170,42 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 			committeeID: noPermissionsCom.ID,
 			expectErr:   true,
 		},
+		{
+			name:      "valid sub param change",
+			committee: paramChangePermissionsCom,
+			pubProposal: params.NewParameterChangeProposal(
+				"A Title", "A description of this proposal.",
+				[]params.ParamChange{
+					{
+						"cdp", string(cdptypes.KeyDebtThreshold), string(suite.app.Codec().MustMarshalJSON(i(1000000000))),
+					},
+					{
+						"cdp", string(cdptypes.KeyCollateralParams), string(suite.app.Codec().MustMarshalJSON(newValidCP)),
+					},
+				},
+			),
+			proposer:    paramChangePermissionsCom.Members[0],
+			committeeID: paramChangePermissionsCom.ID,
+			expectErr:   false,
+		},
+		{
+			name:      "invalid sub param change permission",
+			committee: paramChangePermissionsCom,
+			pubProposal: params.NewParameterChangeProposal(
+				"A Title", "A description of this proposal.",
+				[]params.ParamChange{
+					{
+						"cdp", string(cdptypes.KeyDebtThreshold), string(suite.app.Codec().MustMarshalJSON(i(1000000000))),
+					},
+					{
+						"cdp", string(cdptypes.KeyCollateralParams), string(suite.app.Codec().MustMarshalJSON(newInvalidCP)),
+					},
+				},
+			),
+			proposer:    paramChangePermissionsCom.Members[0],
+			committeeID: paramChangePermissionsCom.ID,
+			expectErr:   true,
+		},
 	}
 
 	for _, tc := range testcases {
@@ -85,7 +214,10 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, abci.Header{})
-			tApp.InitializeFromGenesisStates()
+			tApp.InitializeFromGenesisStates(
+				newPricefeedGenState("bnb", d("15.01")),
+				newCDPGenesisState(testCDPParams),
+			)
 			// setup committee (if required)
 			if !(reflect.DeepEqual(tc.committee, types.Committee{})) {
 				keeper.SetCommittee(ctx, tc.committee)

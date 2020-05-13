@@ -36,6 +36,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
 	cdc.RegisterConcrete(ParamChangePermission{}, "kava/ParamChangePermission", nil)
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
 
 	// Msgs
 	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)

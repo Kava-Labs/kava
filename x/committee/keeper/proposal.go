@@ -21,7 +21,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Check committee has permissions to enact proposal.
-	if !com.HasPermissionsFor(pubProposal) {
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pubProposal) {
 		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
