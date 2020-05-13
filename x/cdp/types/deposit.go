@@ -1,9 +1,11 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Deposit defines an amount of coins deposited by an account to a cdp
@@ -26,6 +28,20 @@ func (d Deposit) String() string {
 		d.CdpID, d.Depositor, d.Amount)
 }
 
+// Validate performs a basic validation of the deposit fields.
+func (d Deposit) Validate() error {
+	if d.CdpID == 0 {
+		return errors.New("deposit's cdp id cannot be 0")
+	}
+	if d.Depositor.Empty() {
+		return errors.New("depositor cannot be empty")
+	}
+	if !d.Amount.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit %s", d.Amount)
+	}
+	return nil
+}
+
 // Deposits a collection of Deposit objects
 type Deposits []Deposit
 
@@ -39,6 +55,16 @@ func (ds Deposits) String() string {
 		out += fmt.Sprintf("\n  %s: %s", dep.Depositor, dep.Amount)
 	}
 	return out
+}
+
+// Validate validates each deposit
+func (ds Deposits) Validate() error {
+	for _, d := range ds {
+		if err := d.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Equals returns whether two deposits are equal.

@@ -2,8 +2,10 @@
 
 At the start of every block the BeginBlocker of the cdp module:
 
-- updates fees for CDPs
-- liquidates CDPs under the collateral ratio
+- updates the status of the pricefeed for each collateral asset
+- If the pricefeed is active (reporting a price):
+  - updates fees for CDPs
+  - liquidates CDPs under the collateral ratio
 - nets out system debt and, if necessary, starts auctions to re-balance it
 - pays out the savings rate if sufficient time has past
 - records the last savings rate distribution, if one occurred

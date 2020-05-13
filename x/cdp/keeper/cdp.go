@@ -64,6 +64,19 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 		panic(err)
 	}
 
+	// update total principal for input collateral type
+	k.IncrementTotalPrincipal(ctx, collateral.Denom, principal)
+
+	// set the cdp, deposit, and indexes in the store
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)
+	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	if err != nil {
+		return err
+	}
+	k.IndexCdpByOwner(ctx, cdp)
+	k.SetDeposit(ctx, deposit)
+	k.SetNextCdpID(ctx, id+1)
+
 	// emit events for cdp creation, deposit, and draw
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -86,18 +99,6 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 		),
 	)
 
-	// update total principal for input collateral type
-	k.IncrementTotalPrincipal(ctx, collateral.Denom, principal)
-
-	// set the cdp, deposit, and indexes in the store
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, principal)
-	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
-	if err != nil {
-		return err
-	}
-	k.IndexCdpByOwner(ctx, cdp)
-	k.SetDeposit(ctx, deposit)
-	k.SetNextCdpID(ctx, id+1)
 	return nil
 }
 
@@ -347,9 +348,13 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
 func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin) error {
-	_, found := k.GetCollateral(ctx, collateral.Denom)
+	cp, found := k.GetCollateral(ctx, collateral.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateral.Denom)
+	}
+	ok := k.GetMarketStatus(ctx, cp.MarketID)
+	if !ok {
+		return sdkerrors.Wrap(types.ErrPricefeedDown, collateral.Denom)
 	}
 	return nil
 }
@@ -423,11 +428,11 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 }
 
 // LoadAugmentedCDP creates a new augmented CDP from an existing CDP
-func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.AugmentedCDP, error) {
+func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.AugmentedCDP {
 	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {
-		return types.AugmentedCDP{}, err
+		return types.AugmentedCDP{CDP: cdp}
 	}
 
 	// total debt is the sum of all outstanding principal and fees
@@ -442,7 +447,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) (types.Augmente
 
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
-	return augmentedCDP, nil
+	return augmentedCDP
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
@@ -478,6 +483,32 @@ func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context
 	// convert absolute ratio to collateralization ratio
 	respectiveCollateralRatio := absoluteRatio.Quo(price.Price)
 	return respectiveCollateralRatio, nil
+}
+
+// SetMarketStatus sets the status of the input market, true means the market is up and running, false means it is down
+func (k Keeper) SetMarketStatus(ctx sdk.Context, marketID string, up bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
+	store.Set([]byte(marketID), k.cdc.MustMarshalBinaryBare(up))
+	return
+}
+
+// GetMarketStatus returns true if the market has a price, otherwise false
+func (k Keeper) GetMarketStatus(ctx sdk.Context, marketID string) (up bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PricefeedStatusKeyPrefix)
+	bz := store.Get([]byte(marketID))
+	k.cdc.MustUnmarshalBinaryBare(bz, &up)
+	return up
+}
+
+// UpdatePricefeedStatus determines if the price of an asset is available and updates the global status of the market
+func (k Keeper) UpdatePricefeedStatus(ctx sdk.Context, marketID string) (ok bool) {
+	_, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+	if err != nil {
+		k.SetMarketStatus(ctx, marketID, false)
+		return false
+	}
+	k.SetMarketStatus(ctx, marketID, true)
+	return true
 }
 
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))

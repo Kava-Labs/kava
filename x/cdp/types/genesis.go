@@ -53,7 +53,15 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if gs.PreviousDistributionTime.Equal(time.Time{}) {
+	if err := gs.CDPs.Validate(); err != nil {
+		return err
+	}
+
+	if err := gs.Deposits.Validate(); err != nil {
+		return err
+	}
+
+	if gs.PreviousDistributionTime.IsZero() {
 		return fmt.Errorf("previous distribution time not set")
 	}
 

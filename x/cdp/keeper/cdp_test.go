@@ -64,10 +64,14 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	pk := suite.app.GetPriceFeedKeeper()
 	err = pk.SetCurrentPrices(ctx, "xrp:usd")
 	suite.Error(err)
+	ok := suite.keeper.UpdatePricefeedStatus(ctx, "xrp:usd")
+	suite.False(ok)
 	err = suite.keeper.AddCdp(ctx, addrs[0], c("xrp", 100000000), c("usdx", 10000000))
-	suite.Error(err) // no prices in pricefeed
+	suite.Require().True(errors.Is(err, types.ErrPricefeedDown))
 
 	err = pk.SetCurrentPrices(suite.ctx, "xrp:usd")
+	ok = suite.keeper.UpdatePricefeedStatus(suite.ctx, "xrp:usd")
+	suite.True(ok)
 	suite.NoError(err)
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 100000000), c("usdx", 10000000))
 	suite.NoError(err)
