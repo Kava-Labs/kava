@@ -194,6 +194,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 				SenderOtherChain:    "bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7",
 				RecipientOtherChain: "bnb1urfermcg92dwq36572cx4xg84wpk3lfpksr5g7",
 				ClosedBlock:         0,
+				Status:              types.Completed,
 			},
 			false,
 		},
