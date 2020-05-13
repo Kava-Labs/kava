@@ -3,9 +3,6 @@ package types
 import (
 	"crypto/rand"
 	"encoding/binary"
-	"errors"
-	"fmt"
-	"math/big"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,21 +11,12 @@ import (
 )
 
 // GenerateSecureRandomNumber generates cryptographically strong pseudo-random number
-func GenerateSecureRandomNumber() ([64]byte, error) {
-	// Max is a 256-bits integer i.e. 2^256
-	max := new(big.Int)
-	max.Exp(big.NewInt(2), big.NewInt(256), nil)
-
-	// Generate number in the range [0, max]
-	randomNumber, err := rand.Int(rand.Reader, max)
-	if err != nil {
-		return [64]byte{}, errors.New("random number generation error")
+func GenerateSecureRandomNumber() ([]byte, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return []byte{}, err
 	}
-
-	// Ensure length of 64 for hexadecimal encoding by padding with 0s
-	var paddedNumber [64]byte
-	copy(paddedNumber[:], fmt.Sprintf("%064x", randomNumber))
-	return paddedNumber, nil
+	return bytes, nil
 }
 
 // CalculateRandomHash calculates the hash of a number and timestamp
