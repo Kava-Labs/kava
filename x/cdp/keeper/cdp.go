@@ -432,7 +432,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {
-		return types.AugmentedCDP{CDP: cdp, CollateralValue: sdk.Coin{}, CollateralizationRatio: sdk.Dec{}}
+		return types.AugmentedCDP{CDP: cdp}
 	}
 
 	// total debt is the sum of all outstanding principal and fees
