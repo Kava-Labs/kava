@@ -68,18 +68,15 @@ func (a BaseAuction) GetType() string { return "base" }
 
 // Validate verifies that the auction end time is before max end time
 func (a BaseAuction) Validate() error {
-	// ID can be 0 for surplus, Debt and collateral auctions
+	// ID can be 0 for surplus, debt and collateral auctions
 	if strings.TrimSpace(a.Initiator) == "" {
 		return errors.New("auction initiator cannot be blank")
 	}
 	if !a.Lot.IsValid() {
 		return fmt.Errorf("invalid lot: %s", a.Lot)
 	}
-	// NOTE: bidder can be nil for Surplus and Collateral auctions
-	if a.Bidder != nil && a.Bidder.Empty() {
-		return errors.New("auction bidder cannot be empty")
-	}
-	if a.Bidder != nil && len(a.Bidder) != sdk.AddrLen {
+	// NOTE: bidder can be empty for Surplus and Collateral auctions
+	if !a.Bidder.Empty() && len(a.Bidder) != sdk.AddrLen {
 		return fmt.Errorf("the expected bidder address length is %d, actual length is %d", sdk.AddrLen, len(a.Bidder))
 	}
 	if !a.Bid.IsValid() {
@@ -196,7 +193,7 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 			Lot:             initialLot,
 			Bidder:          supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
 			Bid:             bid,                                      // amount that the buyer is buying - doesn't change over course of auction
-			HasReceivedBids: false,                                    // new auctions don't have any bids
+			HasReceivedBids: true,                                     // new auctions don't have any bids
 			EndTime:         endTime,
 			MaxEndTime:      endTime,
 		},
