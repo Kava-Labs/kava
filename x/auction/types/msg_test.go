@@ -39,5 +39,3 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 		})
 	}
 }
-
-func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }

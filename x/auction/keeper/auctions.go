@@ -20,6 +20,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 		types.DistantFuture,
 	)
 
+	// NOTE: for the duration of the auction the auction module account holds the lot
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
 		return 0, err
@@ -35,8 +36,8 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
-			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
-			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
 		),
 	)
 	return auctionID, nil
@@ -50,14 +51,16 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 		bid,
 		initialLot,
 		types.DistantFuture,
-		debt)
+		debt,
+	)
 
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
 	if !macc.HasPermission(supply.Minter) {
-		return 0, sdkerrors.Wrap(types.ErrInvalidModulePermissions, supply.Minter)
+		panic(fmt.Errorf("module '%s' does not have '%s' permission", buyer, supply.Minter))
 	}
 
+	// NOTE: for the duration of the auction the auction module account holds the debt
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, buyer, types.ModuleName, sdk.NewCoins(debt))
 	if err != nil {
 		return 0, err
@@ -73,8 +76,8 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
-			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
-			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
 		),
 	)
 	return auctionID, nil
@@ -98,6 +101,7 @@ func (k Keeper) StartCollateralAuction(
 		debt,
 	)
 
+	// NOTE: for the duration of the auction the auction module account holds the debt and the lot
 	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
 		return 0, err
@@ -117,8 +121,9 @@ func (k Keeper) StartCollateralAuction(
 			types.EventTypeAuctionStart,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
-			sdk.NewAttribute(types.AttributeKeyBidDenom, auction.Bid.Denom),
-			sdk.NewAttribute(types.AttributeKeyLotDenom, auction.Lot.Denom),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
+			sdk.NewAttribute(types.AttributeKeyMaxBid, auction.MaxBid.String()),
 		),
 	)
 	return auctionID, nil
@@ -218,7 +223,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 			types.EventTypeAuctionBid,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyBidAmount, a.Bid.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyBid, a.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
 		),
 	)
@@ -233,7 +238,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		return a, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, a.Bid.Denom)
 	}
 	if a.IsReversePhase() {
-		return a, sdkerrors.Wrapf(types.ErrCollateralAuctionIsInReversePhase, "%d", a.ID)
+		panic("cannot place forward bid on auction in reverse phase")
 	}
 	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -294,7 +299,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 			types.EventTypeAuctionBid,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyBidAmount, a.Bid.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyBid, a.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
 		),
 	)
@@ -309,7 +314,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		return a, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, a.Lot.Denom)
 	}
 	if !a.IsReversePhase() {
-		return a, sdkerrors.Wrapf(types.ErrCollateralAuctionIsInForwardPhase, "%d", a.ID)
+		panic("cannot place reverse bid on auction in forward phase")
 	}
 	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
@@ -336,13 +341,18 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 			return a, err
 		}
 	}
+
 	// Decrease in lot is sent to weighted addresses (normally the CDP depositors)
-	// TODO paying out rateably to cdp depositors is vulnerable to errors compounding over multiple bids - check this can't be gamed.
+	// Note: splitting an integer amount across weighted buckets results in small errors.
 	lotPayouts, err := splitCoinIntoWeightedBuckets(a.Lot.Sub(lot), a.LotReturns.Weights)
 	if err != nil {
 		return a, err
 	}
 	for i, payout := range lotPayouts {
+		// if the payout amount is 0, don't send 0 coins
+		if !payout.IsPositive() {
+			continue
+		}
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
 		if err != nil {
 			return a, err
@@ -363,7 +373,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 			types.EventTypeAuctionBid,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyLotAmount, a.Lot.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, a.Lot.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
 		),
 	)
@@ -429,7 +439,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 			types.EventTypeAuctionBid,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
 			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyLotAmount, a.Lot.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, a.Lot.String()),
 			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
 		),
 	)
@@ -473,6 +483,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 		sdk.NewEvent(
 			types.EventTypeAuctionClose,
 			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyCloseBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
 		),
 	)
 	return nil
@@ -480,14 +491,17 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 
 // PayoutDebtAuction pays out the proceeds for a debt auction, first minting the coins.
 func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
+	// create the coins that are needed to pay off the debt
 	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
 	if err != nil {
-		return err
+		panic(fmt.Errorf("could not mint coins: %w", err))
 	}
+	// send the new coins from the initiator module to the bidder
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, a.Initiator, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
 	}
+	// if there is remaining debt, return it to the calling module to manage
 	if a.CorrespondingDebt.IsPositive() {
 		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
 		if err != nil {
@@ -499,6 +513,7 @@ func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
 
 // PayoutSurplusAuction pays out the proceeds for a surplus auction.
 func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) error {
+	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
@@ -508,10 +523,13 @@ func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) er
 
 // PayoutCollateralAuction pays out the proceeds for a collateral auction.
 func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) error {
+	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
 	}
+
+	// if there is remaining debt after the auction, send it back to the initiating module for management
 	if a.CorrespondingDebt.IsPositive() {
 		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
 		if err != nil {
@@ -547,11 +565,6 @@ func earliestTime(t1, t2 time.Time) time.Time {
 
 // splitCoinIntoWeightedBuckets divides up some amount of coins according to some weights.
 func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdk.Int) ([]sdk.Coin, error) {
-	for _, bucket := range buckets {
-		if bucket.IsNegative() {
-			return nil, fmt.Errorf("cannot split %s into bucket with negative weight (%s)", coin.String(), bucket.String())
-		}
-	}
 	amounts := splitIntIntoWeightedBuckets(coin.Amount, buckets)
 	result := make([]sdk.Coin, len(amounts))
 	for i, a := range amounts {
