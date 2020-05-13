@@ -42,6 +42,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 		if !found {
 			panic(fmt.Sprintf("%s collateral not found in pricefeed", col.Denom))
 		}
+		// sets the status of the pricefeed in the store
+		// if pricefeed not active, debt operations are paused
 		_ = k.UpdatePricefeedStatus(ctx, col.MarketID)
 	}
 
