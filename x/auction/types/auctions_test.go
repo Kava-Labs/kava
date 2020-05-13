@@ -28,6 +28,16 @@ func init() {
 	sdk.GetConfig().SetBech32PrefixForAccount("kava", "kava"+sdk.PrefixPublic)
 }
 
+func d(amount string) sdk.Dec               { return sdk.MustNewDecFromStr(amount) }
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+func i(n int64) sdk.Int                     { return sdk.NewInt(n) }
+func is(ns ...int64) (is []sdk.Int) {
+	for _, n := range ns {
+		is = append(is, sdk.NewInt(n))
+	}
+	return
+}
+
 func TestNewWeightedAddresses(t *testing.T) {
 	addr1, err := sdk.AccAddressFromBech32(testAccAddress1)
 	require.NoError(t, err)
@@ -36,10 +46,10 @@ func TestNewWeightedAddresses(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name       string
-		addresses  []sdk.AccAddress
-		weights    []sdk.Int
-		expectpass bool
+		name      string
+		addresses []sdk.AccAddress
+		weights   []sdk.Int
+		expPass   bool
 	}{
 		{
 			"normal",
@@ -60,9 +70,15 @@ func TestNewWeightedAddresses(t *testing.T) {
 			false,
 		},
 		{
-			"negativeWeight",
+			"negative weight",
 			[]sdk.AccAddress{addr1, addr2},
-			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(-8)},
+			is(6, -8),
+			false,
+		},
+		{
+			"zero weight",
+			[]sdk.AccAddress{addr1, addr2},
+			is(0, 0),
 			false,
 		},
 	}
@@ -72,7 +88,7 @@ func TestNewWeightedAddresses(t *testing.T) {
 		// Attempt to instantiate new WeightedAddresses
 		weightedAddresses, err := NewWeightedAddresses(tc.addresses, tc.weights)
 
-		if tc.expectpass {
+		if tc.expPass {
 			require.NoError(t, err)
 			require.Equal(t, tc.addresses, weightedAddresses.Addresses)
 			require.Equal(t, tc.weights, weightedAddresses.Weights)

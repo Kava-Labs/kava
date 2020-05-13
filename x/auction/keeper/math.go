@@ -7,13 +7,15 @@ import (
 )
 
 // splitIntIntoWeightedBuckets divides an initial +ve integer among several buckets in proportion to the buckets' weights
-// It uses the largest remainder method:
-// https://en.wikipedia.org/wiki/Largest_remainder_method
-// see also: https://stackoverflow.com/questions/13483430/how-to-make-rounded-percentages-add-up-to-100
+// It uses the largest remainder method: https://en.wikipedia.org/wiki/Largest_remainder_method
+// See also: https://stackoverflow.com/questions/13483430/how-to-make-rounded-percentages-add-up-to-100
 func splitIntIntoWeightedBuckets(amount sdk.Int, buckets []sdk.Int) []sdk.Int {
-	// TODO ideally change algorithm to work with -ve numbers. Limiting to +ve numbers until them
+	// Limit input to +ve numbers as algorithm hasn't been scoped to work with -ve numbers.
 	if amount.IsNegative() {
 		panic("negative amount")
+	}
+	if len(buckets) < 1 {
+		panic("no buckets")
 	}
 	for _, bucket := range buckets {
 		if bucket.IsNegative() {
@@ -21,27 +23,36 @@ func splitIntIntoWeightedBuckets(amount sdk.Int, buckets []sdk.Int) []sdk.Int {
 		}
 	}
 
-	totalWeights := totalInts(buckets...)
+	// 1) Split the amount by weights, recording whole number part and remainder
 
-	// split amount by weights, recording whole number part and remainder
+	totalWeights := totalInts(buckets...)
+	if !totalWeights.IsPositive() {
+		panic("total weights must sum to > 0")
+	}
+
 	quotients := make([]quoRem, len(buckets))
 	for i := range buckets {
+		// amount * ( weight/total_weight )
 		q := amount.Mul(buckets[i]).Quo(totalWeights)
 		r := amount.Mul(buckets[i]).Mod(totalWeights)
 		quotients[i] = quoRem{index: i, quo: q, rem: r}
 	}
 
-	// apportion left over to buckets with the highest remainder (to minimize error)
+	// 2) Calculate total left over from remainders, and apportion it to buckets with the highest remainder (to minimize error)
+
+	// sort by decreasing remainder order
 	sort.Slice(quotients, func(i, j int) bool {
-		return quotients[i].rem.GT(quotients[j].rem) // decreasing remainder order
+		return quotients[i].rem.GT(quotients[j].rem)
 	})
 
+	// calculate total left over from remainders
 	allocated := sdk.ZeroInt()
 	for _, qr := range quotients {
 		allocated = allocated.Add(qr.quo)
 	}
 	leftToAllocate := amount.Sub(allocated)
 
+	// apportion according to largest remainder
 	results := make([]sdk.Int, len(quotients))
 	for _, qr := range quotients {
 		results[qr.index] = qr.quo
