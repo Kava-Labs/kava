@@ -11,6 +11,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
+	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee/types"
 )
@@ -26,6 +27,7 @@ func (suite *PermissionTestSuite) SetupTest() {
 }
 
 func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
+	// cdp CollateralParams
 	testCPs := cdptypes.CollateralParams{
 		{
 			Denom:              "bnb",
@@ -50,6 +52,11 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			MarketID:           "btc:usd",
 		},
 	}
+	testCPUpdatedDebtLimit := make(cdptypes.CollateralParams, len(testCPs))
+	copy(testCPUpdatedDebtLimit, testCPs)
+	testCPUpdatedDebtLimit[0].DebtLimit = c("usdx", 5000000)
+
+	// cdp DebtParam
 	testDP := cdptypes.DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
@@ -60,14 +67,34 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	testDPUpdatedDebtFloor := testDP
 	testDPUpdatedDebtFloor.DebtFloor = i(1000)
 
-	testCPUpdatedDebtLimit := make(cdptypes.CollateralParams, len(testCPs))
-	copy(testCPUpdatedDebtLimit, testCPs)
-	testCPUpdatedDebtLimit[0].DebtLimit = c("usdx", 5000000)
-
+	// cdp Genesis
 	testCDPParams := cdptypes.DefaultParams()
 	testCDPParams.CollateralParams = testCPs
 	testCDPParams.DebtParam = testDP
 	testCDPParams.GlobalDebtLimit = testCPs[0].DebtLimit.Add(testCPs[0].DebtLimit) // correct global debt limit to pass genesis validation
+
+	// bep3 Asset Params
+	testAPs := bep3types.AssetParams{
+		{
+			Denom:  "bnb",
+			CoinID: 714,
+			Limit:  i(100000000000),
+			Active: true,
+		},
+		{
+			Denom:  "inc",
+			CoinID: 9999,
+			Limit:  i(100),
+			Active: false,
+		},
+	}
+	testAPsUpdatedActive := make(bep3types.AssetParams, len(testAPs))
+	copy(testAPsUpdatedActive, testAPs)
+	testAPsUpdatedActive[1].Active = true
+
+	// bep3 Genesis
+	testBep3Params := bep3types.DefaultParams()
+	testBep3Params.SupportedAssets = testAPs
 
 	testcases := []struct {
 		name          string
@@ -81,25 +108,36 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			genState: []app.GenesisState{
 				newPricefeedGenState([]string{"bnb", "btc"}, []sdk.Dec{d("15.01"), d("9500")}),
 				newCDPGenesisState(testCDPParams),
+				newBep3GenesisState(testBep3Params),
 			},
 			permission: types.SubParamChangePermission{
 				AllowedParams: types.AllowedParams{
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtThreshold)},
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyCollateralParams)},
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtParam)},
+					{Subspace: bep3types.ModuleName, Key: string(bep3types.KeySupportedAssets)},
 				},
 				AllowedCollateralParams: types.AllowedCollateralParams{
-					types.AllowedCollateralParam{
+					{
 						Denom:        "bnb",
 						DebtLimit:    true,
 						StabilityFee: true,
 					},
-					types.AllowedCollateralParam{ // TODO currently even if a perm doesn't allow a change in one element it must still be present in list
+					{ // TODO currently even if a perm doesn't allow a change in one element it must still be present in list
 						Denom: "btc",
 					},
 				},
 				AllowedDebtParam: types.AllowedDebtParam{
 					DebtFloor: true,
+				},
+				AllowedAssetParams: types.AllowedAssetParams{
+					{
+						Denom: "bnb",
+					},
+					{
+						Denom:  "inc",
+						Active: true,
+					},
 				},
 			},
 			pubProposal: paramstypes.NewParameterChangeProposal(
@@ -120,6 +158,11 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 						Subspace: cdptypes.ModuleName,
 						Key:      string(cdptypes.KeyDebtParam),
 						Value:    string(suite.cdc.MustMarshalJSON(testDPUpdatedDebtFloor)),
+					},
+					{
+						Subspace: bep3types.ModuleName,
+						Key:      string(bep3types.KeySupportedAssets),
+						Value:    string(suite.cdc.MustMarshalJSON(testAPsUpdatedActive)),
 					},
 				},
 			),

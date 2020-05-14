@@ -12,6 +12,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
+	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/types"
@@ -22,6 +23,12 @@ func newCDPGenesisState(params cdptypes.Params) app.GenesisState {
 	genesis := cdptypes.DefaultGenesisState()
 	genesis.Params = params
 	return app.GenesisState{cdptypes.ModuleName: cdptypes.ModuleCdc.MustMarshalJSON(genesis)}
+}
+
+func newBep3GenesisState(params bep3types.Params) app.GenesisState {
+	genesis := bep3types.DefaultGenesisState()
+	genesis.Params = params
+	return app.GenesisState{bep3types.ModuleName: bep3types.ModuleCdc.MustMarshalJSON(genesis)}
 }
 
 func newPricefeedGenState(assets []string, prices []sdk.Dec) app.GenesisState {

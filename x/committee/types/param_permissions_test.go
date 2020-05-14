@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -52,10 +53,10 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 	updatedTestCPs[1] = testCPs[0]
 	updatedTestCPs[2] = testCPs[2]
 
-	updatedTestCPs[0].DebtLimit = c("usdx", 1000)
-	updatedTestCPs[1].LiquidationPenalty = d("0.15")
-	updatedTestCPs[2].DebtLimit = c("usdx", 1000)
-	updatedTestCPs[2].LiquidationPenalty = d("0.15")
+	updatedTestCPs[0].DebtLimit = c("usdx", 1000)    // btc
+	updatedTestCPs[1].LiquidationPenalty = d("0.15") // bnb
+	updatedTestCPs[2].DebtLimit = c("usdx", 1000)    // atom
+	updatedTestCPs[2].LiquidationPenalty = d("0.15") // atom
 
 	testcases := []struct {
 		name          string
@@ -119,12 +120,12 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "allowed change with different order",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:     "bnb",
-					DebtLimit: true,
+					Denom:              "bnb",
+					LiquidationPenalty: true,
 				},
 				{
-					Denom:              "btc",
-					LiquidationPenalty: true,
+					Denom:     "btc",
+					DebtLimit: true,
 				},
 				{
 					Denom:              "atom",
@@ -132,8 +133,8 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 					LiquidationPenalty: true,
 				},
 			},
-			current:       testCPs[:3],
-			incoming:      testCPs[:3],
+			current:       testCPs,
+			incoming:      updatedTestCPs,
 			expectAllowed: true,
 		},
 	}
@@ -145,7 +146,116 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			)
 		})
 	}
+}
 
+func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
+	testAPs := bep3types.AssetParams{
+		{
+			Denom:  "bnb",
+			CoinID: 714,
+			Limit:  i(1000000000000),
+			Active: true,
+		},
+		{
+			Denom:  "btc",
+			CoinID: 0,
+			Limit:  i(1000000000000),
+			Active: true,
+		},
+		{
+			Denom:  "xrp",
+			CoinID: 144,
+			Limit:  i(1000000000000),
+			Active: true,
+		},
+	}
+	updatedTestAPs := make(bep3types.AssetParams, len(testAPs))
+	updatedTestAPs[0] = testAPs[1]
+	updatedTestAPs[1] = testAPs[0]
+	updatedTestAPs[2] = testAPs[2]
+
+	updatedTestAPs[0].Limit = i(1000) // btc
+	updatedTestAPs[1].Active = false  // bnb
+	updatedTestAPs[2].Limit = i(1000) // xrp
+	updatedTestAPs[2].Active = false  // xrp
+
+	testcases := []struct {
+		name          string
+		allowed       AllowedAssetParams
+		current       bep3types.AssetParams
+		incoming      bep3types.AssetParams
+		expectAllowed bool
+	}{
+		{
+			name: "disallowed add SA",
+			allowed: AllowedAssetParams{
+				{
+					Denom:  "bnb",
+					Active: true,
+				},
+				{
+					Denom: "btc",
+					Limit: true,
+				},
+				{ // allow all fields
+					Denom:  "xrp",
+					CoinID: true,
+					Limit:  true,
+					Active: true,
+				},
+			},
+			current:       testAPs[:2],
+			incoming:      testAPs[:3],
+			expectAllowed: false,
+		},
+		{
+			name: "disallowed remove CP",
+			allowed: AllowedAssetParams{
+				{
+					Denom:  "bnb",
+					Active: true,
+				},
+				{ // allow all fields
+					Denom:  "btc",
+					CoinID: true,
+					Limit:  true,
+					Active: true,
+				},
+			},
+			current:       testAPs[:2],
+			incoming:      testAPs[:1], // removes btc
+			expectAllowed: false,
+		},
+		{
+			name: "allowed change with different order",
+			allowed: AllowedAssetParams{
+				{
+					Denom:  "bnb",
+					Active: true,
+				},
+				{
+					Denom: "btc",
+					Limit: true,
+				},
+				{
+					Denom:  "xrp",
+					Limit:  true,
+					Active: true,
+				},
+			},
+			current:       testAPs,
+			incoming:      updatedTestAPs,
+			expectAllowed: true,
+		},
+	}
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(
+				tc.expectAllowed,
+				tc.allowed.Allows(tc.current, tc.incoming),
+			)
+		})
+	}
 }
 
 func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
@@ -317,6 +427,92 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 			},
 			current:       testDP,
 			incoming:      newDenomAndDebtFloorDP,
+			expectAllowed: false,
+		},
+		// TODO {
+		// 	name: "nil Int values",
+		// 	allowed: AllowedCollateralParam{
+		// 		Denom:     "btc",
+		// 		DebtLimit: true,
+		// 	},
+		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
+		// 	current:     testCP,
+		// 	expectAllowed: false,
+		// },
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(
+				tc.expectAllowed,
+				tc.allowed.Allows(tc.current, tc.incoming),
+			)
+		})
+	}
+}
+
+func (suite *PermissionsTestSuite) TestAllowedAssetParam_Allows() {
+	testAP := bep3types.AssetParam{
+		Denom:  "usdx",
+		CoinID: 999,
+		Limit:  i(1000000000),
+		Active: true,
+	}
+	newCoinidAP := testAP
+	newCoinidAP.CoinID = 0
+
+	newLimitAP := testAP
+	newLimitAP.Limit = i(1000)
+
+	newCoinidAndLimitAP := testAP
+	newCoinidAndLimitAP.CoinID = 0
+	newCoinidAndLimitAP.Limit = i(1000)
+
+	testcases := []struct {
+		name          string
+		allowed       AllowedAssetParam
+		current       bep3types.AssetParam
+		incoming      bep3types.AssetParam
+		expectAllowed bool
+	}{
+		{
+			name: "allowed change",
+			allowed: AllowedAssetParam{
+				Denom: "usdx",
+				Limit: true,
+			},
+			current:       testAP,
+			incoming:      newLimitAP,
+			expectAllowed: true,
+		},
+		{
+			name: "un-allowed change",
+			allowed: AllowedAssetParam{
+				Denom: "usdx",
+				Limit: true,
+			},
+			current:       testAP,
+			incoming:      newCoinidAP,
+			expectAllowed: false,
+		},
+		{
+			name: "allowed no change",
+			allowed: AllowedAssetParam{
+				Denom: "usdx",
+				Limit: true,
+			},
+			current:       testAP,
+			incoming:      testAP, // no change
+			expectAllowed: true,
+		},
+		{
+			name: "un-allowed change with allowed change",
+			allowed: AllowedAssetParam{
+				Denom: "usdx",
+				Limit: true,
+			},
+			current:       testAP,
+			incoming:      newCoinidAndLimitAP,
 			expectAllowed: false,
 		},
 		// TODO {
