@@ -16,7 +16,7 @@ type Keeper struct {
 	cdc      *codec.Codec
 	storeKey sdk.StoreKey
 
-	ParamKeeper types.ParamKeeper // TODO don't export, only sims need it exported
+	ParamKeeper types.ParamKeeper // TODO ideally don't export, only sims need it exported
 
 	// Proposal router
 	router govtypes.Router
@@ -271,15 +271,17 @@ func (k Keeper) GetVotes(ctx sdk.Context) []types.Vote {
 	return results
 }
 
-// TODO: Might as well use a more specific iterator with the ProposalID as the prefix
 // GetVotesByProposal returns all votes for one proposal.
 func (k Keeper) GetVotesByProposal(ctx sdk.Context, proposalID uint64) []types.Vote {
 	results := []types.Vote{}
-	k.IterateVotes(ctx, func(vote types.Vote) bool {
-		if vote.ProposalID == proposalID {
-			results = append(results, vote)
-		}
-		return false
-	})
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), append(types.VoteKeyPrefix, types.GetKeyFromID(proposalID)...))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var vote types.Vote
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
+		results = append(results, vote)
+	}
+
 	return results
 }

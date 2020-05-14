@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -163,12 +161,19 @@ var _ Permission = SubParamChangePermission{}
 
 func (perm SubParamChangePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
-		Type          string        `yaml:"type"`
-		AllowedParams AllowedParams `yaml:"allowed_params"`
-		// TODO
+		Type                    string                  `yaml:"type"`
+		AllowedParams           AllowedParams           `yaml:"allowed_params"`
+		AllowedCollateralParams AllowedCollateralParams `yaml:"allowed_collateral_params"`
+		AllowedDebtParam        AllowedDebtParam        `yaml:"allowed_debt_param"`
+		AllowedAssetParams      AllowedAssetParams      `yaml:"allowed_asset_params"`
+		AllowedMarkets          AllowedMarkets          `yaml:"allowed_markets"`
 	}{
-		Type:          "param_change_permission",
-		AllowedParams: perm.AllowedParams,
+		Type:                    "param_change_permission",
+		AllowedParams:           perm.AllowedParams,
+		AllowedCollateralParams: perm.AllowedCollateralParams,
+		AllowedDebtParam:        perm.AllowedDebtParam,
+		AllowedAssetParams:      perm.AllowedAssetParams,
+		AllowedMarkets:          perm.AllowedMarkets,
 	}
 	return valueToMarshal, nil
 }
@@ -205,10 +210,9 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		// Get the current value of the CollateralParams
 		cdpSubspace, found := pk.GetSubspace(cdptypes.ModuleName)
 		if !found {
-			panic(fmt.Sprintf("subspace doesn't exist: %s", cdptypes.ModuleName)) // TODO return false?
+			return false // not using a panic to help avoid begin blocker panics
 		}
 		var currentCP cdptypes.CollateralParams
-		// TODO byte type cast ok?
 		cdpSubspace.Get(ctx, cdptypes.KeyCollateralParams, &currentCP) // panics if something goes wrong
 
 		// Check all the incoming changes in the CollateralParams are allowed
@@ -238,7 +242,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		// Get the current value of the DebtParams
 		cdpSubspace, found := pk.GetSubspace(cdptypes.ModuleName)
 		if !found {
-			panic(fmt.Sprintf("subspace doesn't exist: %s", cdptypes.ModuleName)) // TODO return false?
+			return false // not using a panic to help avoid begin blocker panics
 		}
 		var currentDP cdptypes.DebtParam
 		cdpSubspace.Get(ctx, cdptypes.KeyDebtParam, &currentDP) // panics if something goes wrong
@@ -270,7 +274,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		// Get the current value of the SupportedAssets
 		subspace, found := pk.GetSubspace(bep3types.ModuleName)
 		if !found {
-			panic(fmt.Sprintf("subspace doesn't exist: %s", bep3types.ModuleName)) // TODO return false?
+			return false // not using a panic to help avoid begin blocker panics
 		}
 		var currentAPs bep3types.AssetParams
 		subspace.Get(ctx, bep3types.KeySupportedAssets, &currentAPs) // panics if something goes wrong
@@ -302,7 +306,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		// Get the current value of the Markets
 		subspace, found := pk.GetSubspace(pricefeedtypes.ModuleName)
 		if !found {
-			panic(fmt.Sprintf("subspace doesn't exist: %s", pricefeedtypes.ModuleName)) // TODO return false?
+			return false // not using a panic to help avoid begin blocker panics
 		}
 		var currentMs pricefeedtypes.Markets
 		subspace.Get(ctx, pricefeedtypes.KeyMarkets, &currentMs) // panics if something goes wrong
@@ -313,8 +317,6 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 			return false
 		}
 	}
-
-	// TODO these could be abstracted into one function - the types could be passed in.
 
 	return true
 }
@@ -344,7 +346,6 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 		}
 		if !foundAllowedCP {
 			// incoming had a CollateralParam that wasn't in the list of allowed ones
-			// TODO to add a CollateralParam it must explicitly be in the list of allowed params (with all fields set to true)
 			return false
 		}
 
@@ -437,7 +438,6 @@ func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) b
 		}
 		if !foundAllowedAP {
 			// incoming had a AssetParam that wasn't in the list of allowed ones
-			// TODO to add a AssetParam it must explicitly be in the list of allowed assets (with all fields set to true)
 			return false
 		}
 
@@ -503,7 +503,6 @@ func (ams AllowedMarkets) Allows(current, incoming pricefeedtypes.Markets) bool 
 		}
 		if !foundAllowedM {
 			// incoming had a Market that wasn't in the list of allowed ones
-			// TODO to add a Market it must explicitly be in the list of allowed assets (with all fields set to true)
 			return false
 		}
 
