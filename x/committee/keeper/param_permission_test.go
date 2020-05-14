@@ -14,6 +14,7 @@ import (
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type PermissionTestSuite struct {
@@ -96,6 +97,27 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	testBep3Params := bep3types.DefaultParams()
 	testBep3Params.SupportedAssets = testAPs
 
+	// pricefeed Markets
+	testMs := pricefeedtypes.Markets{
+		{
+			MarketID:   "bnb:usd",
+			BaseAsset:  "bnb",
+			QuoteAsset: "usd",
+			Oracles:    []sdk.AccAddress{},
+			Active:     true,
+		},
+		{
+			MarketID:   "btc:usd",
+			BaseAsset:  "btc",
+			QuoteAsset: "usd",
+			Oracles:    []sdk.AccAddress{},
+			Active:     true,
+		},
+	}
+	testMsUpdatedActive := make(pricefeedtypes.Markets, len(testMs))
+	copy(testMsUpdatedActive, testMs)
+	testMsUpdatedActive[1].Active = true
+
 	testcases := []struct {
 		name          string
 		genState      []app.GenesisState
@@ -116,6 +138,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyCollateralParams)},
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtParam)},
 					{Subspace: bep3types.ModuleName, Key: string(bep3types.KeySupportedAssets)},
+					{Subspace: pricefeedtypes.ModuleName, Key: string(pricefeedtypes.KeyMarkets)},
 				},
 				AllowedCollateralParams: types.AllowedCollateralParams{
 					{
@@ -137,6 +160,15 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 					{
 						Denom:  "inc",
 						Active: true,
+					},
+				},
+				AllowedMarkets: types.AllowedMarkets{
+					{
+						MarketID: "bnb:usd",
+					},
+					{
+						MarketID: "btc:usd",
+						Active:   true,
 					},
 				},
 			},
@@ -163,6 +195,11 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 						Subspace: bep3types.ModuleName,
 						Key:      string(bep3types.KeySupportedAssets),
 						Value:    string(suite.cdc.MustMarshalJSON(testAPsUpdatedActive)),
+					},
+					{
+						Subspace: pricefeedtypes.ModuleName,
+						Key:      string(pricefeedtypes.KeyMarkets),
+						Value:    string(suite.cdc.MustMarshalJSON(testMsUpdatedActive)),
 					},
 				},
 			),

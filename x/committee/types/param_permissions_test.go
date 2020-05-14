@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // Avoid cluttering test cases with long function names
@@ -66,7 +67,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 		expectAllowed bool
 	}{
 		{
-			name: "disallowed add CP",
+			name: "disallowed add",
 			allowed: AllowedCollateralParams{
 				{
 					Denom:       "bnb",
@@ -93,7 +94,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			expectAllowed: false,
 		},
 		{
-			name: "disallowed remove CP",
+			name: "disallowed remove",
 			allowed: AllowedCollateralParams{
 				{
 					Denom:       "bnb",
@@ -187,7 +188,7 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 		expectAllowed bool
 	}{
 		{
-			name: "disallowed add SA",
+			name: "disallowed add",
 			allowed: AllowedAssetParams{
 				{
 					Denom:  "bnb",
@@ -209,7 +210,7 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 			expectAllowed: false,
 		},
 		{
-			name: "disallowed remove CP",
+			name: "disallowed remove",
 			allowed: AllowedAssetParams{
 				{
 					Denom:  "bnb",
@@ -245,6 +246,121 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 			},
 			current:       testAPs,
 			incoming:      updatedTestAPs,
+			expectAllowed: true,
+		},
+	}
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(
+				tc.expectAllowed,
+				tc.allowed.Allows(tc.current, tc.incoming),
+			)
+		})
+	}
+}
+
+func (suite *PermissionsTestSuite) TestAllowedMarkets_Allows() {
+	testMs := pricefeedtypes.Markets{
+		{
+			MarketID:   "bnb:usd",
+			BaseAsset:  "bnb",
+			QuoteAsset: "usd",
+			Oracles:    []sdk.AccAddress{},
+			Active:     true,
+		},
+		{
+			MarketID:   "btc:usd",
+			BaseAsset:  "btc",
+			QuoteAsset: "usd",
+			Oracles:    []sdk.AccAddress{},
+			Active:     true,
+		},
+		{
+			MarketID:   "atom:usd",
+			BaseAsset:  "atom",
+			QuoteAsset: "usd",
+			Oracles:    []sdk.AccAddress{},
+			Active:     true,
+		},
+	}
+	updatedTestMs := make(pricefeedtypes.Markets, len(testMs))
+	updatedTestMs[0] = testMs[1]
+	updatedTestMs[1] = testMs[0]
+	updatedTestMs[2] = testMs[2]
+
+	updatedTestMs[0].Oracles = []sdk.AccAddress{[]byte("a test address")} // btc
+	updatedTestMs[1].Active = false                                       // bnb
+	updatedTestMs[2].Oracles = []sdk.AccAddress{[]byte("a test address")} // atom
+	updatedTestMs[2].Active = false                                       // atom
+
+	testcases := []struct {
+		name          string
+		allowed       AllowedMarkets
+		current       pricefeedtypes.Markets
+		incoming      pricefeedtypes.Markets
+		expectAllowed bool
+	}{
+		{
+			name: "disallowed add",
+			allowed: AllowedMarkets{
+				{
+					MarketID: "bnb:usd",
+					Active:   true,
+				},
+				{
+					MarketID: "btc:usd",
+					Oracles:  true,
+				},
+				{ // allow all fields
+					MarketID:   "atom:usd",
+					BaseAsset:  true,
+					QuoteAsset: true,
+					Oracles:    true,
+					Active:     true,
+				},
+			},
+			current:       testMs[:2],
+			incoming:      testMs[:3],
+			expectAllowed: false,
+		},
+		{
+			name: "disallowed remove",
+			allowed: AllowedMarkets{
+				{
+					MarketID: "bnb:usd",
+					Active:   true,
+				},
+				{ // allow all fields
+					MarketID:   "btc:usd",
+					BaseAsset:  true,
+					QuoteAsset: true,
+					Oracles:    true,
+					Active:     true,
+				},
+			},
+			current:       testMs[:2],
+			incoming:      testMs[:1], // removes btc
+			expectAllowed: false,
+		},
+		{
+			name: "allowed change with different order",
+			allowed: AllowedMarkets{
+				{
+					MarketID: "bnb:usd",
+					Active:   true,
+				},
+				{
+					MarketID: "btc:usd",
+					Oracles:  true,
+				},
+				{
+					MarketID: "atom:usd",
+					Oracles:  true,
+					Active:   true,
+				},
+			},
+			current:       testMs,
+			incoming:      updatedTestMs,
 			expectAllowed: true,
 		},
 	}
@@ -513,6 +629,93 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParam_Allows() {
 			},
 			current:       testAP,
 			incoming:      newCoinidAndLimitAP,
+			expectAllowed: false,
+		},
+		// TODO {
+		// 	name: "nil Int values",
+		// 	allowed: AllowedCollateralParam{
+		// 		Denom:     "btc",
+		// 		DebtLimit: true,
+		// 	},
+		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
+		// 	current:     testCP,
+		// 	expectAllowed: false,
+		// },
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(
+				tc.expectAllowed,
+				tc.allowed.Allows(tc.current, tc.incoming),
+			)
+		})
+	}
+}
+
+func (suite *PermissionsTestSuite) TestAllowedMarket_Allows() {
+	testM := pricefeedtypes.Market{
+		MarketID:   "bnb:usd",
+		BaseAsset:  "bnb",
+		QuoteAsset: "usd",
+		Oracles:    []sdk.AccAddress{[]byte("a test address")},
+		Active:     true,
+	}
+	newOraclesM := testM
+	newOraclesM.Oracles = nil
+
+	newActiveM := testM
+	newActiveM.Active = false
+
+	newOraclesAndActiveM := testM
+	newOraclesAndActiveM.Oracles = nil
+	newOraclesAndActiveM.Active = false
+
+	testcases := []struct {
+		name          string
+		allowed       AllowedMarket
+		current       pricefeedtypes.Market
+		incoming      pricefeedtypes.Market
+		expectAllowed bool
+	}{
+		{
+			name: "allowed change",
+			allowed: AllowedMarket{
+				MarketID: "bnb:usd",
+				Active:   true,
+			},
+			current:       testM,
+			incoming:      newActiveM,
+			expectAllowed: true,
+		},
+		{
+			name: "un-allowed change",
+			allowed: AllowedMarket{
+				MarketID: "bnb:usd",
+				Active:   true,
+			},
+			current:       testM,
+			incoming:      newOraclesM,
+			expectAllowed: false,
+		},
+		{
+			name: "allowed no change",
+			allowed: AllowedMarket{
+				MarketID: "bnb:usd",
+				Active:   true,
+			},
+			current:       testM,
+			incoming:      testM, // no change
+			expectAllowed: true,
+		},
+		{
+			name: "un-allowed change with allowed change",
+			allowed: AllowedMarket{
+				MarketID: "bnb:usd",
+				Active:   true,
+			},
+			current:       testM,
+			incoming:      newOraclesAndActiveM,
 			expectAllowed: false,
 		},
 		// TODO {

@@ -10,6 +10,8 @@ import (
 
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/pricefeed"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 func init() {
@@ -130,7 +132,7 @@ type SubParamChangePermission struct {
 	AllowedCollateralParams AllowedCollateralParams `json:"allowed_collateral_params" yaml:"allowed_collateral_params"`
 	AllowedDebtParam        AllowedDebtParam        `json:"allowed_debt_param" yaml:"allowed_debt_param"`
 	AllowedAssetParams      AllowedAssetParams      `json:"allowed_asset_params" yaml:"allowed_asset_params"`
-	//AllowedMarkets          AllowedMarkets          `json:"allowed_markets" yaml:"allowed_markets"`
+	AllowedMarkets          AllowedMarkets          `json:"allowed_markets" yaml:"allowed_markets"`
 }
 
 var _ Permission = SubParamChangePermission{}
@@ -256,7 +258,38 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		}
 	}
 
-	// TODO repeat for Markets
+	// Check any Markets changes are allowed
+
+	// Get the incoming Markets value
+	var foundIncomingMs bool
+	var incomingMs pricefeedtypes.Markets
+	for _, change := range proposal.Changes {
+		if !(change.Subspace == pricefeedtypes.ModuleName && change.Key == string(pricefeedtypes.KeyMarkets)) {
+			continue
+		}
+		// note: in case of duplicates take the last value
+		foundIncomingMs = true
+		if err := appCdc.UnmarshalJSON([]byte(change.Value), &incomingMs); err != nil {
+			return false // invalid json value, so just disallow
+		}
+	}
+	// only check if there was a proposed change
+	if foundIncomingMs {
+		// Get the current value of the Markets
+		subspace, found := pk.GetSubspace(pricefeedtypes.ModuleName)
+		if !found {
+			panic(fmt.Sprintf("subspace doesn't exist: %s", pricefeedtypes.ModuleName)) // TODO return false?
+		}
+		var currentMs pricefeedtypes.Markets
+		subspace.Get(ctx, pricefeedtypes.KeyMarkets, &currentMs) // panics if something goes wrong
+
+		// Check all the incoming changes in the Markets are allowed
+		marketsChangesAllowed := perm.AllowedMarkets.Allows(currentMs, incomingMs)
+		if !marketsChangesAllowed {
+			return false
+		}
+	}
+
 	// TODO these could be abstracted into one function - the types could be passed in.
 
 	return true
@@ -419,4 +452,84 @@ func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool
 		(current.Limit.Equal(incoming.Limit) || aap.Limit) &&
 		((current.Active == incoming.Active) || aap.Active)
 	return allowed
+}
+
+type AllowedMarkets []AllowedMarket
+
+func (ams AllowedMarkets) Allows(current, incoming pricefeedtypes.Markets) bool {
+	allAllowed := true
+
+	// do not allow Markets to be added or removed
+	// this checks both lists are the same size, then below checks each incoming matches a current
+	if len(incoming) != len(current) {
+		return false
+	}
+
+	// for each market struct, check it is allowed, and if it is not, check the value has not changed
+	for _, incomingM := range incoming {
+		// 1) check incoming market is in list of allowed markets
+		var foundAllowedM bool
+		var allowedM AllowedMarket
+		for _, p := range ams {
+			if p.MarketID != incomingM.MarketID {
+				continue
+			}
+			foundAllowedM = true
+			allowedM = p
+		}
+		if !foundAllowedM {
+			// incoming had a Market that wasn't in the list of allowed ones
+			// TODO to add a Market it must explicitly be in the list of allowed assets (with all fields set to true)
+			return false
+		}
+
+		// 2) Check incoming changes are individually allowed
+		// find existing SupportedAsset
+		var foundCurrentM bool
+		var currentM pricefeed.Market
+		for _, p := range current {
+			if p.MarketID != incomingM.MarketID {
+				continue
+			}
+			foundCurrentM = true
+			currentM = p
+		}
+		if !foundCurrentM {
+			return false // not allowed to add market to list
+		}
+		// check changed values are all allowed
+		allowed := allowedM.Allows(currentM, incomingM)
+
+		allAllowed = allAllowed && allowed
+	}
+	return allAllowed
+}
+
+type AllowedMarket struct {
+	MarketID   string `json:"market_id" yaml:"market_id"`
+	BaseAsset  bool   `json:"base_asset" yaml:"base_asset"`
+	QuoteAsset bool   `json:"quote_asset" yaml:"quote_asset"`
+	Oracles    bool   `json:"oracles" yaml:"oracles"`
+	Active     bool   `json:"active" yaml:"active"`
+}
+
+func (am AllowedMarket) Allows(current, incoming pricefeedtypes.Market) bool {
+	allowed := ((am.MarketID == current.MarketID) && (am.MarketID == incoming.MarketID)) && // require denoms to be all equal
+		((current.BaseAsset == incoming.BaseAsset) || am.BaseAsset) &&
+		((current.QuoteAsset == incoming.QuoteAsset) || am.QuoteAsset) &&
+		(addressesEqual(current.Oracles, incoming.Oracles) || am.Oracles) &&
+		((current.Active == incoming.Active) || am.Active)
+	return allowed
+}
+
+// addressesEqual check if slices of addresses are equal, the order matters
+func addressesEqual(addrs1, addrs2 []sdk.AccAddress) bool {
+	if len(addrs1) != len(addrs2) {
+		return false
+	}
+	areEqual := true
+	for i := range addrs1 {
+		areEqual = areEqual && addrs1[i].Equals(addrs2[i])
+	}
+	return areEqual
 }
