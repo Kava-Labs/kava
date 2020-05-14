@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -138,7 +139,7 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 			}
 			suite.Equal(
 				tc.expectAllowed,
-				permission.Allows(tc.pubProposal),
+				permission.Allows(sdk.Context{}, nil, nil, tc.pubProposal),
 			)
 		})
 	}
@@ -276,7 +277,7 @@ func (suite *PermissionsTestSuite) TestTextPermission_Allows() {
 			permission := TextPermission{}
 			suite.Equal(
 				tc.expectAllowed,
-				permission.Allows(tc.pubProposal),
+				permission.Allows(sdk.Context{}, nil, nil, tc.pubProposal),
 			)
 		})
 	}

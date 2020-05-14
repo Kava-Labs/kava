@@ -197,7 +197,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 
 type AllowedCollateralParams []AllowedCollateralParam
 
-func (acps AllowedCollateralParams) Allows(incoming, current cdptypes.CollateralParams) bool {
+func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.CollateralParams) bool {
 	allAllowed := true
 
 	// do not allow CollateralParams to be added or removed
@@ -239,7 +239,7 @@ func (acps AllowedCollateralParams) Allows(incoming, current cdptypes.Collateral
 			return false // not allowed to add param to list
 		}
 		// check changed values are all allowed
-		allowed := allowedCP.Allows(incomingCP, currentCP)
+		allowed := allowedCP.Allows(currentCP, incomingCP)
 
 		allAllowed = allAllowed && allowed
 	}
@@ -258,8 +258,9 @@ type AllowedCollateralParam struct {
 	ConversionFactor   bool   `json:"conversion_factor" yaml:"conversion_factor"`
 }
 
-func (acp AllowedCollateralParam) Allows(incoming, current cdptypes.CollateralParam) bool {
-	allowed := (current.LiquidationRatio.Equal(incoming.LiquidationRatio) || acp.LiquidationRatio) &&
+func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
+	allowed := ((acp.Denom == current.Denom) && (acp.Denom == incoming.Denom)) && // require denoms to be all equal
+		(current.LiquidationRatio.Equal(incoming.LiquidationRatio) || acp.LiquidationRatio) &&
 		(current.DebtLimit.IsEqual(incoming.DebtLimit) || acp.DebtLimit) &&
 		(current.StabilityFee.Equal(incoming.StabilityFee) || acp.StabilityFee) &&
 		(current.AuctionSize.Equal(incoming.AuctionSize) || acp.AuctionSize) &&

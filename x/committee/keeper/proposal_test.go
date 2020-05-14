@@ -24,22 +24,26 @@ func newCDPGenesisState(params cdptypes.Params) app.GenesisState {
 	return app.GenesisState{cdptypes.ModuleName: cdptypes.ModuleCdc.MustMarshalJSON(genesis)}
 }
 
-// TODO move to common test package
-func newPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
-	pfGenesis := pricefeed.GenesisState{
-		Params: pricefeed.Params{
-			Markets: []pricefeed.Market{
-				{MarketID: asset + ":usd", BaseAsset: asset, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-			},
-		},
-		PostedPrices: []pricefeed.PostedPrice{
-			{
-				MarketID:      asset + ":usd",
+func newPricefeedGenState(assets []string, prices []sdk.Dec) app.GenesisState {
+	if len(assets) != len(prices) {
+		panic("assets and prices must be the same length")
+	}
+	pfGenesis := pricefeed.DefaultGenesisState()
+
+	for i := range assets {
+		pfGenesis.Params.Markets = append(
+			pfGenesis.Params.Markets,
+			pricefeed.Market{
+				MarketID: assets[i] + ":usd", BaseAsset: assets[i], QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true,
+			})
+		pfGenesis.PostedPrices = append(
+			pfGenesis.PostedPrices,
+			pricefeed.PostedPrice{
+				MarketID:      assets[i] + ":usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         price,
-				Expiry:        time.Now().Add(1 * time.Hour),
-			},
-		},
+				Price:         prices[i],
+				Expiry:        time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+			})
 	}
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
@@ -72,16 +76,6 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 				},
 			},
 		},
-	}
-
-	[]types.Permission{
-		types.TextPermission{},
-		types.SubParamChangePermission{
-			AllowedParams: types.AllowedParams{
-				{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtThreshold)},
-			},
-			AllowedCollateralParams: types.AllowedCollateralParams{},
-		}
 	}
 
 	testCP := cdptypes.CollateralParams{{
@@ -215,7 +209,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, abci.Header{})
 			tApp.InitializeFromGenesisStates(
-				newPricefeedGenState("bnb", d("15.01")),
+				newPricefeedGenState([]string{"bnb"}, []sdk.Dec{d("15.01")}),
 				newCDPGenesisState(testCDPParams),
 			)
 			// setup committee (if required)
