@@ -111,10 +111,21 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) error {
 	if !found {
 		return sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
+	// Check committee still has permissions for the proposal
+	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
+	com, found := k.GetCommittee(ctx, pr.CommitteeID)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
+	}
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pr) {
+		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
+	}
 
 	if err := k.ValidatePubProposal(ctx, pr.PubProposal); err != nil {
 		return err
 	}
+
+	// enact the proposal
 	handler := k.router.GetRoute(pr.ProposalRoute())
 	if err := handler(ctx, pr.PubProposal); err != nil {
 		// the handler should not error as it was checked in ValidatePubProposal

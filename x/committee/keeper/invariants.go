@@ -77,12 +77,6 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 				return true
 			}
 
-			// TODO permissions might not always be valid
-			// if !com.HasPermissionsFor(proposal.PubProposal) {
-			// 	validationErr = fmt.Errorf("proposal not permitted for committee %+v", com)
-			// 	return true
-			// }
-
 			return false
 		})
 
