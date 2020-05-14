@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -116,6 +117,28 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Invalid() {
 
 }
 
+func (suite *HandlerTestSuite) TestSubmitProposalMsg_ValidUpgrade() {
+	msg := committee.NewMsgSubmitProposal(
+		upgrade.NewSoftwareUpgradeProposal(
+			"A Title",
+			"A description of this proposal.",
+			upgrade.Plan{
+				Name: "emergency-shutdown-1",                      // identifier for the upgrade
+				Time: suite.ctx.BlockTime().Add(time.Minute * 10), // time after which to implement plan
+				Info: "Some information about the shutdown.",
+			},
+		),
+		suite.addresses[0],
+		1,
+	)
+
+	res, err := suite.handler(suite.ctx, msg)
+
+	suite.NoError(err)
+	_, found := suite.keeper.GetProposal(suite.ctx, types.Uint64FromBytes(res.Data))
+	suite.True(found)
+}
+
 func (suite *HandlerTestSuite) TestSubmitProposalMsg_Unregistered() {
 	var committeeID uint64 = 1
 	msg := types.NewMsgSubmitProposal(
@@ -168,6 +191,52 @@ func (suite *HandlerTestSuite) TestMsgAddVote_ProposalPass() {
 		suite.keeper.GetVotesByProposal(suite.ctx, proposalID),
 		"vote found when there should be none",
 	)
+}
+
+func (suite *HandlerTestSuite) TestMsgAddVote_UpgradeProposalPass() {
+	shutdownDelay := time.Minute * 10
+	msg := types.NewMsgSubmitProposal(
+		upgrade.NewSoftwareUpgradeProposal(
+			"A Title",
+			"A description of this proposal.",
+			upgrade.Plan{
+				Name: "emergency-shutdown-1",                   // identifier for the upgrade
+				Time: suite.ctx.BlockTime().Add(shutdownDelay), // time after which to implement plan
+				Info: "Some information about the shutdown.",
+			},
+		),
+		suite.addresses[0],
+		1,
+	)
+	res, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+	proposalID := types.Uint64FromBytes(res.Data)
+	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
+	suite.NoError(err)
+
+	// Add a vote to make the proposal pass
+	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
+
+	suite.NoError(err)
+	// Check the plan has been stored
+	_, found := suite.app.GetUpgradeKeeper().GetUpgradePlan(suite.ctx)
+	suite.True(found)
+	// Check proposal and votes are gone
+	_, found = suite.keeper.GetProposal(suite.ctx, proposalID)
+	suite.False(found)
+	suite.Empty(
+		suite.keeper.GetVotesByProposal(suite.ctx, proposalID),
+		"vote found when there should be none",
+	)
+
+	// Check the chain halts at the right block
+	suite.NotPanics(func() {
+		suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+	})
+	laterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(shutdownDelay))
+	suite.Panics(func() {
+		suite.app.BeginBlocker(laterCtx, abci.RequestBeginBlock{})
+	})
 }
 
 func (suite *HandlerTestSuite) TestMsgAddVote_ProposalFail() {

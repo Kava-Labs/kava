@@ -266,7 +266,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	committeeGovRouter.
 		AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
 	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
 	app.committeeKeeper = committee.NewKeeper(

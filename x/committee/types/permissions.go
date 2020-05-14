@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -21,6 +22,7 @@ func init() {
 	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
 	govtypes.RegisterProposalTypeCodec(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission")
 	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
+	govtypes.RegisterProposalTypeCodec(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission")
 	govtypes.RegisterProposalTypeCodec(SubParamChangePermission{}, "kava/SubParamChangePermission")
 }
 
@@ -118,6 +120,28 @@ func (TextPermission) MarshalYAML() (interface{}, error) {
 		Type string `yaml:"type"`
 	}{
 		Type: "text_permission",
+	}
+	return valueToMarshal, nil
+}
+
+// ------------------------------------------
+//				SoftwareUpgradePermission
+// ------------------------------------------
+
+type SoftwareUpgradePermission struct{}
+
+var _ Permission = SoftwareUpgradePermission{}
+
+func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
+	_, ok := p.(upgrade.SoftwareUpgradeProposal)
+	return ok
+}
+
+func (SoftwareUpgradePermission) MarshalYAML() (interface{}, error) {
+	valueToMarshal := struct {
+		Type string `yaml:"type"`
+	}{
+		Type: "software_upgrade_permission",
 	}
 	return valueToMarshal, nil
 }
