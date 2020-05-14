@@ -59,14 +59,14 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 
 	testcases := []struct {
 		name          string
-		allowedCPs    AllowedCollateralParams
-		currentCPs    cdptypes.CollateralParams
-		incomingCPs   cdptypes.CollateralParams
+		allowed       AllowedCollateralParams
+		current       cdptypes.CollateralParams
+		incoming      cdptypes.CollateralParams
 		expectAllowed bool
 	}{
 		{
 			name: "disallowed add CP",
-			allowedCPs: AllowedCollateralParams{
+			allowed: AllowedCollateralParams{
 				{
 					Denom:       "bnb",
 					AuctionSize: true,
@@ -87,13 +87,13 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 					ConversionFactor:   true,
 				},
 			},
-			currentCPs:    testCPs[:2],
-			incomingCPs:   testCPs[:3],
+			current:       testCPs[:2],
+			incoming:      testCPs[:3],
 			expectAllowed: false,
 		},
 		{
 			name: "disallowed remove CP",
-			allowedCPs: AllowedCollateralParams{
+			allowed: AllowedCollateralParams{
 				{
 					Denom:       "bnb",
 					AuctionSize: true,
@@ -111,13 +111,13 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 					ConversionFactor:   true,
 				},
 			},
-			currentCPs:    testCPs[:2],
-			incomingCPs:   testCPs[:1], // removes btc
+			current:       testCPs[:2],
+			incoming:      testCPs[:1], // removes btc
 			expectAllowed: false,
 		},
 		{
 			name: "allowed change with different order",
-			allowedCPs: AllowedCollateralParams{
+			allowed: AllowedCollateralParams{
 				{
 					Denom:     "bnb",
 					DebtLimit: true,
@@ -132,8 +132,8 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 					LiquidationPenalty: true,
 				},
 			},
-			currentCPs:    testCPs[:3],
-			incomingCPs:   testCPs[:3],
+			current:       testCPs[:3],
+			incoming:      testCPs[:3],
 			expectAllowed: true,
 		},
 	}
@@ -141,7 +141,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(
 				tc.expectAllowed,
-				tc.allowedCPs.Allows(tc.currentCPs, tc.incomingCPs),
+				tc.allowed.Allows(tc.current, tc.incoming),
 			)
 		})
 	}
@@ -172,74 +172,74 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 
 	testcases := []struct {
 		name          string
-		allowedCP     AllowedCollateralParam
-		currentCP     cdptypes.CollateralParam
-		incomingCP    cdptypes.CollateralParam
+		allowed       AllowedCollateralParam
+		current       cdptypes.CollateralParam
+		incoming      cdptypes.CollateralParam
 		expectAllowed bool
 	}{
 		{
 			name: "allowed change",
-			allowedCP: AllowedCollateralParam{
+			allowed: AllowedCollateralParam{
 				Denom:        "bnb",
 				DebtLimit:    true,
 				StabilityFee: true,
 				AuctionSize:  true,
 			},
-			currentCP:     testCP,
-			incomingCP:    newDebtLimitCP,
+			current:       testCP,
+			incoming:      newDebtLimitCP,
 			expectAllowed: true,
 		},
 		{
 			name: "un-allowed change",
-			allowedCP: AllowedCollateralParam{
+			allowed: AllowedCollateralParam{
 				Denom:        "bnb",
 				DebtLimit:    true,
 				StabilityFee: true,
 				AuctionSize:  true,
 			},
-			currentCP:     testCP,
-			incomingCP:    newMarketIDCP,
+			current:       testCP,
+			incoming:      newMarketIDCP,
 			expectAllowed: false,
 		},
 		{
 			name: "un-allowed mismatching denom",
-			allowedCP: AllowedCollateralParam{
+			allowed: AllowedCollateralParam{
 				Denom:     "btc",
 				DebtLimit: true,
 			},
-			currentCP:     testCP,
-			incomingCP:    newDebtLimitCP,
+			current:       testCP,
+			incoming:      newDebtLimitCP,
 			expectAllowed: false,
 		},
 
 		{
 			name: "allowed no change",
-			allowedCP: AllowedCollateralParam{
+			allowed: AllowedCollateralParam{
 				Denom:     "bnb",
 				DebtLimit: true,
 			},
-			currentCP:     testCP,
-			incomingCP:    testCP, // no change
+			current:       testCP,
+			incoming:      testCP, // no change
 			expectAllowed: true,
 		},
 		{
 			name: "un-allowed change with allowed change",
-			allowedCP: AllowedCollateralParam{
+			allowed: AllowedCollateralParam{
 				Denom:     "btc",
 				DebtLimit: true,
 			},
-			currentCP:     testCP,
-			incomingCP:    newMarketIDAndDebtLimitCP,
+			current:       testCP,
+			incoming:      newMarketIDAndDebtLimitCP,
 			expectAllowed: false,
 		},
 		// TODO {
 		// 	name: "nil Int values",
-		// 	allowedCP: AllowedCollateralParam{
+		// 	allowed: AllowedCollateralParam{
 		// 		Denom:     "btc",
 		// 		DebtLimit: true,
 		// 	},
-		// 	incomingCP:    cdptypes.CollateralParam{}, // nil sdk.Int types
-		// 	currentCP:     testCP,
+		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
+		// 	current:     testCP,
 		// 	expectAllowed: false,
 		// },
 	}
@@ -248,7 +248,94 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(
 				tc.expectAllowed,
-				tc.allowedCP.Allows(tc.currentCP, tc.incomingCP),
+				tc.allowed.Allows(tc.current, tc.incoming),
+			)
+		})
+	}
+}
+
+func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
+	testDP := cdptypes.DebtParam{
+		Denom:            "usdx",
+		ReferenceAsset:   "usd",
+		ConversionFactor: i(6),
+		DebtFloor:        i(10000000),
+		SavingsRate:      d("0.95"),
+	}
+	newDenomDP := testDP
+	newDenomDP.Denom = "usdz"
+
+	newDebtFloorDP := testDP
+	newDebtFloorDP.DebtFloor = i(1000)
+
+	newDenomAndDebtFloorDP := testDP
+	newDenomAndDebtFloorDP.Denom = "usdz"
+	newDenomAndDebtFloorDP.DebtFloor = i(1000)
+
+	testcases := []struct {
+		name          string
+		allowed       AllowedDebtParam
+		current       cdptypes.DebtParam
+		incoming      cdptypes.DebtParam
+		expectAllowed bool
+	}{
+		{
+			name: "allowed change",
+			allowed: AllowedDebtParam{
+				DebtFloor:   true,
+				SavingsRate: true,
+			},
+			current:       testDP,
+			incoming:      newDebtFloorDP,
+			expectAllowed: true,
+		},
+		{
+			name: "un-allowed change",
+			allowed: AllowedDebtParam{
+				DebtFloor:   true,
+				SavingsRate: true,
+			},
+			current:       testDP,
+			incoming:      newDenomDP,
+			expectAllowed: false,
+		},
+		{
+			name: "allowed no change",
+			allowed: AllowedDebtParam{
+				DebtFloor:   true,
+				SavingsRate: true,
+			},
+			current:       testDP,
+			incoming:      testDP, // no change
+			expectAllowed: true,
+		},
+		{
+			name: "un-allowed change with allowed change",
+			allowed: AllowedDebtParam{
+				DebtFloor:   true,
+				SavingsRate: true,
+			},
+			current:       testDP,
+			incoming:      newDenomAndDebtFloorDP,
+			expectAllowed: false,
+		},
+		// TODO {
+		// 	name: "nil Int values",
+		// 	allowed: AllowedCollateralParam{
+		// 		Denom:     "btc",
+		// 		DebtLimit: true,
+		// 	},
+		// 	incoming:    cdptypes.CollateralParam{}, // nil sdk.Int types
+		// 	current:     testCP,
+		// 	expectAllowed: false,
+		// },
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(
+				tc.expectAllowed,
+				tc.allowed.Allows(tc.current, tc.incoming),
 			)
 		})
 	}

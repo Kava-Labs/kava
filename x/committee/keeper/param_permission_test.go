@@ -50,6 +50,15 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			MarketID:           "btc:usd",
 		},
 	}
+	testDP := cdptypes.DebtParam{
+		Denom:            "usdx",
+		ReferenceAsset:   "usd",
+		ConversionFactor: i(6),
+		DebtFloor:        i(10000000),
+		SavingsRate:      d("0.95"),
+	}
+	testDPUpdatedDebtFloor := testDP
+	testDPUpdatedDebtFloor.DebtFloor = i(1000)
 
 	testCPUpdatedDebtLimit := make(cdptypes.CollateralParams, len(testCPs))
 	copy(testCPUpdatedDebtLimit, testCPs)
@@ -57,6 +66,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 
 	testCDPParams := cdptypes.DefaultParams()
 	testCDPParams.CollateralParams = testCPs
+	testCDPParams.DebtParam = testDP
 	testCDPParams.GlobalDebtLimit = testCPs[0].DebtLimit.Add(testCPs[0].DebtLimit) // correct global debt limit to pass genesis validation
 
 	testcases := []struct {
@@ -76,6 +86,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 				AllowedParams: types.AllowedParams{
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtThreshold)},
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyCollateralParams)},
+					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtParam)},
 				},
 				AllowedCollateralParams: types.AllowedCollateralParams{
 					types.AllowedCollateralParam{
@@ -83,6 +94,12 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 						DebtLimit:    true,
 						StabilityFee: true,
 					},
+					types.AllowedCollateralParam{ // TODO currently even if a perm doesn't allow a change in one element it must still be present in list
+						Denom: "btc",
+					},
+				},
+				AllowedDebtParam: types.AllowedDebtParam{
+					DebtFloor: true,
 				},
 			},
 			pubProposal: paramstypes.NewParameterChangeProposal(
@@ -96,8 +113,13 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 					},
 					{
 						Subspace: cdptypes.ModuleName,
-						Key:      string(cdptypes.KeyDebtThreshold),
+						Key:      string(cdptypes.KeyCollateralParams),
 						Value:    string(suite.cdc.MustMarshalJSON(testCPUpdatedDebtLimit)),
+					},
+					{
+						Subspace: cdptypes.ModuleName,
+						Key:      string(cdptypes.KeyDebtParam),
+						Value:    string(suite.cdc.MustMarshalJSON(testDPUpdatedDebtFloor)),
 					},
 				},
 			),
