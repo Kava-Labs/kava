@@ -143,7 +143,7 @@ func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
 			panic(err)
 		}
 		if !passes {
-			return true
+			return false
 		}
 
 		err = k.EnactProposal(ctx, proposal.ID)
@@ -162,7 +162,7 @@ func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
 				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
 			),
 		)
-		return true
+		return false
 	})
 }
 
