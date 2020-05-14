@@ -37,7 +37,7 @@ func (suite *PermissionsTestSuite) SetupTest() {
 	}
 }
 
-func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
+func (suite *PermissionsTestSuite) TestSimpleParamChangePermission_Allows() {
 	testcases := []struct {
 		name          string
 		allowedParams AllowedParams
@@ -134,7 +134,7 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			permission := ParamChangePermission{
+			permission := SimpleParamChangePermission{
 				AllowedParams: tc.allowedParams,
 			}
 			suite.Equal(

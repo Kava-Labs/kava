@@ -28,7 +28,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 	}{
 		{
 			name: "normal (single permission)",
-			permissions: []types.Permission{types.ParamChangePermission{
+			permissions: []types.Permission{types.SimpleParamChangePermission{
 				AllowedParams: types.AllowedParams{
 					{
 						Subspace: "cdp",
@@ -52,7 +52,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		{
 			name: "normal (multiple permissions)",
 			permissions: []types.Permission{
-				types.ParamChangePermission{
+				types.SimpleParamChangePermission{
 					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
@@ -67,7 +67,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		{
 			name: "overruling permission",
 			permissions: []types.Permission{
-				types.ParamChangePermission{
+				types.SimpleParamChangePermission{
 					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
@@ -111,14 +111,14 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 			name: "split permissions",
 			// These permissions looks like they allow the param change proposal, however a proposal must pass a single permission independently of others.
 			permissions: []types.Permission{
-				types.ParamChangePermission{
+				types.SimpleParamChangePermission{
 					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
 						},
 					}},
-				types.ParamChangePermission{
+				types.SimpleParamChangePermission{
 					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
@@ -149,7 +149,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		{
 			name: "unregistered proposal",
 			permissions: []types.Permission{
-				types.ParamChangePermission{
+				types.SimpleParamChangePermission{
 					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",

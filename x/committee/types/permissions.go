@@ -15,7 +15,7 @@ func init() {
 	// But since these proposals contain Permissions, these types also need registering:
 	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
 	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
-	govtypes.RegisterProposalTypeCodec(ParamChangePermission{}, "kava/ParamChangePermission")
+	govtypes.RegisterProposalTypeCodec(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission")
 	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
 	govtypes.RegisterProposalTypeCodec(SubParamChangePermission{}, "kava/SubParamChangePermission")
 }
@@ -46,17 +46,17 @@ func (GodPermission) MarshalYAML() (interface{}, error) {
 }
 
 // ------------------------------------------
-//				ParamChangePermission
+//				SimpleParamChangePermission
 // ------------------------------------------
 
-// ParamChangeProposal only allows changes to certain params
-type ParamChangePermission struct {
+// SimpleParamChangePermission only allows changes to certain params
+type SimpleParamChangePermission struct {
 	AllowedParams AllowedParams `json:"allowed_params" yaml:"allowed_params"`
 }
 
-var _ Permission = ParamChangePermission{}
+var _ Permission = SimpleParamChangePermission{}
 
-func (perm ParamChangePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
+func (perm SimpleParamChangePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
 	proposal, ok := p.(paramstypes.ParameterChangeProposal)
 	if !ok {
 		return false
@@ -69,7 +69,7 @@ func (perm ParamChangePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamK
 	return true
 }
 
-func (perm ParamChangePermission) MarshalYAML() (interface{}, error) {
+func (perm SimpleParamChangePermission) MarshalYAML() (interface{}, error) {
 	valueToMarshal := struct {
 		Type          string        `yaml:"type"`
 		AllowedParams AllowedParams `yaml:"allowed_params"`

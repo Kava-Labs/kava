@@ -60,6 +60,7 @@ var (
 	NewQueryCommitteeParams     = types.NewQueryCommitteeParams
 	NewQueryProposalParams      = types.NewQueryProposalParams
 	NewQueryVoteParams          = types.NewQueryVoteParams
+	NewVote                     = types.NewVote
 	RegisterCodec               = types.RegisterCodec
 	RegisterPermissionTypeCodec = types.RegisterPermissionTypeCodec
 	RegisterProposalTypeCodec   = types.RegisterProposalTypeCodec
@@ -83,23 +84,27 @@ var (
 )
 
 type (
-	Keeper                  = keeper.Keeper
-	AllowedParam            = types.AllowedParam
-	AllowedParams           = types.AllowedParams
-	Committee               = types.Committee
-	CommitteeChangeProposal = types.CommitteeChangeProposal
-	CommitteeDeleteProposal = types.CommitteeDeleteProposal
-	GenesisState            = types.GenesisState
-	GodPermission           = types.GodPermission
-	MsgSubmitProposal       = types.MsgSubmitProposal
-	MsgVote                 = types.MsgVote
-	ParamChangePermission   = types.ParamChangePermission
-	Permission              = types.Permission
-	Proposal                = types.Proposal
-	PubProposal             = types.PubProposal
-	QueryCommitteeParams    = types.QueryCommitteeParams
-	QueryProposalParams     = types.QueryProposalParams
-	QueryVoteParams         = types.QueryVoteParams
-	TextPermission          = types.TextPermission
-	Vote                    = types.Vote
+	Keeper                      = keeper.Keeper
+	AllowedCollateralParam      = types.AllowedCollateralParam
+	AllowedCollateralParams     = types.AllowedCollateralParams
+	AllowedParam                = types.AllowedParam
+	AllowedParams               = types.AllowedParams
+	Committee                   = types.Committee
+	CommitteeChangeProposal     = types.CommitteeChangeProposal
+	CommitteeDeleteProposal     = types.CommitteeDeleteProposal
+	GenesisState                = types.GenesisState
+	GodPermission               = types.GodPermission
+	MsgSubmitProposal           = types.MsgSubmitProposal
+	MsgVote                     = types.MsgVote
+	ParamKeeper                 = types.ParamKeeper
+	Permission                  = types.Permission
+	Proposal                    = types.Proposal
+	PubProposal                 = types.PubProposal
+	QueryCommitteeParams        = types.QueryCommitteeParams
+	QueryProposalParams         = types.QueryProposalParams
+	QueryVoteParams             = types.QueryVoteParams
+	SimpleParamChangePermission = types.SimpleParamChangePermission
+	SubParamChangePermission    = types.SubParamChangePermission
+	TextPermission              = types.TextPermission
+	Vote                        = types.Vote
 )
