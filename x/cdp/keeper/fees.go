@@ -78,7 +78,7 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 			return true
 		}
 
-		// now add the new fees fees to the accumulated fees for the cdp
+		// now add the new fees to the accumulated fees for the cdp
 		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees)
 
 		// and set the fees updated time to the current block time since we just updated it
@@ -92,10 +92,7 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 		}
 		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
 	})
-	if iterationErr != nil {
-		return iterationErr
-	}
-	return nil
+	return iterationErr
 }
 
 // IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type

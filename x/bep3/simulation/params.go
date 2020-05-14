@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	keyBnbDeputyAddress = "BnbDeputyAddress"
-	keyMinBlockLock     = "MinBlockLock"
-	keyMaxBlockLock     = "MaxBlockLock"
-	keySupportedAssets  = "SupportedAssets"
+	keyBnbDeputyAddress  = "BnbDeputyAddress"
+	keyBnbDeputyFixedFee = "BnbDeputyFixedFee"
+	keyMinBlockLock      = "MinBlockLock"
+	keyMaxBlockLock      = "MaxBlockLock"
+	keySupportedAssets   = "SupportedAssets"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals
@@ -25,6 +26,11 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyAddress,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%s\"", GenRandBnbDeputy(r).Address)
+			},
+		),
+		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyFixedFee,
+			func(r *rand.Rand) string {
+				return fmt.Sprintf("\"%d\"", GenRandBnbDeputyFixedFee(r))
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, keyMinBlockLock,

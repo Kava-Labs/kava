@@ -12,6 +12,7 @@ const (
 	AttributeKeyCommitteeID         = types.AttributeKeyCommitteeID
 	AttributeKeyProposalCloseStatus = types.AttributeKeyProposalCloseStatus
 	AttributeKeyProposalID          = types.AttributeKeyProposalID
+	AttributeKeyVoter               = types.AttributeKeyVoter
 	AttributeValueCategory          = types.AttributeValueCategory
 	AttributeValueProposalFailed    = types.AttributeValueProposalFailed
 	AttributeValueProposalPassed    = types.AttributeValueProposalPassed

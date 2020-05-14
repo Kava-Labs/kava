@@ -31,12 +31,13 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
 
-func NewBep3GenStateMulti(deputy sdk.AccAddress) app.GenesisState {
+func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress: deputy,
-			MinBlockLock:     types.DefaultMinBlockLock, // 80
-			MaxBlockLock:     types.DefaultMaxBlockLock, // 360
+			BnbDeputyAddress:  deputyAddress,
+			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
+			MinBlockLock:      types.DefaultMinBlockLock,      // 80
+			MaxBlockLock:      types.DefaultMaxBlockLock,      // 360
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
@@ -66,13 +67,13 @@ func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
 }
 
 func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
-	expireOffset := int64((index * 15) + 360) // Default expire height + offet to match timestamp
-	timestamp := ts(index)                    // One minute apart
+	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
+	timestamp := ts(index)                     // One minute apart
 	randomNumber, _ := types.GenerateSecureRandomNumber()
-	randomNumberHash := types.CalculateRandomHash(randomNumber.Bytes(), timestamp)
+	randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 
 	return types.NewAtomicSwap(cs(c("bnb", 50000)), randomNumberHash,
-		ctx.BlockHeight()+expireOffset, timestamp, TestUser1, TestUser2,
+		uint64(ctx.BlockHeight())+expireOffset, timestamp, TestUser1, TestUser2,
 		TestSenderOtherChain, TestRecipientOtherChain, 0, types.Open, true,
 		types.Incoming)
 }

@@ -3,6 +3,7 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -16,6 +17,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetAssetSupply:
 			return queryAssetSupply(ctx, req, keeper)
+		case types.QueryGetAssetSupplies:
+			return queryAssetSupplies(ctx, req, keeper)
 		case types.QueryGetAtomicSwap:
 			return queryAtomicSwap(ctx, req, keeper)
 		case types.QueryGetAtomicSwaps:
@@ -50,6 +53,20 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 	return bz, nil
 }
 
+func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
+	assets := keeper.GetAllAssetSupplies(ctx)
+	if assets == nil {
+		assets = types.AssetSupplies{}
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, assets)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
 func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	// Decode request
 	var requestParams types.QueryAtomicSwapByID
@@ -73,16 +90,21 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 	return bz, nil
 }
 
-func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, err error) {
-	var swaps types.AtomicSwaps
+func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryAtomicSwaps
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
 
-	keeper.IterateAtomicSwaps(ctx, func(s types.AtomicSwap) bool {
-		swaps = append(swaps, s)
-		return false
-	})
+	unfilteredSwaps := keeper.GetAllAtomicSwaps(ctx)
+	swaps := filterAtomicSwaps(ctx, unfilteredSwaps, params)
+	if swaps == nil {
+		swaps = types.AtomicSwaps{}
+	}
 
-	bz, err2 := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
-	if err2 != nil {
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
+	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
@@ -100,4 +122,47 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
+}
+
+// getAtomicSwapsFiltered retrieves atomic swaps filtered by a given set of params.
+// If no filters are provided, all atomic swaps will be returned in paginated form.
+func filterAtomicSwaps(ctx sdk.Context, swaps types.AtomicSwaps, params types.QueryAtomicSwaps) types.AtomicSwaps {
+	filteredSwaps := make(types.AtomicSwaps, 0, len(swaps))
+
+	for _, s := range swaps {
+		matchInvolve, matchExpiration, matchStatus, matchDirection := true, true, true, true
+
+		// match involved address (if supplied)
+		if len(params.Involve) > 0 {
+			matchInvolve = s.Sender.Equals(params.Involve) || s.Recipient.Equals(params.Involve)
+		}
+
+		// match expiration block limit (if supplied)
+		if params.Expiration > 0 {
+			matchExpiration = s.ExpireHeight <= params.Expiration
+		}
+
+		// match status (if supplied/valid)
+		if params.Status.IsValid() {
+			matchStatus = s.Status == params.Status
+		}
+
+		// match direction (if supplied/valid)
+		if params.Direction.IsValid() {
+			matchDirection = s.Direction == params.Direction
+		}
+
+		if matchInvolve && matchExpiration && matchStatus && matchDirection {
+			filteredSwaps = append(filteredSwaps, s)
+		}
+	}
+
+	start, end := client.Paginate(len(filteredSwaps), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		filteredSwaps = types.AtomicSwaps{}
+	} else {
+		filteredSwaps = filteredSwaps[start:end]
+	}
+
+	return filteredSwaps
 }

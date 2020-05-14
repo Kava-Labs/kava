@@ -41,9 +41,7 @@ func postCreateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			req.RandomNumberHash,
 			req.Timestamp,
 			req.Amount,
-			req.ExpectedIncome,
 			req.HeightSpan,
-			req.CrossChain,
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

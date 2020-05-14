@@ -11,7 +11,8 @@ import (
 )
 
 // DepositCollateral adds collateral to a cdp
-func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coin) error {
+func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddress, collateral sdk.Coin) error {
+	// check that collateral exists and has a functioning pricefeed
 	err := k.ValidateCollateral(ctx, collateral)
 	if err != nil {
 		return err
@@ -54,7 +55,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner sdk.AccAddress, deposit
 }
 
 // WithdrawCollateral removes collateral from a cdp if it does not put the cdp below the liquidation ratio
-func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, depositor sdk.AccAddress, collateral sdk.Coin) error {
+func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddress, collateral sdk.Coin) error {
 	err := k.ValidateCollateral(ctx, collateral)
 	if err != nil {
 		return err
@@ -102,6 +103,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner sdk.AccAddress, deposi
 	}
 
 	deposit.Amount = deposit.Amount.Sub(collateral)
+	// delete deposits if amount is 0
 	if deposit.Amount.IsZero() {
 		k.DeleteDeposit(ctx, deposit.CdpID, deposit.Depositor)
 	} else {

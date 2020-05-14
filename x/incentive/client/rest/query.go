@@ -13,8 +13,13 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const (
+	restOwner = "owner"
+	restDenom = "denom"
+)
+
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/claims", types.ModuleName), queryClaimsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/claims/{%s}/{%s}", types.ModuleName, restOwner, restDenom), queryClaimsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 

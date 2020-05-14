@@ -84,7 +84,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, denom)
 	}
 
-	err := k.ValidatePaymentCoins(ctx, cdp, payment, cdp.Principal.Add(cdp.AccumulatedFees))
+	err := k.ValidatePaymentCoins(ctx, cdp, payment)
 	if err != nil {
 		return err
 	}
@@ -92,6 +92,10 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	// calculate fee and principal payment
 	feePayment, principalPayment := k.calculatePayment(ctx, cdp.Principal.Add(cdp.AccumulatedFees), cdp.AccumulatedFees, payment)
 
+	err = k.validatePrincipalPayment(ctx, cdp, principalPayment)
+	if err != nil {
+		return err
+	}
 	// send the payment from the sender to the cpd module
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
 	if err != nil {
@@ -168,17 +172,14 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 }
 
 // ValidatePaymentCoins validates that the input coins are valid for repaying debt
-func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coin, debt sdk.Coin) error {
+func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coin) error {
+	debt := cdp.Principal.Add(cdp.AccumulatedFees)
 	if payment.Denom != debt.Denom {
 		return sdkerrors.Wrapf(types.ErrInvalidPayment, "cdp %d: expected %s, got %s", cdp.ID, debt.Denom, payment.Denom)
 	}
-	dp, found := k.GetDebtParam(ctx, payment.Denom)
+	_, found := k.GetDebtParam(ctx, payment.Denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidPayment, "payment denom %s not found", payment.Denom)
-	}
-	proposedBalance := cdp.Principal.Amount.Sub(payment.Amount)
-	if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
-		return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoin(payment.Denom, proposedBalance), dp.DebtFloor)
 	}
 	return nil
 }
@@ -195,12 +196,17 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 	}
 }
 
-func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coin, fees sdk.Coin, payment sdk.Coin) (sdk.Coin, sdk.Coin) {
+// calculatePayment divides the input payment into the portions that will be used to repay fees and principal
+// owed - Principal + AccumulatedFees
+// fees - AccumulatedFees
+// CONTRACT: owned and payment denoms must be checked before calling this function.
+func (k Keeper) calculatePayment(ctx sdk.Context, owed, fees, payment sdk.Coin) (sdk.Coin, sdk.Coin) {
 	// divides repayment into principal and fee components, with fee payment applied first.
 
 	feePayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
 	principalPayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
 	var overpayment sdk.Coin
+	// return zero value coins if payment amount is invalid
 	if !payment.Amount.IsPositive() {
 		return feePayment, principalPayment
 	}
@@ -221,4 +227,15 @@ func (k Keeper) calculatePayment(ctx sdk.Context, owed sdk.Coin, fees sdk.Coin, 
 		feePayment = payment
 	}
 	return feePayment, principalPayment
+}
+
+// validatePrincipalPayment checks that the payment is either full or does not put the cdp below the debt floor
+// CONTRACT: payment denom must be checked before calling this function.
+func (k Keeper) validatePrincipalPayment(ctx sdk.Context, cdp types.CDP, payment sdk.Coin) error {
+	proposedBalance := cdp.Principal.Amount.Sub(payment.Amount)
+	dp, _ := k.GetDebtParam(ctx, payment.Denom)
+	if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
+		return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoin(payment.Denom, proposedBalance), dp.DebtFloor)
+	}
+	return nil
 }

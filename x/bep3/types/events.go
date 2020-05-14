@@ -16,7 +16,6 @@ const (
 	AttributeKeySenderOtherChain = "sender_other_chain"
 	AttributeKeyExpireHeight     = "expire_height"
 	AttributeKeyAmount           = "amount"
-	AttributeKeyExpectedIncome   = "expected_income"
 	AttributeKeyDirection        = "direction"
 	AttributeKeyClaimSender      = "claim_sender"
 	AttributeKeyRandomNumber     = "random_number"

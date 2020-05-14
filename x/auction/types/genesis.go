@@ -76,7 +76,7 @@ func (gs GenesisState) Validate() error {
 		ids[a.GetID()] = true
 
 		if a.GetID() >= gs.NextAuctionID {
-			return fmt.Errorf("found auction ID >= the nextAuctionID (%d >= %d)", a.GetID(), gs.NextAuctionID)
+			return fmt.Errorf("found auction ID ≥ the nextAuctionID (%d ≥ %d)", a.GetID(), gs.NextAuctionID)
 		}
 	}
 	return nil

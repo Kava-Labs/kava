@@ -12,10 +12,10 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-// CreateAtomicSwap creates a new AtomicSwap
-func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan int64,
+// CreateAtomicSwap creates a new atomic swap.
+func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, timestamp int64, heightSpan uint64,
 	sender sdk.AccAddress, recipient sdk.AccAddress, senderOtherChain, recipientOtherChain string,
-	amount sdk.Coins, expectedIncome string, crossChain bool) error {
+	amount sdk.Coins, crossChain bool) error {
 	// Confirm that this is not a duplicate swap
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
@@ -55,13 +55,24 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	switch direction {
 	case types.Incoming:
+		// If recipient's account doesn't exist, register it in state so that the address can send
+		// a claim swap tx without needing to be registered in state by receiving a coin transfer.
+		recipientAcc := k.accountKeeper.GetAccount(ctx, recipient)
+		if recipientAcc == nil {
+			newAcc := k.accountKeeper.NewAccountWithAddress(ctx, recipient)
+			k.accountKeeper.SetAccount(ctx, newAcc)
+		}
+		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
+		// Amount in outgoing swaps must be greater than the deputy's fixed fee.
+		if amount[0].Amount.Uint64() <= k.GetBnbDeputyFixedFee(ctx) {
+			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
+		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", direction.String())
 	}
-
 	if err != nil {
 		return err
 	}
@@ -73,10 +84,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	// Store the details of the swap
-	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash, ctx.BlockHeight()+heightSpan,
-		timestamp, sender, recipient, senderOtherChain, recipientOtherChain, 0, types.Open,
-		crossChain, direction)
+	expireHeight := uint64(ctx.BlockHeight()) + heightSpan
+	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash, expireHeight, timestamp, sender,
+		recipient, senderOtherChain, recipientOtherChain, 0, types.Open, crossChain, direction)
 
+	// Insert the atomic swap under both keys
 	k.SetAtomicSwap(ctx, atomicSwap)
 	k.InsertIntoByBlockIndex(ctx, atomicSwap)
 
@@ -91,8 +103,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			sdk.NewAttribute(types.AttributeKeyTimestamp, fmt.Sprintf("%d", atomicSwap.Timestamp)),
 			sdk.NewAttribute(types.AttributeKeySenderOtherChain, atomicSwap.SenderOtherChain),
 			sdk.NewAttribute(types.AttributeKeyExpireHeight, fmt.Sprintf("%d", atomicSwap.ExpireHeight)),
-			sdk.NewAttribute(types.AttributeKeyAmount, atomicSwap.Amount[0].String()),
-			sdk.NewAttribute(types.AttributeKeyExpectedIncome, expectedIncome),
+			sdk.NewAttribute(types.AttributeKeyAmount, atomicSwap.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDirection, atomicSwap.Direction.String()),
 		),
 	)
@@ -100,7 +111,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	return nil
 }
 
-// ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap
+// ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap.
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
@@ -109,7 +120,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 
 	// Only open atomic swaps can be claimed
 	if atomicSwap.Status != types.Open {
-		return types.ErrSwapNotClaimable
+		return sdkerrors.Wrapf(types.ErrSwapNotClaimable, "status %s", atomicSwap.Status.String())
 	}
 
 	//  Calculate hashed secret using submitted number
@@ -118,13 +129,13 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 
 	// Confirm that secret unlocks the atomic swap
 	if !bytes.Equal(hashedSecret, atomicSwap.GetSwapID()) {
-		return sdkerrors.Wrapf(types.ErrInvalidClaimSecret, "%s ≠ %s", hex.EncodeToString(hashedSecret), hex.EncodeToString(atomicSwap.GetSwapID()))
+		return sdkerrors.Wrapf(types.ErrInvalidClaimSecret, "the submitted random number is incorrect")
 	}
 
 	var err error
 	switch atomicSwap.Direction {
 	case types.Incoming:
-		err := k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
+		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
 			return err
 		}
@@ -175,7 +186,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 	return nil
 }
 
-// RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap
+// RefundAtomicSwap refunds an AtomicSwap, sending assets to the original sender and closing the AtomicSwap.
 func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
@@ -183,7 +194,7 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	}
 	// Only expired swaps may be refunded
 	if atomicSwap.Status != types.Expired {
-		return types.ErrSwapNotRefundable
+		return sdkerrors.Wrapf(types.ErrSwapNotRefundable, "status %s", atomicSwap.Status.String())
 	}
 
 	var err error
@@ -218,10 +229,10 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRefundAtomicSwap,
-			sdk.NewAttribute(types.AttributeKeyRefundSender, fmt.Sprintf("%s", from)),
-			sdk.NewAttribute(types.AttributeKeySender, fmt.Sprintf("%s", atomicSwap.Sender)),
-			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.GetSwapID()))),
-			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, fmt.Sprintf("%s", hex.EncodeToString(atomicSwap.RandomNumberHash))),
+			sdk.NewAttribute(types.AttributeKeyRefundSender, from.String()),
+			sdk.NewAttribute(types.AttributeKeySender, atomicSwap.Sender.String()),
+			sdk.NewAttribute(types.AttributeKeyAtomicSwapID, hex.EncodeToString(atomicSwap.GetSwapID())),
+			sdk.NewAttribute(types.AttributeKeyRandomNumberHash, hex.EncodeToString(atomicSwap.RandomNumberHash)),
 		),
 	)
 
@@ -229,22 +240,22 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 }
 
 // UpdateExpiredAtomicSwaps finds all AtomicSwaps that are past (or at) their ending times and expires them.
-func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
-	var expiredSwaps [][]byte
+func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) {
+	var expiredSwapIDs []string
 	k.IterateAtomicSwapsByBlock(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
-		expiredSwaps = append(expiredSwaps, id)
+		atomicSwap, found := k.GetAtomicSwap(ctx, id)
+		if !found {
+			// NOTE: shouldn't happen. Continue to next item.
+			return false
+		}
+		// Expire the uncompleted swap and update both indexes
+		atomicSwap.Status = types.Expired
+		// Note: claimed swaps have already been removed from byBlock index.
+		k.RemoveFromByBlockIndex(ctx, atomicSwap)
+		k.SetAtomicSwap(ctx, atomicSwap)
+		expiredSwapIDs = append(expiredSwapIDs, hex.EncodeToString(atomicSwap.GetSwapID()))
 		return false
 	})
-
-	// Expire incomplete swaps (claimed swaps have already been removed from byBlock index)
-	var expiredSwapIDs []string
-	for _, id := range expiredSwaps {
-		atomicSwap, _ := k.GetAtomicSwap(ctx, id)
-		atomicSwap.Status = types.Expired
-		k.SetAtomicSwap(ctx, atomicSwap)
-		k.RemoveFromByBlockIndex(ctx, atomicSwap)
-		expiredSwapIDs = append(expiredSwapIDs, hex.EncodeToString(atomicSwap.GetSwapID()))
-	}
 
 	// Emit 'swaps_expired' event
 	ctx.EventManager().EmitEvent(
@@ -254,23 +265,18 @@ func (k Keeper) UpdateExpiredAtomicSwaps(ctx sdk.Context) error {
 			sdk.NewAttribute(types.AttributeExpirationBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
 		),
 	)
-
-	return nil
 }
 
-// DeleteClosedAtomicSwapsFromLongtermStorage removes swaps one week after completion
-func (k Keeper) DeleteClosedAtomicSwapsFromLongtermStorage(ctx sdk.Context) error {
-	var swapsToDelete [][]byte
+// DeleteClosedAtomicSwapsFromLongtermStorage removes swaps one week after completion.
+func (k Keeper) DeleteClosedAtomicSwapsFromLongtermStorage(ctx sdk.Context) {
 	k.IterateAtomicSwapsLongtermStorage(ctx, uint64(ctx.BlockHeight()), func(id []byte) bool {
-		swapsToDelete = append(swapsToDelete, id)
-		return false
-	})
-
-	// Delete closed atomic swaps
-	for _, id := range swapsToDelete {
-		swap, _ := k.GetAtomicSwap(ctx, id)
+		swap, found := k.GetAtomicSwap(ctx, id)
+		if !found {
+			// NOTE: shouldn't happen. Continue to next item.
+			return false
+		}
 		k.RemoveAtomicSwap(ctx, swap.GetSwapID())
 		k.RemoveFromLongtermStorage(ctx, swap)
-	}
-	return nil
+		return false
+	})
 }

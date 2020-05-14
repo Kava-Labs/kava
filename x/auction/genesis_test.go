@@ -9,17 +9,20 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/auction"
 )
 
+var _, testAddrs = app.GeneratePrivKeyAddressPairs(2)
 var testTime = time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 var testAuction = auction.NewCollateralAuction(
 	"seller",
 	c("lotdenom", 10),
 	testTime,
 	c("biddenom", 1000),
-	auction.WeightedAddresses{},
+	auction.WeightedAddresses{Addresses: testAddrs, Weights: []sdk.Int{sdk.OneInt(), sdk.OneInt()}},
 	c("debt", 1000),
 ).WithID(3).(auction.GenesisAuction)
 

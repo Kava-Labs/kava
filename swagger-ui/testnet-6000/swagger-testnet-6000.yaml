@@ -13,8 +13,14 @@
       description: CDP module APIs
     - name: Auction
       description: Auction module APIs
+    - name: BEP3
+      description: BEP3 module APIs
+    - name: Incentive
+      description: Incentive module APIs
     - name: Pricefeed
       description: Auction module APIs
+    - name: Committee
+      description: Committee module APIs
     - name: Auth
       description: Authenticate accounts
     - name: Bank
@@ -36,7 +42,7 @@
       description: Query app version
   schemes:
     - https
-  host: kava-testnet-4000.kava.io
+  host: kava-testnet-6000.kava.io
   securityDefinitions:
     kms:
       type: basic
@@ -669,6 +675,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   x-nullable: true
@@ -704,6 +711,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   x-nullable: true
@@ -739,10 +747,211 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
                     $ref: '#/definitions/CdpDepositResponse'
+          500:
+            description: Server internal error
+    /bep3/swap/create:
+      post:
+        summary: Generate a create atomic swap transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - BEP3
+        parameters:
+          - in: body
+            name: Create atomic swap request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                from:
+                  $ref: '#/definitions/Address'
+                to:
+                  $ref: '#/definitions/Address'
+                recipient_other_chain:
+                  $ref: '#/definitions/BinanceChainAddress'
+                sender_other_chain:
+                  $ref: '#/definitions/BinanceChainAddress2'
+                random_number_hash:
+                  $ref: '#/definitions/RandomNumberHash'
+                timestamp:
+                  $ref: '#/definitions/Timestamp'
+                height_span:
+                  $ref: '#/definitions/HeightSpan'
+                cross_chain:
+                  $ref: '#/definitions/CrossChain'
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /bep3/swap/claim:
+      post:
+        summary: Generate a claim atomic swap transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - BEP3
+        parameters:
+          - in: body
+            name: Create atomic swap request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                from:
+                  $ref: '#/definitions/Address'
+                swap_id:
+                  type: string
+                  example: "3ca20f0152f03b0aabe73e7aa1ddf78b9048ede5a9a73846e1ef53bebbfa4185"
+                random_number:
+                  type: string
+                  example: "e3d0a98b459f72231da69c3bd771c1e721fef4be83c14b80dc805ba71019eebe"
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /bep3/swap/refund:
+      post:
+        summary: Generate a refund atomic swap transaction
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        tags:
+          - BEP3
+        parameters:
+          - in: body
+            name: Create atomic swap request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                from:
+                  $ref: '#/definitions/Address'
+                swap_id:
+                  type: string
+                  example: "1b00244021ec239867e5b8c44bcd98e40f3148806a8c0a8fd3418872986becba"
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /bep3/swap/{swap-id}:
+      get:
+        summary: Get the atomic swap object associated with the input swap ID
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: swap-id
+            description: the swap ID
+            type: string
+            x-example: 1b00244021ec239867e5b8c44bcd98e40f3148806a8c0a8fd3418872986becba
+        responses:
+          200:
+            description: Atomic swap
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: 548883
+                result:
+                  $ref: '#/definitions/AtomicSwapResponse'
+          500:
+            description: Server internal error
+    /bep3/swaps:
+      get:
+        summary: Get all atomic swaps
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        parameters:
+        responses:
+          200:
+            description: All atomic swaps
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/AtomicSwapResponse'
+          500:
+            description: Server internal error
+    /bep3/suppy/{denom}:
+      get:
+        summary: Get the asset supply for the input denom
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: denom
+            x-example: bnb
+        responses:
+          200:
+            description: Asset supply
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: '#/definitions/AssetSupplyResponse'
+          500:
+            description: Server internal error
+    /bep3/parameters:
+      get:
+        summary: Get the current parameters of the BEP3 module
+        tags:
+          - BEP3
+        produces:
+          - application/json
+        responses:
+          200:
+            description: BEP3 module parameters
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: 548883
+                result:
+                  type: object
+                  $ref: '#/definitions/Bep3ParamsResponse'
           500:
             description: Server internal error
     /auction/auctions/{id}/bids:
@@ -809,6 +1018,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -905,6 +1115,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -933,6 +1144,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -961,6 +1173,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -989,6 +1202,365 @@
               $ref: '#/definitions/Price'
           500:
             description: Internal Server Error
+    /incentive/claim:
+      post:
+        summary: Claim USDX incentive rewards
+        tags:
+          - Incentive
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Incentive claim body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                owner:
+                  $ref: '#/definitions/Address'
+                denom:
+                  type: string
+                  example: bnb
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /incentive/claims/{owner}/{denom}:
+      get:
+        summary: Get outstanding claims for the input owner and denom
+        tags:
+          - Incentive
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: owner
+            required: true
+            type: string
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+          - in: path
+            name: denom
+            description: Collateral denom
+            required: true
+            type: string
+            x-example: bnb
+        responses:
+          200:
+            description: USDX Incentive Claims
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/ClaimResponse'
+          500:
+            description: Server internal error
+    /incentive/parameters:
+      get:
+        summary: Get the current parameters of the incentive module
+        tags:
+          - Incentive
+        produces:
+          - application/json
+        responses:
+          200:
+            description: USDX Incentive Claims
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/IncentiveParams'
+          500:
+            description: Server internal error
+    /committee/committees/{committee-id}/proposals:
+      post:
+        summary: Create a new proposal for a committee
+        tags:
+          - Committee
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: committee-id
+            required: true
+            type: string
+            x-example: 1
+          - in: body
+            name: proposal request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                pub_proposal:
+                  $ref: '#/definitions/PubProposal'
+                proposer:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+      get:
+        summary: Query proposals
+        description: Query all proposals for a committee
+        produces:
+          - application/json
+        tags:
+          - Committee
+        parameters:
+          - in: path
+            name: committee-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Committee governance proposals
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/CommitteeProposal"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}/votes:
+      post:
+        summary: Create a new vote for a proposal
+        tags:
+          - Committee
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+          - in: body
+            name: proposal request body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                voter:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: The transaction was successfully generated
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+      get:
+        summary: Query proposal votes
+        description: Query proposal votes by proposal ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Votes
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/CommitteeVote"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/committees:
+      get:
+        summary: Query committees
+        description: Query all committees
+        tags:
+          - Committee
+        produces:
+          - application/json
+        responses:
+          200:
+            description: Committees
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Committee"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/committees/{committee-id}:
+      get:
+        summary: Query committee
+        description: Query committee by ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: committee-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Committee
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: "#/definitions/Committee"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}:
+      get:
+        summary: Query proposal
+        description: Query proposal by ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Proposal
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: "#/definitions/CommitteeProposal"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}/propser:
+      get:
+        summary: Query proposer
+        description: Query proposer by proposal ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Proposer
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: object
+                  $ref: "#/definitions/Proposer"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
+    /committee/proposals/{proposal-id}/tally:
+      get:
+        summary: Query proposal tally
+        description: Query proposal tally by proposal ID
+        tags:
+          - Committee
+        produces:
+          - application/json
+        parameters:
+          - in: path
+            name: proposal-id
+            required: true
+            type: string
+            x-example: 1
+        responses:
+          200:
+            description: Vote tally
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: string
+                  example: "3"
+          400:
+            description: Invalid query parameters
+          500:
+            description: Internal Server Error
     /bank/balances/{address}:
       get:
         summary: Get the account balances
@@ -1011,8 +1583,9 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
-                  items:                    
+                  items:
                     $ref: "#/definitions/Coin"
           500:
             description: Server internal error
@@ -1116,16 +1689,17 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
-                  items: 
+                  items:
                     $ref: "#/definitions/Delegation"
           400:
             description: Invalid delegator address
           500:
             description: Internal Server Error
-      
+
       # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
-      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go      
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
 
       # post:
       #   summary: Submit delegation
@@ -1212,6 +1786,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/UnbondingDelegation"
@@ -1319,6 +1894,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Redelegation"
@@ -1393,6 +1969,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Validator"
@@ -1460,6 +2037,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Validator"
@@ -1510,6 +2088,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/Delegation"
@@ -1539,6 +2118,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   items:
                     $ref: "#/definitions/UnbondingDelegation"
@@ -1771,6 +2351,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -1810,6 +2391,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -1931,6 +2513,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2036,6 +2619,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2241,6 +2825,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   $ref: '#/definitions/DelegatorTotalRewards'
           400:
@@ -2303,6 +2888,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2361,6 +2947,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   $ref: "#/definitions/Address"
           400:
@@ -2442,6 +3029,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2465,12 +3053,13 @@
           - application/json
         responses:
           200:
-            description: OK            
+            description: OK
             schema:
               type: object
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2521,6 +3110,7 @@
               properties:
                 height:
                   type: string
+                  example: "100"
                 result:
                   type: array
                   items:
@@ -2738,6 +3328,38 @@
       type: string
       description: bech32 encoded address
       example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+    Address2:
+      type: string
+      description: bech32 encoded address
+      example: kava1atsrkjac6ulgmwhudfc36lnjfgv340vlvm757z
+    BinanceChainAddress:
+      type: string
+      description: address on another chain (binance)
+      example: bnb1uky3me9ggqypmrsvxk7ur6hqkzq7zmv4ed4ng7
+    BinanceChainAddress2:
+      type: string
+      description: address on another chain (binance)
+      example: bnb10uypsspvl6jlxcx5xse02pag39l8xpe7a3468h
+    RandomNumberHash:
+      type: string
+      description: hex-encoded sha256 hash of a 64bit random number
+      example: c0544b7f4b890a673ea3f61bdb4650fbfe2f3e56bda1b397d6d592fca7163c8c
+    Timestamp:
+      type: string
+      description: unix timestamp
+      example: "1585252531"
+    HeightSpan:
+      type: string
+      description: span of blocks for which an atomic swap is valid
+      example: "3600"
+    CrossChain:
+      type: boolean
+      description: boolean for if the swap is a cross-chain swap
+      example: true
+    DeputyAddress:
+      type: string
+      description: bep3 deputy
+      example: kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj
     ValidatorAddress:
       type: string
       description: bech32 encoded address
@@ -2750,7 +3372,16 @@
           example: ukava
         amount:
           type: string
-          example: '50'
+          example: '50000'
+    CoinBNB:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: bnb
+        amount:
+          type: string
+          example: '555555'
     CoinCollateral:
       type: object
       properties:
@@ -3015,29 +3646,29 @@
           description: Sender address or Keybase name to generate a transaction
         memo:
           type: string
-          example: 'Sent via Cosmos Voyager 🚀'
+          example: 'a memo'
         chain_id:
           type: string
           example: 'testing'
         account_number:
           type: string
-          example: '0'
+          example: '1'
         sequence:
           type: string
-          example: '5'
+          example: '0'
         gas:
           type: string
           example: '200000'
         gas_adjustment:
           type: string
-          example: '1.2'
+          example: '1.0'
         fees:
           type: array
           items:
             $ref: '#/definitions/Coin'
         simulate:
           type: boolean
-          example: true
+          example: false
           description: Estimate gas for a transaction (cannot be used in conjunction with generate_only)
     TendermintValidator:
       type: object
@@ -3053,6 +3684,140 @@
         proposer_priority:
           type: string
           example: '1000'
+    AtomicSwapResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: FFEA80A3D9A42427CC12DB957866C6D428C16AA5EA6D9A4A756EF04BF9F2FF06
+        status:
+          type: string
+          example: Completed
+        amount:
+          $ref: '#/definitions/CoinBNB'
+        random_number_hash:
+          type: string
+          example: 0b1e35e991bf052be230ae8dd3ff90b69a610160d28a9eb3c0701395f9d2b291
+        expire_hieght:
+          type: string
+          example: 532463
+        timestamp:
+          type: string
+          example: 1589020884
+        sender:
+          $ref: '#/definitions/Address'
+        recipient:
+          $ref: '#/definitions/Address2'
+        sender_other_chain:
+          $ref: '#/definitions/BinanceChainAddress'
+        recipient_other_chain:
+          $ref: '#/definitions/BinanceChainAddress2'
+        closed_block:
+          type: string
+          example: 532105
+        cross_chain:
+          $ref: '#/definitions/CrossChain'
+        direction:
+          type: string
+          example: Incoming
+    AssetSupplyResponse:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: bnb
+        incoming_supply:
+          $ref: '#/definitions/CoinBNB'
+        outgoing_supply:
+          $ref: '#/definitions/CoinBNB'
+        current_supply:
+          $ref: '#/definitions/CoinBNB'
+        limit:
+          $ref: '#/definitions/CoinBNB'
+    Bep3ParamsResponse:
+      type: object
+      properties:
+        bnb_deputy_address:
+          type: string
+          example: kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29
+        min_block_lock:
+          type: string
+          example: 80
+        max_block_lock:
+          type: string
+          example: 3600
+        supported_assets:
+          type: array
+          items:
+            $ref: '#/definitions/Bep3Asset'
+    Bep3Asset:
+      type: object
+      properties:
+        denom:
+          type: string
+          example: bnb
+        coin_id:
+          type: string
+          example: 714
+        limit:
+          type: string
+          example: "100"
+        active:
+          type: boolean
+          example: true
+    ClaimResponse:
+      type: object
+      properties:
+        owner:
+          type: string
+          example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
+        reward:
+          $ref: '#/definitions/Coin'
+        denom:
+          type: string
+          example: bnb
+        claim_period_id:
+          type: string
+          example: 1
+    IncentiveParams:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        rewards:
+          type: array
+          items:
+            $ref: '#/definitions/Reward'
+    Reward:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        denom:
+          type: string
+          example: bnb
+        available_rewards:
+          $ref: '#/definitions/Coin'
+        duration:
+          type: string
+          example: 36800000000000
+        time_lock:
+          type: string
+          example: 36800000000000
+        claim_duration:
+          type: string
+          example: 36800000000000
+    PubProposal:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "the title of the proposal"
+        description:
+          type: string
+          example: "the description of the proposal"
     CdpResponse:
       type: object
       properties:
@@ -3249,8 +4014,10 @@
       properties:
         proposal_id:
           type: string
+          example: 1
         proposer:
           type: string
+          example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
     Deposit:
       type: object
       properties:
@@ -3286,6 +4053,70 @@
           type: string
         option:
           type: string
+    CommitteeVote:
+      type: object
+      properties:
+        voter:
+          type: string
+        proposal_id:
+          type: string
+    CommitteeProposal:
+      type: object
+      properties:
+        pub_proposal:
+          $ref: '#/definitions/PubProposal'
+        id:
+          type: string
+          example: 1
+        committee_id:
+          type: string
+          example: 1
+        deadline:
+          type: string
+          example: '2020-05-10T16:18:43.752522893Z'
+    Committee:
+      type:
+        object
+      properties:
+        id:
+          type: string
+          example: 1
+        description:
+          type: string
+          example: description of committee
+        members:
+          type: array
+          items:
+            $ref: '#/definitions/Address'
+        permissions:
+          type: array
+          items:
+            $ref: '#/definitions/Permission'
+        vote_threshold:
+          type: string
+          example: "0.5"
+        proposal_duration:
+          type: string
+          example: "3600000000000"
+    Permission:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "param_change_permission"
+        allowed_params:
+          type: array
+          items:
+            $ref: '#/definitions/AllowedParam'
+    AllowedParam:
+      type: object
+      properties:
+        subspace:
+          type: string
+          example: cdp
+        key:
+          type: string
+          example: collateral_params
     Validator:
       type: object
       properties:
@@ -3536,7 +4367,7 @@
           example: stake
         amount:
           type: string
-          example: "2000"    
+          example: "2000"
     PostSignature:
       type: object
       properties:
@@ -3551,7 +4382,7 @@
               example: "tendermint/PubKeySecp256k1"
             value:
               type: string
-              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGXusb70B7"              
+              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGXusb70B7"
     EncodeTx:
       type: object
       properties:
@@ -3560,4 +4391,4 @@
           example: "cosmos-sdk/StdTx"
         value:
           type: object
-          $ref: "#/definitions/StdTx"   
+          $ref: "#/definitions/StdTx"

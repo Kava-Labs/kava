@@ -7,10 +7,11 @@
 ```go
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"` // deputy's address on Kava
-	MinBlockLock     int64          `json:"min_block_lock" yaml:"min_block_lock"` // minimum swap expire height
-	MaxBlockLock     int64          `json:"max_block_lock" yaml:"max_block_lock"` // maximum swap expire height
-	SupportedAssets  AssetParams    `json:"supported_assets" yaml:"supported_assets"` // array of supported asset
+	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // deputy's address on Kava
+	BnbDeputyFixedFee uint64         `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // deputy's fixed fee
+	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // minimum swap expire height
+	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // maximum swap expire height
+	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // array of supported asset
 }
 
 // AssetParam governance parameters for each asset within a supported chain
@@ -48,7 +49,6 @@ type AtomicSwap struct {
 	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
 	ClosedBlock         int64            `json:"closed_block"  yaml:"closed_block"`
 	Status              SwapStatus       `json:"status"  yaml:"status"`
-	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
 	Direction           SwapDirection    `json:"direction"  yaml:"direction"`
 }
 
@@ -77,6 +77,6 @@ type AssetSupply struct {
 	IncomingSupply sdk.Coin `json:"incoming_supply"  yaml:"incoming_supply"`
 	OutgoingSupply sdk.Coin `json:"outgoing_supply"  yaml:"outgoing_supply"`
 	CurrentSupply  sdk.Coin `json:"current_supply"  yaml:"current_supply"`
-	Limit          sdk.Coin `json:"limit"  yaml:"limit"`
+	SupplyLimit    sdk.Coin `json:"supply_limit"  yaml:"supply_limit"`
 }
 ```

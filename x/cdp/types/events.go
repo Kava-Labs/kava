@@ -12,7 +12,7 @@ const (
 	EventTypeBeginBlockerFatal = "cdp_begin_block_error"
 
 	AttributeKeyCdpID      = "cdp_id"
-	AttributeKeyDepositor  = "depositor"
+	AttributeKeyDeposit    = "deposit"
 	AttributeValueCategory = "cdp"
 	AttributeKeyError      = "error_message"
 )

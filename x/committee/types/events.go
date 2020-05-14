@@ -10,6 +10,7 @@ const (
 	AttributeKeyCommitteeID         = "committee_id"
 	AttributeKeyProposalID          = "proposal_id"
 	AttributeKeyProposalCloseStatus = "status"
+	AttributeKeyVoter               = "voter"
 	AttributeValueProposalPassed    = "proposal_passed"
 	AttributeValueProposalTimeout   = "proposal_timeout"
 	AttributeValueProposalFailed    = "proposal_failed"

@@ -12,6 +12,7 @@ import (
 
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/cdp/types"
+	kdtypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // DistributeSavingsRate distributes surplus that has accumulated in the liquidator account to address holding stable coins according the the savings rate
@@ -60,10 +61,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 		surplusDistributed = surplusDistributed.Add(interest)
 		return false
 	})
-	if iterationErr != nil {
-		return iterationErr
-	}
-	return nil
+	return iterationErr
 }
 
 // GetPreviousSavingsDistribution get the time of the previous savings rate distribution
@@ -92,6 +90,7 @@ func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
 	auctionMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, auctiontypes.ModuleName).GetCoins().AmountOf(denom)
 	liquidatorMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(denom)
 	feeMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, authtypes.FeeCollectorName).GetCoins().AmountOf(denom)
-	totalModAccountAmount := savingsRateMaccCoinAmount.Add(cdpMaccCoinAmount).Add(auctionMaccCoinAmount).Add(liquidatorMaccCoinAmount).Add(feeMaccCoinAmount)
+	kavadistMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, kdtypes.ModuleName).GetCoins().AmountOf(denom)
+	totalModAccountAmount := savingsRateMaccCoinAmount.Add(cdpMaccCoinAmount).Add(auctionMaccCoinAmount).Add(liquidatorMaccCoinAmount).Add(feeMaccCoinAmount).Add(kavadistMaccCoinAmount)
 	return sdk.NewCoins(sdk.NewCoin(denom, totalModAccountAmount))
 }

@@ -19,14 +19,14 @@ type Keeper struct {
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
+	accountKeeper types.AccountKeeper
 }
 
 // NewKeeper creates a bep3 keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
-	if addr := sk.GetModuleAddress(types.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
-	}
-
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey,
+	sk types.SupplyKeeper, ak types.AccountKeeper,
+	paramstore subspace.Subspace,
+) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -36,6 +36,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, params
 		cdc:           cdc,
 		paramSubspace: paramstore,
 		supplyKeeper:  sk,
+		accountKeeper: ak,
 	}
 	return keeper
 }
@@ -123,7 +124,7 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store
-		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
+		sdk.PrefixEndBytes(sdk.Uint64ToBigEndian(inclusiveCutoffTime)), // end of range
 	)
 
 	defer iterator.Close()
@@ -145,15 +146,15 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 // Completed swaps are stored for 1 week.
 func (k Keeper) InsertIntoLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	store.Set(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+types.DefaultLongtermStorageDuration,
-		atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
+	deletionHeight := uint64(atomicSwap.ClosedBlock) + types.DefaultLongtermStorageDuration
+	store.Set(types.GetAtomicSwapByHeightKey(deletionHeight, atomicSwap.GetSwapID()), atomicSwap.GetSwapID())
 }
 
 // RemoveFromLongtermStorage removes a swap from the into the longterm storage index
 func (k Keeper) RemoveFromLongtermStorage(ctx sdk.Context, atomicSwap types.AtomicSwap) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
-	store.Delete(types.GetAtomicSwapByHeightKey(atomicSwap.ClosedBlock+types.DefaultLongtermStorageDuration,
-		atomicSwap.GetSwapID()))
+	deletionHeight := uint64(atomicSwap.ClosedBlock) + types.DefaultLongtermStorageDuration
+	store.Delete(types.GetAtomicSwapByHeightKey(deletionHeight, atomicSwap.GetSwapID()))
 }
 
 // IterateAtomicSwapsLongtermStorage provides an iterator over AtomicSwaps ordered by deletion height.
@@ -163,7 +164,7 @@ func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCuto
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store
-		sdk.PrefixEndBytes(types.Uint64ToBytes(inclusiveCutoffTime)), // end of range
+		sdk.PrefixEndBytes(sdk.Uint64ToBigEndian(inclusiveCutoffTime)), // end of range
 	)
 
 	defer iterator.Close()
