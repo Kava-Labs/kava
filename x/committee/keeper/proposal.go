@@ -118,7 +118,7 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) error {
 	if !found {
 		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
-	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pr) {
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pr.PubProposal) {
 		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
@@ -133,6 +133,37 @@ func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) error {
 		panic(fmt.Sprintf("unexpected handler error: %s", err))
 	}
 	return nil
+}
+
+// EnactPassedProposals puts in place the changes proposed in any proposal that has enough votes
+func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
+	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
+		passes, err := k.GetProposalResult(ctx, proposal.ID)
+		if err != nil {
+			panic(err)
+		}
+		if !passes {
+			return true
+		}
+
+		err = k.EnactProposal(ctx, proposal.ID)
+		outcome := types.AttributeValueProposalPassed
+		if err != nil {
+			outcome = types.AttributeValueProposalFailed
+		}
+
+		k.DeleteProposalAndVotes(ctx, proposal.ID)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeProposalClose,
+				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
+			),
+		)
+		return true
+	})
 }
 
 // CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.

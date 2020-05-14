@@ -86,8 +86,13 @@ var (
 
 type (
 	Keeper                      = keeper.Keeper
+	AllowedAssetParam           = types.AllowedAssetParam
+	AllowedAssetParams          = types.AllowedAssetParams
 	AllowedCollateralParam      = types.AllowedCollateralParam
 	AllowedCollateralParams     = types.AllowedCollateralParams
+	AllowedDebtParam            = types.AllowedDebtParam
+	AllowedMarket               = types.AllowedMarket
+	AllowedMarkets              = types.AllowedMarkets
 	AllowedParam                = types.AllowedParam
 	AllowedParams               = types.AllowedParams
 	Committee                   = types.Committee
@@ -105,6 +110,7 @@ type (
 	QueryProposalParams         = types.QueryProposalParams
 	QueryVoteParams             = types.QueryVoteParams
 	SimpleParamChangePermission = types.SimpleParamChangePermission
+	SoftwareUpgradePermission   = types.SoftwareUpgradePermission
 	SubParamChangePermission    = types.SubParamChangePermission
 	TextPermission              = types.TextPermission
 	Vote                        = types.Vote
