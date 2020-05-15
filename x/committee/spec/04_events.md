@@ -18,9 +18,6 @@ The `x/committee` module emits the following events:
 | proposal_vote        | committee_id        | {committee ID}     |
 | proposal_vote        | proposal_id         | {proposal ID}      |
 | proposal_vote        | voter               | {voter address}    |
-| proposal_close       | committee_id        | {committee ID}     |
-| proposal_close       | proposal_id         | {proposal ID}      |
-| proposal_close       | status              | {outcome}          |
 | message              | module              | committee          |
 | message              | sender              | {sender address}   |
 
@@ -30,4 +27,4 @@ The `x/committee` module emits the following events:
 |----------------------|---------------------|--------------------|
 | proposal_close       | committee_id        | {committee ID}     |
 | proposal_close       | proposal_id         | {proposal ID}      |
-| proposal_close       | status              | proposal_timeout   |
+| proposal_close       | status              | {outcome}          |

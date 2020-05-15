@@ -19,14 +19,12 @@ const MaxCommitteeDescriptionLength int = 512
 
 // A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
 type Committee struct {
-	ID            uint64           `json:"id" yaml:"id"`
-	Description   string           `json:"description" yaml:"description"`
-	Members       []sdk.AccAddress `json:"members" yaml:"members"`
-	Permissions   []Permission     `json:"permissions" yaml:"permissions"`
-	VoteThreshold sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"` // Smallest percentage of members that must vote for a proposal to pass.
-	// TODO: Move ProposalDuration to be a property of Proposal instead
-	// No reason to require all proposals to a committee to have the same duration
-	ProposalDuration time.Duration `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
+	ID               uint64           `json:"id" yaml:"id"`
+	Description      string           `json:"description" yaml:"description"`
+	Members          []sdk.AccAddress `json:"members" yaml:"members"`
+	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
+	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage of members that must vote for a proposal to pass.
+	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
 }
 
 func NewCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission, threshold sdk.Dec, duration time.Duration) Committee {
@@ -108,7 +106,7 @@ func (c Committee) Validate() error {
 // PubProposal is the interface that all proposals must fulfill to be submitted to a committee.
 // Proposal types can be created external to this module. For example a ParamChangeProposal, or CommunityPoolSpendProposal.
 // It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
-type PubProposal govtypes.Content // Question: Why PubProposal name?
+type PubProposal govtypes.Content
 
 // Proposal is an internal record of a governance proposal submitted to a committee.
 type Proposal struct {
