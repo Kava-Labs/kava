@@ -1,0 +1,12 @@
+{
+    "type": "cosmos-sdk/SoftwareUpgradeProposal",
+    "value": {
+        "title": "Upgrade to v0.24.1",
+        "description": "This proposal will halt the chain after the time below, and restart when 2/3 validators have installed the newer version.",
+        "plan": {
+            "name": "Upgrade to v0.24.1",
+            "time": "2020-05-15T00:00:00Z",
+            "info": "[some additional information about the upgrade]"
+        }
+    }
+}
