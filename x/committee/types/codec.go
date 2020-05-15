@@ -5,6 +5,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 )
 
 // ModuleCdc is a generic codec to be used throughout module
@@ -21,6 +22,8 @@ func init() {
 	RegisterProposalTypeCodec(distrtypes.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal")
 	RegisterProposalTypeCodec(paramstypes.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal")
 	RegisterProposalTypeCodec(govtypes.TextProposal{}, "cosmos-sdk/TextProposal")
+	RegisterProposalTypeCodec(upgrade.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
+	RegisterProposalTypeCodec(upgrade.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
 }
 
 // RegisterCodec registers the necessary types for the module
@@ -34,8 +37,10 @@ func RegisterCodec(cdc *codec.Codec) {
 	// Permissions
 	cdc.RegisterInterface((*Permission)(nil), nil)
 	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
-	cdc.RegisterConcrete(ParamChangePermission{}, "kava/ParamChangePermission", nil)
+	cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
 
 	// Msgs
 	cdc.RegisterConcrete(MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)

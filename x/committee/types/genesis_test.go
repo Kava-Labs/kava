@@ -12,7 +12,6 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-func d(s string) sdk.Dec { return sdk.MustNewDecFromStr(s) }
 func TestGenesisState_Validate(t *testing.T) {
 	testTime := time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)
 	addresses := []sdk.AccAddress{

@@ -197,7 +197,7 @@ func MustGetExampleCommitteeChangeProposal(cdc *codec.Codec) string {
 			"The description of this committee.",
 			[]sdk.AccAddress{sdk.AccAddress(crypto.AddressHash([]byte("exampleAddress")))},
 			[]types.Permission{
-				types.ParamChangePermission{
+				types.SimpleParamChangePermission{
 					AllowedParams: types.AllowedParams{{Subspace: "cdp", Key: "CircuitBreaker"}},
 				},
 			},

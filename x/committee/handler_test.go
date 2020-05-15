@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -116,6 +117,28 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Invalid() {
 
 }
 
+func (suite *HandlerTestSuite) TestSubmitProposalMsg_ValidUpgrade() {
+	msg := committee.NewMsgSubmitProposal(
+		upgrade.NewSoftwareUpgradeProposal(
+			"A Title",
+			"A description of this proposal.",
+			upgrade.Plan{
+				Name: "emergency-shutdown-1",                      // identifier for the upgrade
+				Time: suite.ctx.BlockTime().Add(time.Minute * 10), // time after which to implement plan
+				Info: "Some information about the shutdown.",
+			},
+		),
+		suite.addresses[0],
+		1,
+	)
+
+	res, err := suite.handler(suite.ctx, msg)
+
+	suite.NoError(err)
+	_, found := suite.keeper.GetProposal(suite.ctx, types.Uint64FromBytes(res.Data))
+	suite.True(found)
+}
+
 func (suite *HandlerTestSuite) TestSubmitProposalMsg_Unregistered() {
 	var committeeID uint64 = 1
 	msg := types.NewMsgSubmitProposal(
@@ -130,80 +153,6 @@ func (suite *HandlerTestSuite) TestSubmitProposalMsg_Unregistered() {
 	suite.Empty(
 		suite.keeper.GetProposalsByCommittee(suite.ctx, committeeID),
 		"proposal found when none should exist",
-	)
-}
-
-func (suite *HandlerTestSuite) TestMsgAddVote_ProposalPass() {
-	previousCDPDebtThreshold := suite.app.GetCDPKeeper().GetParams(suite.ctx).DebtAuctionThreshold
-	newDebtThreshold := previousCDPDebtThreshold.Add(i(1000000))
-	msg := types.NewMsgSubmitProposal(
-		params.NewParameterChangeProposal(
-			"A Title",
-			"A description of this proposal.",
-			[]params.ParamChange{{
-				Subspace: cdptypes.ModuleName,
-				Key:      string(cdptypes.KeyDebtThreshold),
-				Value:    string(types.ModuleCdc.MustMarshalJSON(newDebtThreshold)),
-			}},
-		),
-		suite.addresses[0],
-		1,
-	)
-	res, err := suite.handler(suite.ctx, msg)
-	suite.NoError(err)
-	proposalID := types.Uint64FromBytes(res.Data)
-	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
-	suite.NoError(err)
-
-	// Add a vote to make the proposal pass
-	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
-
-	suite.NoError(err)
-	// Check the param has been updated
-	suite.Equal(newDebtThreshold, suite.app.GetCDPKeeper().GetParams(suite.ctx).DebtAuctionThreshold)
-	// Check proposal and votes are gone
-	_, found := suite.keeper.GetProposal(suite.ctx, proposalID)
-	suite.False(found)
-	suite.Empty(
-		suite.keeper.GetVotesByProposal(suite.ctx, proposalID),
-		"vote found when there should be none",
-	)
-}
-
-func (suite *HandlerTestSuite) TestMsgAddVote_ProposalFail() {
-	recipient := suite.addresses[4]
-	recipientCoins := suite.app.GetBankKeeper().GetCoins(suite.ctx, recipient)
-	msg := types.NewMsgSubmitProposal(
-		distribution.NewCommunityPoolSpendProposal(
-			"A Title",
-			"A description of this proposal.",
-			recipient,
-			cs(c("ukava", 500)),
-		),
-		suite.addresses[0],
-		1,
-	)
-	res, err := suite.handler(suite.ctx, msg)
-	suite.NoError(err)
-	proposalID := types.Uint64FromBytes(res.Data)
-	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[0], proposalID))
-	suite.NoError(err)
-
-	// invalidate the proposal by emptying community pool
-	suite.app.GetDistrKeeper().DistributeFromFeePool(suite.ctx, suite.communityPoolAmt, suite.addresses[0])
-
-	// Add a vote to make the proposal pass
-	_, err = suite.handler(suite.ctx, types.NewMsgVote(suite.addresses[1], proposalID))
-
-	suite.NoError(err)
-	// Check the proposal was not enacted
-	suite.Equal(recipientCoins, suite.app.GetBankKeeper().GetCoins(suite.ctx, recipient))
-	// Check proposal and votes are gone
-	_, found := suite.keeper.GetProposal(suite.ctx, proposalID)
-	suite.False(found)
-	suite.Empty(
-		suite.keeper.GetVotesByProposal(suite.ctx, proposalID),
-		"vote found when there should be none",
 	)
 }
 

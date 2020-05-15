@@ -125,9 +125,9 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 	}
 }
 
-/*
 // Example custom ParamChangeProposal generator to only generate change to interesting cdp params.
 // This allows more control over what params are changed within a simulation.
+/*
 func SimulateCDPParamChangeProposalContent(cdpKeeper cdpkeeper.Keeper, paramChangePool []simulation.ParamChange) simulation.ContentSimulatorFn {
 	return func(r *rand.Rand, ctx sdk.Context, _ []simulation.Account) govtypes.Content {
 
@@ -138,7 +138,7 @@ func SimulateCDPParamChangeProposalContent(cdpKeeper cdpkeeper.Keeper, paramChan
 		if len(cp) == 0 {
 			return nil
 		}
-		cp[0].StabilityFee = sdk.MustNewDecFromStr("0.000001") // TODO generate
+		cp[0].StabilityFee = sdk.MustNewDecFromStr("0.000001")
 		paramChanges = append(
 			paramChanges,
 			paramstypes.NewParamChange(cdptypes.ModuleName, "?", string(cdptypes.ModuleCdc.MustMarshalJSON(cp))),

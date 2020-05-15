@@ -71,14 +71,9 @@ func ValidProposalsInvariant(k Keeper) sdk.Invariant {
 				}
 			}
 
-			com, found := k.GetCommittee(ctx, proposal.CommitteeID)
+			_, found := k.GetCommittee(ctx, proposal.CommitteeID)
 			if !found {
 				validationErr = fmt.Errorf("proposal has no committee %d", proposal.CommitteeID)
-				return true
-			}
-
-			if !com.HasPermissionsFor(proposal.PubProposal) {
-				validationErr = fmt.Errorf("proposal not permitted for committee %+v", com)
 				return true
 			}
 
@@ -107,8 +102,8 @@ func ValidVotesInvariant(k Keeper) sdk.Invariant {
 		k.IterateVotes(ctx, func(vote types.Vote) bool {
 			invalidVote = vote
 
-			if vote.Voter.Empty() {
-				validationErr = fmt.Errorf("empty voter address")
+			if err := vote.Validate(); err != nil {
+				validationErr = err
 				return true
 			}
 

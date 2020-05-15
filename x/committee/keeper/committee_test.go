@@ -1,23 +1,18 @@
-package types
+package keeper_test
 
 import (
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/committee/types"
 )
-
-var _ PubProposal = UnregisteredPubProposal{}
-
-type UnregisteredPubProposal struct {
-	govtypes.TextProposal
-}
-
-func (UnregisteredPubProposal) ProposalRoute() string { return "unregistered" }
-func (UnregisteredPubProposal) ProposalType() string  { return "unregistered" }
 
 type TypesTestSuite struct {
 	suite.Suite
@@ -27,14 +22,14 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 
 	testcases := []struct {
 		name                 string
-		permissions          []Permission
-		pubProposal          PubProposal
+		permissions          []types.Permission
+		pubProposal          types.PubProposal
 		expectHasPermissions bool
 	}{
 		{
 			name: "normal (single permission)",
-			permissions: []Permission{ParamChangePermission{
-				AllowedParams: AllowedParams{
+			permissions: []types.Permission{types.SimpleParamChangePermission{
+				AllowedParams: types.AllowedParams{
 					{
 						Subspace: "cdp",
 						Key:      "DebtThreshold",
@@ -56,30 +51,30 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		},
 		{
 			name: "normal (multiple permissions)",
-			permissions: []Permission{
-				ParamChangePermission{
-					AllowedParams: AllowedParams{
+			permissions: []types.Permission{
+				types.SimpleParamChangePermission{
+					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
 						},
 					}},
-				TextPermission{},
+				types.TextPermission{},
 			},
 			pubProposal:          govtypes.NewTextProposal("A Proposal Title", "A description of this proposal"),
 			expectHasPermissions: true,
 		},
 		{
 			name: "overruling permission",
-			permissions: []Permission{
-				ParamChangePermission{
-					AllowedParams: AllowedParams{
+			permissions: []types.Permission{
+				types.SimpleParamChangePermission{
+					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
 						},
 					}},
-				GodPermission{},
+				types.GodPermission{},
 			},
 			pubProposal: paramstypes.NewParameterChangeProposal(
 				"A Title",
@@ -115,16 +110,16 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		{
 			name: "split permissions",
 			// These permissions looks like they allow the param change proposal, however a proposal must pass a single permission independently of others.
-			permissions: []Permission{
-				ParamChangePermission{
-					AllowedParams: AllowedParams{
+			permissions: []types.Permission{
+				types.SimpleParamChangePermission{
+					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
 						},
 					}},
-				ParamChangePermission{
-					AllowedParams: AllowedParams{
+				types.SimpleParamChangePermission{
+					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
 							Key:      "DebtParams",
@@ -153,9 +148,9 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 		},
 		{
 			name: "unregistered proposal",
-			permissions: []Permission{
-				ParamChangePermission{
-					AllowedParams: AllowedParams{
+			permissions: []types.Permission{
+				types.SimpleParamChangePermission{
+					AllowedParams: types.AllowedParams{
 						{
 							Subspace: "cdp",
 							Key:      "DebtThreshold",
@@ -169,7 +164,10 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			com := NewCommittee(
+			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, abci.Header{})
+			tApp.InitializeFromGenesisStates()
+			com := types.NewCommittee(
 				12,
 				"a description of this committee",
 				nil,
@@ -179,7 +177,7 @@ func (suite *TypesTestSuite) TestCommittee_HasPermissionsFor() {
 			)
 			suite.Equal(
 				tc.expectHasPermissions,
-				com.HasPermissionsFor(tc.pubProposal),
+				com.HasPermissionsFor(ctx, tApp.Codec(), tApp.GetParamsKeeper(), tc.pubProposal),
 			)
 		})
 	}

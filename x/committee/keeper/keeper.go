@@ -16,19 +16,22 @@ type Keeper struct {
 	cdc      *codec.Codec
 	storeKey sdk.StoreKey
 
+	ParamKeeper types.ParamKeeper // TODO ideally don't export, only sims need it exported
+
 	// Proposal router
 	router govtypes.Router
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, router govtypes.Router, paramKeeper types.ParamKeeper) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
 	// So the gov router must be sealed so no handlers can be added or removed after the keeper is created.
 	router.Seal()
 
 	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
-		router:   router,
+		cdc:         cdc,
+		storeKey:    storeKey,
+		ParamKeeper: paramKeeper,
+		router:      router,
 	}
 }
 
@@ -271,11 +274,14 @@ func (k Keeper) GetVotes(ctx sdk.Context) []types.Vote {
 // GetVotesByProposal returns all votes for one proposal.
 func (k Keeper) GetVotesByProposal(ctx sdk.Context, proposalID uint64) []types.Vote {
 	results := []types.Vote{}
-	k.IterateVotes(ctx, func(vote types.Vote) bool {
-		if vote.ProposalID == proposalID {
-			results = append(results, vote)
-		}
-		return false
-	})
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), append(types.VoteKeyPrefix, types.GetKeyFromID(proposalID)...))
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var vote types.Vote
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &vote)
+		results = append(results, vote)
+	}
+
 	return results
 }

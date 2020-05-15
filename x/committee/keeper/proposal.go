@@ -21,7 +21,7 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	}
 
 	// Check committee has permissions to enact proposal.
-	if !com.HasPermissionsFor(pubProposal) {
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pubProposal) {
 		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
@@ -67,7 +67,7 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	}
 
 	// Store vote, overwriting any prior vote
-	k.SetVote(ctx, types.Vote{ProposalID: proposalID, Voter: voter})
+	k.SetVote(ctx, types.NewVote(proposalID, voter))
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -107,21 +107,59 @@ func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
 }
 
 // EnactProposal makes the changes proposed in a proposal.
-func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) error {
-	pr, found := k.GetProposal(ctx, proposalID)
+func (k Keeper) EnactProposal(ctx sdk.Context, proposal types.Proposal) error {
+	// Check committee still has permissions for the proposal
+	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
+	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
+	}
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, proposal.PubProposal) {
+		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
-	if err := k.ValidatePubProposal(ctx, pr.PubProposal); err != nil {
+	if err := k.ValidatePubProposal(ctx, proposal.PubProposal); err != nil {
 		return err
 	}
-	handler := k.router.GetRoute(pr.ProposalRoute())
-	if err := handler(ctx, pr.PubProposal); err != nil {
+
+	// enact the proposal
+	handler := k.router.GetRoute(proposal.ProposalRoute())
+	if err := handler(ctx, proposal.PubProposal); err != nil {
 		// the handler should not error as it was checked in ValidatePubProposal
 		panic(fmt.Sprintf("unexpected handler error: %s", err))
 	}
 	return nil
+}
+
+// EnactPassedProposals puts in place the changes proposed in any proposal that has enough votes
+func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
+	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
+		passes, err := k.GetProposalResult(ctx, proposal.ID)
+		if err != nil {
+			panic(err)
+		}
+		if !passes {
+			return false
+		}
+
+		err = k.EnactProposal(ctx, proposal)
+		outcome := types.AttributeValueProposalPassed
+		if err != nil {
+			outcome = types.AttributeValueProposalFailed
+		}
+
+		k.DeleteProposalAndVotes(ctx, proposal.ID)
+
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeProposalClose,
+				sdk.NewAttribute(types.AttributeKeyCommitteeID, fmt.Sprintf("%d", proposal.CommitteeID)),
+				sdk.NewAttribute(types.AttributeKeyProposalID, fmt.Sprintf("%d", proposal.ID)),
+				sdk.NewAttribute(types.AttributeKeyProposalCloseStatus, outcome),
+			),
+		)
+		return false
+	})
 }
 
 // CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.

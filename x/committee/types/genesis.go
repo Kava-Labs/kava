@@ -92,13 +92,14 @@ func (gs GenesisState) Validate() error {
 
 	// validate votes
 	for _, v := range gs.Votes {
+		// validate committee
+		if err := v.Validate(); err != nil {
+			return err
+		}
+
 		// check proposal exists
 		if !proposalMap[v.ProposalID] {
 			return fmt.Errorf("vote refers to non existent proposal; vote: %+v", v)
-		}
-		// validate address
-		if v.Voter.Empty() {
-			return fmt.Errorf("found empty voter address; vote: %+v", v)
 		}
 	}
 	return nil

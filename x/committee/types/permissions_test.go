@@ -2,11 +2,14 @@ package types
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 )
 
 type PermissionsTestSuite struct {
@@ -36,7 +39,7 @@ func (suite *PermissionsTestSuite) SetupTest() {
 	}
 }
 
-func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
+func (suite *PermissionsTestSuite) TestSimpleParamChangePermission_Allows() {
 	testcases := []struct {
 		name          string
 		allowedParams AllowedParams
@@ -133,12 +136,12 @@ func (suite *PermissionsTestSuite) TestParamChangePermission_Allows() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
-			permission := ParamChangePermission{
+			permission := SimpleParamChangePermission{
 				AllowedParams: tc.allowedParams,
 			}
 			suite.Equal(
 				tc.expectAllowed,
-				permission.Allows(tc.pubProposal),
+				permission.Allows(sdk.Context{}, nil, nil, tc.pubProposal),
 			)
 		})
 	}
@@ -276,7 +279,64 @@ func (suite *PermissionsTestSuite) TestTextPermission_Allows() {
 			permission := TextPermission{}
 			suite.Equal(
 				tc.expectAllowed,
-				permission.Allows(tc.pubProposal),
+				permission.Allows(sdk.Context{}, nil, nil, tc.pubProposal),
+			)
+		})
+	}
+}
+
+func (suite *PermissionsTestSuite) TestSoftwareUpgradePermission_Allows() {
+	testcases := []struct {
+		name          string
+		pubProposal   PubProposal
+		expectAllowed bool
+	}{
+		{
+			name: "normal",
+			pubProposal: upgrade.NewSoftwareUpgradeProposal(
+				"A Title",
+				"A description for this proposal.",
+				upgrade.Plan{
+					Name: "upgrade v0.12.1",
+					Time: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+					Info: "some information",
+				},
+			),
+			expectAllowed: true,
+		},
+		{
+			name: "not allowed (wrong pubproposal type)",
+			pubProposal: paramstypes.NewParameterChangeProposal(
+				"A Title",
+				"A description for this proposal.",
+				[]paramstypes.ParamChange{
+					{
+						Subspace: "cdp",
+						Key:      "DebtThreshold",
+						Value:    `{"denom": "usdx", "amount": "1000000"}`,
+					},
+					{
+						Subspace: "cdp",
+						Key:      "CollateralParams",
+						Value:    `[]`,
+					},
+				},
+			),
+			expectAllowed: false,
+		},
+		{
+			name:          "not allowed (nil pubproposal)",
+			pubProposal:   nil,
+			expectAllowed: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			permission := SoftwareUpgradePermission{}
+			suite.Equal(
+				tc.expectAllowed,
+				permission.Allows(sdk.Context{}, nil, nil, tc.pubProposal),
 			)
 		})
 	}

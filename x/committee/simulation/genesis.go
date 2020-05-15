@@ -101,7 +101,7 @@ func RandomPermissions(r *rand.Rand, allowedParams []types.AllowedParam) []types
 			allowedParams[i], allowedParams[j] = allowedParams[j], allowedParams[i]
 		})
 		permissions = append(permissions,
-			types.ParamChangePermission{
+			types.SimpleParamChangePermission{
 				AllowedParams: allowedParams[:r.Intn(len(allowedParams)+1)],
 			})
 	}
