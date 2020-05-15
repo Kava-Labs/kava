@@ -187,7 +187,7 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 			Lot:             initialLot,
 			Bidder:          supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
 			Bid:             bid,                                      // amount that the buyer is buying - doesn't change over course of auction
-			HasReceivedBids: true,
+			HasReceivedBids: false,                                    // new auctions don't have any bids
 			EndTime:         endTime,
 			MaxEndTime:      endTime,
 		},
