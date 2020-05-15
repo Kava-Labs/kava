@@ -196,34 +196,6 @@ func TestBaseAuctionValidate(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"zero bid with received bids",
-			BaseAuction{
-				ID:              1,
-				Initiator:       testAccAddress1,
-				Lot:             c("kava", 1),
-				Bidder:          addr1,
-				Bid:             c("kava", 0),
-				EndTime:         now,
-				MaxEndTime:      now,
-				HasReceivedBids: true,
-			},
-			false,
-		},
-		{
-			"positive bid without receiving bids",
-			BaseAuction{
-				ID:              1,
-				Initiator:       testAccAddress1,
-				Lot:             c("kava", 1),
-				Bidder:          addr1,
-				Bid:             c("kava", 1),
-				EndTime:         now,
-				MaxEndTime:      now,
-				HasReceivedBids: false,
-			},
-			false,
-		},
 	}
 
 	for _, tc := range tests {

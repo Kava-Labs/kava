@@ -88,12 +88,6 @@ func (a BaseAuction) Validate() error {
 	if a.EndTime.After(a.MaxEndTime) {
 		return fmt.Errorf("MaxEndTime < EndTime (%s < %s)", a.MaxEndTime, a.EndTime)
 	}
-	if a.HasReceivedBids && !a.Bid.IsPositive() {
-		return fmt.Errorf("cannot have a zero value bid when auction has a true HasReceivedBids flag value")
-	}
-	if !a.HasReceivedBids && a.Bid.IsPositive() {
-		return fmt.Errorf("cannot have a positive value bid when auction has a false HasReceivedBids flag value")
-	}
 	return nil
 }
 
@@ -193,7 +187,7 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 			Lot:             initialLot,
 			Bidder:          supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
 			Bid:             bid,                                      // amount that the buyer is buying - doesn't change over course of auction
-			HasReceivedBids: true,                                     // new auctions don't have any bids
+			HasReceivedBids: true,
 			EndTime:         endTime,
 			MaxEndTime:      endTime,
 		},
