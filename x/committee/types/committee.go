@@ -83,6 +83,12 @@ func (c Committee) Validate() error {
 		return fmt.Errorf("description length %d longer than max allowed %d", len(c.Description), MaxCommitteeDescriptionLength)
 	}
 
+	for _, p := range c.Permissions {
+		if p == nil {
+			return fmt.Errorf("committee cannot have a nil permission")
+		}
+	}
+
 	// threshold must be in the range (0,1]
 	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
 		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)

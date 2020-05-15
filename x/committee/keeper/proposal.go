@@ -107,28 +107,24 @@ func (k Keeper) TallyVotes(ctx sdk.Context, proposalID uint64) int64 {
 }
 
 // EnactProposal makes the changes proposed in a proposal.
-func (k Keeper) EnactProposal(ctx sdk.Context, proposalID uint64) error {
-	pr, found := k.GetProposal(ctx, proposalID)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
-	}
+func (k Keeper) EnactProposal(ctx sdk.Context, proposal types.Proposal) error {
 	// Check committee still has permissions for the proposal
 	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
-	com, found := k.GetCommittee(ctx, pr.CommitteeID)
+	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
+		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
 	}
-	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, pr.PubProposal) {
+	if !com.HasPermissionsFor(ctx, k.cdc, k.ParamKeeper, proposal.PubProposal) {
 		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
-	if err := k.ValidatePubProposal(ctx, pr.PubProposal); err != nil {
+	if err := k.ValidatePubProposal(ctx, proposal.PubProposal); err != nil {
 		return err
 	}
 
 	// enact the proposal
-	handler := k.router.GetRoute(pr.ProposalRoute())
-	if err := handler(ctx, pr.PubProposal); err != nil {
+	handler := k.router.GetRoute(proposal.ProposalRoute())
+	if err := handler(ctx, proposal.PubProposal); err != nil {
 		// the handler should not error as it was checked in ValidatePubProposal
 		panic(fmt.Sprintf("unexpected handler error: %s", err))
 	}
@@ -146,7 +142,7 @@ func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
 			return false
 		}
 
-		err = k.EnactProposal(ctx, proposal.ID)
+		err = k.EnactProposal(ctx, proposal)
 		outcome := types.AttributeValueProposalPassed
 		if err != nil {
 			outcome = types.AttributeValueProposalFailed
