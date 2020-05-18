@@ -6,10 +6,6 @@ import (
 
 // InitGenesis sets distribution information for genesis.
 func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
-	err := gs.Validate()
-	if err != nil {
-		panic(err)
-	}
 	// Set the markets and oracles from params
 	keeper.SetParams(ctx, gs.Params)
 
