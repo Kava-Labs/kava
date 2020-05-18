@@ -24,17 +24,19 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
 
 	// Set the current price (if any) based on what's now in the store
 	for _, market := range params.Markets {
-		if market.Active {
-			rps, err := keeper.GetRawPrices(ctx, market.MarketID)
-			if err != nil {
-				panic(err)
-			}
-			if len(rps) > 0 {
-				err := keeper.SetCurrentPrices(ctx, market.MarketID)
-				if err != nil {
-					panic(err)
-				}
-			}
+		if !market.Active {
+			continue
+		}
+		rps, err := keeper.GetRawPrices(ctx, market.MarketID)
+		if err != nil {
+			panic(err)
+		}
+		if len(rps) == 0 {
+			continue
+		}
+		err = keeper.SetCurrentPrices(ctx, market.MarketID)
+		if err != nil {
+			panic(err)
 		}
 	}
 }

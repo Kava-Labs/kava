@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 
 // Market an asset in the pricefeed
 type Market struct {
+	// TODO: rename to ID
 	MarketID   string           `json:"market_id" yaml:"market_id"`
 	BaseAsset  string           `json:"base_asset" yaml:"base_asset"`
 	QuoteAsset string           `json:"quote_asset" yaml:"quote_asset"`
@@ -18,18 +20,58 @@ type Market struct {
 }
 
 // String implement fmt.Stringer
-func (a Market) String() string {
+func (m Market) String() string {
 	return fmt.Sprintf(`Asset:
 	Market ID: %s
 	Base Asset: %s
 	Quote Asset: %s
 	Oracles: %s
 	Active: %t`,
-		a.MarketID, a.BaseAsset, a.QuoteAsset, a.Oracles, a.Active)
+		m.MarketID, m.BaseAsset, m.QuoteAsset, m.Oracles, m.Active)
+}
+
+// Validate performs a basic validation of the market params
+func (m Market) Validate() error {
+	if strings.TrimSpace(m.MarketID) == "" {
+		return errors.New("market id cannot be blank")
+	}
+	if err := sdk.ValidateDenom(m.BaseAsset); err != nil {
+		return fmt.Errorf("invalid base asset: %w", err)
+	}
+	if err := sdk.ValidateDenom(m.QuoteAsset); err != nil {
+		return fmt.Errorf("invalid quote asset: %w", err)
+	}
+	seenOracles := make(map[string]bool)
+	for i, oracle := range m.Oracles {
+		if oracle.Empty() {
+			return fmt.Errorf("oracle %d is empty", i)
+		}
+		if seenOracles[oracle.String()] {
+			return fmt.Errorf("duplicated oracle %s", oracle)
+		}
+		seenOracles[oracle.String()] = true
+	}
+	return nil
 }
 
 // Markets array type for oracle
 type Markets []Market
+
+// Validate checks if all the markets are valid and there are no duplicated
+// entries.
+func (ms Markets) Validate() error {
+	seenMarkets := make(map[string]bool)
+	for _, m := range ms {
+		if seenMarkets[m.MarketID] {
+			return fmt.Errorf("duplicated market %s", m.MarketID)
+		}
+		if err := m.Validate(); err != nil {
+			return err
+		}
+		seenMarkets[m.MarketID] = true
+	}
+	return nil
+}
 
 // String implements fmt.Stringer
 func (ms Markets) String() string {
@@ -72,8 +114,43 @@ func NewPostedPrice(marketID string, oracle sdk.AccAddress, price sdk.Dec, expir
 	}
 }
 
+// Validate performs a basic check of a PostedPrice params.
+func (pp PostedPrice) Validate() error {
+	if strings.TrimSpace(pp.MarketID) == "" {
+		return errors.New("market id cannot be blank")
+	}
+	if pp.OracleAddress.Empty() {
+		return errors.New("oracle address cannot be empty")
+	}
+	if pp.Price.IsNegative() {
+		return fmt.Errorf("posted price cannot be negative %s", pp.Price)
+	}
+	if pp.Expiry.IsZero() {
+		return errors.New("expiry time cannot be zero")
+	}
+	return nil
+}
+
 // PostedPrices type for an array of PostedPrice
 type PostedPrices []PostedPrice
+
+// Validate checks if all the posted prices are valid and there are no duplicated
+// entries.
+func (pps PostedPrices) Validate() error {
+	seenPrices := make(map[string]bool)
+	for _, pp := range pps {
+		if seenPrices[pp.MarketID] {
+			return fmt.Errorf("duplicated posted price %s", pp.MarketID)
+		}
+
+		if err := pp.Validate(); err != nil {
+			return err
+		}
+		seenPrices[pp.MarketID] = true
+	}
+
+	return nil
+}
 
 // implement fmt.Stringer
 func (cp CurrentPrice) String() string {
