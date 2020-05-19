@@ -80,10 +80,10 @@ func (k Keeper) SetPreviousSavingsDistribution(ctx sdk.Context, distTime time.Ti
 
 // getModuleAccountCoins gets the total coin balance of this coin currently held by module accounts
 func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
-	var totalModCoinBalance sdk.Coins
+	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
 	for macc := range k.maccPerms {
 		modCoinBalance := k.supplyKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
-		if !modCoinBalance.IsNegative() {
+		if modCoinBalance.IsPositive() {
 			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
 		}
 	}
