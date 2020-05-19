@@ -98,6 +98,11 @@ var (
 		bep3.ModuleName:             nil,
 		kavadist.ModuleName:         {supply.Minter},
 	}
+
+	// module accounts that are allowed to receive tokens
+	allowedReceivingModAcc = map[string]bool{
+		distr.ModuleName: true,
+	}
 )
 
 // Verify app interface at compile time
@@ -199,7 +204,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.bankKeeper = bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSubspace,
-		app.ModuleAccountAddrs(),
+		app.BlacklistedAccAddrs(),
 	)
 	app.supplyKeeper = supply.NewKeeper(
 		app.cdc,
@@ -273,7 +278,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.committeeKeeper = committee.NewKeeper(
 		app.cdc,
 		keys[committee.StoreKey],
-		committeeGovRouter, // TODO blacklist module addresses?
+		committeeGovRouter,
 		app.paramsKeeper,
 	)
 
@@ -321,6 +326,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.auctionKeeper,
 		app.supplyKeeper,
 		app.accountKeeper,
+		mAccPerms,
 	)
 	app.bep3Keeper = bep3.NewKeeper(
 		app.cdc,
@@ -328,6 +334,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.supplyKeeper,
 		app.accountKeeper,
 		bep3Subspace,
+		app.ModuleAccountAddrs(),
 	)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,
@@ -503,6 +510,16 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 	}
 
 	return modAccAddrs
+}
+
+// BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
+func (app *App) BlacklistedAccAddrs() map[string]bool {
+	blacklistedAddrs := make(map[string]bool)
+	for acc := range mAccPerms {
+		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+	}
+
+	return blacklistedAddrs
 }
 
 // Codec returns the application's sealed codec.
