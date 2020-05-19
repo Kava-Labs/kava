@@ -80,9 +80,9 @@ func TestGenesisStateValidate(t *testing.T) {
 	for _, tc := range testCases {
 		err := tc.genesisState.Validate()
 		if tc.expPass {
-			require.NoError(t, err)
+			require.NoError(t, err, tc.msg)
 		} else {
-			require.Error(t, err)
+			require.Error(t, err, tc.msg)
 		}
 	}
 }

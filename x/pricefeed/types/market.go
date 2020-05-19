@@ -146,7 +146,7 @@ func (pps PostedPrices) Validate() error {
 		if err := pp.Validate(); err != nil {
 			return err
 		}
-		seenPrices[pp.MarketID] = true
+		seenPrices[pp.MarketID+pp.OracleAddress.String()] = true
 	}
 
 	return nil
