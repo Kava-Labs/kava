@@ -6,12 +6,27 @@ import (
 	v038auth "github.com/cosmos/cosmos-sdk/x/auth"
 	v036distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v0_36"
 	v038distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v0_38"
+	v038evidence "github.com/cosmos/cosmos-sdk/x/evidence"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	v038slashing "github.com/cosmos/cosmos-sdk/x/slashing"
+	v038staking "github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
+	"github.com/kava-labs/kava/app"
 	v038authcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v0_38" // TODO alias?
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
-	v0_8auction "github.com/kava-labs/kava/x/auction/legacy/v0_8"
+	v038evidencecustom "github.com/kava-labs/kava/migrate/v0_8/sdk/evidence/v0_38"
+	v038slashingcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/slashing/v0_38"
+	v18de63slashing "github.com/kava-labs/kava/migrate/v0_8/sdk/slashing/v18de63"
+	v038stakingcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/staking/v0_38"
+	v18de63staking "github.com/kava-labs/kava/migrate/v0_8/sdk/staking/v18de63"
+	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/bep3"
+	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/committee"
+	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/kavadist"
+	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 /*
@@ -39,13 +54,17 @@ func Migrate(v0_3AppState genutil.AppMap) genutil.AppMap {
 	v0_8AppState := MigrateSDK(v0_3AppState) // just move into own function for clarity
 
 	// run our migrations for new modules
-	v0_8Codec := codec.New() // TODO what happens when the codec changes in sdk v0.39 ? do we need to vendor amino?
-	codec.RegisterCrypto(v0_8Codec)
-	// TODO need to register other things
+	v0_8Codec := app.MakeCodec() // TODO what happens when the codec changes in sdk v0.39 ? do we need to vendor amino?
 
-	// auction
-	v0_8AppState[v0_8auction.ModuleName] = v0_8Codec.MustMarshalJSON(v0_8auction.EmptyGenesisState())
-	// TODO bep3, cdp, committee, incentive, kavadist, pricefeed, same as above
+	// TODO use copied types and EmptyGenesisState ?
+	// TODO where in upgrade flow should new params be set? probably not here
+	v0_8AppState[auction.ModuleName] = v0_8Codec.MustMarshalJSON(auction.DefaultGenesisState())
+	v0_8AppState[bep3.ModuleName] = v0_8Codec.MustMarshalJSON(bep3.DefaultGenesisState())
+	v0_8AppState[cdp.ModuleName] = v0_8Codec.MustMarshalJSON(cdp.DefaultGenesisState())
+	v0_8AppState[committee.ModuleName] = v0_8Codec.MustMarshalJSON(committee.DefaultGenesisState())
+	v0_8AppState[incentive.ModuleName] = v0_8Codec.MustMarshalJSON(incentive.DefaultGenesisState())
+	v0_8AppState[kavadist.ModuleName] = v0_8Codec.MustMarshalJSON(kavadist.DefaultGenesisState())
+	v0_8AppState[pricefeed.ModuleName] = v0_8Codec.MustMarshalJSON(pricefeed.DefaultGenesisState())
 
 	return v0_8AppState
 }
@@ -55,7 +74,8 @@ func MigrateSDK(appState genutil.AppMap) genutil.AppMap {
 	// TODO copy appState to avoid mutation?
 
 	// TODO setup codecs or pass in?
-	// TODO also need 036 codec for distribution migration
+	v036Codec := codec.New()
+	codec.RegisterCrypto(v036Codec)
 
 	v18de63Codec := codec.New() // ideally this would use the exact version of amino from kava v0.3.5
 	codec.RegisterCrypto(v18de63Codec)
@@ -74,6 +94,8 @@ func MigrateSDK(appState genutil.AppMap) genutil.AppMap {
 
 		delete(appState, v18de63auth.ModuleName)
 		appState[v038auth.ModuleName] = v038Codec.MustMarshalJSON(v038authcustom.Migrate(authGenState))
+		// TODO needs to deal with module and vv accounts as well
+		// TODO should probably deal with vv accounts in parent func
 	}
 
 	// migrate distribution state - copied in from the sdk as these changes happened after 18de630d
@@ -81,18 +103,30 @@ func MigrateSDK(appState genutil.AppMap) genutil.AppMap {
 		var distrGenState v036distr.GenesisState
 		v036Codec.MustUnmarshalJSON(appState[v036distr.ModuleName], &distrGenState)
 
-		delete(appState, v036distr.ModuleName)                                                       // delete old key in case the name changed
-		appState[v038distr.ModuleName] = v038Codec.MustMarshalJSON(v038distr.Migrate(distrGenState)) // needs to deal with module and vv accounts as well
-		// TODO should probably deal with vv accounts in parent func
+		delete(appState, v036distr.ModuleName) // delete old key in case the name changed
+		appState[v038distr.ModuleName] = v038Codec.MustMarshalJSON(v038distr.Migrate(distrGenState))
 	}
 
 	// slashing, evidence
-	// TODO
-	// if slashing, decode, call migrate (removes param) and marshal and set
-	// 		call evidence.Migrate with slashing genState, then marshal and set
+	if appState[v18de63slashing.ModuleName] != nil {
+		var slashingGenState v18de63slashing.GenesisState
+		v18de63Codec.MustUnmarshalJSON(appState[v18de63slashing.ModuleName], &slashingGenState)
+
+		delete(appState, v18de63slashing.ModuleName)
+		// remove param
+		appState[v038slashing.ModuleName] = v038Codec.MustMarshalJSON(v038slashingcustom.Migrate(slashingGenState))
+		// add new evidence module genesis (with above param)
+		appState[v038evidence.ModuleName] = v038Codec.MustMarshalJSON(v038evidencecustom.Migrate(slashingGenState))
+	}
 
 	// staking
-	// TODO
+	if appState[v18de63staking.ModuleName] != nil {
+		var stakingGenState v18de63staking.GenesisState
+		v18de63Codec.MustUnmarshalJSON(appState[v18de63staking.ModuleName], &stakingGenState)
+
+		delete(appState, v18de63staking.ModuleName)
+		appState[v038staking.ModuleName] = v038Codec.MustMarshalJSON(v038stakingcustom.Migrate(stakingGenState))
+	}
 
 	// upgrade
 	appState[upgrade.ModuleName] = []byte(`{}`) // TODO should use a copy of ModuleName?

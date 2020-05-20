@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/tendermint/tendermint/crypto"
-	yaml "gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,9 +24,10 @@ const ModuleName = "auth"
 
 // GenesisState - all auth state that must be provided at genesis
 type GenesisState struct {
-	Params   Params                   `json:"params" yaml:"params"`
+	Params   Params          `json:"params" yaml:"params"`
 	Accounts GenesisAccounts `json:"accounts" yaml:"accounts"`
 }
+
 // TODO copy in methods for validation?
 
 // ------------------------------------------
@@ -91,11 +92,9 @@ type GenesisAccount interface {
 	Validate() error
 }
 
-
 // ------------------------------------------
 //				BaseAccount
 // ------------------------------------------
-
 
 //-----------------------------------------------------------------------------
 // BaseAccount
@@ -131,20 +130,25 @@ type BaseAccount struct {
 // String implements fmt.Stringer
 func (acc BaseAccount) String() string {
 	var pubkey string
+	var err error
 
 	if acc.PubKey != nil {
-		pubkey = sdk.MustBech32ifyAccPub(acc.PubKey)
+		pubkey, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, acc.PubKey)
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
-// 	return fmt.Sprintf(`Account:
-//   Address:       %s
-//   Pubkey:        %s
-//   Coins:         %s
-//   AccountNumber: %d
-//   Sequence:      %d`,
-// 		acc.Address, pubkey, acc.Coins, acc.AccountNumber, acc.Sequence,
-// 	)
-// }
+	return fmt.Sprintf(`Account:
+  Address:       %s
+  Pubkey:        %s
+  Coins:         %s
+  AccountNumber: %d
+  Sequence:      %d`,
+		acc.Address, pubkey, acc.Coins, acc.AccountNumber, acc.Sequence,
+	)
+}
 
 // // ProtoBaseAccount - a prototype function for BaseAccount
 // func ProtoBaseAccount() exported.Account {
