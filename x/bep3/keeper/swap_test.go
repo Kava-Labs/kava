@@ -24,6 +24,7 @@ type AtomicSwapTestSuite struct {
 	keeper             keeper.Keeper
 	app                app.TestApp
 	ctx                sdk.Context
+	randMacc           sdk.AccAddress
 	deputy             sdk.AccAddress
 	addrs              []sdk.AccAddress
 	timestamps         []int64
@@ -62,6 +63,20 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	suite.deputy = deputy
 	suite.addrs = addrs
 	suite.keeper = suite.app.GetBep3Keeper()
+
+	// Load a random module account to test blacklisting
+	i := 0
+	var randModuleAcc sdk.AccAddress
+	for macc := range suite.keeper.Maccs {
+		if i == len(suite.keeper.Maccs)/2 {
+			acc, err := sdk.AccAddressFromBech32(macc)
+			suite.Nil(err)
+			randModuleAcc = acc
+		}
+		i = i + 1
+	}
+	suite.randMacc = randModuleAcc
+
 	suite.GenerateSwapDetails()
 }
 
@@ -285,6 +300,24 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			},
 			false,
 			true,
+		},
+		{
+			"recipient is module account",
+			currentTmTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[8],
+				timestamp:           suite.timestamps[8],
+				heightSpan:          uint64(360),
+				sender:              suite.deputy,
+				recipient:           suite.randMacc,
+				senderOtherChain:    TestSenderOtherChain,
+				recipientOtherChain: TestRecipientOtherChain,
+				coins:               cs(c(BNB_DENOM, 5000)),
+				crossChain:          true,
+				direction:           types.Incoming,
+			},
+			false,
+			false,
 		},
 	}
 
@@ -624,7 +657,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			}
 
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				uint64(360), sender, suite.addrs[8], TestSenderOtherChain, TestRecipientOtherChain,
+				uint64(360), sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, true)
 			suite.NoError(err)
 

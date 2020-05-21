@@ -7,12 +7,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
-	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/cdp/types"
-	kdtypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // DistributeSavingsRate distributes surplus that has accumulated in the liquidator account to address holding stable coins according the the savings rate
@@ -81,16 +78,14 @@ func (k Keeper) SetPreviousSavingsDistribution(ctx sdk.Context, distTime time.Ti
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(distTime))
 }
 
+// getModuleAccountCoins gets the total coin balance of this coin currently held by module accounts
 func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
-	// NOTE: these are the module accounts that could end up holding stable denoms at some point.
-	// Since there are currently no api methods to 'GetAllModuleAccounts', this function will need to be updated if a
-	// new module account is added which can hold stable denoms.
-	savingsRateMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc).GetCoins().AmountOf(denom)
-	cdpMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
-	auctionMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, auctiontypes.ModuleName).GetCoins().AmountOf(denom)
-	liquidatorMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(denom)
-	feeMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, authtypes.FeeCollectorName).GetCoins().AmountOf(denom)
-	kavadistMaccCoinAmount := k.supplyKeeper.GetModuleAccount(ctx, kdtypes.ModuleName).GetCoins().AmountOf(denom)
-	totalModAccountAmount := savingsRateMaccCoinAmount.Add(cdpMaccCoinAmount).Add(auctionMaccCoinAmount).Add(liquidatorMaccCoinAmount).Add(feeMaccCoinAmount).Add(kavadistMaccCoinAmount)
-	return sdk.NewCoins(sdk.NewCoin(denom, totalModAccountAmount))
+	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
+	for macc := range k.maccPerms {
+		modCoinBalance := k.supplyKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
+		if modCoinBalance.IsPositive() {
+			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
+		}
+	}
+	return totalModCoinBalance
 }
