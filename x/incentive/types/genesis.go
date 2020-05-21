@@ -2,14 +2,24 @@ package types
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisClaimPeriodID stores the next claim id and its corresponding denom
 type GenesisClaimPeriodID struct {
 	Denom string `json:"denom" yaml:"denom"`
 	ID    uint64 `json:"id" yaml:"id"`
+}
+
+// Validate performs a basic check of a GenesisClaimPeriodID fields.
+func (gcp GenesisClaimPeriodID) Validate() error {
+	if gcp.ID == 0 {
+		return errors.New("genesis claim period id cannot be 0")
+	}
+	return sdk.ValidateDenom(gcp.Denom)
 }
 
 // GenesisClaimPeriodIDs array of GenesisClaimPeriodID
@@ -52,12 +62,11 @@ func DefaultGenesisState() GenesisState {
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if gs.PreviousBlockTime.Equal(time.Time{}) {
-		return fmt.Errorf("previous block time not set")
+	if gs.PreviousBlockTime.IsZero() {
+		return errors.New("previous block time cannot be 0")
 	}
 	return nil
 }

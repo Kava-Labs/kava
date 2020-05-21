@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,6 +42,29 @@ func NewRewardPeriod(denom string, start time.Time, end time.Time, reward sdk.Co
 	}
 }
 
+// Validate performs a basic check of a RewardPeriod fields.
+func (rp RewardPeriod) Validate() error {
+	if rp.Start.IsZero() {
+		return errors.New("reward period start time cannot be 0")
+	}
+	if rp.End.IsZero() {
+		return errors.New("reward period end time cannot be 0")
+	}
+	if rp.Start.After(rp.End) {
+		return fmt.Errorf("end period time %s cannot be before start time %s", rp.End, rp.Start)
+	}
+	if rp.Reward.IsValid() {
+		return fmt.Errorf("invalid reward amount: %s", rp.Reward)
+	}
+	if rp.ClaimEnd.IsZero() {
+		return errors.New("reward period claim end time cannot be 0")
+	}
+	if rp.ClaimTimeLock == 0 {
+		return errors.New("reward claim time lock cannot be 0")
+	}
+	return sdk.ValidateDenom(rp.Denom)
+}
+
 // RewardPeriods array of RewardPeriod
 type RewardPeriods []RewardPeriod
 
@@ -52,16 +76,6 @@ type ClaimPeriod struct {
 	TimeLock time.Duration `json:"time_lock" yaml:"time_lock"`
 }
 
-// String implements fmt.Stringer
-func (cp ClaimPeriod) String() string {
-	return fmt.Sprintf(`Claim Period:
-	Denom: %s,
-	ID: %d,
-	End: %s,
-	Claim Time Lock: %s
-	`, cp.Denom, cp.ID, cp.End, cp.TimeLock)
-}
-
 // NewClaimPeriod returns a new ClaimPeriod
 func NewClaimPeriod(denom string, id uint64, end time.Time, timeLock time.Duration) ClaimPeriod {
 	return ClaimPeriod{
@@ -70,6 +84,30 @@ func NewClaimPeriod(denom string, id uint64, end time.Time, timeLock time.Durati
 		End:      end,
 		TimeLock: timeLock,
 	}
+}
+
+// Validate performs a basic check of a ClaimPeriod fields.
+func (cp ClaimPeriod) Validate() error {
+	if cp.ID == 0 {
+		return errors.New("claim period id cannot be 0")
+	}
+	if cp.End.IsZero() {
+		return errors.New("claim period end time cannot be 0")
+	}
+	if cp.TimeLock == 0 {
+		return errors.New("claim period time lock cannot be 0")
+	}
+	return sdk.ValidateDenom(cp.Denom)
+}
+
+// String implements fmt.Stringer
+func (cp ClaimPeriod) String() string {
+	return fmt.Sprintf(`Claim Period:
+	Denom: %s,
+	ID: %d,
+	End: %s,
+	Claim Time Lock: %s
+	`, cp.Denom, cp.ID, cp.End, cp.TimeLock)
 }
 
 // ClaimPeriods array of ClaimPeriod
@@ -91,6 +129,20 @@ func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, claimPeriodID
 		Denom:         denom,
 		ClaimPeriodID: claimPeriodID,
 	}
+}
+
+// Validate performs a basic check of a Claim fields.
+func (c Claim) Validate() error {
+	if c.Owner.Empty() {
+		return errors.New("claim owner cannot be empty")
+	}
+	if c.Reward.IsValid() {
+		return fmt.Errorf("invalid reward amount: %s", c.Reward)
+	}
+	if c.ClaimPeriodID == 0 {
+		return errors.New("claim period id cannot be 0")
+	}
+	return sdk.ValidateDenom(c.Denom)
 }
 
 // String implements fmt.Stringer
