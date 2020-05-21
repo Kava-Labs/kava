@@ -1,25 +1,30 @@
 package v0_8
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	v038auth "github.com/cosmos/cosmos-sdk/x/auth"
+	v038authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	v038vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	v036distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v0_36"
 	v038distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v0_38"
 	v038evidence "github.com/cosmos/cosmos-sdk/x/evidence"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	v038slashing "github.com/cosmos/cosmos-sdk/x/slashing"
 	v038staking "github.com/cosmos/cosmos-sdk/x/staking"
+	v038supply "github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
-	"github.com/kava-labs/kava/app"
-	v038authcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v0_38" // TODO alias?
+	"github.com/kava-labs/kava/app" // TODO alias?
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
 	v038evidencecustom "github.com/kava-labs/kava/migrate/v0_8/sdk/evidence/v0_38"
 	v038slashingcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/slashing/v0_38"
 	v18de63slashing "github.com/kava-labs/kava/migrate/v0_8/sdk/slashing/v18de63"
 	v038stakingcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/staking/v0_38"
 	v18de63staking "github.com/kava-labs/kava/migrate/v0_8/sdk/staking/v18de63"
+	v18de63supply "github.com/kava-labs/kava/migrate/v0_8/sdk/supply/v18de63"
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
@@ -27,6 +32,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
+	v0_3validator_vesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_3"
+	v0_8validator_vesting "github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 /*
@@ -45,16 +52,27 @@ Testing:
 // Migrate translates a genesis file from kava v0.3.x format to kava v0.8.x format.
 func Migrate(v0_3AppState genutil.AppMap) genutil.AppMap {
 
-	// run sdk migrations for v0.36 to v0.38 (at least ones that apply)
-	// custom auth
-	// reuse distribution
-	// custom slashing / evidence
-	// custom staking
-	// upgrade
+	// run sdk migrations for v0.36 to v0.38 (at least ones that apply) ignoring auth, we need custom migration given our custom validtor vesting types
 	v0_8AppState := MigrateSDK(v0_3AppState) // just move into own function for clarity
 
-	// run our migrations for new modules
 	v0_8Codec := app.MakeCodec() // TODO what happens when the codec changes in sdk v0.39 ? do we need to vendor amino?
+
+	// migrate auth state - different from sdk migration as we migrate from a middle format that never made it into a release, and we have custom validator vesting account
+	v0_3Codec := codec.New()
+	codec.RegisterCrypto(v0_3Codec) // TODO ideally use crypto from v0.3
+	v18de63auth.RegisterCodec(v0_3Codec)
+	v18de63auth.RegisterCodecVesting(v0_3Codec) // TODO probably split out vesting package
+	v18de63supply.RegisterCodec(v0_3Codec)
+	v0_3validator_vesting.RegisterCodec(v0_3Codec)
+	// above is not a complete v0.3 codec, missing things that would be on v0.3 app codec
+	if v0_3AppState[v18de63auth.ModuleName] != nil {
+		var authGenState v18de63auth.GenesisState
+		v0_3Codec.MustUnmarshalJSON(v0_3AppState[v18de63auth.ModuleName], &authGenState)
+
+		v0_8AppState[v038auth.ModuleName] = v0_8Codec.MustMarshalJSON(MigrateAuth(authGenState))
+	}
+
+	// run our migrations for new modules
 
 	// TODO use copied types and EmptyGenesisState ?
 	// TODO where in upgrade flow should new params be set? probably not here
@@ -86,17 +104,6 @@ func MigrateSDK(appState genutil.AppMap) genutil.AppMap {
 	v038auth.RegisterCodec(v038Codec)
 
 	// for each module, unmarshal old state, run a migrate(genesisStateType) func, marshal returned type into json and set
-
-	// migrate auth state - different from sdk migration as we migrate from a middle format that never made it into a release
-	if appState[v18de63auth.ModuleName] != nil {
-		var authGenState v18de63auth.GenesisState
-		v18de63Codec.MustUnmarshalJSON(appState[v18de63auth.ModuleName], &authGenState)
-
-		delete(appState, v18de63auth.ModuleName)
-		appState[v038auth.ModuleName] = v038Codec.MustMarshalJSON(v038authcustom.Migrate(authGenState))
-		// TODO needs to deal with module and vv accounts as well
-		// TODO should probably deal with vv accounts in parent func
-	}
 
 	// migrate distribution state - copied in from the sdk as these changes happened after 18de630d
 	if appState[v036distr.ModuleName] != nil {
@@ -132,4 +139,96 @@ func MigrateSDK(appState genutil.AppMap) genutil.AppMap {
 	appState[upgrade.ModuleName] = []byte(`{}`) // TODO should use a copy of ModuleName?
 
 	return appState
+}
+
+func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
+	// old and new struct type are identical but with different (un)marshalJSON methods
+	var newAccounts v038authexported.GenesisAccounts
+	for _, account := range oldGenState.Accounts {
+		switch acc := account.(type) {
+		case *v18de63auth.BaseAccount:
+			a := v038auth.BaseAccount(*acc)
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&a))
+		case *v18de63auth.BaseVestingAccount:
+			ba := v038auth.BaseAccount(*(acc.BaseAccount))
+			bva := v038vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.OriginalVesting,
+				DelegatedFree:    acc.DelegatedFree,
+				DelegatedVesting: acc.DelegatedFree,
+				EndTime:          acc.EndTime,
+			}
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&bva))
+		// TODO
+		// case *v18de63auth.ContinuousVestingAccount:
+		// case *v18de63auth.DelayedVestingAccount:
+		case *v18de63auth.PeriodicVestingAccount:
+			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			bva := v038vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedFree,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			var newPeriods v038vesting.Periods
+			for _, p := range acc.VestingPeriods {
+				newPeriods = append(newPeriods, v038vesting.Period(p))
+			}
+			pva := v038vesting.PeriodicVestingAccount{
+				BaseVestingAccount: &bva,
+				StartTime:          acc.StartTime,
+				VestingPeriods:     newPeriods,
+			}
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&pva))
+		// TODO does unmarshal json return pointers or concrete types?
+		case *v18de63supply.ModuleAccount:
+			ba := v038auth.BaseAccount(*(acc.BaseAccount))
+			ma := v038supply.ModuleAccount{
+				BaseAccount: &ba,
+				Name:        acc.Name,
+				Permissions: acc.Permissions,
+			}
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&ma))
+		case *v0_3validator_vesting.ValidatorVestingAccount:
+			ba := v038auth.BaseAccount(*(acc.PeriodicVestingAccount.BaseVestingAccount.BaseAccount))
+			bva := v038vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.PeriodicVestingAccount.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.PeriodicVestingAccount.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.PeriodicVestingAccount.BaseVestingAccount.DelegatedFree,
+				EndTime:          acc.PeriodicVestingAccount.BaseVestingAccount.EndTime,
+			}
+			var newPeriods v038vesting.Periods
+			for _, p := range acc.PeriodicVestingAccount.VestingPeriods {
+				newPeriods = append(newPeriods, v038vesting.Period(p))
+			}
+			pva := v038vesting.PeriodicVestingAccount{
+				BaseVestingAccount: &bva,
+				StartTime:          acc.PeriodicVestingAccount.StartTime,
+				VestingPeriods:     newPeriods,
+			}
+			var newVestingProgress []v0_8validator_vesting.VestingProgress
+			for _, p := range acc.VestingPeriodProgress {
+				newVestingProgress = append(newVestingProgress, v0_8validator_vesting.VestingProgress(p))
+			}
+			vva := v0_8validator_vesting.ValidatorVestingAccount{
+				PeriodicVestingAccount: &pva,
+				ValidatorAddress:       acc.ValidatorAddress,
+				ReturnAddress:          acc.ReturnAddress,
+				SigningThreshold:       acc.SigningThreshold,
+				CurrentPeriodProgress:  v0_8validator_vesting.CurrentPeriodProgress(acc.CurrentPeriodProgress),
+				VestingPeriodProgress:  newVestingProgress,
+				DebtAfterFailedVesting: acc.DebtAfterFailedVesting,
+			}
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&vva))
+		default:
+			// TODO
+			fmt.Println("different account type: ", acc)
+		}
+	}
+	return v038auth.GenesisState{
+		Params:   v038auth.Params(oldGenState.Params),
+		Accounts: newAccounts,
+	}
 }

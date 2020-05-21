@@ -1,11 +1,12 @@
 package main
 
 import (
+	"errors" // TODO added this instead of github errors
 	"fmt"
 	"sort"
 	"time"
 
-	"github.com/pkg/errors"
+	// "github.com/pkg/errors" // TODO why is this here?
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/types"
 
