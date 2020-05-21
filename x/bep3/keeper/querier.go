@@ -124,7 +124,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 	return bz, nil
 }
 
-// getAtomicSwapsFiltered retrieves atomic swaps filtered by a given set of params.
+// filterAtomicSwaps retrieves atomic swaps filtered by a given set of params.
 // If no filters are provided, all atomic swaps will be returned in paginated form.
 func filterAtomicSwaps(ctx sdk.Context, swaps types.AtomicSwaps, params types.QueryAtomicSwaps) types.AtomicSwaps {
 	filteredSwaps := make(types.AtomicSwaps, 0, len(swaps))
