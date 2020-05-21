@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -71,11 +70,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateRewardsParam(p.Rewards); err != nil {
-		return err
-	}
-
-	return nil
+	return validateRewardsParam(p.Rewards)
 }
 
 func validateActiveParam(i interface{}) error {
@@ -91,33 +86,8 @@ func validateRewardsParam(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	rewardDenoms := make(map[string]bool)
 
-	for _, reward := range rewards {
-		if strings.TrimSpace(reward.Denom) == "" {
-			return fmt.Errorf("cannot have empty reward denom: %s", reward)
-		}
-		if rewardDenoms[reward.Denom] {
-			return fmt.Errorf("cannot have duplicate reward denoms: %s", reward.Denom)
-		}
-		rewardDenoms[reward.Denom] = true
-		if !reward.AvailableRewards.IsValid() {
-			return fmt.Errorf("invalid reward coins %s for %s", reward.AvailableRewards, reward.Denom)
-		}
-		if !reward.AvailableRewards.IsPositive() {
-			return fmt.Errorf("reward amount must be positive, is %s for %s", reward.AvailableRewards, reward.Denom)
-		}
-		if int(reward.Duration.Seconds()) <= 0 {
-			return fmt.Errorf("reward duration must be positive, is %s for %s", reward.Duration.String(), reward.Denom)
-		}
-		if int(reward.TimeLock.Seconds()) < 0 {
-			return fmt.Errorf("reward timelock must be non-negative, is %s for %s", reward.TimeLock.String(), reward.Denom)
-		}
-		if int(reward.ClaimDuration.Seconds()) <= 0 {
-			return fmt.Errorf("claim duration must be positive, is %s for %s", reward.ClaimDuration.String(), reward.Denom)
-		}
-	}
-	return nil
+	return rewards.Validate()
 }
 
 // Reward stores the specified state for a single reward period.
@@ -154,8 +124,46 @@ func (r Reward) String() string {
 		r.Active, r.Denom, r.AvailableRewards, r.Duration, r.TimeLock, r.ClaimDuration)
 }
 
+// Validate performs a basic check of a reward fields.
+func (r Reward) Validate() error {
+	if !r.AvailableRewards.IsValid() {
+		return fmt.Errorf("invalid reward coins %s for %s", r.AvailableRewards, r.Denom)
+	}
+	if !r.AvailableRewards.IsPositive() {
+		return fmt.Errorf("reward amount must be positive, is %s for %s", r.AvailableRewards, r.Denom)
+	}
+	if r.Duration <= 0 {
+		return fmt.Errorf("reward duration must be positive, is %s for %s", r.Duration.String(), r.Denom)
+	}
+	if r.TimeLock < 0 {
+		return fmt.Errorf("reward timelock must be non-negative, is %s for %s", r.TimeLock.String(), r.Denom)
+	}
+	if r.ClaimDuration <= 0 {
+		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration.String(), r.Denom)
+	}
+	return sdk.ValidateDenom(r.Denom)
+}
+
 // Rewards array of Reward
 type Rewards []Reward
+
+// Validate checks if all the rewards are valid and there are no duplicated
+// entries.
+func (rs Rewards) Validate() error {
+	rewardDenoms := make(map[string]bool)
+	for _, r := range rs {
+		if rewardDenoms[r.Denom] {
+			return fmt.Errorf("cannot have duplicate reward denoms: %s", r.Denom)
+		}
+
+		if err := r.Validate(); err != nil {
+			return err
+		}
+
+		rewardDenoms[r.Denom] = true
+	}
+	return nil
+}
 
 // String implements fmt.Stringer
 func (rs Rewards) String() string {
