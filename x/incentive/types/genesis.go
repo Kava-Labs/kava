@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,6 +25,24 @@ func (gcp GenesisClaimPeriodID) Validate() error {
 
 // GenesisClaimPeriodIDs array of GenesisClaimPeriodID
 type GenesisClaimPeriodIDs []GenesisClaimPeriodID
+
+// Validate checks if all the GenesisClaimPeriodIDs are valid and there are no duplicated
+// entries.
+func (gcps GenesisClaimPeriodIDs) Validate() error {
+	seenIDS := make(map[string]bool)
+	for _, gcp := range gcps {
+		if seenIDS[gcp.Denom+string(gcp.ID)] {
+			return fmt.Errorf("duplicated genesis claim period with id %d and denom %s", gcp.ID, gcp.Denom)
+		}
+
+		if err := gcp.Validate(); err != nil {
+			return err
+		}
+		seenIDS[gcp.Denom+string(gcp.ID)] = true
+	}
+
+	return nil
+}
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
@@ -68,7 +87,16 @@ func (gs GenesisState) Validate() error {
 	if gs.PreviousBlockTime.IsZero() {
 		return errors.New("previous block time cannot be 0")
 	}
-	return nil
+	if err := gs.RewardPeriods.Validate(); err != nil {
+		return err
+	}
+	if err := gs.ClaimPeriods.Validate(); err != nil {
+		return err
+	}
+	if err := gs.Claims.Validate(); err != nil {
+		return err
+	}
+	return gs.NextClaimPeriodIDs.Validate()
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent

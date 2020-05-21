@@ -68,6 +68,24 @@ func (rp RewardPeriod) Validate() error {
 // RewardPeriods array of RewardPeriod
 type RewardPeriods []RewardPeriod
 
+// Validate checks if all the RewardPeriods are valid and there are no duplicated
+// entries.
+func (rps RewardPeriods) Validate() error {
+	seenPeriods := make(map[string]bool)
+	for _, rp := range rps {
+		if seenPeriods[rp.Denom] {
+			return fmt.Errorf("duplicated reward period with denom %s", rp.Denom)
+		}
+
+		if err := rp.Validate(); err != nil {
+			return err
+		}
+		seenPeriods[rp.Denom] = true
+	}
+
+	return nil
+}
+
 // ClaimPeriod stores the state of an ongoing claim period
 type ClaimPeriod struct {
 	Denom    string        `json:"denom" yaml:"denom"`
@@ -113,6 +131,24 @@ func (cp ClaimPeriod) String() string {
 // ClaimPeriods array of ClaimPeriod
 type ClaimPeriods []ClaimPeriod
 
+// Validate checks if all the ClaimPeriods are valid and there are no duplicated
+// entries.
+func (cps ClaimPeriods) Validate() error {
+	seenPeriods := make(map[string]bool)
+	for _, cp := range cps {
+		if seenPeriods[cp.Denom+string(cp.ID)] {
+			return fmt.Errorf("duplicated claim period with id %d and denom %s", cp.ID, cp.Denom)
+		}
+
+		if err := cp.Validate(); err != nil {
+			return err
+		}
+		seenPeriods[cp.Denom+string(cp.ID)] = true
+	}
+
+	return nil
+}
+
 // Claim stores the rewards that can be claimed by owner
 type Claim struct {
 	Owner         sdk.AccAddress `json:"owner" yaml:"owner"`
@@ -157,6 +193,24 @@ func (c Claim) String() string {
 
 // Claims array of Claim
 type Claims []Claim
+
+// Validate checks if all the claims are valid and there are no duplicated
+// entries.
+func (cs Claims) Validate() error {
+	seemClaims := make(map[string]bool)
+	for _, c := range cs {
+		if c.Owner != nil && seemClaims[c.Denom+string(c.ClaimPeriodID)+c.Owner.String()] {
+			return fmt.Errorf("duplicated claim from owner %s and denom %s", c.Owner, c.Denom)
+		}
+
+		if err := c.Validate(); err != nil {
+			return err
+		}
+		seemClaims[c.Denom+string(c.ClaimPeriodID)+c.Owner.String()] = true
+	}
+
+	return nil
+}
 
 // NewRewardPeriodFromReward returns a new reward period from the input reward and block time
 func NewRewardPeriodFromReward(reward Reward, blockTime time.Time) RewardPeriod {
