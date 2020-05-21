@@ -88,7 +88,9 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		if x := r.URL.Query().Get(RestType); len(x) != 0 {
 			auctionType = strings.ToLower(strings.TrimSpace(x))
-			if auctionType != "collateral" && auctionType != "surplus" && auctionType != "debt" {
+			if auctionType != types.CollateralAuctionType &&
+				auctionType != types.SurplusAuctionType &&
+				auctionType != types.DebtAuctionType {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid auction type %s", x))
 				return
 			}
@@ -105,11 +107,11 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		if x := r.URL.Query().Get(RestPhase); len(x) != 0 {
 			auctionPhase = strings.ToLower(strings.TrimSpace(x))
-			if auctionType != "collateral" && auctionType != "" {
+			if auctionType != types.CollateralAuctionType && len(auctionType) > 0 {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot apply phase flag to non-collateral auction type")
 				return
 			}
-			if auctionPhase != "forward" && auctionPhase != "reverse" {
+			if auctionPhase != types.ForwardAuctionPhase && auctionPhase != types.ReverseAuctionPhase {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid auction phase %s", x))
 				return
 			}

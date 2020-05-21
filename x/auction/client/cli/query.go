@@ -104,7 +104,9 @@ $ kvcli q auction auctions --page=2 --limit=100
 
 			if len(strType) != 0 {
 				auctionType = strings.ToLower(strings.TrimSpace(strType))
-				if auctionType != "collateral" && auctionType != "surplus" && auctionType != "debt" {
+				if auctionType != types.CollateralAuctionType &&
+					auctionType != types.SurplusAuctionType &&
+					auctionType != types.DebtAuctionType {
 					return fmt.Errorf("invalid auction type %s", strType)
 				}
 				params.Type = auctionType
@@ -121,10 +123,10 @@ $ kvcli q auction auctions --page=2 --limit=100
 
 			if len(strPhase) != 0 {
 				auctionPhase := strings.ToLower(strings.TrimSpace(strPhase))
-				if auctionType != "collateral" && auctionType != "" {
+				if auctionType != types.CollateralAuctionType && len(auctionType) > 0 {
 					return fmt.Errorf("cannot apply phase flag to non-collateral auction type")
 				}
-				if auctionPhase != "forward" && auctionPhase != "reverse" {
+				if auctionPhase != types.ForwardAuctionPhase && auctionPhase != types.ReverseAuctionPhase {
 					return fmt.Errorf("invalid auction phase %s", strPhase)
 				}
 				params.Phase = auctionPhase
