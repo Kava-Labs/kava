@@ -3,10 +3,12 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
 	"github.com/kava-labs/kava/x/auction/types"
@@ -68,22 +70,68 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		// Get all auctions
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetAuctions), nil)
+		var auctionType string
+		var auctionDenom string
+		var auctionPhase string
+
+		if x := r.URL.Query().Get(RestType); len(x) != 0 {
+			auctionType = strings.ToLower(strings.TrimSpace(x))
+			if auctionType != "collateral" && auctionType != "surplus" && auctionType != "debt" {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid auction type %s", x))
+				return
+			}
+		}
+
+		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
+			auctionDenom = strings.TrimSpace(x)
+			err := sdk.ValidateDenom(auctionDenom)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+		}
+
+		if x := r.URL.Query().Get(RestPhase); len(x) != 0 {
+			auctionPhase = strings.ToLower(strings.TrimSpace(x))
+			if auctionType != "collateral" && auctionType != "" {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot apply phase flag to non-collateral auction type")
+				return
+			}
+			if auctionPhase != "forward" && auctionPhase != "reverse" {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid auction phase %s", x))
+				return
+			}
+		}
+
+		params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase)
+		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		// Decode and return results
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetAuctions)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		cliCtx = cliCtx.WithHeight(height)
 
+		// Unmarshal to Auction and remarshal as AuctionWithPhase
 		var auctions types.Auctions
 		err = cliCtx.Codec.UnmarshalJSON(res, &auctions)
 		if err != nil {
