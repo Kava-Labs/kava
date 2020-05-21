@@ -6,8 +6,8 @@ import (
 
 // GenesisState - pricefeed state that must be provided at genesis
 type GenesisState struct {
-	Params       Params        `json:"params" yaml:"params"`
-	PostedPrices []PostedPrice `json:"posted_prices" yaml:"posted_prices"`
+	Params       Params       `json:"params" yaml:"params"`
+	PostedPrices PostedPrices `json:"posted_prices" yaml:"posted_prices"`
 }
 
 // NewGenesisState creates a new genesis state for the pricefeed module
@@ -38,12 +38,11 @@ func (gs GenesisState) IsEmpty() bool {
 	return gs.Equal(GenesisState{})
 }
 
-// ValidateGenesis performs basic validation of genesis data returning an
+// Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	return nil
+	return gs.PostedPrices.Validate()
 }
