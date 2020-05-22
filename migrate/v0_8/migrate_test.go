@@ -350,7 +350,7 @@ func TestMigrate_Auth_ValidatorVestingAccount(t *testing.T) {
 						},
 						"debt_after_failed_vesting": [],
 						"return_address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
-						"signing_threshold": "90",
+						"signing_threshold": 90,
 						"validator_address": "kavavalcons1rcgcrswwvunnfrx73ksc5ks8t9jtcnpaehf726",
 						"vesting_period_progress": [
 							{
@@ -382,6 +382,7 @@ func TestMigrate_Auth_ValidatorVestingAccount(t *testing.T) {
 								"vesting_successful": false
 							}
 						]
+					}
 				}
 			]
 		}`),
