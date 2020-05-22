@@ -1,6 +1,6 @@
 {
   "genesis_time": "2020-04-23T16:32:31.393515Z",
-  "chain_id": "testing",
+  "chain_id": "kava-testnet-6000",
   "consensus_params": {
     "block": {
       "max_bytes": "22020096",
@@ -47,7 +47,7 @@
       "assets_supplies": [],
       "atomic_swaps": [],
       "params": {
-        "bnb_deputy_address": "kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29",
+        "bnb_deputy_address": "kava1tfvn5t8qwngqd2q427za2mel48pcus3z9u73fl",
         "bnb_deputy_fixed_fee": "1000",
         "max_block_lock": "600",
         "min_block_lock": "80",
@@ -56,7 +56,7 @@
             "active": true,
             "coin_id": "714",
             "denom": "bnb",
-            "limit": "100000000000"
+            "limit": "10000000000000"
           }
         ]
       }
@@ -226,6 +226,21 @@
           ],
           "vote_threshold": "0.750000000000000000",
           "proposal_duration": "604800000000000"
+        },
+        {
+          "id": "1",
+          "description": "This committee is for testnet",
+          "members": [
+            "kava109fpwjvq6un86tw8f8emav2l0e0dha924scrj9"
+          ],
+          "permissions": [
+            {
+              "type": "kava/GodPermission",
+              "value": {}
+            }
+          ],
+          "vote_threshold": "0.750000000000000000",
+          "proposal_duration": "604800000000000"
         }
       ],
       "proposals": [],
@@ -343,7 +358,8 @@
             "base_asset": "bnb",
             "market_id": "bnb:usd",
             "oracles": [
-              "kava1mgwgstcyva04qa96t5plgpt8jv548cdzj009j0"
+              "kava1nyqy04x3ecpcuss3llmyu4fc2v4ma99h8vffjz",
+              "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h"
             ],
             "quote_asset": "usd"
           }
@@ -353,7 +369,7 @@
         {
           "expiry": "2021-06-20T00:00:00Z",
           "market_id": "bnb:usd",
-          "oracle_address": "kava1mgwgstcyva04qa96t5plgpt8jv548cdzj009j0",
+          "oracle_address": "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h",
           "price": "15.929061184"
         }
       ]

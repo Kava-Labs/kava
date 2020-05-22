@@ -23,6 +23,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return sdkerrors.Wrap(types.ErrAtomicSwapAlreadyExists, hex.EncodeToString(swapID))
 	}
 
+	// Cannot send coins to a module account
+	if k.Maccs[recipient.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
+	}
+
 	// The heightSpan period should be more than 10 minutes and less than one week
 	// Assume average block time interval is 10 second. 10 mins = 60 blocks, 1 week = 60480 blocks
 	if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {

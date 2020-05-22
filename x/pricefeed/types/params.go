@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
@@ -64,12 +63,5 @@ func validateMarketParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	// iterate over assets and verify them
-	for _, asset := range markets {
-		if strings.TrimSpace(asset.MarketID) == "" {
-			return sdkerrors.Wrapf(ErrInvalidMarket, "market id for asset %s cannot be blank", asset)
-		}
-	}
-
-	return nil
+	return markets.Validate()
 }
