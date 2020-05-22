@@ -15,3 +15,6 @@ require (
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )
+
+// patch bech32 decoding
+replace github.com/btcsuite/btcutil => github.com/kava-labs/btcutil v0.0.0-20200522184203-886d33430f06
