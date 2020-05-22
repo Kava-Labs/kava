@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -36,7 +35,7 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 			importGenesis := args[0]
 			genDoc, err := v032tendermint.GenesisDocFromFile(importGenesis)
 			if err != nil {
-				return errors.Wrapf(err, "failed to read genesis document from file %s", importGenesis)
+				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
 			// 2) Migrate state from kava v0.3 to v0.8
@@ -51,7 +50,7 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 
 				err := t.UnmarshalText([]byte(genesisTime))
 				if err != nil {
-					return errors.Wrap(err, "failed to unmarshal genesis time")
+					return fmt.Errorf("failed to unmarshal genesis time: %w", err)
 				}
 
 				newGenDoc.GenesisTime = t
@@ -65,12 +64,12 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 			// TODO assume current app version of codec is good for marshalling tendermint stuff
 			bz, err := cdc.MarshalJSONIndent(newGenDoc, "", "  ")
 			if err != nil {
-				return errors.Wrap(err, "failed to marshal genesis doc")
+				return fmt.Errorf("failed to marshal genesis doc: %w", err)
 			}
 
 			sortedBz, err := sdk.SortJSON(bz)
 			if err != nil {
-				return errors.Wrap(err, "failed to sort JSON genesis doc")
+				return fmt.Errorf("failed to sort JSON genesis doc: %w", err)
 			}
 
 			fmt.Println(string(sortedBz))
