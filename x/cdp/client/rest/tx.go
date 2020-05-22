@@ -51,6 +51,11 @@ func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Collateral,
 			requestBody.Principal,
 		)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
@@ -83,6 +88,11 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Depositor,
 			requestBody.Collateral,
 		)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
@@ -115,6 +125,11 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Depositor,
 			requestBody.Collateral,
 		)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
@@ -147,6 +162,11 @@ func postDrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Denom,
 			requestBody.Principal,
 		)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
@@ -179,6 +199,11 @@ func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Denom,
 			requestBody.Payment,
 		)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
