@@ -37,6 +37,7 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
+// TODO UPDATE
 func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
@@ -46,15 +47,16 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
-					Denom:              asset,
-					LiquidationRatio:   liquidationRatio,
-					DebtLimit:          sdk.NewInt64Coin("usdx", 1000000000000),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					LiquidationPenalty: d("0.05"),
-					AuctionSize:        i(100),
-					Prefix:             0x20,
-					ConversionFactor:   i(6),
-					MarketID:           asset + ":usd",
+					Denom:               asset,
+					LiquidationRatio:    liquidationRatio,
+					DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(100),
+					Prefix:              0x20,
+					ConversionFactor:    i(6),
+					SpotMarketID:        asset + ":usd",
+					LiquidationMarketID: asset + ":usd",
 				},
 			},
 			DebtParam: cdp.DebtParam{
@@ -108,26 +110,28 @@ func NewCDPGenStateMulti() app.GenesisState {
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
-					Denom:              "xrp",
-					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					LiquidationPenalty: d("0.05"),
-					AuctionSize:        i(7000000000),
-					Prefix:             0x20,
-					MarketID:           "xrp:usd",
-					ConversionFactor:   i(6),
+					Denom:               "xrp",
+					LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(7000000000),
+					Prefix:              0x20,
+					SpotMarketID:        "xrp:usd",
+					LiquidationMarketID: "xrp:usd",
+					ConversionFactor:    i(6),
 				},
 				{
-					Denom:              "btc",
-					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:          sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
-					LiquidationPenalty: d("0.025"),
-					AuctionSize:        i(10000000),
-					Prefix:             0x21,
-					MarketID:           "btc:usd",
-					ConversionFactor:   i(8),
+					Denom:               "btc",
+					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
+					LiquidationPenalty:  d("0.025"),
+					AuctionSize:         i(10000000),
+					Prefix:              0x21,
+					SpotMarketID:        "btc:usd",
+					LiquidationMarketID: "btc:usd",
+					ConversionFactor:    i(8),
 				},
 			},
 			DebtParam: cdp.DebtParam{
@@ -156,26 +160,28 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
-					Denom:              "xrp",
-					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewInt64Coin("usdx", 50000000000000),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					LiquidationPenalty: d("0.05"),
-					AuctionSize:        i(7000000000),
-					Prefix:             0x20,
-					MarketID:           "xrp:usd",
-					ConversionFactor:   i(6),
+					Denom:               "xrp",
+					LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 50000000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(7000000000),
+					Prefix:              0x20,
+					SpotMarketID:        "xrp:usd",
+					LiquidationMarketID: "xrp:usd",
+					ConversionFactor:    i(6),
 				},
 				{
-					Denom:              "btc",
-					LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:          sdk.NewInt64Coin("usdx", 50000000000000),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
-					LiquidationPenalty: d("0.025"),
-					AuctionSize:        i(10000000),
-					Prefix:             0x21,
-					MarketID:           "btc:usd",
-					ConversionFactor:   i(8),
+					Denom:               "btc",
+					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 50000000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
+					LiquidationPenalty:  d("0.025"),
+					AuctionSize:         i(10000000),
+					Prefix:              0x21,
+					SpotMarketID:        "btc:usd",
+					LiquidationMarketID: "btc:usd",
+					ConversionFactor:    i(8),
 				},
 			},
 			DebtParam: cdp.DebtParam{

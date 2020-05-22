@@ -285,11 +285,11 @@ func (suite *CdpTestSuite) TestCalculateCollateralizationRatio() {
 	suite.keeper.IndexCdpByOwner(suite.ctx, c)
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Principal)
 	suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Collateral.Denom, c.ID, cr)
-	cr, err = suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees)
+	cr, err = suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees, "spot")
 	suite.NoError(err)
 	suite.Equal(d("2.5"), cr)
 	c.AccumulatedFees = sdk.NewCoin("usdx", i(10000000))
-	cr, err = suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees)
+	cr, err = suite.keeper.CalculateCollateralizationRatio(suite.ctx, c.Collateral, c.Principal, c.AccumulatedFees, "spot")
 	suite.NoError(err)
 	suite.Equal(d("1.25"), cr)
 }
