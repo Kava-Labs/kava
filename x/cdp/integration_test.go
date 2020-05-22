@@ -37,7 +37,6 @@ func NewPricefeedGenState(asset string, price sdk.Dec) app.GenesisState {
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
-// TODO UPDATE
 func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{

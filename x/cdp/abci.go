@@ -33,7 +33,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		if err != nil {
 			panic(err)
 		}
-		// TODO update to LiquidationMarketID (see if SpotMarketID makes sense everywhere else)
 		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Denom, cp.LiquidationRatio)
 		if err != nil {
 			panic(err)
