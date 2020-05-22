@@ -41,6 +41,12 @@ import (
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+
+	"github.com/cosmos/cosmos-sdk/x/ibc"
+	ibcclient "github.com/cosmos/cosmos-sdk/x/ibc/02-client"
+	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
+	transfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer"
+	"github.com/cosmos/cosmos-sdk/x/capability"
 )
 
 const (
@@ -60,6 +66,7 @@ var (
 		auth.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -70,6 +77,7 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		evidence.AppModuleBasic{},
@@ -97,6 +105,7 @@ var (
 		cdp.SavingsRateMacc:         {supply.Minter},
 		bep3.ModuleName:             nil,
 		kavadist.ModuleName:         {supply.Minter},
+		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -122,6 +131,7 @@ type App struct {
 	// keepers from all the modules
 	accountKeeper   auth.AccountKeeper
 	bankKeeper      bank.Keeper
+	capabilityKeeper *capability.Keeper
 	supplyKeeper    supply.Keeper
 	stakingKeeper   staking.Keeper
 	slashingKeeper  slashing.Keeper
@@ -131,6 +141,7 @@ type App struct {
 	crisisKeeper    crisis.Keeper
 	upgradeKeeper   upgrade.Keeper
 	paramsKeeper    params.Keeper
+	ibcKeeper        *ibc.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	evidenceKeeper  evidence.Keeper
 	vvKeeper        validatorvesting.Keeper
 	auctionKeeper   auction.Keeper
@@ -141,6 +152,10 @@ type App struct {
 	kavadistKeeper  kavadist.Keeper
 	incentiveKeeper incentive.Keeper
 
+	// make scoped keepers public for test purposes
+	scopedIBCKeeper      capability.ScopedKeeper
+	scopedTransferKeeper capability.ScopedKeeper
+	
 	// the module manager
 	mm *module.Manager
 
@@ -162,9 +177,10 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
-		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
-		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, committee.StoreKey,
+		gov.StoreKey, params.StoreKey, ibc.StoreKey, upgrade.StoreKey, 
+		evidence.StoreKey, validatorvesting.StoreKey, auction.StoreKey,
+		cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey, kavadist.StoreKey,
+		incentive.StoreKey, committee.StoreKey, capability.StoreKey,ZZ
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -193,6 +209,11 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
 	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
+
+	// add capability keeper and ScopeToModule for ibc module
+	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey], memKeys[capability.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
+	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(transfer.ModuleName)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -253,18 +274,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[upgrade.StoreKey],
 		app.cdc,
 	)
-
-	// create evidence keeper with router
-	evidenceKeeper := evidence.NewKeeper(
-		app.cdc,
-		keys[evidence.StoreKey],
-		evidenceSubspace,
-		&app.stakingKeeper,
-		app.slashingKeeper,
-	)
-	evidenceRouter := evidence.NewRouter()
-	evidenceKeeper.SetRouter(evidenceRouter)
-	app.evidenceKeeper = *evidenceKeeper
 
 	// create committee keeper with router
 	committeeGovRouter := gov.NewRouter()
@@ -356,12 +365,48 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
+
+	// Create IBC Keeper
+	// TODO: remove amino codec dependency once Tendermint version is upgraded with
+	// protobuf changes
+	app.ibcKeeper = ibc.NewKeeper(
+		app.cdc, appCodec, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
+	)
+
+	// Create Transfer Keepers
+	app.transferKeeper = transfer.NewKeeper(
+		appCodec, keys[transfer.StoreKey],
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		app.accountKeeper, app.bankKeeper,
+		scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.transferKeeper)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := port.NewRouter()
+	ibcRouter.AddRoute(transfer.ModuleName, transferModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
+
+	// create evidence keeper with router
+	evidenceKeeper := evidence.NewKeeper(
+		app.cdc,
+		keys[evidence.StoreKey],
+		evidenceSubspace,
+		&app.stakingKeeper,
+		app.slashingKeeper,
+	)
+	evidenceRouter := evidence.NewRouter().
+	AddRoute(ibcclient.RouterKey, ibcclient.HandlerClientMisbehaviour(app.ibcKeeper.ClientKeeper))
+	evidenceKeeper.SetRouter(evidenceRouter)
+	app.evidenceKeeper = *evidenceKeeper
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
@@ -371,6 +416,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
@@ -389,7 +435,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, incentive.ModuleName, committee.ModuleName,
+		bep3.ModuleName, incentive.ModuleName, committee.ModuleName, ibc.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
@@ -400,7 +446,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
 		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
-		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName,
+		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName,
+		committee.ModuleName, ibc.ModuleName, transfer.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -417,6 +464,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		auth.NewAppModule(app.accountKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
@@ -430,6 +478,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -441,6 +490,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
+	// TODO:
 	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
@@ -451,6 +501,12 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 			tmos.Exit(err.Error())
 		}
 	}
+
+	ctx := app.BaseApp.NewUncachedContext(true, abci.Header{})
+	app.capabilityKeeper.InitializeAndSeal(ctx)
+
+	app.scopedIBCKeeper = scopedIBCKeeper
+	app.scopedTransferKeeper = scopedTransferKeeper
 
 	return app
 }
