@@ -29,6 +29,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
+
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestClaimOwner]
 		denom := vars[types.RestClaimDenom]
@@ -42,17 +43,18 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		queryParams := types.NewQueryClaimsParams(owner, denom)
 		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
+
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetClaims), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
-
 	}
 }
 
