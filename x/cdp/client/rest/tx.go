@@ -1,14 +1,15 @@
 package rest
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
-
-	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/gorilla/mux"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -24,17 +25,27 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Decode PUT request body
 		var requestBody PostCdpReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
+
 		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
 		if !requestBody.BaseReq.ValidateBasic(w) {
 			return
 		}
 
-		// Create and return msg
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Sender) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Sender))
+			return
+		}
+
 		msg := types.NewMsgCreateCDP(
 			requestBody.Sender,
 			requestBody.Collateral,
@@ -46,17 +57,27 @@ func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Decode PUT request body
 		var requestBody PostDepositReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
+
 		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
 		if !requestBody.BaseReq.ValidateBasic(w) {
 			return
 		}
 
-		// Create and return msg
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Owner) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Owner))
+			return
+		}
+
 		msg := types.NewMsgDeposit(
 			requestBody.Owner,
 			requestBody.Depositor,
@@ -68,17 +89,27 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Decode PUT request body
 		var requestBody PostWithdrawalReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
+
 		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
 		if !requestBody.BaseReq.ValidateBasic(w) {
 			return
 		}
 
-		// Create and return msg
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Owner) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Owner))
+			return
+		}
+
 		msg := types.NewMsgWithdraw(
 			requestBody.Owner,
 			requestBody.Depositor,
@@ -90,17 +121,27 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func postDrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Decode PUT request body
 		var requestBody PostDrawReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
+
 		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
 		if !requestBody.BaseReq.ValidateBasic(w) {
 			return
 		}
 
-		// Create and return msg
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Owner) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Owner))
+			return
+		}
+
 		msg := types.NewMsgDrawDebt(
 			requestBody.Owner,
 			requestBody.Denom,
@@ -112,17 +153,27 @@ func postDrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Decode PUT request body
 		var requestBody PostRepayReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
 			return
 		}
+
 		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
 		if !requestBody.BaseReq.ValidateBasic(w) {
 			return
 		}
 
-		// Create and return msg
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Owner) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Owner))
+			return
+		}
+
 		msg := types.NewMsgRepayDebt(
 			requestBody.Owner,
 			requestBody.Denom,

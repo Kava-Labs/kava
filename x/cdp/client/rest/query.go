@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-
 	"github.com/kava-labs/kava/x/cdp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // define routes that get registered by the main application
@@ -25,11 +23,11 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
+
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestOwner]
 		collateralDenom := vars[types.RestCollateralDenom]
@@ -44,7 +42,7 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
 
@@ -56,17 +54,16 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
-
 	}
 }
 
 func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
+
 		vars := mux.Vars(r)
 		collateralDenom := vars[types.RestCollateralDenom]
 
@@ -74,7 +71,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
 
@@ -86,17 +83,16 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
-
 	}
 }
 
 func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
+
 		vars := mux.Vars(r)
 		collateralDenom := vars[types.RestCollateralDenom]
 		ratioStr := vars[types.RestRatio]
@@ -110,7 +106,7 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		params := types.NewQueryCdpsByRatioParams(collateralDenom, ratioDec)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
 
@@ -122,17 +118,16 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
-
 	}
 }
 
 func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
+
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestOwner]
 		collateralDenom := vars[types.RestCollateralDenom]
@@ -147,7 +142,7 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
 
@@ -159,25 +154,23 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
-
 	}
 }
 
 func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse the query height
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
-		// Get the params
+
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetParams), nil)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		// Return the params
+
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
