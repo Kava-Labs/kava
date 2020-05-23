@@ -8,16 +8,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 )
 
-const ModuleName = slashing.ModuleName // TODO copy in?
+const ModuleName = "slashing"
 
-// TODO the field types (except Params) are the same between v18de63 and v0.38.3, so the types can be imported rather than copied in
+// The field types (except Params) are the same between v18de63 and v0.38, so the types can be imported rather than copied in
+
 type GenesisState struct {
 	Params       Params                                   `json:"params" yaml:"params"`
 	SigningInfos map[string]slashing.ValidatorSigningInfo `json:"signing_infos" yaml:"signing_infos"`
 	MissedBlocks map[string][]slashing.MissedBlock        `json:"missed_blocks" yaml:"missed_blocks"`
 }
 
-// assuming sdk types are the same between versions // TODO check
+// These sdk types are the same between v18de63 and v0.38
 
 type Params struct {
 	MaxEvidenceAge          time.Duration `json:"max_evidence_age" yaml:"max_evidence_age"`

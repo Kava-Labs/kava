@@ -8,7 +8,7 @@ import (
 
 func Migrate(oldGenState v18de63.GenesisState) v038slashing.GenesisState {
 
-	// old and new types are identical except for a new HistoricalEntries field
+	// old and new types are identical except for the MaxEvidenceAge param
 
 	newParams := v038slashing.Params{
 		// no MaxEvidenceAge

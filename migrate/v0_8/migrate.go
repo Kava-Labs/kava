@@ -2,7 +2,6 @@ package v0_8
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -29,6 +28,7 @@ import (
 	v18de63staking "github.com/kava-labs/kava/migrate/v0_8/sdk/staking/v18de63"
 	v18de63supply "github.com/kava-labs/kava/migrate/v0_8/sdk/supply/v18de63"
 	v032tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32"
+	v033tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_33"
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
@@ -40,19 +40,7 @@ import (
 	v0_8validator_vesting "github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
-/*
-Migrating between outdated versions:
-Any current version doesn't need to be able to migrate state between old versions, install the old software to do that.
-Just from previous release to current release.
-Otherwise we'll need to eventually keep around almost an entire copy of all old types from previous versions (including dependencies of old versions like the codec)
-Not a concern for now I think.
-
-Testing:
-- test migrate using types in module migration methods
-- test migrate using bytes in this top level migrate
-- write some sanity check scripts in python - check balances, vesting times are the same
-*/
-
+// Migrate translates a genesis file from kava v0.3.x format to kava v0.8.x format.
 func Migrate(v0_3GenDoc v032tendermint.GenesisDoc) tmtypes.GenesisDoc {
 
 	// migrate app state
@@ -67,54 +55,39 @@ func Migrate(v0_3GenDoc v032tendermint.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 
-	// migrate evidence params
-	newEvidenceParams := tmtypes.EvidenceParams{
-		MaxAgeNumBlocks: v0_3GenDoc.ConsensusParams.Evidence.MaxAge,
-		MaxAgeDuration:  time.Duration(int64(time.Second) * 6 * v0_3GenDoc.ConsensusParams.Evidence.MaxAge), // TODO what is the correct conversion?
-	}
-	newConsensusParams := tmtypes.ConsensusParams{
-		Block:     tmtypes.BlockParams(v0_3GenDoc.ConsensusParams.Block),
-		Evidence:  newEvidenceParams,
-		Validator: tmtypes.ValidatorParams(v0_3GenDoc.ConsensusParams.Validator),
-	}
+	// migrate tendermint
+	newGenDoc := v033tendermint.Migrate(v0_3GenDoc)
 
-	return tmtypes.GenesisDoc{
-		GenesisTime:     v0_3GenDoc.GenesisTime,
-		ChainID:         v0_3GenDoc.ChainID,
-		ConsensusParams: &newConsensusParams,
-		Validators:      v0_3GenDoc.Validators,
-		AppHash:         v0_3GenDoc.AppHash, // TODO replace with nil? does it need to be set?
-		AppState:        marshaledNewAppState,
-	}
+	newGenDoc.AppState = marshaledNewAppState
+	return newGenDoc
 }
 
-// Migrate translates a genesis file from kava v0.3.x format to kava v0.8.x format. // TODO
 func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 
-	// run sdk migrations for v0.36 to v0.38 (at least ones that apply) ignoring auth, we need custom migration given our custom validtor vesting types
-	v0_8AppState := MigrateSDK(v0_3AppState) // just move into own function for clarity
+	// run sdk migrations for v0.36 to v0.38 ignoring auth (validator vesting needs a custom migration, as does migrating from kava's pinned sdk version)
+	v0_8AppState := MigrateSDK(v0_3AppState)
 
-	v0_8Codec := app.MakeCodec() // TODO what happens when the codec changes in sdk v0.39 ? do we need to vendor amino?
+	// create codec for current app version
+	v0_8Codec := app.MakeCodec()
 
-	// migrate auth state - different from sdk migration as we migrate from a middle format that never made it into a release, and we have custom validator vesting account
+	// migrate auth state
+	// recreate the codec from v0.3 (note: current codec and crypto packages are backwards compatible) (note this is not a compete recreation of v0.3's codec)
 	v0_3Codec := codec.New()
-	codec.RegisterCrypto(v0_3Codec) // TODO ideally use crypto from v0.3
+	codec.RegisterCrypto(v0_3Codec)
 	v18de63auth.RegisterCodec(v0_3Codec)
 	v18de63auth.RegisterCodecVesting(v0_3Codec) // TODO probably split out vesting package
 	v18de63supply.RegisterCodec(v0_3Codec)
 	v0_3validator_vesting.RegisterCodec(v0_3Codec)
-	// above is not a complete v0.3 codec, missing things that would be on v0.3 app codec
+
 	if v0_3AppState[v18de63auth.ModuleName] != nil {
 		var authGenState v18de63auth.GenesisState
 		v0_3Codec.MustUnmarshalJSON(v0_3AppState[v18de63auth.ModuleName], &authGenState)
 
+		delete(v0_3AppState, v038auth.ModuleName)
 		v0_8AppState[v038auth.ModuleName] = v0_8Codec.MustMarshalJSON(MigrateAuth(authGenState))
 	}
 
-	// run our migrations for new modules
-
-	// TODO use copied types and EmptyGenesisState ?
-	// TODO where in upgrade flow should new params be set? probably not here
+	// migrate new modules (by adding new gen states)
 	v0_8AppState[auction.ModuleName] = v0_8Codec.MustMarshalJSON(auction.DefaultGenesisState())
 	v0_8AppState[bep3.ModuleName] = v0_8Codec.MustMarshalJSON(bep3.DefaultGenesisState())
 	v0_8AppState[cdp.ModuleName] = v0_8Codec.MustMarshalJSON(cdp.DefaultGenesisState())
