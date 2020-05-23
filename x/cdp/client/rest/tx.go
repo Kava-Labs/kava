@@ -72,17 +72,6 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		if !bytes.Equal(fromAddr, requestBody.Owner) {
-			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Owner))
-			return
-		}
-
 		msg := types.NewMsgDeposit(
 			requestBody.Owner,
 			requestBody.Depositor,
@@ -106,17 +95,6 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
 		if !requestBody.BaseReq.ValidateBasic(w) {
-			return
-		}
-
-		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		if !bytes.Equal(fromAddr, requestBody.Owner) {
-			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Owner))
 			return
 		}
 
