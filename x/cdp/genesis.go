@@ -72,7 +72,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 	k.SetGovDenom(ctx, gs.GovDenom)
-	k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
+	// only set the previous block time if it's different than default
+	if !gs.PreviousDistributionTime.Equal(types.DefaultPreviousDistributionTime) {
+		k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
+	}
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
