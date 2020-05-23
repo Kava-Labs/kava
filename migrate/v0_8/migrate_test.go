@@ -80,7 +80,7 @@ func TestMigrate_Auth_BaseAccount(t *testing.T) {
 		}`),
 	}
 
-	newGenesisState := Migrate(oldGenesisState)
+	newGenesisState := MigrateAppState(oldGenesisState)
 	require.JSONEq(t, string(expectedAuthGenState["auth"]), string(newGenesisState["auth"]))
 }
 
@@ -388,7 +388,7 @@ func TestMigrate_Auth_ValidatorVestingAccount(t *testing.T) {
 		}`),
 	}
 
-	newGenesisState := Migrate(oldGenesisState)
+	newGenesisState := MigrateAppState(oldGenesisState)
 
 	t.Log(string(newGenesisState["auth"]))
 
@@ -466,7 +466,7 @@ func TestMigrate_Auth_ModuleAccount(t *testing.T) {
 		}`),
 	}
 
-	newGenesisState := Migrate(oldGenesisState)
+	newGenesisState := MigrateAppState(oldGenesisState)
 	require.JSONEq(t, string(expectedAuthGenState["auth"]), string(newGenesisState["auth"]))
 }
 
@@ -719,6 +719,6 @@ func TestMigrate_Auth_PeriodicVestingAccount(t *testing.T) {
 		}`),
 	}
 
-	newGenesisState := Migrate(oldGenesisState)
+	newGenesisState := MigrateAppState(oldGenesisState)
 	require.JSONEq(t, string(expectedAuthGenState["auth"]), string(newGenesisState["auth"]))
 }
