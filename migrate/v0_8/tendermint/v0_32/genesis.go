@@ -19,20 +19,6 @@ const (
 	MaxChainIDLen = 50
 )
 
-//------------------------------------------------------------
-// core types for a genesis definition
-// NOTE: any changes to the genesis definition should
-// be reflected in the documentation:
-// docs/tendermint-core/using-tendermint.md
-
-// GenesisValidator is an initial validator.
-// type GenesisValidator struct {
-// 	Address Address       `json:"address"`
-// 	PubKey  crypto.PubKey `json:"pub_key"`
-// 	Power   int64         `json:"power"`
-// 	Name    string        `json:"name"`
-// }
-
 // GenesisDoc defines the initial conditions for a tendermint blockchain, in particular its validator set.
 type GenesisDoc struct {
 	GenesisTime     time.Time                `json:"genesis_time"`
@@ -42,25 +28,6 @@ type GenesisDoc struct {
 	AppHash         tmbytes.HexBytes         `json:"app_hash"`             // moved from `common` to `bytes` as they are the same between v0.32 and v0.33
 	AppState        json.RawMessage          `json:"app_state,omitempty"`
 }
-
-// // SaveAs is a utility method for saving GenensisDoc as a JSON file.
-// func (genDoc *GenesisDoc) SaveAs(file string) error {
-// 	genDocBytes, err := cdc.MarshalJSONIndent(genDoc, "", "  ")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return cmn.WriteFile(file, genDocBytes, 0644)
-// }
-
-// // ValidatorHash returns the hash of the validator set contained in the GenesisDoc
-// func (genDoc *GenesisDoc) ValidatorHash() []byte {
-// 	vals := make([]*Validator, len(genDoc.Validators))
-// 	for i, v := range genDoc.Validators {
-// 		vals[i] = NewValidator(v.PubKey, v.Power)
-// 	}
-// 	vset := NewValidatorSet(vals)
-// 	return vset.Hash()
-// }
 
 // ValidateAndComplete checks that all necessary fields are present
 // and fills in defaults for optional fields left empty

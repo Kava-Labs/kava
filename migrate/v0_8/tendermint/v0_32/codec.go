@@ -10,7 +10,7 @@ import (
 
 // Replace amino codec with sdk codec to avoid an explicit amino import in go.mod.
 // This will use a different version of amino from tendermint v0.32, but they are backwards compatible.
-// var Cdc = amino.NewCodec()
+// var cdc = amino.NewCodec()
 var Cdc = codec.New()
 
 func init() {
@@ -21,13 +21,3 @@ func RegisterBlockAmino(cdc *codec.Codec) {
 	cryptoAmino.RegisterAmino(cdc)
 	types.RegisterEvidences(cdc) // v0.33 is backwards compatible with v0.32 here
 }
-
-// // GetCodec returns a codec used by the package. For testing purposes only.
-// func GetCodec() *amino.Codec {
-// 	return cdc
-// }
-
-// // For testing purposes only
-// func RegisterMockEvidencesGlobal() {
-// 	RegisterMockEvidences(cdc)
-// }

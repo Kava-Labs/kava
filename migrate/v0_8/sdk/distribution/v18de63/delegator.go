@@ -16,12 +16,3 @@ type DelegatorStartingInfo struct {
 	Stake          sdk.Dec `json:"stake" yaml:"stake"`                     // amount of staking token delegated
 	Height         uint64  `json:"creation_height" yaml:"creation_height"` // height at which delegation was created
 }
-
-// // create a new DelegatorStartingInfo
-// func NewDelegatorStartingInfo(previousPeriod uint64, stake sdk.Dec, height uint64) DelegatorStartingInfo {
-// 	return DelegatorStartingInfo{
-// 		PreviousPeriod: previousPeriod,
-// 		Stake:          stake,
-// 		Height:         height,
-// 	}
-// }

@@ -1,9 +1,6 @@
 package v18de63
 
 import (
-	// "fmt"
-	// "strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -15,19 +12,3 @@ type Period struct {
 
 // Periods stores all vesting periods passed as part of a PeriodicVestingAccount
 type Periods []Period
-
-// // String Period implements stringer interface
-// func (p Period) String() string {
-// 	return fmt.Sprintf(`Length: %d
-// 	Amount: %s`, p.Length, p.Amount)
-// }
-
-// // String Periods implements stringer interface
-// func (vp Periods) String() string {
-// 	periodsListString := make([]string, len(vp))
-// 	for _, period := range vp {
-// 		periodsListString = append(periodsListString, period.String())
-// 	}
-// 	return strings.TrimSpace(fmt.Sprintf(`Vesting Periods:
-// 		%s`, strings.Join(periodsListString, ", ")))
-// }
