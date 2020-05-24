@@ -14,7 +14,7 @@ func Migrate(oldGenState v18de63.GenesisState) v038staking.GenesisState {
 		UnbondingTime:     oldGenState.Params.UnbondingTime,
 		MaxValidators:     oldGenState.Params.MaxValidators,
 		MaxEntries:        oldGenState.Params.MaxEntries,
-		HistoricalEntries: v038staking.DefaultHistoricalEntries, // TODO this is zero, so this whole migration might not be needed
+		HistoricalEntries: v038staking.DefaultHistoricalEntries,
 		BondDenom:         oldGenState.Params.BondDenom,
 	}
 

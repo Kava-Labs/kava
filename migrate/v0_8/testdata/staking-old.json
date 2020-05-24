@@ -1,0 +1,209 @@
+{
+  "delegations": [
+    {
+      "delegator_address": "kava1qql069rj0vz0x8jdk5h63ecsaurq04mmt875ws",
+      "shares": "80098000.000000000000000000",
+      "validator_address": "kavavaloper1ndkn5rdl9n929am6q2zt9ndfhhggcxkhetna90"
+    },
+    {
+      "delegator_address": "kava1qzvq736hxfwdqgxwek3229z7ec4rfmc6s4kdc2",
+      "shares": "333327700000.000000000000000000",
+      "validator_address": "kavavaloper12g40q2parn5z9ewh5xpltmayv6y0q3zs6ddmdg"
+    },
+    {
+      "delegator_address": "kava1qyc2cfl0nw8r95dsdw534x99wq0xcj9rksmhx4",
+      "shares": "3000000000.000000000000000000",
+      "validator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z"
+    },
+    {
+      "delegator_address": "kava1q8kk899edzecc86k5wx7q9l3t8rztx5lwccsme",
+      "shares": "0.004486575456999808",
+      "validator_address": "kavavaloper15urq2dtp9qce4fyc85m6upwm9xul3049dcs7da"
+    }
+  ],
+  "exported": true,
+  "last_total_power": "87921748",
+  "last_validator_powers": [
+    {
+      "Address": "kavavaloper1xhxzmj8fvkqn76knay9x2chfra826369dhdu2c",
+      "Power": "933070"
+    },
+    {
+      "Address": "kavavaloper18zksjhrefqew0zahmts894p8asscufxvdfq702",
+      "Power": "14"
+    },
+    {
+      "Address": "kavavaloper18s9m5d5cjf0humjv7mkq8pm47kchwm0r0369cx",
+      "Power": "20010"
+    },
+    {
+      "Address": "kavavaloper18cf35l7req0k6ulqapeyv830mrrucn9xj87plr",
+      "Power": "1171728"
+    }
+  ],
+  "params": {
+    "bond_denom": "ukava",
+    "max_entries": 7,
+    "max_validators": 100,
+    "unbonding_time": "1814400000000000"
+  },
+  "redelegations": [
+    {
+      "delegator_address": "kava1q8kk899edzecc86k5wx7q9l3t8rztx5lwccsme",
+      "entries": [
+        {
+          "completion_time": "2020-05-22T23:23:30.992348649Z",
+          "creation_height": "2110394",
+          "initial_balance": "315012002",
+          "shares_dst": "315012002.000000000000000000"
+        }
+      ],
+      "validator_dst_address": "kavavaloper140g8fnnl46mlvfhygj3zvjqlku6x0fwu6lgey7",
+      "validator_src_address": "kavavaloper15urq2dtp9qce4fyc85m6upwm9xul3049dcs7da"
+    },
+    {
+      "delegator_address": "kava1q8kk899edzecc86k5wx7q9l3t8rztx5lwccsme",
+      "entries": [
+        {
+          "completion_time": "2020-05-22T23:20:15.64728237Z",
+          "creation_height": "2110366",
+          "initial_balance": "1003230066",
+          "shares_dst": "1003230066.000000000000000000"
+        }
+      ],
+      "validator_dst_address": "kavavaloper1c9ye54e3pzwm3e0zpdlel6pnavrj9qqvh0atdq",
+      "validator_src_address": "kavavaloper140g8fnnl46mlvfhygj3zvjqlku6x0fwu6lgey7"
+    },
+    {
+      "delegator_address": "kava1qvsus5qg8yhre7k2c78xkkw4nvqqgev7ezrja8",
+      "entries": [
+        {
+          "completion_time": "2020-06-09T14:47:39.423043692Z",
+          "creation_height": "2327982",
+          "initial_balance": "1505000000000",
+          "shares_dst": "1505000000000.000000000000000000"
+        }
+      ],
+      "validator_dst_address": "kavavaloper1phd8jz25lumudc7ac7rhmupvcqcv7lg3c8dprc",
+      "validator_src_address": "kavavaloper1wu8m65vqazssv2rh8rthv532hzggfr3h9azwz9"
+    }
+  ],
+  "unbonding_delegations": [
+    {
+      "delegator_address": "kava1qs8m8cyw9992tgzqn7pnftf2pndmp8ft34xwvp",
+      "entries": [
+        {
+          "balance": "174823000",
+          "completion_time": "2020-06-08T16:51:21.788234654Z",
+          "creation_height": "2316738",
+          "initial_balance": "174823000"
+        }
+      ],
+      "validator_address": "kavavaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvl7z9xh"
+    },
+    {
+      "delegator_address": "kava1pjm84k90qnmcexv6704cxe243j52vww572j78u",
+      "entries": [
+        {
+          "balance": "50000000000",
+          "completion_time": "2020-06-02T03:09:04.133632623Z",
+          "creation_height": "2235868",
+          "initial_balance": "50000000000"
+        }
+      ],
+      "validator_address": "kavavaloper1jyuv7z9at27elvmnmzh2v39dc06r9kjcy59xkr"
+    },
+    {
+      "delegator_address": "kava1ph5u9mfytwgy25g6k6dyf0dxvuz63qwl7eymuf",
+      "entries": [
+        {
+          "balance": "10000000",
+          "completion_time": "2020-06-10T09:08:14.122467986Z",
+          "creation_height": "2337413",
+          "initial_balance": "10000000"
+        }
+      ],
+      "validator_address": "kavavaloper1ptyzewnns2kn37ewtmv6ppsvhdnmeapvl7z9xh"
+    }
+  ],
+  "validators": [
+    {
+      "commission": {
+        "commission_rates": {
+          "max_change_rate": "0.500000000000000000",
+          "max_rate": "0.500000000000000000",
+          "rate": "0.500000000000000000"
+        },
+        "update_time": "2020-02-05T09:55:51.495267155Z"
+      },
+      "consensus_pubkey": "kavavalconspub1zcjduepqyj4j29k7hn58g7n6ert7mm4m7d0kllrx6h5rzzgpvjdt69r80zsq3az2xq",
+      "delegator_shares": "23009000000.002955930745759376",
+      "description": {
+        "details": "\"Trustless Digital Asset Management\", Twitter: @StakeCapital, operated by @bneiluj @leopoldjoy",
+        "identity": "",
+        "moniker": "Stake Capital",
+        "security_contact": "",
+        "website": ""
+      },
+      "jailed": false,
+      "min_self_delegation": "1",
+      "operator_address": "kavavaloper1qyc2cfl0nw8r95dsdw534x99wq0xcj9rmxpl7z",
+      "status": 2,
+      "tokens": "23004398541",
+      "unbonding_height": "1971549",
+      "unbonding_time": "2020-05-11T17:02:08.405902954Z"
+    },
+    {
+      "commission": {
+        "commission_rates": {
+          "max_change_rate": "1.000000000000000000",
+          "max_rate": "1.000000000000000000",
+          "rate": "1.000000000000000000"
+        },
+        "update_time": "2019-11-20T18:38:18.607985797Z"
+      },
+      "consensus_pubkey": "kavavalconspub1zcjduepqftv90yrm4g4w4mq47rdx9f384yxegfx7qfpkft89x2nlzafv36pq47wgls",
+      "delegator_shares": "20069063571.000000000000000000",
+      "description": {
+        "details": "Forking the Banks",
+        "identity": "EA61A46F31742B22",
+        "moniker": "DragonStake",
+        "security_contact": "dragonstake@protonmail.com",
+        "website": "https://dragonstake.io"
+      },
+      "jailed": false,
+      "min_self_delegation": "1",
+      "operator_address": "kavavaloper1qfy0e2w62g6j4jg5djcqd4py3zsaeqexjplj2d",
+      "status": 2,
+      "tokens": "20069063571",
+      "unbonding_height": "0",
+      "unbonding_time": "1970-01-01T00:00:00Z"
+    },
+    {
+      "commission": {
+        "commission_rates": {
+          "max_change_rate": "0.010000000000000000",
+          "max_rate": "0.200000000000000000",
+          "rate": "0.110000000000000000"
+        },
+        "update_time": "2019-11-21T00:42:13.651988876Z"
+      },
+      "consensus_pubkey": "kavavalconspub1zcjduepquu3m094f3j9jnklursgngn667tt3rz0ahpt4f7406qzqclc42mnqxlrn7e",
+      "delegator_shares": "20004700000.000000000000000000",
+      "description": {
+        "details": "Validating with love in Holland for the world :)",
+        "identity": "1EBAA06E87B6DD60",
+        "moniker": "funky",
+        "security_contact": "",
+        "website": "https://kava-funkyvalidator.nl"
+      },
+      "jailed": false,
+      "min_self_delegation": "1",
+      "operator_address": "kavavaloper1q3y9qga5hf360dmzta67vp54qz25tmv4hhkk4t",
+      "status": 2,
+      "tokens": "20004700000",
+      "unbonding_height": "0",
+      "unbonding_time": "1970-01-01T00:00:00Z"
+    }
+  ]
+}

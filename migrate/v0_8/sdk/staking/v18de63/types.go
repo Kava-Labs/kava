@@ -7,10 +7,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 )
 
-const ModuleName = staking.ModuleName // TODO copy in?
+// All v18de63 types here are identical to current v0.38 types except Params which has a new field HistoricalEntries.
+// Since they're identical, the types here import current types rather than copying them in from v18de63.
 
-// most types on this struct are unchanged between v18de63 and 0.38.3, so we can import types from the current v0.38
-// should we copy them in anyway?
+const ModuleName = staking.ModuleName
+
 type GenesisState struct {
 	Params               Params                        `json:"params" yaml:"params"`
 	LastTotalPower       sdk.Int                       `json:"last_total_power" yaml:"last_total_power"`
@@ -26,6 +27,5 @@ type Params struct {
 	UnbondingTime time.Duration `json:"unbonding_time" yaml:"unbonding_time"` // time duration of unbonding
 	MaxValidators uint16        `json:"max_validators" yaml:"max_validators"` // maximum number of validators (max uint16 = 65535)
 	MaxEntries    uint16        `json:"max_entries" yaml:"max_entries"`       // max entries for either unbonding delegation or redelegation (per pair/trio)
-	// note: we need to be a bit careful about potential overflow here, since this is user-determined
-	BondDenom string `json:"bond_denom" yaml:"bond_denom"` // bondable coin denomination
+	BondDenom     string        `json:"bond_denom" yaml:"bond_denom"`         // bondable coin denomination
 }

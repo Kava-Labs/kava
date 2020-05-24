@@ -743,10 +743,19 @@ func TestMigrateDistribution(t *testing.T) {
 
 	newAppState := MigrateSDK(oldAppState)
 
-	bzz := app.MakeCodec().MustMarshalJSON(newAppState["distribution"])
-	ioutil.WriteFile("testdata/fasfd.json", bzz, 0644)
-
 	bz, err = ioutil.ReadFile(filepath.Join("testdata", "distribution-new.json"))
 	require.NoError(t, err)
 	require.JSONEq(t, string(bz), string(newAppState["distribution"]))
+}
+
+func TestMigrateStaking(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "staking-old.json"))
+	require.NoError(t, err)
+	oldAppState := genutil.AppMap{"staking": bz}
+
+	newAppState := MigrateSDK(oldAppState)
+
+	bz, err = ioutil.ReadFile(filepath.Join("testdata", "staking-new.json"))
+	require.NoError(t, err)
+	require.JSONEq(t, string(bz), string(newAppState["staking"]))
 }
