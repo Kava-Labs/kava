@@ -62,7 +62,7 @@ func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			// Query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuction), bz)
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuction), bz)
 			if err != nil {
 				return err
 			}
@@ -71,6 +71,8 @@ func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			var auction types.Auction
 			cdc.MustUnmarshalJSON(res, &auction)
 			auctionWithPhase := types.NewAuctionWithPhase(auction)
+
+			cliCtx = cliCtx.WithHeight(height)
 			return cliCtx.PrintOutput(auctionWithPhase)
 		},
 	}
@@ -83,9 +85,9 @@ func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "query auctions with optional filters",
 		Long: strings.TrimSpace(`Query for all paginated auctions that match optional filters:
 Example:
-$ kvcli q auction auctions --type=(Collateral|Surplus|Debt)
+$ kvcli q auction auctions --type=(collateral|surplus|debt)
 $ kvcli q auction auctions --denom=bnb
-$ kvcli q auction auctions --phase=(Forward|Reverse)
+$ kvcli q auction auctions --phase=(forward|reverse)
 $ kvcli q auction auctions --page=2 --limit=100
 `,
 		),
@@ -96,9 +98,11 @@ $ kvcli q auction auctions --page=2 --limit=100
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
-			var auctionType string
-			var auctionDenom string
-			var auctionPhase string
+			var (
+				auctionType  string
+				auctionDenom string
+				auctionPhase string
+			)
 
 			params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase)
 
@@ -183,7 +187,7 @@ func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
@@ -191,6 +195,7 @@ func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Decode and print results
 			var out types.Params
 			cdc.MustUnmarshalJSON(res, &out)
+			cliCtx = cliCtx.WithHeight(height)
 			return cliCtx.PrintOutput(out)
 		},
 	}
