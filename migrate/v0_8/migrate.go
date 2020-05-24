@@ -76,7 +76,7 @@ func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 	v0_3Codec := codec.New()
 	codec.RegisterCrypto(v0_3Codec)
 	v18de63auth.RegisterCodec(v0_3Codec)
-	v18de63auth.RegisterCodecVesting(v0_3Codec) // TODO probably split out vesting package
+	v18de63auth.RegisterCodecVesting(v0_3Codec)
 	v18de63supply.RegisterCodec(v0_3Codec)
 	v0_3validator_vesting.RegisterCodec(v0_3Codec)
 
@@ -100,17 +100,14 @@ func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 	return v0_8AppState
 }
 
-// migrate the sdk modules from commit 18de63 (v0.37 and half) to v0.38.3, mostly copying v038.Migrate
+// migrate the sdk modules from sdk commit 18de63 (v0.37 and half) to v0.38.3, mostly copying v038.Migrate
 func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
 
-	v18de63Codec := codec.New() // ideally this would use the exact version of amino from kava v0.3
+	v18de63Codec := codec.New() // ideally this would use the exact version of amino from kava v0.3, but the current version is backwards compatible
 	codec.RegisterCrypto(v18de63Codec)
 	v18de63auth.RegisterCodec(v18de63Codec)
 
-	// v038Codec := codec.New()
-	// codec.RegisterCrypto(v038Codec)
-	// v038auth.RegisterCodec(v038Codec)
-	v038Codec := app.MakeCodec() // TODO should we use sim app codec ?
+	v038Codec := app.MakeCodec() // using current kava app codec
 
 	// for each module, unmarshal old state, run a migrate(genesisStateType) func, marshal returned type into json and set
 
@@ -158,9 +155,11 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 	var newAccounts v038authexported.GenesisAccounts
 	for _, account := range oldGenState.Accounts {
 		switch acc := account.(type) {
+
 		case *v18de63auth.BaseAccount:
 			a := v038auth.BaseAccount(*acc)
 			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&a))
+
 		case *v18de63auth.BaseVestingAccount:
 			ba := v038auth.BaseAccount(*(acc.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
@@ -171,9 +170,36 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				EndTime:          acc.EndTime,
 			}
 			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&bva))
-		// TODO
-		// case *v18de63auth.ContinuousVestingAccount:
-		// case *v18de63auth.DelayedVestingAccount:
+
+		case *v18de63auth.ContinuousVestingAccount:
+			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			bva := v038vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedVesting,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			cva := v038vesting.ContinuousVestingAccount{
+				BaseVestingAccount: &bva,
+				StartTime:          acc.StartTime,
+			}
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&cva))
+
+		case *v18de63auth.DelayedVestingAccount:
+			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			bva := v038vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedVesting,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			dva := v038vesting.DelayedVestingAccount{
+				BaseVestingAccount: &bva,
+			}
+			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&dva))
+
 		case *v18de63auth.PeriodicVestingAccount:
 			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
@@ -193,7 +219,7 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				VestingPeriods:     newPeriods,
 			}
 			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&pva))
-		// TODO does unmarshal json return pointers or concrete types?
+
 		case *v18de63supply.ModuleAccount:
 			ba := v038auth.BaseAccount(*(acc.BaseAccount))
 			ma := v038supply.ModuleAccount{
@@ -202,6 +228,7 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				Permissions: acc.Permissions,
 			}
 			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&ma))
+
 		case *v0_3validator_vesting.ValidatorVestingAccount:
 			ba := v038auth.BaseAccount(*(acc.PeriodicVestingAccount.BaseVestingAccount.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
@@ -234,6 +261,7 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				DebtAfterFailedVesting: acc.DebtAfterFailedVesting,
 			}
 			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&vva))
+
 		default:
 			panic(fmt.Sprintf("unrecognized account type: %T", acc))
 		}

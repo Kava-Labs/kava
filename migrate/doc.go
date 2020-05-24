@@ -12,13 +12,12 @@ Genesis migration starts a whole new blockchain (with new chain-id) for the new 
 Upgrade module migration keeps the blockchain (and chain-id) the same for the new software version.
 
 We only support migrations between mainnet kava releases.
-
-We only support migrations from the previous mainnet kava version to the current. We don't support migrating between two old versions, use the old software release for this.
+We only support migrations from the previous mainnet kava version to the current. We don't support migrating between two old versions, use the old software version for this.
 We only support migrations from old to new versions, not the other way around.
 
 Genesis Migration
 The process is:
-- unmarshal the current genesis file into the old `GenesisState` that has been copied into a `legacy` folder (ideally use old codec)
+- unmarshal the current genesis file into the old `GenesisState` type that has been copied into a `legacy` folder (ideally using the old codec version)
 - convert that `GenesisState` to the current `GenesisState` type
 - marshal it to json (using current codec)
 

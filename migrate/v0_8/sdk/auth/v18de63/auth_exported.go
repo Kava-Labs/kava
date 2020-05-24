@@ -3,7 +3,7 @@ package v18de63
 // import (
 // 	"time"
 
-// 	"github.com/tendermint/tendermint/crypto" // TODO check this hasn't changed between versions
+// 	"github.com/tendermint/tendermint/crypto"
 
 // 	sdk "github.com/cosmos/cosmos-sdk/types"
 // )

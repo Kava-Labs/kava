@@ -15,7 +15,7 @@ func Migrate(v032GenDoc v032tendermint.GenesisDoc) tmtypes.GenesisDoc {
 		Block: tmtypes.BlockParams(v032GenDoc.ConsensusParams.Block),
 		Evidence: tmtypes.EvidenceParams{
 			MaxAgeNumBlocks: v032GenDoc.ConsensusParams.Evidence.MaxAge,
-			MaxAgeDuration:  time.Duration(int64(time.Second) * 6 * v032GenDoc.ConsensusParams.Evidence.MaxAge), // TODO what is the correct conversion?
+			MaxAgeDuration:  time.Duration(int64(time.Second) * 6 * v032GenDoc.ConsensusParams.Evidence.MaxAge), // assume 6 second block times
 		},
 		Validator: tmtypes.ValidatorParams(v032GenDoc.ConsensusParams.Validator),
 	}
