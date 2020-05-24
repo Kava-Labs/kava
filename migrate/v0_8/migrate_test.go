@@ -84,18 +84,7 @@ func TestMigrate_Auth_PeriodicVestingAccount(t *testing.T) {
 	require.JSONEq(t, string(bz), string(newAppState["auth"]))
 }
 
-func TestMigrateTendermint(t *testing.T) {
-	oldGenDoc, err := v032tendermint.GenesisDocFromFile(filepath.Join("testdata", "tendermint-old.json"))
-	require.NoError(t, err)
-
-	newGenDoc := v033tendermint.Migrate(*oldGenDoc)
-
-	expectedGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "tendermint-new.json"))
-	require.NoError(t, err)
-	require.Equal(t, *expectedGenDoc, newGenDoc)
-}
-
-func TestMigrateDistribution(t *testing.T) {
+func TestMigrate_Distribution(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "distribution-old.json"))
 	require.NoError(t, err)
 	oldAppState := genutil.AppMap{"distribution": bz}
@@ -107,7 +96,7 @@ func TestMigrateDistribution(t *testing.T) {
 	require.JSONEq(t, string(bz), string(newAppState["distribution"]))
 }
 
-func TestMigrateStaking(t *testing.T) {
+func TestMigrate_Staking(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "staking-old.json"))
 	require.NoError(t, err)
 	oldAppState := genutil.AppMap{"staking": bz}
@@ -119,7 +108,7 @@ func TestMigrateStaking(t *testing.T) {
 	require.JSONEq(t, string(bz), string(newAppState["staking"]))
 }
 
-func TestMigrateSlashing(t *testing.T) {
+func TestMigrate_Slashing(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "slashing-old.json"))
 	require.NoError(t, err)
 	oldAppState := genutil.AppMap{"slashing": bz}
@@ -131,7 +120,7 @@ func TestMigrateSlashing(t *testing.T) {
 	require.JSONEq(t, string(bz), string(newAppState["slashing"]))
 }
 
-func TestMigrateEvidence(t *testing.T) {
+func TestMigrate_Evidence(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "slashing-old.json"))
 	require.NoError(t, err)
 	oldAppState := genutil.AppMap{"slashing": bz}
@@ -141,4 +130,32 @@ func TestMigrateEvidence(t *testing.T) {
 	bz, err = ioutil.ReadFile(filepath.Join("testdata", "evidence-new.json"))
 	require.NoError(t, err)
 	require.JSONEq(t, string(bz), string(newAppState["evidence"]))
+}
+
+func TestMigrate_Tendermint(t *testing.T) {
+	oldGenDoc, err := v032tendermint.GenesisDocFromFile(filepath.Join("testdata", "tendermint-old.json"))
+	require.NoError(t, err)
+
+	newGenDoc := v033tendermint.Migrate(*oldGenDoc)
+
+	expectedGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "tendermint-new.json"))
+	require.NoError(t, err)
+	require.Equal(t, *expectedGenDoc, newGenDoc)
+}
+
+func TestMigrate(t *testing.T) {
+	oldGenDoc, err := v032tendermint.GenesisDocFromFile(filepath.Join("testdata", "all-old.json"))
+	require.NoError(t, err)
+
+	newGenDoc := Migrate(*oldGenDoc)
+
+	expectedGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "all-new.json"))
+	require.NoError(t, err)
+	// check each field seperately to aid debugging
+	require.Equal(t, expectedGenDoc.AppHash, newGenDoc.AppHash)
+	require.JSONEq(t, string(expectedGenDoc.AppState), string(newGenDoc.AppState))
+	require.Equal(t, expectedGenDoc.ChainID, newGenDoc.ChainID)
+	require.Equal(t, expectedGenDoc.ConsensusParams, newGenDoc.ConsensusParams)
+	require.Equal(t, expectedGenDoc.GenesisTime, newGenDoc.GenesisTime)
+	require.Equal(t, expectedGenDoc.Validators, newGenDoc.Validators)
 }

@@ -119,8 +119,6 @@ func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
 		var distGenState v18de63dist.GenesisState
 		v18de63Codec.MustUnmarshalJSON(appState[v18de63dist.ModuleName], &distGenState)
 
-		fmt.Println(string(appState[v18de63dist.ModuleName]))
-
 		delete(appState, v18de63dist.ModuleName) // delete old key in case the name changed
 		appState[v038dist.ModuleName] = v038Codec.MustMarshalJSON(v038distcustom.Migrate(distGenState))
 	}
