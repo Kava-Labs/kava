@@ -96,9 +96,9 @@ type CollateralParam struct {
 	AuctionSize         sdk.Int  `json:"auction_size" yaml:"auction_size"`               // Max amount of collateral to sell off in any one auction.
 	LiquidationPenalty  sdk.Dec  `json:"liquidation_penalty" yaml:"liquidation_penalty"` // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
 	Prefix              byte     `json:"prefix" yaml:"prefix"`
-	SpotMarketID        string   `json:"spot_market_id" yaml:"spot_market_id"`              // marketID of the spot price of the asset from the pricefeed - used for opening CDPs, depositing, withdrawing
-	LiquidationMarketID string   `json:"liquidation_market_id" yaml:"liquidation_market_id` // marketID of the pricefeed used for liquidation
-	ConversionFactor    sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`        // factor for converting internal units to one base unit of collateral
+	SpotMarketID        string   `json:"spot_market_id" yaml:"spot_market_id"`               // marketID of the spot price of the asset from the pricefeed - used for opening CDPs, depositing, withdrawing
+	LiquidationMarketID string   `json:"liquidation_market_id" yaml:"liquidation_market_id"` // marketID of the pricefeed used for liquidation
+	ConversionFactor    sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`         // factor for converting internal units to one base unit of collateral
 }
 
 // String implements fmt.Stringer
