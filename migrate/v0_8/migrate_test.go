@@ -2,12 +2,17 @@ package v0_8
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	v032tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32"
+	v033tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_33"
 	"github.com/stretchr/testify/require"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 )
@@ -389,9 +394,6 @@ func TestMigrate_Auth_ValidatorVestingAccount(t *testing.T) {
 	}
 
 	newGenesisState := MigrateAppState(oldGenesisState)
-
-	t.Log(string(newGenesisState["auth"]))
-
 	require.JSONEq(t, string(expectedAuthGenState["auth"]), string(newGenesisState["auth"]))
 }
 
@@ -721,4 +723,30 @@ func TestMigrate_Auth_PeriodicVestingAccount(t *testing.T) {
 
 	newGenesisState := MigrateAppState(oldGenesisState)
 	require.JSONEq(t, string(expectedAuthGenState["auth"]), string(newGenesisState["auth"]))
+}
+
+func TestMigrateTendermint(t *testing.T) {
+	oldGenDoc, err := v032tendermint.GenesisDocFromFile(filepath.Join("testdata", "tendermint-old.json"))
+	require.NoError(t, err)
+
+	newGenDoc := v033tendermint.Migrate(*oldGenDoc)
+
+	expectedGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "tendermint-new.json"))
+	require.NoError(t, err)
+	require.Equal(t, *expectedGenDoc, newGenDoc)
+}
+
+func TestMigrateDistribution(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "distribution-old.json"))
+	require.NoError(t, err)
+	oldAppState := genutil.AppMap{"distribution": bz}
+
+	newAppState := MigrateSDK(oldAppState)
+
+	bzz := app.MakeCodec().MustMarshalJSON(newAppState["distribution"])
+	ioutil.WriteFile("testdata/fasfd.json", bzz, 0644)
+
+	bz, err = ioutil.ReadFile(filepath.Join("testdata", "distribution-new.json"))
+	require.NoError(t, err)
+	require.JSONEq(t, string(bz), string(newAppState["distribution"]))
 }

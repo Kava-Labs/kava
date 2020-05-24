@@ -25,7 +25,7 @@ func Migrate(v032GenDoc v032tendermint.GenesisDoc) tmtypes.GenesisDoc {
 		ChainID:         v032GenDoc.ChainID,
 		ConsensusParams: &newConsensusParams,
 		Validators:      v032GenDoc.Validators,
-		AppHash:         v032GenDoc.AppHash, // TODO replace with nil? does it need to be set?
+		AppHash:         v032GenDoc.AppHash,
 		AppState:        v032GenDoc.AppState,
 	}
 }

@@ -9,8 +9,7 @@ import (
 	v038auth "github.com/cosmos/cosmos-sdk/x/auth"
 	v038authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	v038vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	v036distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v0_36"
-	v038distr "github.com/cosmos/cosmos-sdk/x/distribution/legacy/v0_38"
+	v038dist "github.com/cosmos/cosmos-sdk/x/distribution"
 	v038evidence "github.com/cosmos/cosmos-sdk/x/evidence"
 	v038genutil "github.com/cosmos/cosmos-sdk/x/genutil"
 	v038genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -19,8 +18,10 @@ import (
 	v038supply "github.com/cosmos/cosmos-sdk/x/supply"
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 
-	"github.com/kava-labs/kava/app" // TODO alias?
+	"github.com/kava-labs/kava/app"
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
+	v038distcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/distribution/v0_38"
+	v18de63dist "github.com/kava-labs/kava/migrate/v0_8/sdk/distribution/v18de63"
 	v038evidencecustom "github.com/kava-labs/kava/migrate/v0_8/sdk/evidence/v0_38"
 	v038slashingcustom "github.com/kava-labs/kava/migrate/v0_8/sdk/slashing/v0_38"
 	v18de63slashing "github.com/kava-labs/kava/migrate/v0_8/sdk/slashing/v18de63"
@@ -55,7 +56,7 @@ func Migrate(v0_3GenDoc v032tendermint.GenesisDoc) tmtypes.GenesisDoc {
 		panic(err)
 	}
 
-	// migrate tendermint
+	// migrate tendermint state
 	newGenDoc := v033tendermint.Migrate(v0_3GenDoc)
 
 	newGenDoc.AppState = marshaledNewAppState
@@ -64,7 +65,7 @@ func Migrate(v0_3GenDoc v032tendermint.GenesisDoc) tmtypes.GenesisDoc {
 
 func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 
-	// run sdk migrations for v0.36 to v0.38 ignoring auth (validator vesting needs a custom migration, as does migrating from kava's pinned sdk version)
+	// run sdk migrations for commit 18de63 to v0.38, ignoring auth (validator vesting needs a custom migration)
 	v0_8AppState := MigrateSDK(v0_3AppState)
 
 	// create codec for current app version
@@ -83,7 +84,7 @@ func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 		var authGenState v18de63auth.GenesisState
 		v0_3Codec.MustUnmarshalJSON(v0_3AppState[v18de63auth.ModuleName], &authGenState)
 
-		delete(v0_3AppState, v038auth.ModuleName)
+		delete(v0_3AppState, v18de63auth.ModuleName)
 		v0_8AppState[v038auth.ModuleName] = v0_8Codec.MustMarshalJSON(MigrateAuth(authGenState))
 	}
 
@@ -99,15 +100,10 @@ func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 	return v0_8AppState
 }
 
-// migrate the sdk modules between 18de630d (v0.37 and half) and v0.38.3, mostly copying v038.Migrate
+// migrate the sdk modules from commit 18de63 (v0.37 and half) to v0.38.3, mostly copying v038.Migrate
 func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
-	// TODO copy appState to avoid mutation?
 
-	// TODO setup codecs or pass in?
-	v036Codec := codec.New()
-	codec.RegisterCrypto(v036Codec)
-
-	v18de63Codec := codec.New() // ideally this would use the exact version of amino from kava v0.3.5
+	v18de63Codec := codec.New() // ideally this would use the exact version of amino from kava v0.3
 	codec.RegisterCrypto(v18de63Codec)
 	v18de63auth.RegisterCodec(v18de63Codec)
 
@@ -118,16 +114,18 @@ func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
 
 	// for each module, unmarshal old state, run a migrate(genesisStateType) func, marshal returned type into json and set
 
-	// migrate distribution state - copied in from the sdk as these changes happened after 18de630d
-	if appState[v036distr.ModuleName] != nil {
-		var distrGenState v036distr.GenesisState
-		v036Codec.MustUnmarshalJSON(appState[v036distr.ModuleName], &distrGenState)
+	// migrate distribution state
+	if appState[v18de63dist.ModuleName] != nil {
+		var distGenState v18de63dist.GenesisState
+		v18de63Codec.MustUnmarshalJSON(appState[v18de63dist.ModuleName], &distGenState)
 
-		delete(appState, v036distr.ModuleName) // delete old key in case the name changed
-		appState[v038distr.ModuleName] = v038Codec.MustMarshalJSON(v038distr.Migrate(distrGenState))
+		fmt.Println(string(appState[v18de63dist.ModuleName]))
+
+		delete(appState, v18de63dist.ModuleName) // delete old key in case the name changed
+		appState[v038dist.ModuleName] = v038Codec.MustMarshalJSON(v038distcustom.Migrate(distGenState))
 	}
 
-	// slashing, evidence
+	// migrate slashing and evidence state
 	if appState[v18de63slashing.ModuleName] != nil {
 		var slashingGenState v18de63slashing.GenesisState
 		v18de63Codec.MustUnmarshalJSON(appState[v18de63slashing.ModuleName], &slashingGenState)
@@ -139,7 +137,7 @@ func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
 		appState[v038evidence.ModuleName] = v038Codec.MustMarshalJSON(v038evidencecustom.Migrate(slashingGenState))
 	}
 
-	// staking
+	// migrate staking state
 	if appState[v18de63staking.ModuleName] != nil {
 		var stakingGenState v18de63staking.GenesisState
 		v18de63Codec.MustUnmarshalJSON(appState[v18de63staking.ModuleName], &stakingGenState)
@@ -148,10 +146,10 @@ func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
 		appState[v038staking.ModuleName] = v038Codec.MustMarshalJSON(v038stakingcustom.Migrate(stakingGenState))
 	}
 
-	// genutil
+	// migrate genutil state
 	appState[v038genutil.ModuleName] = v038Codec.MustMarshalJSON(v038genutiltypes.DefaultGenesisState())
 
-	// upgrade
+	// add upgrade state
 	appState[v038upgrade.ModuleName] = []byte(`{}`)
 
 	return appState
@@ -246,9 +244,5 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 		Params:   v038auth.Params(oldGenState.Params),
 		Accounts: newAccounts,
 	}
-	// TODO
-	// if err := v038auth.ValidateGenesis(gs); err != nil {
-	// 	panic(err)
-	// }
 	return gs
 }

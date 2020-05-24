@@ -49,35 +49,35 @@ type ValidatorParams struct {
 }
 
 // // DefaultConsensusParams returns a default ConsensusParams.
-// func DefaultConsensusParams() *ConsensusParams {
-// 	return &ConsensusParams{
-// 		DefaultBlockParams(),
-// 		DefaultEvidenceParams(),
-// 		DefaultValidatorParams(),
-// 	}
-// }
+func DefaultConsensusParams() *ConsensusParams {
+	return &ConsensusParams{
+		DefaultBlockParams(),
+		DefaultEvidenceParams(),
+		DefaultValidatorParams(),
+	}
+}
 
-// // DefaultBlockParams returns a default BlockParams.
-// func DefaultBlockParams() BlockParams {
-// 	return BlockParams{
-// 		MaxBytes:   22020096, // 21MB
-// 		MaxGas:     -1,
-// 		TimeIotaMs: 1000, // 1s
-// 	}
-// }
+// DefaultBlockParams returns a default BlockParams.
+func DefaultBlockParams() BlockParams {
+	return BlockParams{
+		MaxBytes:   22020096, // 21MB
+		MaxGas:     -1,
+		TimeIotaMs: 1000, // 1s
+	}
+}
 
-// // DefaultEvidenceParams Params returns a default EvidenceParams.
-// func DefaultEvidenceParams() EvidenceParams {
-// 	return EvidenceParams{
-// 		MaxAge: 100000, // 27.8 hrs at 1block/s
-// 	}
-// }
+// DefaultEvidenceParams Params returns a default EvidenceParams.
+func DefaultEvidenceParams() EvidenceParams {
+	return EvidenceParams{
+		MaxAge: 100000, // 27.8 hrs at 1block/s
+	}
+}
 
-// // DefaultValidatorParams returns a default ValidatorParams, which allows
-// // only ed25519 pubkeys.
-// func DefaultValidatorParams() ValidatorParams {
-// 	return ValidatorParams{[]string{ABCIPubKeyTypeEd25519}}
-// }
+// DefaultValidatorParams returns a default ValidatorParams, which allows
+// only ed25519 pubkeys.
+func DefaultValidatorParams() ValidatorParams {
+	return ValidatorParams{[]string{ABCIPubKeyTypeEd25519}}
+}
 
 // func (params *ValidatorParams) IsValidPubkeyType(pubkeyType string) bool {
 // 	for i := 0; i < len(params.PubKeyTypes); i++ {

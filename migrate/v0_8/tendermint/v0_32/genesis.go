@@ -1,19 +1,23 @@
 package v032
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"time"
 
+	//"github.com/pkg/errors" // replaced this pkg with "errors" to avoid adding a dependency
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// const (
-// 	// MaxChainIDLen is a maximum length of the chain ID.
-// 	MaxChainIDLen = 50
-// )
+const (
+	// MaxChainIDLen is a maximum length of the chain ID.
+	MaxChainIDLen = 50
+)
 
 //------------------------------------------------------------
 // core types for a genesis definition
@@ -60,38 +64,38 @@ type GenesisDoc struct {
 
 // ValidateAndComplete checks that all necessary fields are present
 // and fills in defaults for optional fields left empty
-// func (genDoc *GenesisDoc) ValidateAndComplete() error {
-// 	if genDoc.ChainID == "" {
-// 		return errors.New("Genesis doc must include non-empty chain_id")
-// 	}
-// 	if len(genDoc.ChainID) > MaxChainIDLen {
-// 		return errors.Errorf("chain_id in genesis doc is too long (max: %d)", MaxChainIDLen)
-// 	}
+func (genDoc *GenesisDoc) ValidateAndComplete() error {
+	if genDoc.ChainID == "" {
+		return errors.New("Genesis doc must include non-empty chain_id")
+	}
+	if len(genDoc.ChainID) > MaxChainIDLen {
+		return fmt.Errorf("chain_id in genesis doc is too long (max: %d)", MaxChainIDLen) // replaced errors with fmt
+	}
 
-// 	if genDoc.ConsensusParams == nil {
-// 		genDoc.ConsensusParams = DefaultConsensusParams()
-// 	} else if err := genDoc.ConsensusParams.Validate(); err != nil {
-// 		return err
-// 	}
+	if genDoc.ConsensusParams == nil {
+		genDoc.ConsensusParams = DefaultConsensusParams()
+	} /*else if err := genDoc.ConsensusParams.Validate(); err != nil {
+		return err
+	}*/ // remove validation to avoid having to copy in more types and methods from v0.32
 
-// 	for i, v := range genDoc.Validators {
-// 		if v.Power == 0 {
-// 			return errors.Errorf("The genesis file cannot contain validators with no voting power: %v", v)
-// 		}
-// 		if len(v.Address) > 0 && !bytes.Equal(v.PubKey.Address(), v.Address) {
-// 			return errors.Errorf("Incorrect address for validator %v in the genesis file, should be %v", v, v.PubKey.Address())
-// 		}
-// 		if len(v.Address) == 0 {
-// 			genDoc.Validators[i].Address = v.PubKey.Address()
-// 		}
-// 	}
+	for i, v := range genDoc.Validators {
+		if v.Power == 0 {
+			return fmt.Errorf("The genesis file cannot contain validators with no voting power: %v", v) // replaced errors with fmt
+		}
+		if len(v.Address) > 0 && !bytes.Equal(v.PubKey.Address(), v.Address) {
+			return fmt.Errorf("Incorrect address for validator %v in the genesis file, should be %v", v, v.PubKey.Address()) // replaced errors with fmt
+		}
+		if len(v.Address) == 0 {
+			genDoc.Validators[i].Address = v.PubKey.Address()
+		}
+	}
 
-// 	if genDoc.GenesisTime.IsZero() {
-// 		genDoc.GenesisTime = tmtime.Now()
-// 	}
+	if genDoc.GenesisTime.IsZero() {
+		genDoc.GenesisTime = tmtime.Now()
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 //------------------------------------------------------------
 // Make genesis state from file
@@ -104,9 +108,9 @@ func GenesisDocFromJSON(jsonBlob []byte) (*GenesisDoc, error) {
 		return nil, err
 	}
 
-	// if err := genDoc.ValidateAndComplete(); err != nil {
-	// 	return nil, err
-	// }
+	if err := genDoc.ValidateAndComplete(); err != nil {
+		return nil, err
+	}
 
 	return &genDoc, err
 }

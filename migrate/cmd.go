@@ -61,7 +61,6 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 				newGenDoc.ChainID = chainID
 			}
 
-			// TODO assume current app version of codec is good for marshalling tendermint stuff
 			bz, err := cdc.MarshalJSONIndent(newGenDoc, "", "  ")
 			if err != nil {
 				return fmt.Errorf("failed to marshal genesis doc: %w", err)
