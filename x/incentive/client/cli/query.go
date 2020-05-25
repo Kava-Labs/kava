@@ -25,6 +25,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	incentiveQueryCmd.AddCommand(flags.GetCommands(
 		queryParamsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
+		queryRewardPeriodsCmd(queryRoute, cdc),
+		queryClaimPeriodsCmd(queryRoute, cdc),
 	)...)
 
 	return incentiveQueryCmd
@@ -95,6 +97,58 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("failed to unmarshal params: %w", err)
 			}
 			return cliCtx.PrintOutput(params)
+		},
+	}
+}
+
+func queryRewardPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "reward-periods",
+		Short: "get active reward periods",
+		Long:  "Get the current set of active incentive reward periods.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetRewardPeriods)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var rewardPeriods types.RewardPeriods
+			if err := cdc.UnmarshalJSON(res, &rewardPeriods); err != nil {
+				return fmt.Errorf("failed to unmarshal reward periods: %w", err)
+			}
+			return cliCtx.PrintOutput(rewardPeriods)
+		},
+	}
+}
+
+func queryClaimPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "claim-periods",
+		Short: "get active claim periods",
+		Long:  "Get the current set of active incentive claim periods.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetClaimPeriods)
+			res, _, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var claimPeriods types.ClaimPeriods
+			if err := cdc.UnmarshalJSON(res, &claimPeriods); err != nil {
+				return fmt.Errorf("failed to unmarshal claim periods: %w", err)
+			}
+			return cliCtx.PrintOutput(claimPeriods)
 		},
 	}
 }

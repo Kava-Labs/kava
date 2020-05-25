@@ -7,10 +7,12 @@ import (
 
 // Querier routes for the incentive module
 const (
-	QueryGetClaims = "claims"
-	RestClaimOwner = "owner"
-	RestClaimDenom = "denom"
-	QueryGetParams = "parameters"
+	QueryGetClaims        = "claims"
+	RestClaimOwner        = "owner"
+	RestClaimDenom        = "denom"
+	QueryGetParams        = "parameters"
+	QueryGetRewardPeriods = "reward-periods"
+	QueryGetClaimPeriods  = "claim-periods"
 )
 
 // QueryClaimsParams params for query /incentive/claims
