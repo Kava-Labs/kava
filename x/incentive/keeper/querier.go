@@ -20,6 +20,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetRewardPeriods:
 			return queryGetRewardPeriods(ctx, req, k)
+		case types.QueryGetClaimPeriods:
+			return queryGetClaimPeriods(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
