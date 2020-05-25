@@ -18,7 +18,12 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 
 	for _, cp := range params.CollateralParams {
 
-		ok := k.UpdatePricefeedStatus(ctx, cp.MarketID)
+		ok := k.UpdatePricefeedStatus(ctx, cp.SpotMarketID)
+		if !ok {
+			continue
+		}
+
+		ok = k.UpdatePricefeedStatus(ctx, cp.LiquidationMarketID)
 		if !ok {
 			continue
 		}
@@ -28,8 +33,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 		if err != nil {
 			panic(err)
 		}
-
-		err = k.LiquidateCdps(ctx, cp.MarketID, cp.Denom, cp.LiquidationRatio)
+		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Denom, cp.LiquidationRatio)
 		if err != nil {
 			panic(err)
 		}
