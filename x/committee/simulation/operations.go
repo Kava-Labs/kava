@@ -32,8 +32,9 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 
 	for _, wContent := range wContents {
 		wContent := wContent // pin variable
-		if wContent.AppParamsKey == OpWeightSubmitCommitteeChangeProposal {
+		if wContent.AppParamsKey == OpWeightSubmitCommitteeChangeProposal || wContent.AppParamsKey == distsim.OpWeightSubmitCommunitySpendProposal {
 			// don't include committee change/delete proposals as they're not enabled for submission to committees
+			// don't include community pool proposals as the generator func sometimes returns nil // TODO replace generator with a better one
 			continue
 		}
 		var weight int

@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -66,7 +67,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 		price, err := pfk.GetCurrentPrice(ctx, randCollateralParam.SpotMarketID)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NoOpMsg(types.ModuleName), nil, nil // pricefeed going down is an expected event
 		}
 		// convert the price to the same units as the debt param
 		priceShifted := ShiftDec(price.Price, debtParam.ConversionFactor)
@@ -149,7 +150,8 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				// to aid debugging, add the stack trace to the comment field of the returned opMsg
+				return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 			}
 
 			return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -172,7 +174,8 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				// to aid debugging, add the stack trace to the comment field of the returned opMsg
+				return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 			}
 
 			return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -216,7 +219,8 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			_, _, err := app.Deliver(tx)
 
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				// to aid debugging, add the stack trace to the comment field of the returned opMsg
+				return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 			}
 
 			return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -254,7 +258,8 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				// to aid debugging, add the stack trace to the comment field of the returned opMsg
+				return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 			}
 
 			return simulation.NewOperationMsg(msg, true, ""), nil, nil
