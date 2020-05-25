@@ -3,6 +3,7 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -50,15 +51,19 @@ func queryAuction(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 }
 
 func queryAuctions(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	// Get all auctions
-	auctionsList := types.Auctions{}
-	keeper.IterateAuctions(ctx, func(a types.Auction) bool {
-		auctionsList = append(auctionsList, a)
-		return false
-	})
+	var params types.QueryAllAuctionParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
 
-	// Encode Results
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, auctionsList)
+	unfilteredAuctions := keeper.GetAllAuctions(ctx)
+	auctions := filterAuctions(ctx, unfilteredAuctions, params)
+	if auctions == nil {
+		auctions = types.Auctions{}
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, auctions)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -78,4 +83,42 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 	}
 
 	return bz, nil
+}
+
+// filterAuctions retrieves auctions filtered by a given set of params.
+// If no filters are provided, all auctions will be returned in paginated form.
+func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.QueryAllAuctionParams) types.Auctions {
+	filteredAuctions := make(types.Auctions, 0, len(auctions))
+
+	for _, auc := range auctions {
+		matchType, matchDenom, matchPhase := true, true, true
+
+		// match auction type (if supplied)
+		if len(params.Type) > 0 {
+			matchType = auc.GetType() == params.Type
+		}
+
+		// match auction denom (if supplied)
+		if len(params.Denom) > 0 {
+			matchDenom = auc.GetBid().Denom == params.Denom || auc.GetLot().Denom == params.Denom
+		}
+
+		// match auction phase (if supplied)
+		if len(params.Phase) > 0 {
+			matchPhase = auc.GetPhase() == params.Phase
+		}
+
+		if matchType && matchDenom && matchPhase {
+			filteredAuctions = append(filteredAuctions, auc)
+		}
+	}
+
+	start, end := client.Paginate(len(filteredAuctions), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		filteredAuctions = types.Auctions{}
+	} else {
+		filteredAuctions = filteredAuctions[start:end]
+	}
+
+	return filteredAuctions
 }
