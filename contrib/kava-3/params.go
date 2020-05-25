@@ -77,16 +77,16 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		cdp.NewParams(
 			sdk.NewInt64Coin(usdxDenom, 100_000_000_000),
 			cdp.CollateralParams{{
-				Denom:              bnbDenom,
-				LiquidationRatio:   sdk.MustNewDecFromStr("1.5"),
-				DebtLimit:          sdk.NewInt64Coin(usdxDenom, 100_000_000_000),
-				StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr // TODO check value
-				LiquidationPenalty: sdk.MustNewDecFromStr("0.075"),
-				AuctionSize:        sdk.NewInt(50_000_000_000),
-				Prefix:             0x20,
-				ConversionFactor:   sdk.NewInt(8),
-				MarketID:           bnbSpotMarketID,
-				// TODO add new marketIDs
+				Denom:               bnbDenom,
+				LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+				DebtLimit:           sdk.NewInt64Coin(usdxDenom, 100_000_000_000),
+				StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr // TODO check value
+				LiquidationPenalty:  sdk.MustNewDecFromStr("0.075"),
+				AuctionSize:         sdk.NewInt(50_000_000_000),
+				Prefix:              0x20,
+				ConversionFactor:    sdk.NewInt(8),
+				SpotMarketID:        bnbSpotMarketID,
+				LiquidationMarketID: bnbLiquidationMarketID,
 			}},
 			cdp.DebtParam{
 				Denom:            usdxDenom,
@@ -182,16 +182,16 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 							},
 						},
 						AllowedCollateralParams: committee.AllowedCollateralParams{{
-							Denom:              bnbDenom,
-							LiquidationRatio:   false,
-							DebtLimit:          true,
-							StabilityFee:       true,
-							AuctionSize:        true,
-							LiquidationPenalty: false,
-							Prefix:             false,
-							MarketID:           false,
-							// TODO add new marketIDs
-							ConversionFactor: false,
+							Denom:               bnbDenom,
+							LiquidationRatio:    false,
+							DebtLimit:           true,
+							StabilityFee:        true,
+							AuctionSize:         true,
+							LiquidationPenalty:  false,
+							Prefix:              false,
+							SpotMarketID:        false,
+							LiquidationMarketID: false,
+							ConversionFactor:    false,
 						}},
 						AllowedDebtParam: committee.AllowedDebtParam{
 							Denom:            false,
