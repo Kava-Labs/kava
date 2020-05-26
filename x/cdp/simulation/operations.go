@@ -159,7 +159,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 		// deposit 25% of the time
 		if hasCoins(spendableCoins, randCollateralParam.Denom) && shouldDeposit(r) {
-			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
+			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64())))) // TODO if spendableCoins is 1, RandIntBetween panics
 			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount))
 
 			tx := helpers.GenTx(
