@@ -28,9 +28,9 @@ COPY app app
 COPY x x
 COPY Makefile .
 
-# Install kvd, kvcli
+# Don't need to install kvd & kvcli for running tests
 ENV LEDGER_ENABLED False
-RUN make install
+# RUN make install
 
 # Copy in simulation script after to decrease image build time
 COPY simulations simulations

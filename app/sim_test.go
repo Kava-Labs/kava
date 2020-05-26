@@ -322,7 +322,7 @@ func AppStateFn(cdc *codec.Codec, simManager *module.SimulationManager) simulati
 		if simapp.FlagGenesisTimeValue == 0 {
 			genesisTimestamp = time.Unix(r.Int63n(190288396800), 0) // 1st Jan year 8000
 		} else {
-			genesisTimestamp = time.Unix(FlagGenesisTimeValue, 0)
+			genesisTimestamp = time.Unix(simapp.FlagGenesisTimeValue, 0)
 		}
 
 		chainID = config.ChainID
