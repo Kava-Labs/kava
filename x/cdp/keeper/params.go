@@ -62,12 +62,20 @@ func (k Keeper) getDenomFromByte(ctx sdk.Context, db byte) string {
 	panic(fmt.Sprintf("no collateral denom with prefix %b", db))
 }
 
-func (k Keeper) getMarketID(ctx sdk.Context, denom string) string {
+func (k Keeper) getSpotMarketID(ctx sdk.Context, denom string) string {
 	cp, found := k.GetCollateral(ctx, denom)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", denom))
 	}
-	return cp.MarketID
+	return cp.SpotMarketID
+}
+
+func (k Keeper) getliquidationMarketID(ctx sdk.Context, denom string) string {
+	cp, found := k.GetCollateral(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", denom))
+	}
+	return cp.LiquidationMarketID
 }
 
 func (k Keeper) getLiquidationRatio(ctx sdk.Context, denom string) sdk.Dec {

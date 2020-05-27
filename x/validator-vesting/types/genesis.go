@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"time"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -39,8 +39,8 @@ func (data GenesisState) IsEmpty() bool {
 
 // ValidateGenesis returns nil because accounts are validated by auth
 func ValidateGenesis(data GenesisState) error {
-	if data.PreviousBlockTime.Unix() < 0 {
-		return fmt.Errorf("Previous block time should be positive, is set to %v", data.PreviousBlockTime.Unix())
+	if data.PreviousBlockTime.IsZero() {
+		return errors.New("previous block time cannot be zero")
 	}
 	return nil
 }

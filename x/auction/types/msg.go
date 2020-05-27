@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,8 +35,14 @@ func (msg MsgPlaceBid) Type() string { return "place_bid" }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgPlaceBid) ValidateBasic() error {
+	if msg.AuctionID == 0 {
+		return errors.New("auction id cannot be zero")
+	}
 	if msg.Bidder.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "bidder address cannot be empty")
+	}
+	if len(msg.Bidder) != sdk.AddrLen {
+		return fmt.Errorf("the expected bidder address length is %d, actual length is %d", sdk.AddrLen, len(msg.Bidder))
 	}
 	if !msg.Amount.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "bid amount %s", msg.Amount)

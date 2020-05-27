@@ -16,37 +16,40 @@ func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 	testCPs := cdptypes.CollateralParams{
 		{
-			Denom:              "bnb",
-			LiquidationRatio:   d("2.0"),
-			DebtLimit:          c("usdx", 1000000000000),
-			StabilityFee:       d("1.000000001547125958"),
-			LiquidationPenalty: d("0.05"),
-			AuctionSize:        i(100),
-			Prefix:             0x20,
-			ConversionFactor:   i(6),
-			MarketID:           "bnb:usd",
+			Denom:               "bnb",
+			LiquidationRatio:    d("2.0"),
+			DebtLimit:           c("usdx", 1000000000000),
+			StabilityFee:        d("1.000000001547125958"),
+			LiquidationPenalty:  d("0.05"),
+			AuctionSize:         i(100),
+			Prefix:              0x20,
+			ConversionFactor:    i(6),
+			SpotMarketID:        "bnb:usd",
+			LiquidationMarketID: "bnb:usd",
 		},
 		{
-			Denom:              "btc",
-			LiquidationRatio:   d("1.5"),
-			DebtLimit:          c("usdx", 1000000000),
-			StabilityFee:       d("1.000000001547125958"),
-			LiquidationPenalty: d("0.10"),
-			AuctionSize:        i(1000),
-			Prefix:             0x30,
-			ConversionFactor:   i(8),
-			MarketID:           "btc:usd",
+			Denom:               "btc",
+			LiquidationRatio:    d("1.5"),
+			DebtLimit:           c("usdx", 1000000000),
+			StabilityFee:        d("1.000000001547125958"),
+			LiquidationPenalty:  d("0.10"),
+			AuctionSize:         i(1000),
+			Prefix:              0x30,
+			ConversionFactor:    i(8),
+			SpotMarketID:        "btc:usd",
+			LiquidationMarketID: "btc:usd",
 		},
 		{
-			Denom:              "atom",
-			LiquidationRatio:   d("2.0"),
-			DebtLimit:          c("usdx", 1000000000),
-			StabilityFee:       d("1.000000001547125958"),
-			LiquidationPenalty: d("0.07"),
-			AuctionSize:        i(100),
-			Prefix:             0x40,
-			ConversionFactor:   i(6),
-			MarketID:           "atom:usd",
+			Denom:               "atom",
+			LiquidationRatio:    d("2.0"),
+			DebtLimit:           c("usdx", 1000000000),
+			StabilityFee:        d("1.000000001547125958"),
+			LiquidationPenalty:  d("0.07"),
+			AuctionSize:         i(100),
+			Prefix:              0x40,
+			ConversionFactor:    i(6),
+			SpotMarketID:        "atom:usd",
+			LiquidationMarketID: "atom:usd",
 		},
 	}
 	updatedTestCPs := make(cdptypes.CollateralParams, len(testCPs))
@@ -78,15 +81,16 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 					StabilityFee: true,
 				},
 				{ // allow all fields
-					Denom:              "atom",
-					LiquidationRatio:   true,
-					DebtLimit:          true,
-					StabilityFee:       true,
-					AuctionSize:        true,
-					LiquidationPenalty: true,
-					Prefix:             true,
-					MarketID:           true,
-					ConversionFactor:   true,
+					Denom:               "atom",
+					LiquidationRatio:    true,
+					DebtLimit:           true,
+					StabilityFee:        true,
+					AuctionSize:         true,
+					LiquidationPenalty:  true,
+					Prefix:              true,
+					SpotMarketID:        true,
+					LiquidationMarketID: true,
+					ConversionFactor:    true,
 				},
 			},
 			current:       testCPs[:2],
@@ -102,15 +106,16 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 				},
 				{
 					// allow all fields
-					Denom:              "btc",
-					LiquidationRatio:   true,
-					DebtLimit:          true,
-					StabilityFee:       true,
-					AuctionSize:        true,
-					LiquidationPenalty: true,
-					Prefix:             true,
-					MarketID:           true,
-					ConversionFactor:   true,
+					Denom:               "btc",
+					LiquidationRatio:    true,
+					DebtLimit:           true,
+					StabilityFee:        true,
+					AuctionSize:         true,
+					LiquidationPenalty:  true,
+					Prefix:              true,
+					SpotMarketID:        true,
+					LiquidationMarketID: true,
+					ConversionFactor:    true,
 				},
 			},
 			current:       testCPs[:2],
@@ -376,24 +381,25 @@ func (suite *PermissionsTestSuite) TestAllowedMarkets_Allows() {
 
 func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 	testCP := cdptypes.CollateralParam{
-		Denom:              "bnb",
-		LiquidationRatio:   d("1.5"),
-		DebtLimit:          c("usdx", 1000000000000),
-		StabilityFee:       d("1.000000001547125958"), // %5 apr
-		LiquidationPenalty: d("0.05"),
-		AuctionSize:        i(100),
-		Prefix:             0x20,
-		ConversionFactor:   i(6),
-		MarketID:           "bnb:usd",
+		Denom:               "bnb",
+		LiquidationRatio:    d("1.5"),
+		DebtLimit:           c("usdx", 1000000000000),
+		StabilityFee:        d("1.000000001547125958"), // %5 apr
+		LiquidationPenalty:  d("0.05"),
+		AuctionSize:         i(100),
+		Prefix:              0x20,
+		ConversionFactor:    i(6),
+		SpotMarketID:        "bnb:usd",
+		LiquidationMarketID: "bnb:usd",
 	}
 	newMarketIDCP := testCP
-	newMarketIDCP.MarketID = "btc:usd"
+	newMarketIDCP.SpotMarketID = "btc:usd"
 
 	newDebtLimitCP := testCP
 	newDebtLimitCP.DebtLimit = c("usdx", 1000)
 
 	newMarketIDAndDebtLimitCP := testCP
-	newMarketIDCP.MarketID = "btc:usd"
+	newMarketIDCP.SpotMarketID = "btc:usd"
 	newDebtLimitCP.DebtLimit = c("usdx", 1000)
 
 	testcases := []struct {

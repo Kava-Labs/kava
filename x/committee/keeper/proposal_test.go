@@ -86,15 +86,16 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 	}
 
 	testCP := cdptypes.CollateralParams{{
-		Denom:              "bnb",
-		LiquidationRatio:   d("1.5"),
-		DebtLimit:          c("usdx", 1000000000000),
-		StabilityFee:       d("1.000000001547125958"), // %5 apr
-		LiquidationPenalty: d("0.05"),
-		AuctionSize:        i(100),
-		Prefix:             0x20,
-		ConversionFactor:   i(6),
-		MarketID:           "bnb:usd",
+		Denom:               "bnb",
+		LiquidationRatio:    d("1.5"),
+		DebtLimit:           c("usdx", 1000000000000),
+		StabilityFee:        d("1.000000001547125958"), // %5 apr
+		LiquidationPenalty:  d("0.05"),
+		AuctionSize:         i(100),
+		Prefix:              0x20,
+		ConversionFactor:    i(6),
+		LiquidationMarketID: "bnb:usd",
+		SpotMarketID:        "bnb:usd",
 	}}
 	testCDPParams := cdptypes.DefaultParams()
 	testCDPParams.CollateralParams = testCP
@@ -106,7 +107,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 	newInvalidCP := make(cdptypes.CollateralParams, len(testCP))
 	copy(newInvalidCP, testCP)
-	newInvalidCP[0].MarketID = "btc:usd"
+	newInvalidCP[0].SpotMarketID = "btc:usd"
 
 	testcases := []struct {
 		name        string

@@ -183,7 +183,7 @@ func (suite *QuerierTestSuite) TestQueryCdpsByRatio() {
 	expectedBtcIds := []int{}
 	for _, cdp := range suite.cdps {
 		absoluteRatio := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Principal)
-		collateralizationRatio, err := suite.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(suite.ctx, cdp.Collateral.Denom, absoluteRatio)
+		collateralizationRatio, err := suite.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(suite.ctx, cdp.Collateral.Denom, absoluteRatio, "liquidation")
 		suite.Nil(err)
 		if cdp.Collateral.Denom == "xrp" {
 			if collateralizationRatio.LT(xrpRatio) {
