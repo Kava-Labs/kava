@@ -11,6 +11,53 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+func TestGenesisClaimPeriodIDsValidate(t *testing.T) {
+	testCases := []struct {
+		msg                   string
+		genesisClaimPeriodIDs GenesisClaimPeriodIDs
+		expPass               bool
+	}{
+		{
+			"valid",
+			GenesisClaimPeriodIDs{
+				{Denom: "bnb", ID: 1},
+			},
+			true,
+		},
+		{
+			"invalid denom",
+			GenesisClaimPeriodIDs{
+				{Denom: "", ID: 1},
+			},
+			false,
+		},
+		{
+			"invalid ID",
+			GenesisClaimPeriodIDs{
+				{Denom: "bnb", ID: 0},
+			},
+			false,
+		},
+		{
+			"duplicate",
+			GenesisClaimPeriodIDs{
+				{Denom: "bnb", ID: 1},
+				{Denom: "bnb", ID: 1},
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		err := tc.genesisClaimPeriodIDs.Validate()
+		if tc.expPass {
+			require.NoError(t, err, tc.msg)
+		} else {
+			require.Error(t, err, tc.msg)
+		}
+	}
+}
+
 func TestGenesisStateValidate(t *testing.T) {
 	now := time.Now()
 	_ = sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
@@ -70,44 +117,41 @@ func TestGenesisStateValidate(t *testing.T) {
 			expPass: false,
 		},
 		{
-			msg: "invalid NextClaimPeriodIDs",
+			msg: "invalid RewardsPeriod",
 			genesisState: GenesisState{
 				PreviousBlockTime: now,
-				NextClaimPeriodIDs: GenesisClaimPeriodIDs{
-					GenesisClaimPeriodID{
-						Denom: "",
-						ID:    1,
-					},
+				RewardPeriods: RewardPeriods{
+					{Start: time.Time{}},
 				},
 			},
 			expPass: false,
 		},
 		{
-			msg: "invalid NextClaimPeriodIDs",
+			msg: "invalid ClaimPeriods",
 			genesisState: GenesisState{
 				PreviousBlockTime: now,
-				NextClaimPeriodIDs: GenesisClaimPeriodIDs{
-					GenesisClaimPeriodID{
-						Denom: "bnb",
-						ID:    0,
-					},
+				ClaimPeriods: ClaimPeriods{
+					{ID: 0},
 				},
 			},
 			expPass: false,
 		},
 		{
-			msg: "dup NextClaimPeriodIDs",
+			msg: "invalid Claims",
+			genesisState: GenesisState{
+				PreviousBlockTime: now,
+				Claims: Claims{
+					{ClaimPeriodID: 0},
+				},
+			},
+			expPass: false,
+		},
+		{
+			msg: "invalid NextClaimPeriodIds",
 			genesisState: GenesisState{
 				PreviousBlockTime: now,
 				NextClaimPeriodIDs: GenesisClaimPeriodIDs{
-					GenesisClaimPeriodID{
-						Denom: "bnb",
-						ID:    1,
-					},
-					GenesisClaimPeriodID{
-						Denom: "bnb",
-						ID:    1,
-					},
+					{ID: 0},
 				},
 			},
 			expPass: false,
