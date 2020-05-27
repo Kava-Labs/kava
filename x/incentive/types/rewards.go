@@ -53,7 +53,7 @@ func (rp RewardPeriod) Validate() error {
 	if rp.Start.After(rp.End) {
 		return fmt.Errorf("end period time %s cannot be before start time %s", rp.End, rp.Start)
 	}
-	if rp.Reward.IsValid() {
+	if !rp.Reward.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", rp.Reward)
 	}
 	if rp.ClaimEnd.IsZero() {
@@ -172,7 +172,7 @@ func (c Claim) Validate() error {
 	if c.Owner.Empty() {
 		return errors.New("claim owner cannot be empty")
 	}
-	if c.Reward.IsValid() {
+	if !c.Reward.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", c.Reward)
 	}
 	if c.ClaimPeriodID == 0 {

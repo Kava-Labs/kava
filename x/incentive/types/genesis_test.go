@@ -60,7 +60,7 @@ func TestGenesisClaimPeriodIDsValidate(t *testing.T) {
 
 func TestGenesisStateValidate(t *testing.T) {
 	now := time.Now()
-	_ = sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
+	owner := sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
 
 	rewards := Rewards{
 		NewReward(
@@ -68,16 +68,10 @@ func TestGenesisStateValidate(t *testing.T) {
 			time.Hour*24*7, time.Hour*8766, time.Hour*24*14,
 		),
 	}
-
-	rewardPeriods := RewardPeriods{}
-	claimPeriods := ClaimPeriods{}
-	claims := Claims{}
-	gcps := GenesisClaimPeriodIDs{
-		GenesisClaimPeriodID{
-			Denom: "bnb",
-			ID:    1,
-		},
-	}
+	rewardPeriods := RewardPeriods{NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, 10)}
+	claimPeriods := ClaimPeriods{NewClaimPeriod("bnb", 10, now, 100)}
+	claims := Claims{NewClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), "bnb", 10)}
+	gcps := GenesisClaimPeriodIDs{{Denom: "bnb", ID: 1}}
 
 	testCases := []struct {
 		msg          string
