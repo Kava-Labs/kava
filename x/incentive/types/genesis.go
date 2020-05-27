@@ -30,15 +30,17 @@ type GenesisClaimPeriodIDs []GenesisClaimPeriodID
 // entries.
 func (gcps GenesisClaimPeriodIDs) Validate() error {
 	seenIDS := make(map[string]bool)
+	var key string
 	for _, gcp := range gcps {
-		if seenIDS[gcp.Denom+string(gcp.ID)] {
+		key = gcp.Denom + string(gcp.ID)
+		if seenIDS[key] {
 			return fmt.Errorf("duplicated genesis claim period with id %d and denom %s", gcp.ID, gcp.Denom)
 		}
 
 		if err := gcp.Validate(); err != nil {
 			return err
 		}
-		seenIDS[gcp.Denom+string(gcp.ID)] = true
+		seenIDS[key] = true
 	}
 
 	return nil

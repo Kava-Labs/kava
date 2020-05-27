@@ -133,13 +133,13 @@ func (r Reward) Validate() error {
 		return fmt.Errorf("reward amount must be positive, is %s for %s", r.AvailableRewards, r.Denom)
 	}
 	if r.Duration <= 0 {
-		return fmt.Errorf("reward duration must be positive, is %s for %s", r.Duration.String(), r.Denom)
+		return fmt.Errorf("reward duration must be positive, is %s for %s", r.Duration, r.Denom)
 	}
 	if r.TimeLock < 0 {
-		return fmt.Errorf("reward timelock must be non-negative, is %s for %s", r.TimeLock.String(), r.Denom)
+		return fmt.Errorf("reward timelock must be non-negative, is %s for %s", r.TimeLock, r.Denom)
 	}
 	if r.ClaimDuration <= 0 {
-		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration.String(), r.Denom)
+		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration, r.Denom)
 	}
 	return sdk.ValidateDenom(r.Denom)
 }

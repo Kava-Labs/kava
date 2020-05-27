@@ -135,15 +135,17 @@ type ClaimPeriods []ClaimPeriod
 // entries.
 func (cps ClaimPeriods) Validate() error {
 	seenPeriods := make(map[string]bool)
+	var key string
 	for _, cp := range cps {
-		if seenPeriods[cp.Denom+string(cp.ID)] {
+		key = cp.Denom + string(cp.ID)
+		if seenPeriods[key] {
 			return fmt.Errorf("duplicated claim period with id %d and denom %s", cp.ID, cp.Denom)
 		}
 
 		if err := cp.Validate(); err != nil {
 			return err
 		}
-		seenPeriods[cp.Denom+string(cp.ID)] = true
+		seenPeriods[key] = true
 	}
 
 	return nil
@@ -198,15 +200,17 @@ type Claims []Claim
 // entries.
 func (cs Claims) Validate() error {
 	seemClaims := make(map[string]bool)
+	var key string
 	for _, c := range cs {
-		if c.Owner != nil && seemClaims[c.Denom+string(c.ClaimPeriodID)+c.Owner.String()] {
+		key = c.Denom + string(c.ClaimPeriodID) + c.Owner.String()
+		if c.Owner != nil && seemClaims[key] {
 			return fmt.Errorf("duplicated claim from owner %s and denom %s", c.Owner, c.Denom)
 		}
 
 		if err := c.Validate(); err != nil {
 			return err
 		}
-		seemClaims[c.Denom+string(c.ClaimPeriodID)+c.Owner.String()] = true
+		seemClaims[key] = true
 	}
 
 	return nil
