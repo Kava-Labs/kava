@@ -17,13 +17,13 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper  types.BankKeeper
 	accountKeeper types.AccountKeeper
 	Maccs         map[string]bool
 }
 
 // NewKeeper creates a bep3 keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak types.AccountKeeper,
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, bk types.BankKeeper, ak types.AccountKeeper,
 	paramstore subspace.Subspace, maccs map[string]bool) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -33,7 +33,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak typ
 		key:           key,
 		cdc:           cdc,
 		paramSubspace: paramstore,
-		supplyKeeper:  sk,
+		bankKeeper:  bk,
 		accountKeeper: ak,
 		Maccs:         maccs,
 	}

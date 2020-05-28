@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/bep3/types"
 )
@@ -95,14 +95,14 @@ func RandomizedGenState(simState *module.SimulationState) {
 	authGenesis, totalCoins := loadAuthGenState(simState, bep3Genesis)
 	simState.GenState[auth.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
 
-	// Update supply to match amount of coins in auth
-	var supplyGenesis supply.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
+	// Update bank to match amount of coins in auth
+	var bankGenesis bank.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[bank.ModuleName], &bankGenesis)
 
 	for _, deputyCoin := range totalCoins {
-		supplyGenesis.Supply = supplyGenesis.Supply.Add(deputyCoin...)
+		bankGenesis.Supply = bankGenesis.Supply.Add(deputyCoin...)
 	}
-	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
+	simState.GenState[bank.ModuleName] = simState.Cdc.MustMarshalJSON(bankGenesis)
 }
 
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
