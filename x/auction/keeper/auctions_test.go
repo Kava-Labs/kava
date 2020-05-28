@@ -322,8 +322,8 @@ func TestStartSurplusAuction(t *testing.T) {
 			}
 
 			// check
-			sk := tApp.GetSupplyKeeper()
-			liquidatorCoins := sk.GetModuleAccount(ctx, cdp.LiquidatorMacc).GetCoins()
+			ak := tApp.GetAccountKeeper()
+			liquidatorCoins := ak.GetModuleAccount(ctx, cdp.LiquidatorMacc).GetCoins()
 			actualAuc, found := keeper.GetAuction(ctx, id)
 
 			if tc.expectPass {

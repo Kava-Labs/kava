@@ -21,7 +21,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 	)
 
 	// NOTE: for the duration of the auction the auction module account holds the lot
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
+	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
 		return 0, err
 	}
@@ -55,13 +55,13 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 	)
 
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
-	macc := k.supplyKeeper.GetModuleAccount(ctx, buyer)
+	macc := k.accountKeeper.GetModuleAccount(ctx, buyer)
 	if !macc.HasPermission(supply.Minter) {
 		panic(fmt.Errorf("module '%s' does not have '%s' permission", buyer, supply.Minter))
 	}
 
 	// NOTE: for the duration of the auction the auction module account holds the debt
-	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, buyer, types.ModuleName, sdk.NewCoins(debt))
+	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, buyer, types.ModuleName, sdk.NewCoins(debt))
 	if err != nil {
 		return 0, err
 	}
@@ -102,11 +102,11 @@ func (k Keeper) StartCollateralAuction(
 	)
 
 	// NOTE: for the duration of the auction the auction module account holds the debt and the lot
-	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
+	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(lot))
 	if err != nil {
 		return 0, err
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(debt))
+	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, seller, types.ModuleName, sdk.NewCoins(debt))
 	if err != nil {
 		return 0, err
 	}
@@ -190,21 +190,21 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid, or the amount being zero (sending zero coins produces meaningless send events).
 	if !bidder.Equals(a.Bidder) && !a.Bid.IsZero() {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
 	}
 	// Increase in bid is burned
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
 	if err != nil {
 		return a, err
 	}
-	err = k.supplyKeeper.BurnCoins(ctx, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
+	err = k.bankKeeper.BurnCoins(ctx, a.Initiator, sdk.NewCoins(bid.Sub(a.Bid)))
 	if err != nil {
 		return a, err
 	}
@@ -257,18 +257,18 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid, and the amount being zero (sending zero coins produces meaningless send events).
 	if !bidder.Equals(a.Bidder) && !a.Bid.IsZero() {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
 	}
 	// Increase in bid sent to auction initiator
 	bidIncrement := bid.Sub(a.Bid)
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bidIncrement))
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bidIncrement))
 	if err != nil {
 		return a, err
 	}
@@ -278,7 +278,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		debtAmountToReturn := sdk.MinInt(bidIncrement.Amount, a.CorrespondingDebt.Amount)
 		debtToReturn := sdk.NewCoin(a.CorrespondingDebt.Denom, debtAmountToReturn)
 
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(debtToReturn))
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(debtToReturn))
 		if err != nil {
 			return a, err
 		}
@@ -332,11 +332,11 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid
 	if !bidder.Equals(a.Bidder) {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
@@ -353,7 +353,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 		if !payout.IsPositive() {
 			continue
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
 		if err != nil {
 			return a, err
 		}
@@ -403,11 +403,11 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid
 	if !bidder.Equals(a.Bidder) {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
 		if err != nil {
 			return a, err
 		}
@@ -418,7 +418,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 		debtAmountToReturn := sdk.MinInt(a.Bid.Amount, a.CorrespondingDebt.Amount)
 		debtToReturn := sdk.NewCoin(a.CorrespondingDebt.Denom, debtAmountToReturn)
 
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(debtToReturn))
+		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(debtToReturn))
 		if err != nil {
 			return a, err
 		}
@@ -492,18 +492,18 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 // PayoutDebtAuction pays out the proceeds for a debt auction, first minting the coins.
 func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
 	// create the coins that are needed to pay off the debt
-	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
+	err := k.bankKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
 	if err != nil {
 		panic(fmt.Errorf("could not mint coins: %w", err))
 	}
 	// send the new coins from the initiator module to the bidder
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, a.Initiator, a.Bidder, sdk.NewCoins(a.Lot))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, a.Initiator, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
 	}
 	// if there is remaining debt, return it to the calling module to manage
 	if a.CorrespondingDebt.IsPositive() {
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
 		if err != nil {
 			return err
 		}
@@ -514,7 +514,7 @@ func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
 // PayoutSurplusAuction pays out the proceeds for a surplus auction.
 func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) error {
 	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
 	}
@@ -524,14 +524,14 @@ func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) er
 // PayoutCollateralAuction pays out the proceeds for a collateral auction.
 func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) error {
 	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 	if err != nil {
 		return err
 	}
 
 	// if there is remaining debt after the auction, send it back to the initiating module for management
 	if a.CorrespondingDebt.IsPositive() {
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
 		if err != nil {
 			return err
 		}

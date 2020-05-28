@@ -33,10 +33,10 @@ func TestInitGenesis(t *testing.T) {
 		keeper := tApp.GetAuctionKeeper()
 		ctx := tApp.NewContext(true, abci.Header{})
 		// setup module account
-		supplyKeeper := tApp.GetSupplyKeeper()
-		moduleAcc := supplyKeeper.GetModuleAccount(ctx, auction.ModuleName)
+		bankKeeper := tApp.GetBankKeeper()
+		moduleAcc := accountKeeper.GetModuleAccount(ctx, auction.ModuleName)
 		require.NoError(t, moduleAcc.SetCoins(testAuction.GetModuleAccountCoins()))
-		supplyKeeper.SetModuleAccount(ctx, moduleAcc)
+		accountKeeper.SetModuleAccount(ctx, moduleAcc)
 
 		// create genesis
 		gs := auction.NewGenesisState(
@@ -47,7 +47,7 @@ func TestInitGenesis(t *testing.T) {
 
 		// run init
 		require.NotPanics(t, func() {
-			auction.InitGenesis(ctx, keeper, supplyKeeper, gs)
+			auction.InitGenesis(ctx, keeper, gs)
 		})
 
 		// check state is as expected
@@ -82,7 +82,7 @@ func TestInitGenesis(t *testing.T) {
 
 		// check init fails
 		require.Panics(t, func() {
-			auction.InitGenesis(ctx, tApp.GetAuctionKeeper(), tApp.GetSupplyKeeper(), gs)
+			auction.InitGenesis(ctx, tApp.GetAuctionKeeper(), gs)
 		})
 	})
 	t.Run("invalid (missing mod account coins)", func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestInitGenesis(t *testing.T) {
 
 		// check init fails
 		require.Panics(t, func() {
-			auction.InitGenesis(ctx, tApp.GetAuctionKeeper(), tApp.GetSupplyKeeper(), gs)
+			auction.InitGenesis(ctx, tApp.GetAuctionKeeper(), gs)
 		})
 	})
 }

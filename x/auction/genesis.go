@@ -9,7 +9,7 @@ import (
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
@@ -26,7 +26,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	}
 
 	// check if the module account exists
-	moduleAcc := supplyKeeper.GetModuleAccount(ctx, ModuleName)
+	moduleAcc := keeper.AccountKeeper.GetModuleAccount(ctx, ModuleName)
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
 	}

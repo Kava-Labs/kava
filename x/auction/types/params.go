@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
 var emptyDec = sdk.Dec{}
@@ -32,7 +31,7 @@ var (
 	KeyIncrementCollateral = []byte("IncrementCollateral")
 )
 
-var _ subspace.ParamSet = &Params{}
+var _ params.ParamSet = &Params{}
 
 // Params is the governance parameters for the auction module.
 type Params struct {
@@ -66,13 +65,13 @@ func DefaultParams() Params {
 }
 
 // ParamKeyTable Key declaration for parameters
-func ParamKeyTable() subspace.KeyTable {
-	return subspace.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() params.KeyTable {
+	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs.
-func (p *Params) ParamSetPairs() subspace.ParamSetPairs {
-	return subspace.ParamSetPairs{
+func (p *Params) ParamSetPairs() params.ParamSetPairs {
+	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBidDuration, &p.BidDuration, validateBidDurationParam),
 		params.NewParamSetPair(KeyMaxAuctionDuration, &p.MaxAuctionDuration, validateMaxAuctionDurationParam),
 		params.NewParamSetPair(KeyIncrementSurplus, &p.IncrementSurplus, validateIncrementSurplusParam),

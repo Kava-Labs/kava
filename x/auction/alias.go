@@ -99,7 +99,7 @@ type (
 	Params                = types.Params
 	QueryAllAuctionParams = types.QueryAllAuctionParams
 	QueryAuctionParams    = types.QueryAuctionParams
-	SupplyKeeper          = types.SupplyKeeper
+	BankKeeper            = types.BankKeeper
 	SurplusAuction        = types.SurplusAuction
 	WeightedAddresses     = types.WeightedAddresses
 )
