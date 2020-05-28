@@ -2,8 +2,11 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisClaimPeriodID stores the next claim id and its corresponding denom
@@ -12,8 +15,36 @@ type GenesisClaimPeriodID struct {
 	ID    uint64 `json:"id" yaml:"id"`
 }
 
+// Validate performs a basic check of a GenesisClaimPeriodID fields.
+func (gcp GenesisClaimPeriodID) Validate() error {
+	if gcp.ID == 0 {
+		return errors.New("genesis claim period id cannot be 0")
+	}
+	return sdk.ValidateDenom(gcp.Denom)
+}
+
 // GenesisClaimPeriodIDs array of GenesisClaimPeriodID
 type GenesisClaimPeriodIDs []GenesisClaimPeriodID
+
+// Validate checks if all the GenesisClaimPeriodIDs are valid and there are no duplicated
+// entries.
+func (gcps GenesisClaimPeriodIDs) Validate() error {
+	seenIDS := make(map[string]bool)
+	var key string
+	for _, gcp := range gcps {
+		key = gcp.Denom + string(gcp.ID)
+		if seenIDS[key] {
+			return fmt.Errorf("duplicated genesis claim period with id %d and denom %s", gcp.ID, gcp.Denom)
+		}
+
+		if err := gcp.Validate(); err != nil {
+			return err
+		}
+		seenIDS[key] = true
+	}
+
+	return nil
+}
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
@@ -52,14 +83,22 @@ func DefaultGenesisState() GenesisState {
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
 	if gs.PreviousBlockTime.IsZero() {
-		return fmt.Errorf("previous block time not set or zero")
+		return errors.New("previous block time cannot be 0")
 	}
-	return nil
+	if err := gs.RewardPeriods.Validate(); err != nil {
+		return err
+	}
+	if err := gs.ClaimPeriods.Validate(); err != nil {
+		return err
+	}
+	if err := gs.Claims.Validate(); err != nil {
+		return err
+	}
+	return gs.NextClaimPeriodIDs.Validate()
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent
