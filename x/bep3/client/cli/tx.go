@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -30,7 +29,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short:                      "bep3 transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE:                       auth.ValidateCmd,
 	}
 
 	bep3TxCmd.AddCommand(flags.PostCommands(

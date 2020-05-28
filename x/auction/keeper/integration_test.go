@@ -3,7 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/app"
 )
@@ -18,7 +18,7 @@ func is(ns ...int64) (is []sdk.Int) {
 	return
 }
 
-func NewAuthGenStateFromAccs(accounts authexported.GenesisAccounts) app.GenesisState {
+func NewAuthGenStateFromAccs(accounts authtypes.GenesisAccounts) app.GenesisState {
 	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
 	return app.GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -79,12 +78,12 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        Keeper
-	accountKeeper auth.AccountKeeper
+	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, accountKeeper auth.AccountKeeper, bankKeeper types.BankKeeper) AppModule {
+func NewAppModule(keeper Keeper, accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,

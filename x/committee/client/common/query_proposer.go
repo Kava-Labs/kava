@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 
 	"github.com/kava-labs/kava/x/committee/types"
 )

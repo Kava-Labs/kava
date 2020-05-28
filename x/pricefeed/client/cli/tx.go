@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -27,7 +26,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		Short:                      "Pricefeed transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE:                       auth.ValidateCmd,
 	}
 
 	pricefeedTxCmd.AddCommand(flags.PostCommands(

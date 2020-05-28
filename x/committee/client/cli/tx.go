@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 
@@ -31,7 +30,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		Short:                      "committee governance transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE:                       auth.ValidateCmd,
 	}
 
 	txCmd.AddCommand(flags.PostCommands(
