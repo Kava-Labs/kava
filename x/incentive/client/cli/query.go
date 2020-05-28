@@ -60,10 +60,11 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetClaims)
-			res, _, err := cliCtx.QueryWithData(route, bz)
+			res, height, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
+			cliCtx = cliCtx.WithHeight(height)
 
 			var claims types.Claims
 			if err := cdc.UnmarshalJSON(res, &claims); err != nil {
@@ -86,10 +87,11 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetParams)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
+			cliCtx = cliCtx.WithHeight(height)
 
 			// Decode and print results
 			var params types.Params
@@ -112,10 +114,11 @@ func queryRewardPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetRewardPeriods)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
+			cliCtx = cliCtx.WithHeight(height)
 
 			// Decode and print results
 			var rewardPeriods types.RewardPeriods
@@ -138,10 +141,11 @@ func queryClaimPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetClaimPeriods)
-			res, _, err := cliCtx.QueryWithData(route, nil)
+			res, height, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
 				return err
 			}
+			cliCtx = cliCtx.WithHeight(height)
 
 			// Decode and print results
 			var claimPeriods types.ClaimPeriods
