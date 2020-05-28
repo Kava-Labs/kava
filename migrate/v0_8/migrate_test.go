@@ -158,4 +158,12 @@ func TestMigrate(t *testing.T) {
 	require.Equal(t, expectedGenDoc.ConsensusParams, newGenDoc.ConsensusParams)
 	require.Equal(t, expectedGenDoc.GenesisTime, newGenDoc.GenesisTime)
 	require.Equal(t, expectedGenDoc.Validators, newGenDoc.Validators)
+
+	var newAppState genutil.AppMap
+	require.NoError(t,
+		app.MakeCodec().UnmarshalJSON(newGenDoc.AppState, &newAppState),
+	)
+	require.NoError(t,
+		app.ModuleBasics.ValidateGenesis(newAppState),
+	)
 }
