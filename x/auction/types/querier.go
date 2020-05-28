@@ -16,15 +16,21 @@ type QueryAuctionParams struct {
 
 // QueryAllAuctionParams is the params for an auctions query
 type QueryAllAuctionParams struct {
-	Page  int `json:"page" yaml:"page"`
-	Limit int `json:"limit" yaml:"limit"`
+	Page  int    `json:"page" yaml:"page"`
+	Limit int    `json:"limit" yaml:"limit"`
+	Type  string `json:"type" yaml:"type"`
+	Denom string `json:"denom" yaml:"denom"`
+	Phase string `json:"phase" yaml:"phase"`
 }
 
 // NewQueryAllAuctionParams creates a new QueryAllAuctionParams
-func NewQueryAllAuctionParams(page int, limit int) QueryAllAuctionParams {
+func NewQueryAllAuctionParams(page, limit int, aucType, aucDenom, aucPhase string) QueryAllAuctionParams {
 	return QueryAllAuctionParams{
 		Page:  page,
 		Limit: limit,
+		Type:  aucType,
+		Denom: aucDenom,
+		Phase: aucPhase,
 	}
 }
 
