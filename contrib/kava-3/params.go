@@ -58,7 +58,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 
 	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
 		bep3.NewParams(
-			sdk.AccAddress("address for a deputy"), // TODO need deputy
+			sdk.AccAddress("address for a deputy"), // TODO pending receipt of deputy address
 			1000,
 			bep3.DefaultMinBlockLock,
 			bep3.DefaultMaxBlockLock,
@@ -80,7 +80,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 				Denom:               bnbDenom,
 				LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 				DebtLimit:           sdk.NewInt64Coin(usdxDenom, 100_000_000_000),
-				StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr // TODO check value
+				StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 				LiquidationPenalty:  sdk.MustNewDecFromStr("0.075"),
 				AuctionSize:         sdk.NewInt(50_000_000_000),
 				Prefix:              0x20,
@@ -115,6 +115,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 				1,
 				"Kava Stability Committee",
 				[]sdk.AccAddress{
+					// addresses from governance proposal: https://ipfs.io/ipfs/QmSiQexKNixztPgLCe2cRSJ8ZLRjetRgzHPDTuBRCm9DZb/committee-nominations.pdf
 					mustAccAddressFromBech32("kava1gru35up50ql2wxhegr880qy6ynl63ujlv8gum2"),
 					mustAccAddressFromBech32("kava1sc3mh3pkas5e7xd269am4xm5mp6zweyzmhjagj"),
 					mustAccAddressFromBech32("kava1c9ye54e3pzwm3e0zpdlel6pnavrj9qqv6e8r4h"),
@@ -232,6 +233,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 				2,
 				"Kava Safety Committee",
 				[]sdk.AccAddress{
+					// address from governance proposal: https://ipfs.io/ipfs/QmPqfP1Fa8EyzubmctL5uT5TAcWTB7HBQd8pvrmSTG8yS1/safety-nominations.pdf
 					mustAccAddressFromBech32("kava1e0agyg6eug9r62fly9sls77ycjgw8ax6xk73es"),
 				},
 				[]committee.Permission{committee.SoftwareUpgradePermission{}},
@@ -249,7 +251,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 			incentive.Rewards{incentive.NewReward(
 				false,
 				kavaDenom,
-				sdk.NewInt64Coin(kavaDenom, 74_000_000_000), // TODO check value
+				sdk.NewInt64Coin(kavaDenom, 74_000_000_000),
 				1*7*24*time.Hour,
 				1*365*24*time.Hour,
 				1*7*24*time.Hour,
@@ -299,6 +301,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 					BaseAsset:  bnbDenom,
 					QuoteAsset: referenceAsset,
 					Oracles: []sdk.AccAddress{
+						// addresses from governance proposal: https://ipfs.io/ipfs/QmXgSJ4Dcji8msKpDwYHLmfPSLjRxCEGX6egXQU9DzmFMK/oracle-nominations.pdf
 						mustAccAddressFromBech32("kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl"),
 						mustAccAddressFromBech32("kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs"),
 						mustAccAddressFromBech32("kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg"),
@@ -317,6 +320,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 					BaseAsset:  bnbDenom,
 					QuoteAsset: referenceAsset,
 					Oracles: []sdk.AccAddress{
+						// addresses from governance proposal: https://ipfs.io/ipfs/QmXgSJ4Dcji8msKpDwYHLmfPSLjRxCEGX6egXQU9DzmFMK/oracle-nominations.pdf
 						mustAccAddressFromBech32("kava12dyshua9nkvx9w8ywp72wdnzrc4t4mnnycz0dl"),
 						mustAccAddressFromBech32("kava1tuxyepdrkwraa22k99w04c0wa64tgh70mv87fs"),
 						mustAccAddressFromBech32("kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg"),

@@ -13,20 +13,11 @@ import (
 )
 
 const (
-	defaultChainID  = "kava-3"
-	flagGenesisTime = "genesis-time"
-	flagChainID     = "chain-id"
+	defaultChainID     = "kava-3"
+	defaultGenesisTime = "2020-06-01T14:00:00Z"
+	flagGenesisTime    = "genesis-time"
+	flagChainID        = "chain-id"
 )
-
-var defaultGenesisTime = ""
-
-func init() {
-	defaultGenesisTimeBz, err := time.Date(2020, time.June, 1, 14, 0, 0, 0, time.UTC).MarshalText()
-	if err != nil {
-		panic(err)
-	}
-	defaultGenesisTime = string(defaultGenesisTimeBz)
-}
 
 // WriteGenesisParamsCmd returns a command to write suggested kava-3 params to a genesis file.
 func WriteGenesisParamsCmd(cdc *codec.Codec) *cobra.Command {
