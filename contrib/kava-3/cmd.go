@@ -32,7 +32,7 @@ func init() {
 func WriteGenesisParamsCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "write-params [genesis-file]",
-		Short:   "Write params to a genesis file",
+		Short:   "Write suggested  params to a genesis file",
 		Long:    "Write suggested module parameters to a gensis file, sort it, and print to STDOUT.",
 		Example: fmt.Sprintf(`%s write-params /path/to/genesis.json`, version.ServerName),
 		Args:    cobra.ExactArgs(1),
@@ -79,8 +79,8 @@ func WriteGenesisParamsCmd(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(flagGenesisTime, defaultGenesisTime, "override genesis_time with this flag")
-	cmd.Flags().String(flagChainID, defaultChainID, "override chain_id with this flag")
+	cmd.Flags().String(flagGenesisTime, defaultGenesisTime, "override genesis time")
+	cmd.Flags().String(flagChainID, defaultChainID, "override chain-id")
 
 	return cmd
 }

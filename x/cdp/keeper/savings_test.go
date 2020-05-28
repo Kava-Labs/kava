@@ -69,7 +69,7 @@ func (suite *SavingsTestSuite) TestGetSetPreviousDistributionTime() {
 	now := tmtime.Now()
 
 	_, f := suite.keeper.GetPreviousSavingsDistribution(suite.ctx)
-	suite.False(f) // distr time not set at genesis when the default genesis is used
+	suite.Require().False(f) // distr time not set at genesis when the default genesis is used
 
 	suite.NotPanics(func() { suite.keeper.SetPreviousSavingsDistribution(suite.ctx, now) })
 
