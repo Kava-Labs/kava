@@ -109,7 +109,11 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 	remainingDebt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	params := k.GetParams(ctx)
 	if remainingDebt.GTE(params.DebtAuctionThreshold) {
-		_, err := k.auctionKeeper.StartDebtAuction(ctx, types.LiquidatorMacc, sdk.NewCoin("usdx", remainingDebt), sdk.NewCoin(k.GetGovDenom(ctx), remainingDebt.Mul(sdk.NewInt(dump))), sdk.NewCoin(k.GetDebtDenom(ctx), remainingDebt))
+		debtLot := sdk.NewCoin(k.GetDebtDenom(ctx), params.DebtAuctionLot)
+		debtCoveredByLot := (sdk.NewDecFromInt(params.DebtAuctionLot).Quo(sdk.NewDecFromInt(remainingDebt))).Mul(sdk.NewDecFromInt(remainingDebt)).RoundInt()
+		bidCoin := sdk.NewCoin(params.DebtParam.Denom, debtCoveredByLot)
+		_, err := k.auctionKeeper.StartDebtAuction(
+			ctx, types.LiquidatorMacc, bidCoin, sdk.NewCoin(k.GetGovDenom(ctx), debtCoveredByLot.Mul(sdk.NewInt(dump))), debtLot)
 		if err != nil {
 			return err
 		}
@@ -119,7 +123,10 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 	if !surplus.GTE(params.SurplusAuctionThreshold) {
 		return nil
 	}
-	surplusLot := sdk.NewCoin(params.DebtParam.Denom, surplus)
+	surplusLot := sdk.NewCoin(params.DebtParam.Denom, params.SurplusAuctionLot)
+	if params.SurplusAuctionLot.LT(surplus) {
+		surplusLot = sdk.NewCoin(params.DebtParam.Denom, surplus)
+	}
 	_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
 	return err
 }
