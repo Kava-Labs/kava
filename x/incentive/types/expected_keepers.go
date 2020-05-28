@@ -2,16 +2,13 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 // SupplyKeeper defines the expected supply keeper for module accounts
 type SupplyKeeper interface {
-	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
-
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
@@ -23,6 +20,8 @@ type CdpKeeper interface {
 
 // AccountKeeper defines the expected keeper interface for interacting with account
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.Account
 	SetAccount(ctx sdk.Context, acc authexported.Account)
 }

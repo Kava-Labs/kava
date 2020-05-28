@@ -2,14 +2,17 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-// SupplyKeeper defines the expected supply Keeper
-type SupplyKeeper interface {
+// AccountKeeper defines the expected auth Keeper
+type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, moduleName string) supplyexported.ModuleAccountI
+	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
+}
 
+// BankKeeper defines the expected bank Keeper
+type BankKeeper interface {
 	SendCoinsFromModuleToModule(ctx sdk.Context, sender, recipient string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error

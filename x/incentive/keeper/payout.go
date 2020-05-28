@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -50,7 +49,7 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
 
 	switch acc.(type) {
-	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:
+	case *validatorvesting.ValidatorVestingAccount, authtypes.ModuleAccountI:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	case *vesting.PeriodicVestingAccount:
 		return k.SendTimeLockedCoinsToPeriodicVestingAccount(ctx, senderModule, recipientAddr, amt, length)

@@ -6,8 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -28,8 +27,8 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
 	surplusDistributed := sdk.ZeroInt()
 	var iterationErr error
-	k.accountKeeper.IterateAccounts(ctx, func(acc authexported.Account) (stop bool) {
-		_, ok := acc.(supplyexported.ModuleAccountI)
+	k.accountKeeper.IterateAccounts(ctx, func(acc authtypes.Account) (stop bool) {
+		_, ok := acc.(authtypes.ModuleAccountI)
 		if ok {
 			// don't distribute savings rate to module accounts
 			return false

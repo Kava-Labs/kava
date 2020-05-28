@@ -7,9 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -24,7 +23,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
 	totalCdpCoins := sdk.NewCoins()
 	for _, acc := range authGenesis.Accounts {
-		_, ok := acc.(supplyexported.ModuleAccountI)
+		_, ok := acc.(authtypes.ModuleAccountI)
 		if ok {
 			continue
 		}
@@ -44,10 +43,10 @@ func RandomizedGenState(simState *module.SimulationState) {
 	}
 	simState.GenState[auth.ModuleName] = simState.Cdc.MustMarshalJSON(authGenesis)
 
-	var supplyGenesis supply.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
-	supplyGenesis.Supply = supplyGenesis.Supply.Add(totalCdpCoins...)
-	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
+	var bankGenesis bank.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[bank.ModuleName], &bankGenesis)
+	bankGenesis.Supply = bankGenesis.bank.Add(totalCdpCoins...)
+	simState.GenState[bank.ModuleName] = simState.Cdc.MustMarshalJSON(bankGenesis)
 
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, cdpGenesis))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(cdpGenesis)
