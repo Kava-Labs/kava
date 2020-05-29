@@ -1,6 +1,6 @@
-# Begin Blocker
+# Begin Block
 
-At the start of every block the BeginBlocker of the cdp module:
+At the start of every block the BeginBlock of the cdp module:
 
 - updates the status of the pricefeed for each collateral asset
 - If the pricefeed is active (reporting a price):
