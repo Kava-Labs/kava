@@ -21,8 +21,6 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-const maxExpiry = 253402300799 // 9999-12-31 23:59:59 +0000 UTC
-
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	pricefeedTxCmd := &cobra.Command{
@@ -61,8 +59,8 @@ func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("invalid expiry %s: %w", args[2], err)
 			}
 
-			if expiryInt > maxExpiry {
-				return fmt.Errorf("invalid expiry; got %d, max: %d", expiryInt, maxExpiry)
+			if expiryInt > types.MaxExpiry {
+				return fmt.Errorf("invalid expiry; got %d, max: %d", expiryInt, types.MaxExpiry)
 			}
 
 			expiry := tmtime.Canonical(time.Unix(expiryInt, 0))
