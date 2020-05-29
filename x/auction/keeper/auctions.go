@@ -6,8 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -57,8 +57,8 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.accountKeeper.GetModuleAccount(ctx, buyer)
-	if !macc.HasPermission(bank.Minter) {
-		panic(fmt.Errorf("module '%s' does not have '%s' permission", buyer, bank.Minter))
+	if !macc.HasPermission(auth.Minter) {
+		panic(fmt.Errorf("module '%s' does not have '%s' permission", buyer, auth.Minter))
 	}
 
 	// NOTE: for the duration of the auction the auction module account holds the debt

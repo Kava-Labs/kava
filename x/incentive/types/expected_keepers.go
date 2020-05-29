@@ -22,6 +22,6 @@ type CdpKeeper interface {
 type AccountKeeper interface {
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.Account
-	SetAccount(ctx sdk.Context, acc authtypes.Account)
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
 }

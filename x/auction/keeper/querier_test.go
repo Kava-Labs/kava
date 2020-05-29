@@ -46,7 +46,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	modName := cdp.LiquidatorMacc
 
 	// Set up seller account
-	sellerAcc := auth.NewEmptyModuleAccount(modName, bank.Minter, bank.Burner)
+	sellerAcc := auth.NewEmptyModuleAccount(modName, auth.Minter, auth.Burner)
 	sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000)))
 
 	// Initialize genesis accounts

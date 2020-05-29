@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/bep3/types"
 )
@@ -26,13 +26,13 @@ const (
 
 var (
 	MaxSupplyLimit   = sdk.NewInt(1000000000000)
-	accs             []simulation.Account
+	accs             []simtypes.Account
 	ConsistentDenoms = [3]string{"bnb", "xrp", "btc"}
 )
 
 // GenRandBnbDeputy randomized BnbDeputyAddress
-func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
-	acc, _ := simulation.RandomAcc(r, accs)
+func GenRandBnbDeputy(r *rand.Rand) simtypes.Account {
+	acc, _ := simtypes.RandomAcc(r, accs)
 	return acc
 }
 
@@ -63,7 +63,7 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 	numAssets := (r.Intn(10) + 1)
 	assets := make(types.AssetParams, numAssets+1)
 	for i := 0; i < numAssets; i++ {
-		denom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
+		denom := strings.ToLower(simtypes.RandStringOfLength(r, (r.Intn(3) + 3)))
 		asset := genSupportedAsset(r, denom)
 		assets[i] = asset
 	}
@@ -74,8 +74,8 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 }
 
 func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
-	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
-	limit, _ := simulation.RandPositiveInt(r, MaxSupplyLimit)
+	coinID, _ := simtypes.RandPositiveInt(r, sdk.NewInt(100000))
+	limit, _ := simtypes.RandPositiveInt(r, MaxSupplyLimit)
 	return types.AssetParam{
 		Denom:  denom,
 		CoinID: int(coinID.Int64()),

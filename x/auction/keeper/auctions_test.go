@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -27,7 +26,7 @@ func TestSurplusAuctionBasic(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
-	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName, bank.Burner) // forward auctions burn proceeds
+	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName, auth.Burner) // forward auctions burn proceeds
 	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
@@ -71,7 +70,7 @@ func TestDebtAuctionBasic(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
-	buyerAcc := authexported.NewEmptyModuleAccount(buyerModName, bank.Minter) // reverse auctions mint payout
+	buyerAcc := authexported.NewEmptyModuleAccount(buyerModName, auth.Minter) // reverse auctions mint payout
 	require.NoError(t, buyerAcc.SetCoins(cs(c("debt", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
@@ -111,7 +110,7 @@ func TestDebtAuctionDebtRemaining(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
-	buyerAcc := authexported.NewEmptyModuleAccount(buyerModName, bank.Minter) // reverse auctions mint payout
+	buyerAcc := authexported.NewEmptyModuleAccount(buyerModName, auth.Minter) // reverse auctions mint payout
 	require.NoError(t, buyerAcc.SetCoins(cs(c("debt", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
@@ -302,7 +301,7 @@ func TestStartSurplusAuction(t *testing.T) {
 			initialLiquidatorCoins := cs(c("stable", 100))
 			tApp := app.NewTestApp()
 
-			liqAcc := authexported.NewEmptyModuleAccount(cdp.LiquidatorMacc, bank.Burner)
+			liqAcc := authexported.NewEmptyModuleAccount(cdp.LiquidatorMacc, auth.Burner)
 			require.NoError(t, liqAcc.SetCoins(initialLiquidatorCoins))
 			tApp.InitializeFromGenesisStates(
 				NewAuthGenStateFromAccs(authexported.GenesisAccounts{liqAcc}),
@@ -362,7 +361,7 @@ func TestCloseAuction(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
-	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName, bank.Burner) // forward auctions burn proceeds
+	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName, auth.Burner) // forward auctions burn proceeds
 	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
@@ -392,7 +391,7 @@ func TestCloseExpiredAuctions(t *testing.T) {
 
 	tApp := app.NewTestApp()
 
-	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName, bank.Burner) // forward auctions burn proceeds
+	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName, auth.Burner) // forward auctions burn proceeds
 	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{
