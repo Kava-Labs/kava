@@ -44,6 +44,24 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		return tmtypes.GenesisDoc{}, err
 	}
 
+	addAuctionState(&appState)
+	addBep3State(&appState)
+	addCDPState(&appState)
+	addCommitteeState(&appState)
+	addIncentiveState(&appState)
+	addKavaDistState(&appState)
+	addPricefeedState(&appState)
+
+	marshaledAppState, err := cdc.MarshalJSON(appState)
+	if err != nil {
+		return tmtypes.GenesisDoc{}, err
+	}
+	genDoc.AppState = marshaledAppState
+
+	return genDoc, nil
+}
+
+func addAuctionState(appState *genutil.AppMap) {
 	appState[auction.ModuleName] = cdc.MustMarshalJSON(auction.NewGenesisState(
 		auction.DefaultNextAuctionID,
 		auction.NewParams(
@@ -55,7 +73,9 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		),
 		auction.GenesisAuctions{},
 	))
+}
 
+func addBep3State(appState *genutil.AppMap) {
 	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
 		bep3.NewParams(
 			sdk.AccAddress("address for a deputy"), // TODO pending receipt of deputy address
@@ -72,7 +92,9 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		bep3.AtomicSwaps{},
 		bep3.AssetSupplies{},
 	))
+}
 
+func addCdpState(&appState *genutil.AppMap) {
 	appState[cdp.ModuleName] = cdc.MustMarshalJSON(cdp.NewGenesisState(
 		cdp.NewParams(
 			sdk.NewInt64Coin(usdxDenom, 100_000_000_000),
@@ -107,7 +129,9 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		kavaDenom,
 		cdp.DefaultPreviousDistributionTime,
 	))
+}
 
+func addCommitteeState(appState *genutil.AppMap) {
 	appState[committee.ModuleName] = cdc.MustMarshalJSON(committee.NewGenesisState(
 		committee.DefaultNextProposalID,
 		[]committee.Committee{
@@ -244,7 +268,9 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		[]committee.Proposal{},
 		[]committee.Vote{},
 	))
+}
 
+func addIncentiveState(appState *genutil.AppMap) {
 	appState[incentive.ModuleName] = cdc.MustMarshalJSON(incentive.NewGenesisState(
 		incentive.NewParams(
 			true,
@@ -263,7 +289,9 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		incentive.Claims{},
 		incentive.GenesisClaimPeriodIDs{},
 	))
+}
 
+func addKavaDistState(appState *genutil.AppMap) {
 	appState[kavadist.ModuleName] = cdc.MustMarshalJSON(kavadist.NewGenesisState(
 		kavadist.NewParams(
 			true,
@@ -276,7 +304,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 				{
 					Start:     time.Date(2021, 6, 1, 14, 0, 0, 0, time.UTC),
 					End:       time.Date(2022, 6, 1, 14, 0, 0, 0, time.UTC),
-					Inflation: sdk.MustNewDecFromStr("1.000000002293273137"), // 7.3%
+					Inflation: sdk.MustNewDecFromStr("1.000000002293273137"), // 7.5%
 				},
 				{
 					Start:     time.Date(2022, 6, 1, 14, 0, 0, 0, time.UTC),
@@ -292,7 +320,9 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		),
 		kavadist.DefaultPreviousBlockTime,
 	))
+}
 
+func addPricefeedState(appState *genutil.AppMap) {
 	appState[pricefeed.ModuleName] = cdc.MustMarshalJSON(pricefeed.NewGenesisState(
 		pricefeed.NewParams(
 			pricefeed.Markets{
@@ -338,14 +368,6 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		),
 		pricefeed.PostedPrices{},
 	))
-
-	marshaledAppState, err := cdc.MarshalJSON(appState)
-	if err != nil {
-		return tmtypes.GenesisDoc{}, err
-	}
-	genDoc.AppState = marshaledAppState
-
-	return genDoc, nil
 }
 
 func mustAccAddressFromBech32(addrBech32 string) sdk.AccAddress {
