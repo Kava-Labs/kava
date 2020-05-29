@@ -10,7 +10,6 @@ import (
 
 // Replace amino codec with sdk codec to avoid an explicit amino import in go.mod.
 // This will use a different version of amino from tendermint v0.32, but they are backwards compatible.
-// var cdc = amino.NewCodec()
 var Cdc = codec.New()
 
 func init() {

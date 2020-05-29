@@ -25,6 +25,9 @@ On each release we can delete the previous releases migration and old GenesisSta
 eg kava-3 migrates `auth.GenesisState` from kava-2 to `auth.GenesisState` from kava-3,
 but for kava-4 we don't need to keep around kava-2's `auth.GenesisState` type.
 
+This folder contains old types from several sdk modules because they needed custom migrations for kava-3.
+The sdk version for kava-2 was a master commit 18de63.
+
 Live Upgrade
 The process is:
 - submit upgrade proposal on old chain

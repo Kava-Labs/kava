@@ -9,5 +9,4 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*GenesisAccount)(nil), nil)
 	cdc.RegisterInterface((*Account)(nil), nil)
 	cdc.RegisterConcrete(&BaseAccount{}, "cosmos-sdk/Account", nil)
-	//cdc.RegisterConcrete(StdTx{}, "cosmos-sdk/StdTx", nil) // not needed for genesis migration
 }
