@@ -8,12 +8,16 @@ The cdp module contains the following parameters:
 | DebtParams                   | DebtParam               | {see below}                        | array of params for each enabled pegged asset                    |
 | GlobalDebtLimit              | coin                    | {"denom":"usdx","amount":"1000"}   | maximum pegged assets that can be minted across the whole system |
 | SavingsDistributionFrequency | string (int)            | "84600"                            | number of seconds between distribution of the savings rate       |
-| CircuitBreaker               | bool                    | false                              | flag to disable user interactions with the system                |
+| GlobalDebtLimit              | coin                    | {"denom":"usdx","amount":"1000"}   | maximum pegged assets that can be minted across the whole system |
+| DebtAuctionThreshold         | string (int)            | "100000000000"                     | amount of system debt before a debt auction is triggered         |
+| SurplusAuctionThreshold      | string (int)            | "100000000000"                     | amount of system surplus before a surplus auction is triggered   |
+| DebtAuctionLot               | string (int)            | "10000000000"                      | amount of debt that each debt auction will attempt to recoup     |
+| SurplusAuctionLot            | string (int)            | "10000000000"                      | amount of surplus that will be sold at each surplus auction      |
 
 Each CollateralParam has the following parameters:
 
 | Key                 | Type          | Example                                     | Description                                                                                                    |
-|---------------------|   |---------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+|---------------------|---------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------------|
 | Denom               | string        | "bnb"                                       | collateral coin denom                                                                                          |
 | LiquidationRatio    | string (dec)  | "1.500000000000000000"                      | the ratio under which a cdp with this collateral type will be liquidated                                       |
 | DebtLimit           | coin          | {"denom":"bnb","amount":"1000000000000"}    | maximum pegged asset that can be minted backed by this collateral type                                         |
