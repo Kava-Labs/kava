@@ -421,7 +421,7 @@ func validateDebtAuctionLotParam(i interface{}) error {
 	}
 
 	if !dal.IsPositive() {
-		return fmt.Errorf("surplus auction lot should be positive: %s", dal)
+		return fmt.Errorf("debt auction lot should be positive: %s", dal)
 	}
 
 	return nil

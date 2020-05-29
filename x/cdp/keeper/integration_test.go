@@ -42,7 +42,9 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		Params: cdp.Params{
 			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			DebtAuctionLot:               cdp.DefaultDebtLot,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
@@ -105,7 +107,9 @@ func NewCDPGenStateMulti() app.GenesisState {
 		Params: cdp.Params{
 			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			DebtAuctionLot:               cdp.DefaultDebtLot,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
@@ -155,7 +159,9 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 		Params: cdp.Params{
 			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 100000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			DebtAuctionLot:               cdp.DefaultDebtLot,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{

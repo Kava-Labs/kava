@@ -124,7 +124,8 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 		return nil
 	}
 	surplusLot := sdk.NewCoin(params.DebtParam.Denom, params.SurplusAuctionLot)
-	if params.SurplusAuctionLot.LT(surplus) {
+	// sanity check - don't auction more coins than we have available
+	if params.SurplusAuctionLot.GT(surplus) {
 		surplusLot = sdk.NewCoin(params.DebtParam.Denom, surplus)
 	}
 	_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
