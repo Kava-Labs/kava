@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -97,9 +97,9 @@ func RandomizedGenState(simState *module.SimulationState) {
 	var authGenesis auth.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
 
-	auctionModAcc, found := getAccount(authGenesis.Accounts, supply.NewModuleAddress(types.ModuleName))
+	auctionModAcc, found := getAccount(authGenesis.Accounts, auth.NewModuleAddress(types.ModuleName))
 	if !found {
-		auctionModAcc = supply.NewEmptyModuleAccount(types.ModuleName)
+		auctionModAcc = auth.NewEmptyModuleAccount(types.ModuleName)
 	}
 	if err := auctionModAcc.SetCoins(totalAuctionCoins); err != nil {
 		panic(err)
@@ -121,10 +121,10 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	// Update the supply genesis state to reflect the new coins
 	// TODO find some way for this to happen automatically / move it elsewhere
-	var supplyGenesis supply.GenesisState
-	simState.Cdc.MustUnmarshalJSON(simState.GenState[supply.ModuleName], &supplyGenesis)
-	supplyGenesis.Supply = supplyGenesis.Supply.Add(totalAuctionCoins...).Add(bidderCoins...)
-	simState.GenState[supply.ModuleName] = simState.Cdc.MustMarshalJSON(supplyGenesis)
+	var bankGenesis bank.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[bank.ModuleName], &bankGenesis)
+	bankGenesis.Supply = bankGenesis.Supply.Add(totalAuctionCoins...).Add(bidderCoins...)
+	simState.GenState[bank.ModuleName] = simState.Cdc.MustMarshalJSON(bankGenesis)
 
 	// TODO liquidator mod account doesn't need to be initialized for this example
 	// - it just mints kava, doesn't need a starting balance

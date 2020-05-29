@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -40,7 +40,7 @@ func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Collateral,
 			requestBody.Principal,
 		)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		authclient.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
 
@@ -62,7 +62,7 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Depositor,
 			requestBody.Collateral,
 		)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		authclient.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
 
@@ -84,7 +84,7 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Depositor,
 			requestBody.Collateral,
 		)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		authclient.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
 
@@ -106,7 +106,7 @@ func postDrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Denom,
 			requestBody.Principal,
 		)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		authclient.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }
 
@@ -128,6 +128,6 @@ func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Denom,
 			requestBody.Payment,
 		)
-		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+		authclient.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
 	}
 }

@@ -19,12 +19,12 @@ type Keeper struct {
 	// Codec for binary encoding/decoding
 	cdc *codec.Codec
 	// The reference to the Paramstore to get and set pricefeed specific params
-	paramSubspace subspace.Subspace
+	paramSubspace params.Subspace
 }
 
 // NewKeeper returns a new keeper for the pricefeed module.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
+	cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())

@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -46,7 +46,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	modName := cdp.LiquidatorMacc
 
 	// Set up seller account
-	sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)
+	sellerAcc := auth.NewEmptyModuleAccount(modName, bank.Minter, bank.Burner)
 	sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000)))
 
 	// Initialize genesis accounts

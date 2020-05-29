@@ -14,11 +14,13 @@ import (
 type AccountKeeper interface {
 	SetModuleAccount(sdk.Context, authtypes.ModuleAccountI)
 
-	GetAccount(sdk.Context, sdk.AccAddress) authtypes.Account
-	SetAccount(sdk.Context, authtypes.Account)
-	GetAllAccounts(ctx sdk.Context) (accounts []authtypes.Account)
-	IterateAccounts(ctx sdk.Context, cb func(account authtypes.Account) (stop bool))
+	GetAccount(sdk.Context, sdk.AccAddress) authtypes.AccountI
+	SetAccount(sdk.Context, authtypes.AccountI)
+	GetAllAccounts(ctx sdk.Context) (accounts []authtypes.AccountI)
+	IterateAccounts(ctx sdk.Context, cb func(account authtypes.AccountI) (stop bool))
 }
+
+// TODO: combine
 
 // BankKeeper defines the expected bank keeper (noalias)
 type BankKeeper interface {

@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -26,7 +25,7 @@ func TestKeeper_BeginBlocker(t *testing.T) {
 	sellerModName := cdp.LiquidatorMacc
 
 	tApp := app.NewTestApp()
-	sellerAcc := supply.NewEmptyModuleAccount(sellerModName)
+	sellerAcc := authexported.NewEmptyModuleAccount(sellerModName)
 	require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 100), c("token2", 100), c("debt", 100))))
 	tApp.InitializeFromGenesisStates(
 		NewAuthGenStateFromAccs(authexported.GenesisAccounts{

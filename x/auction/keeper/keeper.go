@@ -15,17 +15,17 @@ import (
 )
 
 type Keeper struct {
-	bankKeeper  types.BankKeeper
-	accountKeeper  types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	accountKeeper types.AccountKeeper
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	paramSubspace params.Subspace
 }
 
 // NewKeeper returns a new auction keeper.
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, accountKeeper types.AccountKeeper, 
-	bankKeeper types.BankKeeper, paramstore subspace.Subspace,
-	) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper, paramstore params.Subspace,
+) Keeper {
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
@@ -35,8 +35,8 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, accountKeeper types.Acco
 	}
 
 	return Keeper{
-		accountKeeper:  accountKeeper,
-		bankKeeper:  bankKeeper,
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
 		storeKey:      storeKey,
 		cdc:           cdc,
 		paramSubspace: paramstore,

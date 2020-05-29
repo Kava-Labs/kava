@@ -6,7 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -56,8 +57,8 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 
 	// This auction type mints coins at close. Need to check module account has minting privileges to avoid potential err in endblocker.
 	macc := k.accountKeeper.GetModuleAccount(ctx, buyer)
-	if !macc.HasPermission(supply.Minter) {
-		panic(fmt.Errorf("module '%s' does not have '%s' permission", buyer, supply.Minter))
+	if !macc.HasPermission(bank.Minter) {
+		panic(fmt.Errorf("module '%s' does not have '%s' permission", buyer, bank.Minter))
 	}
 
 	// NOTE: for the duration of the auction the auction module account holds the debt
@@ -413,7 +414,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 		}
 	}
 	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to min of Bid and amount of debt.
-	if a.Bidder.Equals(supply.NewModuleAddress(a.Initiator)) {
+	if a.Bidder.Equals(authtypes.NewModuleAddress(a.Initiator)) {
 
 		debtAmountToReturn := sdk.MinInt(a.Bid.Amount, a.CorrespondingDebt.Amount)
 		debtToReturn := sdk.NewCoin(a.CorrespondingDebt.Denom, debtAmountToReturn)

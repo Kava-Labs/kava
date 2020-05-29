@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
-	
+
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
@@ -44,6 +44,6 @@ type AccountKeeper interface {
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 	SetModuleAccount(sdk.Context, authtypes.ModuleAccountI)
 
-	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+	IterateAccounts(ctx sdk.Context, cb func(account authtypes.AccountI) (stop bool))
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 }

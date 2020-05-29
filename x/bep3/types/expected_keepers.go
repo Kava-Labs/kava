@@ -9,10 +9,10 @@ import (
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
-	
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.Account
-	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.Account
-	SetAccount(ctx sdk.Context, acc authexported.Account)
+
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
 }
 
 // BankKeeper defines the expected bank Keeper

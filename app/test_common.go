@@ -26,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/kava-labs/kava/x/auction"
@@ -66,7 +65,6 @@ func NewTestApp() TestApp {
 // nolint
 func (tApp TestApp) GetAccountKeeper() auth.AccountKeeper { return tApp.accountKeeper }
 func (tApp TestApp) GetBankKeeper() bank.Keeper           { return tApp.bankKeeper }
-func (tApp TestApp) GetSupplyKeeper() supply.Keeper       { return tApp.supplyKeeper }
 func (tApp TestApp) GetStakingKeeper() staking.Keeper     { return tApp.stakingKeeper }
 func (tApp TestApp) GetSlashingKeeper() slashing.Keeper   { return tApp.slashingKeeper }
 func (tApp TestApp) GetMintKeeper() mint.Keeper           { return tApp.mintKeeper }

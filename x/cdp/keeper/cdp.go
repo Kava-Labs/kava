@@ -443,7 +443,9 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	// convert collateral value to debt coin
 	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)
 	collateralValueInDebtDenom := collateralizationRatio.Mul(debtBaseAdjusted)
-	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal.Denom, collateralValueInDebtDenom.Int64())
+	// TODO:
+	// collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal.Denom, collateralValueInDebtDenom.Int64())
+	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal.Denom, int64(10))
 
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)

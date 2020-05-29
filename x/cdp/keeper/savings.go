@@ -17,7 +17,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	if !found {
 		return sdkerrors.Wrap(types.ErrDebtNotSupported, debtDenom)
 	}
-	savingsRateMacc := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
+	savingsRateMacc := k.accountKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
 	surplusToDistribute := savingsRateMacc.GetCoins().AmountOf(dp.Denom)
 	if surplusToDistribute.IsZero() {
 		return nil
@@ -27,7 +27,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
 	surplusDistributed := sdk.ZeroInt()
 	var iterationErr error
-	k.accountKeeper.IterateAccounts(ctx, func(acc authtypes.Account) (stop bool) {
+	k.accountKeeper.IterateAccounts(ctx, func(acc authtypes.AccountI) (stop bool) {
 		_, ok := acc.(authtypes.ModuleAccountI)
 		if ok {
 			// don't distribute savings rate to module accounts
@@ -81,7 +81,7 @@ func (k Keeper) SetPreviousSavingsDistribution(ctx sdk.Context, distTime time.Ti
 func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
 	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
 	for macc := range k.maccPerms {
-		modCoinBalance := k.supplyKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
+		modCoinBalance := k.accountKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
 		if modCoinBalance.IsPositive() {
 			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
 		}

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 )
 
 // DistantFuture is a very large time value to use as initial the ending time for auctions.
@@ -185,9 +185,9 @@ func NewDebtAuction(buyerModAccName string, bid sdk.Coin, initialLot sdk.Coin, e
 			// no ID
 			Initiator:       buyerModAccName,
 			Lot:             initialLot,
-			Bidder:          supply.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
-			Bid:             bid,                                      // amount that the buyer is buying - doesn't change over course of auction
-			HasReceivedBids: false,                                    // new auctions don't have any bids
+			Bidder:          auth.NewModuleAddress(buyerModAccName), // send proceeds from the first bid to the buyer.
+			Bid:             bid,                                    // amount that the buyer is buying - doesn't change over course of auction
+			HasReceivedBids: false,                                  // new auctions don't have any bids
 			EndTime:         endTime,
 			MaxEndTime:      endTime,
 		},

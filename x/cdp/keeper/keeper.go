@@ -15,7 +15,7 @@ import (
 type Keeper struct {
 	key             sdk.StoreKey
 	cdc             *codec.Codec
-	paramSubspace   subspace.Subspace
+	paramSubspace   params.Subspace
 	pricefeedKeeper types.PricefeedKeeper
 	supplyKeeper    types.SupplyKeeper
 	auctionKeeper   types.AuctionKeeper
@@ -24,7 +24,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, pfk types.PricefeedKeeper,
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace, pfk types.PricefeedKeeper,
 	ak types.AuctionKeeper, sk types.SupplyKeeper, ack types.AccountKeeper, maccs map[string][]string) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())

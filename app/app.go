@@ -29,7 +29,7 @@ import (
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 
@@ -80,7 +80,7 @@ var (
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		supply.AppModuleBasic{},
+		bank.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
@@ -95,17 +95,17 @@ var (
 	mAccPerms = map[string][]string{
 		auth.FeeCollectorName:       nil,
 		distr.ModuleName:            nil,
-		mint.ModuleName:             {supply.Minter},
-		staking.BondedPoolName:      {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName:   {supply.Burner, supply.Staking},
-		gov.ModuleName:              {supply.Burner},
-		validatorvesting.ModuleName: {supply.Burner},
+		mint.ModuleName:             {bank.Minter},
+		staking.BondedPoolName:      {bank.Burner, bank.Staking},
+		staking.NotBondedPoolName:   {bank.Burner, bank.Staking},
+		gov.ModuleName:              {bank.Burner},
+		validatorvesting.ModuleName: {bank.Burner},
 		auction.ModuleName:          nil,
-		cdp.ModuleName:              {supply.Minter, supply.Burner},
-		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
-		cdp.SavingsRateMacc:         {supply.Minter},
+		cdp.ModuleName:              {bank.Minter, bank.Burner},
+		cdp.LiquidatorMacc:          {bank.Minter, bank.Burner},
+		cdp.SavingsRateMacc:         {bank.Minter},
 		bep3.ModuleName:             nil,
-		kavadist.ModuleName:         {supply.Minter},
+		kavadist.ModuleName:         {bank.Minter},
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
 
@@ -133,7 +133,7 @@ type App struct {
 	accountKeeper   auth.AccountKeeper
 	bankKeeper      bank.Keeper
 	capabilityKeeper *capability.Keeper
-	supplyKeeper    supply.Keeper
+	bankKeeper    bank.Keeper
 	stakingKeeper   staking.Keeper
 	slashingKeeper  slashing.Keeper
 	mintKeeper      mint.Keeper
@@ -177,7 +177,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		bank.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, ibc.StoreKey, upgrade.StoreKey, 
 		evidence.StoreKey, validatorvesting.StoreKey, auction.StoreKey,
 		cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey, kavadist.StoreKey,
@@ -228,9 +228,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bankSubspace,
 		app.BlacklistedAccAddrs(),
 	)
-	app.supplyKeeper = supply.NewKeeper(
+	app.bankKeeper = bank.NewKeeper(
 		app.cdc,
-		keys[supply.StoreKey],
+		keys[bank.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		mAccPerms,
@@ -238,7 +238,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	stakingKeeper := staking.NewKeeper(
 		app.cdc,
 		keys[staking.StoreKey],
-		app.supplyKeeper,
+		app.bankKeeper,
 		stakingSubspace,
 	)
 	app.mintKeeper = mint.NewKeeper(
@@ -246,7 +246,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[mint.StoreKey],
 		mintSubspace,
 		&stakingKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		auth.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
@@ -254,7 +254,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[distr.StoreKey],
 		distrSubspace,
 		&stakingKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		auth.FeeCollectorName,
 		app.ModuleAccountAddrs(),
 	)
@@ -267,7 +267,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
 		invCheckPeriod,
-		app.supplyKeeper,
+		app.bankKeeper,
 		auth.FeeCollectorName,
 	)
 	app.upgradeKeeper = upgrade.NewKeeper(
@@ -304,7 +304,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.cdc,
 		keys[gov.StoreKey],
 		govSubspace,
-		app.supplyKeeper,
+		app.bankKeeper,
 		&stakingKeeper,
 		govRouter,
 	)
@@ -314,7 +314,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[validatorvesting.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		&stakingKeeper,
 	)
 	app.pricefeedKeeper = pricefeed.NewKeeper(
@@ -325,7 +325,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
-		app.supplyKeeper,
+		app.bankKeeper,
 		auctionSubspace,
 	)
 	app.cdpKeeper = cdp.NewKeeper(
@@ -334,14 +334,14 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		cdpSubspace,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.accountKeeper,
 		mAccPerms,
 	)
 	app.bep3Keeper = bep3.NewKeeper(
 		app.cdc,
 		keys[bep3.StoreKey],
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.accountKeeper,
 		bep3Subspace,
 		app.ModuleAccountAddrs(),
@@ -350,13 +350,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.cdc,
 		keys[kavadist.StoreKey],
 		kavadistSubspace,
-		app.supplyKeeper,
+		app.bankKeeper,
 	)
 	app.incentiveKeeper = incentive.NewKeeper(
 		app.cdc,
 		keys[incentive.StoreKey],
 		incentiveSubspace,
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.cdpKeeper,
 		app.accountKeeper,
 	)
@@ -409,22 +409,22 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.bankKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
 
@@ -449,7 +449,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
 		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName,
 		committee.ModuleName, ibc.ModuleName, transfer.ModuleName,
-		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
+		bank.ModuleName,  // calculates the total bank from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
 	)
@@ -466,18 +466,18 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(app.mintKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.bankKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 	)
@@ -492,7 +492,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	// TODO:
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.bankKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
@@ -563,7 +563,7 @@ func (app *App) LoadHeight(height int64) error {
 func (app *App) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[bank.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
@@ -573,7 +573,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 func (app *App) BlacklistedAccAddrs() map[string]bool {
 	blacklistedAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blacklistedAddrs[bank.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
 	return blacklistedAddrs
