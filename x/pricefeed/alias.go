@@ -31,6 +31,7 @@ const (
 	QueryOracles                = types.QueryOracles
 	QueryRawPrices              = types.QueryRawPrices
 	QueryPrice                  = types.QueryPrice
+	MaxExpiry                   = types.MaxExpiry
 )
 
 // nolint
