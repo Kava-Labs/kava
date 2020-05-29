@@ -44,13 +44,13 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 		return tmtypes.GenesisDoc{}, err
 	}
 
-	addAuctionState(&appState)
-	addBep3State(&appState)
-	addCDPState(&appState)
-	addCommitteeState(&appState)
-	addIncentiveState(&appState)
-	addKavaDistState(&appState)
-	addPricefeedState(&appState)
+	addAuctionState(cdc, appState)
+	addBep3State(cdc, appState)
+	addCDPState(cdc, appState)
+	addCommitteeState(cdc, appState)
+	addIncentiveState(cdc, appState)
+	addKavaDistState(cdc, appState)
+	addPricefeedState(cdc, appState)
 
 	marshaledAppState, err := cdc.MarshalJSON(appState)
 	if err != nil {
@@ -61,7 +61,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 	return genDoc, nil
 }
 
-func addAuctionState(appState *genutil.AppMap) {
+func addAuctionState(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[auction.ModuleName] = cdc.MustMarshalJSON(auction.NewGenesisState(
 		auction.DefaultNextAuctionID,
 		auction.NewParams(
@@ -75,7 +75,7 @@ func addAuctionState(appState *genutil.AppMap) {
 	))
 }
 
-func addBep3State(appState *genutil.AppMap) {
+func addBep3State(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
 		bep3.NewParams(
 			sdk.AccAddress("address for a deputy"), // TODO pending receipt of deputy address
@@ -94,7 +94,7 @@ func addBep3State(appState *genutil.AppMap) {
 	))
 }
 
-func addCdpState(&appState *genutil.AppMap) {
+func addCDPState(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[cdp.ModuleName] = cdc.MustMarshalJSON(cdp.NewGenesisState(
 		cdp.NewParams(
 			sdk.NewInt64Coin(usdxDenom, 100_000_000_000),
@@ -131,7 +131,7 @@ func addCdpState(&appState *genutil.AppMap) {
 	))
 }
 
-func addCommitteeState(appState *genutil.AppMap) {
+func addCommitteeState(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[committee.ModuleName] = cdc.MustMarshalJSON(committee.NewGenesisState(
 		committee.DefaultNextProposalID,
 		[]committee.Committee{
@@ -270,7 +270,7 @@ func addCommitteeState(appState *genutil.AppMap) {
 	))
 }
 
-func addIncentiveState(appState *genutil.AppMap) {
+func addIncentiveState(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[incentive.ModuleName] = cdc.MustMarshalJSON(incentive.NewGenesisState(
 		incentive.NewParams(
 			true,
@@ -291,7 +291,7 @@ func addIncentiveState(appState *genutil.AppMap) {
 	))
 }
 
-func addKavaDistState(appState *genutil.AppMap) {
+func addKavaDistState(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[kavadist.ModuleName] = cdc.MustMarshalJSON(kavadist.NewGenesisState(
 		kavadist.NewParams(
 			true,
@@ -322,7 +322,7 @@ func addKavaDistState(appState *genutil.AppMap) {
 	))
 }
 
-func addPricefeedState(appState *genutil.AppMap) {
+func addPricefeedState(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[pricefeed.ModuleName] = cdc.MustMarshalJSON(pricefeed.NewGenesisState(
 		pricefeed.NewParams(
 			pricefeed.Markets{
