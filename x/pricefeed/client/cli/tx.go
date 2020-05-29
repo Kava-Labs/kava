@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
+
+const maxExpiry = 253402300799 // 9999-12-31 23:59:59 +0000 UTC
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
@@ -41,7 +44,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "postprice [marketID] [price] [expiry]",
-		Short: "post the latest price for a particular market",
+		Short: "post the latest price for a particular market with a given expiry as a UNIX time",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -52,17 +55,23 @@ func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			expiryInt, ok := sdk.NewIntFromString(args[2])
-			if !ok {
-				return fmt.Errorf("invalid expiry - %s", args[2])
+
+			expiryInt, err := strconv.ParseInt(args[2], 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid expiry %s: %w", args[2], err)
 			}
-			expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
+
+			if expiryInt > maxExpiry {
+				return fmt.Errorf("invalid expiry; got %d, max: %d", expiryInt, maxExpiry)
+			}
+
+			expiry := tmtime.Canonical(time.Unix(expiryInt, 0))
 
 			msg := types.NewMsgPostPrice(cliCtx.GetFromAddress(), args[0], price, expiry)
-			err = msg.ValidateBasic()
-			if err != nil {
+			if err = msg.ValidateBasic(); err != nil {
 				return err
 			}
+
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
