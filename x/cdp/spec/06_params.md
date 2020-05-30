@@ -16,16 +16,16 @@ The cdp module contains the following parameters:
 
 Each CollateralParam has the following parameters:
 
-| Key                 | Type          | Example                                     | Description                                                                                                    |
-|---------------------|---------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------------|
-| Denom               | string        | "bnb"                                       | collateral coin denom                                                                                          |
-| LiquidationRatio    | string (dec)  | "1.500000000000000000"                      | the ratio under which a cdp with this collateral type will be liquidated                                       |
-| DebtLimit           | coin          | {"denom":"bnb","amount":"1000000000000"}    | maximum pegged asset that can be minted backed by this collateral type                                         |
-| StabilityFee        | string (dec)  | "1.000000001547126"                         | per second fee                                                                                                 |
-| Prefix              | number (byte) | 34                                          | identifier used in store keys - **must** be unique across collateral types                                     |
-| SpotMarketID        | string        | "bnb:usd"                                   | price feed identifier for the spot price of this collateral type                                                       |
-| LiquidationMarketID | string        | "bnb:usd:30"                                | price feed identifier for the liquidation price of this collateral type                                                       |
-| ConversionFactor    | string (int)  | "6"                                         | 10^_ multiplier to go from external amount (say BTC1.50) to internal representation of that amount (150000000) |
+| Key                 | Type          | Example                                  | Description                                                                   |
+|---------------------|---------------|------------------------------------------|-------------------------------------------------------------------------------|
+| Denom               | string        | "bnb"                                    | collateral coin denom                                                         |
+| LiquidationRatio    | string (dec)  | "1.500000000000000000"                   | the ratio under which a cdp with this collateral type will be liquidated      |
+| DebtLimit           | coin          | {"denom":"bnb","amount":"1000000000000"} | maximum pegged asset that can be minted backed by this collateral type        |
+| StabilityFee        | string (dec)  | "1.000000001547126"                      | per second fee                                                                |
+| Prefix              | number (byte) | "34"                                     | identifier used in store keys - **must** be unique across collateral types    |
+| SpotMarketID        | string        | "bnb:usd"                                | price feed identifier for the spot price of this collateral type              |
+| LiquidationMarketID | string        | "bnb:usd:30"                             | price feed identifier for the liquidation price of this collateral type       |
+| ConversionFactor    | string (int)  | "6"                                      | 10^_ multiplier for external (BTC1.50) to internal (150000000) representation |
 
 DebtParam has the following parameters:
 

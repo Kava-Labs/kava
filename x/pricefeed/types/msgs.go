@@ -13,6 +13,9 @@ import (
 const (
 	// TypeMsgPostPrice type of PostPrice msg
 	TypeMsgPostPrice = "post_price"
+
+	// MaxExpiry defines the max expiry time defined as UNIX time (9999-12-31 23:59:59 +0000 UTC)
+	MaxExpiry = 253402300799
 )
 
 // ensure Msg interface compliance at compile time
