@@ -72,6 +72,8 @@ func randomCdpGenState(selection int) types.GenesisState {
 			Params: types.Params{
 				GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 100000000000000),
 				SurplusAuctionThreshold:      types.DefaultSurplusThreshold,
+				SurplusAuctionLot:            types.DefaultSurplusLot,
+				DebtAuctionLot:               types.DefaultDebtLot,
 				DebtAuctionThreshold:         types.DefaultDebtThreshold,
 				SavingsDistributionFrequency: types.DefaultSavingsDistributionFrequency,
 				CollateralParams: types.CollateralParams{
@@ -132,6 +134,8 @@ func randomCdpGenState(selection int) types.GenesisState {
 				GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 100000000000000),
 				SurplusAuctionThreshold:      types.DefaultSurplusThreshold,
 				DebtAuctionThreshold:         types.DefaultDebtThreshold,
+				SurplusAuctionLot:            types.DefaultSurplusLot,
+				DebtAuctionLot:               types.DefaultDebtLot,
 				SavingsDistributionFrequency: types.DefaultSavingsDistributionFrequency,
 				CollateralParams: types.CollateralParams{
 					{

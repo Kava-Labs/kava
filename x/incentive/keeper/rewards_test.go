@@ -179,7 +179,9 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 		Params: cdp.Params{
 			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			DebtAuctionLot:               cdp.DefaultDebtLot,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{

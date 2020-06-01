@@ -1,4 +1,4 @@
-# `bep3` module specification
+# `bep3`
 
 <!-- TOC -->
 1. **[Concepts](01_concepts.md)**
