@@ -79,7 +79,7 @@ func addBep3State(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
 		bep3.NewParams(
 			// Binance deputy address
-			sdk.AccAddress("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6"),
+			mustAccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6"),
 			1000,
 			bep3.DefaultMinBlockLock,
 			bep3.DefaultMaxBlockLock,

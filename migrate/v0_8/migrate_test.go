@@ -20,7 +20,6 @@ func TestMain(m *testing.M) {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	app.SetBip44CoinType(config)
-	config.Seal()
 
 	os.Exit(m.Run())
 }
@@ -166,4 +165,28 @@ func TestMigrate(t *testing.T) {
 	require.NoError(t,
 		app.ModuleBasics.ValidateGenesis(newAppState),
 	)
+}
+
+func TestMigrate_Full(t *testing.T) {
+	// 1) load an exported kava-2 state
+	oldGenDoc, err := v032tendermint.GenesisDocFromFile(filepath.Join("testdata", "kava-2.json"))
+	require.NoError(t, err)
+	tApp := app.NewTestApp() // also sets the bech32 prefix on sdk.Config
+	cdc := app.MakeCodec()
+
+	// 2) migrate
+	newGenDoc := Migrate(*oldGenDoc)
+
+	// 3) check new genesis is valid
+	var newAppState genutil.AppMap
+	require.NoError(t,
+		cdc.UnmarshalJSON(newGenDoc.AppState, &newAppState),
+	)
+	require.NoError(t,
+		app.ModuleBasics.ValidateGenesis(newAppState),
+	)
+	require.NotPanics(t, func() {
+		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
+		tApp.InitializeFromGenesisStates(app.GenesisState(newAppState))
+	})
 }
