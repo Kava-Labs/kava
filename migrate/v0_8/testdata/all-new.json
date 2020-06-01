@@ -334,8 +334,10 @@
           "denom": "usdx",
           "amount": "0"
         },
-        "surplus_auction_threshold": "1000000000",
-        "debt_auction_threshold": "1000000000",
+        "surplus_auction_threshold": "500000000000",
+        "surplus_auction_lot": "10000000000",
+        "debt_auction_threshold": "100000000000",
+        "debt_auction_lot": "10000000000",
         "savings_distribution_frequency": "43200000000000",
         "circuit_breaker": false
       },

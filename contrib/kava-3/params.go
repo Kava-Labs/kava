@@ -118,8 +118,11 @@ func addCDPState(cdc *codec.Codec, appState genutil.AppMap) {
 				DebtFloor:        sdk.NewInt(10_000_000),
 				SavingsRate:      sdk.MustNewDecFromStr("0.9"),
 			},
-			sdk.NewInt(20_000_000_000),
-			sdk.NewInt(10_000_000_000),
+			// below values are usdx coin amounts
+			sdk.NewInt(20_000_000_000), // surplusThreshold
+			sdk.NewInt(10_000_000_000), // surplusLot
+			sdk.NewInt(10_000_000_000), // debtThreshold
+			sdk.NewInt(10_000_000_000), // debtLot
 			24*time.Hour,
 			false,
 		),
