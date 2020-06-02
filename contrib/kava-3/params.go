@@ -119,9 +119,9 @@ func addCDPState(cdc *codec.Codec, appState genutil.AppMap) {
 				SavingsRate:      sdk.MustNewDecFromStr("0.9"),
 			},
 			// below values are usdx coin amounts
-			sdk.NewInt(20_000_000_000), // surplusThreshold
+			sdk.NewInt(200_000_000_000), // surplusThreshold
 			sdk.NewInt(10_000_000_000), // surplusLot
-			sdk.NewInt(10_000_000_000), // debtThreshold
+			sdk.NewInt(50_000_000_000), // debtThreshold
 			sdk.NewInt(10_000_000_000), // debtLot
 			24*time.Hour,
 			false,
@@ -341,7 +341,7 @@ func addPricefeedState(cdc *codec.Codec, appState genutil.AppMap) {
 						mustAccAddressFromBech32("kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg"),
 						mustAccAddressFromBech32("kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl"),
 						mustAccAddressFromBech32("kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp"),
-						mustAccAddressFromBech32("kava1266f45d6te0wlkswp24phvqrnf0ddpyzhv6ycp"),
+						mustAccAddressFromBech32("kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj"),
 						mustAccAddressFromBech32("kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92"),
 						mustAccAddressFromBech32("kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn"),
 						mustAccAddressFromBech32("kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy"),
@@ -360,7 +360,7 @@ func addPricefeedState(cdc *codec.Codec, appState genutil.AppMap) {
 						mustAccAddressFromBech32("kava1ueak7nzesm3pnev6lngp6lgk0ry02djz8pjpcg"),
 						mustAccAddressFromBech32("kava1sl62nqm89c780yxm3m9lp3tacmpnfljq6tytvl"),
 						mustAccAddressFromBech32("kava1ujfrlcd0ted58mzplnyxzklsw0sqevlgxndanp"),
-						mustAccAddressFromBech32("kava1266f45d6te0wlkswp24phvqrnf0ddpyzhv6ycp"),
+						mustAccAddressFromBech32("kava17fatl3wzxvk4rwfu3tqsctdp5x9vute67j9ufj"),
 						mustAccAddressFromBech32("kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92"),
 						mustAccAddressFromBech32("kava1xd39avn2f008jmvua0eupg39zsp2xn3wf802vn"),
 						mustAccAddressFromBech32("kava1pt6q4kdmwawr3thm9cd82pq7hml8u84rd0f3jy"),
