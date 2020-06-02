@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-for D in ../x/*; do
-  if [ -d "${D}" ]; then
-    rm -rf "./$(echo $D | awk -F/ '{print $NF}')"
-  fi
-done
+# Modules
+rm -rf Modules
+
+# JavaScript SDK docs
+ rm -rf Building
+
+ # Kava Tools docs
+ rm -rf Tools
