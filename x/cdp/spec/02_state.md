@@ -53,7 +53,7 @@ type Deposit struct {
 
 ## Params
 
-Module parameters controlled by governance. See [Parameters](06_params.md) for details.
+Module parameters controlled by governance. See [Parameters](04_params.md) for details.
 
 ## NextCDPID
 
