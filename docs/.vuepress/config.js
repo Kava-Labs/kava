@@ -6,68 +6,61 @@ module.exports = {
       src: "/kava-logo.svg",
     },
     custom: true,
-    autoSidebar: false,
+    autoSidebar: true,
     sidebar: [
-      {
-        title: "Modules",
-        children: [
-          {
-            title: "CDP",
-            path: "./public/favicon.ico"
-          },
-          {
-            title: "Auction",
-            path: "https://example.org/"
-          },
-          {
-            title: "BEP3",
-            path: "https://example.org/"
-          },
-          {
-            title: "Pricefeed",
-            path: "https://example.org/"
-          },
-          {
-            title: "Committee",
-            path: "https://example.org/"
-          },
-          {
-            title: "Incentive",
-            path: "https://example.org/"
-          },
-          {
-            title: "Kavadist",
-            path: "https://example.org/"
-          },
-          {
-            title: "Validator Vesting",
-            path: "https://example.org/"
-          }
-        ]
-      },
       {
         title: "Kava Tools",
         children: [
           {
             title: "Chainlink Price Oracle",
-            // path: "https://example.org/"
-            path: "./dist/kava-tools/oracle.html",
-            static: true
+            path: "https://docs.kava.io/Tools/oracle.html"
           },
           {
             title: "Auction Bot",
-            path: "https://example.org/"
+            path: "https://docs.kava.io/Tools/auction.html",
+            static: true
+          }
+        ]
+      },
+      // {
+      //   title: "Building on Kava",
+      //   children: [
+      //     {
+      //       title: "JavaScript SDK",
+      //       path: "https://jovial-kirch-96aaf6.netlify.app/Building/javascript-sdk.html",
+      //       static: true
+      //     }
+      //   ]
+      // },
+      {
+        title: "Resources",
+        children: [
+          {
+            title: "REST API Spec",
+            path: "https://rpc.kava.io/"
+          },
+          {
+            title: "Protocol Reference",
+            path: "https://godoc.org/github.com/Kava-Labs/kava"
           }
         ]
       },
       {
-        title: "Building on Kava",
+        title: "Community",
         children: [
           {
-            title: "JavaScript SDK",
-            path: "https://example.org/"
+            title: "Discord",
+            path: "https://discord.com/channels/704389840614981673/704389841051320362"
+          },
+          {
+            title: "Telegram",
+            path: "https://t.me/kavalabs"
+          },
+          {
+            title: "GitHub",
+            path: "https://github.com/Kava-Labs/kava"
           }
-        ]        
+        ]
       }
     ]
   }

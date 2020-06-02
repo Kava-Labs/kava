@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 
-# Module specs
-for D in ../x/*; do
-  if [ -d "${D}" ]; then
-    rm -rf "./$(echo $D | awk -F/ '{print $NF}')"
-  fi
-done
+# Modules
+rm -rf Modules
 
 # JavaScript SDK docs
- rm -rf "./building-on-kava"
+ rm -rf Building
 
  # Kava Tools docs
- rm -rf "./kava-tools"
+ rm -rf Tools
