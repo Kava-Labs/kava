@@ -1,3 +1,7 @@
+<!--
+order: 4
+-->
+
 # Events
 
 The `x/incentive` module emits the following events:

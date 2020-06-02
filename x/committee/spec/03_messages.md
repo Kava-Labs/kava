@@ -1,3 +1,7 @@
+<!--
+order: 3
+-->
+
 # Messages
 
 Committee members submit proposals using a `MsgSubmitProposal`

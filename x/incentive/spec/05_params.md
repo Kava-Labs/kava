@@ -1,3 +1,7 @@
+<!--
+order: 5
+-->
+
 # Parameters
 
 The incentive module contains the following parameters:

@@ -1,3 +1,7 @@
+<!--
+order: 5
+-->
+
 # Events
 
 The cdp module emits the following events:

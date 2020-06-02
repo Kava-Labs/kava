@@ -1,3 +1,7 @@
+<!--
+order: 4
+-->
+
 # Events
 
 The `x/kavadist` module emits the following events:

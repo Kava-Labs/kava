@@ -1,3 +1,7 @@
+<!--
+order: 4
+-->
+
 # Begin Block
 
 At the start of every block the BeginBlock of the cdp module:

@@ -1,3 +1,7 @@
+<!--
+order: 6
+-->
+
 # Parameters
 
 The cdp module contains the following parameters:

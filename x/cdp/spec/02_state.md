@@ -1,3 +1,7 @@
+<!--
+order: 2
+-->
+
 # State
 
 For detail on the state tracked by the cdp module see the types package. In particular [keys.go](../types/keys.go) describes how state is stored in the key-value store.

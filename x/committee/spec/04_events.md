@@ -1,3 +1,7 @@
+<!--
+order: 4
+-->
+
 # Events
 
 The `x/committee` module emits the following events:

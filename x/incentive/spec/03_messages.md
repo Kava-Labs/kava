@@ -1,3 +1,7 @@
+<!--
+order: 3
+-->
+
 # Messages
 
 Users claim rewards using a `MsgClaimReward`.
