@@ -8,16 +8,6 @@ module.exports = {
     custom: true,
     autoSidebar: true,
     sidebar: [
-      // {
-      //   title: "TestingTesting",
-      //   children: [
-      //     {
-      //       title: "Tools",
-      //       path: "/tools/",
-      //       directory: true
-      //     }
-      //   ]
-      // },
       {
         title: "Kava Tools",
         children: [
