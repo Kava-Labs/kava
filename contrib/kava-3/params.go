@@ -9,7 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
@@ -28,6 +30,7 @@ const (
 	bnbSpotMarketID        = bnbDenom + ":" + referenceAsset
 	bnbLiquidationMarketID = bnbDenom + ":" + referenceAsset + ":" + "30"
 	debtDenom              = "debt"
+	deputyAddressBech32    = "kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6" // Binance deputy address
 )
 
 func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID string, genesisTime time.Time) (tmtypes.GenesisDoc, error) {
@@ -45,6 +48,7 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 	}
 
 	addAuctionState(cdc, appState)
+	addBep3DeputyAccount(cdc, appState)
 	addBep3State(cdc, appState)
 	addCDPState(cdc, appState)
 	addCommitteeState(cdc, appState)
@@ -59,6 +63,34 @@ func AddSuggestedParams(cdc *codec.Codec, genDoc tmtypes.GenesisDoc, chainID str
 	genDoc.AppState = marshaledAppState
 
 	return genDoc, nil
+}
+
+func addBep3DeputyAccount(cdc *codec.Codec, appState genutil.AppMap) {
+	deputyCoins := sdk.NewCoins(sdk.NewInt64Coin(bnbDenom, 350_000_000_000_000))
+
+	// 1) Add account
+	var authGenState auth.GenesisState
+	cdc.MustUnmarshalJSON(appState[auth.ModuleName], &authGenState)
+
+	authGenState.Accounts = append(
+		authGenState.Accounts,
+		auth.NewBaseAccount(
+			mustAccAddressFromBech32(deputyAddressBech32),
+			deputyCoins,
+			nil, // pubkey is nil for new accounts, it's set when the account first sends a tx
+			0,   // account numbers are reset on auth.InitGenesis, so this value doesn't matter
+			0,   // sequence number starts at 0
+		),
+	)
+	appState[auth.ModuleName] = cdc.MustMarshalJSON(authGenState)
+
+	// 2) Update total supply
+	var supplyGenState supply.GenesisState
+	cdc.MustUnmarshalJSON(appState[supply.ModuleName], &supplyGenState)
+
+	supplyGenState.Supply = supplyGenState.Supply.Add(deputyCoins...)
+
+	appState[supply.ModuleName] = cdc.MustMarshalJSON(supplyGenState)
 }
 
 func addAuctionState(cdc *codec.Codec, appState genutil.AppMap) {
@@ -78,8 +110,7 @@ func addAuctionState(cdc *codec.Codec, appState genutil.AppMap) {
 func addBep3State(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
 		bep3.NewParams(
-			// Binance deputy address
-			mustAccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6"),
+			mustAccAddressFromBech32(deputyAddressBech32),
 			1000,
 			bep3.DefaultMinBlockLock,
 			bep3.DefaultMaxBlockLock,
@@ -120,9 +151,9 @@ func addCDPState(cdc *codec.Codec, appState genutil.AppMap) {
 			},
 			// below values are usdx coin amounts
 			sdk.NewInt(200_000_000_000), // surplusThreshold
-			sdk.NewInt(10_000_000_000), // surplusLot
-			sdk.NewInt(50_000_000_000), // debtThreshold
-			sdk.NewInt(10_000_000_000), // debtLot
+			sdk.NewInt(10_000_000_000),  // surplusLot
+			sdk.NewInt(50_000_000_000),  // debtThreshold
+			sdk.NewInt(10_000_000_000),  // debtLot
 			24*time.Hour,
 			false,
 		),
