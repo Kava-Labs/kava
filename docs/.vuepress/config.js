@@ -22,16 +22,6 @@ module.exports = {
           }
         ]
       },
-      // {
-      //   title: "Building on Kava",
-      //   children: [
-      //     {
-      //       title: "JavaScript SDK",
-      //       path: "https://jovial-kirch-96aaf6.netlify.app/Building/javascript-sdk.html",
-      //       static: true
-      //     }
-      //   ]
-      // },
       {
         title: "Resources",
         children: [
