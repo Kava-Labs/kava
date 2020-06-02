@@ -214,7 +214,15 @@ func addCommitteeState(cdc *codec.Codec, appState genutil.AppMap) {
 							},
 							{
 								Subspace: cdp.ModuleName,
+								Key:      string(cdp.KeySurplusLot),
+							},
+							{
+								Subspace: cdp.ModuleName,
 								Key:      string(cdp.KeyDebtThreshold),
+							},
+							{
+								Subspace: cdp.ModuleName,
+								Key:      string(cdp.KeyDebtLot),
 							},
 							{
 								Subspace: cdp.ModuleName,
