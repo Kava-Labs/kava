@@ -118,6 +118,21 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.go' | xargs goimports -w -local github.com/kava-labs/kava
 .PHONY: format
 
+###############################################################################
+###                                Localnet                                 ###
+###############################################################################
+
+build-docker-local-kava:
+	@$(MAKE) -C networks/local
+
+# Run a 4-node testnet locally
+localnet-start: build-linux localnet-stop
+	@if ! [ -f build/node0/kvd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/kvd:Z kava/kavanode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
+	docker-compose up -d
+
+localnet-stop:
+	docker-compose down
+
 ########################################
 ### Testing
 
