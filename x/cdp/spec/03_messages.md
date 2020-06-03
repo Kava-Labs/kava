@@ -1,3 +1,7 @@
+<!--
+order: 3
+-->
+
 # Messages
 
 Users can submit various messages to the cdp module which trigger state changes detailed below.

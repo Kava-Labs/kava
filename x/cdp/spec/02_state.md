@@ -1,3 +1,7 @@
+<!--
+order: 2
+-->
+
 # State
 
 For detail on the state tracked by the cdp module see the types package. In particular [keys.go](../types/keys.go) describes how state is stored in the key-value store.
@@ -49,7 +53,7 @@ type Deposit struct {
 
 ## Params
 
-Module parameters controlled by governance. See [Parameters](06_params.md) for details.
+Module parameters controlled by governance. See [Parameters](04_params.md) for details.
 
 ## NextCDPID
 

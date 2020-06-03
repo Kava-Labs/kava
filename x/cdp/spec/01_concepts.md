@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 ## Collateralized Debt Positions
@@ -58,7 +62,7 @@ Fees accumulate to the system and are split between the savings rate and surplus
 
 ## Governance
 
-The cdp module's behavior is controlled through several parameters which are updated through a governance mechanism. These parameters are listed in [Parameters](06_params.md).
+The cdp module's behavior is controlled through several parameters which are updated through a governance mechanism. These parameters are listed in [Parameters](04_params.md).
 
 Governance is important for actions such as:
 

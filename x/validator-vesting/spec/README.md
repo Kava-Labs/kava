@@ -1,3 +1,10 @@
+<!--
+order: 0
+title: "Validator Vesting Overview"
+parent:
+  title: "validator-vesting"
+-->
+
 # `validator-vesting`
 
 <!-- TOC -->

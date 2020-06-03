@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 The validator-vesting module is responsible for managing Validator Vesting Accounts, a vesting account for which the release of coins is tied to the validation of the blockchain. Validator Vesting Accounts implement the cosmos-sdk vesting account spec, which can be found [here](https://github.com/cosmos/cosmos-sdk/tree/master/x/auth/spec).

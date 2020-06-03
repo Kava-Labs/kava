@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 This module presents an implementation of user incentives that are controlled by governance. When users take a certain action, in this case opening a CDP, they become eligible for rewards. Rewards are __opt in__ meaning that users must submit a message before the claim deadline to claim their rewards. The goals and background of this module were subject of a previous Kava governance proposal, which can be found [here](https://ipfs.io/ipfs/QmSYedssC3nyQacDJmNcREtgmTPyaMx2JX7RNkMdAVkdkr/user-growth-fund-proposal.pdf).
