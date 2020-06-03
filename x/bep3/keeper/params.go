@@ -30,16 +30,28 @@ func (k Keeper) GetBnbDeputyFixedFee(ctx sdk.Context) uint64 {
 	return params.BnbDeputyFixedFee
 }
 
-// GetMaxBlockLock returns the maximum block lock
-func (k Keeper) GetMaxBlockLock(ctx sdk.Context) uint64 {
+// GetMinAmount returns the minimum amount
+func (k Keeper) GetMinAmount(ctx sdk.Context) uint64 {
 	params := k.GetParams(ctx)
-	return params.MaxBlockLock
+	return params.MinAmount
+}
+
+// GetMaxAmount returns the maximum amount
+func (k Keeper) GetMaxAmount(ctx sdk.Context) uint64 {
+	params := k.GetParams(ctx)
+	return params.MaxAmount
 }
 
 // GetMinBlockLock returns the minimum block lock
 func (k Keeper) GetMinBlockLock(ctx sdk.Context) uint64 {
 	params := k.GetParams(ctx)
 	return params.MinBlockLock
+}
+
+// GetMaxBlockLock returns the maximum block lock
+func (k Keeper) GetMaxBlockLock(ctx sdk.Context) uint64 {
+	params := k.GetParams(ctx)
+	return params.MaxBlockLock
 }
 
 // GetAssets returns a list containing all supported assets

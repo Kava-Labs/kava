@@ -28,19 +28,6 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
 	}
 
-	// The heightSpan period should be more than 10 minutes and less than one week
-	// Assume average block time interval is 10 second. 10 mins = 60 blocks, 1 week = 60480 blocks
-	if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
-		return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d, range %d - %d", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
-	}
-
-	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
-	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
-	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
-	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
-		return sdkerrors.Wrap(types.ErrInvalidTimestamp, time.Unix(timestamp, 0).UTC().String())
-	}
-
 	if len(amount) != 1 {
 		return fmt.Errorf("amount must contain exactly one coin")
 	}
@@ -48,6 +35,25 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	err := k.ValidateLiveAsset(ctx, amount[0])
 	if err != nil {
 		return err
+	}
+
+	// Swap amount must be within the specified swap amount limits
+	swapAmount := amount[0].Amount.Uint64()
+	if swapAmount < k.GetMinAmount(ctx) || swapAmount > k.GetMaxAmount(ctx) {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%d, %d]", swapAmount, k.GetMinAmount(ctx), k.GetMaxAmount(ctx))
+	}
+
+	// The heightSpan period should be more than 10 minutes and less than one week
+	// Assume average block time interval is 10 second. 10 mins = 60 blocks, 1 week = 60480 blocks
+	if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
+		return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
+	}
+
+	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
+	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
+	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
+	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
+		return sdkerrors.Wrap(types.ErrInvalidTimestamp, time.Unix(timestamp, 0).UTC().String())
 	}
 
 	var direction types.SwapDirection
@@ -70,8 +76,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
-		// Amount in outgoing swaps must be greater than the deputy's fixed fee.
-		if amount[0].Amount.Uint64() <= k.GetBnbDeputyFixedFee(ctx) {
+		// Amount in outgoing swaps must be able to pay the deputy's fixed fee.
+		if amount[0].Amount.Uint64() <= k.GetBnbDeputyFixedFee(ctx)+k.GetMinAmount(ctx) {
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])

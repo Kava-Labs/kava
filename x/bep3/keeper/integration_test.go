@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	StandardSupplyLimit = i(100000000000)
+	StandardSupplyLimit = i(350000000000000)
 	DenomMap            = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
 	TestUser1           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 	TestUser2           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
@@ -36,7 +36,9 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 		Params: bep3.Params{
 			BnbDeputyAddress:  deputyAddress,
 			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
-			MinBlockLock:      types.DefaultMinBlockLock,      // 80
+			MinAmount:         types.DefaultMinAmount,         // 0
+			MaxAmount:         types.DefaultMaxAmount,         // 10,000
+			MinBlockLock:      types.DefaultMinBlockLock,      // 100
 			MaxBlockLock:      types.DefaultMaxBlockLock,      // 360
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{

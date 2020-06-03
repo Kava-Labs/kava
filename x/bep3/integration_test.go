@@ -37,9 +37,12 @@ func NewBep3GenStateMulti(deputy sdk.AccAddress) app.GenesisState {
 func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 	bep3Genesis := bep3.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress: deputy,
-			MinBlockLock:     bep3.DefaultMinBlockLock, // 80
-			MaxBlockLock:     bep3.DefaultMaxBlockLock, // 360
+			BnbDeputyAddress:  deputy,
+			BnbDeputyFixedFee: bep3.DefaultBnbDeputyFixedFee, // 1,000
+			MinAmount:         bep3.DefaultMinAmount,         // 0
+			MaxAmount:         bep3.DefaultMaxAmount,         // 10,000
+			MinBlockLock:      bep3.DefaultMinBlockLock,      // 100
+			MaxBlockLock:      bep3.DefaultMaxBlockLock,      // 360
 			SupportedAssets: bep3.AssetParams{
 				bep3.AssetParam{
 					Denom:  "btc",

@@ -12,6 +12,8 @@ import (
 const (
 	keyBnbDeputyAddress  = "BnbDeputyAddress"
 	keyBnbDeputyFixedFee = "BnbDeputyFixedFee"
+	keyMinAmount         = "MinAmount"
+	keyMaxAmount         = "MaxAmount"
 	keyMinBlockLock      = "MinBlockLock"
 	keyMaxBlockLock      = "MaxBlockLock"
 	keySupportedAssets   = "SupportedAssets"
@@ -21,6 +23,7 @@ const (
 func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 	// We generate MinBlockLock first because the result is required by GenMaxBlockLock()
 	minBlockLockVal := GenMinBlockLock(r)
+	minAmount := GenMinAmount(r)
 
 	return []simulation.ParamChange{
 		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyAddress,
@@ -31,6 +34,16 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyFixedFee,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%d\"", GenRandBnbDeputyFixedFee(r))
+			},
+		),
+		simulation.NewSimParamChange(types.ModuleName, keyMinAmount,
+			func(r *rand.Rand) string {
+				return fmt.Sprintf("\"%d\"", minAmount)
+			},
+		),
+		simulation.NewSimParamChange(types.ModuleName, keyMaxAmount,
+			func(r *rand.Rand) string {
+				return fmt.Sprintf("\"%d\"", GenMaxAmount(r, minAmount))
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, keyMinBlockLock,

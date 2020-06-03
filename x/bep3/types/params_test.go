@@ -30,6 +30,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	type args struct {
 		bnbDeputyAddress  sdk.AccAddress
 		bnbDeputyFixedFee uint64
+		minAmount         uint64
+		maxAmount         uint64
 		minBlockLock      uint64
 		maxBlockLock      uint64
 		supportedAssets   types.AssetParams
@@ -46,6 +48,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets:   types.DefaultSupportedAssets,
@@ -54,10 +58,26 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectedErr: "",
 		},
 		{
+			name: "minimum amount greater than maximum amount",
+			args: args{
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         10000000,
+				maxAmount:         100000,
+				minBlockLock:      types.DefaultMinBlockLock,
+				maxBlockLock:      types.DefaultMaxBlockLock,
+				supportedAssets:   types.DefaultSupportedAssets,
+			},
+			expectPass:  false,
+			expectedErr: "minimum amount cannot be > maximum amount",
+		},
+		{
 			name: "minimum block lock below limit",
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      1,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets:   types.DefaultSupportedAssets,
@@ -70,30 +90,36 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      500000,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  false,
-			expectedErr: "maximum block lock must be greater than minimum block lock",
+			expectedErr: "minimum block lock cannot be ≥ maximum block lock",
 		},
 		{
 			name: "maximum block lock below limit",
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      1,
 				supportedAssets:   types.DefaultSupportedAssets,
 			},
 			expectPass:  false,
-			expectedErr: "maximum block lock must be greater than minimum block lock",
+			expectedErr: "minimum block lock cannot be ≥ maximum block lock",
 		},
 		{
 			name: "maximum block lock above limit",
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      100000000,
 				supportedAssets:   types.DefaultSupportedAssets,
@@ -102,10 +128,26 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectedErr: "maximum block lock cannot be greater than",
 		},
 		{
+			name: "maximum less than minimum block lock",
+			args: args{
+				bnbDeputyAddress:  suite.addr,
+				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
+				minBlockLock:      500,
+				maxBlockLock:      400,
+				supportedAssets:   types.DefaultSupportedAssets,
+			},
+			expectPass:  false,
+			expectedErr: "minimum block lock cannot be ≥ maximum block lock",
+		},
+		{
 			name: "empty asset denom",
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
@@ -125,6 +167,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
@@ -137,13 +181,15 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				},
 			},
 			expectPass:  false,
-			expectedErr: "must be a positive integer",
+			expectedErr: "must be a non negative integer",
 		},
 		{
 			name: "negative asset limit",
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
@@ -163,6 +209,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
@@ -188,6 +236,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
+				minAmount:         types.DefaultMinAmount,
+				maxAmount:         types.DefaultMaxAmount,
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets: types.AssetParams{
@@ -211,14 +261,15 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	}
 
 	for _, tc := range testCases {
-		params := types.NewParams(tc.args.bnbDeputyAddress, tc.args.bnbDeputyFixedFee,
-			tc.args.minBlockLock, tc.args.maxBlockLock, tc.args.supportedAssets)
+		params := types.NewParams(tc.args.bnbDeputyAddress, tc.args.bnbDeputyFixedFee, tc.args.minAmount,
+			tc.args.maxAmount, tc.args.minBlockLock, tc.args.maxBlockLock, tc.args.supportedAssets)
 
 		err := params.Validate()
 		if tc.expectPass {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
+			suite.Require().Contains(err.Error(), tc.expectedErr)
 		}
 	}
 }

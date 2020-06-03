@@ -34,7 +34,7 @@ type AtomicSwapTestSuite struct {
 }
 
 const (
-	STARING_BNB_BALANCE = int64(1000000000)
+	STARING_BNB_BALANCE = int64(3000000000000)
 	BNB_DENOM           = "bnb"
 )
 
@@ -84,7 +84,7 @@ func (suite *AtomicSwapTestSuite) GenerateSwapDetails() {
 	var timestamps []int64
 	var randomNumberHashes []tmbytes.HexBytes
 	var randomNumbers []tmbytes.HexBytes
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 15; i++ {
 		// Set up atomic swap details
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
@@ -313,6 +313,42 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 5000)),
+				crossChain:          true,
+				direction:           types.Incoming,
+			},
+			false,
+			false,
+		},
+		{
+			"exactly at maximum amount",
+			currentTmTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[10],
+				timestamp:           suite.timestamps[10],
+				heightSpan:          uint64(360),
+				sender:              suite.deputy,
+				recipient:           suite.addrs[4],
+				senderOtherChain:    TestSenderOtherChain,
+				recipientOtherChain: TestRecipientOtherChain,
+				coins:               cs(c(BNB_DENOM, 1000000000000)), // 10,000 BNB
+				crossChain:          true,
+				direction:           types.Incoming,
+			},
+			true,
+			true,
+		},
+		{
+			"above maximum amount",
+			currentTmTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[11],
+				timestamp:           suite.timestamps[11],
+				heightSpan:          uint64(360),
+				sender:              suite.deputy,
+				recipient:           suite.addrs[5],
+				senderOtherChain:    TestSenderOtherChain,
+				recipientOtherChain: TestRecipientOtherChain,
+				coins:               cs(c(BNB_DENOM, 1000000000001)), // 10,001 BNB
 				crossChain:          true,
 				direction:           types.Incoming,
 			},
