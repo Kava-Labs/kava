@@ -172,3 +172,18 @@ start-remote-sims:
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
 .PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic start-remote-sims
+
+########################################
+### Documentation
+
+# Start docs site at localhost:8080
+docs-develop:
+	@cd docs && \
+	npm install && \
+	npm run serve
+
+# Build the site into docs/.vuepress/dist
+docs-build:
+	@cd docs && \
+	npm install && \
+	npm run build
