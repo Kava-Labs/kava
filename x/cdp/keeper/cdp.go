@@ -439,17 +439,10 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	if err != nil {
 		return types.AugmentedCDP{CDP: cdp}
 	}
-
-	// total debt is the sum of all outstanding principal and fees
-	var totalDebt int64
-	totalDebt += cdp.Principal.Amount.Int64()
-	totalDebt += cdp.AccumulatedFees.Amount.Int64()
-
 	// convert collateral value to debt coin
-	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)
-	collateralValueInDebtDenom := collateralizationRatio.Mul(debtBaseAdjusted)
-	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal.Denom, collateralValueInDebtDenom.Int64())
-
+	totalDebt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
+	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
+	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
 	return augmentedCDP
