@@ -1,3 +1,10 @@
+<!--
+order: 0
+title: "Pricefeed Overview"
+parent:
+  title: "pricefeed"
+-->
+
 # `pricefeed`
 
 <!-- TOC -->

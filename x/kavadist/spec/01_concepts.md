@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 The minting mechanism in this module is designed to allow governance to determine a set of inflationary periods and the APR rate of inflation for each period. This module mints coins each block according to the schedule such that after 1 year the APR inflation worth of coins will have been minted. Governance can alter the APR inflation using a parameter change proposal. Parameter change proposals that change the APR will take effect in the block after they pass.

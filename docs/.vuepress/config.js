@@ -13,12 +13,20 @@ module.exports = {
         children: [
           {
             title: "Chainlink Price Oracle",
-            path: "https://docs.kava.io/Tools/oracle.html"
+            path: "/tools/oracle.html"
           },
           {
             title: "Auction Bot",
-            path: "https://docs.kava.io/Tools/auction.html",
-            static: true
+            path: "/tools/auction.html",
+          }
+        ]
+      },
+      {
+        title: "Building on Kava",
+        children: [
+          {
+            title: "JavaScript SDK",
+            path: "/building/javascript-sdk.html"
           }
         ]
       },
@@ -31,7 +39,7 @@ module.exports = {
           },
           {
             title: "Protocol Reference",
-            path: "https://godoc.org/github.com/Kava-Labs/kava"
+            path: "https://pkg.go.dev/github.com/kava-labs/kava?tab=subdirectories"
           }
         ]
       },

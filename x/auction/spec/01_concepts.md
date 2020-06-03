@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 Auctions are broken down into three distinct types, which correspond to three specific functionalities within the CDP system.

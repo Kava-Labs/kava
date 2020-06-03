@@ -1,3 +1,7 @@
+<!--
+order: 5
+-->
+
 # Parameters
 
 The kavadist module has the following parameters:

@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 For a general introduction to governance using the Comsos-SDK, see [x/gov](https://github.com/cosmos/cosmos-sdk/blob/v0.38.3/x/gov/spec/01_concepts.md).
