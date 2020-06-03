@@ -24,6 +24,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/kava-labs/kava/app"
+	kava3 "github.com/kava-labs/kava/contrib/kava-3"
+	"github.com/kava-labs/kava/migrate"
 )
 
 // kvd custom flags
@@ -50,7 +52,8 @@ func main() {
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
-		genutilcli.MigrateGenesisCmd(ctx, cdc),
+		migrate.MigrateGenesisCmd(ctx, cdc),
+		kava3.WriteGenesisParamsCmd(cdc),
 		genutilcli.GenTxCmd(
 			ctx,
 			cdc,
