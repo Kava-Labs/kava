@@ -52,7 +52,7 @@
           "min_amount": "0",
           "max_amount": "1000000000000",
           "min_block_lock": "220",
-          "max_block_lock": "220",
+          "max_block_lock": "270",
           "supported_assets": [
             {
               "active": true,

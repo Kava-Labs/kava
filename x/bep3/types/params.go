@@ -27,7 +27,7 @@ var (
 	DefaultMinAmount         sdk.Int = sdk.ZeroInt()
 	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
 	DefaultMinBlockLock      uint64  = 220
-	DefaultMaxBlockLock      uint64  = 220
+	DefaultMaxBlockLock      uint64  = 270
 	DefaultSupportedAssets           = AssetParams{
 		AssetParam{
 			Denom:  "bnb",
