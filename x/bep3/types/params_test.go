@@ -29,9 +29,9 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 
 	type args struct {
 		bnbDeputyAddress  sdk.AccAddress
-		bnbDeputyFixedFee uint64
-		minAmount         uint64
-		maxAmount         uint64
+		bnbDeputyFixedFee sdk.Int
+		minAmount         sdk.Int
+		maxAmount         sdk.Int
 		minBlockLock      uint64
 		maxBlockLock      uint64
 		supportedAssets   types.AssetParams
@@ -76,8 +76,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				bnbDeputyAddress:  suite.addr,
 				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         10000000,
-				maxAmount:         100000,
+				minAmount:         sdk.NewInt(10000000),
+				maxAmount:         sdk.NewInt(100000),
 				minBlockLock:      types.DefaultMinBlockLock,
 				maxBlockLock:      types.DefaultMaxBlockLock,
 				supportedAssets:   types.DefaultSupportedAssets,

@@ -33,17 +33,17 @@ func ParamChanges(r *rand.Rand) []simulation.ParamChange {
 		),
 		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyFixedFee,
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenRandBnbDeputyFixedFee(r))
+				return fmt.Sprintf("\"%s\"", GenRandBnbDeputyFixedFee(r).String())
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, keyMinAmount,
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", minAmount)
+				return fmt.Sprintf("\"%s\"", minAmount.String())
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, keyMaxAmount,
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenMaxAmount(r, minAmount))
+				return fmt.Sprintf("\"%s\"", GenMaxAmount(r, minAmount).String())
 			},
 		),
 		simulation.NewSimParamChange(types.ModuleName, keyMinBlockLock,

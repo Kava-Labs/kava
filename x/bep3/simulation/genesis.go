@@ -40,37 +40,37 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 }
 
 // GenRandBnbDeputyFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
-func GenRandBnbDeputyFixedFee(r *rand.Rand) uint64 {
+func GenRandBnbDeputyFixedFee(r *rand.Rand) sdk.Int {
 	min := int(2)
-	max := int(types.DefaultBnbDeputyFixedFee)
-	return uint64(r.Intn(max-min) + min)
+	max := types.DefaultBnbDeputyFixedFee.Int64()
+	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
 }
 
 // GenMinAmount randomized MinAmount in range [0, 1000000000000]
-func GenMinAmount(r *rand.Rand) uint64 {
-	min := int(types.DefaultMinAmount)
-	max := int(types.DefaultMaxAmount)
-	return uint64(r.Intn(max-min) + min)
+func GenMinAmount(r *rand.Rand) sdk.Int {
+	min := types.DefaultMinAmount.Int64()
+	max := types.DefaultMaxAmount.Int64()
+	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
 }
 
 // GenMaxAmount randomized MaxAmount
-func GenMaxAmount(r *rand.Rand, minAmount uint64) uint64 {
-	min := int(minAmount)
-	max := int(types.DefaultMaxAmount)
-	return uint64(r.Intn(max-min) + min)
+func GenMaxAmount(r *rand.Rand, minAmount sdk.Int) sdk.Int {
+	min := minAmount.Int64()
+	max := types.DefaultMaxAmount.Int64()
+	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
 }
 
 // GenMinBlockLock randomized MinBlockLock
 func GenMinBlockLock(r *rand.Rand) uint64 {
-	min := int(types.DefaultMinAmount)
-	max := int(types.DefaultMaxAmount)
+	min := 20
+	max := int(types.DefaultMaxBlockLock)
 	return uint64(r.Intn(max-min) + min)
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
 func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
 	min := int(minBlockLock)
-	max := int(types.DefaultMaxAmount)
+	max := int(types.DefaultMaxBlockLock)
 	return uint64(r.Intn(max-min) + min)
 }
 

@@ -71,7 +71,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "0 deputy fees",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.BnbDeputyFixedFee = 0
+				gs.Params.BnbDeputyFixedFee = sdk.ZeroInt()
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: true,

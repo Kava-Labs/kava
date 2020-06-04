@@ -25,19 +25,19 @@ func (k Keeper) GetBnbDeputyAddress(ctx sdk.Context) sdk.AccAddress {
 }
 
 // GetBnbDeputyFixedFee returns the deputy's fixed fee
-func (k Keeper) GetBnbDeputyFixedFee(ctx sdk.Context) uint64 {
+func (k Keeper) GetBnbDeputyFixedFee(ctx sdk.Context) sdk.Int {
 	params := k.GetParams(ctx)
 	return params.BnbDeputyFixedFee
 }
 
 // GetMinAmount returns the minimum amount
-func (k Keeper) GetMinAmount(ctx sdk.Context) uint64 {
+func (k Keeper) GetMinAmount(ctx sdk.Context) sdk.Int {
 	params := k.GetParams(ctx)
 	return params.MinAmount
 }
 
 // GetMaxAmount returns the maximum amount
-func (k Keeper) GetMaxAmount(ctx sdk.Context) uint64 {
+func (k Keeper) GetMaxAmount(ctx sdk.Context) sdk.Int {
 	params := k.GetParams(ctx)
 	return params.MaxAmount
 }

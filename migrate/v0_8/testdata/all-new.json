@@ -308,8 +308,8 @@
         "bnb_deputy_fixed_fee": "1000",
         "min_amount": "0",
         "max_amount": "1000000000000",
-        "min_block_lock": "200",
-        "max_block_lock": "200",
+        "min_block_lock": "220",
+        "max_block_lock": "220",
         "supported_assets": [
           {
             "denom": "bnb",

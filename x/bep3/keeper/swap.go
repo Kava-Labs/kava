@@ -38,9 +38,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	// Swap amount must be within the specified swap amount limits
-	swapAmount := amount[0].Amount.Uint64()
-	if swapAmount < k.GetMinAmount(ctx) || swapAmount > k.GetMaxAmount(ctx) {
-		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%d, %d]", swapAmount, k.GetMinAmount(ctx), k.GetMaxAmount(ctx))
+	if amount[0].Amount.LT(k.GetMinAmount(ctx)) || amount[0].Amount.GT(k.GetMaxAmount(ctx)) {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%d, %d]", amount[0].Amount, k.GetMinAmount(ctx), k.GetMaxAmount(ctx))
 	}
 
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
@@ -75,7 +74,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
 		}
 		// Amount in outgoing swaps must be able to pay the deputy's fixed fee.
-		if amount[0].Amount.Uint64() <= k.GetBnbDeputyFixedFee(ctx)+k.GetMinAmount(ctx) {
+		if amount[0].Amount.LTE(k.GetBnbDeputyFixedFee(ctx).Add(k.GetMinAmount(ctx))) {
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
