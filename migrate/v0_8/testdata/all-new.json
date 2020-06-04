@@ -306,13 +306,15 @@
       "params": {
         "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
         "bnb_deputy_fixed_fee": "1000",
-        "min_block_lock": "80",
-        "max_block_lock": "600",
+        "min_amount": "0",
+        "max_amount": "1000000000000",
+        "min_block_lock": "220",
+        "max_block_lock": "270",
         "supported_assets": [
           {
             "denom": "bnb",
             "coin_id": "714",
-            "limit": "100000000000",
+            "limit": "350000000000000",
             "active": true
           }
         ]

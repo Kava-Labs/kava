@@ -111,7 +111,9 @@ func addBep3State(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
 		bep3.NewParams(
 			mustAccAddressFromBech32(deputyAddressBech32),
-			1000,
+			bep3.DefaultBnbDeputyFixedFee,
+			bep3.DefaultMinAmount,
+			bep3.DefaultMaxAmount,
 			bep3.DefaultMinBlockLock,
 			bep3.DefaultMaxBlockLock,
 			bep3.AssetParams{{

@@ -65,11 +65,11 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		})
 
 		// Search for an account that holds coins received by an atomic swap
-		bnbDeputyFixedFee := k.GetBnbDeputyFixedFee(ctx)
+		minAmountPlusFee := k.GetMinAmount(ctx).Add(k.GetBnbDeputyFixedFee(ctx))
 		senderOut, asset, found := findValidAccountAssetSupplyPair(accs, supplies, func(acc simulation.Account, asset types.AssetSupply) bool {
 			if asset.CurrentSupply.Amount.IsPositive() {
 				authAcc := ak.GetAccount(ctx, acc.Address)
-				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(sdk.NewIntFromUint64(bnbDeputyFixedFee)) {
+				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(minAmountPlusFee) {
 					return true
 				}
 			}
@@ -128,9 +128,14 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			}
 		}
 
+		// The maximum amount for all swaps is limited by the total max limit
+		if maximumAmount.GT(k.GetMaxAmount(ctx)) {
+			maximumAmount = k.GetMaxAmount(ctx)
+		}
+
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
-		if amount.LT(sdk.NewIntFromUint64(bnbDeputyFixedFee)) {
+		if amount.LT(minAmountPlusFee) {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(denom, amount))

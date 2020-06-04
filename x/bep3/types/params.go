@@ -17,20 +17,22 @@ const (
 var (
 	KeyBnbDeputyAddress  = []byte("BnbDeputyAddress")
 	KeyBnbDeputyFixedFee = []byte("BnbDeputyFixedFee")
+	KeyMinAmount         = []byte("MinAmount")
+	KeyMaxAmount         = []byte("MaxAmount")
 	KeyMinBlockLock      = []byte("MinBlockLock")
 	KeyMaxBlockLock      = []byte("MaxBlockLock")
 	KeySupportedAssets   = []byte("SupportedAssets")
 
-	DefaultBnbDeputyFixedFee uint64 = 1000
-	AbsoluteMaximumBlockLock uint64 = 10000
-	AbsoluteMinimumBlockLock uint64 = 50
-	DefaultMinBlockLock      uint64 = 80
-	DefaultMaxBlockLock      uint64 = 600
-	DefaultSupportedAssets          = AssetParams{
+	DefaultBnbDeputyFixedFee sdk.Int = sdk.NewInt(1000) // 0.00001 BNB
+	DefaultMinAmount         sdk.Int = sdk.ZeroInt()
+	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
+	DefaultMinBlockLock      uint64  = 220
+	DefaultMaxBlockLock      uint64  = 270
+	DefaultSupportedAssets           = AssetParams{
 		AssetParam{
 			Denom:  "bnb",
 			CoinID: 714,
-			Limit:  sdk.NewInt(100000000000),
+			Limit:  sdk.NewInt(350000000000000), // 3,500,000 BNB
 			Active: true,
 		},
 	}
@@ -39,9 +41,11 @@ var (
 // Params governance parameters for bep3 module
 type Params struct {
 	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
-	BnbDeputyFixedFee uint64         `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
-	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // AtomicSwap minimum block lock
-	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // AtomicSwap maximum block lock
+	BnbDeputyFixedFee sdk.Int        `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
+	MinAmount         sdk.Int        `json:"min_amount" yaml:"min_amount"`                     // Minimum swap amount
+	MaxAmount         sdk.Int        `json:"max_amount" yaml:"max_amount"`                     // Maximum swap amount
+	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // Minimum swap block lock
+	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // Maximum swap block lock
 	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
 }
 
@@ -50,18 +54,24 @@ func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Bnbchain deputy address: %s,
 	Deputy fixed fee (BNB): %d,
+	Min amount: %d,
+	Max amount: %d,
 	Min block lock: %d,
 	Max block lock: %d,
 	Supported assets: %s`,
-		p.BnbDeputyAddress.String(), p.BnbDeputyFixedFee, p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
+		p.BnbDeputyAddress.String(), p.BnbDeputyFixedFee, p.MinAmount,
+		p.MaxAmount, p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, bnbDeputyFixedFee, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
+func NewParams(bnbDeputyAddress sdk.AccAddress, bnbDeputyFixedFee, minAmount,
+	maxAmount sdk.Int, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
 ) Params {
 	return Params{
 		BnbDeputyAddress:  bnbDeputyAddress,
 		BnbDeputyFixedFee: bnbDeputyFixedFee,
+		MinAmount:         minAmount,
+		MaxAmount:         maxAmount,
 		MinBlockLock:      minBlockLock,
 		MaxBlockLock:      maxBlockLock,
 		SupportedAssets:   supportedAssets,
@@ -75,8 +85,8 @@ func DefaultParams() Params {
 		panic(err)
 	}
 
-	return NewParams(defaultBnbDeputyAddress, DefaultBnbDeputyFixedFee,
-		DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
+	return NewParams(defaultBnbDeputyAddress, DefaultBnbDeputyFixedFee, DefaultMinAmount,
+		DefaultMaxAmount, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
 }
 
 // AssetParam governance parameters for each asset within a supported chain
@@ -121,6 +131,8 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateBnbDeputyAddressParam),
 		params.NewParamSetPair(KeyBnbDeputyFixedFee, &p.BnbDeputyFixedFee, validateBnbDeputyFixedFeeParam),
+		params.NewParamSetPair(KeyMinAmount, &p.MinAmount, validateMinAmountParam),
+		params.NewParamSetPair(KeyMaxAmount, &p.MaxAmount, validateMaxAmountParam),
 		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateMinBlockLockParam),
 		params.NewParamSetPair(KeyMaxBlockLock, &p.MaxBlockLock, validateMaxBlockLockParam),
 		params.NewParamSetPair(KeySupportedAssets, &p.SupportedAssets, validateSupportedAssetsParams),
@@ -137,6 +149,18 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validateMinAmountParam(p.MinAmount); err != nil {
+		return err
+	}
+
+	if err := validateMaxAmountParam(p.MaxAmount); err != nil {
+		return err
+	}
+
+	if p.MinAmount.GT(p.MaxAmount) {
+		return fmt.Errorf("minimum amount cannot be > maximum amount, got %d > %d", p.MinAmount, p.MaxAmount)
+	}
+
 	if err := validateMinBlockLockParam(p.MinBlockLock); err != nil {
 		return err
 	}
@@ -145,8 +169,8 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if p.MinBlockLock >= p.MaxBlockLock {
-		return fmt.Errorf("minimum block lock cannot be ≥ maximum block lock, got %d ≥ %d", p.MinBlockLock, p.MaxBlockLock)
+	if p.MinBlockLock > p.MaxBlockLock {
+		return fmt.Errorf("minimum block lock cannot be > maximum block lock, got %d > %d", p.MinBlockLock, p.MaxBlockLock)
 	}
 
 	return validateSupportedAssetsParams(p.SupportedAssets)
@@ -170,7 +194,25 @@ func validateBnbDeputyAddressParam(i interface{}) error {
 }
 
 func validateBnbDeputyFixedFeeParam(i interface{}) error {
-	_, ok := i.(uint64)
+	_, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
+func validateMinAmountParam(i interface{}) error {
+	_, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
+func validateMaxAmountParam(i interface{}) error {
+	_, ok := i.(sdk.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -179,26 +221,18 @@ func validateBnbDeputyFixedFeeParam(i interface{}) error {
 }
 
 func validateMinBlockLockParam(i interface{}) error {
-	minBlockLock, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if minBlockLock < AbsoluteMinimumBlockLock {
-		return fmt.Errorf("minimum block lock cannot be less than %d, got %d", AbsoluteMinimumBlockLock, minBlockLock)
 	}
 
 	return nil
 }
 
 func validateMaxBlockLockParam(i interface{}) error {
-	maxBlockLock, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if maxBlockLock > AbsoluteMaximumBlockLock {
-		return fmt.Errorf("maximum block lock cannot be greater than %d, got %d", AbsoluteMaximumBlockLock, maxBlockLock)
 	}
 
 	return nil

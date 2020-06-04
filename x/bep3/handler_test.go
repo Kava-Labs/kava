@@ -47,7 +47,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 }
 
 func (suite *HandlerTestSuite) AddAtomicSwap() (tmbytes.HexBytes, tmbytes.HexBytes) {
-	expireHeight := uint64(360)
+	expireHeight := bep3.DefaultMinBlockLock
 	amount := cs(c("bnb", int64(50000)))
 	timestamp := ts(0)
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
@@ -72,7 +72,7 @@ func (suite *HandlerTestSuite) TestMsgCreateAtomicSwap() {
 	msg := bep3.NewMsgCreateAtomicSwap(
 		suite.addrs[0], suite.addrs[2], TestRecipientOtherChain,
 		TestSenderOtherChain, randomNumberHash, timestamp, amount,
-		uint64(300))
+		bep3.DefaultMinBlockLock)
 
 	res, err := suite.handler(suite.ctx, msg)
 	suite.Require().NoError(err)
