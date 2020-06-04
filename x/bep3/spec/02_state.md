@@ -11,11 +11,13 @@ order: 2
 ```go
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // deputy's address on Kava
-	BnbDeputyFixedFee uint64         `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // deputy's fixed fee
-	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // minimum swap expire height
-	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // maximum swap expire height
-	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // array of supported asset
+	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
+	BnbDeputyFixedFee sdk.Int        `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
+	MinAmount         sdk.Int        `json:"min_amount" yaml:"min_amount"`                     // Minimum swap amount
+	MaxAmount         sdk.Int        `json:"max_amount" yaml:"max_amount"`                     // Maximum swap amount
+	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // Minimum swap block lock
+	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // Maximum swap block lock
+	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
 }
 
 // AssetParam governance parameters for each asset within a supported chain
