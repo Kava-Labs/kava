@@ -38,8 +38,8 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
 			MinAmount:         types.DefaultMinAmount,         // 0
 			MaxAmount:         types.DefaultMaxAmount,         // 10,000
-			MinBlockLock:      types.DefaultMinBlockLock,      // 100
-			MaxBlockLock:      types.DefaultMaxBlockLock,      // 360
+			MinBlockLock:      types.DefaultMinBlockLock,      // 200
+			MaxBlockLock:      types.DefaultMaxBlockLock,      // 200
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
@@ -69,7 +69,7 @@ func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
 }
 
 func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
-	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
+	expireOffset := uint64(200) // Default expire height + offet to match timestamp
 	timestamp := ts(index)                     // One minute apart
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)

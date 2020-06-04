@@ -43,12 +43,6 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%d, %d]", swapAmount, k.GetMinAmount(ctx), k.GetMaxAmount(ctx))
 	}
 
-	// The heightSpan period should be more than 10 minutes and less than one week
-	// Assume average block time interval is 10 second. 10 mins = 60 blocks, 1 week = 60480 blocks
-	if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
-		return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
-	}
-
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
 	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
 	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
@@ -76,6 +70,10 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
+		// Outoing swaps must have a height span within the accepted range
+		if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
+			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
+		}
 		// Amount in outgoing swaps must be able to pay the deputy's fixed fee.
 		if amount[0].Amount.Uint64() <= k.GetBnbDeputyFixedFee(ctx)+k.GetMinAmount(ctx) {
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
