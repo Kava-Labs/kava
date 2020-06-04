@@ -183,8 +183,8 @@ func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 	if len(msg.SwapID) != SwapIDLength {
 		return fmt.Errorf("the length of swapID should be %d", SwapIDLength)
 	}
-	if len(msg.RandomNumber) == 0 {
-		return errors.New("the length of random number cannot be 0")
+	if len(msg.RandomNumber) != RandomNumberLength {
+		return fmt.Errorf("the length of random number should be %d", RandomNumberLength)
 	}
 	return nil
 }
