@@ -83,6 +83,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 			Markets: []pricefeed.Market{
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -98,6 +99,12 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 				Price:         sdk.MustNewDecFromStr("0.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
+			{
+				MarketID:      "bnb:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("17.25"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
 		},
 	}
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
@@ -105,7 +112,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1500000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
@@ -134,6 +141,18 @@ func NewCDPGenStateMulti() app.GenesisState {
 					Prefix:              0x21,
 					SpotMarketID:        "btc:usd",
 					LiquidationMarketID: "btc:usd",
+					ConversionFactor:    i(8),
+				},
+				{
+					Denom:               "bnb",
+					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(50000000000),
+					Prefix:              0x22,
+					SpotMarketID:        "bnb:usd",
+					LiquidationMarketID: "bnb:usd",
 					ConversionFactor:    i(8),
 				},
 			},
