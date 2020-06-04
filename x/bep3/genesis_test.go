@@ -119,7 +119,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				randomNumber, _ := bep3.GenerateSecureRandomNumber()
 				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 				swap := bep3.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
-					uint64(360), timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
+					bep3.DefaultMinBlockLock, timestamp, suite.addrs[0], addrs[1], TestSenderOtherChain,
 					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Incoming)
 				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 
@@ -222,37 +222,11 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			expectPass: false,
 		},
 		{
-			name: "minimum block lock below limit",
+			name: "minimum block lock cannot be > maximum block lock",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.MinBlockLock = 1
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
-			},
-			expectPass: false,
-		},
-		{
-			name: "minimum block lock above limit",
-			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0])
-				gs.Params.MinBlockLock = 500000
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
-			},
-			expectPass: false,
-		},
-		{
-			name: "maximum block lock below limit",
-			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0])
-				gs.Params.MaxBlockLock = 1
-				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
-			},
-			expectPass: false,
-		},
-		{
-			name: "maximum block lock above limit",
-			genState: func() app.GenesisState {
-				gs := baseGenState(suite.addrs[0])
-				gs.Params.MaxBlockLock = 100000000
+				gs.Params.MinBlockLock = 201
+				gs.Params.MaxBlockLock = 200
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,

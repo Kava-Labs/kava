@@ -62,15 +62,15 @@ func GenMaxAmount(r *rand.Rand, minAmount uint64) uint64 {
 
 // GenMinBlockLock randomized MinBlockLock
 func GenMinBlockLock(r *rand.Rand) uint64 {
-	min := int(types.AbsoluteMinimumBlockLock)
-	max := int(types.AbsoluteMaximumBlockLock)
+	min := int(types.DefaultMinAmount)
+	max := int(types.DefaultMaxAmount)
 	return uint64(r.Intn(max-min) + min)
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
 func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
 	min := int(minBlockLock)
-	max := int(types.AbsoluteMaximumBlockLock)
+	max := int(types.DefaultMaxAmount)
 	return uint64(r.Intn(max-min) + min)
 }
 
@@ -129,7 +129,7 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 	maxAmount := GenMaxAmount(simState.Rand, minAmount)
 
 	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
-	minBlockLock := types.AbsoluteMinimumBlockLock
+	minBlockLock := uint64(50)
 	maxBlockLock := minBlockLock * 2
 
 	var supportedAssets types.AssetParams

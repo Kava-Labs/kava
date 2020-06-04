@@ -126,7 +126,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
@@ -144,7 +144,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
@@ -163,7 +163,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[1],
 				timestamp:           suite.timestamps[1],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
@@ -181,7 +181,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[2],
 				timestamp:           suite.timestamps[2],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
@@ -199,7 +199,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[3],
 				timestamp:           suite.timestamps[3] - 2000,
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[3],
 				senderOtherChain:    TestSenderOtherChain,
@@ -217,7 +217,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[4],
 				timestamp:           suite.timestamps[4] + 5000,
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[4],
 				senderOtherChain:    TestSenderOtherChain,
@@ -253,7 +253,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[6],
 				timestamp:           suite.timestamps[6],
-				heightSpan:          uint64(1000000),
+				heightSpan:          uint64(500),
 				sender:              suite.deputy,
 				recipient:           suite.addrs[6],
 				senderOtherChain:    TestSenderOtherChain,
@@ -271,7 +271,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[7],
 				timestamp:           suite.timestamps[7],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[7],
 				senderOtherChain:    TestSenderOtherChain,
@@ -289,7 +289,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
@@ -307,7 +307,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[8],
 				timestamp:           suite.timestamps[8],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.randMacc,
 				senderOtherChain:    TestSenderOtherChain,
@@ -325,7 +325,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[10],
 				timestamp:           suite.timestamps[10],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[4],
 				senderOtherChain:    TestSenderOtherChain,
@@ -343,7 +343,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[11],
 				timestamp:           suite.timestamps[11],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[5],
 				senderOtherChain:    TestSenderOtherChain,
@@ -539,7 +539,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 
 			// Create atomic swap
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				uint64(360), sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
+				types.DefaultMinBlockLock, sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				expectedClaimAmount, true)
 			suite.NoError(err)
 
@@ -693,7 +693,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			}
 
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				uint64(360), sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
+				types.DefaultMinBlockLock, sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, true)
 			suite.NoError(err)
 

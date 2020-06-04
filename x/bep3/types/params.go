@@ -26,10 +26,8 @@ var (
 	DefaultBnbDeputyFixedFee uint64 = 1000 // 0.00001 BNB
 	DefaultMinAmount         uint64
 	DefaultMaxAmount         uint64 = 1000000000000 // 10,000 BNB
-	AbsoluteMaximumBlockLock uint64 = 10000
-	AbsoluteMinimumBlockLock uint64 = 50
-	DefaultMinBlockLock      uint64 = 80
-	DefaultMaxBlockLock      uint64 = 600
+	DefaultMinBlockLock      uint64 = 200
+	DefaultMaxBlockLock      uint64 = 200
 	DefaultSupportedAssets          = AssetParams{
 		AssetParam{
 			Denom:  "bnb",
@@ -171,8 +169,8 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if p.MinBlockLock >= p.MaxBlockLock {
-		return fmt.Errorf("minimum block lock cannot be ≥ maximum block lock, got %d ≥ %d", p.MinBlockLock, p.MaxBlockLock)
+	if p.MinBlockLock > p.MaxBlockLock {
+		return fmt.Errorf("minimum block lock cannot be > maximum block lock, got %d > %d", p.MinBlockLock, p.MaxBlockLock)
 	}
 
 	return validateSupportedAssetsParams(p.SupportedAssets)
@@ -223,26 +221,18 @@ func validateMaxAmountParam(i interface{}) error {
 }
 
 func validateMinBlockLockParam(i interface{}) error {
-	minBlockLock, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if minBlockLock < AbsoluteMinimumBlockLock {
-		return fmt.Errorf("minimum block lock cannot be less than %d, got %d", AbsoluteMinimumBlockLock, minBlockLock)
 	}
 
 	return nil
 }
 
 func validateMaxBlockLockParam(i interface{}) error {
-	maxBlockLock, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if maxBlockLock > AbsoluteMaximumBlockLock {
-		return fmt.Errorf("maximum block lock cannot be greater than %d, got %d", AbsoluteMaximumBlockLock, maxBlockLock)
 	}
 
 	return nil

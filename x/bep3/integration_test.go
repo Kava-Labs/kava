@@ -41,8 +41,8 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 			BnbDeputyFixedFee: bep3.DefaultBnbDeputyFixedFee, // 1,000
 			MinAmount:         bep3.DefaultMinAmount,         // 0
 			MaxAmount:         bep3.DefaultMaxAmount,         // 10,000
-			MinBlockLock:      bep3.DefaultMinBlockLock,      // 100
-			MaxBlockLock:      bep3.DefaultMaxBlockLock,      // 360
+			MinBlockLock:      bep3.DefaultMinBlockLock,      // 200
+			MaxBlockLock:      bep3.DefaultMaxBlockLock,      // 200
 			SupportedAssets: bep3.AssetParams{
 				bep3.AssetParam{
 					Denom:  "btc",
@@ -76,7 +76,7 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 
 func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.AssetSupply) {
 	coin := c(DenomMap[index], 50000)
-	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
+	expireOffset := bep3.DefaultMinBlockLock // Default expire height + offet to match timestamp
 	timestamp := ts(index)                     // One minute apart
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
 	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)

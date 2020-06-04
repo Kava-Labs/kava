@@ -97,8 +97,6 @@ var (
 	RegisterCodec              = types.RegisterCodec
 
 	// variable aliases
-	AbsoluteMaximumBlockLock        = types.AbsoluteMaximumBlockLock
-	AbsoluteMinimumBlockLock        = types.AbsoluteMinimumBlockLock
 	AssetSupplyKeyPrefix            = types.AssetSupplyKeyPrefix
 	AtomicSwapByBlockPrefix         = types.AtomicSwapByBlockPrefix
 	AtomicSwapCoinsAccAddr          = types.AtomicSwapCoinsAccAddr

@@ -52,8 +52,8 @@ func (suite *ABCITestSuite) ResetKeeper() {
 	var randomNumbers []tmbytes.HexBytes
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
-		expireHeight := uint64(360)
-		amount := cs(c("bnb", int64(100)))
+		expireHeight := bep3.DefaultMinBlockLock
+		amount := cs(c("bnb", int64(10000)))
 		timestamp := ts(i)
 		randomNumber, _ := bep3.GenerateSecureRandomNumber()
 		randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
