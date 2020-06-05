@@ -15,7 +15,7 @@ The riskiest thing a validator can do is discover that they made a mistake and r
 ### Recovery
 Prior to exporting kava-2 state, validators are encouraged to take a full data snapshot at the export height before proceeding. Snapshotting depends heavily on infrastructure, but generally this can be done by backing up the .kvd and .kvcli directories.
 
-It is critically important to back-up the .kvcli/data/priv_validator_state.json file after stopping your kvd process. This file is updated every block as your validator participates in a consensus rounds. It is a critical file needed to prevent double-signing, in case the upgrade fails and the previous chain needs to be restarted.
+It is critically important to back-up the .kvd/data/priv_validator_state.json file after stopping your kvd process. This file is updated every block as your validator participates in consensus rounds. It is a critical file needed to prevent double-signing, in case the upgrade fails and the previous chain needs to be restarted.
 
 In the event that the upgrade does not succeed, validators and operators must downgrade back to v0.3.5 of the Kava software and restore to their latest snapshot before restarting their nodes.
 
