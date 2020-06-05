@@ -21,7 +21,7 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ## Upgrade Procedure
 
-Set your node to produce the final block of kava-2 at __13:00__ UTC June 10th, 2020. To restart you're node with that stop time,
+Set your node to produce the final block of kava-2 at __13:00__ UTC June 10th, 2020. To restart your node with that stop time,
 
 ```
 kvd start --halt-height 1591794000
