@@ -79,26 +79,23 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 
 	// burn stable coins equal to min(balance, netAmount)
 	dp := k.GetParams(ctx).DebtParam
-	balance := k.accountKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+	balance := k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(dp.Denom)
 	burnAmount := sdk.MinInt(balance, netAmount)
 	return k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, burnAmount)))
 }
 
 // GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
 func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
-	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
-	totalSurplus := sdk.ZeroInt()
 	dp := k.GetParams(ctx).DebtParam
-	surplus := acc.GetCoins().AmountOf(dp.Denom)
+	surplus := k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(accountName)).AmountOf(dp.Denom)
+	totalSurplus := sdk.ZeroInt()
 	totalSurplus = totalSurplus.Add(surplus)
 	return totalSurplus
 }
 
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
 func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
-	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
-	debt := acc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
-	return debt
+	return k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(accountName)).AmountOf(k.GetDebtDenom(ctx))
 }
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
@@ -115,7 +112,7 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 		}
 	}
 
-	surplus := k.accountKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(params.DebtParam.Denom)
+	surplus := k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(params.DebtParam.Denom)
 	if !surplus.GTE(params.SurplusAuctionThreshold) {
 		return nil
 	}

@@ -19,6 +19,7 @@ type SupplyKeeper interface {
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 	GetSupply(ctx sdk.Context) (supply bankexported.SupplyI)
+	GetCoins(addr sdk.AccAddress) sdk.Coins
 }
 
 // PricefeedKeeper defines the expected interface for the pricefeed  (noalias)

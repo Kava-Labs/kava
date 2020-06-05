@@ -35,7 +35,7 @@ func ModuleAccountInvariants(k Keeper) sdk.Invariant {
 			return false
 		})
 
-		moduleAccCoins := k.bankKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
+		moduleAccCoins := k.bankKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(types.ModuleName))
 		broken := !moduleAccCoins.IsEqual(totalAuctionCoins)
 
 		invariantMessage := sdk.FormatInvariant(
