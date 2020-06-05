@@ -25,7 +25,6 @@ const (
 	OpWeightMsgCreateAtomicSwap = "op_weight_msg_create_atomic_swap"
 )
 
-
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
 	appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper, k keeper.Keeper,
