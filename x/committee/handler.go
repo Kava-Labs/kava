@@ -38,10 +38,7 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 		),
 	)
 
-	return &sdk.Result{
-		Data:   GetKeyFromID(proposalID),
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) (*sdk.Result, error) {
@@ -58,5 +55,5 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) (*sdk.Re
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

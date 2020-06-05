@@ -43,7 +43,5 @@ func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimRe
 		),
 	)
 
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

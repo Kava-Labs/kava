@@ -36,7 +36,5 @@ func handleMsgPlaceBid(ctx sdk.Context, keeper Keeper, msg MsgPlaceBid) (*sdk.Re
 		),
 	)
 
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

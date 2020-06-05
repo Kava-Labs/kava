@@ -41,10 +41,7 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Resul
 	)
 	id, _ := k.GetCdpID(ctx, msg.Sender, msg.Collateral.Denom)
 
-	return &sdk.Result{
-		Data:   GetCdpIDBytes(id),
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) (*sdk.Result, error) {
@@ -60,7 +57,7 @@ func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) (*sdk.Result, e
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) (*sdk.Result, error) {
@@ -76,7 +73,7 @@ func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) (*sdk.Result,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) (*sdk.Result, error) {
@@ -92,7 +89,7 @@ func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) (*sdk.Result,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgRepayDebt(ctx sdk.Context, k Keeper, msg MsgRepayDebt) (*sdk.Result, error) {
@@ -108,5 +105,5 @@ func handleMsgRepayDebt(ctx sdk.Context, k Keeper, msg MsgRepayDebt) (*sdk.Resul
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
