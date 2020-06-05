@@ -10,18 +10,28 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 var (
-	CollateralDenoms    = [3]string{"bnb", "xrp", "btc"}
+	CollateralDenoms    = []string{}
 	RewardDenom         = "ukava"
 	MaxTotalAssetReward = sdk.NewInt(1000000000)
 )
 
 // RandomizedGenState generates a random GenesisState for incentive module
 func RandomizedGenState(simState *module.SimulationState) {
+
+	// Get collateral asset denoms from existing CDP genesis state and pass to incentive params
+	var cdpGenesis cdp.GenesisState
+	simState.Cdc.MustUnmarshalJSON(simState.GenState[cdp.ModuleName], &cdpGenesis)
+	for _, collateral := range cdpGenesis.Params.CollateralParams {
+		CollateralDenoms = append(CollateralDenoms, collateral.Denom)
+	}
 	params := genParams(simState.Rand)
+
+	// Generate random reward and claim periods
 	rewardPeriods := genRewardPeriods(simState.Rand, simState.GenTimestamp, params.Rewards)
 	claimPeriods := genClaimPeriods(rewardPeriods)
 	claimPeriodIDs := genNextClaimPeriodIds(claimPeriods)
