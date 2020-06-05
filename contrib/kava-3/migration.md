@@ -45,9 +45,13 @@ kvd start --halt-height 1591794000
 
   # verify versions
   kvd version --long
-  # [PLACEHOLDER]
-  kvcli version -long
-  # [PLACEHOLDER]
+  # name: kava
+  # server_name: kvd
+  # client_name: kvcli
+  # version: 0.8.0
+  # commit: dee456557a0b478f8b2326e62f963fd0f43fbd0f
+  # build_tags: netgo,ledger
+  # go: go version go1.13.7 linux/amd64
 
   # Migrate keys
   kvcli keys migrate
