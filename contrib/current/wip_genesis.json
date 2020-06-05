@@ -368,7 +368,17 @@
                 "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h"
               ],
               "quote_asset": "usd"
-            }
+            },
+          {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb:usd:30",
+            "oracles": [
+              "kava1nyqy04x3ecpcuss3llmyu4fc2v4ma99h8vffjz",
+              "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h"
+            ],
+            "quote_asset": "usd"
+          }
           ]
         },
         "posted_prices": [
