@@ -47,12 +47,16 @@ module.exports = {
         title: "Community",
         children: [
           {
-            title: "Discord",
-            path: "https://discord.com/channels/704389840614981673/704389841051320362"
+            title: "Twitter",
+            path: "https://twitter.com/kava_labs"
           },
           {
             title: "Telegram",
             path: "https://t.me/kavalabs"
+          },
+          {
+            title: "Discord",
+            path: "https://discord.com/channels/704389840614981673/704389841051320362"
           },
           {
             title: "GitHub",
