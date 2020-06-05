@@ -6,6 +6,8 @@ The version of Kava for kava-3 is __v0.8__.
 
 Many changes have occurred in both the Kava software and the cosmos-sdk software since the launch of kava-2. The primary changes in Kava are the addition of modules that comprise the [CDP system](https://docs.kava.io/). To review cosmos-sdk changes, see the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md) and note that kava-3 is launching with __v0.38.4__ of the cosmos-sdk.
 
+If you have technical questions or concerns, ask a developer or community member in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+
 ### Risks
 
 As a validator, performing the upgrade procedure on your consensus nodes carries a heightened risk of double-signing and being slashed. The most important piece of this procedure is verifying your software version and genesis file hash before starting your validator and signing.
@@ -72,3 +74,8 @@ kvd start --halt-height 1591794000
   kvd unsafe-reset-all
   kvd start
 ```
+
+
+### Coordination
+
+If the `kava-3` chain does not launch by June 10, 2020 at 16:00 UTC, the launch should be considered a failure. Validators should restore the state from `kava-2` and coordinate a relaunch. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
