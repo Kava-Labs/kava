@@ -17,6 +17,7 @@ import (
 
 var (
 	noOpMsg = simulation.NoOpMsg(types.ModuleName)
+	randomNumber = []byte{114, 21, 74, 180, 81, 92, 21, 91, 173, 164, 143, 111, 120, 58, 241, 58, 40, 22, 59, 133, 102, 233, 55, 149, 12, 199, 231, 63, 122, 23, 88, 9}
 )
 
 // Simulation operation weights constants
@@ -98,11 +99,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		recipientOtherChain := simulation.RandStringOfLength(r, 43)
 		senderOtherChain := simulation.RandStringOfLength(r, 43)
 
-		// Generate cryptographically strong pseudo-random number
-		randomNumber, err := types.GenerateSecureRandomNumber()
-		if err != nil {
-			return noOpMsg, nil, err
-		}
+		// Use same random number for determinism
 		timestamp := ctx.BlockTime().Unix()
 		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
