@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -394,36 +393,52 @@ func TestGenesisAccountValidate(t *testing.T) {
 	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
+
+	invAcc := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 100)
+	invAcc.DebtAfterFailedVesting = sdk.Coins{sdk.Coin{Denom: "KAVA", Amount: sdk.OneInt()}}
+
 	tests := []struct {
-		name   string
-		acc    authexported.GenesisAccount
-		expErr error
+		name    string
+		acc     authexported.GenesisAccount
+		expPass bool
 	}{
 		{
 			"valid validator vesting account",
 			NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 100),
-			nil,
+			true,
+		},
+		{
+			"empty validator address",
+			NewValidatorVestingAccount(&bacc, now.Unix(), periods, nil, nil, 100),
+			false,
 		},
 		{
 			"invalid signing threshold",
 			NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, -1),
-			errors.New("signing threshold must be between 0 and 100"),
+			false,
 		},
 		{
 			"invalid signing threshold",
 			NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 120),
-			errors.New("signing threshold must be between 0 and 100"),
+			false,
 		},
 		{
 			"invalid return address",
 			NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, testAddr, 90),
-			errors.New("return address cannot be the same as the account address"),
+			false,
+		},
+		{
+			"invalid debt after failed vesting ",
+			invAcc,
+			false,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.acc.Validate()
-			require.Equal(t, tt.expErr, err)
-		})
+		err := tt.acc.Validate()
+		if tt.expPass {
+			require.NoError(t, err, tt.name)
+		} else {
+			require.Error(t, err, tt.name)
+		}
 	}
 }
