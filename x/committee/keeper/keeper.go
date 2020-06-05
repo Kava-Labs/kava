@@ -207,9 +207,7 @@ func (k Keeper) GetProposalsByCommittee(ctx sdk.Context, committeeID uint64) []t
 
 // DeleteProposalAndVotes removes a proposal and its associated votes.
 func (k Keeper) DeleteProposalAndVotes(ctx sdk.Context, proposalID uint64) {
-
 	votes := k.GetVotesByProposal(ctx, proposalID)
-
 	k.DeleteProposal(ctx, proposalID)
 	for _, v := range votes {
 		k.DeleteVote(ctx, v.ProposalID, v.Voter)

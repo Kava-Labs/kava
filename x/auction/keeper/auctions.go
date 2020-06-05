@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -449,7 +450,6 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 
 // CloseAuction closes an auction and distributes funds to the highest bidder.
 func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
-
 	auction, found := k.GetAuction(ctx, auctionID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)
@@ -460,21 +460,20 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 	}
 
 	// payout to the last bidder
+	var err error
 	switch auc := auction.(type) {
 	case types.SurplusAuction:
-		if err := k.PayoutSurplusAuction(ctx, auc); err != nil {
-			return err
-		}
+		err = k.PayoutSurplusAuction(ctx, auc)
 	case types.DebtAuction:
-		if err := k.PayoutDebtAuction(ctx, auc); err != nil {
-			return err
-		}
+		err = k.PayoutDebtAuction(ctx, auc)
 	case types.CollateralAuction:
-		if err := k.PayoutCollateralAuction(ctx, auc); err != nil {
-			return err
-		}
+		err = k.PayoutCollateralAuction(ctx, auc)
 	default:
-		return sdkerrors.Wrap(types.ErrUnrecognizedAuctionType, auc.GetType())
+		err = sdkerrors.Wrap(types.ErrUnrecognizedAuctionType, auc.GetType())
+	}
+
+	if err != nil {
+		return err
 	}
 
 	k.DeleteAuction(ctx, auctionID)
@@ -541,18 +540,17 @@ func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAucti
 
 // CloseExpiredAuctions finds all auctions that are past (or at) their ending times and closes them, paying out to the highest bidder.
 func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) error {
-	var expiredAuctions []uint64
-	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id uint64) bool {
-		expiredAuctions = append(expiredAuctions, id)
+	var err error
+	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id uint64) (stop bool) {
+		err = k.CloseAuction(ctx, id)
+		if err != nil && !errors.Is(err, types.ErrAuctionNotFound) {
+			// stop iteration
+			return true
+		}
 		return false
 	})
-	// Note: iteration and auction closing are in separate loops as db should not be modified during iteration // TODO is this correct? gov modifies during iteration
-	for _, id := range expiredAuctions {
-		if err := k.CloseAuction(ctx, id); err != nil {
-			return err
-		}
-	}
-	return nil
+
+	return err
 }
 
 // earliestTime returns the earliest of two times.
