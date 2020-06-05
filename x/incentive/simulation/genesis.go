@@ -26,9 +26,12 @@ func RandomizedGenState(simState *module.SimulationState) {
 	// Get collateral asset denoms from existing CDP genesis state and pass to incentive params
 	var cdpGenesis cdp.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[cdp.ModuleName], &cdpGenesis)
-	for _, collateral := range cdpGenesis.Params.CollateralParams {
-		CollateralDenoms = append(CollateralDenoms, collateral.Denom)
+	if len(CollateralDenoms) == 0 {
+		for _, collateral := range cdpGenesis.Params.CollateralParams {
+			CollateralDenoms = append(CollateralDenoms, collateral.Denom)
+		}
 	}
+
 	params := genParams(simState.Rand)
 
 	// Generate random reward and claim periods
