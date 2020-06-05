@@ -41,7 +41,7 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 
 // GenRandBnbDeputyFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
 func GenRandBnbDeputyFixedFee(r *rand.Rand) sdk.Int {
-	min := int(2)
+	min := int(1)
 	max := types.DefaultBnbDeputyFixedFee.Int64()
 	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
 }
@@ -62,7 +62,7 @@ func GenMaxAmount(r *rand.Rand, minAmount sdk.Int) sdk.Int {
 
 // GenMinBlockLock randomized MinBlockLock
 func GenMinBlockLock(r *rand.Rand) uint64 {
-	min := 20
+	min := int(1)
 	max := int(types.DefaultMaxBlockLock)
 	return uint64(r.Intn(max-min) + min)
 }
