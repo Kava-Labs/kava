@@ -80,7 +80,7 @@ func NewParams(bnbDeputyAddress sdk.AccAddress, bnbDeputyFixedFee, minAmount,
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	defaultBnbDeputyAddress, err := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
+	defaultBnbDeputyAddress, err := sdk.AccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6")
 	if err != nil {
 		panic(err)
 	}

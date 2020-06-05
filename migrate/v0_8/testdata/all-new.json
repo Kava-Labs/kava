@@ -304,7 +304,7 @@
     },
     "bep3": {
       "params": {
-        "bnb_deputy_address": "kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj",
+        "bnb_deputy_address": "kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6",
         "bnb_deputy_fixed_fee": "1000",
         "min_amount": "0",
         "max_amount": "1000000000000",

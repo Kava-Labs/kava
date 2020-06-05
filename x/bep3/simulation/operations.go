@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -100,13 +99,12 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		senderOtherChain := simulation.RandStringOfLength(r, 43)
 
 		// Generate cryptographically strong pseudo-random number
-		randomNumber, err := simulation.RandPositiveInt(r, sdk.NewInt(math.MaxInt64))
+		randomNumber, err := types.GenerateSecureRandomNumber()
 		if err != nil {
 			return noOpMsg, nil, err
 		}
-		// Must use current blocktime instead of 'now' since initial blocktime was randomly generated
 		timestamp := ctx.BlockTime().Unix()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.BigInt().Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 		// Check that the sender has coins for fee
 		senderAcc := ak.GetAccount(ctx, sender.Address)
@@ -171,7 +169,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan/2
 			futureOp = simulation.FutureOperation{
 				BlockHeight: int(executionBlock),
-				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber.BigInt().Bytes()),
+				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber),
 			}
 		} else {
 			// Refund future operation
