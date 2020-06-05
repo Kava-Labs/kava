@@ -29,7 +29,7 @@ const (
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
 	appParams simtypes.AppParams, cdc *codec.Codec, ak types.AccountKeeper, k keeper.Keeper,
-) simulation.WeightedOperations {
+) simtypes.WeightedOperations {
 	var weightCreateAtomicSwap int
 
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateAtomicSwap, &weightCreateAtomicSwap, nil,
@@ -39,7 +39,7 @@ func WeightedOperations(
 	)
 
 	return simulation.WeightedOperations{
-		simtypes.NewWeightedOperation(
+		simulation.NewWeightedOperation(
 			weightCreateAtomicSwap,
 			SimulateMsgCreateAtomicSwap(ak, k),
 		),

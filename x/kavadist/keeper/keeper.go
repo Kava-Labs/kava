@@ -15,12 +15,12 @@ import (
 type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	paramSubspace params.Subspace
 	supplyKeeper  types.SupplyKeeper
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace, sk types.SupplyKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}

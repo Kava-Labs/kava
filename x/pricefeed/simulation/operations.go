@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
@@ -31,7 +32,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
+	appParams simtypes.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightMsgUpdatePrices int
 	// var numBlocks int
@@ -51,10 +52,10 @@ func WeightedOperations(
 }
 
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
-func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks int) simulation.Operation {
+func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks int) simtypes.Operation {
 	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		genPrices.Do(func() {
 			// generate a random walk for each asset exactly once, with observations equal to the number of blocks in the sim
@@ -90,14 +91,14 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 		marketID := randomMarket.MarketID
 		address := getRandomOracle(r, randomMarket)
 
-		oracle, found := simulation.FindAccount(accs, address)
+		oracle, found := simtypes.FindAccount(accs, address)
 		if !found {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		oracleAcc := ak.GetAccount(ctx, oracle.Address)
 		if oracleAcc == nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName), nil, nil
 		}
 
 		price := pickNewRandomPrice(marketID, int(ctx.BlockHeight()))
@@ -109,9 +110,9 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 		msg := types.NewMsgPostPrice(oracle.Address, marketID, price, expiry)
 
 		spendable := oracleAcc.SpendableCoins(ctx.BlockTime())
-		fees, err := simulation.RandomFees(r, ctx, spendable)
+		fees, err := simtypes.RandomFees(r, ctx, spendable)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -126,9 +127,9 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
+		return simtypes.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
@@ -179,7 +180,7 @@ func pickNewRandomPrice(marketID string, blockHeight int) (newPrice sdk.Dec) {
 
 // getRandomOracle picks a random oracle from the list of oracles
 func getRandomOracle(r *rand.Rand, market types.Market) sdk.AccAddress {
-	randomIndex := simulation.RandIntBetween(r, 0, len(market.Oracles))
+	randomIndex := simtypes.RandIntBetween(r, 0, len(market.Oracles))
 	return market.Oracles[randomIndex]
 }
 
@@ -189,7 +190,7 @@ func pickRandomAsset(ctx sdk.Context, keeper keeper.Keeper, r *rand.Rand) (marke
 	// get the params
 	params := keeper.GetParams(ctx)
 	// now pick a random asset
-	randomIndex := simulation.RandIntBetween(r, 0, len(params.Markets))
+	randomIndex := simtypes.RandIntBetween(r, 0, len(params.Markets))
 	return params.Markets[randomIndex]
 }
 
