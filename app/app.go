@@ -461,28 +461,28 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	//
 	// NOTE: This is not required for apps that don't use the simulator for fuzz testing
 	// transactions.
-	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.accountKeeper),
-		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.bankKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
-		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
-		evidence.NewAppModule(app.evidenceKeeper),
-	)
+	// app.sm = module.NewSimulationManager(
+	// 	auth.NewAppModule(app.accountKeeper),
+	// 	validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
+	// 	bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+	// 	capability.NewAppModule(appCodec, *app.capabilityKeeper),
+	// 	bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+	// 	gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
+	// 	mint.NewAppModule(app.mintKeeper),
+	// 	distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+	// 	staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+	// 	slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+	// 	pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
+	// 	cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+	// 	auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
+	// 	bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
+	// 	kavadist.NewAppModule(app.kavadistKeeper, app.bankKeeper),
+	// 	incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
+	// 	committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+	// 	evidence.NewAppModule(app.evidenceKeeper),
+	// )
 
-	app.sm.RegisterStoreDecoders()
+	// app.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keys)
@@ -586,7 +586,8 @@ func (app *App) Codec() *codec.Codec {
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
+	// return app.sm
+	return nil
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.
