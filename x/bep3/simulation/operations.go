@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	noOpMsg = simtypes.NoOpMsg(types.ModuleName)
+	noOpMsg = simtypes.NoOpMsg(types.ModuleName, "", "")
 )
 
 // Simulation operation weights constants
@@ -28,8 +28,8 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simtypes.AppParams, cdc *codec.Codec, ak types.AccountKeeper, k keeper.Keeper,
-) simtypes.WeightedOperations {
+	appParams simtypes.AppParams, cdc *codec.Codec, ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper,
+) simulation.WeightedOperations {
 	var weightCreateAtomicSwap int
 
 	appParams.GetOrGenerate(cdc, OpWeightMsgCreateAtomicSwap, &weightCreateAtomicSwap, nil,
@@ -41,13 +41,13 @@ func WeightedOperations(
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightCreateAtomicSwap,
-			SimulateMsgCreateAtomicSwap(ak, k),
+			SimulateMsgCreateAtomicSwap(ak, bk, k),
 		),
 	}
 }
 
 // SimulateMsgCreateAtomicSwap generates a MsgCreateAtomicSwap with random values
-func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtypes.Operation {
+func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -69,8 +69,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtyp
 		bnbDeputyFixedFee := k.GetBnbDeputyFixedFee(ctx)
 		senderOut, asset, found := findValidAccountAssetSupplyPair(accs, supplies, func(acc simtypes.Account, asset types.AssetSupply) bool {
 			if asset.CurrentSupply.Amount.IsPositive() {
-				authAcc := ak.GetAccount(ctx, acc.Address)
-				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(sdk.NewIntFromUint64(bnbDeputyFixedFee)) {
+				if bk.SpendableCoins(ctx, acc.Address).AmountOf(asset.Denom).GT(sdk.NewIntFromUint64(bnbDeputyFixedFee)) {
 					return true
 				}
 			}
@@ -110,14 +109,13 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtyp
 		randomNumberHash := types.CalculateRandomHash(randomNumber.BigInt().Bytes(), timestamp)
 
 		// Check that the sender has coins for fee
-		senderAcc := ak.GetAccount(ctx, sender.Address)
-		fees, err := simtypes.RandomFees(r, ctx, senderAcc.SpendableCoins(ctx.BlockTime()))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, sender.Address))
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return noOpMsg, nil, err
 		}
 
 		// Get maximum valid amount
-		maximumAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(denom)
+		maximumAmount := bk.SpendableCoins(ctx, sender.Address).Sub(fees).AmountOf(denom)
 		// The maximum amount for outgoing swaps is limited by the asset's current supply
 		if recipient.Equals(deputyAcc) {
 			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, []byte(denom))
@@ -144,6 +142,8 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtyp
 			randomNumberHash, timestamp, coins, heightSpan,
 		)
 
+		senderAcc := ak.GetAccount(ctx, sender.Address)
+
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
@@ -156,7 +156,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtyp
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return noOpMsg, nil, err
 		}
 
 		// Construct a MsgClaimAtomicSwap or MsgRefundAtomicSwap future operation
@@ -167,14 +167,14 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtyp
 			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan/2
 			futureOp = simtypes.FutureOperation{
 				BlockHeight: int(executionBlock),
-				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber.BigInt().Bytes()),
+				Op:          operationClaimAtomicSwap(ak, bk, k, swapID, randomNumber.BigInt().Bytes()),
 			}
 		} else {
 			// Refund future operation
 			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan
 			futureOp = simtypes.FutureOperation{
 				BlockHeight: int(executionBlock),
-				Op:          operationRefundAtomicSwap(ak, k, swapID),
+				Op:          operationRefundAtomicSwap(ak, bk, k, swapID),
 			}
 		}
 
@@ -182,7 +182,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simtyp
 	}
 }
 
-func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []byte, randomNumber []byte) simtypes.Operation {
+func operationClaimAtomicSwap(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper, swapID []byte, randomNumber []byte) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -191,9 +191,9 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 
 		msg := types.NewMsgClaimAtomicSwap(acc.GetAddress(), swapID, randomNumber)
 
-		fees, err := simtypes.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, acc.GetAddress()))
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return noOpMsg, nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -208,14 +208,14 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return noOpMsg, nil, err
 		}
 
 		return simtypes.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
-func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []byte) simtypes.Operation {
+func operationRefundAtomicSwap(ak types.AccountKeeper, bk types.BankKeeper, k keeper.Keeper, swapID []byte) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -224,9 +224,9 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 
 		msg := types.NewMsgRefundAtomicSwap(acc.GetAddress(), swapID)
 
-		fees, err := simtypes.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()))
+		fees, err := simtypes.RandomFees(r, ctx, bk.SpendableCoins(ctx, acc.GetAddress()))
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return noOpMsg, nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -241,7 +241,7 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return noOpMsg, nil, err
 		}
 
 		return simtypes.NewOperationMsg(msg, true, result.Log), nil, nil

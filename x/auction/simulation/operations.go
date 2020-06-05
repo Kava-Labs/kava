@@ -11,8 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
@@ -32,7 +33,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
+	appParams simtypes.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, bk bank.ViewKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightMsgPlaceBid int
 
@@ -45,7 +46,7 @@ func WeightedOperations(
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgPlaceBid,
-			SimulateMsgPlaceBid(ak, k),
+			SimulateMsgPlaceBid(ak, bk, k),
 		),
 	}
 }
@@ -54,10 +55,10 @@ func WeightedOperations(
 // There's two error paths
 // - return a OpMessage, but nil error - this will log a message but keep running the simulation
 // - return an error - this will stop the simulation
-func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation.Operation {
+func SimulateMsgPlaceBid(ak auth.AccountKeeper, bk bank.ViewKeeper, keeper keeper.Keeper) simtypes.Operation {
 	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// get open auctions
 		openAuctions := types.Auctions{}
 		keeper.IterateAuctions(ctx, func(a types.Auction) bool {
@@ -73,9 +74,9 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		// search through auctions and an accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
 		blockTime := ctx.BlockHeader().Time
 		params := keeper.GetParams(ctx)
-		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {
-			account := ak.GetAccount(ctx, acc.Address)
-			_, err := generateBidAmount(r, params, auc, account, blockTime)
+		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simtypes.Account, auc types.Auction) bool {
+			accBalance := bk.SpendableCoins(ctx, acc.Address)
+			_, err := generateBidAmount(r, params, auc, accBalance, blockTime)
 			if err == errorNotEnoughCoins || err == errorCantReceiveBids {
 				return false // keep searching
 			} else if err != nil {
@@ -84,18 +85,19 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			return true // found valid pair
 		})
 		if !found {
-			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
+			return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation (no valid auction and bidder)", "", false, nil), nil, nil
 		}
 
 		bidderAcc := ak.GetAccount(ctx, bidder.Address)
 		if bidderAcc == nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("couldn't find account %s", bidder.Address)
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, fmt.Errorf("couldn't find account %s", bidder.Address)
 		}
+		bidderBalance := bk.SpendableCoins(ctx, bidder.Address)
 
 		// pick a bid amount for the chosen auction and bidder
-		amount, err := generateBidAmount(r, params, openAuction, bidderAcc, blockTime)
+		amount, err := generateBidAmount(r, params, openAuction, bidderBalance, blockTime)
 		if err != nil { // shouldn't happen given the checks above
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 		}
 
 		// create and deliver a tx
@@ -114,22 +116,21 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		_, _, err = app.Deliver(tx)
 		if err != nil {
 			// to aid debugging, add the stack trace to the comment field of the returned opMsg
-			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
+			return simtypes.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
-		return simulation.NewOperationMsg(msg, true, ""), nil, nil
+		return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 	}
 }
 
 func generateBidAmount(
 	r *rand.Rand, params types.Params, auc types.Auction,
-	bidder authexported.Account, blockTime time.Time) (sdk.Coin, error) {
-	bidderBalance := bidder.SpendableCoins(blockTime)
+	balance sdk.Coins, blockTime time.Time) (sdk.Coin, error) {
 
 	switch a := auc.(type) {
 
 	case types.DebtAuction:
 		// Check bidder has enough (stable coin) to pay in
-		if bidderBalance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
+		if balance.AmountOf(a.Bid.Denom).LT(a.Bid.Amount) { // stable coin
 			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		// Check auction can still receive new bids
@@ -157,11 +158,11 @@ func generateBidAmount(
 				sdk.NewDecFromInt(a.Bid.Amount).Mul(params.IncrementSurplus).RoundInt(),
 			),
 		)
-		if bidderBalance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) { // gov coin
+		if balance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) { // gov coin
 			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		// Generate a new bid amount (gov coin)
-		amt, err := RandIntInclusive(r, minNewBidAmt, bidderBalance.AmountOf(a.Bid.Denom))
+		amt, err := RandIntInclusive(r, minNewBidAmt, balance.AmountOf(a.Bid.Denom))
 		if err != nil {
 			panic(err)
 		}
@@ -176,7 +177,7 @@ func generateBidAmount(
 			),
 		)
 		minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
-		if bidderBalance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) {
+		if balance.AmountOf(a.Bid.Denom).LT(minNewBidAmt) {
 			return sdk.Coin{}, errorNotEnoughCoins
 		}
 		// Check auction can still receive new bids
@@ -199,12 +200,12 @@ func generateBidAmount(
 
 			// Generate a new bid amount (stable coin in forward phase)
 		} else {
-			amt, err := RandIntInclusive(r, minNewBidAmt, sdk.MinInt(bidderBalance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
+			amt, err := RandIntInclusive(r, minNewBidAmt, sdk.MinInt(balance.AmountOf(a.Bid.Denom), a.MaxBid.Amount))
 			if err != nil {
 				panic(err)
 			}
 			// when the bidder has enough coins, pick the MaxBid amount more frequently to increase chance auctions phase get into reverse phase
-			if r.Intn(2) == 0 && bidderBalance.AmountOf(a.Bid.Denom).GTE(a.MaxBid.Amount) { // 50%
+			if r.Intn(2) == 0 && balance.AmountOf(a.Bid.Denom).GTE(a.MaxBid.Amount) { // 50%
 				amt = a.MaxBid.Amount
 			}
 			return sdk.NewCoin(a.Bid.Denom, amt), nil // stable coin
@@ -216,7 +217,7 @@ func generateBidAmount(
 }
 
 // findValidAccountAuctionPair finds an auction and account for which the callback func returns true
-func findValidAccountAuctionPair(accounts []simulation.Account, auctions types.Auctions, cb func(simulation.Account, types.Auction) bool) (simulation.Account, types.Auction, bool) {
+func findValidAccountAuctionPair(accounts []simtypes.Account, auctions types.Auctions, cb func(simtypes.Account, types.Auction) bool) (simtypes.Account, types.Auction, bool) {
 	for _, auc := range auctions {
 		for _, acc := range accounts {
 			if isValid := cb(acc, auc); isValid {
@@ -224,7 +225,7 @@ func findValidAccountAuctionPair(accounts []simulation.Account, auctions types.A
 			}
 		}
 	}
-	return simulation.Account{}, nil, false
+	return simtypes.Account{}, nil, false
 }
 
 // RandIntInclusive randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.

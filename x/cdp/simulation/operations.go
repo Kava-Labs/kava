@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
@@ -21,8 +22,8 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simulation.AppParams, cdc *codec.Codec, ak types.AccountKeeper,
-	k keeper.Keeper, pfk types.PricefeedKeeper,
+	appParams simtypes.AppParams, cdc *codec.Codec, ak types.AccountKeeper,
+	sk types.SupplyKeeper, k keeper.Keeper, pfk types.PricefeedKeeper,
 ) simulation.WeightedOperations {
 	var weightMsgCdp int
 
@@ -35,46 +36,46 @@ func WeightedOperations(
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgCdp,
-			SimulateMsgCdp(ak, k, pfk),
+			SimulateMsgCdp(ak, sk, k, pfk),
 		),
 	}
 }
 
 // SimulateMsgCdp generates a MsgCreateCdp or MsgDepositCdp with random values.
-func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.PricefeedKeeper) simulation.Operation {
+func SimulateMsgCdp(ak types.AccountKeeper, sk types.SupplyKeeper, k keeper.Keeper, pfk types.PricefeedKeeper) simtypes.Operation {
 	return func(
-		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
-	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
+		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
-		simAccount, _ := simulation.RandomAcc(r, accs)
+		simAccount, _ := simtypes.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simAccount.Address)
 		if acc == nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 		}
 
-		coins := acc.GetCoins()
+		coins := sk.GetCoins(acc.GetAddress())
 		collateralParams := k.GetParams(ctx).CollateralParams
 		if len(collateralParams) == 0 {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 		}
 
 		randCollateralParam := collateralParams[r.Intn(len(collateralParams))]
 		debtParam, _ := k.GetDebtParam(ctx, randCollateralParam.DebtLimit.Denom)
 		if coins.AmountOf(randCollateralParam.Denom).IsZero() {
-			return simulation.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 		}
 
 		price, err := pfk.GetCurrentPrice(ctx, randCollateralParam.MarketID)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 		}
 		// convert the price to the same units as the debt param
 		priceShifted := ShiftDec(price.Price, debtParam.ConversionFactor)
 
-		spendableCoins := acc.SpendableCoins(ctx.BlockTime())
-		fees, err := simulation.RandomFees(r, ctx, spendableCoins)
+		spendableCoins := sk.GetCoins(acc.GetAddress())
+		fees, err := simtypes.RandomFees(r, ctx, spendableCoins)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 		}
 		spendableCoins = spendableCoins.Sub(fees)
 
@@ -89,13 +90,13 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			minCollateralDepositRounded := minCollateralDeposit.TruncateInt().Add(sdk.OneInt())
 			if spendableCoins.AmountOf(randCollateralParam.Denom).LT(minCollateralDepositRounded) {
 				// account doesn't have enough funds to open a cdp for the min debt amount
-				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "insufficient funds to open cdp", false, nil), nil, nil
+				return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation", "insufficient funds to open cdp", false, nil), nil, nil
 			}
 			// set the max collateral deposit to the amount of coins in the account
 			maxCollateralDeposit := spendableCoins.AmountOf(randCollateralParam.Denom)
 
 			// randomly select a collateral deposit amount
-			collateralDeposit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(minCollateralDepositRounded.Int64()), int(maxCollateralDeposit.Int64()))))
+			collateralDeposit := sdk.NewInt(int64(simtypes.RandIntBetween(r, int(minCollateralDepositRounded.Int64()), int(maxCollateralDeposit.Int64()))))
 			// calculate how much the randomly selected deposit is worth
 			collateralDepositValue := ShiftDec(sdk.NewDecFromInt(collateralDeposit), randCollateralParam.ConversionFactor.Neg()).Mul(priceShifted)
 			// calculate the max amount of debt that could be drawn for the chosen deposit
@@ -104,12 +105,12 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			availableAssetDebt := randCollateralParam.DebtLimit.Amount.Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, debtParam.Denom))
 			if availableAssetDebt.LTE(debtParam.DebtFloor) {
 				// debt limit has been reached
-				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot open cdp", false, nil), nil, nil
+				return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot open cdp", false, nil), nil, nil
 			}
 			// ensure that the debt draw does not exceed the debt limit
 			maxDebtDraw = sdk.MinInt(maxDebtDraw, availableAssetDebt)
 			// randomly select a debt draw amount
-			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(debtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
+			debtDraw := sdk.NewInt(int64(simtypes.RandIntBetween(r, int(debtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
 
 			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, collateralDeposit), sdk.NewCoin(debtParam.Denom, debtDraw))
 
@@ -125,10 +126,10 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// a cdp already exists, deposit to it, draw debt from it, or repay debt to it
@@ -149,15 +150,15 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// deposit 25% of the time
 		if hasCoins(spendableCoins, randCollateralParam.Denom) && shouldDeposit(r) {
-			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
+			randDepositAmount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
 			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount))
 
 			tx := helpers.GenTx(
@@ -172,10 +173,10 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// draw debt 25% of the time
@@ -190,17 +191,17 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
 				// debt in cdp is maxed out
-				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
+				return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil
 			}
 			// check if the debt limit has been reached
 			availableAssetDebt := randCollateralParam.DebtLimit.Amount.Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, debtParam.Denom))
 			if availableAssetDebt.LTE(sdk.OneInt()) {
 				// debt limit has been reached
-				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot draw more debt", false, nil), nil, nil
+				return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot draw more debt", false, nil), nil, nil
 			}
 			maxDraw := sdk.MinInt(maxDebt, availableAssetDebt)
 
-			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
+			randDrawAmount := sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, int(maxDraw.Int64()))))
 			msg := types.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(debtParam.Denom, randDrawAmount))
 
 			tx := helpers.GenTx(
@@ -216,10 +217,10 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			_, _, err := app.Deliver(tx)
 
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
 		// repay debt 25% of the time
@@ -227,7 +228,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			debt := existingCDP.Principal.Amount
 			payableDebt := debt.Sub(debtParam.DebtFloor)
 			if payableDebt.IsZero() {
-				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cannot make partial repayment, cdp at debt floor", false, nil), nil, nil
+				return simtypes.NewOperationMsgBasic(types.ModuleName, "no-operation", "cannot make partial repayment, cdp at debt floor", false, nil), nil, nil
 			}
 			maxRepay := sdk.MinInt(
 				spendableCoins.AmountOf(debtParam.Denom),
@@ -237,7 +238,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			if maxRepay.Equal(sdk.OneInt()) {
 				randRepayAmount = sdk.OneInt()
 			} else {
-				randRepayAmount = sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
+				randRepayAmount = sdk.NewInt(int64(simtypes.RandIntBetween(r, 1, int(maxRepay.Int64()))))
 			}
 
 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Denom, sdk.NewCoin(debtParam.Denom, randRepayAmount))
@@ -254,25 +255,25 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 
 			_, _, err := app.Deliver(tx)
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, err
+				return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 			}
 
-			return simulation.NewOperationMsg(msg, true, ""), nil, nil
+			return simtypes.NewOperationMsg(msg, true, ""), nil, nil
 		}
 
-		return simulation.NoOpMsg(types.ModuleName), nil, nil
+		return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 	}
 }
 
 func shouldDraw(r *rand.Rand) bool {
 	threshold := 50
-	value := simulation.RandIntBetween(r, 1, 100)
+	value := simtypes.RandIntBetween(r, 1, 100)
 	return value > threshold
 }
 
 func shouldDeposit(r *rand.Rand) bool {
 	threshold := 66
-	value := simulation.RandIntBetween(r, 1, 100)
+	value := simtypes.RandIntBetween(r, 1, 100)
 	return value > threshold
 }
 
@@ -282,7 +283,7 @@ func hasCoins(spendableCoins sdk.Coins, denom string) bool {
 
 func shouldClose(r *rand.Rand) bool {
 	threshold := 75
-	value := simulation.RandIntBetween(r, 1, 100)
+	value := simtypes.RandIntBetween(r, 1, 100)
 	return value > threshold
 }
 

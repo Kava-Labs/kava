@@ -34,7 +34,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 			sdk.NewCoin("usdx", sdk.NewInt(int64(simState.Rand.Intn(1000000000)))),
 			sdk.NewCoin("ukava", sdk.NewInt(int64(simState.Rand.Intn(500000000000)))),
 		)
-		err := acc.SetCoins(acc.GetCoins().Add(coinsToAdd...))
+		_, err := bank.Keeper.AddCoins(ctx, acc.GetAddress(), coinsToAdd...)
 		if err != nil {
 			panic(err)
 		}
@@ -53,7 +53,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 }
 
 // In a list of accounts, replace the first account found with the same address. If not found, append the account.
-func replaceOrAppendAccount(accounts []authexported.GenesisAccount, acc authexported.GenesisAccount) []authexported.GenesisAccount {
+func replaceOrAppendAccount(accounts []authtypes.GenesisAccount, acc authtypes.GenesisAccount) []authtypes.GenesisAccount {
 	newAccounts := accounts
 	for i, a := range accounts {
 		if a.GetAddress().Equals(acc.GetAddress()) {

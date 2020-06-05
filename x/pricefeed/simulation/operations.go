@@ -9,8 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	appparams "github.com/kava-labs/kava/app/params"
@@ -32,7 +33,7 @@ const (
 
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
-	appParams simtypes.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, k keeper.Keeper,
+	appParams simtypes.AppParams, cdc *codec.Codec, ak auth.AccountKeeper, bk bank.ViewKeeper, k keeper.Keeper,
 ) simulation.WeightedOperations {
 	var weightMsgUpdatePrices int
 	// var numBlocks int
@@ -46,13 +47,13 @@ func WeightedOperations(
 	return simulation.WeightedOperations{
 		simulation.NewWeightedOperation(
 			weightMsgUpdatePrices,
-			SimulateMsgUpdatePrices(ak, k, 10000),
+			SimulateMsgUpdatePrices(ak, bk, k, 10000),
 		),
 	}
 }
 
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
-func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks int) simtypes.Operation {
+func SimulateMsgUpdatePrices(ak auth.AccountKeeper, bk bank.ViewKeeper, keeper keeper.Keeper, blocks int) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -93,12 +94,12 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 
 		oracle, found := simtypes.FindAccount(accs, address)
 		if !found {
-			return simtypes.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 		}
 
 		oracleAcc := ak.GetAccount(ctx, oracle.Address)
 		if oracleAcc == nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, nil
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 		}
 
 		price := pickNewRandomPrice(marketID, int(ctx.BlockHeight()))
@@ -109,10 +110,10 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 		// now create the msg to post price
 		msg := types.NewMsgPostPrice(oracle.Address, marketID, price, expiry)
 
-		spendable := oracleAcc.SpendableCoins(ctx.BlockTime())
+		spendable := bk.SpendableCoins(ctx, oracle.Address)
 		fees, err := simtypes.RandomFees(r, ctx, spendable)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 		}
 
 		tx := helpers.GenTx(
@@ -127,7 +128,7 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simtypes.NoOpMsg(types.ModuleName), nil, err
+			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 		}
 		return simtypes.NewOperationMsg(msg, true, result.Log), nil, nil
 	}

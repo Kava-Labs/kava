@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/auction/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -45,7 +45,7 @@ func GenMaxAuctionDuration(r *rand.Rand) time.Duration {
 }
 
 func GenIncrementCollateral(r *rand.Rand) sdk.Dec {
-	return simulation.RandomDecAmount(r, sdk.MustNewDecFromStr("1"))
+	return simtypes.RandomDecAmount(r, sdk.MustNewDecFromStr("1"))
 }
 
 var GenIncrementDebt = GenIncrementCollateral

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -18,11 +19,11 @@ const (
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals
-func ParamChanges(r *rand.Rand) []simulation.ParamChange {
+func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
 	// We generate MinBlockLock first because the result is required by GenMaxBlockLock()
 	minBlockLockVal := GenMinBlockLock(r)
 
-	return []simulation.ParamChange{
+	return []simtypes.ParamChange{
 		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyAddress,
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("\"%s\"", GenRandBnbDeputy(r).Address)
