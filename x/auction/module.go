@@ -119,7 +119,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState) // TODO: am.bankKeeper
+	InitGenesis(ctx, am.accountKeeper, am.bankKeeper, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 

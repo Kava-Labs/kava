@@ -9,7 +9,7 @@ import (
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, ak types.AccountKeeper, bk types.BankKeeper, keeper Keeper, gs GenesisState) {
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
@@ -26,14 +26,15 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
 	}
 
 	// check if the module account exists
-	moduleAcc := keeper.AccountKeeper.GetModuleAccount(ctx, ModuleName)
+	moduleAcc := ak.GetModuleAccount(ctx, ModuleName)
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", ModuleName))
 	}
 	// check module coins match auction coins
 	// Note: Other sdk modules do not check this, instead just using the existing module account coins, or if zero, setting them.
-	if !moduleAcc.GetCoins().IsEqual(totalAuctionCoins) {
-		panic(fmt.Sprintf("total auction coins (%s) do not equal (%s) module account (%s) ", moduleAcc.GetCoins(), ModuleName, totalAuctionCoins))
+	maccCoins := bk.GetAllBalances(ctx, moduleAcc.GetAddress())
+	if !maccCoins.IsEqual(totalAuctionCoins) {
+		panic(fmt.Sprintf("total auction coins (%s) do not equal (%s) module account (%s) ", maccCoins, ModuleName, totalAuctionCoins))
 	}
 }
 
