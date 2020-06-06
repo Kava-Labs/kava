@@ -37,8 +37,8 @@ func (data GenesisState) IsEmpty() bool {
 	return data.Equal(GenesisState{})
 }
 
-// ValidateGenesis returns nil because accounts are validated by auth
-func ValidateGenesis(data GenesisState) error {
+// Validate returns nil because accounts are validated by auth
+func (data GenesisState) Validate() error {
 	if data.PreviousBlockTime.IsZero() {
 		return errors.New("previous block time cannot be zero")
 	}

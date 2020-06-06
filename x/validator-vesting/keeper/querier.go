@@ -38,7 +38,7 @@ func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	circulatingSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
 	keeper.ak.IterateAccounts(ctx,
-		func(acc authexported.Account) (stop bool) {
+		func(acc authexported.AccountI) (stop bool) {
 
 			// validator vesting account
 			vvacc, ok := acc.(*types.ValidatorVestingAccount)

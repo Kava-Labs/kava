@@ -54,7 +54,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, bz json.RawMessag
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {}
 
 // GetTxCmd returns no root tx command for the validator-vesting module.
-func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetTxCmd(ctx context.CLIContext) *cobra.Command { return nil }
 
 // GetQueryCmd returns no root query command for the validator-vesting module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {

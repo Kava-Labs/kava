@@ -20,41 +20,20 @@ const (
 
 var (
 	// functions aliases
-	NewKeeper                            = keeper.NewKeeper
-	NewQuerier                           = keeper.NewQuerier
-	MakeTestCodec                        = keeper.MakeTestCodec
-	CreateTestInput                      = keeper.CreateTestInput
-	ValidatorVestingTestAccount          = keeper.ValidatorVestingTestAccount
-	ValidatorVestingTestAccounts         = keeper.ValidatorVestingTestAccounts
-	ValidatorVestingDelegatorTestAccount = keeper.ValidatorVestingDelegatorTestAccount
-	CreateValidators                     = keeper.CreateValidators
-	RegisterCodec                        = types.RegisterCodec
-	NewGenesisState                      = types.NewGenesisState
-	DefaultGenesisState                  = types.DefaultGenesisState
-	ValidateGenesis                      = types.ValidateGenesis
-	ValidatorVestingAccountKey           = types.ValidatorVestingAccountKey
-	NewBaseQueryParams                   = types.NewBaseQueryParams
-	CreateTestAddrs                      = types.CreateTestAddrs
-	TestAddr                             = types.TestAddr
-	CreateTestPubKeys                    = types.CreateTestPubKeys
-	NewPubKey                            = types.NewPubKey
-	NewValidatorVestingAccountRaw        = types.NewValidatorVestingAccountRaw
-	NewValidatorVestingAccount           = types.NewValidatorVestingAccount
+	NewKeeper                     = keeper.NewKeeper
+	NewQuerier                    = keeper.NewQuerier
+	RegisterCodec                 = types.RegisterCodec
+	NewGenesisState               = types.NewGenesisState
+	DefaultGenesisState           = types.DefaultGenesisState
+	ValidatorVestingAccountKey    = types.ValidatorVestingAccountKey
+	NewBaseQueryParams            = types.NewBaseQueryParams
+	CreateTestAddrs               = types.CreateTestAddrs
+	TestAddr                      = types.TestAddr
+	CreateTestPubKeys             = types.CreateTestPubKeys
+	NewPubKey                     = types.NewPubKey
+	NewValidatorVestingAccountRaw = types.NewValidatorVestingAccountRaw
 
 	// variable aliases
-	ValOpPk1                      = keeper.ValOpPk1
-	ValOpPk2                      = keeper.ValOpPk2
-	ValOpPk3                      = keeper.ValOpPk3
-	ValOpAddr1                    = keeper.ValOpAddr1
-	ValOpAddr2                    = keeper.ValOpAddr2
-	ValOpAddr3                    = keeper.ValOpAddr3
-	ValConsPk11                   = keeper.ValConsPk11
-	ValConsPk12                   = keeper.ValConsPk12
-	ValConsPk13                   = keeper.ValConsPk13
-	ValConsAddr1                  = keeper.ValConsAddr1
-	ValConsAddr2                  = keeper.ValConsAddr2
-	ValConsAddr3                  = keeper.ValConsAddr3
-	TestAddrs                     = keeper.TestAddrs
 	ModuleCdc                     = types.ModuleCdc
 	BlocktimeKey                  = types.BlocktimeKey
 	ValidatorVestingAccountPrefix = types.ValidatorVestingAccountPrefix

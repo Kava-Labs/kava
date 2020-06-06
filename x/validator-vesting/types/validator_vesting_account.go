@@ -8,7 +8,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -19,11 +18,12 @@ import (
 // Assert ValidatorVestingAccount implements the vestexported.VestingAccount interface
 // Assert ValidatorVestingAccount implements the authexported.GenesisAccount interface
 var _ vestexported.VestingAccount = (*ValidatorVestingAccount)(nil)
-var _ authexported.GenesisAccount = (*ValidatorVestingAccount)(nil)
+var _ authtypes.GenesisAccount = (*ValidatorVestingAccount)(nil)
 
 // Register the ValidatorVestingAccount type on the auth module codec
 func init() {
-	authtypes.RegisterAccountTypeCodec(&ValidatorVestingAccount{}, "cosmos-sdk/ValidatorVestingAccount")
+	// TODO: authtypes.RegisterAccountTypeCodec is not available
+	// authtypes.RegisterAccountTypeCodec(&ValidatorVestingAccount{}, "cosmos-sdk/ValidatorVestingAccount")
 }
 
 // VestingProgress tracks the status of each vesting period
@@ -101,38 +101,40 @@ func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 	}
 }
 
-// NewValidatorVestingAccount creates a ValidatorVestingAccount object from a BaseAccount
-func NewValidatorVestingAccount(baseAcc *authtypes.BaseAccount, startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
+// TODO: This function isn't used anywhere
+// // NewValidatorVestingAccount creates a ValidatorVestingAccount object from a BaseAccount
+// func NewValidatorVestingAccount(baseAcc *authtypes.BaseAccount, startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
 
-	endTime := startTime
-	for _, p := range periods {
-		endTime += p.Length
-	}
-	baseVestingAcc := &vestingtypes.BaseVestingAccount{
-		BaseAccount:     baseAcc,
-		OriginalVesting: baseAcc.Coins,
-		EndTime:         endTime,
-	}
-	pva := &vestingtypes.PeriodicVestingAccount{
-		BaseVestingAccount: baseVestingAcc,
-		StartTime:          startTime,
-		VestingPeriods:     periods,
-	}
-	var vestingPeriodProgress []VestingProgress
-	for i := 0; i < len(periods); i++ {
-		vestingPeriodProgress = append(vestingPeriodProgress, VestingProgress{false, false})
-	}
+// 	endTime := startTime
+// 	totalCoinsToBeVested
+// 	for _, p := range periods {
+// 		endTime += p.Length
+// 	}
+// 	baseVestingAcc := &vestingtypes.BaseVestingAccount{
+// 		BaseAccount:     baseAcc,
+// 		OriginalVesting: baseAcc.Coins,
+// 		EndTime:         endTime,
+// 	}
+// 	pva := &vestingtypes.PeriodicVestingAccount{
+// 		BaseVestingAccount: baseVestingAcc,
+// 		StartTime:          startTime,
+// 		VestingPeriods:     periods,
+// 	}
+// 	var vestingPeriodProgress []VestingProgress
+// 	for i := 0; i < len(periods); i++ {
+// 		vestingPeriodProgress = append(vestingPeriodProgress, VestingProgress{false, false})
+// 	}
 
-	return &ValidatorVestingAccount{
-		PeriodicVestingAccount: pva,
-		ValidatorAddress:       validatorAddress,
-		ReturnAddress:          returnAddress,
-		SigningThreshold:       signingThreshold,
-		CurrentPeriodProgress:  CurrentPeriodProgress{0, 0},
-		VestingPeriodProgress:  vestingPeriodProgress,
-		DebtAfterFailedVesting: sdk.NewCoins(),
-	}
-}
+// 	return &ValidatorVestingAccount{
+// 		PeriodicVestingAccount: pva,
+// 		ValidatorAddress:       validatorAddress,
+// 		ReturnAddress:          returnAddress,
+// 		SigningThreshold:       signingThreshold,
+// 		CurrentPeriodProgress:  CurrentPeriodProgress{0, 0},
+// 		VestingPeriodProgress:  vestingPeriodProgress,
+// 		DebtAfterFailedVesting: sdk.NewCoins(),
+// 	}
+// }
 
 // GetVestedCoins returns the total number of vested coins.
 func (vva ValidatorVestingAccount) GetVestedCoins(blockTime time.Time) sdk.Coins {
@@ -181,14 +183,17 @@ func (vva ValidatorVestingAccount) GetVestingCoins(blockTime time.Time) sdk.Coin
 // SpendableCoins returns the total number of spendable coins per denom for a
 // periodic vesting account.
 func (vva ValidatorVestingAccount) SpendableCoins(blockTime time.Time) sdk.Coins {
-	return vva.BaseVestingAccount.SpendableCoinsVestingAccount(vva.GetVestingCoins(blockTime))
+	return vva.SpendableCoins(blockTime)
 }
 
 // TrackDelegation tracks a desired delegation amount by setting the appropriate
 // values for the amount of delegated vesting, delegated free, and reducing the
 // overall amount of base coins.
-func (vva *ValidatorVestingAccount) TrackDelegation(blockTime time.Time, amount sdk.Coins) {
-	vva.BaseVestingAccount.TrackDelegation(vva.GetVestingCoins(blockTime), amount)
+func (vva *ValidatorVestingAccount) TrackDelegation(blockTime time.Time, balance, amount sdk.Coins) {
+	vva.BaseVestingAccount.TrackDelegation(balance, vva.GetVestingCoins(blockTime), amount)
+
+	// TODO: or should this be
+	// vva.TrackDelegation(blockTime, amount)
 }
 
 // Validate checks for errors on the account fields
@@ -225,8 +230,8 @@ type validatorVestingAccountPretty struct {
 // MarshalJSON returns the JSON representation of a PeriodicVestingAccount.
 func (vva ValidatorVestingAccount) MarshalJSON() ([]byte, error) {
 	alias := validatorVestingAccountPretty{
-		Address:                vva.Address,
-		Coins:                  vva.Coins,
+		Address: vva.Address,
+		// Coins:                  vva.Coins,
 		AccountNumber:          vva.AccountNumber,
 		Sequence:               vva.Sequence,
 		OriginalVesting:        vva.OriginalVesting,
@@ -244,7 +249,7 @@ func (vva ValidatorVestingAccount) MarshalJSON() ([]byte, error) {
 	}
 
 	if vva.PubKey != nil {
-		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.PubKey)
+		pks, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.GetPubKey())
 		if err != nil {
 			return nil, err
 		}
@@ -274,7 +279,7 @@ func (vva *ValidatorVestingAccount) UnmarshalJSON(bz []byte) error {
 		}
 	}
 
-	ba := authtypes.NewBaseAccount(alias.Address, alias.Coins, pk, alias.AccountNumber, alias.Sequence)
+	ba := authtypes.NewBaseAccount(alias.Address, pk, alias.AccountNumber, alias.Sequence)
 	bva := &vestingtypes.BaseVestingAccount{
 		BaseAccount:      ba,
 		OriginalVesting:  alias.OriginalVesting,
@@ -300,15 +305,15 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 	var pubkey string
 
 	if vva.PubKey != nil {
-		pubkey, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.PubKey)
+		pubkey, err = sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, vva.GetPubKey())
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	bs, err = yaml.Marshal(struct {
-		Address                sdk.AccAddress
-		Coins                  sdk.Coins
+		Address sdk.AccAddress
+		// Coins                  sdk.Coins
 		PubKey                 string
 		AccountNumber          uint64
 		Sequence               uint64
@@ -325,8 +330,8 @@ func (vva ValidatorVestingAccount) MarshalYAML() (interface{}, error) {
 		VestingPeriodProgress  []VestingProgress
 		DebtAfterFailedVesting sdk.Coins
 	}{
-		Address:                vva.Address,
-		Coins:                  vva.Coins,
+		Address: vva.Address,
+		// Coins:                  vva.Coins,
 		PubKey:                 pubkey,
 		AccountNumber:          vva.AccountNumber,
 		Sequence:               vva.Sequence,
