@@ -41,7 +41,10 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Resul
 	)
 	id, _ := k.GetCdpID(ctx, msg.Sender, msg.Collateral.Denom)
 
-	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
+	return &sdk.Result{
+			Data:   GetCdpIDBytes(id),
+			Events: ctx.EventManager().Events().ToABCIEvents()},
+		nil
 }
 
 func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) (*sdk.Result, error) {

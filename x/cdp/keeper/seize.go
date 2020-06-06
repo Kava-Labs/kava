@@ -97,5 +97,5 @@ func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.
 
 func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdk.Int {
 	maddr := k.accountKeeper.GetModuleAddress(accountName)
-	return k.supplyKeeper.GetCoins(maddr).AmountOf(k.GetDebtDenom(ctx))
+	return k.supplyKeeper.GetAllBalances(ctx, maddr).AmountOf(k.GetDebtDenom(ctx))
 }

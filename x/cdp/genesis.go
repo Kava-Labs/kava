@@ -9,7 +9,7 @@ import (
 )
 
 // InitGenesis sets initial genesis state for cdp module
-func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.SupplyKeeper, gs GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.AccountKeeper, gs GenesisState) {
 
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))

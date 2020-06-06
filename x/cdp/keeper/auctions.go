@@ -79,7 +79,7 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 
 	// burn stable coins equal to min(balance, netAmount)
 	dp := k.GetParams(ctx).DebtParam
-	balance := k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(dp.Denom)
+	balance := k.supplyKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(dp.Denom)
 	burnAmount := sdk.MinInt(balance, netAmount)
 	return k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, burnAmount)))
 }
@@ -87,7 +87,7 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 // GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
 func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
 	dp := k.GetParams(ctx).DebtParam
-	surplus := k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(accountName)).AmountOf(dp.Denom)
+	surplus := k.supplyKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(accountName)).AmountOf(dp.Denom)
 	totalSurplus := sdk.ZeroInt()
 	totalSurplus = totalSurplus.Add(surplus)
 	return totalSurplus
@@ -95,7 +95,7 @@ func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
 
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
 func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
-	return k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(accountName)).AmountOf(k.GetDebtDenom(ctx))
+	return k.supplyKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(accountName)).AmountOf(k.GetDebtDenom(ctx))
 }
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
@@ -112,7 +112,7 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 		}
 	}
 
-	surplus := k.supplyKeeper.GetCoins(k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(params.DebtParam.Denom)
+	surplus := k.supplyKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(params.DebtParam.Denom)
 	if !surplus.GTE(params.SurplusAuctionThreshold) {
 		return nil
 	}
