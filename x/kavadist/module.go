@@ -65,16 +65,18 @@ func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command { return nil }
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       Keeper
-	supplyKeeper types.SupplyKeeper
+	keeper        Keeper
+	accountKeeper types.AccountKeeper
+	supplyKeeper  types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, ak types.AccountKeeper, sk types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		supplyKeeper:   supplyKeeper,
+		accountKeeper:  ak,
+		supplyKeeper:   sk,
 	}
 }
 
@@ -108,7 +110,7 @@ func (AppModule) NewQuerierHandler() sdk.Querier { return nil }
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, genesisState)
 
 	return []abci.ValidatorUpdate{}
 }

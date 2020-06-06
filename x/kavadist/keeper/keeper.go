@@ -16,11 +16,14 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace params.Subspace
+	accountKeeper types.AccountKeeper
 	supplyKeeper  types.SupplyKeeper
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace, sk types.SupplyKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace,
+	ak types.AccountKeeper, sk types.SupplyKeeper,
+) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -29,6 +32,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace, s
 		key:           key,
 		cdc:           cdc,
 		paramSubspace: paramstore,
+		accountKeeper: ak,
 		supplyKeeper:  sk,
 	}
 }
