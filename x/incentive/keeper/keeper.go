@@ -17,13 +17,13 @@ type Keeper struct {
 	cdc           *codec.Codec
 	cdpKeeper     types.CdpKeeper
 	key           sdk.StoreKey
-	paramSubspace subspace.Subspace
+	paramSubspace params.Subspace
 	supplyKeeper  types.SupplyKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper,
+	cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace, sk types.SupplyKeeper,
 	cdpk types.CdpKeeper, ak types.AccountKeeper,
 ) Keeper {
 

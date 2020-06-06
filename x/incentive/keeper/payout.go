@@ -40,8 +40,9 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 
 // SendTimeLockedCoinsToAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account, it is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
 func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
-	macc := k.supplyKeeper.GetModuleAccount(ctx, senderModule)
-	if !macc.GetCoins().IsAllGTE(amt) {
+
+	macc := k.accountKeeper.GetModuleAddress(senderModule)
+	if !k.supplyKeeper.GetAllBalances(ctx, macc).IsAllGTE(amt) {
 		return sdkerrors.Wrapf(types.ErrInsufficientModAccountBalance, "%s", senderModule)
 	}
 
@@ -78,12 +79,9 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	}
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
 	// transition the account to a periodic vesting account:
-	bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+	bacc := authtypes.NewBaseAccount(acc.GetAddress(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
 	newPeriods := vesting.Periods{types.NewPeriod(amt, length)}
-	bva, err := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
-	if err != nil {
-		return err
-	}
+	bva := vesting.NewBaseVestingAccount(bacc, amt, ctx.BlockTime().Unix()+length)
 	pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
 	k.accountKeeper.SetAccount(ctx, pva)
 	return nil

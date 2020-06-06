@@ -62,7 +62,7 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 
 // GetTxCmd get the root tx command of this module
 func (AppModuleBasic) GetTxCmd(ctx context.CLIContext) *cobra.Command {
-	return cli.GetTxCmd(StoreKey, ctx.Codec)
+	return cli.GetTxCmd(ctx.Codec)
 }
 
 // GetQueryCmd get the root query command of this module
@@ -144,9 +144,9 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // InitGenesis performs genesis initialization for the incentive module. It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.supplyKeeper, gs)
+	var gs GenesisState
+	cdc.MustUnmarshalJSON(data, &gs)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, gs)
 	return []abci.ValidatorUpdate{}
 }
 
