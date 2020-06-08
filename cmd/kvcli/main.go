@@ -11,6 +11,7 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -18,20 +19,28 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"github.com/kava-labs/kava/app"
 )
 
+var (
+	// Instantiate the codec for the command line application
+	appCodec, cdc = app.MakeCodec()
+)
+
+func init() {
+	authclient.Codec = appCodec
+}
+
 func main() {
 	// Configure cobra to sort commands
 	cobra.EnableCommandSorting = false
-
-	// Instantiate the codec for the command line application
-	cdc := app.MakeCodec()
 
 	// Set the global config
 	// config is not sealed as the cli supports two coin types for legacy reasons.
@@ -102,16 +111,25 @@ func queryCmd(cdc *codec.Codec) *cobra.Command {
 	return queryCmd
 }
 
+// func txCmd(cdc *codec.Codec) *cobra.Command {
 func txCmd(cdc *codec.Codec) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:   "tx",
 		Short: "Transactions subcommands",
 	}
 
+	cliCtx := context.CLIContext{}
+	cliCtx = cliCtx.
+		WithJSONMarshaler(appCodec).
+		WithTxGenerator(authtypes.StdTxGenerator{Cdc: cdc}).
+		WithAccountRetriever(authtypes.NewAccountRetriever(appCodec)).
+		WithCodec(cdc)
+
 	txCmd.AddCommand(
-		bankcmd.SendTxCmd(cdc),
+		bankcmd.NewSendTxCmd(cliCtx),
 		flags.LineBreak,
 		authcmd.GetSignCommand(cdc),
+		authcmd.GetValidateSignaturesCommand(cdc),
 		authcmd.GetMultiSignCommand(cdc),
 		flags.LineBreak,
 		authcmd.GetBroadcastCommand(cdc),
@@ -121,7 +139,7 @@ func txCmd(cdc *codec.Codec) *cobra.Command {
 	)
 
 	// add modules' tx commands
-	app.ModuleBasics.AddTxCommands(txCmd, cdc)
+	app.ModuleBasics.AddTxCommands(txCmd, cliCtx)
 
 	// remove auth and bank commands as they're mounted under the root tx command
 	var cmdsToRemove []*cobra.Command
