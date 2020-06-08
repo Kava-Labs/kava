@@ -16,11 +16,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -37,7 +39,7 @@ const (
 
 // AddGenesisAccountCmd returns an add-genesis-account cobra Command.
 func AddGenesisAccountCmd(
-	ctx *server.Context, cdc *codec.Codec, defaultNodeHome, defaultClientHome string,
+	ctx *server.Context, appCdc *codec.Codec, cdc *std.Codec, defaultNodeHome, defaultClientHome string,
 ) *cobra.Command {
 
 	cmd := &cobra.Command{
@@ -63,7 +65,7 @@ func AddGenesisAccountCmd(
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			if err != nil {
 				// attempt to lookup address from Keybase if no address was provided
-				kb, err := keyring.NewKeyring(
+				kb, err := keyring.New(
 					sdk.KeyringServiceName(),
 					viper.GetString(flags.FlagKeyringBackend),
 					viper.GetString(flagClientHome),
@@ -73,7 +75,7 @@ func AddGenesisAccountCmd(
 					return err
 				}
 
-				info, err := kb.Get(args[0])
+				info, err := kb.Key(args[0])
 				if err != nil {
 					return fmt.Errorf("failed to get address from Keybase: %w", err)
 				}
@@ -101,24 +103,25 @@ func AddGenesisAccountCmd(
 			// create concrete account type based on input parameters
 			var genAccount authexported.GenesisAccount
 
-			baseAccount := auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0)
+			balances := bank.Balance{Address: addr, Coins: coins.Sort()}
+			baseAccount := auth.NewBaseAccount(addr, nil, 0, 0)
 			if !vestingAmt.IsZero() {
-				baseVestingAccount, err := vesting.NewBaseVestingAccount(
-					baseAccount, vestingAmt.Sort(), vestingEnd,
-				)
-				if err != nil {
-					return fmt.Errorf("Failed to create base vesting account: %w", err)
+				baseVestingAccount := authvesting.NewBaseVestingAccount(baseAccount, vestingAmt.Sort(), vestingEnd)
+
+				if (balances.Coins.IsZero() && !baseVestingAccount.OriginalVesting.IsZero()) ||
+					baseVestingAccount.OriginalVesting.IsAnyGT(balances.Coins) {
+					return errors.New("vesting amount cannot be greater than total amount")
 				}
 
 				switch {
 				case vestingPeriodsFile != "":
-					vestingPeriodsJSON, err := ParsePeriodicVestingJSON(cdc, vestingPeriodsFile)
+					vestingPeriodsJSON, err := ParsePeriodicVestingJSON(appCdc, vestingPeriodsFile)
 					if err != nil {
 						return fmt.Errorf("failed to parse periodic vesting account json file: %w", err)
 					}
-					genAccount = vesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, vestingPeriodsJSON.Periods)
+					genAccount = authvesting.NewPeriodicVestingAccountRaw(baseVestingAccount, vestingStart, vestingPeriodsJSON.Periods)
 				case validatorVestingFile != "":
-					validatorVestingJSON, err := ParseValidatorVestingJSON(cdc, validatorVestingFile)
+					validatorVestingJSON, err := ParseValidatorVestingJSON(appCdc, validatorVestingFile)
 					if err != nil {
 						return fmt.Errorf("failed to parse validator vesting account json file: %w", err)
 					}
@@ -128,10 +131,10 @@ func AddGenesisAccountCmd(
 					}
 					genAccount = validatorvesting.NewValidatorVestingAccountRaw(baseVestingAccount, vestingStart, validatorVestingJSON.Periods, consAddr, validatorVestingJSON.ReturnAddress, validatorVestingJSON.SigningThreshold)
 				case vestingStart != 0 && vestingEnd != 0:
-					genAccount = vesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
+					genAccount = authvesting.NewContinuousVestingAccountRaw(baseVestingAccount, vestingStart)
 
 				case vestingEnd != 0:
-					genAccount = vesting.NewDelayedVestingAccountRaw(baseVestingAccount)
+					genAccount = authvesting.NewDelayedVestingAccountRaw(baseVestingAccount)
 
 				default:
 					return errors.New("invalid vesting parameters; must supply start and end time or end time")
@@ -145,18 +148,28 @@ func AddGenesisAccountCmd(
 			}
 
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
+			appState, genDoc, err := genutil.GenesisStateFromGenFile(appCdc, genFile)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
 			}
 
 			authGenState := auth.GetGenesisStateFromAppState(cdc, appState)
+			bankGenState := bank.GetGenesisStateFromAppState(appCdc, appState)
 			if authGenState.Accounts.Contains(addr) {
+				return fmt.Errorf("cannot add account at existing address %s", addr)
+			}
+
+			if balancesContains(bankGenState.Balances, addr) {
 				return fmt.Errorf("cannot add account at existing address %s", addr)
 			}
 
 			// Add the new account to the set of genesis accounts and sanitize the
 			// accounts afterwards.
+			balance := bank.Balance{Address: addr, Coins: coins}
+
+			bankGenState.Balances = append(bankGenState.Balances, balance)
+			bankGenState.Balances = bank.SanitizeGenesisBalances(bankGenState.Balances)
+
 			authGenState.Accounts = append(authGenState.Accounts, genAccount)
 			authGenState.Accounts = auth.SanitizeGenesisAccounts(authGenState.Accounts)
 
@@ -165,7 +178,13 @@ func AddGenesisAccountCmd(
 				return fmt.Errorf("failed to marshal auth genesis state: %w", err)
 			}
 
+			bankGenStateBz, err := cdc.MarshalJSON(bankGenState)
+			if err != nil {
+				return fmt.Errorf("failed to marshal bank genesis state: %w", err)
+			}
+
 			appState[auth.ModuleName] = authGenStateBz
+			appState[bank.ModuleName] = bankGenStateBz
 
 			appStateJSON, err := cdc.MarshalJSON(appState)
 			if err != nil {
@@ -190,15 +209,15 @@ func AddGenesisAccountCmd(
 
 // ValidatorVestingJSON input json for validator-vesting-file flag
 type ValidatorVestingJSON struct {
-	Periods          vesting.Periods `json:"periods" yaml:"periods"`
-	ValidatorAddress string          `json:"validator_address" yaml:"validator_address"`
-	SigningThreshold int64           `json:"signing_threshold" yaml:"signing_threshold"`
-	ReturnAddress    sdk.AccAddress  `json:"return_address,omitempty" yaml:"return_address,omitempty"`
+	Periods          authvesting.Periods `json:"periods" yaml:"periods"`
+	ValidatorAddress string              `json:"validator_address" yaml:"validator_address"`
+	SigningThreshold int64               `json:"signing_threshold" yaml:"signing_threshold"`
+	ReturnAddress    sdk.AccAddress      `json:"return_address,omitempty" yaml:"return_address,omitempty"`
 }
 
 // PeriodicVestingJSON input json for vesting-periods-file flag
 type PeriodicVestingJSON struct {
-	Periods vesting.Periods `json:"periods" yaml:"periods"`
+	Periods authvesting.Periods `json:"periods" yaml:"periods"`
 }
 
 // ParsePeriodicVestingJSON reads and parses ParsePeriodicVestingJSON from the file
@@ -231,4 +250,13 @@ func ParseValidatorVestingJSON(cdc *codec.Codec, inputFile string) (ValidatorVes
 		return validatorVestingInput, err
 	}
 	return validatorVestingInput, nil
+}
+
+func balancesContains(bal []bank.Balance, addr sdk.AccAddress) bool {
+	for _, b := range bal {
+		if b.Address.Equals(addr) {
+			return true
+		}
+	}
+	return false
 }
