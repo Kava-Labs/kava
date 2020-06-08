@@ -111,7 +111,7 @@ func (suite *AuctionTestSuite) TestGetTotalSurplus() {
 	err = sk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("debt", 500e6)))
 	suite.NoError(err)
 
-	// liquidator account still has 300e6 total usdx -- debt balance is ingored
+	// liquidator account still has 300e6 total usdx -- debt balance is ignored
 	suite.Equal(sdk.NewInt(300e6), suite.keeper.GetTotalSurplus(suite.ctx, types.LiquidatorMacc))
 
 	// burn some usdx
