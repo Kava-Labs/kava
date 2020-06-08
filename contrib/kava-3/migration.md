@@ -54,25 +54,25 @@ kvd start --halt-time 1591794000
 
 1. Export state
 
-  ```sh
+```sh
   kvd export --for-zero-height > export-genesis.json
-  ```
+```
 
 2. Update to kava-3
 
 ```sh
   # in the `kava` folder
-    git pull
-    git checkout v0.8.0
-    make install
+  git pull
+  git checkout v0.8.1
+  make install
 
   # verify versions
   kvd version --long
   # name: kava
   # server_name: kvd
   # client_name: kvcli
-  # version: 0.8.0
-  # commit: dee456557a0b478f8b2326e62f963fd0f43fbd0f
+  # version: 0.8.1
+  # commit: 869189054d68d6ec3e6446156ea0a91eb45af09c
   # build_tags: netgo,ledger
   # go: go version go1.13.7 linux/amd64
 
