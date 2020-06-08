@@ -120,7 +120,7 @@ func exportAppStateAndTMValidators(
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
 
-// persistentPreRunEFn wraps the sdk function server.PersistentPreRunEFn to add a warning about using pruning settings.
+// persistentPreRunEFn wraps the sdk function server.PersistentPreRunEFn to error on invaid pruning config.
 func persistentPreRunEFn(ctx *server.Context) func(*cobra.Command, []string) error {
 
 	originalFunc := server.PersistentPreRunEFn(ctx)
@@ -134,7 +134,10 @@ func persistentPreRunEFn(ctx *server.Context) func(*cobra.Command, []string) err
 		// check pruning config for `kvd start`
 		if cmd.Name() == "start" {
 			if viper.GetString("pruning") == store.PruningStrategySyncable {
-				return fmt.Errorf("invlaid pruning config")
+				return fmt.Errorf(
+					"invalid app config: pruning == '%s'. Update config (%s) with pruning set to '%s' or '%s'.",
+					store.PruningStrategySyncable, viper.ConfigFileUsed(), store.PruningStrategyNothing, store.PruningStrategyEverything,
+				)
 			}
 		}
 		return nil
@@ -147,6 +150,7 @@ func writeParamsAndConfigCmd(cdc *codec.Codec) *cobra.Command {
 	originalFunc := cmd.RunE
 
 	wrappedFunc := func(cmd *cobra.Command, args []string) error {
+
 		if err := originalFunc(cmd, args); err != nil {
 			return err
 		}
