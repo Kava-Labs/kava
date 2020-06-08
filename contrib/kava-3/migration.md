@@ -18,7 +18,7 @@ The riskiest thing a validator can do is discover that they made a mistake and r
 
 ### Pruning
 
-kava-3 uses tendermint version 0.33. Recent testing in Game of Zones and Kava has shown that nodes which are running with the default or custom pruning strategy have a [memory leak](https://github.com/tendermint/iavl/issues/256) that can cause nodes to crash and lead to irrecoverable data loss. Until a patch is released, the __ONLY__ pruning strategies that are safe to run are `nothing` (an archival node, where nothing is deleted) or `everything` (only the most recent state is kept). It is __strongly__ recommended that validators use `pruning="nothing"` for kava-3.
+kava-3 uses tendermint version 0.33. Recent testing in Game of Zones and Kava has shown that nodes which are running with the default or custom pruning strategy have a [memory leak](https://github.com/tendermint/iavl/issues/256) that can cause nodes to crash and lead to irrecoverable data loss. Until a patch is released, the __ONLY__ pruning strategies that are safe to run are `nothing` (an archival node, where nothing is deleted) or `everything` (only the most recent state is kept).
 
 The pruning config is set in $HOME/.kvd/config/app.toml. Example safe configurations are:
 
@@ -31,6 +31,8 @@ and
 ```toml
 pruning = "everything"
 ```
+
+Exchange operators, data service providers, and other vendors who require access to historical state are recommended to run archival nodes (`pruning = "nothing"`). Other node operators can choose between a fully pruning node and archival node, with main difference being increased storage required for archival nodes.
 
 It is expected that a patch to tendermint will be released in a non-breaking manner and that nodes will be able to update seamlessly after the launch of kava-3.
 
