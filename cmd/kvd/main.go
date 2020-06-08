@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -16,7 +17,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
+	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -46,14 +49,14 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:               "kvd",
 		Short:             "Kava Daemon (server)",
-		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+		PersistentPreRunE: persistentPreRunEFn(ctx),
 	}
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		migrate.MigrateGenesisCmd(ctx, cdc),
-		kava3.WriteGenesisParamsCmd(cdc),
+		writeParamsAndConfigCmd(cdc),
 		genutilcli.GenTxCmd(
 			ctx,
 			cdc,
@@ -115,4 +118,58 @@ func exportAppStateAndTMValidators(
 	}
 	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+}
+
+// persistentPreRunEFn wraps the sdk function server.PersistentPreRunEFn to error on invaid pruning config.
+func persistentPreRunEFn(ctx *server.Context) func(*cobra.Command, []string) error {
+
+	originalFunc := server.PersistentPreRunEFn(ctx)
+
+	return func(cmd *cobra.Command, args []string) error {
+
+		if err := originalFunc(cmd, args); err != nil {
+			return err
+		}
+
+		// check pruning config for `kvd start`
+		if cmd.Name() == "start" {
+			if viper.GetString("pruning") == store.PruningStrategySyncable {
+				return fmt.Errorf(
+					"invalid app config: pruning == '%s'. Update config (%s) with pruning set to '%s' or '%s'.",
+					store.PruningStrategySyncable, viper.ConfigFileUsed(), store.PruningStrategyNothing, store.PruningStrategyEverything,
+				)
+			}
+		}
+		return nil
+	}
+}
+
+// writeParamsAndConfigCmd patches the write-params cmd to additionally update the app pruning config.
+func writeParamsAndConfigCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := kava3.WriteGenesisParamsCmd(cdc)
+	originalFunc := cmd.RunE
+
+	wrappedFunc := func(cmd *cobra.Command, args []string) error {
+
+		if err := originalFunc(cmd, args); err != nil {
+			return err
+		}
+
+		// fetch the app config from viper
+		cfg, err := srvconfig.ParseConfig()
+		if err != nil {
+			return nil // don't return errors since as failures aren't critical
+		}
+		// don't prune any state, ie store everything
+		cfg.Pruning = store.PruningStrategyNothing
+		// write updated config
+		if viper.ConfigFileUsed() == "" {
+			return nil
+		}
+		srvconfig.WriteConfigFile(viper.ConfigFileUsed(), cfg)
+		return nil
+	}
+
+	cmd.RunE = wrappedFunc
+	return cmd
 }
