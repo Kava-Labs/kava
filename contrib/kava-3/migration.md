@@ -2,7 +2,7 @@
 
 ## Background
 
-The version of Kava for kava-3 is __v0.8__. Kava-3 is scheduled to launch __June 10, 2020 at 16:00 UTC__
+The version of Kava for kava-3 is __v0.8__. Kava-3 is scheduled to launch __June 10, 2020 at 14:00 UTC__
 
 🚨 Please note that an issue with tendermint v0.33 has been found that affects the stability of nodes running with the default pruning strategy. Please see the [Pruning](#Pruning) section for full details and mitigation 🚨
 
