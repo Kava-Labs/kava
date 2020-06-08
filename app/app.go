@@ -365,8 +365,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
 	// Create IBC Keeper
-	// TODO: remove amino codec dependency once Tendermint version is upgraded with
-	// protobuf changes
+	// TODO: remove amino codec dependency once Tendermint version is upgraded with protobuf changes
 	app.ibcKeeper = ibc.NewKeeper(
 		app.cdc, appCodec, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
 	)
@@ -487,7 +486,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	// TODO:
 	app.SetAnteHandler(
 		auth.NewAnteHandler(
 			app.accountKeeper, app.bankKeeper, *app.ibcKeeper,
