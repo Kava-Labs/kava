@@ -32,7 +32,7 @@ and
 pruning = "everything"
 ```
 
-Exchange operators, data service providers, and other vendors who require access to historical state are recommended to run archival nodes (`pruning = "nothing"`). Other node operators can choose between a fully pruning node and archival node, with main difference being increased storage required for archival nodes.
+Exchange operators, data service providers, and other vendors who require access to historical state are recommended to run archival nodes (`pruning = "nothing"`). Other node operators can choose between a fully pruning node and archival node, with the main difference being increased storage required for archival nodes.
 
 It is expected that a patch to tendermint will be released in a non-breaking manner and that nodes will be able to update seamlessly after the launch of kava-3.
 
