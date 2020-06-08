@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -46,14 +47,14 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:               "kvd",
 		Short:             "Kava Daemon (server)",
-		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
+		PersistentPreRunE: persistentPreRunEFn(ctx),
 	}
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
 		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
 		migrate.MigrateGenesisCmd(ctx, cdc),
-		kava3.WriteGenesisParamsCmd(cdc),
+		kava3.WriteGenesisParamsCmd(cdc), // patch writeGenesisCmd to check and modify pruning in app.toml
 		genutilcli.GenTxCmd(
 			ctx,
 			cdc,
@@ -115,4 +116,24 @@ func exportAppStateAndTMValidators(
 	}
 	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+}
+
+// persistentPreRunEFn wraps the sdk function server.PersistentPreRunEFn to add a warning about using pruning settings.
+func persistentPreRunEFn(ctx *server.Context) func(*cobra.Command, []string) error {
+
+	originalFunc := server.PersistentPreRunEFn(ctx)
+
+	return func(cmd *cobra.Command, args []string) error {
+
+		if err := originalFunc(cmd, args); err != nil {
+			return err
+		}
+
+		if cmd.Name() == "start" {
+			if viper.GetString("pruning") == store.PruningStrategySyncable {
+				return fmt.Errorf("invlaid pruning config") // TODO should just print out warning?
+			}
+		}
+		return nil
+	}
 }
