@@ -10,9 +10,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 
-	"github.com/cosmos/cosmos-sdk/std"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -26,8 +27,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
@@ -79,8 +80,8 @@ var (
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		bank.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		transfer.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
@@ -105,7 +106,7 @@ var (
 		cdp.SavingsRateMacc:         {auth.Minter},
 		bep3.ModuleName:             nil,
 		kavadist.ModuleName:         {auth.Minter},
-		// TODO: transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
+		transfer.ModuleName:         {auth.Minter, auth.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -125,8 +126,8 @@ type App struct {
 	invCheckPeriod uint
 
 	// keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
 	memKeys map[string]*sdk.MemoryStoreKey
 
 	// keepers from all the modules
@@ -143,6 +144,7 @@ type App struct {
 	paramsKeeper     params.Keeper
 	ibcKeeper        *ibc.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	evidenceKeeper   evidence.Keeper
+	transferKeeper   transfer.Keeper
 	vvKeeper         validatorvesting.Keeper
 	auctionKeeper    auction.Keeper
 	cdpKeeper        cdp.Keeper
@@ -168,7 +170,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	skipUpgradeHeights map[int64]bool, home string, invCheckPeriod uint,
 	baseAppOptions ...func(*bam.BaseApp)) *App {
 
-	// cdc := MakeCodec()
 	appCodec, cdc := MakeCodec()
 
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
@@ -330,7 +331,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		cdpSubspace,
 		app.pricefeedKeeper,
 		app.auctionKeeper,
-		app.accountKeeper,
 		app.bankKeeper,
 		app.accountKeeper,
 		mAccPerms,
@@ -387,9 +387,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 
 	// create evidence keeper with router
 	evidenceKeeper := evidence.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[evidence.StoreKey],
-		evidenceSubspace,
 		&app.stakingKeeper,
 		app.slashingKeeper,
 	)
@@ -402,25 +401,25 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		auth.NewAppModule(appCodec, app.accountKeeper),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
 		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
-		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
+		pricefeed.NewAppModule(app.pricefeedKeeper, app.bankKeeper, app.accountKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.bankKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper, app.bankKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 	)
@@ -489,13 +488,17 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	// TODO:
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.bankKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(
+		auth.NewAnteHandler(
+			app.accountKeeper, app.bankKeeper, *app.ibcKeeper,
+			auth.DefaultSigVerificationGasConsumer,
+		),
+	)
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
 	if loadLatest {
-		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
-		if err != nil {
+		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
 	}
@@ -520,13 +523,13 @@ func MakeCodec() (*std.Codec, *codec.Codec) {
 	ModuleBasics.RegisterInterfaceModules(interfaceRegistry)
 	// var cdc = codec.New()
 
-	ModuleBasics.RegisterCodec(appCodec)
-	vesting.RegisterCodec(appCodec)
-	sdk.RegisterCodec(appCodec)
-	codec.RegisterCrypto(appCodec)
-	codec.RegisterEvidences(appCodec)
+	ModuleBasics.RegisterCodec(cdc)
+	vesting.RegisterCodec(cdc)
+	sdk.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+	codec.RegisterEvidences(cdc)
 
-	return cdc, appCodec
+	return appCodec, cdc
 }
 
 // SetBech32AddressPrefixes sets the global prefix to be used when serializing addresses to bech32 strings.
@@ -555,19 +558,19 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-	return app.mm.InitGenesis(ctx, genesisState)
+	return app.mm.InitGenesis(ctx, app.cdc, genesisState)
 }
 
 // load a particular height
 func (app *App) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *App) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		modAccAddrs[bank.NewModuleAddress(acc).String()] = true
+		modAccAddrs[auth.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
@@ -577,7 +580,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 func (app *App) BlacklistedAccAddrs() map[string]bool {
 	blacklistedAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		blacklistedAddrs[bank.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blacklistedAddrs[auth.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
 	return blacklistedAddrs

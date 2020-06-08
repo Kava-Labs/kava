@@ -23,7 +23,7 @@ func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	genState := app.mm.ExportGenesis(ctx)
+	genState := app.mm.ExportGenesis(ctx, app.cdc)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
@@ -61,7 +61,7 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string
 	// withdraw all validator commission
 	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val staking.ValidatorI) (stop bool) {
 		accumCommission := app.distrKeeper.GetValidatorAccumulatedCommission(ctx, val.GetOperator())
-		if accumCommission.IsZero() {
+		if accumCommission.Commission.IsZero() {
 			return false
 		}
 		_, err := app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
@@ -96,7 +96,7 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
 		scraps := app.distrKeeper.GetValidatorOutstandingRewards(ctx, val.GetOperator())
 		feePool := app.distrKeeper.GetFeePool(ctx)
-		feePool.CommunityPool = feePool.CommunityPool.Add(scraps...)
+		feePool.CommunityPool = feePool.CommunityPool.Add(scraps.GetRewards()...)
 		app.distrKeeper.SetFeePool(ctx, feePool)
 
 		app.distrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
