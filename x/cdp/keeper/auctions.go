@@ -88,18 +88,20 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 // GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
 func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
 	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
-	totalSurplus := sdk.ZeroInt()
 	dp := k.GetParams(ctx).DebtParam
-	surplus := acc.GetCoins().AmountOf(dp.Denom)
-	totalSurplus = totalSurplus.Add(surplus)
+
+	totalSurplus := acc.GetCoins().AmountOf(dp.Denom)
+
 	return totalSurplus
 }
 
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
 func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
 	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
-	debt := acc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
-	return debt
+
+	totalDebt := acc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
+
+	return totalDebt
 }
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
