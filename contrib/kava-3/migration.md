@@ -89,7 +89,9 @@ kvd start --halt-time 1591794000
 
   # Verify output of genesis migration
   kvd validate-genesis genesis.json # should say it's valid
-  jq -S -c -M '' genesis.json | shasum -a 256 # note: jq must be installed
+  # Check the genesis hash. Note: jq must be installed
+  # DO NOT WRITE THE JQ OUTPUT TO FILE. Use only for calculating the hash.
+  jq -S -c -M '' genesis.json | shasum -a 256
   # [PLACEHOLDER]
 
   # Restart node with migrated genesis state
