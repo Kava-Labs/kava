@@ -116,7 +116,7 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 // MintDebtCoins mints debt coins in the cdp module account
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
-	err := k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
+	return k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
 	return err
 }
 
