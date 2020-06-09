@@ -117,20 +117,14 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
 	err := k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, paymentCoins.Amount))
 	err := k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom
