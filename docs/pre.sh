@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Clone each module's markdown files
 mkdir -p Modules
 
 for D in ../x/*; do
@@ -23,7 +24,7 @@ parent:
 ---" > "./${clientDir}/readme.md"
 
 # Copy the kava-3-migration guide
-cp ../contrib/kava-3/migration.md "./${clientDir}/kava-3-upgrade-instructions.md"
+cp ../contrib/kava-3/migration.md "./${clientDir}/kava-3-migration-guide.md"
 
 # Kava Tools docs
 toolsGitRepo="kava-tools"

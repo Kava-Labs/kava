@@ -30,7 +30,7 @@ module.exports = {
           },
           {
             title: "Migration Guide: kava-3",
-            path: "/building/kava-3-upgrade-instructions.html"
+            path: "/building/kava-3-migration-guide.html"
           }
         ]
       },
