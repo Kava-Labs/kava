@@ -308,77 +308,77 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction types.Collate
 }
 
 // PlaceReverseBidCollateral places a reverse bid on a collateral auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, error) {
+func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, aunction types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
-	if lot.Denom != a.Lot.Denom {
-		return a, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, a.Lot.Denom)
+	if lot.Denom != auction.Lot.Denom {
+		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, auction.Lot.Denom)
 	}
-	if !a.IsReversePhase() {
+	if !auction.IsReversePhase() {
 		panic("cannot place reverse bid on auction in forward phase")
 	}
-	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
 			sdk.NewInt(1),
-			sdk.NewDecFromInt(a.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+			sdk.NewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, a.Lot.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, auction.Lot.Denom)
 	}
 	if lot.IsNegative() {
-		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), a.Lot.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), auction.Lot.Denom)
 	}
 
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid
-	if !bidder.Equals(a.Bidder) {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+	if !bidder.Equals(auction.Bidder) {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(auction.Bid))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, auction.Bidder, sdk.NewCoins(auction.Bid))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
 	}
 
 	// Decrease in lot is sent to weighted addresses (normally the CDP depositors)
 	// Note: splitting an integer amount across weighted buckets results in small errors.
-	lotPayouts, err := splitCoinIntoWeightedBuckets(a.Lot.Sub(lot), a.LotReturns.Weights)
+	lotPayouts, err := splitCoinIntoWeightedBuckets(auction.Lot.Sub(lot), auction.LotReturns.Weights)
 	if err != nil {
-		return a, err
+		return auction, err
 	}
 	for i, payout := range lotPayouts {
 		// if the payout amount is 0, don't send 0 coins
 		if !payout.IsPositive() {
 			continue
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.LotReturns.Addresses[i], sdk.NewCoins(payout))
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, auction.LotReturns.Addresses[i], sdk.NewCoins(payout))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
 	}
 
 	// Update Auction
-	a.Bidder = bidder
-	a.Lot = lot
-	if !a.HasReceivedBids {
-		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
-		a.HasReceivedBids = true
+	auction.Bidder = bidder
+	auction.Lot = lot
+	if !auction.HasReceivedBids {
+		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		auction.HasReceivedBids = true
 	}
-	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
+	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
-			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyLot, a.Lot.String()),
-			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
 		),
 	)
 
-	return a, nil
+	return auction, nil
 }
 
 // PlaceBidDebt places a reverse bid on a debt auction, moving coins and returning the updated auction.
