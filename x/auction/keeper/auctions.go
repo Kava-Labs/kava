@@ -214,9 +214,9 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, a types.SurplusAuction, bidder 
 	a.Bid = bid
 	if !a.HasReceivedBids {
 		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		a.HasReceivedBids = true
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
-	a.HasReceivedBids = true
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -290,9 +290,9 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	a.Bid = bid
 	if !a.HasReceivedBids {
 		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		a.HasReceivedBids = true
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
-	a.HasReceivedBids = true
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -364,9 +364,9 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, a types.CollateralAuc
 	a.Lot = lot
 	if !a.HasReceivedBids {
 		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		a.HasReceivedBids = true
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
-	a.HasReceivedBids = true
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -430,9 +430,9 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.Ac
 	a.Lot = lot
 	if !a.HasReceivedBids {
 		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		a.HasReceivedBids = true
 	}
 	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
-	a.HasReceivedBids = true
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
