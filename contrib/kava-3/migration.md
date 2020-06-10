@@ -52,15 +52,52 @@ Set your node to produce the final block of kava-2 at __13:00__ UTC June 10th, 2
 kvd start --halt-time 1591794000
 ```
 
- Kava developers will update this PR with the final block number when it is reached. __Make sure the kvd process is stopped before proceeding and that you have backed up your validator__. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
+Note that the above command will not stop `kvd` from running, it merely stops proposal / validation for blocks after that time.Validators may safely exit by issuing `CTRL+C` if running as a process.
+
+Kava developers will update this PR with the final block number when it is reached. __Make sure the kvd process is stopped before proceeding and that you have backed up your validator__. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
+
+Following up steps assume a directory structure of the following, change filepaths, directory names as needed
+
+```bash
+# Kvcli Folder
+~/.kvcli
+# Kvd Folder
+~/.kvd
+# Go Path
+~/go
+```
+
+### Pre-Migration
+
+1. Backup existing kava-2 .kvd and .kvcli
+```sh
+cp -R ~/.kvcli ~/.kvcli.bak
+cp -R ~/.kvd ~/.kvd.bak
+```
+
+2. Backup existing kava-2 kvd and kvcli binaries (in case of rollback)
+```sh
+cp ~/go/bin/kvcli ~/go/bin/kvcli.bak
+cp ~/go/bin/kvd ~/go/bin/kvd.bak
+```
+
+### Migration
+
+We denote `(kava-2)kvd` as the previous client (0.3.5) to be used for commands e.g `(kava-2)kvd export` and `(kava-3)kvd` as the new client (0.8.1) to be used for commands.
 
 1. Export state
 
+- Ensure that all `kvd` processes have stopped running.
+
 ```sh
-  kvd export --for-zero-height > export-genesis.json
+  (kava-2) kvd export --for-zero-height > kava_2_exported.json
+  # Check ShaSum for later reference
+  $ jq . kava_2_exported.json | shasum -a 256
 ```
 
 2. Update to kava-3
+
+This will replace the `kvd` and `kvcli` binaries in your GOPATH.
 
 ```sh
   # in the `kava` folder
@@ -77,27 +114,45 @@ kvd start --halt-time 1591794000
   # commit: 869189054d68d6ec3e6446156ea0a91eb45af09c
   # build_tags: netgo,ledger
   # go: go version go1.13.7 linux/amd64
+```
 
+3. Migrate the kava-2 keys from previous key store to new key store
+
+Thill will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx.address` and `key_name.info` for the new keystore to access.
+
+```sh
   # Migrate keys
-  kvcli keys migrate
+  (kava-3) kvcli keys migrate
+```
 
+4. Migrate the exported genesis state
+
+```sh
   # Migrate genesis state
-  kvd migrate export-genesis.json > migrated-genesis.json
+  (kava-3) kvd migrate kava_2_exported.json > kava_3_migrated.json
+  # Check ShaSum for later reference
+  $ jq . kava_3_migrated.json | shasum -a 256
+```
 
+5. Write Params to genesis state and validate
+
+```sh
   # Migrate parameters
-  kvd write-params migrated-genesis.json --chain-id kava-3 --genesis-time 2020-06-10T14:00:00Z > genesis.json
-
+  (kava-3) kvd write-params kava_3_migrated.json --chain-id kava-3 --genesis-time 2020-06-10T14:00:00Z > genesis.json
+  # Check ShaSum for later reference
+  $ jq . genesis.json | shasum -a 256
   # Verify output of genesis migration
-  kvd validate-genesis genesis.json # should say it's valid
-  # Check the genesis hash. Note: jq must be installed
-  # DO NOT WRITE THE JQ OUTPUT TO FILE. Use only for calculating the hash.
-  jq -S -c -M '' genesis.json | shasum -a 256
-  # [PLACEHOLDER]
+  (kava-3) kvd validate-genesis genesis.json # should say it's valid
+```
 
-  # Restart node with migrated genesis state
+6. Restart node with new kava-3 genesis state
+
+```sh
   cp genesis.json ~/.kvd/config/genesis.json
-  kvd unsafe-reset-all
-  kvd start
+  # Unsafe Reset All is a irreversible action that wipes on-chain data and prepares the chain for a start from genesis
+  # If you have not backed up your previous kava-2 state, do not proceed.
+  (kava-3) kvd unsafe-reset-all
+  (kava-3) kvd start
 ```
 
 ### Coordination
