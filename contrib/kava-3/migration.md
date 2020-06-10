@@ -90,9 +90,11 @@ We denote `(kava-2)kvd` as the previous client (0.3.5) to be used for commands e
 - Ensure that all `kvd` processes have stopped running.
 
 ```sh
-  (kava-2) kvd export --for-zero-height > kava_2_exported.json
+  (kava-2) kvd export --height 2598890 --for-zero-height > kava_2_exported.json
   # Check ShaSum for later reference
   $ jq -S -c -M '' kava_2_exported.json | shasum -a 256
+  # Should return
+  > 7b5ec6f003b3aaf0544e7490f2e383a3b0339ec4db372ce84e68992f018e20e6  -
 ```
 
 2. Update to kava-3
@@ -132,6 +134,8 @@ This will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx
   (kava-3) kvd migrate kava_2_exported.json > kava_3_migrated.json
   # Check ShaSum for later reference
   $ jq -S -c -M '' kava_3_migrated.json | shasum -a 256
+  # Should return
+  > a7dcd440604a150a55a33e8cd22d7d1884d06ed4668e8090f6824755f4099325  -
 ```
 
 5. Write Params to genesis state and validate
@@ -143,6 +147,8 @@ This will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx
   # Note: jq must be installed
   # DO NOT WRITE THE JQ OUTPUT TO FILE. Use only for calculating the hash.
   $ jq -S -c -M '' genesis.json | shasum -a 256
+  # Should return
+  > f73628abfab82601c9af97a023d357a95507b9c630c5331564f48c4acab97b85  -
   # Verify output of genesis migration
   (kava-3) kvd validate-genesis genesis.json # should say it's valid
 ```
