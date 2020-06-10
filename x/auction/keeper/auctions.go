@@ -34,7 +34,7 @@ func (k Keeper) StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionStart,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auctionID)),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
 			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
@@ -74,7 +74,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionStart,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auctionID)),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
 			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
@@ -119,7 +119,7 @@ func (k Keeper) StartCollateralAuction(
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionStart,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auctionID)),
 			sdk.NewAttribute(types.AttributeKeyAuctionType, auction.GetType()),
 			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
 			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
@@ -482,7 +482,7 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionClose,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.GetID())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auctionID)),
 			sdk.NewAttribute(types.AttributeKeyCloseBlock, fmt.Sprintf("%d", ctx.BlockHeight())),
 		),
 	)
