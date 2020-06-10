@@ -153,7 +153,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 	case types.DebtAuction:
 		updatedAuction, err = k.PlaceBidDebt(ctx, auctionType, bidder, newAmount)
 	case types.CollateralAuction:
-		if !a.IsReversePhase() {
+		if !auctionType.IsReversePhase() {
 			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, auctionType, bidder, newAmount)
 		} else {
 			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, auctionType, bidder, newAmount)
@@ -308,7 +308,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction types.Collate
 }
 
 // PlaceReverseBidCollateral places a reverse bid on a collateral auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, aunction types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, error) {
+func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction types.CollateralAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
 	if lot.Denom != auction.Lot.Denom {
 		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, auction.Lot.Denom)
