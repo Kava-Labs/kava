@@ -490,20 +490,20 @@ func (k Keeper) CloseAuction(ctx sdk.Context, auctionID uint64) error {
 }
 
 // PayoutDebtAuction pays out the proceeds for a debt auction, first minting the coins.
-func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
+func (k Keeper) PayoutDebtAuction(ctx sdk.Context, auction types.DebtAuction) error {
 	// create the coins that are needed to pay off the debt
-	err := k.supplyKeeper.MintCoins(ctx, a.Initiator, sdk.NewCoins(a.Lot))
+	err := k.supplyKeeper.MintCoins(ctx, auction.Initiator, sdk.NewCoins(auction.Lot))
 	if err != nil {
 		panic(fmt.Errorf("could not mint coins: %w", err))
 	}
 	// send the new coins from the initiator module to the bidder
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, a.Initiator, a.Bidder, sdk.NewCoins(a.Lot))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, auction.Initiator, auction.Bidder, sdk.NewCoins(auction.Lot))
 	if err != nil {
 		return err
 	}
 	// if there is remaining debt, return it to the calling module to manage
-	if a.CorrespondingDebt.IsPositive() {
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
+	if auction.CorrespondingDebt.IsPositive() {
+		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(auction.CorrespondingDebt))
 		if err != nil {
 			return err
 		}
@@ -512,9 +512,9 @@ func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
 }
 
 // PayoutSurplusAuction pays out the proceeds for a surplus auction.
-func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) error {
+func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, auction types.SurplusAuction) error {
 	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, auction.Bidder, sdk.NewCoins(auction.Lot))
 	if err != nil {
 		return err
 	}
@@ -522,16 +522,16 @@ func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) er
 }
 
 // PayoutCollateralAuction pays out the proceeds for a collateral auction.
-func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAuction) error {
+func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, auction types.CollateralAuction) error {
 	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, auction.Bidder, sdk.NewCoins(auction.Lot))
 	if err != nil {
 		return err
 	}
 
 	// if there is remaining debt after the auction, send it back to the initiating module for management
-	if a.CorrespondingDebt.IsPositive() {
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
+	if auction.CorrespondingDebt.IsPositive() {
+		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(auction.CorrespondingDebt))
 		if err != nil {
 			return err
 		}
