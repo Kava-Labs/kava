@@ -501,23 +501,17 @@ func (k Keeper) PayoutDebtAuction(ctx sdk.Context, a types.DebtAuction) error {
 		return err
 	}
 	// if there is remaining debt, return it to the calling module to manage
-	if a.CorrespondingDebt.IsPositive() {
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
-		if err != nil {
-			return err
-		}
+	if !a.CorrespondingDebt.IsPositive() {
+		return nil
 	}
-	return nil
+
+	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
 }
 
 // PayoutSurplusAuction pays out the proceeds for a surplus auction.
 func (k Keeper) PayoutSurplusAuction(ctx sdk.Context, a types.SurplusAuction) error {
 	// Send the tokens from the auction module account where they are being managed to the bidder who won the auction
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Lot))
 }
 
 // PayoutCollateralAuction pays out the proceeds for a collateral auction.
@@ -529,13 +523,11 @@ func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, a types.CollateralAucti
 	}
 
 	// if there is remaining debt after the auction, send it back to the initiating module for management
-	if a.CorrespondingDebt.IsPositive() {
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
-		if err != nil {
-			return err
-		}
+	if !a.CorrespondingDebt.IsPositive() {
+		return nil
 	}
-	return nil
+
+	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(a.CorrespondingDebt))
 }
 
 // CloseExpiredAuctions finds all auctions that are past (or at) their ending times and closes them, paying out to the highest bidder.
@@ -547,6 +539,8 @@ func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) error {
 			// stop iteration
 			return true
 		}
+		// reset error in case the last element had an ErrAuctionNotFound
+		err = nil
 		return false
 	})
 

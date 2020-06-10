@@ -18,6 +18,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	if !found {
 		return sdkerrors.Wrap(types.ErrDebtNotSupported, debtDenom)
 	}
+
 	savingsRateMacc := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
 	surplusToDistribute := savingsRateMacc.GetCoins().AmountOf(dp.Denom)
 	if surplusToDistribute.IsZero() {
@@ -27,17 +28,22 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	modAccountCoins := k.getModuleAccountCoins(ctx, dp.Denom)
 	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
 	surplusDistributed := sdk.ZeroInt()
+
 	var iterationErr error
+	// TODO: avoid iterating over all the accounts by keeping the storing stable coin
+	// holders' addresses separately.
 	k.accountKeeper.IterateAccounts(ctx, func(acc authexported.Account) (stop bool) {
 		_, ok := acc.(supplyexported.ModuleAccountI)
 		if ok {
 			// don't distribute savings rate to module accounts
 			return false
 		}
+
 		debtAmount := acc.GetCoins().AmountOf(debtDenom)
 		if !debtAmount.IsPositive() {
 			return false
 		}
+
 		// (balance * rewardToDisribute) /  totalSupply
 		// interest is the ratable fraction of savings rate owed to that account, rounded using bankers rounding
 		interest := (sdk.NewDecFromInt(debtAmount).Mul(sdk.NewDecFromInt(surplusToDistribute))).Quo(sdk.NewDecFromInt(totalSupplyLessModAccounts.AmountOf(debtDenom))).RoundInt()
@@ -45,19 +51,23 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 		if interest.GT(surplusToDistribute.Sub(surplusDistributed)) {
 			interest = surplusToDistribute.Sub(surplusDistributed)
 		}
+
 		// sanity check - don't send saving rate if the rounded amount is zero
 		if !interest.IsPositive() {
 			return false
 		}
+
 		interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
 		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
 		if err != nil {
 			iterationErr = err
 			return true
 		}
+
 		surplusDistributed = surplusDistributed.Add(interest)
 		return false
 	})
+
 	return iterationErr
 }
 
