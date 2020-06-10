@@ -382,69 +382,69 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, aunction types.Collat
 }
 
 // PlaceBidDebt places a reverse bid on a debt auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceBidDebt(ctx sdk.Context, a types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, error) {
+func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction types.DebtAuction, bidder sdk.AccAddress, lot sdk.Coin) (types.DebtAuction, error) {
 	// Validate new bid
-	if lot.Denom != a.Lot.Denom {
-		return a, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, a.Lot.Denom)
+	if lot.Denom != auction.Lot.Denom {
+		return auction, sdkerrors.Wrapf(types.ErrInvalidLotDenom, lot.Denom, auction.Lot.Denom)
 	}
-	maxNewLotAmt := a.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
+	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
 			sdk.NewInt(1),
-			sdk.NewDecFromInt(a.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
+			sdk.NewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
-		return a, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, a.Lot.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, auction.Lot.Denom)
 	}
 	if lot.IsNegative() {
-		return a, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), a.Lot.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), auction.Lot.Denom)
 	}
 
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid
-	if !bidder.Equals(a.Bidder) {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+	if !bidder.Equals(auction.Bidder) {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(auction.Bid))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, auction.Bidder, sdk.NewCoins(auction.Bid))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
 	}
 	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to min of Bid and amount of debt.
-	if a.Bidder.Equals(supply.NewModuleAddress(a.Initiator)) {
+	if auction.Bidder.Equals(supply.NewModuleAddress(auction.Initiator)) {
 
-		debtAmountToReturn := sdk.MinInt(a.Bid.Amount, a.CorrespondingDebt.Amount)
-		debtToReturn := sdk.NewCoin(a.CorrespondingDebt.Denom, debtAmountToReturn)
+		debtAmountToReturn := sdk.MinInt(auction.Bid.Amount, auction.CorrespondingDebt.Amount)
+		debtToReturn := sdk.NewCoin(auction.CorrespondingDebt.Denom, debtAmountToReturn)
 
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(debtToReturn))
+		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(debtToReturn))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
-		a.CorrespondingDebt = a.CorrespondingDebt.Sub(debtToReturn) // debtToReturn will always be ≤ a.CorrespondingDebt from the MinInt above
+		auction.CorrespondingDebt = auction.CorrespondingDebt.Sub(debtToReturn) // debtToReturn will always be ≤ auction.CorrespondingDebt from the MinInt above
 	}
 
 	// Update Auction
-	a.Bidder = bidder
-	a.Lot = lot
-	if !a.HasReceivedBids {
-		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
-		a.HasReceivedBids = true
+	auction.Bidder = bidder
+	auction.Lot = lot
+	if !auction.HasReceivedBids {
+		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		auction.HasReceivedBids = true
 	}
-	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
+	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
-			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyLot, a.Lot.String()),
-			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyLot, auction.Lot.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
 		),
 	)
 
-	return a, nil
+	return auction, nil
 }
 
 // CloseAuction closes an auction and distributes funds to the highest bidder.
