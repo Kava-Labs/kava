@@ -63,7 +63,7 @@ func ValidAuctionInvariant(k Keeper) sdk.Invariant {
 
 			currentTime := ctx.BlockTime()
 			if !currentTime.Equal(time.Time{}) { // this avoids a simulator bug where app.InitGenesis is called with blockTime=0 instead of the correct time
-				if a.GetEndTime().Before(currentTime) {
+				if a.GetEndTime().After(currentTime) {
 					validationErr = fmt.Errorf("endTime after current block time (%s)", currentTime)
 					invalidAuction = a
 					return true
