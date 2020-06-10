@@ -147,16 +147,16 @@ func (k Keeper) PlaceBid(ctx sdk.Context, auctionID uint64, bidder sdk.AccAddres
 		err            error
 		updatedAuction types.Auction
 	)
-	switch a := auction.(type) {
+	switch auctionType := auction.(type) {
 	case types.SurplusAuction:
-		updatedAuction, err = k.PlaceBidSurplus(ctx, a, bidder, newAmount)
+		updatedAuction, err = k.PlaceBidSurplus(ctx, auctionType, bidder, newAmount)
 	case types.DebtAuction:
-		updatedAuction, err = k.PlaceBidDebt(ctx, a, bidder, newAmount)
+		updatedAuction, err = k.PlaceBidDebt(ctx, auctionType, bidder, newAmount)
 	case types.CollateralAuction:
 		if !a.IsReversePhase() {
-			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, a, bidder, newAmount)
+			updatedAuction, err = k.PlaceForwardBidCollateral(ctx, auctionType, bidder, newAmount)
 		} else {
-			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, a, bidder, newAmount)
+			updatedAuction, err = k.PlaceReverseBidCollateral(ctx, auctionType, bidder, newAmount)
 		}
 	default:
 		err = sdkerrors.Wrap(types.ErrUnrecognizedAuctionType, auction.GetType())
