@@ -104,6 +104,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		panic(err)
 	}
 
+	// burn the corresponding amount of debt coins
 	cdpDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	paymentAmount := feePayment.Add(principalPayment).Amount
 
