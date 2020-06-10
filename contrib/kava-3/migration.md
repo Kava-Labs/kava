@@ -56,7 +56,7 @@ Note that the above command will not stop `kvd` from running, it merely stops pr
 
 Kava developers will update this PR with the final block number when it is reached. __Make sure the kvd process is stopped before proceeding and that you have backed up your validator__. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
-Following up steps assume a directory structure of the following, change filepaths, directory names as needed
+The following up steps assume the directory structure below: change filepaths, directory names as needed
 
 ```bash
 # Kvcli Folder
@@ -92,7 +92,7 @@ We denote `(kava-2)kvd` as the previous client (0.3.5) to be used for commands e
 ```sh
   (kava-2) kvd export --for-zero-height > kava_2_exported.json
   # Check ShaSum for later reference
-  $ jq . kava_2_exported.json | shasum -a 256
+  $ jq -S -c -M '' kava_2_exported.json | shasum -a 256
 ```
 
 2. Update to kava-3
@@ -118,7 +118,7 @@ This will replace the `kvd` and `kvcli` binaries in your GOPATH.
 
 3. Migrate the kava-2 keys from previous key store to new key store
 
-Thill will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx.address` and `key_name.info` for the new keystore to access.
+This will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx.address` and `key_name.info` for the new keystore to access.
 
 ```sh
   # Migrate keys
@@ -131,7 +131,7 @@ Thill will scan for any keys in `.kvcli` and produce new files ending in `kavaxx
   # Migrate genesis state
   (kava-3) kvd migrate kava_2_exported.json > kava_3_migrated.json
   # Check ShaSum for later reference
-  $ jq . kava_3_migrated.json | shasum -a 256
+  $ jq -S -c -M '' kava_3_migrated.json | shasum -a 256
 ```
 
 5. Write Params to genesis state and validate
@@ -140,7 +140,9 @@ Thill will scan for any keys in `.kvcli` and produce new files ending in `kavaxx
   # Migrate parameters
   (kava-3) kvd write-params kava_3_migrated.json --chain-id kava-3 --genesis-time 2020-06-10T14:00:00Z > genesis.json
   # Check ShaSum for later reference
-  $ jq . genesis.json | shasum -a 256
+  # Note: jq must be installed
+  # DO NOT WRITE THE JQ OUTPUT TO FILE. Use only for calculating the hash.
+  $ jq -S -c -M '' genesis.json | shasum -a 256
   # Verify output of genesis migration
   (kava-3) kvd validate-genesis genesis.json # should say it's valid
 ```
