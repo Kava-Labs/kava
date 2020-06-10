@@ -19,41 +19,43 @@ func (k Keeper) MintPeriodInflation(ctx sdk.Context) error {
 		)
 		return nil
 	}
+
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 	if !found {
 		previousBlockTime = ctx.BlockTime()
 		k.SetPreviousBlockTime(ctx, previousBlockTime)
 		return nil
 	}
+
+	var err error
 	for _, period := range params.Periods {
+		switch {
 		// Case 1 - period is fully expired
-		if period.End.Before(previousBlockTime) {
+		case period.End.Before(previousBlockTime):
 			continue
-		}
+
 		// Case 2 - period has ended since the previous block time
-		if period.End.After(previousBlockTime) && period.End.Before(ctx.BlockTime()) {
+		case period.End.After(previousBlockTime) && period.End.Before(ctx.BlockTime()):
 			// calculate time elapsed relative to the periods end time
 			timeElapsed := sdk.NewInt(period.End.Unix() - previousBlockTime.Unix())
-			err := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
-			if err != nil {
-				return err
-			}
+			err = k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 			// update the value of previousBlockTime so that the next period starts from the end of the last
 			// period and not the original value of previousBlockTime
 			previousBlockTime = period.End
-		}
+
 		// Case 3 - period is ongoing
-		if (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()) {
+		case (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()):
 			// calculate time elapsed relative to the current block time
 			timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
-			err := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
-			if err != nil {
-				return err
-			}
-		}
+			err = k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
+
 		// Case 4 - period hasn't started
-		if period.Start.After(ctx.BlockTime()) || period.Start.Equal(ctx.BlockTime()) {
+		case period.Start.After(ctx.BlockTime()) || period.Start.Equal(ctx.BlockTime()):
 			continue
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
@@ -78,11 +80,13 @@ func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, ti
 	if err != nil {
 		return err
 	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeKavaDist,
 			sdk.NewAttribute(types.AttributeKeyInflation, sdk.NewCoin(denom, amountToMint).String()),
 		),
 	)
+
 	return nil
 }
