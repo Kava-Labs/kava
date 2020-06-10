@@ -27,7 +27,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	for _, key := range validatorVestingKeys {
 		acc := k.GetAccountFromAuthKeeper(ctx, key)
-		if k.AccountIsVesting(ctx, acc.GetAddress()) {
+		if !k.AccountIsVesting(ctx, acc.GetAddress()) {
 			continue
 		}
 
