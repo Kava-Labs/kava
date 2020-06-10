@@ -232,79 +232,79 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction types.SurplusAuction, b
 }
 
 // PlaceForwardBidCollateral places a forward bid on a collateral auction, moving coins and returning the updated auction.
-func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, a types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, error) {
+func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction types.CollateralAuction, bidder sdk.AccAddress, bid sdk.Coin) (types.CollateralAuction, error) {
 	// Validate new bid
-	if bid.Denom != a.Bid.Denom {
-		return a, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, a.Bid.Denom)
+	if bid.Denom != auction.Bid.Denom {
+		return auction, sdkerrors.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, auction.Bid.Denom)
 	}
-	if a.IsReversePhase() {
+	if auction.IsReversePhase() {
 		panic("cannot place forward bid on auction in reverse phase")
 	}
-	minNewBidAmt := a.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
+	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
 			sdk.NewInt(1),
-			sdk.NewDecFromInt(a.Bid.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+			sdk.NewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
 		),
 	)
-	minNewBidAmt = sdk.MinInt(minNewBidAmt, a.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
+	minNewBidAmt = sdk.MinInt(minNewBidAmt, auction.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
 	if bid.Amount.LT(minNewBidAmt) {
-		return a, sdkerrors.Wrapf(types.ErrBidTooSmall, "%s ≤ %s%s", bid, minNewBidAmt, a.Bid.Denom)
+		return auction, sdkerrors.Wrapf(types.ErrBidTooSmall, "%s ≤ %s%s", bid, minNewBidAmt, auction.Bid.Denom)
 	}
-	if a.MaxBid.IsLT(bid) {
-		return a, sdkerrors.Wrapf(types.ErrBidTooLarge, "%s > %s", bid, a.MaxBid)
+	if auction.MaxBid.IsLT(bid) {
+		return auction, sdkerrors.Wrapf(types.ErrBidTooLarge, "%s > %s", bid, auction.MaxBid)
 	}
 
 	// New bidder pays back old bidder
 	// Catch edge cases of a bidder replacing their own bid, and the amount being zero (sending zero coins produces meaningless send events).
-	if !bidder.Equals(a.Bidder) && !a.Bid.IsZero() {
-		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(a.Bid))
+	if !bidder.Equals(auction.Bidder) && !auction.Bid.IsZero() {
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, types.ModuleName, sdk.NewCoins(auction.Bid))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, a.Bidder, sdk.NewCoins(a.Bid))
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, auction.Bidder, sdk.NewCoins(auction.Bid))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
 	}
 	// Increase in bid sent to auction initiator
-	bidIncrement := bid.Sub(a.Bid)
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, a.Initiator, sdk.NewCoins(bidIncrement))
+	bidIncrement := bid.Sub(auction.Bid)
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, bidder, auction.Initiator, sdk.NewCoins(bidIncrement))
 	if err != nil {
-		return a, err
+		return auction, err
 	}
 	// Debt coins are sent to liquidator (until there is no CorrespondingDebt left). Amount sent is equal to bidIncrement (or whatever is left if < bidIncrement).
-	if a.CorrespondingDebt.IsPositive() {
+	if auction.CorrespondingDebt.IsPositive() {
 
-		debtAmountToReturn := sdk.MinInt(bidIncrement.Amount, a.CorrespondingDebt.Amount)
-		debtToReturn := sdk.NewCoin(a.CorrespondingDebt.Denom, debtAmountToReturn)
+		debtAmountToReturn := sdk.MinInt(bidIncrement.Amount, auction.CorrespondingDebt.Amount)
+		debtToReturn := sdk.NewCoin(auction.CorrespondingDebt.Denom, debtAmountToReturn)
 
-		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, a.Initiator, sdk.NewCoins(debtToReturn))
+		err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(debtToReturn))
 		if err != nil {
-			return a, err
+			return auction, err
 		}
-		a.CorrespondingDebt = a.CorrespondingDebt.Sub(debtToReturn) // debtToReturn will always be ≤ a.CorrespondingDebt from the MinInt above
+		auction.CorrespondingDebt = auction.CorrespondingDebt.Sub(debtToReturn) // debtToReturn will always be ≤ auction.CorrespondingDebt from the MinInt above
 	}
 
 	// Update Auction
-	a.Bidder = bidder
-	a.Bid = bid
-	if !a.HasReceivedBids {
-		a.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
-		a.HasReceivedBids = true
+	auction.Bidder = bidder
+	auction.Bid = bid
+	if !auction.HasReceivedBids {
+		auction.MaxEndTime = ctx.BlockTime().Add(k.GetParams(ctx).MaxAuctionDuration) // set maximum ending time on receipt of first bid
+		auction.HasReceivedBids = true
 	}
-	a.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), a.MaxEndTime) // increment timeout, up to MaxEndTime
+	auction.EndTime = earliestTime(ctx.BlockTime().Add(k.GetParams(ctx).BidDuration), auction.MaxEndTime) // increment timeout, up to MaxEndTime
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeAuctionBid,
-			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", a.ID)),
-			sdk.NewAttribute(types.AttributeKeyBidder, a.Bidder.String()),
-			sdk.NewAttribute(types.AttributeKeyBid, a.Bid.String()),
-			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", a.EndTime.Unix())),
+			sdk.NewAttribute(types.AttributeKeyAuctionID, fmt.Sprintf("%d", auction.ID)),
+			sdk.NewAttribute(types.AttributeKeyBidder, auction.Bidder.String()),
+			sdk.NewAttribute(types.AttributeKeyBid, auction.Bid.String()),
+			sdk.NewAttribute(types.AttributeKeyEndTime, fmt.Sprintf("%d", auction.EndTime.Unix())),
 		),
 	)
 
-	return a, nil
+	return auction, nil
 }
 
 // PlaceReverseBidCollateral places a reverse bid on a collateral auction, moving coins and returning the updated auction.
