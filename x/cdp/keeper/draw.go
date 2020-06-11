@@ -89,10 +89,11 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		return err
 	}
 
-	totalDebt := cdp.Principal.Add(cdp.AccumulatedFees)
+	// Note: assumes cdp.Principal and cdp.AccumulatedFees don't change during calculations
+	totalPrincipal := cdp.Principal.Add(cdp.AccumulatedFees)
 
 	// calculate fee and principal payment
-	feePayment, principalPayment := k.calculatePayment(ctx, totalDebt, cdp.AccumulatedFees, payment)
+	feePayment, principalPayment := k.calculatePayment(ctx, totalPrincipal, cdp.AccumulatedFees, payment)
 
 	err = k.validatePrincipalPayment(ctx, cdp, principalPayment)
 	if err != nil {
@@ -132,7 +133,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 	)
 
 	// remove the old collateral:debt ratio index
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, totalDebt)
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, totalPrincipal)
 	k.RemoveCdpCollateralRatioIndex(ctx, denom, cdp.ID, oldCollateralToDebtRatio)
 
 	// update cdp state
