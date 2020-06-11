@@ -24,7 +24,7 @@ import (
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/rest_v0_3"
+	"github.com/kava-labs/kava/migrate/rest_v0_3"
 )
 
 func main() {
