@@ -82,7 +82,7 @@ func QueryAccountRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// convert v0.8 account type into old v0.3 account type so that it json marshals into the v0.3 format
 		oldAccount := rollbackAccountType(account)
 		// use old codec with old account interface registered
-		cliCtx.WithCodec(makeCodecV03())
+		cliCtx = cliCtx.WithCodec(makeCodecV03())
 
 		if err != nil {
 			if err := accGetter.EnsureExists(addr); err != nil {
