@@ -202,7 +202,6 @@ func (p *PriceGenerator) Step(r *rand.Rand, blockHeight int64) {
 		}
 
 		p.currentPrice[marketID] = lastPrice
-
 	}
 
 	p.currentBlockHeight = blockHeight
