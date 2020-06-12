@@ -26,11 +26,13 @@
     - name: version
     - name: Mint
       description: Minting module APIs
+    - name: Kavadist
+      description: Kavadist module APIs
     - name: Misc
       description: Query app version
   schemes:
     - https
-  host: data.kava.io
+  host: https://kava3.data.kava.io/
   securityDefinitions:
     kms:
       type: basic
@@ -395,7 +397,7 @@
                 height:
                   type: string
                 result:
-                  items:                    
+                  items:
                     $ref: "#/definitions/Coin"
           500:
             description: Server internal error
@@ -499,15 +501,15 @@
                 height:
                   type: string
                 result:
-                  items: 
+                  items:
                     $ref: "#/definitions/Delegation"
           400:
             description: Invalid delegator address
           500:
             description: Internal Server Error
-      
+
       # THE BELOW ENDPOINT IS NOT IMPLEMENTED IN COSMOS, SEE:
-      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go      
+      # https://github.com/cosmos/cosmos-sdk/blob/18de630d0ae1887113e266982b51c2bf1f662edb/x/staking/client/rest/query.go
 
       # post:
       #   summary: Submit delegation
@@ -2016,6 +2018,28 @@
             description: Invalid coin denomination
           500:
             description: Internal Server Error
+    /kavadist/parameters:
+      get:
+        summary: Get the current kavadist parameter values
+        tags:
+          - Kavadist
+        produces:
+          - application/json
+        responses:
+          200:
+            description: OK
+            schema:
+              type: object
+              properties:
+                active:
+                  type: string
+                periods:
+                  type: array
+                  items:
+                    $ref: "#/definitions/KavadistPeriod"
+          500:
+            description: Internal Server Error
+
   definitions:
     CheckTxResult:
       type: object
@@ -2131,8 +2155,8 @@
               type: array
               items:
                 $ref: "#/definitions/PostCoin1"
-                
-              
+
+
     Address:
       type: string
       description: bech32 encoded address
@@ -2167,7 +2191,7 @@
           example: stake
         amount:
           type: string
-          example: "2000"                  
+          example: "2000"
     Hash:
       type: string
       example: EE5F3404034C524501629B56E0DDC38FAD651F04
@@ -2201,7 +2225,7 @@
               example: "tendermint/PubKeySecp256k1"
             value:
               type: string
-              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGXusb70B7"              
+              example: "AmWAim83Qp+kIcj3RT7i327b3l0EHwzCrGVGXusb70B7"
 
     TxQuery:
       type: object
@@ -2309,7 +2333,7 @@
           example: "cosmos-sdk/StdTx"
         value:
           type: object
-          $ref: "#/definitions/StdTx"           
+          $ref: "#/definitions/StdTx"
     BlockID:
       type: object
       properties:
@@ -2378,9 +2402,11 @@
         data:
           type: object
           properties:
-            txs: 
+            txs:
               type: array
-              x-nullable: true               
+              items:
+                $ref: "#/definitions/StdTx"
+              x-nullable: true
         evidence:
           type: object
           properties:
@@ -2756,3 +2782,15 @@
           type: string
         result:
           type: string
+    KavadistPeriod:
+      type: object
+      properties:
+        start:
+          type: string
+          example: "2020-06-01:14:00:00Z"
+        end:
+          type: string
+          example: "2020-06-01:14:00:00Z"
+        inflation:
+          type: string
+          example: "1.000000001167363430"
