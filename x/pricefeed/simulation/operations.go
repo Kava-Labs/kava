@@ -2,7 +2,7 @@ package simulation
 
 import (
 	"math/rand"
-	"sync"
+	"sort"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -15,13 +15,6 @@ import (
 	appparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
-)
-
-var (
-	btcPrices = []sdk.Dec{}
-	bnbPrices = []sdk.Dec{}
-	xrpPrices = []sdk.Dec{}
-	genPrices sync.Once
 )
 
 // Simulation operation weights constants
@@ -52,39 +45,21 @@ func WeightedOperations(
 
 // SimulateMsgUpdatePrices updates the prices of various assets by randomly varying them based on current price
 func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks int) simulation.Operation {
+	// runs one at the start of each simulation
+	startingPrices := map[string]sdk.Dec{
+		"btc:usd": sdk.MustNewDecFromStr("7000"),
+		"bnb:usd": sdk.MustNewDecFromStr("15"),
+		"xrp:usd": sdk.MustNewDecFromStr("0.25"),
+	}
+
+	// creates the new price generator from starting prices - resets for each sim
+	priceGenerator := NewPriceGenerator(startingPrices)
+
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
-		genPrices.Do(func() {
-			// generate a random walk for each asset exactly once, with observations equal to the number of blocks in the sim
-			for _, m := range keeper.GetMarkets(ctx) {
-				startPrice := getStartPrice(m.MarketID)
-				// allow prices to fluctuate from 10x GAINZ to 100x REKT
-				maxPrice := sdk.MustNewDecFromStr("10.0").Mul(startPrice)
-				minPrice := sdk.MustNewDecFromStr("0.01").Mul(startPrice)
-				previousPrice := startPrice
-				for i := 0; i < blocks; i++ {
-					increment := getIncrement(m.MarketID)
-					// note calling r instead of rand here breaks determinism
-					upDown := rand.Intn(2)
-					if upDown == 0 {
-						if previousPrice.Add(increment).GT(maxPrice) {
-							previousPrice = maxPrice
-						} else {
-							previousPrice = previousPrice.Add(increment)
-						}
-					} else {
-						if previousPrice.Sub(increment).LT(minPrice) {
-							previousPrice = minPrice
-						} else {
-							previousPrice = previousPrice.Sub(increment)
-						}
-					}
-					setPrice(m.MarketID, previousPrice)
-				}
-			}
-		})
+		// walk prices to current block height, noop if already called for current height
+		priceGenerator.Step(r, ctx.BlockHeight())
 
 		randomMarket := pickRandomAsset(ctx, keeper, r)
 		marketID := randomMarket.MarketID
@@ -100,7 +75,8 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
-		price := pickNewRandomPrice(marketID, int(ctx.BlockHeight()))
+		// get price for marketID and current block height set in Step
+		price := priceGenerator.GetCurrentPrice(marketID)
 
 		// get the expiry time based off the current time
 		expiry := getExpiryTime(ctx)
@@ -132,51 +108,6 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 	}
 }
 
-func getStartPrice(marketID string) (startPrice sdk.Dec) {
-	switch marketID {
-	case "btc:usd":
-		return sdk.MustNewDecFromStr("7000")
-	case "bnb:usd":
-		return sdk.MustNewDecFromStr("15")
-	case "xrp:usd":
-		return sdk.MustNewDecFromStr("0.25")
-	}
-	return sdk.MustNewDecFromStr("100")
-}
-
-func getIncrement(marketID string) (increment sdk.Dec) {
-	startPrice := getStartPrice(marketID)
-	divisor := sdk.MustNewDecFromStr("20")
-	increment = startPrice.Quo(divisor)
-	return increment
-}
-
-func setPrice(marketID string, price sdk.Dec) {
-	switch marketID {
-	case "btc:usd":
-		btcPrices = append(btcPrices, price)
-		return
-	case "bnb:usd":
-		bnbPrices = append(bnbPrices, price)
-		return
-	case "xrp:usd":
-		xrpPrices = append(xrpPrices, price)
-	}
-	return
-}
-
-func pickNewRandomPrice(marketID string, blockHeight int) (newPrice sdk.Dec) {
-	switch marketID {
-	case "btc:usd":
-		return btcPrices[blockHeight-1]
-	case "bnb:usd":
-		return bnbPrices[blockHeight-1]
-	case "xrp:usd":
-		return xrpPrices[blockHeight-1]
-	}
-	panic("invalid price request")
-}
-
 // getRandomOracle picks a random oracle from the list of oracles
 func getRandomOracle(r *rand.Rand, market types.Market) sdk.AccAddress {
 	randomIndex := simulation.RandIntBetween(r, 0, len(market.Oracles))
@@ -197,4 +128,93 @@ func pickRandomAsset(ctx sdk.Context, keeper keeper.Keeper, r *rand.Rand) (marke
 func getExpiryTime(ctx sdk.Context) (t time.Time) {
 	// need to use the blocktime from the context as the context generates random start time when running simulations
 	return ctx.BlockTime().Add(time.Second * 1000000)
+}
+
+// PriceGenerator allows deterministic price generation in simulations
+type PriceGenerator struct {
+	markets            []string
+	currentPrice       map[string]sdk.Dec
+	maxPrice           map[string]sdk.Dec
+	minPrice           map[string]sdk.Dec
+	increment          map[string]sdk.Dec
+	currentBlockHeight int64
+}
+
+// NewPriceGenerator returns a new market price generator from starting values
+func NewPriceGenerator(startingPrice map[string]sdk.Dec) *PriceGenerator {
+	p := &PriceGenerator{
+		markets:            []string{},
+		currentPrice:       startingPrice,
+		maxPrice:           map[string]sdk.Dec{},
+		minPrice:           map[string]sdk.Dec{},
+		increment:          map[string]sdk.Dec{},
+		currentBlockHeight: 0,
+	}
+
+	divisor := sdk.MustNewDecFromStr("20")
+
+	for marketID, startPrice := range startingPrice {
+		p.markets = append(p.markets, marketID)
+		// allow 10x price increase
+		p.maxPrice[marketID] = sdk.MustNewDecFromStr("10.0").Mul(startPrice)
+		// allow 100x price decrease
+		p.minPrice[marketID] = sdk.MustNewDecFromStr("0.01").Mul(startPrice)
+		// set increment - should we use a random increment?
+		p.increment[marketID] = startPrice.Quo(divisor)
+	}
+
+	// market prices must be calculated in a deterministic order
+	sort.Strings(p.markets)
+
+	return p
+}
+
+// Step walks prices to a current block height from the previously called height
+// noop if called more than once for the same height
+func (p *PriceGenerator) Step(r *rand.Rand, blockHeight int64) {
+	if p.currentBlockHeight == blockHeight {
+		// step already called for blockHeight
+		return
+	}
+
+	if p.currentBlockHeight > blockHeight {
+		// step is called with a previous blockHeight
+		panic("step out of order")
+	}
+
+	for _, marketID := range p.markets {
+		lastPrice := p.currentPrice[marketID]
+		minPrice := p.minPrice[marketID]
+		maxPrice := p.maxPrice[marketID]
+		increment := p.increment[marketID]
+		lastHeight := p.currentBlockHeight
+
+		for lastHeight < blockHeight {
+			upDown := r.Intn(2)
+
+			if upDown == 0 {
+				lastPrice = sdk.MinDec(lastPrice.Add(increment), maxPrice)
+			} else {
+				lastPrice = sdk.MaxDec(lastPrice.Sub(increment), minPrice)
+			}
+
+			lastHeight++
+		}
+
+		p.currentPrice[marketID] = lastPrice
+
+	}
+
+	p.currentBlockHeight = blockHeight
+}
+
+// GetCurrentPrice returns price for last blockHeight set by Step
+func (p *PriceGenerator) GetCurrentPrice(marketID string) sdk.Dec {
+	price, ok := p.currentPrice[marketID]
+
+	if !ok {
+		panic("unknown market")
+	}
+
+	return price
 }
