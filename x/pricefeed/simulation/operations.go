@@ -164,6 +164,8 @@ func NewPriceGenerator(startingPrice map[string]sdk.Dec) *PriceGenerator {
 	}
 
 	// market prices must be calculated in a deterministic order
+	// this sort order defines the the order we update each market
+	// price in the step function
 	sort.Strings(p.markets)
 
 	return p
