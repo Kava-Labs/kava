@@ -30,7 +30,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 // CreateAuctionsFromDeposit creates auctions from the input deposit
 func (k Keeper) CreateAuctionsFromDeposit(
 	ctx sdk.Context, collateral sdk.Coin, returnAddr sdk.AccAddress, debt, auctionSize sdk.Int,
-	principalDenom string) (err error) {
+	principalDenom string) error {
 
 	// the number of auctions to start with lot = auctionSize
 	wholeAuctions := collateral.Amount.Quo(auctionSize)
