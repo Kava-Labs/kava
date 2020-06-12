@@ -15,7 +15,7 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/vesting/circulatingsupply", getCirculatingSupplyHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/vesting/totalsupply", getCirculatingSupplyHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/vesting/totalsupply", getTotalSupplyHandlerFn(cliCtx)).Methods("GET")
 }
 
 func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
