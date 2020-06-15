@@ -30,7 +30,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	surplusDistributed := sdk.ZeroInt()
 
 	var iterationErr error
-	// TODO: avoid iterating over all the accounts by keeping the storing stable coin
+	// TODO: avoid iterating over all the accounts by keeping the stored stable coin
 	// holders' addresses separately.
 	k.accountKeeper.IterateAccounts(ctx, func(acc authexported.Account) (stop bool) {
 		_, ok := acc.(supplyexported.ModuleAccountI)
