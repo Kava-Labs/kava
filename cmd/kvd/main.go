@@ -67,6 +67,7 @@ func main() {
 			app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
+		testnetCmd(ctx, cdc, app.ModuleBasics, auth.GenesisAccountIterator{}),
 		flags.NewCompletionCmd(rootCmd, true),
 	)
 

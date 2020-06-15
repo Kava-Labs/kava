@@ -8,11 +8,11 @@ order: 1
 
 ## Requirements
 Kava
-- The deputy’s Kava testnet-5000 address is **kava1aphsdnz5hu2t5ty2au6znprug5kx3zpy6zwq29**.
-- We recommend using http://kava-testnet-5000.kava.io:1317 as Kava’s API endpoint.
+- The deputy’s Kava address on mainnet is **kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6**.
+- Kava's official API endpoint is https://kava3.data.kava.io.
 
 Binance Chain
-- The deputy’s Binance Chain testnet address is **tbnb1et8vmd0dgvswjnyaf73ez8ye0jehc8a7t7fljv**.
+- The deputy’s Binance Chain address on mainnet is **bnb1jh7uv2rm6339yue8k4mj9406k3509kr4wt5nxn**.
 - We recommend using https://testnet-dex.binance.org/ as Binance Chain’s API endpoint.
 
 Kava's [JavaScript SDK](https://github.com/Kava-Labs/javascript-sdk) and Binance Chain’s [JavaScript SDK](https://github.com/binance-chain/javascript-sdk) can be used to create, claim, and refund swaps.
