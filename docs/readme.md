@@ -20,7 +20,7 @@ make install
 
 The mainnet upgrade to `kava-3` took place on June 10th, 2020 at 14:00 UTC. The version of Kava for `kava-3` is [__v0.8.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.8.1).
 
-Migration instructions can be found [here](https://docs.kava.io/building/kava-3-migration-guide.html).
+Migration instructions can be found [here](./building/kava-3-migration-guide.html).
 
 ## Testnet
 
