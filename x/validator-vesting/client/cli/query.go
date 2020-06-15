@@ -15,7 +15,7 @@ import (
 // GetQueryCmd returns the cli query commands for the kavadist module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	valVestingQueryCmd := &cobra.Command{
-		Use:   types.ModuleName,
+		Use:   types.QueryPath,
 		Short: "Querying commands for the validator vesting module",
 	}
 
