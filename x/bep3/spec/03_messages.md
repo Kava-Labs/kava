@@ -35,8 +35,6 @@ type MsgClaimAtomicSwap struct {
 }
 ```
 
-
-
 ## Refund swap
 
 Expired swaps are refunded using the `MsgRefundAtomicSwap` message type.
