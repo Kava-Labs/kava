@@ -16,7 +16,7 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-type MintTestSuite struct {
+type KeeperTestSuite struct {
 	suite.Suite
 
 	keeper       keeper.Keeper
@@ -26,7 +26,7 @@ type MintTestSuite struct {
 }
 
 var (
-	p = types.Periods{
+	testPeriods = types.Periods{
 		types.Period{
 			Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 			End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
@@ -35,7 +35,7 @@ var (
 	}
 )
 
-func (suite *MintTestSuite) SetupTest() {
+func (suite *KeeperTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
@@ -46,7 +46,7 @@ func (suite *MintTestSuite) SetupTest() {
 
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
-	params := types.NewParams(true, p)
+	params := types.NewParams(true, testPeriods)
 	gs := app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(types.NewGenesisState(params, types.DefaultPreviousBlockTime))}
 	tApp.InitializeFromGenesisStates(
 		authGS,
@@ -61,7 +61,7 @@ func (suite *MintTestSuite) SetupTest() {
 
 }
 
-func (suite *MintTestSuite) TestMintExpiredPeriod() {
+func (suite *KeeperTestSuite) TestMintExpiredPeriod() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)) })
 	ctx := suite.ctx.WithBlockTime(time.Date(2022, 1, 1, 0, 7, 0, 0, time.UTC))
@@ -71,7 +71,7 @@ func (suite *MintTestSuite) TestMintExpiredPeriod() {
 	suite.Equal(initialSupply, finalSupply)
 }
 
-func (suite *MintTestSuite) TestMintPeriodNotStarted() {
+func (suite *KeeperTestSuite) TestMintPeriodNotStarted() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC)) })
 	ctx := suite.ctx.WithBlockTime(time.Date(2019, 1, 1, 0, 7, 0, 0, time.UTC))
@@ -81,7 +81,7 @@ func (suite *MintTestSuite) TestMintPeriodNotStarted() {
 	suite.Equal(initialSupply, finalSupply)
 }
 
-func (suite *MintTestSuite) TestMintOngoingPeriod() {
+func (suite *KeeperTestSuite) TestMintOngoingPeriod() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	suite.NotPanics(func() {
 		suite.keeper.SetPreviousBlockTime(suite.ctx, time.Date(2020, time.March, 1, 1, 0, 1, 0, time.UTC))
@@ -100,11 +100,11 @@ func (suite *MintTestSuite) TestMintOngoingPeriod() {
 	suite.True(supplyError.LTE(sdk.MustNewDecFromStr("0.001")))
 }
 
-func (suite *MintTestSuite) TestMintPeriodTransition() {
+func (suite *KeeperTestSuite) TestMintPeriodTransition() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	params := suite.keeper.GetParams(suite.ctx)
 	periods := types.Periods{
-		p[0],
+		testPeriods[0],
 		types.Period{
 			Start:     time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 			End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
@@ -125,7 +125,7 @@ func (suite *MintTestSuite) TestMintPeriodTransition() {
 	suite.True(finalSupply.GT(initialSupply))
 }
 
-func (suite *MintTestSuite) TestMintNotActive() {
+func (suite *KeeperTestSuite) TestMintNotActive() {
 	initialSupply := suite.supplyKeeper.GetSupply(suite.ctx).GetTotal().AmountOf(types.GovDenom)
 	params := suite.keeper.GetParams(suite.ctx)
 	params.Active = false
@@ -142,6 +142,6 @@ func (suite *MintTestSuite) TestMintNotActive() {
 	suite.Equal(initialSupply, finalSupply)
 }
 
-func TestMintTestSuite(t *testing.T) {
-	suite.Run(t, new(MintTestSuite))
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
 }

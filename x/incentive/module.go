@@ -68,22 +68,22 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(cdc)
 }
 
-// GetQueryCmd returns no root query command for the crisis module.
+// GetQueryCmd returns no root query command for the incentive module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(types.StoreKey, cdc)
 }
 
-// RegisterStoreDecoder registers a decoder for cdp module's types
+// RegisterStoreDecoder registers a decoder for incentive module's types
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// GenerateGenesisState creates a randomized GenState of the cdp module
+// GenerateGenesisState creates a randomized GenState of the incentive module
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
 
-// RandomizedParams creates randomized cdp param changes for the simulator.
+// RandomizedParams creates randomized incentive param changes for the simulator.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
 }

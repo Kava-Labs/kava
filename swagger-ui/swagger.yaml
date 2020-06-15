@@ -37,9 +37,13 @@
       description: Supply module APIs
     - name: Mint
       description: Minting module APIs
+    - name: Kavadist
+      description: Kavadist module APIs
+    - name: Misc
+      description: Query app version
   schemes:
     - https
-  host: data.kava3.kava.io
+  host: kava3.data.kava.io
   securityDefinitions:
     kms:
       type: basic
@@ -872,6 +876,7 @@
           - application/json
         parameters:
           - in: path
+            required: true
             name: swap-id
             description: the swap ID
             type: string
@@ -896,7 +901,6 @@
           - BEP3
         produces:
           - application/json
-        parameters:
         responses:
           200:
             description: All atomic swaps
@@ -922,6 +926,8 @@
           - application/json
         parameters:
           - in: path
+            type: string
+            required: true
             name: denom
             x-example: bnb
         responses:
@@ -3233,6 +3239,28 @@
             description: Invalid coin denomination
           500:
             description: Internal Server Error
+    /kavadist/parameters:
+      get:
+        summary: Get the current kavadist parameter values
+        tags:
+          - Kavadist
+        produces:
+          - application/json
+        responses:
+          200:
+            description: OK
+            schema:
+              type: object
+              properties:
+                active:
+                  type: string
+                periods:
+                  type: array
+                  items:
+                    $ref: "#/definitions/KavadistPeriod"
+          500:
+            description: Internal Server Error
+
   definitions:
     CheckTxResult:
       type: object
@@ -4311,6 +4339,18 @@
           type: string
         result:
           type: string
+    KavadistPeriod:
+      type: object
+      properties:
+        start:
+          type: string
+          example: "2020-06-01:14:00:00Z"
+        end:
+          type: string
+          example: "2020-06-01:14:00:00Z"
+        inflation:
+          type: string
+          example: "1.000000001167363430"
     PostStdTx:
       type: object
       properties:
