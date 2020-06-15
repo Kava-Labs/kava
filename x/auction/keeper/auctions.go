@@ -530,7 +530,9 @@ func (k Keeper) PayoutCollateralAuction(ctx sdk.Context, auction types.Collatera
 	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(auction.CorrespondingDebt))
 }
 
-// CloseExpiredAuctions finds all auctions that are past (or at) their ending times and closes them, paying out to the highest bidder.
+// CloseExpiredAuctions iterates over all the auctions stored by until the current
+// block timestamp and that are past (or at) their ending times and closes them,
+// paying out to the highest bidder.
 func (k Keeper) CloseExpiredAuctions(ctx sdk.Context) error {
 	var err error
 	k.IterateAuctionsByTime(ctx, ctx.BlockTime(), func(id uint64) (stop bool) {

@@ -1,9 +1,10 @@
 package pricefeed
 
 import (
-	"fmt"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // EndBlocker updates the current pricefeed
@@ -15,9 +16,8 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		}
 
 		err := k.SetCurrentPrices(ctx, market.MarketID)
-		if err != nil {
-			// TODO: this should panic
-			k.Logger(ctx).Error(fmt.Sprintf("failed to set prices for market id %s: %s", market.MarketID, err.Error()))
+		if err != nil && !errors.Is(err, types.ErrNoValidPrice) {
+			panic(err)
 		}
 	}
 }
