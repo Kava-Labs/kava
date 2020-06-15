@@ -27,7 +27,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 
 	modAccountCoins := k.getModuleAccountCoins(ctx, dp.Denom)
 	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
-	surplusDistributed := sdk.ZeroInt()
+
 	// values to use in interest calculation
 	totalSurplus := sdk.NewDecFromInt(surplusToDistribute)
 	totalSupply := sdk.NewDecFromInt(totalSupplyLessModAccounts.AmountOf(debtDenom))
@@ -51,7 +51,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 		// interest is the ratable fraction of savings rate owed to that account, rounded using bankers rounding
 		interest := (sdk.NewDecFromInt(debtAmount).Mul(totalSurplus)).Quo(totalSupply).RoundInt()
 		// sanity check, if we are going to over-distribute due to rounding, distribute only the remaining savings rate that hasn't been distributed.
-		interest = sdk.MaxInt(interest, surplusToDistribute.Sub(surplusDistributed))
+		interest = sdk.MinInt(interest, surplusToDistribute)
 
 		// sanity check - don't send saving rate if the rounded amount is zero
 		if !interest.IsPositive() {
@@ -64,8 +64,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 			iterationErr = err
 			return true
 		}
-
-		surplusDistributed = surplusDistributed.Add(interest)
+		surplusToDistribute = surplusToDistribute.Sub(interest)
 		return false
 	})
 
