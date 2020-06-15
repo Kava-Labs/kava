@@ -34,7 +34,7 @@ git checkout v0.8.1
 make install
 ```
 
-## Mainnet Upgrade
+### Upgrade
 
 The scheduled mainnet upgrade to `kava-3` took place on June 10th, 2020 at 14:00 UTC. The version of Kava for `kava-3` is [__v0.8.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.8.1).
 
@@ -51,7 +51,13 @@ jq -S -c -M '' genesis.json | shasum -a 256
 
 ## Testnet
 
-For further information on joining the lastest testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
+The recommended version of the software for kava-testnet-6000 is v0.8.0-rc1. For further information on joining the testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
+
+## Docs
+
+Kava protocol and client documentation can be found in the [Kava docs](https://docs.kava.io).  
+
+If you have technical questions or concerns, ask a developer or community member in the [Kava discord](https://discord.com/invite/kQzh3Uv).
 
 ## License
 
