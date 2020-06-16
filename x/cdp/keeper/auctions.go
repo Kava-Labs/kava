@@ -32,34 +32,78 @@ func (k Keeper) CreateAuctionsFromDeposit(
 	ctx sdk.Context, collateral sdk.Coin, returnAddr sdk.AccAddress, debt, auctionSize sdk.Int,
 	principalDenom string) error {
 
-	// the number of auctions to start with lot = auctionSize
-	wholeAuctions := collateral.Amount.Quo(auctionSize)
-	// remaining collateral (< lot) to auction
-	partialAuctionAmount := collateral.Amount.Mod(auctionSize)
-	auctionLots := []sdk.Int{}
+	// number of auctions of auctionSize
+	numberOfAuctions := collateral.Amount.Quo(auctionSize)
+	debtPerAuction := debt.Mul(auctionSize).Quo(collateral.Amount)
 
-	for i := int64(0); i < wholeAuctions.Int64(); i++ {
-		auctionLots = append(auctionLots, auctionSize)
+	// last auction for remaining collateral (collateral < auctionSize)
+	lastAuctionCollateral := collateral.Amount.Mod(auctionSize)
+	lastAuctionDebt := debt.Mul(lastAuctionCollateral).Quo(collateral.Amount)
+
+	// amount of debt that has not been allocated due to
+	// rounding error (unallocated debt is less than or equal to numberOfAuctions + 1)
+	unallocatedDebt := debt.Sub(numberOfAuctions.Mul(debtPerAuction).Add(lastAuctionDebt))
+
+	// rounding error for whole and last auctions in units of collateral
+	// higher value means a larger truncation
+	wholeAuctionError := debt.Mul(auctionSize).Mod(collateral.Amount)
+	lastAuctionError := debt.Mul(lastAuctionCollateral).Mod(collateral.Amount)
+
+	// if last auction has larger rounding error, then allocate one debt to last auction first
+	// follows the largest remainder method https://en.wikipedia.org/wiki/Largest_remainder_method
+	if lastAuctionError.GT(wholeAuctionError) {
+		lastAuctionDebt = lastAuctionDebt.Add(sdk.OneInt())
+		unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
 	}
-	if partialAuctionAmount.IsPositive() {
-		auctionLots = append(auctionLots, partialAuctionAmount)
-	}
-	// use the auction lots as weights to split the debt into buckets,
-	// where each bucket represents how much debt that auction will attempt to cover
-	debtAmounts := splitIntIntoWeightedBuckets(debt, auctionLots)
+
 	debtDenom := k.GetDebtDenom(ctx)
-	for i, debtAmount := range debtAmounts {
+	numAuctions := numberOfAuctions.Int64()
+
+	// create whole auctions
+	for i := int64(0); i < numAuctions; i++ {
+		debtAmount := debtPerAuction
+
+		// distribute unallocated debt left over starting with first auction created
+		if unallocatedDebt.IsPositive() {
+			debtAmount = debtAmount.Add(sdk.OneInt())
+			unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
+		}
+
 		penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, debtAmount)
+
 		_, err := k.auctionKeeper.StartCollateralAuction(
-			ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, auctionLots[i]),
+			ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, auctionSize),
 			sdk.NewCoin(principalDenom, debtAmount.Add(penalty)), []sdk.AccAddress{returnAddr},
-			[]sdk.Int{auctionLots[i]}, sdk.NewCoin(debtDenom, debtAmount),
+			[]sdk.Int{auctionSize}, sdk.NewCoin(debtDenom, debtAmount),
 		)
+
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+
+	// skip last auction if there is no collateral left to auction
+	if !lastAuctionCollateral.IsPositive() {
+		return nil
+	}
+
+	// if the last auction had a larger rounding error than whole auctions,
+	// then unallocatedDebt will be zero since we will have already distributed
+	// at most numberOfAuctions + 1 of unallocatedDebt
+	if unallocatedDebt.IsPositive() {
+		lastAuctionDebt = lastAuctionDebt.Add(sdk.OneInt())
+		unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
+	}
+
+	penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, lastAuctionDebt)
+
+	_, err := k.auctionKeeper.StartCollateralAuction(
+		ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, lastAuctionCollateral),
+		sdk.NewCoin(principalDenom, lastAuctionDebt.Add(penalty)), []sdk.AccAddress{returnAddr},
+		[]sdk.Int{lastAuctionCollateral}, sdk.NewCoin(debtDenom, lastAuctionDebt),
+	)
+
+	return err
 }
 
 // NetSurplusAndDebt burns surplus and debt coins equal to the minimum of surplus and debt balances held by the liquidator module account
