@@ -41,7 +41,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 	lastAuctionDebt := debt.Mul(lastAuctionCollateral).Quo(collateral.Amount)
 
 	// amount of debt that has not been allocated due to
-	// rounding error (unallocated debt is less than or equal to numberOfAuctions + 1)
+	// rounding error (unallocated debt is less than numberOfAuctions + 1)
 	unallocatedDebt := debt.Sub(numberOfAuctions.Mul(debtPerAuction).Add(lastAuctionDebt))
 
 	// rounding error for whole and last auctions in units of collateral
@@ -89,7 +89,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 
 	// if the last auction had a larger rounding error than whole auctions,
 	// then unallocatedDebt will be zero since we will have already distributed
-	// at most numberOfAuctions + 1 of unallocatedDebt
+	// all of the unallocated debt
 	if unallocatedDebt.IsPositive() {
 		lastAuctionDebt = lastAuctionDebt.Add(sdk.OneInt())
 		unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
