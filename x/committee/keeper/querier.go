@@ -29,6 +29,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryVote(ctx, path[1:], req, keeper)
 		case types.QueryTally:
 			return queryTally(ctx, path[1:], req, keeper)
+		case types.QueryRawParams:
+			return queryRawParams(ctx, path[1:], req, keeper)
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
@@ -167,6 +169,31 @@ func queryTally(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 	numVotes := keeper.TallyVotes(ctx, params.ProposalID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, numVotes)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+// ------------------------------------------
+//				Raw Params
+// ------------------------------------------
+
+func queryRawParams(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryRawParamsParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	subspace, found := keeper.ParamKeeper.GetSubspace(params.Subspace)
+	if !found {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownSubspace, "subspace: %s", params.Subspace)
+	}
+	rawParams := subspace.GetRaw(ctx, []byte(params.Key))
+
+	// encode the raw params as json, which converts them to a base64 string
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, rawParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
