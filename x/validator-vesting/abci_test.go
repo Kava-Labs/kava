@@ -74,7 +74,7 @@ func TestBeginBlockerZeroHeight(t *testing.T) {
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
 	// require missed block counter doesn't increment because there's no voting history
-	require.Equal(t, types.CurrentPeriodProgress{0, 1}, vva.CurrentPeriodProgress)
+	require.Equal(t, types.CurrentPeriodProgress{MissedBlocks: 0, TotalBlocks: 1}, vva.CurrentPeriodProgress)
 
 	// mark the validator as having missed
 	req = abci.RequestBeginBlock{
@@ -90,7 +90,7 @@ func TestBeginBlockerZeroHeight(t *testing.T) {
 	BeginBlocker(ctx, req, vvk)
 
 	vva = vvk.GetAccountFromAuthKeeper(ctx, vva.Address)
-	require.Equal(t, types.CurrentPeriodProgress{0, 2}, vva.CurrentPeriodProgress)
+	require.Equal(t, types.CurrentPeriodProgress{MissedBlocks: 0, TotalBlocks: 2}, vva.CurrentPeriodProgress)
 }
 
 func TestBeginBlockerSignedBlock(t *testing.T) {

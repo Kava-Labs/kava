@@ -24,34 +24,35 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	var voteInfos VoteInfos
 	voteInfos = req.LastCommitInfo.GetVotes()
 	validatorVestingKeys := k.GetAllAccountKeys(ctx)
+
 	for _, key := range validatorVestingKeys {
 		acc := k.GetAccountFromAuthKeeper(ctx, key)
-		if k.AccountIsVesting(ctx, acc.GetAddress()) {
-			vote, found := voteInfos.FilterByValidatorAddress(acc.ValidatorAddress)
-			if !found || !vote.SignedLastBlock {
-				if ctx.BlockHeight() <= 1 {
-					// don't count missed blocks on block 1 since there is no vote history
-					k.UpdateMissingSignCount(ctx, acc.GetAddress(), false)
-				} else {
-					// if the validator was not found or explicitly didn't sign, increment the missing sign count
-					k.UpdateMissingSignCount(ctx, acc.GetAddress(), true)
-				}
-			} else {
-				k.UpdateMissingSignCount(ctx, acc.GetAddress(), false)
-			}
-
-			// check if a period ended in the last block
-			endTimes := k.GetPeriodEndTimes(ctx, key)
-
-			for i, t := range endTimes {
-				if currentBlockTime.Unix() >= t && previousBlockTime.Unix() < t {
-					k.UpdateVestedCoinsProgress(ctx, key, i)
-				}
-			}
-			// handle any new/remaining debt on the account
-			k.HandleVestingDebt(ctx, key, currentBlockTime)
+		if !k.AccountIsVesting(ctx, acc.GetAddress()) {
+			continue
 		}
+
+		vote, found := voteInfos.FilterByValidatorAddress(acc.ValidatorAddress)
+
+		var missedBlock bool
+		// if the validator was not found or explicitly didn't sign, increment the missing sign count
+		if (!found || !vote.SignedLastBlock) && ctx.BlockHeight() > 1 {
+			missedBlock = true
+		}
+
+		k.UpdateMissingSignCount(ctx, acc.GetAddress(), missedBlock)
+
+		// check if a period ended in the last block
+		endTimes := k.GetPeriodEndTimes(ctx, key)
+
+		for i, t := range endTimes {
+			if currentBlockTime.Unix() >= t && previousBlockTime.Unix() < t {
+				k.UpdateVestedCoinsProgress(ctx, key, i)
+			}
+		}
+		// handle any new/remaining debt on the account
+		k.HandleVestingDebt(ctx, key, currentBlockTime)
 	}
+
 	k.SetPreviousBlockTime(ctx, currentBlockTime)
 }
 

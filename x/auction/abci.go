@@ -1,13 +1,17 @@
 package auction
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
-// BeginBlocker runs at the start of every block.
+// BeginBlocker closes all expired auctions at the end of each block. It panics if
+// there's an error other than ErrAuctionNotFound.
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	err := k.CloseExpiredAuctions(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, types.ErrAuctionNotFound) {
 		panic(err)
 	}
 }
