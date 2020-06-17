@@ -36,7 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-[\#590](https://github.com/Kava-Labs/kava/pull/590) Add CLI Query to return kavadist module account balance
+[\#590](https://github.com/Kava-Labs/kava/pull/590) Add CLI query to return kavadist module account balance
 
 [\#584](https://github.com/Kava-Labs/kava/pulls/584) Add REST client and CLI queries for `kavadist` module
 
