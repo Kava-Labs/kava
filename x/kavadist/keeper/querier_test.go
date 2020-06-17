@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestQuerierGetBalance() {
 	querier := keeper.NewQuerier(suite.keeper)
 	bz, err := querier(suite.ctx, []string{types.QueryGetBalance}, abci.RequestQuery{})
 	suite.Require().NoError(err)
-	suite.NotNil(bz)
+	suite.Require().NotNil(bz)
 
 	var coins sdk.Coins
 	types.ModuleCdc.UnmarshalJSON(bz, &coins)
