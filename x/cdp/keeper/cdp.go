@@ -319,7 +319,7 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 	return
 }
 
-// GetGovDenom returns the denom of governance token
+// GetGovDenom returns the denom of the governance token
 func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	bz := store.Get([]byte{})

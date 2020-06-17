@@ -12,7 +12,7 @@ import (
 // the following operations are performed:
 // 1. Collateral for all deposits is sent from the cdp module to the liquidator module account
 // 2. The liquidation penalty is applied
-// 3. Debt coins are sent from the cdp module to the liquidator module account,
+// 3. Debt coins are sent from the cdp module to the liquidator module account
 // 4. The total amount of principal outstanding for that collateral type is decremented
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
