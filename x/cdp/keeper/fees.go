@@ -38,7 +38,6 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 			return false
 		}
 
-		// note - only works if principal length is one
 		dp, found := k.GetDebtParam(ctx, cdp.Principal.Denom)
 		if !found {
 			return false
