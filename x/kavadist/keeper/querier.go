@@ -16,6 +16,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, k)
+		case types.QueryGetBalance:
+			return queryGetBalance(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -32,5 +34,17 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+	return bz, nil
+}
+
+// queryGetBalance returns current balance of kavadist module account
+func queryGetBalance(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	acc := k.supplyKeeper.GetModuleAccount(ctx, types.KavaDistMacc)
+	bz, err := codec.MarshalJSONIndent(k.cdc, acc.GetCoins())
+
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
 	return bz, nil
 }
