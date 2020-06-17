@@ -90,8 +90,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 // ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty
 func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.Int) sdk.Int {
 	penalty := k.getLiquidationPenalty(ctx, denom)
-	penaltyAmount := sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
-	return penaltyAmount
+	return sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
 }
 
 func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdk.Int {
