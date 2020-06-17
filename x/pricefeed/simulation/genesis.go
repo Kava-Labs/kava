@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
@@ -32,7 +32,7 @@ func loadPricefeedGenState(simState *module.SimulationState) pricefeed.GenesisSt
 	var postedPrices []pricefeed.PostedPrice
 	for _, denom := range BaseAssets {
 		// Select an account to be the oracle
-		oracle, _ := simulation.RandomAcc(simState.Rand, simState.Accounts)
+		oracle, _ := simtypes.RandomAcc(simState.Rand, simState.Accounts)
 
 		marketID := fmt.Sprintf("%s:%s", denom, QuoteAsset)
 		// Construct market for asset

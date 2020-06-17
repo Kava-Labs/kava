@@ -16,13 +16,15 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
@@ -37,7 +39,7 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	cdc := app.MakeCodec()
+	appCodec, cdc := app.MakeCodec()
 
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
@@ -54,7 +56,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(ctx, cdc, banktypes.GenesisBalancetIterator{}, app.DefaultNodeHome),
 		migrate.MigrateGenesisCmd(ctx, cdc),
 		writeParamsAndConfigCmd(cdc),
 		genutilcli.GenTxCmd(
@@ -62,13 +64,14 @@ func main() {
 			cdc,
 			app.ModuleBasics,
 			staking.AppModuleBasic{},
-			auth.GenesisAccountIterator{},
+			bank.GenesisBalancesIterator{},
 			app.DefaultNodeHome,
 			app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
-		AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
-		testnetCmd(ctx, cdc, app.ModuleBasics, auth.GenesisAccountIterator{}),
+		AddGenesisAccountCmd(ctx, cdc, appCodec, app.DefaultNodeHome, app.DefaultCLIHome),
+		testnetCmd(ctx, cdc, app.ModuleBasics, banktypes.GenesisBalancetIterator{}),
 		flags.NewCompletionCmd(rootCmd, true),
+		debug.Cmd(cdc),
 	)
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
@@ -96,7 +99,8 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 	}
 
 	return app.NewApp(
-		logger, db, traceStore, true, skipUpgradeHeights, invCheckPeriod,
+		logger, db, traceStore, true, skipUpgradeHeights,
+		viper.GetString(flags.FlagHome), invCheckPeriod,
 		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
@@ -107,17 +111,17 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 
 func exportAppStateAndTMValidators(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string,
-) (json.RawMessage, []tmtypes.GenesisValidator, error) {
+) (json.RawMessage, []tmtypes.GenesisValidator, *abci.ConsensusParams, error) {
 
 	if height != -1 {
-		tempApp := app.NewApp(logger, db, traceStore, false, map[int64]bool{}, uint(1))
+		tempApp := app.NewApp(logger, db, traceStore, false, map[int64]bool{}, "", uint(1))
 		err := tempApp.LoadHeight(height)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
+	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, "", uint(1))
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }
 

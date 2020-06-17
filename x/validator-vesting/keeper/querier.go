@@ -26,7 +26,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
+	totalSupply := keeper.bankKeeper.GetSupply(ctx).GetTotal().AmountOf("ukava")
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
 	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
 	if err != nil {

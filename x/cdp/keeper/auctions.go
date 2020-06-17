@@ -117,28 +117,28 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 	}
 
 	// burn debt coins equal to netAmount
-	err := k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
+	err := k.bankKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
 	if err != nil {
 		return err
 	}
 
 	// burn stable coins equal to min(balance, netAmount)
 	dp := k.GetParams(ctx).DebtParam
-	balance := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(dp.Denom)
+	balance := k.bankKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(dp.Denom)
 	burnAmount := sdk.MinInt(balance, netAmount)
-	return k.supplyKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, burnAmount)))
+	return k.bankKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, burnAmount)))
 }
 
 // GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
 func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
-	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
+	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	dp := k.GetParams(ctx).DebtParam
 	return acc.GetCoins().AmountOf(dp.Denom)
 }
 
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
 func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
-	acc := k.supplyKeeper.GetModuleAccount(ctx, accountName)
+	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	return acc.GetCoins().AmountOf(k.GetDebtDenom(ctx))
 }
 
@@ -161,7 +161,7 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 		}
 	}
 
-	surplus := k.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc).GetCoins().AmountOf(params.DebtParam.Denom)
+	surplus := k.bankKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(types.LiquidatorMacc)).AmountOf(params.DebtParam.Denom)
 	if !surplus.GTE(params.SurplusAuctionThreshold) {
 		return nil
 	}

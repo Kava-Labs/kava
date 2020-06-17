@@ -38,9 +38,7 @@ func handleMsgCreateAtomicSwap(ctx sdk.Context, k Keeper, msg MsgCreateAtomicSwa
 		),
 	)
 
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 // handleMsgClaimAtomicSwap handles requests to claim funds in an active AtomicSwap
@@ -59,9 +57,7 @@ func handleMsgClaimAtomicSwap(ctx sdk.Context, k Keeper, msg MsgClaimAtomicSwap)
 		),
 	)
 
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 // handleMsgRefundAtomicSwap handles requests to refund an active AtomicSwap
@@ -80,7 +76,5 @@ func handleMsgRefundAtomicSwap(ctx sdk.Context, k Keeper, msg MsgRefundAtomicSwa
 		),
 	)
 
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

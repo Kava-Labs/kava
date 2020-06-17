@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 )
@@ -399,7 +399,7 @@ func TestGenesisAccountValidate(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		acc     authexported.GenesisAccount
+		acc     authtypes.GenesisAccount
 		expPass bool
 	}{
 		{

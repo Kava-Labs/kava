@@ -28,7 +28,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	} else {
 		deposit = types.NewDeposit(cdp.ID, depositor, collateral)
 	}
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleName, sdk.NewCoins(collateral))
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 		),
 	)
 
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoins(collateral))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoins(collateral))
 	if err != nil {
 		panic(err)
 	}

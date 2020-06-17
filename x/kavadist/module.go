@@ -2,7 +2,6 @@ package kavadist
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -11,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	sim "github.com/cosmos/cosmos-sdk/x/simulation"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -23,9 +21,9 @@ import (
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
+	// _ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic app module basics object
@@ -42,14 +40,14 @@ func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 }
 
 // DefaultGenesis default genesis state
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(DefaultGenesisState())
 }
 
 // ValidateGenesis module validate genesis
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, bz json.RawMessage) error {
 	var gs GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &gs)
+	err := cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
 		return err
 	}
@@ -62,7 +60,7 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 }
 
 // GetTxCmd returns the root tx command for the crisis module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetTxCmd(ctx context.CLIContext) *cobra.Command { return nil }
 
 // GetQueryCmd returns no root query command for the kavadist module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
@@ -75,16 +73,18 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       Keeper
-	supplyKeeper types.SupplyKeeper
+	keeper        Keeper
+	accountKeeper types.AccountKeeper
+	supplyKeeper  types.SupplyKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
+func NewAppModule(keeper Keeper, ak types.AccountKeeper, sk types.SupplyKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
-		supplyKeeper:   supplyKeeper,
+		accountKeeper:  ak,
+		supplyKeeper:   sk,
 	}
 }
 
@@ -117,18 +117,18 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 }
 
 // InitGenesis module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, genesisState)
 
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis module export genesis
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock module begin-block
@@ -143,27 +143,27 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 //____________________________________________________________________________
 
-// GenerateGenesisState creates a randomized GenState of the auction module
-func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
-}
+// // GenerateGenesisState creates a randomized GenState of the auction module
+// func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+// 	simulation.RandomizedGenState(simState)
+// }
 
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-	return nil
-}
+// // ProposalContents doesn't return any content functions for governance proposals.
+// func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
+// 	return nil
+// }
 
-// RandomizedParams returns nil because auction has no params.
-func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-	return simulation.ParamChanges(r)
-}
+// // RandomizedParams returns nil because auction has no params.
+// func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+// 	return simulation.ParamChanges(r)
+// }
 
-// RegisterStoreDecoder registers a decoder for auction module's types
-func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[StoreKey] = simulation.DecodeStore
-}
+// // RegisterStoreDecoder registers a decoder for auction module's types
+// func (AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+// 	sdr[StoreKey] = simulation.DecodeStore
+// }
 
-// WeightedOperations returns the all the auction module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-	return nil
-}
+// // WeightedOperations returns the all the auction module operations with their respective weights.
+// func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+// 	return nil
+// }

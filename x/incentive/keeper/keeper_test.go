@@ -7,8 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -41,12 +40,12 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.Account {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
+func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
 	sk := suite.app.GetSupplyKeeper()
 	return sk.GetModuleAccount(suite.ctx, name)
 }

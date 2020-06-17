@@ -2,9 +2,6 @@ package app
 
 import (
 	"math/rand"
-	"testing"
-
-	"github.com/stretchr/testify/require"
 
 	tmdb "github.com/tendermint/tm-db"
 
@@ -17,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
@@ -26,7 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/kava-labs/kava/x/auction"
@@ -59,14 +54,13 @@ func NewTestApp() TestApp {
 	SetBip44CoinType(config)
 
 	db := tmdb.NewMemDB()
-	app := NewApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, 0)
+	app := NewApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, "", 0)
 	return TestApp{App: *app}
 }
 
 // nolint
 func (tApp TestApp) GetAccountKeeper() auth.AccountKeeper { return tApp.accountKeeper }
 func (tApp TestApp) GetBankKeeper() bank.Keeper           { return tApp.bankKeeper }
-func (tApp TestApp) GetSupplyKeeper() supply.Keeper       { return tApp.supplyKeeper }
 func (tApp TestApp) GetStakingKeeper() staking.Keeper     { return tApp.stakingKeeper }
 func (tApp TestApp) GetSlashingKeeper() slashing.Keeper   { return tApp.slashingKeeper }
 func (tApp TestApp) GetMintKeeper() mint.Keeper           { return tApp.mintKeeper }
@@ -110,23 +104,23 @@ func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) T
 	return tApp
 }
 
-func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAddress, expectedCoins sdk.Coins) {
-	acc := tApp.GetAccountKeeper().GetAccount(ctx, owner)
-	require.NotNilf(t, acc, "account with address '%s' doesn't exist", owner)
-	require.Equal(t, expectedCoins, acc.GetCoins())
-}
+// func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAddress, expectedCoins sdk.Coins) {
+// 	acc := tApp.GetAccountKeeper().GetAccount(ctx, owner)
+// 	require.NotNilf(t, acc, "account with address '%s' doesn't exist", owner)
+// 	require.Equal(t, expectedCoins, acc.GetCoins())
+// }
 
 // Create a new auth genesis state from some addresses and coins. The state is returned marshalled into a map.
-func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
-	// Create GenAccounts
-	accounts := authexported.GenesisAccounts{}
-	for i := range addresses {
-		accounts = append(accounts, auth.NewBaseAccount(addresses[i], coins[i], nil, 0, 0))
-	}
-	// Create the auth genesis state
-	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
-	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
-}
+// func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState {
+// 	// Create GenAccounts
+// 	accounts := authexported.GenesisAccounts{}
+// 	for i := range addresses {
+// 		accounts = append(accounts, auth.NewBaseAccount(addresses[i], coins[i], nil, 0, 0))
+// 	}
+// 	// Create the auth genesis state
+// 	authGenesis := auth.NewGenesisState(auth.DefaultParams(), accounts)
+// 	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
+// }
 
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
 // TODO only generate secp256 keys?

@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
@@ -16,7 +16,9 @@ import (
 func init() {
 	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
 	// But since these proposals contain Permissions, these types also need registering:
-	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
+
+	// TODO: govtypes.ModuleCdc.RegisterInterface is not available
+	// govtypes.RegisterInterface((*Permission)(nil), nil)
 	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
 	govtypes.RegisterProposalTypeCodec(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission")
 	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
@@ -61,7 +63,7 @@ type SimpleParamChangePermission struct {
 var _ Permission = SimpleParamChangePermission{}
 
 func (perm SimpleParamChangePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
-	proposal, ok := p.(paramstypes.ParameterChangeProposal)
+	proposal, ok := p.(*paramstypes.ParameterChangeProposal)
 	if !ok {
 		return false
 	}
@@ -109,7 +111,7 @@ type TextPermission struct{}
 var _ Permission = TextPermission{}
 
 func (TextPermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
-	_, ok := p.(govtypes.TextProposal)
+	_, ok := p.(*govtypes.TextProposal)
 	return ok
 }
 
@@ -131,7 +133,7 @@ type SoftwareUpgradePermission struct{}
 var _ Permission = SoftwareUpgradePermission{}
 
 func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ *codec.Codec, _ ParamKeeper, p PubProposal) bool {
-	_, ok := p.(upgrade.SoftwareUpgradeProposal)
+	_, ok := p.(*upgrade.SoftwareUpgradeProposal)
 	return ok
 }
 
@@ -180,7 +182,7 @@ func (perm SubParamChangePermission) MarshalYAML() (interface{}, error) {
 
 func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, p PubProposal) bool {
 	// Check pubproposal has correct type
-	proposal, ok := p.(paramstypes.ParameterChangeProposal)
+	proposal, ok := p.(*paramstypes.ParameterChangeProposal)
 	if !ok {
 		return false
 	}

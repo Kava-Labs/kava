@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/cosmos/cosmos-sdk/x/params"
 
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
@@ -15,12 +15,15 @@ import (
 type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	paramSubspace params.Subspace
+	accountKeeper types.AccountKeeper
 	supplyKeeper  types.SupplyKeeper
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace,
+	ak types.AccountKeeper, sk types.SupplyKeeper,
+) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -29,6 +32,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		key:           key,
 		cdc:           cdc,
 		paramSubspace: paramstore,
+		accountKeeper: ak,
 		supplyKeeper:  sk,
 	}
 }

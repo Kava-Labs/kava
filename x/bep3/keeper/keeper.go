@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -16,15 +16,15 @@ import (
 type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
-	supplyKeeper  types.SupplyKeeper
+	paramSubspace params.Subspace
+	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
 	Maccs         map[string]bool
 }
 
 // NewKeeper creates a bep3 keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak types.AccountKeeper,
-	paramstore subspace.Subspace, maccs map[string]bool) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, bk types.BankKeeper, ak types.AccountKeeper,
+	paramstore params.Subspace, maccs map[string]bool) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -33,7 +33,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, sk types.SupplyKeeper, ak typ
 		key:           key,
 		cdc:           cdc,
 		paramSubspace: paramstore,
-		supplyKeeper:  sk,
+		bankKeeper:    bk,
 		accountKeeper: ak,
 		Maccs:         maccs,
 	}

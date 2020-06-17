@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	"github.com/cosmos/cosmos-sdk/x/params"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -15,15 +15,18 @@ import (
 )
 
 type Keeper struct {
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper    types.BankKeeper
+	accountKeeper types.AccountKeeper
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
+	paramSubspace params.Subspace
 }
 
 // NewKeeper returns a new auction keeper.
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.SupplyKeeper, paramstore subspace.Subspace) Keeper {
-	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper, paramstore params.Subspace,
+) Keeper {
+	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
@@ -32,7 +35,8 @@ func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, supplyKeeper types.Suppl
 	}
 
 	return Keeper{
-		supplyKeeper:  supplyKeeper,
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
 		storeKey:      storeKey,
 		cdc:           cdc,
 		paramSubspace: paramstore,

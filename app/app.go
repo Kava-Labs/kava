@@ -12,12 +12,13 @@ import (
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
@@ -27,9 +28,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 
@@ -41,6 +42,12 @@ import (
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+
+	"github.com/cosmos/cosmos-sdk/x/capability"
+	"github.com/cosmos/cosmos-sdk/x/ibc"
+	transfer "github.com/cosmos/cosmos-sdk/x/ibc-transfer"
+	ibcclient "github.com/cosmos/cosmos-sdk/x/ibc/02-client"
+	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
 )
 
 const (
@@ -56,10 +63,11 @@ var (
 
 	// ModuleBasics manages simple versions of full app modules. It's used for things such as codec registration and genesis file verification.
 	ModuleBasics = module.NewBasicManager(
-		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
+		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -70,9 +78,8 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		supply.AppModuleBasic{},
-		evidence.AppModuleBasic{},
 		auction.AppModuleBasic{},
 		cdp.AppModuleBasic{},
 		pricefeed.AppModuleBasic{},
@@ -80,23 +87,26 @@ var (
 		bep3.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		incentive.AppModuleBasic{},
+		evidence.AppModuleBasic{},
+		transfer.AppModuleBasic{},
 	)
 
 	// module account permissions
 	mAccPerms = map[string][]string{
 		auth.FeeCollectorName:       nil,
 		distr.ModuleName:            nil,
-		mint.ModuleName:             {supply.Minter},
-		staking.BondedPoolName:      {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName:   {supply.Burner, supply.Staking},
-		gov.ModuleName:              {supply.Burner},
-		validatorvesting.ModuleName: {supply.Burner},
+		mint.ModuleName:             {auth.Minter},
+		staking.BondedPoolName:      {auth.Burner, auth.Staking},
+		staking.NotBondedPoolName:   {auth.Burner, auth.Staking},
+		gov.ModuleName:              {auth.Burner},
+		validatorvesting.ModuleName: {auth.Burner},
 		auction.ModuleName:          nil,
-		cdp.ModuleName:              {supply.Minter, supply.Burner},
-		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
-		cdp.SavingsRateMacc:         {supply.Minter},
+		cdp.ModuleName:              {auth.Minter, auth.Burner},
+		cdp.LiquidatorMacc:          {auth.Minter, auth.Burner},
+		cdp.SavingsRateMacc:         {auth.Minter},
 		bep3.ModuleName:             nil,
-		kavadist.ModuleName:         {supply.Minter},
+		kavadist.ModuleName:         {auth.Minter},
+		transfer.ModuleName:         {auth.Minter, auth.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -116,57 +126,70 @@ type App struct {
 	invCheckPeriod uint
 
 	// keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
+	memKeys map[string]*sdk.MemoryStoreKey
+
+	// subspaces
+	subspaces map[string]params.Subspace
 
 	// keepers from all the modules
-	accountKeeper   auth.AccountKeeper
-	bankKeeper      bank.Keeper
-	supplyKeeper    supply.Keeper
-	stakingKeeper   staking.Keeper
-	slashingKeeper  slashing.Keeper
-	mintKeeper      mint.Keeper
-	distrKeeper     distr.Keeper
-	govKeeper       gov.Keeper
-	crisisKeeper    crisis.Keeper
-	upgradeKeeper   upgrade.Keeper
-	paramsKeeper    params.Keeper
-	evidenceKeeper  evidence.Keeper
-	vvKeeper        validatorvesting.Keeper
-	auctionKeeper   auction.Keeper
-	cdpKeeper       cdp.Keeper
-	pricefeedKeeper pricefeed.Keeper
-	committeeKeeper committee.Keeper
-	bep3Keeper      bep3.Keeper
-	kavadistKeeper  kavadist.Keeper
-	incentiveKeeper incentive.Keeper
+	accountKeeper    auth.AccountKeeper
+	bankKeeper       bank.Keeper
+	capabilityKeeper *capability.Keeper
+	stakingKeeper    staking.Keeper
+	slashingKeeper   slashing.Keeper
+	mintKeeper       mint.Keeper
+	distrKeeper      distr.Keeper
+	govKeeper        gov.Keeper
+	crisisKeeper     crisis.Keeper
+	upgradeKeeper    upgrade.Keeper
+	paramsKeeper     params.Keeper
+	ibcKeeper        *ibc.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	evidenceKeeper   evidence.Keeper
+	transferKeeper   transfer.Keeper
+	vvKeeper         validatorvesting.Keeper
+	auctionKeeper    auction.Keeper
+	cdpKeeper        cdp.Keeper
+	pricefeedKeeper  pricefeed.Keeper
+	committeeKeeper  committee.Keeper
+	bep3Keeper       bep3.Keeper
+	kavadistKeeper   kavadist.Keeper
+	incentiveKeeper  incentive.Keeper
+
+	// make scoped keepers public for test purposes
+	scopedIBCKeeper      capability.ScopedKeeper
+	scopedTransferKeeper capability.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
 
 	// simulation manager
-	sm *module.SimulationManager
+	// sm *module.SimulationManager
 }
 
 // NewApp returns a reference to an initialized App.
 func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	skipUpgradeHeights map[int64]bool, invCheckPeriod uint,
+	skipUpgradeHeights map[int64]bool, home string, invCheckPeriod uint,
 	baseAppOptions ...func(*bam.BaseApp)) *App {
 
-	cdc := MakeCodec()
+	appCodec, cdc := MakeCodec()
 
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 
 	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
-		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
-		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, committee.StoreKey,
+		auth.StoreKey, bank.StoreKey, staking.StoreKey,
+		mint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		gov.StoreKey, validatorvesting.StoreKey, auction.StoreKey,
+		cdp.StoreKey, pricefeed.StoreKey, bep3.StoreKey,
+		kavadist.StoreKey, incentive.StoreKey, committee.StoreKey,
+		params.StoreKey, ibc.StoreKey, upgrade.StoreKey,
+		evidence.StoreKey, transfer.StoreKey, capability.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capability.MemStoreKey)
 
 	var app = &App{
 		BaseApp:        bApp,
@@ -174,103 +197,91 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		invCheckPeriod: invCheckPeriod,
 		keys:           keys,
 		tkeys:          tkeys,
+		memKeys:        memKeys,
+		subspaces:      make(map[string]params.Subspace),
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
-	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
-	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	mintSubspace := app.paramsKeeper.Subspace(mint.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
-	evidenceSubspace := app.paramsKeeper.Subspace(evidence.DefaultParamspace)
-	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
-	auctionSubspace := app.paramsKeeper.Subspace(auction.DefaultParamspace)
-	cdpSubspace := app.paramsKeeper.Subspace(cdp.DefaultParamspace)
-	pricefeedSubspace := app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
-	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
-	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
-	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
+	app.paramsKeeper = params.NewKeeper(appCodec, keys[params.StoreKey], tkeys[params.TStoreKey])
+	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
+	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
+	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	app.subspaces[mint.ModuleName] = app.paramsKeeper.Subspace(mint.DefaultParamspace)
+	app.subspaces[distr.ModuleName] = app.paramsKeeper.Subspace(distr.DefaultParamspace)
+	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
+	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
+	app.subspaces[auction.ModuleName] = app.paramsKeeper.Subspace(auction.DefaultParamspace)
+	app.subspaces[cdp.ModuleName] = app.paramsKeeper.Subspace(cdp.DefaultParamspace)
+	app.subspaces[pricefeed.ModuleName] = app.paramsKeeper.Subspace(pricefeed.DefaultParamspace)
+	app.subspaces[bep3.ModuleName] = app.paramsKeeper.Subspace(bep3.DefaultParamspace)
+	app.subspaces[kavadist.ModuleName] = app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
+	app.subspaces[incentive.ModuleName] = app.paramsKeeper.Subspace(incentive.DefaultParamspace)
+
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(std.ConsensusParamsKeyTable()))
+
+	// add capability keeper and ScopeToModule for ibc module
+	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey], memKeys[capability.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
+	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(transfer.ModuleName)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
-		app.cdc,
+		appCodec,
 		keys[auth.StoreKey],
-		authSubspace,
+		app.subspaces[auth.ModuleName],
 		auth.ProtoBaseAccount,
-	)
-	app.bankKeeper = bank.NewBaseKeeper(
-		app.accountKeeper,
-		bankSubspace,
-		app.BlacklistedAccAddrs(),
-	)
-	app.supplyKeeper = supply.NewKeeper(
-		app.cdc,
-		keys[supply.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
 		mAccPerms,
 	)
+	app.bankKeeper = bank.NewBaseKeeper(
+		appCodec, keys[bank.StoreKey], app.accountKeeper, app.subspaces[bank.ModuleName], app.BlacklistedAccAddrs(),
+	)
 	stakingKeeper := staking.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[staking.StoreKey],
-		app.supplyKeeper,
-		stakingSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		app.subspaces[staking.ModuleName],
 	)
 	app.mintKeeper = mint.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[mint.StoreKey],
-		mintSubspace,
+		app.subspaces[mint.ModuleName],
 		&stakingKeeper,
-		app.supplyKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
 		auth.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[distr.StoreKey],
-		distrSubspace,
+		app.subspaces[distr.ModuleName],
+		app.accountKeeper,
+		app.bankKeeper,
 		&stakingKeeper,
-		app.supplyKeeper,
 		auth.FeeCollectorName,
 		app.ModuleAccountAddrs(),
 	)
 	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[slashing.StoreKey],
 		&stakingKeeper,
-		slashingSubspace,
+		app.subspaces[slashing.ModuleName],
 	)
 	app.crisisKeeper = crisis.NewKeeper(
-		crisisSubspace,
+		app.subspaces[crisis.ModuleName],
 		invCheckPeriod,
-		app.supplyKeeper,
+		app.bankKeeper,
 		auth.FeeCollectorName,
 	)
-	app.upgradeKeeper = upgrade.NewKeeper(
-		skipUpgradeHeights,
-		keys[upgrade.StoreKey],
-		app.cdc,
-	)
-
-	// create evidence keeper with router
-	evidenceKeeper := evidence.NewKeeper(
-		app.cdc,
-		keys[evidence.StoreKey],
-		evidenceSubspace,
-		&app.stakingKeeper,
-		app.slashingKeeper,
-	)
-	evidenceRouter := evidence.NewRouter()
-	evidenceKeeper.SetRouter(evidenceRouter)
-	app.evidenceKeeper = *evidenceKeeper
+	app.upgradeKeeper = upgrade.NewKeeper(skipUpgradeHeights, keys[upgrade.StoreKey], appCodec, home)
 
 	// create committee keeper with router
 	committeeGovRouter := gov.NewRouter()
 	committeeGovRouter.
 		AddRoute(gov.RouterKey, gov.ProposalHandler).
-		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
@@ -286,15 +297,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	govRouter := gov.NewRouter()
 	govRouter.
 		AddRoute(gov.RouterKey, gov.ProposalHandler).
-		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(committee.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = gov.NewKeeper(
-		app.cdc,
+		appCodec,
 		keys[gov.StoreKey],
-		govSubspace,
-		app.supplyKeeper,
+		app.subspaces[gov.ModuleName],
+		app.accountKeeper,
+		app.bankKeeper,
 		&stakingKeeper,
 		govRouter,
 	)
@@ -304,49 +316,50 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[validatorvesting.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
-		app.supplyKeeper,
 		&stakingKeeper,
 	)
 	app.pricefeedKeeper = pricefeed.NewKeeper(
 		app.cdc,
 		keys[pricefeed.StoreKey],
-		pricefeedSubspace,
+		app.subspaces[pricefeed.ModuleName],
 	)
 	app.auctionKeeper = auction.NewKeeper(
 		app.cdc,
 		keys[auction.StoreKey],
-		app.supplyKeeper,
-		auctionSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		app.subspaces[auction.ModuleName],
 	)
 	app.cdpKeeper = cdp.NewKeeper(
 		app.cdc,
 		keys[cdp.StoreKey],
-		cdpSubspace,
+		app.subspaces[cdp.ModuleName],
 		app.pricefeedKeeper,
 		app.auctionKeeper,
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.accountKeeper,
 		mAccPerms,
 	)
 	app.bep3Keeper = bep3.NewKeeper(
 		app.cdc,
 		keys[bep3.StoreKey],
-		app.supplyKeeper,
+		app.bankKeeper,
 		app.accountKeeper,
-		bep3Subspace,
+		app.subspaces[bep3.ModuleName],
 		app.ModuleAccountAddrs(),
 	)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,
 		keys[kavadist.StoreKey],
-		kavadistSubspace,
-		app.supplyKeeper,
+		app.subspaces[kavadist.ModuleName],
+		app.accountKeeper,
+		app.bankKeeper,
 	)
 	app.incentiveKeeper = incentive.NewKeeper(
 		app.cdc,
 		keys[incentive.StoreKey],
-		incentiveSubspace,
-		app.supplyKeeper,
+		app.subspaces[incentive.ModuleName],
+		app.bankKeeper,
 		app.cdpKeeper,
 		app.accountKeeper,
 	)
@@ -356,29 +369,64 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
+	// Create IBC Keeper
+	// TODO: remove amino codec dependency once Tendermint version is upgraded with protobuf changes
+	app.ibcKeeper = ibc.NewKeeper(
+		app.cdc, appCodec, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
+	)
+
+	// Create Transfer Keepers
+	app.transferKeeper = transfer.NewKeeper(
+		appCodec, keys[transfer.StoreKey],
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		app.accountKeeper, app.bankKeeper,
+		scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.transferKeeper)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := port.NewRouter()
+	ibcRouter.AddRoute(transfer.ModuleName, transferModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
+
+	// create evidence keeper with router
+	evidenceKeeper := evidence.NewKeeper(
+		appCodec,
+		keys[evidence.StoreKey],
+		&app.stakingKeeper,
+		app.slashingKeeper,
+	)
+	evidenceRouter := evidence.NewRouter().
+		AddRoute(ibcclient.RouterKey, ibcclient.HandlerClientMisbehaviour(app.ibcKeeper.ClientKeeper))
+	evidenceKeeper.SetRouter(evidenceRouter)
+	app.evidenceKeeper = *evidenceKeeper
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		auth.NewAppModule(appCodec, app.accountKeeper),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
-		evidence.NewAppModule(app.evidenceKeeper),
 		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
-		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
+		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
+		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+		pricefeed.NewAppModule(app.pricefeedKeeper, app.bankKeeper, app.accountKeeper),
+		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
+		kavadist.NewAppModule(app.kavadistKeeper, app.accountKeeper, app.bankKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
+		params.NewAppModule(app.paramsKeeper),
+		transferModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -389,21 +437,31 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, incentive.ModuleName, committee.ModuleName,
+		bep3.ModuleName, incentive.ModuleName, committee.ModuleName, ibc.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
 
+	// TODO: old SetOrderInitGenesis
+	// app.mm.SetOrderInitGenesis(
+	// 	auth.ModuleName, // loads all accounts - should run before any module with a module account
+	// 	validatorvesting.ModuleName, distr.ModuleName,
+	// 	staking.ModuleName, bank.ModuleName, slashing.ModuleName,
+	// 	gov.ModuleName, mint.ModuleName, evidence.ModuleName,
+	// 	pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
+	// 	bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName,
+	// 	committee.ModuleName, ibc.ModuleName, transfer.ModuleName,
+	// 	bank.ModuleName,    // calculates the total bank from account - should run after modules that modify accounts in genesis
+	// 	crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
+	// 	genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
+	// )
+
 	app.mm.SetOrderInitGenesis(
-		auth.ModuleName, // loads all accounts - should run before any module with a module account
-		validatorvesting.ModuleName, distr.ModuleName,
-		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
-		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
-		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName,
-		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
-		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
-		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
+		capability.ModuleName, auth.ModuleName, validatorvesting.ModuleName, distr.ModuleName,
+		staking.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName, mint.ModuleName,
+		crisis.ModuleName, ibc.ModuleName, genutil.ModuleName, pricefeed.ModuleName, cdp.ModuleName,
+		auction.ModuleName, bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName,
+		evidence.ModuleName, transfer.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -413,59 +471,72 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	//
 	// NOTE: This is not required for apps that don't use the simulator for fuzz testing
 	// transactions.
-	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.accountKeeper),
-		validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
-		cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.supplyKeeper),
-		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
-		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
-		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
-		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
-	)
+	// app.sm = module.NewSimulationManager(
+	// 	auth.NewAppModule(app.accountKeeper),
+	// 	validatorvesting.NewAppModule(app.vvKeeper, app.accountKeeper),
+	// 	bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+	// 	capability.NewAppModule(appCodec, *app.capabilityKeeper),
+	// 	bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+	// 	gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
+	// 	mint.NewAppModule(app.mintKeeper),
+	// 	distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+	// 	staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+	// 	slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+	// 	pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
+	// 	cdp.NewAppModule(app.cdpKeeper, app.accountKeeper, app.pricefeedKeeper, app.bankKeeper),
+	// 	auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.bankKeeper),
+	// 	bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.bankKeeper),
+	// 	kavadist.NewAppModule(app.kavadistKeeper, app.bankKeeper),
+	// 	incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper),
+	// 	committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+	// 	evidence.NewAppModule(app.evidenceKeeper),
+	// )
 
-	app.sm.RegisterStoreDecoders()
+	// app.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
+	app.MountMemoryStores(memKeys)
 
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(
+		auth.NewAnteHandler(
+			app.accountKeeper, app.bankKeeper, *app.ibcKeeper,
+			auth.DefaultSigVerificationGasConsumer,
+		),
+	)
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
 	if loadLatest {
-		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
-		if err != nil {
+		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
 	}
+
+	ctx := app.BaseApp.NewUncachedContext(true, abci.Header{})
+	app.capabilityKeeper.InitializeAndSeal(ctx)
+
+	app.scopedIBCKeeper = scopedIBCKeeper
+	app.scopedTransferKeeper = scopedTransferKeeper
 
 	return app
 }
 
 // custom tx codec
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
+func MakeCodec() (*std.Codec, *codec.Codec) {
 
-	ModuleBasics.RegisterCodec(cdc)
-	vesting.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	codec.RegisterEvidences(cdc)
+	cdc := std.MakeCodec(ModuleBasics)
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	appCodec := std.NewAppCodec(cdc, interfaceRegistry)
 
-	return cdc.Seal()
+	sdk.RegisterInterfaces(interfaceRegistry)
+	ModuleBasics.RegisterInterfaceModules(interfaceRegistry)
+
+	return appCodec, cdc
 }
 
 // SetBech32AddressPrefixes sets the global prefix to be used when serializing addresses to bech32 strings.
@@ -490,23 +561,31 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 	return app.mm.EndBlock(ctx, req)
 }
 
-// custom logic for app initialization
+// TODO:
+// // custom logic for app initialization
+// func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+// 	var genesisState GenesisState
+// 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
+// 	return app.mm.InitGenesis(ctx, app.cdc, genesisState)
+// }
+
+// InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	var genesisState GenesisState
+	var genesisState simapp.GenesisState
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-	return app.mm.InitGenesis(ctx, genesisState)
+	return app.mm.InitGenesis(ctx, app.cdc, genesisState)
 }
 
 // load a particular height
 func (app *App) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *App) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[auth.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
@@ -516,7 +595,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 func (app *App) BlacklistedAccAddrs() map[string]bool {
 	blacklistedAddrs := make(map[string]bool)
 	for acc := range mAccPerms {
-		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blacklistedAddrs[auth.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
 	return blacklistedAddrs
@@ -529,7 +608,8 @@ func (app *App) Codec() *codec.Codec {
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
+	// return app.sm
+	return nil
 }
 
 // GetMaccPerms returns a mapping of the application's module account permissions.

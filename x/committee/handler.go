@@ -1,6 +1,8 @@
 package committee
 
 import (
+	"encoding/binary"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -38,9 +40,11 @@ func handleMsgSubmitProposal(ctx sdk.Context, k keeper.Keeper, msg types.MsgSubm
 		),
 	)
 
+	proposalIDBytes := make([]byte, 32)
+	binary.LittleEndian.PutUint64(proposalIDBytes, proposalID)
 	return &sdk.Result{
-		Data:   GetKeyFromID(proposalID),
-		Events: ctx.EventManager().Events(),
+		Data:   proposalIDBytes,
+		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil
 }
 
@@ -58,5 +62,5 @@ func handleMsgVote(ctx sdk.Context, k keeper.Keeper, msg types.MsgVote) (*sdk.Re
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

@@ -9,6 +9,7 @@ import (
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
+
 		switch msg := msg.(type) {
 		case MsgPostPrice:
 			return HandleMsgPostPrice(ctx, k, msg)
@@ -22,10 +23,7 @@ func NewHandler(k Keeper) sdk.Handler {
 // do proposers need to post the round in the message? If not, how do we determine the round?
 
 // HandleMsgPostPrice handles prices posted by oracles
-func HandleMsgPostPrice(
-	ctx sdk.Context,
-	k Keeper,
-	msg MsgPostPrice) (*sdk.Result, error) {
+func HandleMsgPostPrice(ctx sdk.Context, k Keeper, msg MsgPostPrice) (*sdk.Result, error) {
 
 	_, err := k.GetOracle(ctx, msg.MarketID, msg.From)
 	if err != nil {
@@ -44,5 +42,5 @@ func HandleMsgPostPrice(
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

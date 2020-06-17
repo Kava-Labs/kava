@@ -6,8 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -18,31 +17,27 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	if !found {
 		return sdkerrors.Wrap(types.ErrDebtNotSupported, debtDenom)
 	}
-
-	savingsRateMacc := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
-	surplusToDistribute := savingsRateMacc.GetCoins().AmountOf(dp.Denom)
+	savingsRateMacc := k.accountKeeper.GetModuleAddress(types.SavingsRateMacc)
+	surplusToDistribute := k.bankKeeper.GetAllBalances(ctx, savingsRateMacc).AmountOf(dp.Denom)
 	if surplusToDistribute.IsZero() {
 		return nil
 	}
 
 	modAccountCoins := k.getModuleAccountCoins(ctx, dp.Denom)
-	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
+	totalSupplyLessModAccounts := k.bankKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
 
 	// values to use in interest calculation
 	totalSurplus := sdk.NewDecFromInt(surplusToDistribute)
 	totalSupply := sdk.NewDecFromInt(totalSupplyLessModAccounts.AmountOf(debtDenom))
 
 	var iterationErr error
-	// TODO: avoid iterating over all the accounts by keeping the stored stable coin
-	// holders' addresses separately.
-	k.accountKeeper.IterateAccounts(ctx, func(acc authexported.Account) (stop bool) {
-		_, ok := acc.(supplyexported.ModuleAccountI)
+	k.accountKeeper.IterateAccounts(ctx, func(acc authtypes.AccountI) (stop bool) {
+		_, ok := acc.(authtypes.ModuleAccountI)
 		if ok {
 			// don't distribute savings rate to module accounts
 			return false
 		}
-
-		debtAmount := acc.GetCoins().AmountOf(debtDenom)
+		debtAmount := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress()).AmountOf(debtDenom)
 		if !debtAmount.IsPositive() {
 			return false
 		}
@@ -59,7 +54,7 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 		}
 
 		interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
 		if err != nil {
 			iterationErr = err
 			return true
@@ -92,7 +87,7 @@ func (k Keeper) SetPreviousSavingsDistribution(ctx sdk.Context, distTime time.Ti
 func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
 	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
 	for macc := range k.maccPerms {
-		modCoinBalance := k.supplyKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
+		modCoinBalance := k.bankKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(macc)).AmountOf(denom)
 		if modCoinBalance.IsPositive() {
 			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
 		}

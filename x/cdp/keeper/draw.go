@@ -32,11 +32,11 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom string
 	}
 
 	// mint the principal and send it to the cdp owner
-	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
 	if err != nil {
 		panic(err)
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
 	if err != nil {
 		panic(err)
 	}
@@ -96,13 +96,13 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, denom stri
 		return err
 	}
 	// send the payment from the sender to the cpd module
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
 	if err != nil {
 		return err
 	}
 
 	// burn the payment coins
-	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
 	if err != nil {
 		panic(err)
 	}
@@ -188,7 +188,7 @@ func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk
 func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 	deposits := k.GetDeposits(ctx, cdp.ID)
 	for _, deposit := range deposits {
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, deposit.Depositor, sdk.NewCoins(deposit.Amount))
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, deposit.Depositor, sdk.NewCoins(deposit.Amount))
 		if err != nil {
 			panic(err)
 		}

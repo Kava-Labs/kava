@@ -16,9 +16,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/tendermint/tendermint/crypto"
 
@@ -57,7 +57,7 @@ For example:
 		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Get proposing address
@@ -90,7 +90,7 @@ For example:
 			}
 
 			// Sign and broadcast message
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
@@ -107,7 +107,7 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 		Example: fmt.Sprintf("%s tx %s vote 2", version.ClientName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Get voting address
@@ -126,13 +126,13 @@ func GetCmdVote(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 }
 
 // GetGovCmdSubmitProposal returns a command to submit a proposal to the gov module. It is passed to the gov module for use on its command subtree.
-func GetGovCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+func GetGovCmdSubmitProposal(ctx context.CLIContext) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "committee [proposal-file] [deposit]",
 		Short: "Submit a governance proposal to change a committee.",
@@ -144,12 +144,12 @@ For example, to create or update a committee:
 
 and to delete a committee:
 %s
-`, MustGetExampleCommitteeChangeProposal(cdc), MustGetExampleCommitteeDeleteProposal(cdc)),
+`, MustGetExampleCommitteeChangeProposal(ctx.Codec), MustGetExampleCommitteeDeleteProposal(ctx.Codec)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(ctx.Codec))
+			cliCtx := context.NewCLIContext().WithCodec(ctx.Codec)
 
 			// Get proposing address
 			proposer := cliCtx.GetFromAddress()
@@ -166,7 +166,7 @@ and to delete a committee:
 				return err
 			}
 			var content govtypes.Content
-			if err := cdc.UnmarshalJSON(bz, &content); err != nil {
+			if err := ctx.Codec.UnmarshalJSON(bz, &content); err != nil {
 				return err
 			}
 			if err = content.ValidateBasic(); err != nil {
@@ -174,14 +174,17 @@ and to delete a committee:
 			}
 
 			// Build message and run basic validation
-			msg := govtypes.NewMsgSubmitProposal(content, deposit, proposer)
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, proposer)
+			if err != nil {
+				return err
+			}
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
 			// Sign and broadcast message
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 	return cmd
@@ -228,10 +231,10 @@ func MustGetExampleCommitteeDeleteProposal(cdc *codec.Codec) string {
 
 // MustGetExampleParameterChangeProposal is a helper function to return an example json proposal
 func MustGetExampleParameterChangeProposal(cdc *codec.Codec) string {
-	exampleParameterChangeProposal := params.NewParameterChangeProposal(
+	exampleParameterChangeProposal := paramtypes.NewParameterChangeProposal(
 		"A Title",
 		"A description of this proposal.",
-		[]params.ParamChange{params.NewParamChange("cdp", "SurplusAuctionThreshold", "1000000000")},
+		[]paramtypes.ParamChange{paramtypes.NewParamChange("cdp", "SurplusAuctionThreshold", "1000000000")},
 	)
 	exampleParameterChangeProposalBz, err := cdc.MarshalJSONIndent(exampleParameterChangeProposal, "", "  ")
 	if err != nil {

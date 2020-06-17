@@ -9,7 +9,8 @@ func init() {
 	cdc := codec.New()
 	RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
-	ModuleCdc = cdc.Seal()
+	cdc.Seal()
+	ModuleCdc = cdc
 }
 
 // RegisterCodec registers the necessary types for cdp module

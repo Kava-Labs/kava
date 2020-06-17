@@ -13,15 +13,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
-	v18de63supply "github.com/kava-labs/kava/migrate/v0_8/sdk/supply/v18de63"
 	valvesting "github.com/kava-labs/kava/x/validator-vesting"
 	v0_3valvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_3"
 )
@@ -77,7 +75,7 @@ func QueryAccountRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		accGetter := types.NewAccountRetriever(cliCtx)
 
-		account, height, err := accGetter.GetAccountWithHeight(addr)
+		account, height, err := accGetter.GetAccountWithHeight(cliCtx, addr)
 
 		// convert v0.8 account type into old v0.3 account type so that it json marshals into the v0.3 format
 		oldAccount := rollbackAccountType(account)
@@ -85,7 +83,7 @@ func QueryAccountRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		cliCtx = cliCtx.WithCodec(makeCodecV03())
 
 		if err != nil {
-			if err := accGetter.EnsureExists(addr); err != nil {
+			if err := accGetter.EnsureExists(cliCtx, addr); err != nil {
 				cliCtx = cliCtx.WithHeight(height)
 				rest.PostProcessResponse(w, cliCtx, v18de63auth.BaseAccount{})
 				return
@@ -109,7 +107,7 @@ func makeCodecV03() *codec.Codec {
 	v0_3valvesting.RegisterCodec(v0_3Codec)
 	return v0_3Codec
 }
-func rollbackAccountType(newAccount authexported.Account) v18de63auth.Account {
+func rollbackAccountType(newAccount authtypes.AccountI) v18de63auth.Account {
 	switch acc := newAccount.(type) {
 
 	case *auth.BaseAccount:
@@ -168,9 +166,9 @@ func rollbackAccountType(newAccount authexported.Account) v18de63auth.Account {
 		}
 		return vva
 
-	case supply.ModuleAccount:
+	case authtypes.ModuleAccount:
 		ba := v18de63auth.BaseAccount(*(acc.BaseAccount))
-		ma := v18de63supply.ModuleAccount{
+		ma := authtypes.ModuleAccount{
 			BaseAccount: &ba,
 			Name:        acc.Name,
 			Permissions: acc.Permissions,
