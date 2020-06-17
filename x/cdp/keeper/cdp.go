@@ -319,7 +319,7 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 	return
 }
 
-// GetGovDenom returns the denom of debt in the system
+// GetGovDenom returns the denom of governance token
 func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	bz := store.Get([]byte{})
@@ -406,7 +406,6 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 
 // ValidateCollateralizationRatio validate that adding the input principal doesn't put the cdp below the liquidation ratio
 func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, principal sdk.Coin, fees sdk.Coin) error {
-	//
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, fees, spot)
 	if err != nil {
 		return err
