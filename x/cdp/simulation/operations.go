@@ -65,7 +65,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, sk types.SupplyKeeper, k keeper.Keep
 			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, nil
 		}
 
-		price, err := pfk.GetCurrentPrice(ctx, randCollateralParam.MarketID)
+		price, err := pfk.GetCurrentPrice(ctx, randCollateralParam.SpotMarketID)
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, "", ""), nil, err
 		}

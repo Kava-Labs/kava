@@ -10,6 +10,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 )
 
+const (
+	CollateralAuctionType = "collateral"
+	SurplusAuctionType    = "surplus"
+	DebtAuctionType       = "debt"
+	ForwardAuctionPhase   = "forward"
+	ReverseAuctionPhase   = "reverse"
+)
+
 // DistantFuture is a very large time value to use as initial the ending time for auctions.
 // It is not set to the max time supported. This can cause problems with time comparisons, see https://stackoverflow.com/a/32620397.
 // Also amino panics when encoding times ≥ the start of year 10000.
@@ -115,7 +123,7 @@ type SurplusAuction struct {
 func (a SurplusAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // GetType returns the auction type. Used to identify auctions in event attributes.
-func (a SurplusAuction) GetType() string { return "surplus" }
+func (a SurplusAuction) GetType() string { return SurplusAuctionType }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -125,7 +133,7 @@ func (a SurplusAuction) GetModuleAccountCoins() sdk.Coins {
 }
 
 // GetPhase returns the direction of a surplus auction, which never changes.
-func (a SurplusAuction) GetPhase() string { return "forward" }
+func (a SurplusAuction) GetPhase() string { return ForwardAuctionPhase }
 
 // NewSurplusAuction returns a new surplus auction.
 func NewSurplusAuction(seller string, lot sdk.Coin, bidDenom string, endTime time.Time) SurplusAuction {
@@ -154,7 +162,7 @@ type DebtAuction struct {
 func (a DebtAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // GetType returns the auction type. Used to identify auctions in event attributes.
-func (a DebtAuction) GetType() string { return "debt" }
+func (a DebtAuction) GetType() string { return DebtAuctionType }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -165,7 +173,7 @@ func (a DebtAuction) GetModuleAccountCoins() sdk.Coins {
 }
 
 // GetPhase returns the direction of a debt auction, which never changes.
-func (a DebtAuction) GetPhase() string { return "reverse" }
+func (a DebtAuction) GetPhase() string { return ReverseAuctionPhase }
 
 // Validate validates the DebtAuction fields values.
 func (a DebtAuction) Validate() error {
@@ -213,7 +221,7 @@ type CollateralAuction struct {
 func (a CollateralAuction) WithID(id uint64) Auction { a.ID = id; return a }
 
 // GetType returns the auction type. Used to identify auctions in event attributes.
-func (a CollateralAuction) GetType() string { return "collateral" }
+func (a CollateralAuction) GetType() string { return CollateralAuctionType }
 
 // GetModuleAccountCoins returns the total number of coins held in the module account for this auction.
 // It is used in genesis initialize the module account correctly.
@@ -231,9 +239,9 @@ func (a CollateralAuction) IsReversePhase() bool {
 // GetPhase returns the direction of a collateral auction.
 func (a CollateralAuction) GetPhase() string {
 	if a.IsReversePhase() {
-		return "reverse"
+		return ReverseAuctionPhase
 	}
-	return "forward"
+	return ForwardAuctionPhase
 }
 
 // Validate validates the CollateralAuction fields values.

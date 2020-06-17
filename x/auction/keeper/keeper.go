@@ -178,3 +178,12 @@ func (k Keeper) IterateAuctions(ctx sdk.Context, cb func(auction types.Auction) 
 		}
 	}
 }
+
+// GetAllAuctions returns all auctions from the store
+func (k Keeper) GetAllAuctions(ctx sdk.Context) (auctions types.Auctions) {
+	k.IterateAuctions(ctx, func(auction types.Auction) bool {
+		auctions = append(auctions, auction)
+		return false
+	})
+	return
+}

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -115,21 +116,13 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 // MintDebtCoins mints debt coins in the cdp module account
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
-	err := k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, paymentCoins.Amount))
-	err := k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
 }
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom
@@ -301,14 +294,20 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
 func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, denom string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("denom %s prefix not found", denom))
+	}
 	store.Set(types.CollateralRatioKey(db, id, collateralRatio), types.GetCdpIDBytes(id))
 }
 
 // RemoveCdpCollateralRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
 func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, denom string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("denom %s prefix not found", denom))
+	}
 	store.Delete(types.CollateralRatioKey(db, id, collateralRatio))
 }
 
@@ -352,7 +351,11 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin) error {
 	if !found {
 		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateral.Denom)
 	}
-	ok := k.GetMarketStatus(ctx, cp.MarketID)
+	ok := k.GetMarketStatus(ctx, cp.SpotMarketID)
+	if !ok {
+		return sdkerrors.Wrap(types.ErrPricefeedDown, collateral.Denom)
+	}
+	ok = k.GetMarketStatus(ctx, cp.LiquidationMarketID)
 	if !ok {
 		return sdkerrors.Wrap(types.ErrPricefeedDown, collateral.Denom)
 	}
@@ -404,7 +407,7 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 // ValidateCollateralizationRatio validate that adding the input principal doesn't put the cdp below the liquidation ratio
 func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, principal sdk.Coin, fees sdk.Coin) error {
 	//
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, fees)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, fees, spot)
 	if err != nil {
 		return err
 	}
@@ -430,11 +433,10 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 // LoadAugmentedCDP creates a new augmented CDP from an existing CDP
 func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.AugmentedCDP {
 	// calculate collateralization ratio
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Principal, cdp.AccumulatedFees, liquidation)
 	if err != nil {
 		return types.AugmentedCDP{CDP: cdp}
 	}
-
 	// convert collateral value to debt coin
 	totalDebt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
 	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
@@ -445,11 +447,20 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
-func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, principal sdk.Coin, fees sdk.Coin) (sdk.Dec, error) {
+func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, principal sdk.Coin, fees sdk.Coin, pfType pricefeedType) (sdk.Dec, error) {
 	if collateral.IsZero() {
 		return sdk.ZeroDec(), nil
 	}
-	marketID := k.getMarketID(ctx, collateral.Denom)
+	var marketID string
+	switch pfType {
+	case spot:
+		marketID = k.getSpotMarketID(ctx, collateral.Denom)
+	case liquidation:
+		marketID = k.getliquidationMarketID(ctx, collateral.Denom)
+	default:
+		return sdk.Dec{}, pfType.IsValid()
+	}
+
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return sdk.Dec{}, err
@@ -467,9 +478,18 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 }
 
 // CalculateCollateralizationRatioFromAbsoluteRatio takes a coin's denom and an absolute ratio and returns the respective collateralization ratio
-func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralDenom string, absoluteRatio sdk.Dec) (sdk.Dec, error) {
-	// get price collateral
-	marketID := k.getMarketID(ctx, collateralDenom)
+func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralDenom string, absoluteRatio sdk.Dec, pfType pricefeedType) (sdk.Dec, error) {
+	// get price of collateral
+	var marketID string
+	switch pfType {
+	case spot:
+		marketID = k.getSpotMarketID(ctx, collateralDenom)
+	case liquidation:
+		marketID = k.getliquidationMarketID(ctx, collateralDenom)
+	default:
+		return sdk.Dec{}, pfType.IsValid()
+	}
+
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return sdk.Dec{}, err
@@ -515,4 +535,19 @@ func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coi
 func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdk.Dec) {
 	dp, _ := k.GetDebtParam(ctx, debt.Denom)
 	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
+}
+
+type pricefeedType string
+
+const (
+	spot        pricefeedType = "spot"
+	liquidation               = "liquidation"
+)
+
+func (pft pricefeedType) IsValid() error {
+	switch pft {
+	case spot, liquidation:
+		return nil
+	}
+	return errors.New(fmt.Sprintf("invalid pricefeed type: %s", pft))
 }

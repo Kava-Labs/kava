@@ -45,7 +45,10 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore params.Subspace, p
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom
 func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, denom string) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, _ := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("denom %s prefix not found", denom))
+	}
 	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(db))
 }
 
@@ -53,7 +56,10 @@ func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, denom string) sdk.Iterato
 // matching denom and collateral:debt ratio LESS THAN targetRatio
 func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, denom string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("denom %s prefix not found", denom))
+	}
 	return store.Iterator(types.CollateralRatioIterKey(db, sdk.ZeroDec()), types.CollateralRatioIterKey(db, targetRatio))
 }
 

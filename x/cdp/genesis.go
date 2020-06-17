@@ -38,13 +38,21 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.A
 	}
 
 	for _, col := range gs.Params.CollateralParams {
-		_, found := collateralMap[col.MarketID]
+		_, found := collateralMap[col.SpotMarketID]
 		if !found {
 			panic(fmt.Sprintf("%s collateral not found in pricefeed", col.Denom))
 		}
 		// sets the status of the pricefeed in the store
 		// if pricefeed not active, debt operations are paused
-		_ = k.UpdatePricefeedStatus(ctx, col.MarketID)
+		_ = k.UpdatePricefeedStatus(ctx, col.SpotMarketID)
+
+		_, found = collateralMap[col.LiquidationMarketID]
+		if !found {
+			panic(fmt.Sprintf("%s collateral not found in pricefeed", col.Denom))
+		}
+		// sets the status of the pricefeed in the store
+		// if pricefeed not active, debt operations are paused
+		_ = k.UpdatePricefeedStatus(ctx, col.LiquidationMarketID)
 	}
 
 	k.SetParams(ctx, gs.Params)
@@ -72,7 +80,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.A
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 	k.SetGovDenom(ctx, gs.GovDenom)
-	k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
+	// only set the previous block time if it's different than default
+	if !gs.PreviousDistributionTime.Equal(types.DefaultPreviousDistributionTime) {
+		k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
+	}
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)

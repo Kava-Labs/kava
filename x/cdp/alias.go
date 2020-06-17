@@ -103,6 +103,7 @@ var (
 	ErrLoadingAugmentedCDP              = types.ErrLoadingAugmentedCDP
 	ErrInvalidDebtRequest               = types.ErrInvalidDebtRequest
 	ErrDenomPrefixNotFound              = types.ErrDenomPrefixNotFound
+	ErrPricefeedDown                    = types.ErrPricefeedDown
 	CdpIDKeyPrefix                      = types.CdpIDKeyPrefix
 	CdpKeyPrefix                        = types.CdpKeyPrefix
 	CollateralRatioIndexPrefix          = types.CollateralRatioIndexPrefix
@@ -112,13 +113,16 @@ var (
 	DepositKeyPrefix                    = types.DepositKeyPrefix
 	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix
 	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
+	PricefeedStatusKeyPrefix            = types.PricefeedStatusKeyPrefix
 	KeyGlobalDebtLimit                  = types.KeyGlobalDebtLimit
 	KeyCollateralParams                 = types.KeyCollateralParams
 	KeyDebtParam                        = types.KeyDebtParam
 	KeyDistributionFrequency            = types.KeyDistributionFrequency
 	KeyCircuitBreaker                   = types.KeyCircuitBreaker
 	KeyDebtThreshold                    = types.KeyDebtThreshold
+	KeyDebtLot                          = types.KeyDebtLot
 	KeySurplusThreshold                 = types.KeySurplusThreshold
+	KeySurplusLot                       = types.KeySurplusLot
 	DefaultGlobalDebt                   = types.DefaultGlobalDebt
 	DefaultCircuitBreaker               = types.DefaultCircuitBreaker
 	DefaultCollateralParams             = types.DefaultCollateralParams
@@ -129,6 +133,8 @@ var (
 	DefaultStableDenom                  = types.DefaultStableDenom
 	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
 	DefaultDebtThreshold                = types.DefaultDebtThreshold
+	DefaultSurplusLot                   = types.DefaultSurplusLot
+	DefaultDebtLot                      = types.DefaultDebtLot
 	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
 	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
 	MaxSortableDec                      = types.MaxSortableDec

@@ -98,7 +98,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
 	}
 
-	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio)
+	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio, "liquidation")
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
 	}

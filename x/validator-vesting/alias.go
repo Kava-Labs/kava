@@ -46,5 +46,4 @@ type (
 	VestingProgress         = types.VestingProgress
 	CurrentPeriodProgress   = types.CurrentPeriodProgress
 	ValidatorVestingAccount = types.ValidatorVestingAccount
-	TotalCirculatingSupply  = types.TotalCirculatingSupply
 )

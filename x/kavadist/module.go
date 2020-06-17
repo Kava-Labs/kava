@@ -13,6 +13,10 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/x/kavadist/client/cli"
+	"github.com/kava-labs/kava/x/kavadist/client/rest"
+	"github.com/kava-labs/kava/x/kavadist/keeper"
+	"github.com/kava-labs/kava/x/kavadist/simulation"
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -50,14 +54,18 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, bz json.RawMessag
 	return gs.Validate()
 }
 
-// RegisterRESTRoutes registers no REST routes for the crisis module.
-func (AppModuleBasic) RegisterRESTRoutes(_ context.CLIContext, _ *mux.Router) {}
+// RegisterRESTRoutes registers  REST routes for the kavadist module.
+func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+	rest.RegisterRoutes(ctx, rtr)
+}
 
 // GetTxCmd returns the root tx command for the crisis module.
 func (AppModuleBasic) GetTxCmd(ctx context.CLIContext) *cobra.Command { return nil }
 
-// GetQueryCmd returns no root query command for the crisis module.
-func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command { return nil }
+// GetQueryCmd returns no root query command for the kavadist module.
+func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd(types.StoreKey, cdc)
+}
 
 //____________________________________________________________________________
 
@@ -104,7 +112,9 @@ func (AppModule) QuerierRoute() string {
 }
 
 // NewQuerierHandler returns no sdk.Querier.
-func (AppModule) NewQuerierHandler() sdk.Querier { return nil }
+func (am AppModule) NewQuerierHandler() sdk.Querier {
+	return keeper.NewQuerier(am.keeper)
+}
 
 // InitGenesis module init-genesis
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {

@@ -1,3 +1,10 @@
+<!--
+order: 0
+title: "Incentive Overview"
+parent:
+  title: "incentive"
+-->
+
 # `incentive`
 
 <!-- TOC -->

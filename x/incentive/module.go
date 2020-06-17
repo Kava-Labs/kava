@@ -65,25 +65,25 @@ func (AppModuleBasic) GetTxCmd(ctx context.CLIContext) *cobra.Command {
 	return cli.GetTxCmd(ctx.Codec)
 }
 
-// GetQueryCmd get the root query command of this module
+// GetQueryCmd returns no root query command for the incentive module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-// // RegisterStoreDecoder registers a decoder for incentive module's types
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[StoreKey] = simulation.DecodeStore
-// }
+// RegisterStoreDecoder registers a decoder for incentive module's types
+func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
+	sdr[StoreKey] = simulation.DecodeStore
+}
 
-// // GenerateGenesisState creates a randomized GenState of the incentive module
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
+// GenerateGenesisState creates a randomized GenState of the incentive module
+func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
+	simulation.RandomizedGenState(simState)
+}
 
-// // RandomizedParams creates randomized incentive param changes for the simulator.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
+// RandomizedParams creates randomized incentive param changes for the simulator.
+func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
+	return simulation.ParamChanges(r)
+}
 
 // // ProposalContents doesn't return any content functions for governance proposals.
 // func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {

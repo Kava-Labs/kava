@@ -179,19 +179,22 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 		Params: cdp.Params{
 			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			DebtAuctionLot:               cdp.DefaultDebtLot,
 			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
 			CollateralParams: cdp.CollateralParams{
 				{
-					Denom:              "bnb",
-					LiquidationRatio:   sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:          sdk.NewInt64Coin("usdx", 1000000000000),
-					StabilityFee:       sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					LiquidationPenalty: d("0.05"),
-					AuctionSize:        i(10000000000),
-					Prefix:             0x20,
-					MarketID:           "bnb:usd",
-					ConversionFactor:   i(8),
+					Denom:               "bnb",
+					LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(10000000000),
+					Prefix:              0x20,
+					SpotMarketID:        "bnb:usd",
+					LiquidationMarketID: "bnb:usd",
+					ConversionFactor:    i(8),
 				},
 			},
 			DebtParam: cdp.DebtParam{

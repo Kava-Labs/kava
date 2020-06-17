@@ -138,7 +138,9 @@ func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
 		if err != nil {
 			panic(err)
 		}
+
 		if !passes {
+			// continue to next proposal
 			return false
 		}
 
@@ -164,7 +166,6 @@ func (k Keeper) EnactPassedProposals(ctx sdk.Context) {
 
 // CloseExpiredProposals removes proposals (and associated votes) that have past their deadline.
 func (k Keeper) CloseExpiredProposals(ctx sdk.Context) {
-
 	k.IterateProposals(ctx, func(proposal types.Proposal) bool {
 		if !proposal.HasExpiredBy(ctx.BlockTime()) {
 			return false

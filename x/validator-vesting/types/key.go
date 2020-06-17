@@ -13,6 +13,9 @@ const (
 
 	// QuerierRoute should be set to module name
 	QuerierRoute = ModuleName
+
+	// QueryPath shortened name for public API (cli and REST)
+	QueryPath = "vesting"
 )
 
 var (

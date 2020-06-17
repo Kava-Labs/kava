@@ -1,3 +1,10 @@
+<!--
+order: 0
+title: "Kavadist Overview"
+parent:
+  title: "kavadist"
+-->
+
 # `kavadist`
 
 <!-- TOC -->

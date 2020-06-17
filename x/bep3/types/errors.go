@@ -11,8 +11,8 @@ var (
 	ErrInvalidTimestamp = sdkerrors.Register(ModuleName, 2, "timestamp can neither be 15 minutes ahead of the current time, nor 30 minutes later")
 	// ErrInvalidHeightSpan error for when a proposed height span is outside of lock time range
 	ErrInvalidHeightSpan = sdkerrors.Register(ModuleName, 3, "height span is outside acceptable range")
-	// ErrInsufficientAmount error for when a swap's amount is less than the deputy fixed fee
-	ErrInsufficientAmount = sdkerrors.Register(ModuleName, 4, "amount must be greater than the deputy fixed fee")
+	// ErrInsufficientAmount error for when a swap's amount cannot cover the deputy's fixed fee
+	ErrInsufficientAmount = sdkerrors.Register(ModuleName, 4, "amount cannot cover the deputy fixed fee")
 	// ErrAssetNotSupported error for when an asset is not supported
 	ErrAssetNotSupported = sdkerrors.Register(ModuleName, 5, "asset not on the list of supported assets")
 	// ErrAssetNotActive error for when an asset is currently inactive
@@ -39,4 +39,6 @@ var (
 	ErrSwapNotRefundable = sdkerrors.Register(ModuleName, 16, "atomic swap is still active and cannot be refunded")
 	// ErrSwapNotClaimable error for when an atomic swap is not open and cannot be claimed
 	ErrSwapNotClaimable = sdkerrors.Register(ModuleName, 17, "atomic swap is not claimable")
+	// ErrInvalidAmount error for when a swap's amount is outside acceptable range
+	ErrInvalidAmount = sdkerrors.Register(ModuleName, 18, "amount is outside acceptable range")
 )

@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
@@ -71,11 +72,6 @@ type ValidatorVestingAccount struct {
 	DebtAfterFailedVesting sdk.Coins             `json:"debt_after_failed_vesting" yaml:"debt_after_failed_vesting"`
 }
 
-// TotalCirculatingSupply represents the total circulating supply of Kava
-type TotalCirculatingSupply struct {
-	TotalSupply uint64 `json:"total_supply" yaml:"total_supply"` // total circulating supply
-}
-
 // NewValidatorVestingAccountRaw creates a new ValidatorVestingAccount object from BaseVestingAccount
 func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 	startTime int64, periods vestingtypes.Periods, validatorAddress sdk.ConsAddress, returnAddress sdk.AccAddress, signingThreshold int64) *ValidatorVestingAccount {
@@ -95,7 +91,10 @@ func NewValidatorVestingAccountRaw(bva *vestingtypes.BaseVestingAccount,
 		ValidatorAddress:       validatorAddress,
 		ReturnAddress:          returnAddress,
 		SigningThreshold:       signingThreshold,
-		CurrentPeriodProgress:  CurrentPeriodProgress{0, 0},
+		CurrentPeriodProgress: CurrentPeriodProgress{
+			MissedBlocks: 0,
+			TotalBlocks:  0,
+		},
 		VestingPeriodProgress:  vestingPeriodProgress,
 		DebtAfterFailedVesting: sdk.NewCoins(),
 	}
@@ -198,11 +197,17 @@ func (vva *ValidatorVestingAccount) TrackDelegation(blockTime time.Time, balance
 
 // Validate checks for errors on the account fields
 func (vva ValidatorVestingAccount) Validate() error {
+	if vva.ValidatorAddress.Empty() {
+		return errors.New("validator address cannot be empty")
+	}
 	if vva.SigningThreshold > 100 || vva.SigningThreshold < 0 {
 		return errors.New("signing threshold must be between 0 and 100")
 	}
 	if vva.ReturnAddress.Equals(vva.Address) {
 		return errors.New("return address cannot be the same as the account address")
+	}
+	if !vva.DebtAfterFailedVesting.IsValid() {
+		return fmt.Errorf("invalid debt after failed vesting coins: %s", vva.DebtAfterFailedVesting)
 	}
 	return vva.PeriodicVestingAccount.Validate()
 }

@@ -47,11 +47,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 
 	cdp.Collateral = cdp.Collateral.Add(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 }
 
 // WithdrawCollateral removes collateral from a cdp if it does not put the cdp below the liquidation ratio
@@ -72,7 +68,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Principal, cdp.AccumulatedFees, spot)
 	if err != nil {
 		return err
 	}

@@ -1,3 +1,9 @@
+<!--
+order: 0
+title: "CDP Overview"
+parent:
+  title: "cdp"
+-->
 
 # `cdp`
 
@@ -6,9 +12,9 @@
 1. **[Concepts](01_concepts.md)**
 2. **[State](02_state.md)**
 3. **[Messages](03_messages.md)**
-4. **[BeginBlock](04_begin_block.md)**
+4. **[Parameters](04_params.md)**
 5. **[Events](05_events.md)**
-6. **[Parameters](06_params.md)**
+6. **[BeginBlock](06_begin_block.md)**
 
 ## Overview
 

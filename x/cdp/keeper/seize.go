@@ -24,9 +24,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	deposits := k.GetDeposits(ctx, cdp.ID)
 	debt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
-	if modAccountDebt.LT(debt) {
-		debt = modAccountDebt
-	}
+	debt = sdk.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
@@ -35,6 +33,12 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 
 	// liquidate deposits and send collateral from cdp to liquidator
 	for _, dep := range deposits {
+		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
+		if err != nil {
+			return err
+		}
+		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCdpLiquidation,
@@ -43,12 +47,8 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 				sdk.NewAttribute(types.AttributeKeyDeposit, dep.String()),
 			),
 		)
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
-		if err != nil {
-			return err
-		}
-		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 	}
+
 	err = k.AuctionCollateral(ctx, deposits, debt, cdp.Principal.Denom)
 	if err != nil {
 		return err

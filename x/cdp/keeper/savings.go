@@ -18,14 +18,18 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 		return sdkerrors.Wrap(types.ErrDebtNotSupported, debtDenom)
 	}
 	savingsRateMacc := k.accountKeeper.GetModuleAddress(types.SavingsRateMacc)
-	surplusToDistribute := k.supplyKeeper.GetAllBalances(ctx, savingsRateMacc).AmountOf(dp.Denom)
+	surplusToDistribute := k.bankKeeper.GetAllBalances(ctx, savingsRateMacc).AmountOf(dp.Denom)
 	if surplusToDistribute.IsZero() {
 		return nil
 	}
 
 	modAccountCoins := k.getModuleAccountCoins(ctx, dp.Denom)
-	totalSupplyLessModAccounts := k.supplyKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
-	surplusDistributed := sdk.ZeroInt()
+	totalSupplyLessModAccounts := k.bankKeeper.GetSupply(ctx).GetTotal().Sub(modAccountCoins)
+
+	// values to use in interest calculation
+	totalSurplus := sdk.NewDecFromInt(surplusToDistribute)
+	totalSupply := sdk.NewDecFromInt(totalSupplyLessModAccounts.AmountOf(debtDenom))
+
 	var iterationErr error
 	k.accountKeeper.IterateAccounts(ctx, func(acc authtypes.AccountI) (stop bool) {
 		_, ok := acc.(authtypes.ModuleAccountI)
@@ -33,30 +37,32 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 			// don't distribute savings rate to module accounts
 			return false
 		}
-		debtAmount := k.supplyKeeper.GetAllBalances(ctx, acc.GetAddress()).AmountOf(debtDenom)
+		debtAmount := k.bankKeeper.GetAllBalances(ctx, acc.GetAddress()).AmountOf(debtDenom)
 		if !debtAmount.IsPositive() {
 			return false
 		}
+
 		// (balance * rewardToDisribute) /  totalSupply
 		// interest is the ratable fraction of savings rate owed to that account, rounded using bankers rounding
-		interest := (sdk.NewDecFromInt(debtAmount).Mul(sdk.NewDecFromInt(surplusToDistribute))).Quo(sdk.NewDecFromInt(totalSupplyLessModAccounts.AmountOf(debtDenom))).RoundInt()
+		interest := (sdk.NewDecFromInt(debtAmount).Mul(totalSurplus)).Quo(totalSupply).RoundInt()
 		// sanity check, if we are going to over-distribute due to rounding, distribute only the remaining savings rate that hasn't been distributed.
-		if interest.GT(surplusToDistribute.Sub(surplusDistributed)) {
-			interest = surplusToDistribute.Sub(surplusDistributed)
-		}
+		interest = sdk.MinInt(interest, surplusToDistribute)
+
 		// sanity check - don't send saving rate if the rounded amount is zero
 		if !interest.IsPositive() {
 			return false
 		}
+
 		interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
 		if err != nil {
 			iterationErr = err
 			return true
 		}
-		surplusDistributed = surplusDistributed.Add(interest)
+		surplusToDistribute = surplusToDistribute.Sub(interest)
 		return false
 	})
+
 	return iterationErr
 }
 
@@ -81,7 +87,7 @@ func (k Keeper) SetPreviousSavingsDistribution(ctx sdk.Context, distTime time.Ti
 func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
 	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
 	for macc := range k.maccPerms {
-		modCoinBalance := k.supplyKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(macc)).AmountOf(denom)
+		modCoinBalance := k.bankKeeper.GetAllBalances(ctx, k.accountKeeper.GetModuleAddress(macc)).AmountOf(denom)
 		if modCoinBalance.IsPositive() {
 			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
 		}

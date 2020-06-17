@@ -18,14 +18,8 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/auctions/{%s}/bids", types.ModuleName, restAuctionID), bidHandlerFn(cliCtx)).Methods("POST")
 }
 
-type placeBidReq struct {
-	BaseReq rest.BaseReq `json:"base_req"`
-	Amount  sdk.Coin     `json:"amount"`
-}
-
 func bidHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		// Get auction ID from url
 		auctionID, ok := rest.ParseUint64OrReturnBadRequest(w, mux.Vars(r)[restAuctionID])
 		if !ok {

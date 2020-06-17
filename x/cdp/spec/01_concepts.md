@@ -1,3 +1,7 @@
+<!--
+order: 1
+-->
+
 # Concepts
 
 ## Collateralized Debt Positions
@@ -32,7 +36,7 @@ Module interactions:
 
 In the event of a decrease in the price of the collateral, the total value of all collateral in CDPs may drop below the value of all the issued stable assets. This undesirable event is countered through two mechanisms:
 
-**CDP Liquidations** The ratio of collateral value to debt value in each CDP is monitored. When this drops too low the collateral and debt is automatically seized by the system. The collateral is sold off through an auction to bring in stable asset which is burned against the seized debt.
+**CDP Liquidations** The ratio of collateral value to debt value in each CDP is monitored. When this drops too low the collateral and debt is automatically seized by the system. The collateral is sold off through an auction to bring in stable asset which is burned against the seized debt. The price used to determine liquidation is controlled by the `LiquidationMarketID` parameter, which can be the same as the `SpotMarketID` or use a different calculation of price, such as a time-weighted average.
 
 **Debt Auctions** In extreme cases where liquidations fail to raise enough to cover the seized debt, another mechanism kicks in: Debt Auctions. System governance tokens are minted and sold through auction to raise enough stable asset to cover the remaining debt. The governors of the system represent the lenders of last resort.
 
@@ -58,7 +62,7 @@ Fees accumulate to the system and are split between the savings rate and surplus
 
 ## Governance
 
-The cdp module's behavior is controlled through several parameters which are updated through a governance mechanism. These parameters are listed in [Parameters](06_params.md).
+The cdp module's behavior is controlled through several parameters which are updated through a governance mechanism. These parameters are listed in [Parameters](04_params.md).
 
 Governance is important for actions such as:
 

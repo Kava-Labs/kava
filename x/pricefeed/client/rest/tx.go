@@ -3,9 +3,8 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
-
-	"github.com/gorilla/mux"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,17 +47,21 @@ func postPriceHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		expiryInt, ok := sdk.NewIntFromString(req.Expiry)
-		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid expiry")
+		expiryInt, err := strconv.ParseInt(req.Expiry, 10, 64)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid expiry %s: %s", req.Expiry, err))
 			return
 		}
-		expiry := tmtime.Canonical(time.Unix(expiryInt.Int64(), 0))
 
-		// create the message
+		if expiryInt > types.MaxExpiry {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid expiry; got %d, max: %d", expiryInt, types.MaxExpiry))
+			return
+		}
+
+		expiry := tmtime.Canonical(time.Unix(expiryInt, 0))
+
 		msg := types.NewMsgPostPrice(addr, req.MarketID, price, expiry)
-		err = msg.ValidateBasic()
-		if err != nil {
+		if err = msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}

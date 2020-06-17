@@ -101,7 +101,7 @@ clean:
 # This tool checks local markdown links as well.
 # Set to exclude riot links as they trigger false positives
 link-check:
-	@go run github.com/raviqqe/liche -r . --exclude "^http://127.*|^https://riot.im/app*|^http://kava-testnet*|^https://testnet-dex*"
+	@go run github.com/raviqqe/liche -r . --exclude "^http://127.*|^https://riot.im/app*|^http://kava-testnet*|^https://testnet-dex*|^https://kava3.data.kava.io*|^https://ipfs.io*"
 
 
 lint:
@@ -117,6 +117,21 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.go' | xargs goimports -w -local github.com/cosmos/cosmos-sdk
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.go' | xargs goimports -w -local github.com/kava-labs/kava
 .PHONY: format
+
+###############################################################################
+###                                Localnet                                 ###
+###############################################################################
+
+build-docker-local-kava:
+	@$(MAKE) -C networks/local
+
+# Run a 4-node testnet locally
+localnet-start: build-linux localnet-stop
+	@if ! [ -f build/node0/kvd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/kvd:Z kava/kavanode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
+	docker-compose up -d
+
+localnet-stop:
+	docker-compose down
 
 ########################################
 ### Testing
@@ -172,3 +187,18 @@ start-remote-sims:
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
 .PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic start-remote-sims
+
+########################################
+### Documentation
+
+# Start docs site at localhost:8080
+docs-develop:
+	@cd docs && \
+	npm install && \
+	npm run serve
+
+# Build the site into docs/.vuepress/dist
+docs-build:
+	@cd docs && \
+	npm install && \
+	npm run build

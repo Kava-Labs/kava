@@ -20,6 +20,8 @@ const (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/claims/{%s}/{%s}", types.ModuleName, restOwner, restDenom), queryClaimsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/rewardperiods", types.ModuleName), queryRewardPeriodsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/claimperiods", types.ModuleName), queryClaimPeriodsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
@@ -29,6 +31,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
+
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestClaimOwner]
 		denom := vars[types.RestClaimDenom]
@@ -42,17 +45,58 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		queryParams := types.NewQueryClaimsParams(owner, denom)
 		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
+
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetClaims), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
 
+func queryRewardPeriodsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryGetRewardPeriods)
+
+		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryClaimPeriodsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryGetClaimPeriods)
+
+		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
