@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction"
 	"github.com/kava-labs/kava/x/bep3"
@@ -76,7 +76,6 @@ func addBep3DeputyAccount(cdc *codec.Codec, appState genutil.AppMap) {
 		authGenState.Accounts,
 		auth.NewBaseAccount(
 			mustAccAddressFromBech32(deputyAddressBech32),
-			deputyCoins,
 			nil, // pubkey is nil for new accounts, it's set when the account first sends a tx
 			0,   // account numbers are reset on auth.InitGenesis, so this value doesn't matter
 			0,   // sequence number starts at 0
@@ -85,12 +84,12 @@ func addBep3DeputyAccount(cdc *codec.Codec, appState genutil.AppMap) {
 	appState[auth.ModuleName] = cdc.MustMarshalJSON(authGenState)
 
 	// 2) Update total supply
-	var supplyGenState supply.GenesisState
-	cdc.MustUnmarshalJSON(appState[supply.ModuleName], &supplyGenState)
+	var bankGenState bank.GenesisState
+	cdc.MustUnmarshalJSON(appState[bank.ModuleName], &bankGenState)
 
-	supplyGenState.Supply = supplyGenState.Supply.Add(deputyCoins...)
+	bankGenState.Supply = bankGenState.Supply.Add(deputyCoins...)
 
-	appState[supply.ModuleName] = cdc.MustMarshalJSON(supplyGenState)
+	appState[bank.ModuleName] = cdc.MustMarshalJSON(bankGenState)
 }
 
 func addAuctionState(cdc *codec.Codec, appState genutil.AppMap) {

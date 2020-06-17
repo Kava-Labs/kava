@@ -14,7 +14,6 @@ import (
 	v038genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	v038slashing "github.com/cosmos/cosmos-sdk/x/slashing"
 	v038staking "github.com/cosmos/cosmos-sdk/x/staking"
-	v038supply "github.com/cosmos/cosmos-sdk/x/supply"
 	v038upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/kava-labs/kava/app"
@@ -219,9 +218,9 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038authtypes.GenesisStat
 			}
 			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&pva))
 
-		case *v18de63supply.ModuleAccount:
+		case *v038authtypes.ModuleAccount:
 			ba := v038authtypes.BaseAccount(*(acc.BaseAccount))
-			ma := v038supply.ModuleAccount{
+			ma := v038authtypes.ModuleAccount{
 				BaseAccount: &ba,
 				Name:        acc.Name,
 				Permissions: acc.Permissions,
