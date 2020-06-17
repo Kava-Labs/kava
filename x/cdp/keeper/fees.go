@@ -68,13 +68,13 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 		k.SetTotalPrincipal(ctx, collateralDenom, dp.Denom, newDebt)
 
 		// mint surplus coins divided between the liquidator and savings module accounts.
-		err = k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+		err = k.bankKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
 		if err != nil {
 			iterationErr = err
 			return true
 		}
 
-		err = k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		err = k.bankKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
 		if err != nil {
 			iterationErr = err
 			return true

@@ -415,7 +415,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction types.DebtAuction, bidder 
 		}
 	}
 	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to min of Bid and amount of debt.
-	if auction.Bidder.Equals(supply.NewModuleAddress(auction.Initiator)) {
+	if auction.Bidder.Equals(authtypes.NewModuleAddress(auction.Initiator)) {
 
 		debtAmountToReturn := sdk.MinInt(auction.Bid.Amount, auction.CorrespondingDebt.Amount)
 		debtToReturn := sdk.NewCoin(auction.CorrespondingDebt.Denom, debtAmountToReturn)

@@ -18,20 +18,18 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	cdc           *codec.Codec
 	ak            types.AccountKeeper
-	bk            types.BankKeeper
-	supplyKeeper  types.SupplyKeeper
+	bankKeeper    types.BankKeeper
 	stakingKeeper types.StakingKeeper
 }
 
 // NewKeeper creates a new Keeper instance
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, sk types.SupplyKeeper, stk types.StakingKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, bankKeeper types.BankKeeper, stk types.StakingKeeper) Keeper {
 
 	return Keeper{
 		cdc:           cdc,
 		storeKey:      key,
 		ak:            ak,
-		bk:            bk,
-		supplyKeeper:  sk,
+		bankKeeper:    bankKeeper,
 		stakingKeeper: stk,
 	}
 }
@@ -163,16 +161,16 @@ func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTim
 	spendableCoins := vv.SpendableCoins(blockTime)
 	if spendableCoins.IsAllGTE(vv.DebtAfterFailedVesting) {
 		if vv.ReturnAddress != nil {
-			err := k.bk.SendCoins(ctx, addr, vv.ReturnAddress, vv.DebtAfterFailedVesting)
+			err := k.bankKeeper.SendCoins(ctx, addr, vv.ReturnAddress, vv.DebtAfterFailedVesting)
 			if err != nil {
 				panic(err)
 			}
 		} else {
-			err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, vv.DebtAfterFailedVesting)
+			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, vv.DebtAfterFailedVesting)
 			if err != nil {
 				panic(err)
 			}
-			err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, vv.DebtAfterFailedVesting)
+			err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, vv.DebtAfterFailedVesting)
 			if err != nil {
 				panic(err)
 			}

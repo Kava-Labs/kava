@@ -160,7 +160,6 @@ func TestAppImportExport(t *testing.T) {
 	fmt.Printf("comparing stores...\n")
 
 	storeKeysPrefixes := []StoreKeysPrefixes{
-		{app.keys[baseapp.MainStoreKey], newApp.keys[baseapp.MainStoreKey], [][]byte{}},
 		{app.keys[auth.StoreKey], newApp.keys[auth.StoreKey], [][]byte{}},
 		{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey],
 			[][]byte{
@@ -191,7 +190,7 @@ func TestAppImportExport(t *testing.T) {
 		if len(failedKVAs) != 0 {
 			fmt.Printf("found %d non-equal key/value pairs between %s and %s\n", len(failedKVAs), skp.A, skp.B)
 		}
-		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(), app.SimulationManager().StoreDecoders, app.Codec(), failedKVAs, failedKVBs))
+		require.Equal(t, len(failedKVAs), 0, simapp.GetSimulationLog(skp.A.Name(), app.SimulationManager().StoreDecoders, failedKVAs, failedKVBs))
 	}
 }
 

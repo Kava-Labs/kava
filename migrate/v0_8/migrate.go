@@ -6,8 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	v038auth "github.com/cosmos/cosmos-sdk/x/auth"
-	v038authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	v038authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	v038vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	v038dist "github.com/cosmos/cosmos-sdk/x/distribution"
 	v038evidence "github.com/cosmos/cosmos-sdk/x/evidence"
@@ -150,18 +149,18 @@ func MigrateSDK(appState v038genutil.AppMap) v038genutil.AppMap {
 	return appState
 }
 
-func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
+func MigrateAuth(oldGenState v18de63auth.GenesisState) v038authtypes.GenesisState {
 	// old and new struct type are identical but with different (un)marshalJSON methods
-	var newAccounts v038authexported.GenesisAccounts
+	var newAccounts v038authtypes.GenesisAccounts
 	for _, account := range oldGenState.Accounts {
 		switch acc := account.(type) {
 
 		case *v18de63auth.BaseAccount:
-			a := v038auth.BaseAccount(*acc)
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&a))
+			a := v038authtypes.BaseAccount(*acc)
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&a))
 
 		case *v18de63auth.BaseVestingAccount:
-			ba := v038auth.BaseAccount(*(acc.BaseAccount))
+			ba := v038authtypes.BaseAccount(*(acc.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
 				BaseAccount:      &ba,
 				OriginalVesting:  acc.OriginalVesting,
@@ -169,10 +168,10 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				DelegatedVesting: acc.DelegatedVesting,
 				EndTime:          acc.EndTime,
 			}
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&bva))
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&bva))
 
 		case *v18de63auth.ContinuousVestingAccount:
-			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			ba := v038authtypes.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
 				BaseAccount:      &ba,
 				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
@@ -184,10 +183,10 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				BaseVestingAccount: &bva,
 				StartTime:          acc.StartTime,
 			}
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&cva))
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&cva))
 
 		case *v18de63auth.DelayedVestingAccount:
-			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			ba := v038authtypes.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
 				BaseAccount:      &ba,
 				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
@@ -198,10 +197,10 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 			dva := v038vesting.DelayedVestingAccount{
 				BaseVestingAccount: &bva,
 			}
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&dva))
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&dva))
 
 		case *v18de63auth.PeriodicVestingAccount:
-			ba := v038auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			ba := v038authtypes.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
 				BaseAccount:      &ba,
 				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
@@ -218,19 +217,19 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				StartTime:          acc.StartTime,
 				VestingPeriods:     newPeriods,
 			}
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&pva))
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&pva))
 
 		case *v18de63supply.ModuleAccount:
-			ba := v038auth.BaseAccount(*(acc.BaseAccount))
+			ba := v038authtypes.BaseAccount(*(acc.BaseAccount))
 			ma := v038supply.ModuleAccount{
 				BaseAccount: &ba,
 				Name:        acc.Name,
 				Permissions: acc.Permissions,
 			}
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&ma))
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&ma))
 
 		case *v0_3validator_vesting.ValidatorVestingAccount:
-			ba := v038auth.BaseAccount(*(acc.PeriodicVestingAccount.BaseVestingAccount.BaseAccount))
+			ba := v038authtypes.BaseAccount(*(acc.PeriodicVestingAccount.BaseVestingAccount.BaseAccount))
 			bva := v038vesting.BaseVestingAccount{
 				BaseAccount:      &ba,
 				OriginalVesting:  acc.PeriodicVestingAccount.BaseVestingAccount.OriginalVesting,
@@ -260,14 +259,14 @@ func MigrateAuth(oldGenState v18de63auth.GenesisState) v038auth.GenesisState {
 				VestingPeriodProgress:  newVestingProgress,
 				DebtAfterFailedVesting: acc.DebtAfterFailedVesting,
 			}
-			newAccounts = append(newAccounts, v038authexported.GenesisAccount(&vva))
+			newAccounts = append(newAccounts, v038authtypes.GenesisAccount(&vva))
 
 		default:
 			panic(fmt.Sprintf("unrecognized account type: %T", acc))
 		}
 	}
-	gs := v038auth.GenesisState{
-		Params:   v038auth.Params(oldGenState.Params),
+	gs := v038authtypes.GenesisState{
+		Params:   v038authtypes.Params(oldGenState.Params),
 		Accounts: newAccounts,
 	}
 	return gs

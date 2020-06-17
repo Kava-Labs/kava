@@ -25,6 +25,9 @@ type AccountKeeper interface {
 // BankKeeper defines the expected bank keeper (noalias)
 type BankKeeper interface {
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
+	GetSupply(ctx sdk.Context) (supply bankexported.SupplyI)
 }
 
 // StakingKeeper defines the expected staking keeper (noalias)
@@ -34,11 +37,4 @@ type StakingKeeper interface {
 	Undelegate(
 		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec,
 	) (time.Time, error)
-}
-
-// SupplyKeeper defines the expected supply keeper for module accounts (noalias)
-type SupplyKeeper interface {
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
-	GetSupply(ctx sdk.Context) (supply bankexported.SupplyI)
 }

@@ -44,17 +44,17 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	id := k.GetNextCdpID(ctx)
 	cdp := types.NewCDP(id, owner, collateral, principal, ctx.BlockHeader().Time)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
 		return err
 	}
 
 	// mint the principal and send to the owners account
-	err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
 	if err != nil {
 		panic(err)
 	}
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
 	if err != nil {
 		panic(err)
 	}
@@ -116,13 +116,13 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 // MintDebtCoins mints debt coins in the cdp module account
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
-	return k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
+	return k.bankKeeper.MintCoins(ctx, moduleAccount, debtCoins)
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, paymentCoins.Amount))
-	return k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
+	return k.bankKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
 }
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom

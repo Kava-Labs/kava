@@ -316,7 +316,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		keys[validatorvesting.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
-		app.bankKeeper,
 		&stakingKeeper,
 	)
 	app.pricefeedKeeper = pricefeed.NewKeeper(

@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -192,7 +191,7 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("badtoken", 10)},
 			types.ErrInvalidLotDenom,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			auth.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
 			false,
@@ -204,7 +203,7 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token1", 21)},
 			types.ErrLotTooLarge,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			auth.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
 			false,
@@ -216,7 +215,7 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token1", 20)},
 			types.ErrLotTooLarge,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			auth.NewModuleAddress(modName),
 			c("token2", 100),
 			false,
 			false,
@@ -228,7 +227,7 @@ func TestAuctionBidding(t *testing.T) {
 			bidArgs{buyer, c("token1", 58)}, // max lot at default 5% is 57
 			types.ErrLotTooLarge,
 			types.DistantFuture,
-			supply.NewModuleAddress(modName),
+			auth.NewModuleAddress(modName),
 			c("token2", 100),
 			false, false,
 		},
@@ -406,7 +405,7 @@ func TestAuctionBidding(t *testing.T) {
 			// Setup test
 			tApp := app.NewTestApp()
 			// Set up seller account
-			sellerAcc := supply.NewEmptyModuleAccount(modName, supply.Minter, supply.Burner)
+			sellerAcc := auth.NewEmptyModuleAccount(modName, auth.Minter, auth.Burner)
 			require.NoError(t, sellerAcc.SetCoins(cs(c("token1", 1000), c("token2", 1000), c("debt", 1000))))
 			// Initialize genesis accounts
 			tApp.InitializeFromGenesisStates(
@@ -495,7 +494,7 @@ func TestAuctionBidding(t *testing.T) {
 					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt.Sub(oldAuction.GetBid()))), bank.GetCoins(ctx, tc.bidArgs.bidder))
 				} else {
 					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt)), bank.GetCoins(ctx, tc.bidArgs.bidder)) // wrapping in cs() to avoid comparing nil and empty coins
-					if oldBidder.Equals(supply.NewModuleAddress(oldAuction.GetInitiator())) {                  // handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
+					if oldBidder.Equals(auth.NewModuleAddress(oldAuction.GetInitiator())) {                    // handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
 						require.Equal(t, oldBidderOldCoins.Add(oldAuction.GetBid()).Add(c("debt", oldAuction.GetBid().Amount.Int64())), bank.GetCoins(ctx, oldBidder))
 					} else {
 						require.Equal(t, cs(oldBidderOldCoins.Add(oldAuction.GetBid())...), bank.GetCoins(ctx, oldBidder))

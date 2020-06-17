@@ -24,6 +24,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
@@ -55,7 +56,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(ctx, cdc, bank.GenesisAccountIterator{}, app.DefaultNodeHome),
+		genutilcli.CollectGenTxsCmd(ctx, cdc, banktypes.GenesisBalancetIterator{}, app.DefaultNodeHome),
 		migrate.MigrateGenesisCmd(ctx, cdc),
 		writeParamsAndConfigCmd(cdc),
 		genutilcli.GenTxCmd(
@@ -68,7 +69,7 @@ func main() {
 			app.DefaultCLIHome),
 		genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics),
 		AddGenesisAccountCmd(ctx, cdc, appCodec, app.DefaultNodeHome, app.DefaultCLIHome),
-		testnetCmd(ctx, cdc, app.ModuleBasics, bank.GenesisAccountIterator{}),
+		testnetCmd(ctx, cdc, app.ModuleBasics, banktypes.GenesisBalancetIterator{}),
 		flags.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(cdc),
 	)
