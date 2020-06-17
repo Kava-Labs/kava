@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+[\#591](https://github.com/Kava-Labs/kava/pull/591) Add a `raw-params` cli method to query raw parameter values for use in manual verification of gov proposals.
+
 [\#584](https://github.com/Kava-Labs/kava/pulls/584) Add REST client and CLI queries for `kavadist` module
 
 [\#578](https://github.com/Kava-Labs/kava/pulls/578) Add v0.3 compatible REST client that supports
