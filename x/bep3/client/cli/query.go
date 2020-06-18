@@ -26,6 +26,40 @@ const (
 	flagDirection  = "direction"
 )
 
+type FormattedAtomicSwap struct {
+	ID                  string `json:"ID" yaml:"ID"`
+	Amount              string `json:"amount"  yaml:"amount"`
+	RandomNumberHash    string `json:"random_number_hash"  yaml:"random_number_hash"`
+	ExpireHeight        uint64 `json:"expire_height"  yaml:"expire_height"`
+	Timestamp           int64  `json:"timestamp"  yaml:"timestamp"`
+	Sender              string `json:"sender"  yaml:"sender"`
+	Recipient           string `json:"recipient"  yaml:"recipient"`
+	SenderOtherChain    string `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	RecipientOtherChain string `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
+	ClosedBlock         int64  `json:"closed_block"  yaml:"closed_block"`
+	Status              string `json:"status"  yaml:"status"`
+	CrossChain          bool   `json:"cross_chain"  yaml:"cross_chain"`
+	Direction           string `json:"direction"  yaml:"direction"`
+}
+
+func NewFormattedAtomicSwap(swap types.AtomicSwap) FormattedAtomicSwap {
+	return FormattedAtomicSwap{
+		ID:                  swap.GetSwapID().String(),
+		Amount:              swap.Amount.String(),
+		RandomNumberHash:    hex.EncodeToString(swap.RandomNumberHash),
+		ExpireHeight:        swap.ExpireHeight,
+		Timestamp:           swap.Timestamp,
+		Sender:              swap.Sender.String(),
+		Recipient:           swap.Recipient.String(),
+		SenderOtherChain:    swap.SenderOtherChain,
+		RecipientOtherChain: swap.RecipientOtherChain,
+		ClosedBlock:         swap.ClosedBlock,
+		Status:              swap.Status.String(),
+		CrossChain:          swap.CrossChain,
+		Direction:           swap.Direction.String(),
+	}
+}
+
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	// Group bep3 queries under a subcommand
@@ -208,7 +242,7 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cdc.MustUnmarshalJSON(res, &atomicSwap)
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(atomicSwap.String())
+			return cliCtx.PrintOutput(NewFormattedAtomicSwap(atomicSwap))
 		},
 	}
 }
@@ -293,8 +327,14 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 				return fmt.Errorf("No matching atomic swaps found")
 			}
 
+			formattedAtomicSwaps := []FormattedAtomicSwap{}
+
+			for _, swap := range matchingAtomicSwaps {
+				formattedAtomicSwaps = append(formattedAtomicSwaps, NewFormattedAtomicSwap(swap))
+			}
+
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(matchingAtomicSwaps.String()) // nolint:errcheck
+			return cliCtx.PrintOutput(formattedAtomicSwaps)
 		},
 	}
 
