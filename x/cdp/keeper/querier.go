@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -24,8 +25,6 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, keeper)
 		case types.QueryGetCdpDeposits:
 			return queryGetDeposits(ctx, req, keeper)
-		case types.QueryTotalSupply:
-			return queryGetTotalSupply(ctx, req, keeper)
 		case types.QueryGetAccounts:
 			return queryGetAccounts(ctx, req, keeper)
 		default:
@@ -160,30 +159,20 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 	return bz, nil
 }
 
-func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("usdx")
-	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
-	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	return bz, nil
-}
-
 // query cdp module accounts
 func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	cdpAccAddress := keeper.supplyKeeper.GetModuleAddress(types.ModuleName)
-	liquidatorAccAddress := keeper.supplyKeeper.GetModuleAddress(types.LiquidatorMacc)
-	savingsRateAccAddress := keeper.supplyKeeper.GetModuleAddress(types.SavingsRateMacc)
+	cdpAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+	liquidatorAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
+	savingsRateAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
 
-	res := types.QueryGetAccountsResponse{
-		Cdp:         cdpAccAddress,
-		Liquidator:  liquidatorAccAddress,
-		SavingsRate: savingsRateAccAddress,
+	accounts := []supply.ModuleAccount{
+		*cdpAccAccount.(*supply.ModuleAccount),
+		*liquidatorAccAccount.(*supply.ModuleAccount),
+		*savingsRateAccAccount.(*supply.ModuleAccount),
 	}
 
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, res)
+	bz, err := codec.MarshalJSONIndent(supply.ModuleCdc, accounts)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

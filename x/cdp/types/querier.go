@@ -11,7 +11,6 @@ const (
 	QueryGetCdps                    = "cdps"
 	QueryGetCdpsByCollateralization = "ratio"
 	QueryGetParams                  = "params"
-	QueryTotalSupply                = "total-supply"
 	QueryGetAccounts                = "accounts"
 	RestOwner                       = "owner"
 	RestCollateralDenom             = "collateral-denom"
@@ -70,10 +69,4 @@ func NewQueryCdpsByRatioParams(denom string, ratio sdk.Dec) QueryCdpsByRatioPara
 		CollateralDenom: denom,
 		Ratio:           ratio,
 	}
-}
-
-type QueryGetAccountsResponse struct {
-	Cdp         sdk.AccAddress `json:"cdp" yaml:"cdp"`
-	Liquidator  sdk.AccAddress `json:"liquidator" yaml:"liquidator"`
-	SavingsRate sdk.AccAddress `json:"savings_rate" yaml:"savings_rate"`
 }

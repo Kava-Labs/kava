@@ -11,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	//supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -279,28 +280,11 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 
 }
 
-func (suite *QuerierTestSuite) TestQueryTotalSupply() {
-	bz, err := suite.querier(suite.ctx, []string{types.QueryTotalSupply}, abci.RequestQuery{})
-	suite.Require().NoError(err)
-	suite.Require().NotNil(bz)
-
-	var supply int64
-	types.ModuleCdc.UnmarshalJSON(bz, &supply)
-	suite.Require().Equal(int64(602400), supply)
-}
-
 func (suite *QuerierTestSuite) TestQueryAccounts() {
 	bz, err := suite.querier(suite.ctx, []string{types.QueryGetAccounts}, abci.RequestQuery{})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(bz)
 
-	sk := suite.app.GetSupplyKeeper()
-
-	var res types.QueryGetAccountsResponse
-	types.ModuleCdc.UnmarshalJSON(bz, &res)
-	suite.Require().Equal(sk.GetModuleAddress(types.ModuleName), res.Cdp)
-	suite.Require().Equal(sk.GetModuleAddress(types.LiquidatorMacc), res.Liquidator)
-	suite.Require().Equal(sk.GetModuleAddress(types.SavingsRateMacc), res.SavingsRate)
 }
 
 func TestQuerierTestSuite(t *testing.T) {

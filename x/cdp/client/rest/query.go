@@ -16,7 +16,6 @@ import (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/accounts", getAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/cdp/totalsupply", getTotalSupplyHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralDenom), queryCdpHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/denom/{%s}", types.RestCollateralDenom), queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/ratio/{%s}/{%s}", types.RestCollateralDenom, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET")
@@ -167,24 +166,6 @@ func getParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetParams), nil)
-		cliCtx = cliCtx.WithHeight(height)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func getTotalSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryTotalSupply), nil)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
