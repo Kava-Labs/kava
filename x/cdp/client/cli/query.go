@@ -30,6 +30,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 		QueryTotalSupply(queryRoute, cdc),
+		QueryGetAccounts(queryRoute, cdc),
 	)...)
 
 	return cdpQueryCmd
@@ -247,6 +248,32 @@ func QueryTotalSupply(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			var out int64
 			if err := cdc.UnmarshalJSON(res, &out); err != nil {
 				return fmt.Errorf("failed to unmarshal supply: %w", err)
+			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+func QueryGetAccounts(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "accounts",
+		Short: "Get module accounts",
+		Long:  "Get cdp module account addresses",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAccounts), nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out types.QueryGetAccountsResponse
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal accounts: %w", err)
 			}
 			return cliCtx.PrintOutput(out)
 		},

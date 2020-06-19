@@ -26,6 +26,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetDeposits(ctx, req, keeper)
 		case types.QueryTotalSupply:
 			return queryGetTotalSupply(ctx, req, keeper)
+		case types.QueryGetAccounts:
+			return queryGetAccounts(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -164,6 +166,26 @@ func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	return bz, nil
+}
+
+// query cdp module accounts
+func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	cdpAccAddress := keeper.supplyKeeper.GetModuleAddress(types.ModuleName)
+	liquidatorAccAddress := keeper.supplyKeeper.GetModuleAddress(types.LiquidatorMacc)
+	savingsRateAccAddress := keeper.supplyKeeper.GetModuleAddress(types.SavingsRateMacc)
+
+	res := types.QueryGetAccountsResponse{
+		Cdp:         cdpAccAddress,
+		Liquidator:  liquidatorAccAddress,
+		SavingsRate: savingsRateAccAddress,
+	}
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, res)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }

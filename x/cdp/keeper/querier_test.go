@@ -289,6 +289,20 @@ func (suite *QuerierTestSuite) TestQueryTotalSupply() {
 	suite.Require().Equal(int64(602400), supply)
 }
 
+func (suite *QuerierTestSuite) TestQueryAccounts() {
+	bz, err := suite.querier(suite.ctx, []string{types.QueryGetAccounts}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
+
+	sk := suite.app.GetSupplyKeeper()
+
+	var res types.QueryGetAccountsResponse
+	types.ModuleCdc.UnmarshalJSON(bz, &res)
+	suite.Require().Equal(sk.GetModuleAddress(types.ModuleName), res.Cdp)
+	suite.Require().Equal(sk.GetModuleAddress(types.LiquidatorMacc), res.Liquidator)
+	suite.Require().Equal(sk.GetModuleAddress(types.SavingsRateMacc), res.SavingsRate)
+}
+
 func TestQuerierTestSuite(t *testing.T) {
 	suite.Run(t, new(QuerierTestSuite))
 }
