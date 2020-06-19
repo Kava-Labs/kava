@@ -286,7 +286,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 				return err
 			}
 
-			var matchingAtomicSwaps []types.AugmentedAtomicSwap
+			var matchingAtomicSwaps types.AugmentedAtomicSwaps
 			cdc.UnmarshalJSON(res, &matchingAtomicSwaps)
 
 			if len(matchingAtomicSwaps) == 0 {

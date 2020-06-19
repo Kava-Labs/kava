@@ -105,7 +105,7 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		swaps = types.AtomicSwaps{}
 	}
 
-	augmentedSwaps := []types.AugmentedAtomicSwap{}
+	augmentedSwaps := types.AugmentedAtomicSwaps{}
 
 	for _, swap := range swaps {
 		augmentedSwaps = append(augmentedSwaps, types.NewAugmentedAtomicSwap(swap))

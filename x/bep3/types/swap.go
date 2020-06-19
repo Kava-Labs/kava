@@ -276,3 +276,5 @@ func NewAugmentedAtomicSwap(swap AtomicSwap) AugmentedAtomicSwap {
 		AtomicSwap: swap,
 	}
 }
+
+type AugmentedAtomicSwaps []AugmentedAtomicSwap
