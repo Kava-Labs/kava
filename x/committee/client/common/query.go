@@ -1,10 +1,13 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -57,4 +60,64 @@ func QueryProposer(cliCtx context.CLIContext, proposalID uint64) (Proposer, erro
 	}
 
 	return Proposer{}, fmt.Errorf("failed to find the proposer for proposalID %d", proposalID)
+}
+
+func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, proposalID uint64) (*types.Proposal, error) {
+	bz, err := cdc.MarshalJSON(types.NewQueryProposalParams(proposalID))
+	if err != nil {
+		return nil, err
+	}
+
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposal), bz)
+
+	if err == nil {
+		var proposal *types.Proposal
+		cdc.MustUnmarshalJSON(res, &proposal)
+
+		return proposal, nil
+	}
+
+	if err != nil && !errors.Is(err, types.ErrUnknownProposal) {
+		return nil, err
+	}
+
+	res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextProposalID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var nextProposalID uint64
+	cdc.MustUnmarshalJSON(res, &nextProposalID)
+
+	if proposalID >= nextProposalID {
+		return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+	}
+
+	events := []string{
+		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgSubmitProposal),
+		fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalSubmit, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
+	}
+
+	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, info := range searchResult.Txs {
+		for _, msg := range info.Tx.GetMsgs() {
+			if msg.Type() == types.TypeMsgSubmitProposal {
+				subMsg := msg.(types.MsgSubmitProposal)
+
+				// return found Proposal
+				// NOTE: no deadline?
+				return &types.Proposal{
+					ID:          proposalID,
+					CommitteeID: subMsg.CommitteeID,
+					PubProposal: subMsg.PubProposal,
+				}, nil
+			}
+		}
+	}
+
+	return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 }

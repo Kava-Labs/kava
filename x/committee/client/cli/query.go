@@ -129,20 +129,12 @@ func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("proposal-id %s not a valid uint", args[0])
 			}
-			bz, err := cdc.MarshalJSON(types.NewQueryProposalParams(proposalID))
+
+			proposal, err := common.QueryProposalByID(cliCtx, cdc, queryRoute, proposalID)
 			if err != nil {
 				return err
 			}
 
-			// Query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposal), bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var proposal types.Proposal
-			cdc.MustUnmarshalJSON(res, &proposal)
 			return cliCtx.PrintOutput(proposal)
 		},
 	}

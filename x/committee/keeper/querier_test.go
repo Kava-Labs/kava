@@ -173,6 +173,18 @@ func (suite *QuerierTestSuite) TestQueryProposal() {
 	suite.Equal(suite.testGenesis.Proposals[0], proposal)
 }
 
+func (suite *QuerierTestSuite) TestQueryNextProposalID() {
+	bz, err := suite.querier(suite.ctx, []string{types.QueryNextProposalID}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
+
+	var nextProposalID uint64
+	suite.Require().NoError(suite.cdc.UnmarshalJSON(bz, &nextProposalID))
+
+	expectedID, _ := suite.keeper.GetNextProposalID(suite.ctx)
+	suite.Require().Equal(expectedID, nextProposalID)
+}
+
 func (suite *QuerierTestSuite) TestQueryVotes() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	// Set up request query
