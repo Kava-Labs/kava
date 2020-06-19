@@ -264,3 +264,15 @@ func (direction SwapDirection) IsValid() bool {
 	}
 	return false
 }
+
+type AugmentedAtomicSwap struct {
+	ID         string `json:"id" yaml:"id"`
+	AtomicSwap `json:"swap" yaml:"swap"`
+}
+
+func NewAugmentedAtomicSwap(swap AtomicSwap) AugmentedAtomicSwap {
+	return AugmentedAtomicSwap{
+		ID:         swap.GetSwapID().String(),
+		AtomicSwap: swap,
+	}
+}

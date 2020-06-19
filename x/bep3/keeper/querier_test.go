@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -120,8 +121,10 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
+	fmt.Printf("%s\n", string(bz))
+
 	// Unmarshal the bytes into type atomic swap
-	var swap types.AtomicSwap
+	var swap types.AugmentedAtomicSwap
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &swap))
 
 	// Check the returned atomic swap's ID
@@ -161,7 +164,7 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var swaps types.AtomicSwaps
+	var swaps []types.AugmentedAtomicSwap
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &swaps))
 
 	suite.Equal(len(suite.swapIDs), len(swaps))
