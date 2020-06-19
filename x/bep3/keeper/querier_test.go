@@ -128,7 +128,7 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &swap))
 
 	// Check the returned atomic swap's ID
-	suite.True(suite.isSwapID[hex.EncodeToString(swap.GetSwapID())])
+	suite.True(suite.isSwapID[swap.ID])
 }
 
 func (suite *QuerierTestSuite) TestQueryAssetSupplies() {
@@ -164,12 +164,12 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var swaps []types.AugmentedAtomicSwap
+	var swaps types.AugmentedAtomicSwaps
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &swaps))
 
 	suite.Equal(len(suite.swapIDs), len(swaps))
 	for _, swap := range swaps {
-		suite.True(suite.isSwapID[hex.EncodeToString(swap.GetSwapID())])
+		suite.True(suite.isSwapID[swap.ID])
 	}
 }
 
