@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	//supply "github.com/cosmos/cosmos-sdk/x/supply"
+	supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -285,6 +285,22 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(bz)
 
+	var accounts []supply.ModuleAccount
+	suite.Require().Nil(supply.ModuleCdc.UnmarshalJSON(bz, &accounts))
+	suite.Require().Equal(3, len(accounts))
+
+	findByName := func(name string) bool {
+		for _, account := range accounts {
+			if account.GetName() == name {
+				return true
+			}
+		}
+		return false
+	}
+
+	suite.Require().True(findByName("cdp"))
+	suite.Require().True(findByName("liquidator"))
+	suite.Require().True(findByName("savings"))
 }
 
 func TestQuerierTestSuite(t *testing.T) {
