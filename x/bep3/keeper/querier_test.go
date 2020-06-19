@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -120,8 +119,6 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	bz, err := suite.querier(ctx, []string{types.QueryGetAtomicSwap}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
-
-	fmt.Printf("%s\n", string(bz))
 
 	// Unmarshal the bytes into type atomic swap
 	var swap types.AugmentedAtomicSwap
