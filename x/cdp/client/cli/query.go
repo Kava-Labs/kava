@@ -29,6 +29,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCdpsByDenomAndRatioCmd(queryRoute, cdc),
 		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
+		QueryTotalSupply(queryRoute, cdc),
 	)...)
 
 	return cdpQueryCmd
@@ -221,6 +222,32 @@ func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Decode and print results
 			var out types.Params
 			cdc.MustUnmarshalJSON(res, &out)
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+func QueryTotalSupply(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "total-supply",
+		Short: "Get total supply",
+		Long:  "Get the current total supply of usdx.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryTotalSupply), nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out int64
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal supply: %w", err)
+			}
 			return cliCtx.PrintOutput(out)
 		},
 	}

@@ -279,6 +279,16 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 
 }
 
+func (suite *QuerierTestSuite) TestQueryTotalSupply() {
+	bz, err := suite.querier(suite.ctx, []string{types.QueryTotalSupply}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(bz)
+
+	var supply int64
+	types.ModuleCdc.UnmarshalJSON(bz, &supply)
+	suite.Require().Equal(int64(602400), supply)
+}
+
 func TestQuerierTestSuite(t *testing.T) {
 	suite.Run(t, new(QuerierTestSuite))
 }
