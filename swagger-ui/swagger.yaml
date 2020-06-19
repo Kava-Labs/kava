@@ -610,28 +610,34 @@
           200:
             description: The cdp module accounts
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  account_number:
-                    type: number
-                  address:
-                    $ref: '#/definitions/Address'
-                  coins:
-                    type: array
-                    items:
-                      $ref: '#/definitions/Coin'
-                  name:
-                    type: string
-                  permissions:
-                    type: array
-                    items:
-                      type: string
-                  public_key:
-                    $ref: "#/definitions/PublicKey"
-                  sequence:
-                    type: number
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      account_number:
+                        type: number
+                      address:
+                        $ref: '#/definitions/Address'
+                      coins:
+                        type: array
+                        items:
+                          $ref: '#/definitions/Coin'
+                      name:
+                        type: string
+                      permissions:
+                        type: array
+                        items:
+                          type: string
+                      public_key:
+                        $ref: "#/definitions/PublicKey"
+                      sequence:
+                        type: number
           500:
             description: Server internal error
 
