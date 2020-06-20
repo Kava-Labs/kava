@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -110,16 +111,54 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 			if msg.Type() == types.TypeMsgSubmitProposal {
 				subMsg := msg.(types.MsgSubmitProposal)
 
-				// return found Proposal
-				// NOTE: no deadline?
+				deadline, err := calculateDeadline(cliCtx, cdc, queryRoute, subMsg.CommitteeID, info.Height)
+				if err != nil {
+					return nil, 0, err
+				}
+
 				return &types.Proposal{
 					ID:          proposalID,
 					CommitteeID: subMsg.CommitteeID,
 					PubProposal: subMsg.PubProposal,
+					Deadline:    deadline,
 				}, height, nil
 			}
 		}
 	}
 
 	return nil, 0, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+}
+
+// calculateDeadline returns the proposal deadline for a committee and block height
+func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, committeeID uint64, height int64) (time.Time, error) {
+	var deadline time.Time
+
+	bz, err := cdc.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
+	if err != nil {
+		return deadline, err
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCommittee), bz)
+	if err != nil {
+		return deadline, err
+	}
+
+	var committee types.Committee
+	err = cdc.UnmarshalJSON(res, &committee)
+	if err != nil {
+		return deadline, err
+	}
+
+	node, err := cliCtx.GetNode()
+	if err != nil {
+		return deadline, err
+	}
+
+	resultBlock, err := node.Block(&height)
+	if err != nil {
+		return deadline, err
+	}
+
+	deadline = resultBlock.Block.Header.Time.Add(committee.ProposalDuration)
+	return deadline, nil
 }
