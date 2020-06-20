@@ -1,0 +1,130 @@
+package keeper
+
+import (
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/kava-labs/kava/x/issuance/types"
+)
+
+// IssueTokens mints new tokens and sends them to the receiver address
+func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sdk.AccAddress) error {
+	asset, found := k.GetAsset(ctx, tokens.Denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
+	}
+	if !owner.Equals(asset.Owner) {
+		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+	}
+	if asset.Paused {
+		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
+	}
+	if k.checkBlockedAddress(ctx, asset, receiver) {
+		return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
+	}
+
+	// mint new tokens
+	err := k.supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(tokens))
+	if err != nil {
+		return err
+	}
+	// send to receiver
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, receiver, sdk.NewCoins(tokens))
+	if err != nil {
+		return err
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeIssue,
+			sdk.NewAttribute(types.AttributeKeyIssueAmount, fmt.Sprintf("%s", tokens)),
+		),
+	)
+	return nil
+}
+
+// RedeemTokens sends tokens from the owner address  to the module account and burns them
+func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddress) error {
+	asset, found := k.GetAsset(ctx, tokens.Denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
+	}
+	if !owner.Equals(asset.Owner) {
+		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+	}
+	if asset.Paused {
+		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
+	}
+	coins := sdk.NewCoins(tokens)
+	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleAccountName, coins)
+	if err != nil {
+		return err
+	}
+	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleAccountName, coins)
+	if err != nil {
+		return err
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRedeem,
+			sdk.NewAttribute(types.AttributeKeyRedeemAmount, fmt.Sprintf("%s", tokens)),
+		),
+	)
+	return nil
+}
+
+// BlockAddress adds an address to the blocked list
+func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddress sdk.AccAddress) error {
+	asset, found := k.GetAsset(ctx, denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+	}
+	if !owner.Equals(asset.Owner) {
+		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+	}
+	if k.checkBlockedAddress(ctx, asset, blockedAddress) {
+		return nil
+	}
+	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress)
+	k.SetAsset(ctx, asset)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeBlock,
+			sdk.NewAttribute(types.AttributeKeyBlock, fmt.Sprintf("%s", blockedAddress)),
+		),
+	)
+	return nil
+}
+
+// ChangePauseStatus pauses/un-pauses an asset
+func (k Keeper) ChangePauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom string, status bool) error {
+	asset, found := k.GetAsset(ctx, denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+	}
+	if !owner.Equals(asset.Owner) {
+		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+	}
+	if asset.Paused == status {
+		return nil
+	}
+	asset.Paused = status
+	k.SetAsset(ctx, asset)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypePause,
+			sdk.NewAttribute(types.AttributeKeyPauseStatus, fmt.Sprintf("%t", status)),
+		),
+	)
+	return nil
+}
+
+func (k Keeper) checkBlockedAddress(ctx sdk.Context, asset types.Asset, checkAddress sdk.AccAddress) bool {
+	for _, address := range asset.BlockedAddresses {
+		if address.Equals(checkAddress) {
+			return true
+		}
+	}
+	return false
+}
