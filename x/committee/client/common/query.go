@@ -62,35 +62,36 @@ func QueryProposer(cliCtx context.CLIContext, proposalID uint64) (Proposer, erro
 	return Proposer{}, fmt.Errorf("failed to find the proposer for proposalID %d", proposalID)
 }
 
-func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, proposalID uint64) (*types.Proposal, error) {
+// QueryProposalByID returns a proposal from state if present or fallbacks to searching old blocks
+func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, proposalID uint64) (*types.Proposal, int64, error) {
 	bz, err := cdc.MarshalJSON(types.NewQueryProposalParams(proposalID))
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposal), bz)
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposal), bz)
 
 	if err == nil {
 		var proposal *types.Proposal
 		cdc.MustUnmarshalJSON(res, &proposal)
 
-		return proposal, nil
+		return proposal, height, nil
 	}
 
 	if err != nil && !errors.Is(err, types.ErrUnknownProposal) {
-		return nil, err
+		return nil, 0, err
 	}
 
-	res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextProposalID), nil)
+	res, height, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextProposalID), nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var nextProposalID uint64
 	cdc.MustUnmarshalJSON(res, &nextProposalID)
 
 	if proposalID >= nextProposalID {
-		return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+		return nil, 0, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
 
 	events := []string{
@@ -100,7 +101,7 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 
 	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	for _, info := range searchResult.Txs {
@@ -114,10 +115,10 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 					ID:          proposalID,
 					CommitteeID: subMsg.CommitteeID,
 					PubProposal: subMsg.PubProposal,
-				}, nil
+				}, height, nil
 			}
 		}
 	}
 
-	return nil, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+	return nil, 0, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 }

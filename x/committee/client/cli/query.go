@@ -130,7 +130,7 @@ func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("proposal-id %s not a valid uint", args[0])
 			}
 
-			proposal, err := common.QueryProposalByID(cliCtx, cdc, queryRoute, proposalID)
+			proposal, _, err := common.QueryProposalByID(cliCtx, cdc, queryRoute, proposalID)
 			if err != nil {
 				return err
 			}
