@@ -78,7 +78,8 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 		return proposal, height, nil
 	}
 
-	if err != nil && !errors.Is(err, types.ErrUnknownProposal) {
+	// NOTE: !errors.Is(err, types.ErrUnknownProposal) does not work here
+	if err != nil && !strings.Contains(err.Error(), "proposal not found") {
 		return nil, 0, err
 	}
 
