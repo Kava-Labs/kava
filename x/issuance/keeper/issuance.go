@@ -120,6 +120,30 @@ func (k Keeper) ChangePauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom s
 	return nil
 }
 
+// SeizeCoinsFromBlockedAddresses checks blocked addresses for coins of the input denom and transfers them to the owner account
+func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) error {
+	asset, found := k.GetAsset(ctx, denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+	}
+	for _, address := range asset.BlockedAddresses {
+		account := k.accountKeeper.GetAccount(ctx, address)
+		coinsAmount := account.GetCoins().AmountOf(denom)
+		if coinsAmount.IsPositive() {
+			coins := sdk.NewCoins(sdk.NewCoin(denom, coinsAmount))
+			err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleAccountName, coins)
+			if err != nil {
+				return err
+			}
+			err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, asset.Owner, coins)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (k Keeper) checkBlockedAddress(ctx sdk.Context, asset types.Asset, checkAddress sdk.AccAddress) bool {
 	for _, address := range asset.BlockedAddresses {
 		if address.Equals(checkAddress) {

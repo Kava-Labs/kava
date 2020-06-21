@@ -13,6 +13,7 @@ type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec
 	paramSubspace subspace.Subspace
+	accountKeeper types.AccountKeeper
 	supplyKeeper  types.SupplyKeeper
 }
 
