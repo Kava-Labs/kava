@@ -64,9 +64,19 @@ func (p Params) String() string {
 // Asset type for assets in the issuance module
 type Asset struct {
 	Owner            sdk.AccAddress   `json:"owner" yaml:"owner"`
-	Paused           bool             `json:"paused" yaml:"paused"`
 	Denom            string           `json:"denom" yaml:"denom"`
 	BlockedAddresses []sdk.AccAddress `json:"blocked_addresses" yaml:"blocked_addresses"`
+	Paused           bool             `json:"paused" yaml:"paused"`
+}
+
+// NewAsset returns a new Asset
+func NewAsset(owner sdk.AccAddress, denom string, blockedAddresses []sdk.AccAddress, paused bool) Asset {
+	return Asset{
+		Owner:            owner,
+		Denom:            denom,
+		BlockedAddresses: blockedAddresses,
+		Paused:           paused,
+	}
 }
 
 // Validate performs a basic check of asset fields
