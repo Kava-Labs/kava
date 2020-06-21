@@ -3,6 +3,7 @@ package rest_v0_3
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -22,6 +24,7 @@ import (
 
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
 	v18de63supply "github.com/kava-labs/kava/migrate/v0_8/sdk/supply/v18de63"
+	v18de63sdk "github.com/kava-labs/kava/migrate/v0_8/sdk/types/v18de63"
 	valvesting "github.com/kava-labs/kava/x/validator-vesting"
 	v0_3valvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_3"
 )
@@ -29,14 +32,17 @@ import (
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	s := r.PathPrefix("/v0_3").Subrouter()
 
+	// node_info schema has not changed between cosmos v18de63 and v0.38.4
 	s.HandleFunc("/node_info", rpc.NodeInfoRequestHandlerFn(cliCtx)).Methods("GET")
-	s.HandleFunc(
-		"/auth/accounts/{address}", QueryAccountRequestHandlerFn(cliCtx),
-	).Methods("GET")
-	s.HandleFunc("/txs/{hash}", authrest.QueryTxRequestHandlerFn(cliCtx)).Methods("GET")
+	s.HandleFunc("/auth/accounts/{address}", QueryAccountRequestHandlerFn(cliCtx)).Methods("GET")
+
+	s.HandleFunc("/txs/{hash}", QueryTxRequestHandlerFn(cliCtx)).Methods("GET")
 	// r.HandleFunc("/txs", QueryTxsRequestHandlerFn(cliCtx)).Methods("GET") // assume they don't need GET here
 	s.HandleFunc("/txs", authrest.BroadcastTxRequest(cliCtx)).Methods("POST")
 
+	r.HandleFunc("/blocks/latest", LatestBlockRequestHandlerFn(cliCtx)).Methods("GET")
+
+	// TODO these are unchanged between cosmos v18de63 and v0.38.4, but can't import private methods. Maybe redirect?
 	// Get all delegations from a delegator
 	s.HandleFunc(
 		"/staking/delegators/{delegatorAddr}/delegations",
@@ -55,6 +61,58 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		delegatorRewardsHandlerFn(cliCtx, disttypes.ModuleName),
 	).Methods("GET")
 
+}
+
+// REST handler to get the latest block
+func LatestBlockRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		output, err := getBlock(cliCtx, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		rest.PostProcessResponseBare(w, cliCtx, output)
+	}
+}
+
+func getBlock(cliCtx context.CLIContext, height *int64) ([]byte, error) {
+	// get the node
+	node, err := cliCtx.GetNode()
+	if err != nil {
+		return nil, err
+	}
+
+	// header -> BlockchainInfo
+	// header, tx -> Block
+	// results -> BlockResults
+	res, err := node.Block(height)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO convert block
+
+	// if !cliCtx.TrustNode {
+	// 	check, err := cliCtx.Verify(res.Block.Height)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	if err := tmliteProxy.ValidateHeader(&res.Block.Header, check); err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	if err = tmliteProxy.ValidateBlock(res.Block, check); err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+
+	// if cliCtx.Indent {
+	// 	return codec.Cdc.MarshalJSONIndent(res, "", "  ")
+	// }
+
+	return codec.Cdc.MarshalJSON(res)
 }
 
 // QueryAccountRequestHandlerFn handle auth/accounts queries
@@ -98,6 +156,57 @@ func QueryAccountRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, oldAccount)
 	}
+}
+
+// QueryTxRequestHandlerFn implements a REST handler that queries a transaction
+// by hash in a committed block.
+func QueryTxRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		hashHexStr := vars["hash"]
+
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		output, err := utils.QueryTx(cliCtx, hashHexStr)
+		// convert v0.8 TxResponse to a v0.3 Tx Response
+		oldOutput := rollbackTxResponseType(output)
+		if err != nil {
+			if strings.Contains(err.Error(), hashHexStr) {
+				rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+				return
+			}
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		if oldOutput.Empty() {
+			rest.WriteErrorResponse(w, http.StatusNotFound, fmt.Sprintf("no transaction found with hash %s", hashHexStr))
+		}
+
+		rest.PostProcessResponseBare(w, cliCtx, oldOutput)
+	}
+}
+
+func rollbackResponseType(response sdk.TxResponse) {
+	return v18de63sdk.TxResponse{
+		Height:    response.Height,
+		TxHash:    response.TxHash,
+		Codespace: response.Codespace,
+		Code:      response.Code,
+		Data:      response.Data,
+		RawLog:    response.RawLog,
+		Logs:      response.Logs, // TODO need to convert type and add back Success field
+		Info:      response.Info,
+		GasWanted: response.GasWanted,
+		GasUsed:   response.GasUsed,
+		Tx:        response.Tx,
+		Timestamp: response.Timestamp,
+		Events:    response.Logs[0].Events, // TODO concat events?
+	}
+
 }
 
 func makeCodecV03() *codec.Codec {
