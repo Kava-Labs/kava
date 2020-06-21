@@ -92,6 +92,7 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 		sdk.NewEvent(
 			types.EventTypeBlock,
 			sdk.NewAttribute(types.AttributeKeyBlock, fmt.Sprintf("%s", blockedAddress)),
+			sdk.NewAttribute(types.AttributeKeyDenom, asset.Denom),
 		),
 	)
 	return nil
@@ -115,6 +116,7 @@ func (k Keeper) ChangePauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom s
 		sdk.NewEvent(
 			types.EventTypePause,
 			sdk.NewAttribute(types.AttributeKeyPauseStatus, fmt.Sprintf("%t", status)),
+			sdk.NewAttribute(types.AttributeKeyDenom, asset.Denom),
 		),
 	)
 	return nil

@@ -4,9 +4,10 @@ package types
 const (
 	EventTypeIssue           = "issue_tokens"
 	EventTypeRedeem          = "redeem_tokens"
-	EventTypeBlock           = "add_to_block_list"
+	EventTypeBlock           = "block_address"
 	EventTypePause           = "change_pause_status"
 	AttributeValueCategory   = ModuleName
+	AttributeKeyDenom        = "denom"
 	AttributeKeyIssueAmount  = "amount_issued"
 	AttributeKeyRedeemAmount = "amount_redeemed"
 	AttributeKeyBlock        = "address_blocked"
