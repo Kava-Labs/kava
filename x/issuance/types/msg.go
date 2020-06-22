@@ -100,7 +100,7 @@ func (msg MsgRedeemTokens) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-// MsgBlockAddress message type used by the issuer to block an address from holding or transfering tokens
+// MsgBlockAddress message type used by the issuer to block an address from holding or transferring tokens
 type MsgBlockAddress struct {
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom          string         `json:"denom" yaml:"denom"`

@@ -6,17 +6,25 @@ order: 2
 
 ## Parameters and Genesis State
 
-```go // TODO
+```go
+
+// Asset type for assets in the issuance module
 type Asset struct {
-  Owner sdk.AccAddress `json:"owner" yaml:"owner"`
-  BlockedAccounts []sdk.AccAddress `json:"blocked_accounts" yaml:"blocked_accounts"`
-  Paused bool `json:"paused" yaml:"paused"`
+  Owner            sdk.AccAddress   `json:"owner" yaml:"owner"`
+  Denom            string           `json:"denom" yaml:"denom"`
+  BlockedAddresses []sdk.AccAddress `json:"blocked_addresses" yaml:"blocked_addresses"`
+  Paused           bool             `json:"paused" yaml:"paused"`
 }
 
+// Assets array of Asset
+type Assets []Asset
+
+// Params governance parameters for the issuance module
 type Params struct {
   Assets Assets `json:"assets" yaml:"assets"`
 }
 
+// GenesisState state the must be provided at genesis
 type GenesisState struct {
   Assets Assets `json:"assets" yaml:"assets"`
 }

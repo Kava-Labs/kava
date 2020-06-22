@@ -38,15 +38,34 @@ type MsgRedeemTokens struct {
 Addresses can be added to the blocked list using `MsgBlockAddress`
 
 ```go
-// MsgRedeemTokens message type used to redeem (burn) tokens
+// MsgBlockAddress message type used by the issuer to block an address from holding or transferring tokens
 type MsgBlockAddress struct {
-  Sender  sdk.AccAddress `json:"sender" yaml:"sender"`
-  Denom   string         `json:"denom" yaml:"denom"`
-  Address sdk.AccAddress `json:"address" yaml:"address"`
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom          string         `json:"denom" yaml:"denom"`
+	BlockedAddress sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
 }
 ```
 
 ## State Modifications
 
 * The address is added to the block list, which prevents the account from holding coins of that denom
-* Tokens are burned
+* Tokens are sent back to the issuer
+
+```
+
+
+The issuer can pause or un-pause the contract using `MsgChangePauseStatus`
+
+```go
+// MsgChangePauseStatus message type used by the issuer to issue new tokens
+type MsgChangePauseStatus struct {
+	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom  string         `json:"denom" yaml:"denom"`
+	Status bool           `json:"status" yaml:"status"`
+}
+```
+
+## State Modifications
+
+* The `Paused` value of the correspond asset is updated to `Status`.
+* Issuance and redemption are paused if `Paused` is false
