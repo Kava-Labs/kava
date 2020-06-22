@@ -12,10 +12,11 @@ func init() {
 	ModuleCdc = cdc.Seal()
 }
 
-// RegisterCodec registers the necessary types for incentive module
+// RegisterCodec registers the necessary types for issuance module
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgIssueTokens{}, "issuance/MsgIssueTokens", nil)
 	cdc.RegisterConcrete(MsgRedeemTokens{}, "issuance/MsgRedeemTokens", nil)
 	cdc.RegisterConcrete(MsgBlockAddress{}, "issuance/MsgBlockAddress", nil)
+	cdc.RegisterConcrete(MsgChangePauseStatus{}, "issuance/MsgChangePauseStatus", nil)
 	cdc.RegisterConcrete(Asset{}, "issuance/Asset", nil)
 }

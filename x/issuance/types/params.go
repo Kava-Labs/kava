@@ -88,9 +88,8 @@ func (a Asset) Validate() error {
 		if address.Empty() {
 			return fmt.Errorf("blocked address must not be empty")
 		}
-		// TODO is this check appropriate?
-		if err := sdk.VerifyAddressFormat(address.Bytes()); err != nil {
-			return err
+		if a.Owner.Equals(address) {
+			return fmt.Errorf("asset owner cannot be blocked")
 		}
 	}
 	return sdk.ValidateDenom(a.Denom)
@@ -117,6 +116,7 @@ func (as Assets) Validate() error {
 		if err := a.Validate(); err != nil {
 			return err
 		}
+		assetDenoms[a.Denom] = true
 	}
 	return nil
 }
