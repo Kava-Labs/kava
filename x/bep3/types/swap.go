@@ -264,3 +264,42 @@ func (direction SwapDirection) IsValid() bool {
 	}
 	return false
 }
+
+type AugmentedAtomicSwap struct {
+	ID string `json:"id" yaml:"id"`
+
+	// Embed AtomicSwap fields explicity in order to output as top level JSON fields
+	// This prevents breaking changes for clients using REST API
+	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
+	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`
+	ExpireHeight        uint64           `json:"expire_height"  yaml:"expire_height"`
+	Timestamp           int64            `json:"timestamp"  yaml:"timestamp"`
+	Sender              sdk.AccAddress   `json:"sender"  yaml:"sender"`
+	Recipient           sdk.AccAddress   `json:"recipient"  yaml:"recipient"`
+	SenderOtherChain    string           `json:"sender_other_chain"  yaml:"sender_other_chain"`
+	RecipientOtherChain string           `json:"recipient_other_chain"  yaml:"recipient_other_chain"`
+	ClosedBlock         int64            `json:"closed_block"  yaml:"closed_block"`
+	Status              SwapStatus       `json:"status"  yaml:"status"`
+	CrossChain          bool             `json:"cross_chain"  yaml:"cross_chain"`
+	Direction           SwapDirection    `json:"direction"  yaml:"direction"`
+}
+
+func NewAugmentedAtomicSwap(swap AtomicSwap) AugmentedAtomicSwap {
+	return AugmentedAtomicSwap{
+		ID:                  hex.EncodeToString(swap.GetSwapID()),
+		Amount:              swap.Amount,
+		RandomNumberHash:    swap.RandomNumberHash,
+		ExpireHeight:        swap.ExpireHeight,
+		Timestamp:           swap.Timestamp,
+		Sender:              swap.Sender,
+		Recipient:           swap.Recipient,
+		SenderOtherChain:    swap.SenderOtherChain,
+		RecipientOtherChain: swap.RecipientOtherChain,
+		ClosedBlock:         swap.ClosedBlock,
+		Status:              swap.Status,
+		CrossChain:          swap.CrossChain,
+		Direction:           swap.Direction,
+	}
+}
+
+type AugmentedAtomicSwaps []AugmentedAtomicSwap
