@@ -1,8 +1,11 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 	"time"
+
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,6 +38,11 @@ func NewKeeper(
 		key:           key,
 		paramSubspace: paramstore,
 	}
+}
+
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
 // SetPrice updates the posted price for a specific oracle
@@ -111,38 +119,39 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 			notExpiredPrices = append(notExpiredPrices, types.NewCurrentPrice(v.MarketID, v.Price))
 		}
 	}
+
 	if len(notExpiredPrices) == 0 {
-		store := ctx.KVStore(k.key)
-		store.Set(
-			types.CurrentPriceKey(marketID), k.cdc.MustMarshalBinaryBare(types.CurrentPrice{}),
-		)
+		// NOTE: The current price stored will continue storing the most recent (expired)
+		// price if this is not set.
+		// This zero's out the current price stored value for that market and ensures
+		// that CDP methods that GetCurrentPrice will return error.
+		k.setCurrentPrice(ctx, marketID, types.CurrentPrice{})
 		return types.ErrNoValidPrice
 	}
 
 	medianPrice := k.CalculateMedianPrice(ctx, notExpiredPrices)
 
 	// check case that market price was not set in genesis
-	if validPrevPrice {
+	if validPrevPrice && !medianPrice.Equal(prevPrice.Price) {
 		// only emit event if price has changed
-		if !medianPrice.Equal(prevPrice.Price) {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeMarketPriceUpdated,
-					sdk.NewAttribute(types.AttributeMarketID, marketID),
-					sdk.NewAttribute(types.AttributeMarketPrice, medianPrice.String()),
-				),
-			)
-		}
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeMarketPriceUpdated,
+				sdk.NewAttribute(types.AttributeMarketID, marketID),
+				sdk.NewAttribute(types.AttributeMarketPrice, medianPrice.String()),
+			),
+		)
 	}
 
-	store := ctx.KVStore(k.key)
 	currentPrice := types.NewCurrentPrice(marketID, medianPrice)
-
-	store.Set(
-		types.CurrentPriceKey(marketID), k.cdc.MustMarshalBinaryBare(currentPrice),
-	)
+	k.setCurrentPrice(ctx, marketID, currentPrice)
 
 	return nil
+}
+
+func (k Keeper) setCurrentPrice(ctx sdk.Context, marketID string, currentPrice types.CurrentPrice) {
+	store := ctx.KVStore(k.key)
+	store.Set(types.CurrentPriceKey(marketID), k.cdc.MustMarshalBinaryBare(currentPrice))
 }
 
 // CalculateMedianPrice calculates the median prices for the input prices.

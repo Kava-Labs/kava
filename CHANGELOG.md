@@ -38,6 +38,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 [\#591](https://github.com/Kava-Labs/kava/pull/591) Add a `raw-params` cli method to query raw parameter values for use in manual verification of gov proposals.
 
+[\#596](https://github.com/Kava-Labs/kava/pull/596) Add REST client and CLI query to get module account information for the CDP module
+
+[\#590](https://github.com/Kava-Labs/kava/pull/590) Add CLI query to return kavadist module account balance
+
 [\#584](https://github.com/Kava-Labs/kava/pulls/584) Add REST client and CLI queries for `kavadist` module
 
 [\#578](https://github.com/Kava-Labs/kava/pulls/578) Add v0.3 compatible REST client that supports

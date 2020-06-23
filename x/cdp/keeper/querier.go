@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -24,6 +25,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, keeper)
 		case types.QueryGetCdpDeposits:
 			return queryGetDeposits(ctx, req, keeper)
+		case types.QueryGetAccounts:
+			return queryGetAccounts(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -150,6 +153,26 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+// query cdp module accounts
+func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	cdpAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+	liquidatorAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
+	savingsRateAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
+
+	accounts := []supply.ModuleAccount{
+		*cdpAccAccount.(*supply.ModuleAccount),
+		*liquidatorAccAccount.(*supply.ModuleAccount),
+		*savingsRateAccAccount.(*supply.ModuleAccount),
+	}
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(supply.ModuleCdc, accounts)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
