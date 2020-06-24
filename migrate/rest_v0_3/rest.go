@@ -24,7 +24,9 @@ import (
 
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
 	v18de63supply "github.com/kava-labs/kava/migrate/v0_8/sdk/supply/v18de63"
-	v18de63sdk "github.com/kava-labs/kava/migrate/v0_8/sdk/types/v18de63"
+	v18de63sdk "github.com/kava-labs/kava/migrate/v0_8/sdk/types"
+	v032tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32"
+	v032tendermintrpc "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32/rpccore"
 	valvesting "github.com/kava-labs/kava/x/validator-vesting"
 	v0_3valvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_3"
 )
@@ -32,17 +34,17 @@ import (
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	s := r.PathPrefix("/v0_3").Subrouter()
 
-	// node_info schema has not changed between cosmos v18de63 and v0.38.4
 	s.HandleFunc("/node_info", rpc.NodeInfoRequestHandlerFn(cliCtx)).Methods("GET")
+
 	s.HandleFunc("/auth/accounts/{address}", QueryAccountRequestHandlerFn(cliCtx)).Methods("GET")
 
 	s.HandleFunc("/txs/{hash}", QueryTxRequestHandlerFn(cliCtx)).Methods("GET")
-	// r.HandleFunc("/txs", QueryTxsRequestHandlerFn(cliCtx)).Methods("GET") // assume they don't need GET here
+	// r.HandleFunc("/txs", QueryTxsRequestHandlerFn(cliCtx)).Methods("GET") // TODO does trust wallet query txs?
 	s.HandleFunc("/txs", authrest.BroadcastTxRequest(cliCtx)).Methods("POST")
 
-	r.HandleFunc("/blocks/latest", LatestBlockRequestHandlerFn(cliCtx)).Methods("GET")
+	s.HandleFunc("/blocks/latest", LatestBlockRequestHandlerFn(cliCtx)).Methods("GET")
 
-	// TODO these are unchanged between cosmos v18de63 and v0.38.4, but can't import private methods. Maybe redirect?
+	// These endpoints are unchanged between cosmos v18de63 and v0.38.4, but can't import private methods so copy and pasting handler methods.
 	// Get all delegations from a delegator
 	s.HandleFunc(
 		"/staking/delegators/{delegatorAddr}/delegations",
@@ -83,36 +85,51 @@ func getBlock(cliCtx context.CLIContext, height *int64) ([]byte, error) {
 		return nil, err
 	}
 
-	// header -> BlockchainInfo
-	// header, tx -> Block
-	// results -> BlockResults
 	res, err := node.Block(height)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO convert block
+	// Convert block to old type
+	header := v032tendermint.Header{
+		Version: v032tendermint.Consensus{
+			Block: v032tendermint.Protocol(res.Block.Header.Version.Block),
+			App:   v032tendermint.Protocol(res.Block.Header.Version.App),
+		},
+		ChainID:  res.Block.Header.ChainID,
+		Height:   res.Block.Header.Height,
+		Time:     res.Block.Header.Time,
+		NumTxs:   0, // trust wallet doesn't use this field
+		TotalTxs: 0, // trust wallet doesn't use this field
 
-	// if !cliCtx.TrustNode {
-	// 	check, err := cliCtx.Verify(res.Block.Height)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+		LastBlockID: res.Block.Header.LastBlockID,
 
-	// 	if err := tmliteProxy.ValidateHeader(&res.Block.Header, check); err != nil {
-	// 		return nil, err
-	// 	}
+		LastCommitHash:     res.Block.Header.LastCommitHash,
+		DataHash:           res.Block.Header.DataHash,
+		ValidatorsHash:     res.Block.Header.ValidatorsHash,
+		NextValidatorsHash: res.Block.Header.NextValidatorsHash,
+		ConsensusHash:      res.Block.Header.ConsensusHash,
+		AppHash:            res.Block.Header.AppHash,
+		LastResultsHash:    res.Block.Header.LastResultsHash,
+		EvidenceHash:       res.Block.Header.EvidenceHash,
+		ProposerAddress:    res.Block.Header.ProposerAddress,
+	}
+	block := v032tendermint.Block{
+		Header:     header,
+		Data:       res.Block.Data,
+		Evidence:   res.Block.Evidence,
+		LastCommit: nil, // trust wallet doesn't need to access commit info
+	}
+	blockMeta := v032tendermint.BlockMeta{
+		BlockID: res.BlockID,
+		Header:  header,
+	}
+	oldResponse := v032tendermintrpc.ResultBlock{
+		Block:     &block,
+		BlockMeta: &blockMeta,
+	}
 
-	// 	if err = tmliteProxy.ValidateBlock(res.Block, check); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
-	// if cliCtx.Indent {
-	// 	return codec.Cdc.MarshalJSONIndent(res, "", "  ")
-	// }
-
-	return codec.Cdc.MarshalJSON(res)
+	return codec.Cdc.MarshalJSON(oldResponse)
 }
 
 // QueryAccountRequestHandlerFn handle auth/accounts queries
@@ -171,8 +188,6 @@ func QueryTxRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		output, err := utils.QueryTx(cliCtx, hashHexStr)
-		// convert v0.8 TxResponse to a v0.3 Tx Response
-		oldOutput := rollbackTxResponseType(output)
 		if err != nil {
 			if strings.Contains(err.Error(), hashHexStr) {
 				rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
@@ -182,6 +197,8 @@ func QueryTxRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
+		// convert v0.8 TxResponse to a v0.3 Tx Response
+		oldOutput := rollbackTxResponseType(output)
 		if oldOutput.Empty() {
 			rest.WriteErrorResponse(w, http.StatusNotFound, fmt.Sprintf("no transaction found with hash %s", hashHexStr))
 		}
@@ -190,7 +207,11 @@ func QueryTxRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func rollbackResponseType(response sdk.TxResponse) {
+func rollbackTxResponseType(response sdk.TxResponse) v18de63sdk.TxResponse {
+	events := sdk.StringEvents{}
+	for _, msgLog := range response.Logs {
+		events = append(events, msgLog.Events...)
+	}
 	return v18de63sdk.TxResponse{
 		Height:    response.Height,
 		TxHash:    response.TxHash,
@@ -198,13 +219,13 @@ func rollbackResponseType(response sdk.TxResponse) {
 		Code:      response.Code,
 		Data:      response.Data,
 		RawLog:    response.RawLog,
-		Logs:      response.Logs, // TODO need to convert type and add back Success field
+		Logs:      nil, // trust wallet doesn't use logs, so leaving them out
 		Info:      response.Info,
 		GasWanted: response.GasWanted,
 		GasUsed:   response.GasUsed,
 		Tx:        response.Tx,
 		Timestamp: response.Timestamp,
-		Events:    response.Logs[0].Events, // TODO concat events?
+		Events:    events,
 	}
 
 }
