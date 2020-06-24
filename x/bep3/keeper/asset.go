@@ -113,3 +113,19 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
 	return nil
 }
+
+// UpdateAssetSupplies applies updates to the asset limit from parameters to the asset supplies
+func (k Keeper) UpdateAssetSupplies(ctx sdk.Context) error {
+	params := k.GetParams(ctx)
+	for _, supportedAsset := range params.SupportedAssets {
+		asset, found := k.GetAssetSupply(ctx, []byte(supportedAsset.Denom))
+		if !found {
+			continue
+		}
+		if asset.SupplyLimit.Amount != supportedAsset.Limit {
+			asset.SupplyLimit = sdk.NewCoin(supportedAsset.Denom, supportedAsset.Limit)
+			k.SetAssetSupply(ctx, asset, []byte(supportedAsset.Denom))
+		}
+	}
+	return nil
+}
