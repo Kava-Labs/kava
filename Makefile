@@ -75,7 +75,7 @@ BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 all: install
 
 build: go.sum
-ifeq ($(OS), windows)
+ifeq ($(OS), Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/$(DETECTED_OS)/kvd.exe ./cmd/kvd
 	go build -mod=readonly $(BUILD_FLAGS) -o build/$(DETECTED_OS)/kvcli.exe ./cmd/kvcli
 else
