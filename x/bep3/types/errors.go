@@ -41,4 +41,6 @@ var (
 	ErrSwapNotClaimable = sdkerrors.Register(ModuleName, 17, "atomic swap is not claimable")
 	// ErrInvalidAmount error for when a swap's amount is outside acceptable range
 	ErrInvalidAmount = sdkerrors.Register(ModuleName, 18, "amount is outside acceptable range")
+	// ErrInvalidOutgoingAccount error for when an outgoing swap has a recipient_other_chain value that is a kava address
+	ErrInvalidOutgoingAccount = sdkerrors.Register(ModuleName, 19, "invalid recipient_other_chain address for outgoing swap")
 )
