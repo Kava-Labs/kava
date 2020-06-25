@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -19,13 +21,16 @@ const (
 
 	// DefaultParamspace default namestore
 	DefaultParamspace = ModuleName
-)
 
-// DefaultLongtermStorageDuration is 1 week (assuming a block time of 7 seconds)
-const DefaultLongtermStorageDuration uint64 = 86400
+	// DefaultLongtermStorageDuration is 1 week (assuming a block time of 7 seconds)
+	DefaultLongtermStorageDuration uint64 = 86400
+)
 
 // Key prefixes
 var (
+	// SupplyLimitUpgradeTime is the block time after which the asset supply limits are updated from params
+	SupplyLimitUpgradeTime time.Time = time.Date(2020, 7, 1, 14, 0, 0, 0, time.UTC) // TODO decide on time
+
 	AtomicSwapKeyPrefix             = []byte{0x00} // prefix for keys that store AtomicSwaps
 	AtomicSwapByBlockPrefix         = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
 	AssetSupplyKeyPrefix            = []byte{0x02} // prefix for keys that store global asset supply counts

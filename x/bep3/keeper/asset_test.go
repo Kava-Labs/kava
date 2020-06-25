@@ -413,6 +413,25 @@ func (suite *AssetTestSuite) TestDecrementOutgoingAssetSupply() {
 	}
 }
 
+func (suite *AssetTestSuite) TestUpdateAssetSupplies() {
+	// set new asset limit in the params
+	newBnbLimit := c("bnb", 100)
+	params := suite.keeper.GetParams(suite.ctx)
+	for i := range params.SupportedAssets {
+		if params.SupportedAssets[i].Denom != newBnbLimit.Denom {
+			continue
+		}
+		params.SupportedAssets[i].Limit = newBnbLimit.Amount
+	}
+	suite.keeper.SetParams(suite.ctx, params)
+
+	suite.keeper.UpdateAssetSupplies(suite.ctx)
+
+	supply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
+	suite.True(found)
+	suite.True(supply.SupplyLimit.IsEqual(newBnbLimit))
+}
+
 func TestAssetTestSuite(t *testing.T) {
 	suite.Run(t, new(AssetTestSuite))
 }
