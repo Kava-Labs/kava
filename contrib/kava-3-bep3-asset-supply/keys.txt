@@ -1,0 +1,63 @@
+NAME:   TYPE:   ADDRESS:                                                PUBKEY:
+deputy  local   tbnb1d8htmvel52lj3c9rc8g44g6xt8h8c9jg76p87d     bnbp1addwnpepqd47gsttt6g804cs75pyng6kzanp3z5txfrnefh0392dethnzyugyys53w3
+**Important** write this seed phrase in a safe place.
+It is the only way to recover your account if you ever forget your password.
+
+walk voice pact valve grief approve season reopen twice lamp usage degree misery awful claim science buddy yellow secret accident lobster arctic cloud gentle
+
+
+NAME:   TYPE:   ADDRESS:                                                PUBKEY:
+cw      local   tbnb1vd47qythnw2qj74e0nyjsltx9pxlh0tzypnrr0     bnbp1addwnpepqgw447z3vmv4qj8844szqzfp6vmjxlpjrq6saf69ktpgclupmfr4z6ra8en
+**Important** write this seed phrase in a safe place.
+It is the only way to recover your account if you ever forget your password.
+
+wrist judge letter govern comic gallery canyon beach sister napkin blanket hockey duty copper sponsor heavy maximum antique alcohol remind also rude current scare
+
+- name: cw
+  type: local
+  address: kava1ynf22ap74j6znl503a56y23x5stfr0aw5kntp8
+  pubkey: kavapub1addwnpepqgufgc0ukn48vknnp0t474hp8vc05e6tu4fyl7ctm9fgp6sr0u672eky4sv
+  mnemonic: ""
+  threshold: 0
+  pubkeys: []
+
+
+**Important** write this mnemonic phrase in a safe place.
+It is the only way to recover your account if you ever forget your password.
+
+dirt better attack pulse amused derive female top wink cycle surge tell leopard remove nephew retreat allow stuff pipe come dinner globe open usage
+
+- name: user
+  type: local
+  address: kava162ns7qftphgwl0m9mzhhh8g40e40py54ygay3t
+  pubkey: kavapub1addwnpepqwz30yf8ta52q8h8jhvckzh7tc0y2ezc92dv25e8apqyejh3huwm5sshmg0
+  mnemonic: ""
+  threshold: 0
+  pubkeys: []
+
+
+**Important** write this mnemonic phrase in a safe place.
+It is the only way to recover your account if you ever forget your password.
+
+habit music claim tired reject faint absent defense rain club canvas illegal glance family dad battle chest define intact crane buyer grow hamster marble
+
+NAME:   TYPE:   ADDRESS:                                                PUBKEY:
+user    local   tbnb1q0aqh8kxsv8k8rq2gs7tdxmdvxdllc3yrqs87n     bnbp1addwnpepq0ndxnfyelxr0668ncjt8gg3wc8dk8ge6m4fg39fcmkzp7g8zmsq7n9m0p0
+**Important** write this seed phrase in a safe place.
+It is the only way to recover your account if you ever forget your password.
+
+cycle run security chapter notable way shield crash vast toe chronic pilot ski echo trap pizza bulk tattoo planet nose bunker advance prosper aisle
+
+- name: gov
+  type: local
+  address: kava109fpwjvq6un86tw8f8emav2l0e0dha924scrj9
+  pubkey: kavapub1addwnpepqvqqv2dgfpy09ggll68ln52mxj86dfenlcz25w3wjrzrusj6l645wxr8vuv
+  mnemonic: ""
+  threshold: 0
+  pubkeys: []
+
+
+**Important** write this mnemonic phrase in a safe place.
+It is the only way to recover your account if you ever forget your password.
+
+canvas never since soap feel humor aspect silver labor vague business lawsuit juice clarify road float shallow bronze capital someone demand devote truth strategy

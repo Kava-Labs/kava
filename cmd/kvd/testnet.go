@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
+	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -30,6 +31,7 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	"github.com/tendermint/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
@@ -40,6 +42,7 @@ var (
 	flagNodeDaemonHome    = "node-daemon-home"
 	flagNodeCLIHome       = "node-cli-home"
 	flagStartingIPAddress = "starting-ip-address"
+	flagGenesisTemplate   = "genesis-template"
 )
 
 func testnetCmd(
@@ -56,6 +59,7 @@ Note, strict routability for addresses is turned off in the config file.
 
 Example:
 	$ kvd testnet --v 4 --output-dir ./output --starting-ip-address 192.168.10.2
+	$ kvd testnet --v 4 --output-dir ./build --starting-ip-address 192.168.10.2 --genesis-template template-genesis.json
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			config := ctx.Config
@@ -68,10 +72,12 @@ Example:
 			nodeCLIHome := viper.GetString(flagNodeCLIHome)
 			startingIPAddress := viper.GetString(flagStartingIPAddress)
 			numValidators := viper.GetInt(flagNumValidators)
+			genesisTemplate := viper.GetString(flagGenesisTemplate)
 
 			return InitTestnet(
 				cmd, config, cdc, mbm, genAccIterator, outputDir, chainID,
-				minGasPrices, nodeDirPrefix, nodeDaemonHome, nodeCLIHome, startingIPAddress, numValidators,
+				minGasPrices, nodeDirPrefix, nodeDaemonHome, nodeCLIHome,
+				startingIPAddress, numValidators, genesisTemplate,
 			)
 		},
 	}
@@ -94,6 +100,7 @@ Example:
 		server.FlagMinGasPrices, fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
 		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01photino,0.001stake)")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
+	cmd.Flags().String(flagGenesisTemplate, "", "path to genesis file which will be used as the template for the testnet (should not include validators)")
 
 	return cmd
 }
@@ -105,7 +112,7 @@ func InitTestnet(
 	cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	mbm module.BasicManager, genAccIterator genutiltypes.GenesisAccountsIterator,
 	outputDir, chainID, minGasPrices, nodeDirPrefix, nodeDaemonHome,
-	nodeCLIHome, startingIPAddress string, numValidators int,
+	nodeCLIHome, startingIPAddress string, numValidators int, genesisTemplate string,
 ) error {
 
 	if chainID == "" {
@@ -118,6 +125,7 @@ func InitTestnet(
 
 	kavaConfig := srvconfig.DefaultConfig()
 	kavaConfig.MinGasPrices = minGasPrices
+	kavaConfig.Pruning = store.PruningStrategyEverything
 
 	//nolint:prealloc
 	var (
@@ -190,19 +198,17 @@ func InitTestnet(
 			return err
 		}
 
-		accTokens := sdk.TokensFromConsensusPower(1000)
-		accStakingTokens := sdk.TokensFromConsensusPower(500)
+		accStakingTokens := sdk.TokensFromConsensusPower(1000000)
 		coins := sdk.Coins{
-			sdk.NewCoin(fmt.Sprintf("%stoken", nodeDirName), accTokens),
-			sdk.NewCoin(sdk.DefaultBondDenom, accStakingTokens),
+			sdk.NewCoin("ukava", accStakingTokens),
 		}
 		genAccounts = append(genAccounts, auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0))
 
-		valTokens := sdk.TokensFromConsensusPower(100)
+		valTokens := sdk.TokensFromConsensusPower(100000)
 		msg := staking.NewMsgCreateValidator(
 			sdk.ValAddress(addr),
 			valPubKeys[i],
-			sdk.NewCoin(sdk.DefaultBondDenom, valTokens),
+			sdk.NewCoin("ukava", valTokens),
 			staking.NewDescription(nodeDirName, "", "", "", ""),
 			staking.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
 			sdk.OneInt(),
@@ -233,7 +239,7 @@ func InitTestnet(
 		srvconfig.WriteConfigFile(appConfigFilePath, kavaConfig)
 	}
 
-	if err := initGenFiles(cdc, mbm, chainID, genAccounts, genFiles, numValidators); err != nil {
+	if err := initGenFiles(cdc, mbm, chainID, genAccounts, genFiles, numValidators, genesisTemplate); err != nil {
 		return err
 	}
 
@@ -251,16 +257,28 @@ func InitTestnet(
 
 func initGenFiles(
 	cdc *codec.Codec, mbm module.BasicManager, chainID string,
-	genAccounts []authexported.GenesisAccount, genFiles []string, numValidators int,
+	genAccounts []authexported.GenesisAccount, genFiles []string, numValidators int, genesisTemplate string,
 ) error {
 
 	appGenState := mbm.DefaultGenesis()
+
+	if genesisTemplate != "" {
+		var appStateMap genutil.AppMap
+		genDoc, err := tmtypes.GenesisDocFromFile(genesisTemplate)
+		if err != nil {
+			return fmt.Errorf("failed to marshal gendoc from genesis template: %s, %v", genesisTemplate, err)
+		}
+		cdc.UnmarshalJSON(genDoc.AppState, &appStateMap)
+		appGenState = appStateMap
+	}
 
 	// set the accounts in the genesis state
 	authDataBz := appGenState[auth.ModuleName]
 	var authGenState auth.GenesisState
 	cdc.MustUnmarshalJSON(authDataBz, &authGenState)
-	authGenState.Accounts = genAccounts
+	for _, acc := range genAccounts {
+		authGenState.Accounts = append(authGenState.Accounts, acc)
+	}
 	appGenState[auth.ModuleName] = cdc.MustMarshalJSON(authGenState)
 
 	appGenStateJSON, err := codec.MarshalJSONIndent(cdc, appGenState)

@@ -144,6 +144,9 @@ localnet-start: build-linux localnet-stop
 localnet-stop:
 	docker-compose down
 
+localnet-reset:
+	rm -rf build/gentxs build/node* build/linux
+
 ########################################
 ### Testing
 

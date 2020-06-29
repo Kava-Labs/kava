@@ -31,7 +31,42 @@
       }
     },
     "auth": {
-      "accounts": [],
+      "accounts": [
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h",
+            "coins": [
+              {
+                "denom": "ukava",
+                "amount": "1000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "kava1sl8glhaa9f9tep0d9h8gdcfmwcatghtdrfcd2x",
+            "coins": [
+              {
+                "denom": "ukava",
+                "amount": "1000000000"
+              },
+              {
+                "denom": "bnb",
+                "amount": "350000000000000"
+              }
+            ],
+            "public_key": "",
+            "account_number": 0,
+            "sequence": 0
+          }
+        }
+      ],
       "params": {
         "max_memo_characters": "256",
         "sig_verify_cost_ed25519": "590",
@@ -47,16 +82,18 @@
       "assets_supplies": [],
       "atomic_swaps": [],
       "params": {
-        "bnb_deputy_address": "kava1tfvn5t8qwngqd2q427za2mel48pcus3z9u73fl",
+        "bnb_deputy_address": "kava1sl8glhaa9f9tep0d9h8gdcfmwcatghtdrfcd2x",
         "bnb_deputy_fixed_fee": "1000",
-        "max_block_lock": "600",
-        "min_block_lock": "80",
+        "max_block_lock": "270",
+        "min_block_lock": "220",
+        "min_amount": "0",
+        "max_amount": "1000000000000",
         "supported_assets": [
           {
             "active": true,
             "coin_id": "714",
             "denom": "bnb",
-            "limit": "10000000000000"
+            "limit": "4000000000000"
           }
         ]
       }
@@ -80,7 +117,7 @@
             "liquidation_penalty": "0.05",
             "liquidation_ratio": "1.5",
             "spot_market_id": "bnb:usd",
-            "liquidation_market_id": "bnb:usd:30",
+            "liquidation_market_id": "bnb:usd",
             "prefix": 1,
             "stability_fee": "1.0000000007829977"
           }
@@ -104,7 +141,9 @@
           "denom": "usdx"
         },
         "savings_distribution_frequency": "120000000000",
-        "surplus_auction_threshold": "1000000000"
+        "surplus_auction_threshold": "200000000000",
+        "surplus_auction_lot": "10000000000",
+        "debt_auction_lot": "10000000000"
       },
       "previous_block_time": "1970-01-01T00:00:00Z",
       "previous_distribution_time": "1970-01-01T00:00:00Z",
@@ -114,7 +153,7 @@
       "next_proposal_id": "1",
       "committees": [
         {
-          "id": "0",
+          "id": "1",
           "description": "This committee is for adjusting parameters of the cdp system.",
           "members": [
             "kava109fpwjvq6un86tw8f8emav2l0e0dha924scrj9"
@@ -151,6 +190,14 @@
                   {
                     "subspace": "cdp",
                     "key": "DebtParam"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtLot"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "SurplusLot"
                   },
                   {
                     "subspace": "auction",
@@ -194,7 +241,8 @@
                     "auction_size": true,
                     "liquidation_penalty": false,
                     "prefix": false,
-                    "market_id": false,
+                    "spot_market_id": false,
+                    "liquidation_market_id": false,
                     "conversion_factor": false
                   }
                 ],
@@ -202,7 +250,7 @@
                   "denom": false,
                   "reference_asset": false,
                   "conversion_factor": false,
-                  "debt_floor": false,
+                  "debt_floor": true,
                   "savings_rate": true
                 },
                 "allowed_asset_params": [
@@ -220,27 +268,19 @@
                     "quote_asset": false,
                     "oracles": false,
                     "active": true
+                  },
+                  {
+                    "market_id": "bnb:usd:30",
+                    "base_asset": false,
+                    "quote_asset": false,
+                    "oracles": false,
+                    "active": true
                   }
                 ]
               }
             }
           ],
-          "vote_threshold": "0.750000000000000000",
-          "proposal_duration": "604800000000000"
-        },
-        {
-          "id": "1",
-          "description": "This committee is for testnet",
-          "members": [
-            "kava109fpwjvq6un86tw8f8emav2l0e0dha924scrj9"
-          ],
-          "permissions": [
-            {
-              "type": "kava/GodPermission",
-              "value": {}
-            }
-          ],
-          "vote_threshold": "0.750000000000000000",
+          "vote_threshold": "0.500000000000000000",
           "proposal_duration": "604800000000000"
         }
       ],
@@ -363,15 +403,31 @@
               "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h"
             ],
             "quote_asset": "usd"
+          },
+          {
+            "active": true,
+            "base_asset": "bnb",
+            "market_id": "bnb:usd:30",
+            "oracles": [
+              "kava1nyqy04x3ecpcuss3llmyu4fc2v4ma99h8vffjz",
+              "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h"
+            ],
+            "quote_asset": "usd"
           }
         ]
       },
       "posted_prices": [
         {
-          "expiry": "2021-06-20T00:00:00Z",
+          "expiry": "2021-07-20T00:00:00Z",
           "market_id": "bnb:usd",
           "oracle_address": "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h",
-          "price": "15.929061184"
+          "price": "15.962650000000001782"
+        },
+        {
+          "expiry": "2021-07-20T00:00:00Z",
+          "market_id": "bnb:usd:30",
+          "oracle_address": "kava1znuktqgtjr8g85tetu2wt9wd33gstqr7pad92h",
+          "price": "15.962650000000001782"
         }
       ]
     },

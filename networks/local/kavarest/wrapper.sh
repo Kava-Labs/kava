@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-BINARY=/kvd/linux/${BINARY:-kvd}
+BINARY=/kvd/linux/${BINARY:-kvcli}
 ID=${ID:-0}
-LOG=${LOG:-kvd.log}
+LOG=${LOG:-kvcli.log}
 
 if ! [ -f "${BINARY}" ]; then
 	echo "The binary $(basename "${BINARY}") cannot be found. Please add the binary to the shared folder. Please use the BINARY environment variable if the name of the binary is not 'kvd' E.g.: -e BINARY=kvd_my_test_version"
@@ -17,9 +17,12 @@ if [ -z "${BINARY_CHECK}" ]; then
 fi
 
 export KVDHOME="/kvd/node${ID}/kvd"
+export CHAINID="$(cat /kvd/node${ID}/kvd/config/genesis.json | jq -r '.chain_id')"
+echo ${CHAINID}
+echo "$@"
 
 if [ -d "$(dirname "${KVDHOME}"/"${LOG}")" ]; then
-  "${BINARY}" --home "${KVDHOME}" "$@" | tee "${KVDHOME}/${LOG}"
+  "${BINARY}" --home "${KVDHOME}" --chain-id "$CHAINID" "$@" | tee "${KVDHOME}/${LOG}"
 else
-  "${BINARY}" --home "${KVDHOME}" "$@"
+  "${BINARY}" --home "${KVDHOME}" --chain-id "$CHAINID" "$@"
 fi

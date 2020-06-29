@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-BINARY=/kvd/linux/${BINARY:-kvd}
+BINARY=/kvd/v0.8.1/linux/${BINARY:-kvd}
 ID=${ID:-0}
 LOG=${LOG:-kvd.log}
 
