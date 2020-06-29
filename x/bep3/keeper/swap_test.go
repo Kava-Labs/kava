@@ -146,7 +146,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				timestamp:           suite.timestamps[0],
 				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
-				recipient:           suite.addrs[2],
+				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 50000)),

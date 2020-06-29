@@ -70,9 +70,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
 		if ctx.BlockTime().After(types.SupplyLimitUpgradeTime) {
-			_, err := sdk.AccAddressFromBech32(recipientOtherChain)
-			if err == nil {
-				return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipientOtherChain)
+			if !recipient.Equals(deputy) {
+				return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
 			}
 		}
 
