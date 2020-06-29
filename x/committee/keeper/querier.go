@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -29,6 +28,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryVote(ctx, path[1:], req, keeper)
 		case types.QueryTally:
 			return queryTally(ctx, path[1:], req, keeper)
+		case types.QueryNextProposalID:
+			return queryNextProposalID(ctx, req, keeper)
 		case types.QueryRawParams:
 			return queryRawParams(ctx, path[1:], req, keeper)
 
@@ -107,6 +108,16 @@ func queryProposal(ctx sdk.Context, path []string, req abci.RequestQuery, keeper
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, proposal)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryNextProposalID(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	nextProposalID, _ := keeper.GetNextProposalID(ctx)
+
+	bz, err := types.ModuleCdc.MarshalJSON(nextProposalID)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }

@@ -6,14 +6,15 @@ import (
 
 // Query endpoints supported by the Querier
 const (
-	QueryCommittees = "committees"
-	QueryCommittee  = "committee"
-	QueryProposals  = "proposals"
-	QueryProposal   = "proposal"
-	QueryVotes      = "votes"
-	QueryVote       = "vote"
-	QueryTally      = "tally"
-	QueryRawParams  = "raw_params"
+	QueryCommittees     = "committees"
+	QueryCommittee      = "committee"
+	QueryProposals      = "proposals"
+	QueryProposal       = "proposal"
+	QueryNextProposalID = "next-proposal-id"
+	QueryVotes          = "votes"
+	QueryVote           = "vote"
+	QueryTally          = "tally"
+	QueryRawParams      = "raw_params"
 )
 
 type QueryCommitteeParams struct {

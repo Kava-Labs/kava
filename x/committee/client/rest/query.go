@@ -148,14 +148,14 @@ func queryProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.NewQueryProposalParams(proposalID))
+
+		proposal, height, err := common.QueryProposalByID(cliCtx, cliCtx.Codec, types.ModuleName, proposalID)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		// Query
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryProposal), bz)
+		res, err := cliCtx.Codec.MarshalJSON(proposal)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
