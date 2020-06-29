@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/cosmos/cosmos-sdk/x/params"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -250,6 +251,57 @@ func (suite *QuerierTestSuite) TestQueryTally() {
 	// Check
 	suite.Equal(int64(len(suite.votes[propID])), tally)
 }
+
+type TestSubParam struct {
+	Some   string
+	Test   sdk.Dec
+	Params []types.Vote
+}
+type TestParams struct {
+	TestKey TestSubParam
+}
+
+const paramKey = "TestKey"
+
+func (p *TestParams) ParamSetPairs() params.ParamSetPairs {
+	return params.ParamSetPairs{
+		params.NewParamSetPair([]byte(paramKey), &p.TestKey, func(interface{}) error { return nil }),
+	}
+}
+func (suite *QuerierTestSuite) TestQueryRawParams() {
+	ctx := suite.ctx.WithIsCheckTx(false) // ?
+
+	// Create a new param subspace to avoid adding dependency to another module. Set a test param value.
+	subspaceName := "test"
+	subspace := suite.app.GetParamsKeeper().Subspace(subspaceName)
+	subspace = subspace.WithKeyTable(params.NewKeyTable().RegisterParamSet(&TestParams{}))
+
+	paramValue := TestSubParam{
+		Some:   "test",
+		Test:   d("1000000000000.000000000000000001"),
+		Params: []types.Vote{{1, suite.addresses[0]}, {12, suite.addresses[1]}},
+	}
+	subspace.Set(ctx, []byte(paramKey), paramValue)
+
+	// Set up request query
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryRawParams}, "/"),
+		Data: suite.cdc.MustMarshalJSON(types.NewQueryRawParamsParams(subspaceName, paramKey)),
+	}
+
+	// Execute query
+	bz, err := suite.querier(ctx, []string{types.QueryRawParams}, query)
+	suite.NoError(err)
+	suite.NotNil(bz)
+
+	// Unmarshal the bytes
+	var returnedParamValue []byte
+	suite.NoError(suite.cdc.UnmarshalJSON(bz, &returnedParamValue))
+
+	// Check
+	suite.Equal(suite.cdc.MustMarshalJSON(paramValue), returnedParamValue)
+}
+
 func TestQuerierTestSuite(t *testing.T) {
 	suite.Run(t, new(QuerierTestSuite))
 }

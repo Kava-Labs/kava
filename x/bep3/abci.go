@@ -9,4 +9,7 @@ import (
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	k.UpdateExpiredAtomicSwaps(ctx)
 	k.DeleteClosedAtomicSwapsFromLongtermStorage(ctx)
+	if ctx.BlockTime().After(SupplyLimitUpgradeTime) {
+		k.UpdateAssetSupplies(ctx)
+	}
 }
