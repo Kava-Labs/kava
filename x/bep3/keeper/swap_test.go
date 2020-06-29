@@ -826,17 +826,6 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 	}
 }
 
-func (suite *AtomicSwapTestSuite) TestOutgoingSwapRecipient() {
-	type args struct {
-		contextTime         time.Time
-		recipientOtherChain string
-	}
-	type errArgs struct {
-		expectPass bool
-		contains   string
-	}
-}
-
 func TestAtomicSwapTestSuite(t *testing.T) {
 	suite.Run(t, new(AtomicSwapTestSuite))
 }
