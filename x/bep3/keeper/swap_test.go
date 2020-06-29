@@ -146,7 +146,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				timestamp:           suite.timestamps[0],
 				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
-				recipient:           suite.addrs[2],
+				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 50000)),
@@ -155,6 +155,60 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			},
 			true,
 			true,
+		},
+		{
+			"outgoing swap recipient before update",
+			types.SupplyLimitUpgradeTime.Add(-time.Hour),
+			args{
+				randomNumberHash:    suite.randomNumberHashes[12],
+				timestamp:           types.SupplyLimitUpgradeTime.Add(-time.Hour).Unix(),
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.addrs[1],
+				recipient:           suite.addrs[2],
+				senderOtherChain:    TestUser1.String(),
+				recipientOtherChain: TestUser2.String(),
+				coins:               cs(c(BNB_DENOM, 50000)),
+				crossChain:          true,
+				direction:           types.Outgoing,
+			},
+			true,
+			true,
+		},
+		{
+			"outgoing swap recipient at update time",
+			types.SupplyLimitUpgradeTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[13],
+				timestamp:           types.SupplyLimitUpgradeTime.Unix(),
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.addrs[1],
+				recipient:           suite.addrs[2],
+				senderOtherChain:    TestUser1.String(),
+				recipientOtherChain: TestUser2.String(),
+				coins:               cs(c(BNB_DENOM, 50000)),
+				crossChain:          true,
+				direction:           types.Outgoing,
+			},
+			true,
+			true,
+		},
+		{
+			"outgoing swap recipient after update",
+			types.SupplyLimitUpgradeTime.Add(time.Nanosecond),
+			args{
+				randomNumberHash:    suite.randomNumberHashes[14],
+				timestamp:           types.SupplyLimitUpgradeTime.Add(time.Nanosecond).Unix(),
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.addrs[1],
+				recipient:           suite.addrs[2],
+				senderOtherChain:    TestUser1.String(),
+				recipientOtherChain: TestUser2.String(),
+				coins:               cs(c(BNB_DENOM, 50000)),
+				crossChain:          true,
+				direction:           types.Outgoing,
+			},
+			false,
+			false,
 		},
 		{
 
@@ -360,6 +414,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// Increment current asset supply to support outgoing swaps
+			suite.ctx = suite.ctx.WithBlockTime(tc.blockTime)
 			if tc.args.direction == types.Outgoing {
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coins[0])
 				suite.Nil(err)

@@ -69,6 +69,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
+		if ctx.BlockTime().After(types.SupplyLimitUpgradeTime) {
+			if !recipient.Equals(deputy) {
+				return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
+			}
+		}
+
 		// Outoing swaps must have a height span within the accepted range
 		if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
 			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
