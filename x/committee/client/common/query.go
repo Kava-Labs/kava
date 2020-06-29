@@ -130,7 +130,7 @@ func QueryProposalByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 }
 
 // calculateDeadline returns the proposal deadline for a committee and block height
-func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, committeeID uint64, height int64) (time.Time, error) {
+func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute string, committeeID uint64, blockHeight int64) (time.Time, error) {
 	var deadline time.Time
 
 	bz, err := cdc.MarshalJSON(types.NewQueryCommitteeParams(committeeID))
@@ -138,7 +138,7 @@ func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 		return deadline, err
 	}
 
-	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCommittee), bz)
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCommittee), bz)
 	if err != nil {
 		return deadline, err
 	}
@@ -154,7 +154,7 @@ func calculateDeadline(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute s
 		return deadline, err
 	}
 
-	resultBlock, err := node.Block(&height)
+	resultBlock, err := node.Block(&blockHeight)
 	if err != nil {
 		return deadline, err
 	}
