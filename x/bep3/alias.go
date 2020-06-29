@@ -116,6 +116,7 @@ var (
 	KeyMinBlockLock                 = types.KeyMinBlockLock
 	KeySupportedAssets              = types.KeySupportedAssets
 	ModuleCdc                       = types.ModuleCdc
+	SupplyLimitUpgradeTime          = types.SupplyLimitUpgradeTime
 )
 
 type (
