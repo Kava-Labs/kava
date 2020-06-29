@@ -45,7 +45,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 [\#584](https://github.com/Kava-Labs/kava/pulls/584) Add REST client and CLI queries for `kavadist` module
 
 [\#578](https://github.com/Kava-Labs/kava/pulls/578) Add v0.3 compatible REST client that supports
-```
+
+```plaintext
 /v0_3/node_info
 /v0_3/auth/accounts/<address>
 /v0_3/<hash>
@@ -54,6 +55,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 /v0_3/staking/delegators/<address>/unbonding_delegations
 /v0_3/distribution/delegators/<address>/rewards
 ```
+
+[\#598](https://github.com/Kava-Labs/kava/pulls/598) CLI and REST queries for committee proposals (ie `kvcli q committee proposal 1`) now query the historical state to return the proposal object before it was deleted from state
 
 ## [v0.8.1](https://github.com/Kava-Labs/kava/releases/tag/v0.8.1) kava-3 Patch Release
 
