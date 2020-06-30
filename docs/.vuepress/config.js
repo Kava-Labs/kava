@@ -3,7 +3,7 @@ module.exports = {
   title: "Kava Documentation",
   themeConfig: {
     logo: {
-      src: "/kava-logo.svg",
+      src: "/logo.svg",
     },
     custom: true,
     sidebar: {
@@ -82,7 +82,7 @@ module.exports = {
       ]
     },
     footer: {
-      logo: "/kava-logo.svg", // recommended ratio: 120 W x 48 H
+      logo: "/logo.svg",
       textLink: {
         text: "kava.io",
         url: "https://www.kava.io"
@@ -117,7 +117,7 @@ module.exports = {
           children: [
             {
               title: "Cosmos SDK",
-              url: "https://cosmos.network/docs"
+              url: "https://docs.cosmos.network"
             }
           ]
         },
