@@ -1,3 +1,11 @@
+---
+title: Kava Documentation
+description: The documentation of Kava.
+footer:
+  newsletter: false
+aside: true
+---
+
 # Kava
 
 ## DeFi for Crypto.
@@ -10,7 +18,7 @@ The current recommended version of the software for mainnet is [v0.8.1](https://
 
 ### Installation
 
-```sh
+```bash
 git checkout v0.8.1
 make install
 ```
