@@ -99,7 +99,7 @@ networks:
         subnet: 192.168.10.0/16
 ```
 
-Note that the container is named `kava/kavanode`. This docker file is located in `networks/local/kavanode` and can be built by running `make build-docker-local-kava`. Note that the container will use the binary that is built from the current repository. If you want to use a different binary from a different branch or release, simply checkout that branch or release using git. Currently, the default behavior is for all nodes to use the same binary. We will cover running testnets with multiple versions of `kvd` in a future section.
+Note that the container is named `kava/kavanode`. This docker file is located in `networks/local/kavanode` and can be built by running `make build-docker-local-kava`. Note that the container will use the binary that is built from the current repository. If you want to use a different binary from a different branch or release, simply checkout that branch or release using git.
 
 ### Adding Kava Rest Server
 
