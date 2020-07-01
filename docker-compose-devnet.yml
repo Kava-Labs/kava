@@ -56,6 +56,55 @@ services:
     networks:
       localnet:
         ipv4_address: 192.168.10.5
+
+  kvdrest0:
+    container_name: kvdrest0
+    image: "kava/kavarest"
+    environment:
+      - ID=0
+      - LOG=${LOG:-kvcli.log}
+    ports:
+      - "26665:1317"
+    volumes:
+      - ./build:/kvd:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.6
+
+  oracle:
+    container_name: oracle
+    image: "kava/oracle"
+    dns:
+      - 8.8.8.8
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.7
+
+  bnbnode:
+    container_name: bnbnode
+    image: "binance/bnbnode"
+    ports:
+      - "26666:26657"
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.8
+
+  bnbrest:
+    container_name: bnbrest
+    image: binance/bnbrest
+    ports:
+      - "26667:8080"
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.9
+
+  deputy:
+    container_name: deputy
+    image: binance:deputy
+    networks:
+      localnet:
+        ipv4_address: 192.168.10.10
+
 networks:
   localnet:
     driver: bridge

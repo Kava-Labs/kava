@@ -53,9 +53,14 @@ jq -S -c -M '' genesis.json | shasum -a 256
 
 The recommended version of the software for kava-testnet-6000 is v0.8.0-rc1. For further information on joining the testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
 
+
+## Devnet
+
+To run a local testnet using docker, see the guide [here](./contrib/README.md#Running_local_testet)
+
 ## Docs
 
-Kava protocol and client documentation can be found in the [Kava docs](https://docs.kava.io).  
+Kava protocol and client documentation can be found in the [Kava docs](https://docs.kava.io).
 
 If you have technical questions or concerns, ask a developer or community member in the [Kava discord](https://discord.com/invite/kQzh3Uv).
 
