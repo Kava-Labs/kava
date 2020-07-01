@@ -16,7 +16,7 @@ Because kava interacts with other blockchains, it is often insufficient to run a
 
 To create a 4 node kava testnet, you will use the `kvd testnet` command. This command initializes the initial state and binaries needed for docker containers to run a local testnet. In this example, we are running the command from the root of the kava directory. The command looks like
 
-```
+```sh
 kvd testnet --v 4 --output-dir ./build --starting-ip-address 192.168.10.2 --genesis-template contrib/kava-3-bep3-asset-supply/genesis-template.json --keyring-backend test --chain-id testing
 ```
 
@@ -205,7 +205,7 @@ To add the bep3-deputy to the docker compose file, add the following under `serv
 
 Save your docker compose file in the root of the kava repository and run:
 
-```
+```sh
 make localnet-start
 ```
 
@@ -226,7 +226,7 @@ Creating deputy   ... done
 
 To get the logs of a particular container (in this example kvdnode0):
 
-```
+```sh
 docker logs kvdnode0
 ```
 
@@ -236,7 +236,7 @@ It's helpful to write aliases around docker commands that make interacting with 
 
 For example, to interact with  `kvlci` on `kvdnode0` you can use the following alias
 
-```
+```sh
 dkvcli='docker exec -it kvdnode0 /kvd/linux/kvcli'
 ```
 
@@ -244,8 +244,16 @@ Running `dkvcli config keyring-backend test` will set the keyring backend for te
 
 Similarly, for `tbnbcli`, you can use the following alias
 
-```
+```sh
 dtbnbcli='docker exec -it bnbnode ./tbnbcli'
+```
+
+### Local testnet shutdown
+
+To shutdown the local testnet run:
+
+```sh
+make localnet-stop && make localnet-reset
 ```
 
 ## testnet-4000
