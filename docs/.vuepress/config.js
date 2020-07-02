@@ -57,27 +57,6 @@ module.exports = {
               path: "https://pkg.go.dev/github.com/kava-labs/kava?tab=subdirectories"
             }
           ]
-        },
-        {
-          title: "Community",
-          children: [
-            {
-              title: "Twitter",
-              path: "https://twitter.com/kava_labs"
-            },
-            {
-              title: "Telegram",
-              path: "https://t.me/kavalabs"
-            },
-            {
-              title: "Discord",
-              path: "https://discord.com/channels/704389840614981673/704389841051320362"
-            },
-            {
-              title: "GitHub",
-              path: "https://github.com/Kava-Labs/kava"
-            }
-          ]
         }
       ]
     },
@@ -113,15 +92,6 @@ module.exports = {
         `© ${new Date().getFullYear()} Kava Labs.`,
       links: [
         {
-          title: "Documentation",
-          children: [
-            {
-              title: "Cosmos SDK",
-              url: "https://docs.cosmos.network"
-            }
-          ]
-        },
-        {
           title: "Community",
           children: [
             {
@@ -130,7 +100,7 @@ module.exports = {
             },
             {
               title: "Chat",
-              url: "https://discord.com/invite/kQzh3Uv"
+              url: "https://t.me/kavalabs"
             }
           ]
         },
@@ -147,7 +117,20 @@ module.exports = {
               url: "https://github.com/Kava-Labs/kava"
             }
           ]
-        }
+        },
+        {
+          title: "Related Docs",
+          children: [
+            {
+              title: "Cosmos SDK",
+              url: "https://cosmos.network/docs"
+            },
+            {
+              title: "Binance Chain",
+              url: "https://docs.binance.org"
+            }
+          ]
+        },
       ]
     }
   }
