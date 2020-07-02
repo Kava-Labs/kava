@@ -29,7 +29,7 @@ const (
 // Key prefixes
 var (
 	// SupplyLimitUpgradeTime is the block time after which the asset supply limits are updated from params
-	SupplyLimitUpgradeTime time.Time = time.Date(2020, 7, 8, 14, 0, 0, 0, time.UTC)
+	SupplyLimitUpgradeTime time.Time = time.Date(2020, 7, 10, 14, 0, 0, 0, time.UTC)
 
 	AtomicSwapKeyPrefix             = []byte{0x00} // prefix for keys that store AtomicSwaps
 	AtomicSwapByBlockPrefix         = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
