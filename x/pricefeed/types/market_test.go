@@ -12,7 +12,10 @@ import (
 )
 
 func TestMarketValidate(t *testing.T) {
-	addr := sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
+	mockPrivKey := tmtypes.NewMockPV()
+	pubkey, err := mockPrivKey.GetPubKey()
+	require.NoError(t, err)
+	addr := sdk.AccAddress(pubkey.Address())
 
 	testCases := []struct {
 		msg     string
@@ -88,7 +91,10 @@ func TestMarketValidate(t *testing.T) {
 
 func TestPostedPriceValidate(t *testing.T) {
 	now := time.Now()
-	addr := sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
+	mockPrivKey := tmtypes.NewMockPV()
+	pubkey, err := mockPrivKey.GetPubKey()
+	require.NoError(t, err)
+	addr := sdk.AccAddress(pubkey.Address())
 
 	testCases := []struct {
 		msg         string
