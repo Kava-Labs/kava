@@ -197,7 +197,10 @@ func TestClaimPeriodsValidate(t *testing.T) {
 }
 
 func TestClaimsValidate(t *testing.T) {
-	owner := sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
+	mockPrivKey := tmtypes.NewMockPV()
+	pubkey, err := mockPrivKey.GetPubKey()
+	require.NoError(t, err)
+	owner := sdk.AccAddress(pubkey.Address())
 
 	testCases := []struct {
 		msg     string

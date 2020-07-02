@@ -60,7 +60,10 @@ func TestGenesisClaimPeriodIDsValidate(t *testing.T) {
 
 func TestGenesisStateValidate(t *testing.T) {
 	now := time.Now()
-	owner := sdk.AccAddress(tmtypes.NewMockPV().GetPubKey().Address())
+	mockPrivKey := tmtypes.NewMockPV()
+	pubkey, err := mockPrivKey.GetPubKey()
+	require.NoError(t, err)
+	owner := sdk.AccAddress(pubkey.Address())
 
 	rewards := Rewards{
 		NewReward(
