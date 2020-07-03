@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -102,7 +103,7 @@ func NewFixtures(t *testing.T) *Fixtures {
 
 	buildDir := os.Getenv("BUILDDIR")
 	if buildDir == "" {
-		buildDir, err = filepath.Abs("../build/")
+		buildDir, err = filepath.Abs(filepath.Join("../build/", runtime.GOOS))
 		require.NoError(t, err)
 	}
 
@@ -248,7 +249,7 @@ func (f *Fixtures) CollectGenTxs(flags ...string) {
 
 // GDStart runs kavad start with the appropriate flags and returns a process
 func (f *Fixtures) GDStart(flags ...string) *tests.Process {
-	cmd := fmt.Sprintf("%s start --home=%s --rpc.laddr=%v --p2p.laddr=%v", f.KvdBinary, f.KvdHome, f.RPCAddr, f.P2PAddr)
+	cmd := fmt.Sprintf("%s start --home=%s --rpc.laddr=%v --p2p.laddr=%v --pruning=everything", f.KvdBinary, f.KvdHome, f.RPCAddr, f.P2PAddr)
 	proc := tests.GoExecuteTWithStdout(f.T, addFlags(cmd, flags))
 	tests.WaitForTMStart(f.Port)
 	tests.WaitForNextNBlocksTM(1, f.Port)

@@ -3,18 +3,6 @@
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
-ifeq ($(DETECTED_OS),)
-  ifeq ($(OS),Windows_NT)
-	  DETECTED_OS := windows
-  else
-	  UNAME_S = $(shell uname -s)
-    ifeq ($(UNAME_S),Darwin)
-	    DETECTED_OS := mac
-	  else
-	    DETECTED_OS := linux
-	  endif
-  endif
-endif
 export GO111MODULE = on
 
 # process build tags
@@ -76,15 +64,15 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(DETECTED_OS)/kvd.exe ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(DETECTED_OS)/kvcli.exe ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd.exe ./cmd/kvd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli.exe ./cmd/kvcli
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(DETECTED_OS)/kvd ./cmd/kvd
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(DETECTED_OS)/kvcli ./cmd/kvcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvd ./cmd/kvd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kvcli ./cmd/kvcli
 endif
 
 build-linux: go.sum
-	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 DETECTED_OS=linux $(MAKE) build
+	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kvd
