@@ -377,6 +377,94 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestUnblockAddress() {
+	type args struct {
+		assets      types.Assets
+		sender      sdk.AccAddress
+		blockedAddr sdk.AccAddress
+		denom       string
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	testCases := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{
+			"valid unblock",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+				},
+				sender:      suite.addrs[0],
+				blockedAddr: suite.addrs[1],
+				denom:       "usdtoken",
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"non-owner unblock",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+				},
+				sender:      suite.addrs[2],
+				blockedAddr: suite.addrs[1],
+				denom:       "usdtoken",
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "account not authorized",
+			},
+		},
+		{
+			"invalid denom block",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+				},
+				sender:      suite.addrs[0],
+				blockedAddr: suite.addrs[1],
+				denom:       "othertoken",
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "no asset with input denom found",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			params := types.NewParams(tc.args.assets)
+			suite.keeper.SetParams(suite.ctx, params)
+
+			err := suite.keeper.UnblockAddress(suite.ctx, tc.args.denom, tc.args.sender, tc.args.blockedAddr)
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err, tc.name)
+				asset, found := suite.keeper.GetAsset(suite.ctx, tc.args.denom)
+				blocked := false
+				suite.Require().True(found)
+				for _, blockedAddr := range asset.BlockedAddresses {
+					if blockedAddr.Equals(tc.args.blockedAddr) {
+						blocked = true
+					}
+				}
+				suite.Require().False(blocked)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestChangePauseStatus() {
 	type args struct {
 		assets      types.Assets

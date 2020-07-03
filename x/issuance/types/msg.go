@@ -144,6 +144,50 @@ func (msg MsgBlockAddress) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
+// MsgUnblockAddress message type used by the issuer to unblock an address from holding or transferring tokens
+type MsgUnblockAddress struct {
+	Sender  sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom   string         `json:"denom" yaml:"denom"`
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+}
+
+// NewMsgUnblockAddress returns a new MsgIssueTokens
+func NewMsgUnblockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress) MsgUnblockAddress {
+	return MsgUnblockAddress{
+		Sender:  sender,
+		Denom:   denom,
+		Address: addr,
+	}
+}
+
+// Route return the message type used for routing the message.
+func (msg MsgUnblockAddress) Route() string { return RouterKey }
+
+// Type returns a human-readable string for the message, intended for utilization within tags.
+func (msg MsgUnblockAddress) Type() string { return "unblock_address" }
+
+// ValidateBasic does a simple validation check that doesn't require access to state.
+func (msg MsgUnblockAddress) ValidateBasic() error {
+	if msg.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	if msg.Address.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
+	}
+	return sdk.ValidateDenom(msg.Denom)
+}
+
+// GetSignBytes gets the canonical byte representation of the Msg
+func (msg MsgUnblockAddress) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the addresses of signers that must sign
+func (msg MsgUnblockAddress) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Sender}
+}
+
 // MsgChangePauseStatus message type used by the issuer to issue new tokens
 type MsgChangePauseStatus struct {
 	Sender sdk.AccAddress `json:"sender" yaml:"sender"`

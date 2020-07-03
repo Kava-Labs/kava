@@ -20,6 +20,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRedeemTokens(ctx, k, msg)
 		case types.MsgBlockAddress:
 			return handleMsgBlockAddress(ctx, k, msg)
+		case types.MsgUnblockAddress:
+			return handleMsgUnblockAddress(ctx, k, msg)
 		case types.MsgChangePauseStatus:
 			return handleMsgChangePauseStatus(ctx, k, msg)
 		default:
@@ -64,6 +66,23 @@ func handleMsgRedeemTokens(ctx sdk.Context, k keeper.Keeper, msg types.MsgRedeem
 
 func handleMsgBlockAddress(ctx sdk.Context, k keeper.Keeper, msg types.MsgBlockAddress) (*sdk.Result, error) {
 	err := k.BlockAddress(ctx, msg.Denom, msg.Sender, msg.BlockedAddress)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		),
+	)
+	return &sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
+
+func handleMsgUnblockAddress(ctx sdk.Context, k keeper.Keeper, msg types.MsgUnblockAddress) (*sdk.Result, error) {
+	err := k.UnblockAddress(ctx, msg.Denom, msg.Sender, msg.Address)
 	if err != nil {
 		return nil, err
 	}

@@ -17,6 +17,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgIssueTokens{}, "issuance/MsgIssueTokens", nil)
 	cdc.RegisterConcrete(MsgRedeemTokens{}, "issuance/MsgRedeemTokens", nil)
 	cdc.RegisterConcrete(MsgBlockAddress{}, "issuance/MsgBlockAddress", nil)
+	cdc.RegisterConcrete(MsgUnblockAddress{}, "issuance/MsgUnblockAddress", nil)
 	cdc.RegisterConcrete(MsgChangePauseStatus{}, "issuance/MsgChangePauseStatus", nil)
 	cdc.RegisterConcrete(Asset{}, "issuance/Asset", nil)
 }

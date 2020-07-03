@@ -15,11 +15,14 @@ const (
 	EventTypeIssue           = types.EventTypeIssue
 	EventTypeRedeem          = types.EventTypeRedeem
 	EventTypeBlock           = types.EventTypeBlock
+	EventTypeUnblock         = types.EventTypeUnblock
 	EventTypePause           = types.EventTypePause
 	AttributeValueCategory   = types.AttributeValueCategory
+	AttributeKeyDenom        = types.AttributeKeyDenom
 	AttributeKeyIssueAmount  = types.AttributeKeyIssueAmount
 	AttributeKeyRedeemAmount = types.AttributeKeyRedeemAmount
 	AttributeKeyBlock        = types.AttributeKeyBlock
+	AttributeKeyUnblock      = types.AttributeKeyUnblock
 	AttributeKeyPauseStatus  = types.AttributeKeyPauseStatus
 	ModuleName               = types.ModuleName
 	StoreKey                 = types.StoreKey
@@ -33,16 +36,19 @@ const (
 var (
 	// functions aliases
 	NewKeeper               = keeper.NewKeeper
+	NewQuerier              = keeper.NewQuerier
 	RegisterCodec           = types.RegisterCodec
 	NewGenesisState         = types.NewGenesisState
 	DefaultGenesisState     = types.DefaultGenesisState
 	NewMsgIssueTokens       = types.NewMsgIssueTokens
 	NewMsgRedeemTokens      = types.NewMsgRedeemTokens
 	NewMsgBlockAddress      = types.NewMsgBlockAddress
+	NewMsgUnblockAddress    = types.NewMsgUnblockAddress
 	NewMsgChangePauseStatus = types.NewMsgChangePauseStatus
 	NewParams               = types.NewParams
 	DefaultParams           = types.DefaultParams
 	ParamKeyTable           = types.ParamKeyTable
+	NewAsset                = types.NewAsset
 
 	// variable aliases
 	ModuleCdc         = types.ModuleCdc
@@ -61,6 +67,7 @@ type (
 	MsgIssueTokens       = types.MsgIssueTokens
 	MsgRedeemTokens      = types.MsgRedeemTokens
 	MsgBlockAddress      = types.MsgBlockAddress
+	MsgUnblockAddress    = types.MsgUnblockAddress
 	MsgChangePauseStatus = types.MsgChangePauseStatus
 	Params               = types.Params
 	Asset                = types.Asset
