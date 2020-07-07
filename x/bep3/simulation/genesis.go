@@ -18,10 +18,13 @@ import (
 
 // Simulation parameter constants
 const (
-	BnbDeputyAddress = "bnb_deputy_address"
-	MinBlockLock     = "min_block_lock"
-	MaxBlockLock     = "max_block_lock"
-	SupportedAssets  = "supported_assets"
+	BnbDeputyAddress  = "bnb_deputy_address"
+	BnbDeputyFixedFee = "bnb_deputy_fixed_fee"
+	MinAmount         = "min_amount"
+	MaxAmount         = "max_amount"
+	MinBlockLock      = "min_block_lock"
+	MaxBlockLock      = "max_block_lock"
+	SupportedAssets   = "supported_assets"
 )
 
 var (
@@ -37,23 +40,37 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 }
 
 // GenRandBnbDeputyFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
-func GenRandBnbDeputyFixedFee(r *rand.Rand) uint64 {
-	min := int(2)
-	max := int(10000)
-	return uint64(r.Intn(max-min) + min)
+func GenRandBnbDeputyFixedFee(r *rand.Rand) sdk.Int {
+	min := int(1)
+	max := types.DefaultBnbDeputyFixedFee.Int64()
+	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
+}
+
+// GenMinAmount randomized MinAmount in range [0, 1000000000000]
+func GenMinAmount(r *rand.Rand) sdk.Int {
+	min := types.DefaultMinAmount.Int64()
+	max := types.DefaultMaxAmount.Int64()
+	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
+}
+
+// GenMaxAmount randomized MaxAmount
+func GenMaxAmount(r *rand.Rand, minAmount sdk.Int) sdk.Int {
+	min := minAmount.Int64()
+	max := types.DefaultMaxAmount.Int64()
+	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
 }
 
 // GenMinBlockLock randomized MinBlockLock
 func GenMinBlockLock(r *rand.Rand) uint64 {
-	min := int(types.AbsoluteMinimumBlockLock)
-	max := int(types.AbsoluteMaximumBlockLock)
+	min := int(1)
+	max := int(types.DefaultMaxBlockLock)
 	return uint64(r.Intn(max-min) + min)
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
 func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
 	min := int(minBlockLock)
-	max := int(types.AbsoluteMaximumBlockLock)
+	max := int(types.DefaultMaxBlockLock)
 	return uint64(r.Intn(max-min) + min)
 }
 
@@ -108,9 +125,11 @@ func RandomizedGenState(simState *module.SimulationState) {
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
 	bnbDeputy := GenRandBnbDeputy(simState.Rand)
 	bnbDeputyFixedFee := GenRandBnbDeputyFixedFee(simState.Rand)
+	minAmount := types.DefaultMinAmount
+	maxAmount := GenMaxAmount(simState.Rand, minAmount)
 
 	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
-	minBlockLock := types.AbsoluteMinimumBlockLock
+	minBlockLock := uint64(50)
 	maxBlockLock := minBlockLock * 2
 
 	var supportedAssets types.AssetParams
@@ -123,6 +142,8 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 		Params: types.Params{
 			BnbDeputyAddress:  bnbDeputy.Address,
 			BnbDeputyFixedFee: bnbDeputyFixedFee,
+			MinAmount:         minAmount,
+			MaxAmount:         maxAmount,
 			MinBlockLock:      minBlockLock,
 			MaxBlockLock:      maxBlockLock,
 			SupportedAssets:   supportedAssets,

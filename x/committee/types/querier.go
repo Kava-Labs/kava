@@ -6,13 +6,15 @@ import (
 
 // Query endpoints supported by the Querier
 const (
-	QueryCommittees = "committees"
-	QueryCommittee  = "committee"
-	QueryProposals  = "proposals"
-	QueryProposal   = "proposal"
-	QueryVotes      = "votes"
-	QueryVote       = "vote"
-	QueryTally      = "tally"
+	QueryCommittees     = "committees"
+	QueryCommittee      = "committee"
+	QueryProposals      = "proposals"
+	QueryProposal       = "proposal"
+	QueryNextProposalID = "next-proposal-id"
+	QueryVotes          = "votes"
+	QueryVote           = "vote"
+	QueryTally          = "tally"
+	QueryRawParams      = "raw_params"
 )
 
 type QueryCommitteeParams struct {
@@ -44,5 +46,17 @@ func NewQueryVoteParams(proposalID uint64, voter sdk.AccAddress) QueryVoteParams
 	return QueryVoteParams{
 		ProposalID: proposalID,
 		Voter:      voter,
+	}
+}
+
+type QueryRawParamsParams struct {
+	Subspace string
+	Key      string
+}
+
+func NewQueryRawParamsParams(subspace, key string) QueryRawParamsParams {
+	return QueryRawParamsParams{
+		Subspace: subspace,
+		Key:      key,
 	}
 }

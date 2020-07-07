@@ -10,11 +10,10 @@ import (
 
 // SeizeCollateral liquidates the collateral in the input cdp.
 // the following operations are performed:
-// 1. updates the fees for the input cdp,
-// 2. sends collateral for all deposits from the cdp module to the liquidator module account
-// 3. Applies the liquidation penalty and mints the corresponding amount of debt coins in the cdp module
-// 4. moves debt coins from the cdp module to the liquidator module account,
-// 5. decrements the total amount of principal outstanding for that collateral type
+// 1. Collateral for all deposits is sent from the cdp module to the liquidator module account
+// 2. The liquidation penalty is applied
+// 3. Debt coins are sent from the cdp module to the liquidator module account
+// 4. The total amount of principal outstanding for that collateral type is decremented
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
@@ -24,9 +23,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	deposits := k.GetDeposits(ctx, cdp.ID)
 	debt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
-	if modAccountDebt.LT(debt) {
-		debt = modAccountDebt
-	}
+	debt = sdk.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
@@ -35,6 +32,12 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 
 	// liquidate deposits and send collateral from cdp to liquidator
 	for _, dep := range deposits {
+		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
+		if err != nil {
+			return err
+		}
+		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
+
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCdpLiquidation,
@@ -43,12 +46,8 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 				sdk.NewAttribute(types.AttributeKeyDeposit, dep.String()),
 			),
 		)
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(dep.Amount))
-		if err != nil {
-			return err
-		}
-		k.DeleteDeposit(ctx, dep.CdpID, dep.Depositor)
 	}
+
 	err = k.AuctionCollateral(ctx, deposits, debt, cdp.Principal.Denom)
 	if err != nil {
 		return err
@@ -88,11 +87,10 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 	return nil
 }
 
-// ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty and mints the debt coins in the cdp module account
+// ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty
 func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.Int) sdk.Int {
 	penalty := k.getLiquidationPenalty(ctx, denom)
-	penaltyAmount := sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
-	return penaltyAmount
+	return sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
 }
 
 func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdk.Int {

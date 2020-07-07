@@ -20,7 +20,9 @@ var (
 	KeyDistributionFrequency = []byte("DistributionFrequency")
 	KeyCircuitBreaker        = []byte("CircuitBreaker")
 	KeyDebtThreshold         = []byte("DebtThreshold")
+	KeyDebtLot               = []byte("DebtLot")
 	KeySurplusThreshold      = []byte("SurplusThreshold")
+	KeySurplusLot            = []byte("SurplusLot")
 	DefaultGlobalDebt        = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
 	DefaultCircuitBreaker    = false
 	DefaultCollateralParams  = CollateralParams{}
@@ -35,8 +37,10 @@ var (
 	DefaultDebtDenom                    = "debt"
 	DefaultGovDenom                     = "ukava"
 	DefaultStableDenom                  = "usdx"
-	DefaultSurplusThreshold             = sdk.NewInt(1000000000)
-	DefaultDebtThreshold                = sdk.NewInt(1000000000)
+	DefaultSurplusThreshold             = sdk.NewInt(500000000000)
+	DefaultDebtThreshold                = sdk.NewInt(100000000000)
+	DefaultSurplusLot                   = sdk.NewInt(10000000000)
+	DefaultDebtLot                      = sdk.NewInt(10000000000)
 	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
 	DefaultSavingsDistributionFrequency = time.Hour * 12
 	minCollateralPrefix                 = 0
@@ -50,7 +54,9 @@ type Params struct {
 	DebtParam                    DebtParam        `json:"debt_param" yaml:"debt_param"`
 	GlobalDebtLimit              sdk.Coin         `json:"global_debt_limit" yaml:"global_debt_limit"`
 	SurplusAuctionThreshold      sdk.Int          `json:"surplus_auction_threshold" yaml:"surplus_auction_threshold"`
+	SurplusAuctionLot            sdk.Int          `json:"surplus_auction_lot" yaml:"surplus_auction_lot"`
 	DebtAuctionThreshold         sdk.Int          `json:"debt_auction_threshold" yaml:"debt_auction_threshold"`
+	DebtAuctionLot               sdk.Int          `json:"debt_auction_lot" yaml:"debt_auction_lot"`
 	SavingsDistributionFrequency time.Duration    `json:"savings_distribution_frequency" yaml:"savings_distribution_frequency"`
 	CircuitBreaker               bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
 }
@@ -62,21 +68,29 @@ func (p Params) String() string {
 	Collateral Params: %s
 	Debt Params: %s
 	Surplus Auction Threshold: %s
+	Surplus Auction Lot: %s
 	Debt Auction Threshold: %s
+	Debt Auction Lot: %s
 	Savings Distribution Frequency: %s
 	Circuit Breaker: %t`,
-		p.GlobalDebtLimit, p.CollateralParams, p.DebtParam, p.SurplusAuctionThreshold, p.DebtAuctionThreshold, p.SavingsDistributionFrequency, p.CircuitBreaker,
+		p.GlobalDebtLimit, p.CollateralParams, p.DebtParam, p.SurplusAuctionThreshold, p.SurplusAuctionLot,
+		p.DebtAuctionThreshold, p.DebtAuctionLot, p.SavingsDistributionFrequency, p.CircuitBreaker,
 	)
 }
 
 // NewParams returns a new params object
-func NewParams(debtLimit sdk.Coin, collateralParams CollateralParams, debtParam DebtParam, surplusThreshold sdk.Int, debtThreshold sdk.Int, distributionFreq time.Duration, breaker bool) Params {
+func NewParams(
+	debtLimit sdk.Coin, collateralParams CollateralParams, debtParam DebtParam, surplusThreshold,
+	surplusLot, debtThreshold, debtLot sdk.Int, distributionFreq time.Duration, breaker bool,
+) Params {
 	return Params{
 		GlobalDebtLimit:              debtLimit,
 		CollateralParams:             collateralParams,
 		DebtParam:                    debtParam,
-		DebtAuctionThreshold:         debtThreshold,
 		SurplusAuctionThreshold:      surplusThreshold,
+		SurplusAuctionLot:            surplusLot,
+		DebtAuctionThreshold:         debtThreshold,
+		DebtAuctionLot:               debtLot,
 		SavingsDistributionFrequency: distributionFreq,
 		CircuitBreaker:               breaker,
 	}
@@ -84,7 +98,11 @@ func NewParams(debtLimit sdk.Coin, collateralParams CollateralParams, debtParam 
 
 // DefaultParams returns default params for cdp module
 func DefaultParams() Params {
-	return NewParams(DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParam, DefaultSurplusThreshold, DefaultDebtThreshold, DefaultSavingsDistributionFrequency, DefaultCircuitBreaker)
+	return NewParams(
+		DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParam, DefaultSurplusThreshold,
+		DefaultSurplusLot, DefaultDebtThreshold, DefaultDebtLot, DefaultSavingsDistributionFrequency,
+		DefaultCircuitBreaker,
+	)
 }
 
 // CollateralParam governance parameters for each collateral type within the cdp module
@@ -175,7 +193,9 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyDebtParam, &p.DebtParam, validateDebtParam),
 		params.NewParamSetPair(KeyCircuitBreaker, &p.CircuitBreaker, validateCircuitBreakerParam),
 		params.NewParamSetPair(KeySurplusThreshold, &p.SurplusAuctionThreshold, validateSurplusAuctionThresholdParam),
+		params.NewParamSetPair(KeySurplusLot, &p.SurplusAuctionLot, validateSurplusAuctionLotParam),
 		params.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
+		params.NewParamSetPair(KeyDebtLot, &p.DebtAuctionLot, validateDebtAuctionLotParam),
 		params.NewParamSetPair(KeyDistributionFrequency, &p.SavingsDistributionFrequency, validateSavingsDistributionFrequencyParam),
 	}
 }
@@ -202,7 +222,15 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validateSurplusAuctionLotParam(p.SurplusAuctionLot); err != nil {
+		return err
+	}
+
 	if err := validateDebtAuctionThresholdParam(p.DebtAuctionThreshold); err != nil {
+		return err
+	}
+
+	if err := validateDebtAuctionLotParam(p.DebtAuctionLot); err != nil {
 		return err
 	}
 
@@ -360,6 +388,19 @@ func validateSurplusAuctionThresholdParam(i interface{}) error {
 	return nil
 }
 
+func validateSurplusAuctionLotParam(i interface{}) error {
+	sal, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if !sal.IsPositive() {
+		return fmt.Errorf("surplus auction lot should be positive: %s", sal)
+	}
+
+	return nil
+}
+
 func validateDebtAuctionThresholdParam(i interface{}) error {
 	dat, ok := i.(sdk.Int)
 	if !ok {
@@ -368,6 +409,19 @@ func validateDebtAuctionThresholdParam(i interface{}) error {
 
 	if !dat.IsPositive() {
 		return fmt.Errorf("debt auction threshold should be positive: %s", dat)
+	}
+
+	return nil
+}
+
+func validateDebtAuctionLotParam(i interface{}) error {
+	dal, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if !dal.IsPositive() {
+		return fmt.Errorf("debt auction lot should be positive: %s", dal)
 	}
 
 	return nil

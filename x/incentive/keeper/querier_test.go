@@ -30,4 +30,17 @@ func (suite *KeeperTestSuite) TestQuerier() {
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &claims))
 	suite.Equal(1, len(claims))
 	suite.Equal(types.Claims{types.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", 1)}, claims)
+
+	var rp types.RewardPeriods
+	bz, err = querier(suite.ctx, []string{types.QueryGetRewardPeriods}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.NotNil(bz)
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &rp))
+
+	var cp types.ClaimPeriods
+	bz, err = querier(suite.ctx, []string{types.QueryGetClaimPeriods}, abci.RequestQuery{})
+	suite.Require().NoError(err)
+	suite.NotNil(bz)
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &cp))
+
 }

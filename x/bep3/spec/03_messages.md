@@ -1,3 +1,7 @@
+<!--
+order: 3
+-->
+
 # Messages
 
 ## Create swap
@@ -30,8 +34,6 @@ type MsgClaimAtomicSwap struct {
 	RandomNumber tmbytes.HexBytes `json:"random_number"  yaml:"random_number"`
 }
 ```
-
-
 
 ## Refund swap
 

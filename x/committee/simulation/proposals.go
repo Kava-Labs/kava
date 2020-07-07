@@ -79,7 +79,7 @@ func SimulateCommitteeChangeProposalContent(k keeper.Keeper, paramChanges []simu
 			// update members
 			if r.Intn(100) < 50 {
 				if len(accs) == 0 {
-					panic("must have at least one account availabel to use as committee member")
+					panic("must have at least one account available to use as committee member")
 				}
 				var members []sdk.AccAddress
 				for len(members) < 1 {

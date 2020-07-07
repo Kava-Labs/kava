@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,8 +42,49 @@ func NewRewardPeriod(denom string, start time.Time, end time.Time, reward sdk.Co
 	}
 }
 
+// Validate performs a basic check of a RewardPeriod fields.
+func (rp RewardPeriod) Validate() error {
+	if rp.Start.IsZero() {
+		return errors.New("reward period start time cannot be 0")
+	}
+	if rp.End.IsZero() {
+		return errors.New("reward period end time cannot be 0")
+	}
+	if rp.Start.After(rp.End) {
+		return fmt.Errorf("end period time %s cannot be before start time %s", rp.End, rp.Start)
+	}
+	if !rp.Reward.IsValid() {
+		return fmt.Errorf("invalid reward amount: %s", rp.Reward)
+	}
+	if rp.ClaimEnd.IsZero() {
+		return errors.New("reward period claim end time cannot be 0")
+	}
+	if rp.ClaimTimeLock == 0 {
+		return errors.New("reward claim time lock cannot be 0")
+	}
+	return sdk.ValidateDenom(rp.Denom)
+}
+
 // RewardPeriods array of RewardPeriod
 type RewardPeriods []RewardPeriod
+
+// Validate checks if all the RewardPeriods are valid and there are no duplicated
+// entries.
+func (rps RewardPeriods) Validate() error {
+	seenPeriods := make(map[string]bool)
+	for _, rp := range rps {
+		if seenPeriods[rp.Denom] {
+			return fmt.Errorf("duplicated reward period with denom %s", rp.Denom)
+		}
+
+		if err := rp.Validate(); err != nil {
+			return err
+		}
+		seenPeriods[rp.Denom] = true
+	}
+
+	return nil
+}
 
 // ClaimPeriod stores the state of an ongoing claim period
 type ClaimPeriod struct {
@@ -50,16 +92,6 @@ type ClaimPeriod struct {
 	ID       uint64        `json:"id" yaml:"id"`
 	End      time.Time     `json:"end" yaml:"end"`
 	TimeLock time.Duration `json:"time_lock" yaml:"time_lock"`
-}
-
-// String implements fmt.Stringer
-func (cp ClaimPeriod) String() string {
-	return fmt.Sprintf(`Claim Period:
-	Denom: %s,
-	ID: %d,
-	End: %s,
-	Claim Time Lock: %s
-	`, cp.Denom, cp.ID, cp.End, cp.TimeLock)
 }
 
 // NewClaimPeriod returns a new ClaimPeriod
@@ -72,8 +104,52 @@ func NewClaimPeriod(denom string, id uint64, end time.Time, timeLock time.Durati
 	}
 }
 
+// Validate performs a basic check of a ClaimPeriod fields.
+func (cp ClaimPeriod) Validate() error {
+	if cp.ID == 0 {
+		return errors.New("claim period id cannot be 0")
+	}
+	if cp.End.IsZero() {
+		return errors.New("claim period end time cannot be 0")
+	}
+	if cp.TimeLock == 0 {
+		return errors.New("claim period time lock cannot be 0")
+	}
+	return sdk.ValidateDenom(cp.Denom)
+}
+
+// String implements fmt.Stringer
+func (cp ClaimPeriod) String() string {
+	return fmt.Sprintf(`Claim Period:
+	Denom: %s,
+	ID: %d,
+	End: %s,
+	Claim Time Lock: %s
+	`, cp.Denom, cp.ID, cp.End, cp.TimeLock)
+}
+
 // ClaimPeriods array of ClaimPeriod
 type ClaimPeriods []ClaimPeriod
+
+// Validate checks if all the ClaimPeriods are valid and there are no duplicated
+// entries.
+func (cps ClaimPeriods) Validate() error {
+	seenPeriods := make(map[string]bool)
+	var key string
+	for _, cp := range cps {
+		key = cp.Denom + string(cp.ID)
+		if seenPeriods[key] {
+			return fmt.Errorf("duplicated claim period with id %d and denom %s", cp.ID, cp.Denom)
+		}
+
+		if err := cp.Validate(); err != nil {
+			return err
+		}
+		seenPeriods[key] = true
+	}
+
+	return nil
+}
 
 // Claim stores the rewards that can be claimed by owner
 type Claim struct {
@@ -93,6 +169,20 @@ func NewClaim(owner sdk.AccAddress, reward sdk.Coin, denom string, claimPeriodID
 	}
 }
 
+// Validate performs a basic check of a Claim fields.
+func (c Claim) Validate() error {
+	if c.Owner.Empty() {
+		return errors.New("claim owner cannot be empty")
+	}
+	if !c.Reward.IsValid() {
+		return fmt.Errorf("invalid reward amount: %s", c.Reward)
+	}
+	if c.ClaimPeriodID == 0 {
+		return errors.New("claim period id cannot be 0")
+	}
+	return sdk.ValidateDenom(c.Denom)
+}
+
 // String implements fmt.Stringer
 func (c Claim) String() string {
 	return fmt.Sprintf(`Claim:
@@ -105,6 +195,26 @@ func (c Claim) String() string {
 
 // Claims array of Claim
 type Claims []Claim
+
+// Validate checks if all the claims are valid and there are no duplicated
+// entries.
+func (cs Claims) Validate() error {
+	seemClaims := make(map[string]bool)
+	var key string
+	for _, c := range cs {
+		key = c.Denom + string(c.ClaimPeriodID) + c.Owner.String()
+		if c.Owner != nil && seemClaims[key] {
+			return fmt.Errorf("duplicated claim from owner %s and denom %s", c.Owner, c.Denom)
+		}
+
+		if err := c.Validate(); err != nil {
+			return err
+		}
+		seemClaims[key] = true
+	}
+
+	return nil
+}
 
 // NewRewardPeriodFromReward returns a new reward period from the input reward and block time
 func NewRewardPeriodFromReward(reward Reward, blockTime time.Time) RewardPeriod {

@@ -187,7 +187,7 @@ func (suite *ParamTestSuite) SetupTest() {
 					types.Reward{
 						Active:           true,
 						Denom:            "",
-						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(0)),
+						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(1)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
 						ClaimDuration:    time.Hour * 24 * 14,
@@ -196,7 +196,7 @@ func (suite *ParamTestSuite) SetupTest() {
 			},
 			errResult: errResult{
 				expectPass: false,
-				contains:   "cannot have empty reward denom",
+				contains:   "invalid denom",
 			},
 		},
 	}

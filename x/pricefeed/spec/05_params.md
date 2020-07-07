@@ -1,3 +1,7 @@
+<!--
+order: 5
+-->
+
 # Parameters
 
 The pricefeed module has the following parameters:

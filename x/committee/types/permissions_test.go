@@ -36,6 +36,10 @@ func (suite *PermissionsTestSuite) SetupTest() {
 			Subspace: "auction",
 			Key:      "BidDuration",
 		},
+		{
+			Subspace: "bep3",
+			Key:      "MinAmount",
+		},
 	}
 }
 
@@ -81,6 +85,12 @@ func (suite *PermissionsTestSuite) TestSimpleParamChangePermission_Allows() {
 						Key:      "CollateralParams",
 
 						Value: `[]`,
+					},
+					{
+						Subspace: "bep3",
+						Key:      "MinAmount",
+
+						Value: `2000`,
 					},
 				},
 			),

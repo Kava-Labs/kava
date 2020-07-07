@@ -116,21 +116,13 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 // MintDebtCoins mints debt coins in the cdp module account
 func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
-	err := k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.supplyKeeper.MintCoins(ctx, moduleAccount, debtCoins)
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, paymentCoins.Amount))
-	err := k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
 }
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom
@@ -302,14 +294,20 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
 func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, denom string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("denom %s prefix not found", denom))
+	}
 	store.Set(types.CollateralRatioKey(db, id, collateralRatio), types.GetCdpIDBytes(id))
 }
 
 // RemoveCdpCollateralRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
 func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, denom string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, _ := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, denom)
+	if !found {
+		panic(fmt.Sprintf("denom %s prefix not found", denom))
+	}
 	store.Delete(types.CollateralRatioKey(db, id, collateralRatio))
 }
 
@@ -321,7 +319,7 @@ func (k Keeper) GetDebtDenom(ctx sdk.Context) (denom string) {
 	return
 }
 
-// GetGovDenom returns the denom of debt in the system
+// GetGovDenom returns the denom of the governance token
 func (k Keeper) GetGovDenom(ctx sdk.Context) (denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GovDenomKey)
 	bz := store.Get([]byte{})
@@ -408,7 +406,6 @@ func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralDenom string, princ
 
 // ValidateCollateralizationRatio validate that adding the input principal doesn't put the cdp below the liquidation ratio
 func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, principal sdk.Coin, fees sdk.Coin) error {
-	//
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, collateral, principal, fees, spot)
 	if err != nil {
 		return err
@@ -439,17 +436,10 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	if err != nil {
 		return types.AugmentedCDP{CDP: cdp}
 	}
-
-	// total debt is the sum of all outstanding principal and fees
-	var totalDebt int64
-	totalDebt += cdp.Principal.Amount.Int64()
-	totalDebt += cdp.AccumulatedFees.Amount.Int64()
-
 	// convert collateral value to debt coin
-	debtBaseAdjusted := sdk.NewDec(totalDebt).QuoInt64(BaseDigitFactor)
-	collateralValueInDebtDenom := collateralizationRatio.Mul(debtBaseAdjusted)
-	collateralValueInDebt := sdk.NewInt64Coin(cdp.Principal.Denom, collateralValueInDebtDenom.Int64())
-
+	totalDebt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
+	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
+	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
 	return augmentedCDP

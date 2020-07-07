@@ -34,7 +34,7 @@ type AtomicSwapTestSuite struct {
 }
 
 const (
-	STARING_BNB_BALANCE = int64(1000000000)
+	STARING_BNB_BALANCE = int64(3000000000000)
 	BNB_DENOM           = "bnb"
 )
 
@@ -84,7 +84,7 @@ func (suite *AtomicSwapTestSuite) GenerateSwapDetails() {
 	var timestamps []int64
 	var randomNumberHashes []tmbytes.HexBytes
 	var randomNumbers []tmbytes.HexBytes
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 15; i++ {
 		// Set up atomic swap details
 		timestamp := ts(i)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
@@ -126,7 +126,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
@@ -144,9 +144,9 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
-				recipient:           suite.addrs[2],
+				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 50000)),
@@ -157,18 +157,72 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			true,
 		},
 		{
+			"outgoing swap recipient before update",
+			types.SupplyLimitUpgradeTime.Add(-time.Hour),
+			args{
+				randomNumberHash:    suite.randomNumberHashes[12],
+				timestamp:           types.SupplyLimitUpgradeTime.Add(-time.Hour).Unix(),
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.addrs[1],
+				recipient:           suite.addrs[2],
+				senderOtherChain:    TestUser1.String(),
+				recipientOtherChain: TestUser2.String(),
+				coins:               cs(c(BNB_DENOM, 50000)),
+				crossChain:          true,
+				direction:           types.Outgoing,
+			},
+			true,
+			true,
+		},
+		{
+			"outgoing swap recipient at update time",
+			types.SupplyLimitUpgradeTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[13],
+				timestamp:           types.SupplyLimitUpgradeTime.Unix(),
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.addrs[1],
+				recipient:           suite.addrs[2],
+				senderOtherChain:    TestUser1.String(),
+				recipientOtherChain: TestUser2.String(),
+				coins:               cs(c(BNB_DENOM, 50000)),
+				crossChain:          true,
+				direction:           types.Outgoing,
+			},
+			true,
+			true,
+		},
+		{
+			"outgoing swap recipient after update",
+			types.SupplyLimitUpgradeTime.Add(time.Nanosecond),
+			args{
+				randomNumberHash:    suite.randomNumberHashes[14],
+				timestamp:           types.SupplyLimitUpgradeTime.Add(time.Nanosecond).Unix(),
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.addrs[1],
+				recipient:           suite.addrs[2],
+				senderOtherChain:    TestUser1.String(),
+				recipientOtherChain: TestUser2.String(),
+				coins:               cs(c(BNB_DENOM, 50000)),
+				crossChain:          true,
+				direction:           types.Outgoing,
+			},
+			false,
+			false,
+		},
+		{
 
 			"outgoing swap amount not greater than fixed fee",
 			currentTmTime,
 			args{
 				randomNumberHash:    suite.randomNumberHashes[1],
 				timestamp:           suite.timestamps[1],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, int64(suite.keeper.GetBnbDeputyFixedFee(suite.ctx)))),
+				coins:               cs(c(BNB_DENOM, suite.keeper.GetBnbDeputyFixedFee(suite.ctx).Int64())),
 				crossChain:          true,
 				direction:           types.Outgoing,
 			},
@@ -181,7 +235,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[2],
 				timestamp:           suite.timestamps[2],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
@@ -199,7 +253,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[3],
 				timestamp:           suite.timestamps[3] - 2000,
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[3],
 				senderOtherChain:    TestSenderOtherChain,
@@ -217,7 +271,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[4],
 				timestamp:           suite.timestamps[4] + 5000,
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[4],
 				senderOtherChain:    TestSenderOtherChain,
@@ -230,37 +284,37 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			false,
 		},
 		{
-			"small height span",
+			"small height span on outgoing swap",
 			currentTmTime,
 			args{
 				randomNumberHash:    suite.randomNumberHashes[5],
 				timestamp:           suite.timestamps[5],
-				heightSpan:          uint64(5),
-				sender:              suite.deputy,
-				recipient:           suite.addrs[5],
+				heightSpan:          uint64(100),
+				sender:              suite.addrs[5],
+				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 50000)),
 				crossChain:          true,
-				direction:           types.Incoming,
+				direction:           types.Outgoing,
 			},
 			false,
 			false,
 		},
 		{
-			"big height span",
+			"big height span on outgoing swap",
 			currentTmTime,
 			args{
 				randomNumberHash:    suite.randomNumberHashes[6],
 				timestamp:           suite.timestamps[6],
-				heightSpan:          uint64(1000000),
-				sender:              suite.deputy,
-				recipient:           suite.addrs[6],
+				heightSpan:          uint64(300),
+				sender:              suite.addrs[6],
+				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 50000)),
 				crossChain:          true,
-				direction:           types.Incoming,
+				direction:           types.Outgoing,
 			},
 			false,
 			false,
@@ -271,7 +325,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[7],
 				timestamp:           suite.timestamps[7],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[7],
 				senderOtherChain:    TestSenderOtherChain,
@@ -289,7 +343,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[0],
 				timestamp:           suite.timestamps[0],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
@@ -307,7 +361,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			args{
 				randomNumberHash:    suite.randomNumberHashes[8],
 				timestamp:           suite.timestamps[8],
-				heightSpan:          uint64(360),
+				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.deputy,
 				recipient:           suite.randMacc,
 				senderOtherChain:    TestSenderOtherChain,
@@ -319,11 +373,48 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			false,
 			false,
 		},
+		{
+			"exactly at maximum amount",
+			currentTmTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[10],
+				timestamp:           suite.timestamps[10],
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.deputy,
+				recipient:           suite.addrs[4],
+				senderOtherChain:    TestSenderOtherChain,
+				recipientOtherChain: TestRecipientOtherChain,
+				coins:               cs(c(BNB_DENOM, 1000000000000)), // 10,000 BNB
+				crossChain:          true,
+				direction:           types.Incoming,
+			},
+			true,
+			true,
+		},
+		{
+			"above maximum amount",
+			currentTmTime,
+			args{
+				randomNumberHash:    suite.randomNumberHashes[11],
+				timestamp:           suite.timestamps[11],
+				heightSpan:          types.DefaultMinBlockLock,
+				sender:              suite.deputy,
+				recipient:           suite.addrs[5],
+				senderOtherChain:    TestSenderOtherChain,
+				recipientOtherChain: TestRecipientOtherChain,
+				coins:               cs(c(BNB_DENOM, 1000000000001)), // 10,001 BNB
+				crossChain:          true,
+				direction:           types.Incoming,
+			},
+			false,
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// Increment current asset supply to support outgoing swaps
+			suite.ctx = suite.ctx.WithBlockTime(tc.blockTime)
 			if tc.args.direction == types.Outgoing {
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coins[0])
 				suite.Nil(err)
@@ -503,7 +594,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 
 			// Create atomic swap
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				uint64(360), sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
+				types.DefaultMinBlockLock, sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				expectedClaimAmount, true)
 			suite.NoError(err)
 
@@ -657,7 +748,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			}
 
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				uint64(360), sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
+				types.DefaultMinBlockLock, sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, true)
 			suite.NoError(err)
 

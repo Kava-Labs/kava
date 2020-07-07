@@ -54,12 +54,20 @@ func (suite *ParamsTestSuite) TestGetBnbDeputyFixedFee() {
 	suite.Equal(bnbDeputyFixedFee, res)
 }
 
-func (suite *ParamsTestSuite) TestGetMaxBlockLock() {
+func (suite *ParamsTestSuite) TestGetMinAmount() {
 	params := suite.keeper.GetParams(suite.ctx)
-	maxBlockLock := params.MaxBlockLock
+	minAmount := params.MinAmount
 
-	res := suite.keeper.GetMaxBlockLock(suite.ctx)
-	suite.Equal(maxBlockLock, res)
+	res := suite.keeper.GetMinAmount(suite.ctx)
+	suite.Equal(minAmount, res)
+}
+
+func (suite *ParamsTestSuite) TestGetMaxAmount() {
+	params := suite.keeper.GetParams(suite.ctx)
+	maxAmount := params.MaxAmount
+
+	res := suite.keeper.GetMaxAmount(suite.ctx)
+	suite.Equal(maxAmount, res)
 }
 
 func (suite *ParamsTestSuite) TestGetMinBlockLock() {
@@ -68,6 +76,14 @@ func (suite *ParamsTestSuite) TestGetMinBlockLock() {
 
 	res := suite.keeper.GetMinBlockLock(suite.ctx)
 	suite.Equal(minBlockLock, res)
+}
+
+func (suite *ParamsTestSuite) TestGetMaxBlockLock() {
+	params := suite.keeper.GetParams(suite.ctx)
+	maxBlockLock := params.MaxBlockLock
+
+	res := suite.keeper.GetMaxBlockLock(suite.ctx)
+	suite.Equal(maxBlockLock, res)
 }
 
 func (suite *ParamsTestSuite) TestGetAssets() {

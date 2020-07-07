@@ -62,7 +62,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	isSwapID := make(map[string]bool)
 	for i := 0; i < 10; i++ {
 		// Set up atomic swap variables
-		expireHeight := uint64(360)
+		expireHeight := types.DefaultMinBlockLock
 		amount := cs(c("bnb", 100))
 		timestamp := ts(0)
 		randomNumber, _ := types.GenerateSecureRandomNumber()
@@ -121,11 +121,11 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwap() {
 	suite.NotNil(bz)
 
 	// Unmarshal the bytes into type atomic swap
-	var swap types.AtomicSwap
+	var swap types.AugmentedAtomicSwap
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &swap))
 
 	// Check the returned atomic swap's ID
-	suite.True(suite.isSwapID[hex.EncodeToString(swap.GetSwapID())])
+	suite.True(suite.isSwapID[swap.ID])
 }
 
 func (suite *QuerierTestSuite) TestQueryAssetSupplies() {
@@ -161,12 +161,12 @@ func (suite *QuerierTestSuite) TestQueryAtomicSwaps() {
 	suite.Nil(err)
 	suite.NotNil(bz)
 
-	var swaps types.AtomicSwaps
+	var swaps types.AugmentedAtomicSwaps
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &swaps))
 
 	suite.Equal(len(suite.swapIDs), len(swaps))
 	for _, swap := range swaps {
-		suite.True(suite.isSwapID[hex.EncodeToString(swap.GetSwapID())])
+		suite.True(suite.isSwapID[swap.ID])
 	}
 }
 

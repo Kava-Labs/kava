@@ -1,3 +1,7 @@
+<!--
+order: 2
+-->
+
 # State
 
 ## Parameters and genesis state
@@ -7,11 +11,13 @@
 ```go
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // deputy's address on Kava
-	BnbDeputyFixedFee uint64         `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // deputy's fixed fee
-	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // minimum swap expire height
-	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // maximum swap expire height
-	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // array of supported asset
+	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
+	BnbDeputyFixedFee sdk.Int        `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
+	MinAmount         sdk.Int        `json:"min_amount" yaml:"min_amount"`                     // Minimum swap amount
+	MaxAmount         sdk.Int        `json:"max_amount" yaml:"max_amount"`                     // Maximum swap amount
+	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // Minimum swap block lock
+	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // Maximum swap block lock
+	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
 }
 
 // AssetParam governance parameters for each asset within a supported chain
@@ -35,6 +41,10 @@ type GenesisState struct {
 ```
 
 ## Types
+
+AtomicSwap stores information about an individual atomic swap, including the sender, recipient, amount, random number hash (used to validate the secret and unlock funds), the status (open, completed, or expired). There are two types of atomic swaps:
+- Incoming: assets are being sent to Kava from another blockchain.
+- Outgoing: assets are being send to another blockchain from Kava.
 
 ```go
 // AtomicSwap contains the information for an atomic swap
@@ -70,7 +80,15 @@ const (
 	Incoming SwapDirection = 0x01
 	Outgoing SwapDirection = 0x02
 )
+```
 
+AssetSupply stores information about an individual asset's BEP3 supply:
+- Incoming supply: total amount in incoming swaps (being sent to the chain).
+- Outgoing supply: total amount in outgoing swaps (being sent off the chain). It cannot be greater than the current supply.
+- Current supply: the amount that the deputy has released - it is the active supply on Kava. It is equal to the total amount successfully claimed from incoming swaps minus the total amount claimed from outgoing swaps.
+- Supply limit: the maximum amount currently allowed on Kava. The supply limit can be increased by Kava's stability committee, subject to an on-chain proposal vote.
+
+```go
 // AssetSupply contains information about an asset's supply
 type AssetSupply struct {
 	Denom          string   `json:"denom"  yaml:"denom"`

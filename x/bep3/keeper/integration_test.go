@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	StandardSupplyLimit = i(100000000000)
+	StandardSupplyLimit = i(350000000000000)
 	DenomMap            = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
 	TestUser1           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 	TestUser2           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
@@ -36,8 +36,10 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 		Params: bep3.Params{
 			BnbDeputyAddress:  deputyAddress,
 			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
-			MinBlockLock:      types.DefaultMinBlockLock,      // 80
-			MaxBlockLock:      types.DefaultMaxBlockLock,      // 360
+			MinAmount:         types.DefaultMinAmount,         // 0
+			MaxAmount:         types.DefaultMaxAmount,         // 10,000
+			MinBlockLock:      types.DefaultMinBlockLock,      // 220
+			MaxBlockLock:      types.DefaultMaxBlockLock,      // 270
 			SupportedAssets: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
@@ -67,8 +69,8 @@ func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
 }
 
 func atomicSwap(ctx sdk.Context, index int) types.AtomicSwap {
-	expireOffset := uint64((index * 15) + 360) // Default expire height + offet to match timestamp
-	timestamp := ts(index)                     // One minute apart
+	expireOffset := uint64(200) // Default expire height + offet to match timestamp
+	timestamp := ts(index)      // One minute apart
 	randomNumber, _ := types.GenerateSecureRandomNumber()
 	randomNumberHash := types.CalculateRandomHash(randomNumber[:], timestamp)
 

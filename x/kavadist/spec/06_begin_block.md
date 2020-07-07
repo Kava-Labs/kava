@@ -1,3 +1,7 @@
+<!--
+order: 6
+-->
+
 # Begin Block
 
 At the start of each block, the inflationary coins for the ongoing period, if any, are minted. The logic is as follows:

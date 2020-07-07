@@ -204,11 +204,11 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			var atomicSwap types.AtomicSwap
+			var atomicSwap types.AugmentedAtomicSwap
 			cdc.MustUnmarshalJSON(res, &atomicSwap)
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(atomicSwap.String())
+			return cliCtx.PrintOutput(atomicSwap)
 		},
 	}
 }
@@ -286,7 +286,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 				return err
 			}
 
-			var matchingAtomicSwaps types.AtomicSwaps
+			var matchingAtomicSwaps types.AugmentedAtomicSwaps
 			cdc.UnmarshalJSON(res, &matchingAtomicSwaps)
 
 			if len(matchingAtomicSwaps) == 0 {
@@ -294,7 +294,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(matchingAtomicSwaps.String()) // nolint:errcheck
+			return cliCtx.PrintOutput(matchingAtomicSwaps) // nolint:errcheck
 		},
 	}
 

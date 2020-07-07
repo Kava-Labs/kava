@@ -2,7 +2,6 @@ package simulation
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -18,6 +17,7 @@ import (
 
 var (
 	noOpMsg = simulation.NoOpMsg(types.ModuleName)
+	randomNumber = []byte{114, 21, 74, 180, 81, 92, 21, 91, 173, 164, 143, 111, 120, 58, 241, 58, 40, 22, 59, 133, 102, 233, 55, 149, 12, 199, 231, 63, 122, 23, 88, 9}
 )
 
 // Simulation operation weights constants
@@ -65,11 +65,11 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		})
 
 		// Search for an account that holds coins received by an atomic swap
-		bnbDeputyFixedFee := k.GetBnbDeputyFixedFee(ctx)
+		minAmountPlusFee := k.GetMinAmount(ctx).Add(k.GetBnbDeputyFixedFee(ctx))
 		senderOut, asset, found := findValidAccountAssetSupplyPair(accs, supplies, func(acc simulation.Account, asset types.AssetSupply) bool {
 			if asset.CurrentSupply.Amount.IsPositive() {
 				authAcc := ak.GetAccount(ctx, acc.Address)
-				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(sdk.NewIntFromUint64(bnbDeputyFixedFee)) {
+				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(minAmountPlusFee) {
 					return true
 				}
 			}
@@ -99,14 +99,9 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		recipientOtherChain := simulation.RandStringOfLength(r, 43)
 		senderOtherChain := simulation.RandStringOfLength(r, 43)
 
-		// Generate cryptographically strong pseudo-random number
-		randomNumber, err := simulation.RandPositiveInt(r, sdk.NewInt(math.MaxInt64))
-		if err != nil {
-			return noOpMsg, nil, err
-		}
-		// Must use current blocktime instead of 'now' since initial blocktime was randomly generated
+		// Use same random number for determinism
 		timestamp := ctx.BlockTime().Unix()
-		randomNumberHash := types.CalculateRandomHash(randomNumber.BigInt().Bytes(), timestamp)
+		randomNumberHash := types.CalculateRandomHash(randomNumber, timestamp)
 
 		// Check that the sender has coins for fee
 		senderAcc := ak.GetAccount(ctx, sender.Address)
@@ -128,9 +123,14 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			}
 		}
 
+		// The maximum amount for all swaps is limited by the total max limit
+		if maximumAmount.GT(k.GetMaxAmount(ctx)) {
+			maximumAmount = k.GetMaxAmount(ctx)
+		}
+
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
-		if amount.LT(sdk.NewIntFromUint64(bnbDeputyFixedFee)) {
+		if amount.LT(minAmountPlusFee) {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(denom, amount))
@@ -166,7 +166,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan/2
 			futureOp = simulation.FutureOperation{
 				BlockHeight: int(executionBlock),
-				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber.BigInt().Bytes()),
+				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber),
 			}
 		} else {
 			// Refund future operation

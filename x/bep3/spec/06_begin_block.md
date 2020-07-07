@@ -1,3 +1,7 @@
+<!--
+order: 6
+-->
+
 # Begin Block
 
 At the start of each block, atomic swaps that meet certain criteria are expired or deleted.

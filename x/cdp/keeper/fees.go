@@ -26,8 +26,8 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) error {
 	var iterationErr error
 	k.IterateCdpsByDenom(ctx, collateralDenom, func(cdp types.CDP) bool {
-
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		// periods = bblock timestamp - fees updated
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
 		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
@@ -38,7 +38,6 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 			return false
 		}
 
-		// note - only works if principal length is one
 		dp, found := k.GetDebtParam(ctx, cdp.Principal.Denom)
 		if !found {
 			return false
@@ -55,12 +54,14 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 		if (newFeesSavings.IsZero() && !savingsRate.IsZero()) || (newFeesSurplus.IsZero() && !savingsRate.Equal(sdk.OneDec())) {
 			return false
 		}
+
 		// mint debt coins to the cdp account
 		err := k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
 		if err != nil {
 			iterationErr = err
 			return true
 		}
+
 		previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, dp.Denom)
 		newDebt := previousDebt.Add(newFees.Amount)
 		k.SetTotalPrincipal(ctx, collateralDenom, dp.Denom, newDebt)
@@ -100,17 +101,14 @@ func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralDenom string,
 	total := k.GetTotalPrincipal(ctx, collateralDenom, principal.Denom)
 	total = total.Add(principal.Amount)
 	k.SetTotalPrincipal(ctx, collateralDenom, principal.Denom, total)
-
 }
 
 // DecrementTotalPrincipal decrements the total amount of debt that has been drawn for a particular collateral type
 func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralDenom string, principal sdk.Coin) {
 	total := k.GetTotalPrincipal(ctx, collateralDenom, principal.Denom)
-	total = total.Sub(principal.Amount)
-	if total.IsNegative() {
-		// can happen in tests due to rounding errors in fee calculation
-		total = sdk.ZeroInt()
-	}
+	// NOTE: negative total principal can happen in tests due to rounding errors
+	// in fee calculation
+	total = sdk.MaxInt(total.Sub(principal.Amount), sdk.ZeroInt())
 	k.SetTotalPrincipal(ctx, collateralDenom, principal.Denom, total)
 }
 

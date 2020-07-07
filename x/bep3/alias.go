@@ -73,6 +73,7 @@ var (
 	ErrInvalidClaimSecret      = types.ErrInvalidClaimSecret
 	ErrInvalidCurrentSupply    = types.ErrInvalidCurrentSupply
 	ErrInvalidHeightSpan       = types.ErrInvalidHeightSpan
+	ErrInvalidAmount           = types.ErrInvalidAmount
 	ErrInvalidIncomingSupply   = types.ErrInvalidIncomingSupply
 	ErrInvalidOutgoingSupply   = types.ErrInvalidOutgoingSupply
 	ErrInvalidTimestamp        = types.ErrInvalidTimestamp
@@ -96,21 +97,26 @@ var (
 	RegisterCodec              = types.RegisterCodec
 
 	// variable aliases
-	AbsoluteMaximumBlockLock        = types.AbsoluteMaximumBlockLock
-	AbsoluteMinimumBlockLock        = types.AbsoluteMinimumBlockLock
 	AssetSupplyKeyPrefix            = types.AssetSupplyKeyPrefix
 	AtomicSwapByBlockPrefix         = types.AtomicSwapByBlockPrefix
 	AtomicSwapCoinsAccAddr          = types.AtomicSwapCoinsAccAddr
 	AtomicSwapKeyPrefix             = types.AtomicSwapKeyPrefix
 	AtomicSwapLongtermStoragePrefix = types.AtomicSwapLongtermStoragePrefix
+	DefaultBnbDeputyFixedFee        = types.DefaultBnbDeputyFixedFee
+	DefaultMinAmount                = types.DefaultMinAmount
+	DefaultMaxAmount                = types.DefaultMaxAmount
 	DefaultMaxBlockLock             = types.DefaultMaxBlockLock
 	DefaultMinBlockLock             = types.DefaultMinBlockLock
 	DefaultSupportedAssets          = types.DefaultSupportedAssets
 	KeyBnbDeputyAddress             = types.KeyBnbDeputyAddress
+	KeyBnbDeputyFixedFee            = types.KeyBnbDeputyFixedFee
+	KeyMinAmount                    = types.KeyMinAmount
+	KeyMaxAmount                    = types.KeyMaxAmount
 	KeyMaxBlockLock                 = types.KeyMaxBlockLock
 	KeyMinBlockLock                 = types.KeyMinBlockLock
 	KeySupportedAssets              = types.KeySupportedAssets
 	ModuleCdc                       = types.ModuleCdc
+	SupplyLimitUpgradeTime          = types.SupplyLimitUpgradeTime
 )
 
 type (

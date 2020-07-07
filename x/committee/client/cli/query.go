@@ -37,7 +37,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryVotes(queryRoute, cdc),
 		// other
 		GetCmdQueryProposer(queryRoute, cdc),
-		GetCmdQueryTally(queryRoute, cdc))...)
+		GetCmdQueryTally(queryRoute, cdc),
+		GetCmdQueryRawParams(queryRoute, cdc))...)
 
 	return queryCmd
 }
@@ -129,20 +130,12 @@ func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("proposal-id %s not a valid uint", args[0])
 			}
-			bz, err := cdc.MarshalJSON(types.NewQueryProposalParams(proposalID))
+
+			proposal, _, err := common.QueryProposalByID(cliCtx, cdc, queryRoute, proposalID)
 			if err != nil {
 				return err
 			}
 
-			// Query
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryProposal), bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var proposal types.Proposal
-			cdc.MustUnmarshalJSON(res, &proposal)
 			return cliCtx.PrintOutput(proposal)
 		},
 	}
@@ -289,6 +282,40 @@ func GetCmdQueryProposer(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			return cliCtx.PrintOutput(prop)
+		},
+	}
+}
+
+func GetCmdQueryRawParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:     "raw-params [subspace] [key]",
+		Args:    cobra.ExactArgs(2),
+		Short:   "Query raw parameter values from any module.",
+		Long:    "Query the byte value of any module's parameters. Useful in debugging and verifying governance proposals.",
+		Example: fmt.Sprintf("%s query %s raw-params cdp CollateralParams", version.ClientName, types.ModuleName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare params for querier
+			bz, err := cdc.MarshalJSON(types.NewQueryRawParamsParams(args[0], args[1]))
+			if err != nil {
+				return err
+			}
+
+			// Query
+			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryRawParams), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			rawParams := []byte{}
+			err = cdc.UnmarshalJSON(res, &rawParams)
+			if err != nil {
+				return err
+			}
+			// raw params are encoded raw json bytes, so should be ok to print out as a string
+			return cliCtx.PrintOutput(string(rawParams))
 		},
 	}
 }
