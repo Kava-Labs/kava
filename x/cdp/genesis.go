@@ -72,9 +72,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 			panic(fmt.Sprintf("error setting cdp: %v", err))
 		}
 		k.IndexCdpByOwner(ctx, cdp)
-		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.GetTotalPrincipal())
 		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral.Denom, cdp.ID, ratio)
-		k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, cdp.Principal.Add(cdp.AccumulatedFees))
+		k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, cdp.GetTotalPrincipal())
 	}
 
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
