@@ -29,9 +29,16 @@ type PostRedeemReq struct {
 
 // PostBlockAddressReq defines the properties of a block address request's body
 type PostBlockAddressReq struct {
-	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
-	BlockedAddress sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
-	Denom          string         `json:"denom" yaml:"denom"`
+	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	Address sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
+	Denom   string         `json:"denom" yaml:"denom"`
+}
+
+// PostUnblockAddressReq defines the properties of a unblock address request's body
+type PostUnblockAddressReq struct {
+	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	Address sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
+	Denom   string         `json:"denom" yaml:"denom"`
 }
 
 // PostPauseReq defines the properties of a pause request's body

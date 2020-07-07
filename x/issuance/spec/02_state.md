@@ -24,7 +24,7 @@ type Params struct {
   Assets Assets `json:"assets" yaml:"assets"`
 }
 
-// GenesisState state the must be provided at genesis
+// GenesisState state that must be provided at genesis
 type GenesisState struct {
   Assets Assets `json:"assets" yaml:"assets"`
 }

@@ -1,4 +1,3 @@
-
 <!--
 order: 5
 -->
@@ -7,9 +6,9 @@ order: 5
 
 The issuance module has the following parameters:
 
-| Key        | Type           | Example       | Description                                 |
-|------------|----------------|---------------|---------------------------------------------|
-| Assets     | array (Asset)  | [{see below}] | array of assets created via issuance module |
+| Key        | Type           | Example         | Description                                 |
+|------------|----------------|-----------------|---------------------------------------------|
+| Assets     | array (Asset)  | `[{see below}]` | array of assets created via issuance module |
 
 
 Each `Asset` has the following parameters

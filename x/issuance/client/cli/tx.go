@@ -3,7 +3,6 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -18,17 +17,18 @@ import (
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
-// GetTxCmd returns the transaction cli commands for the incentive module
+// GetTxCmd returns the transaction cli commands for the issuance module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	issuanceTxCmd := &cobra.Command{
 		Use:   types.ModuleName,
-		Short: "transaction commands for the incentive module",
+		Short: "transaction commands for the issuance module",
 	}
 
 	issuanceTxCmd.AddCommand(flags.PostCommands(
 		getCmdIssueTokens(cdc),
 		getCmdRedeemTokens(cdc),
 		getCmdBlockAddress(cdc),
+		getCmdUnblockAddress(cdc),
 		getCmdPauseAsset(cdc),
 	)...)
 
@@ -40,13 +40,9 @@ func getCmdIssueTokens(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "issue [tokens] [receiver]",
 		Short: "issue new tokens to the receiver address",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`The asset owner issues new tokens that will be credited to the receiver address,
-
-			Example:
-			$ %s tx %s issue 20000000usdtoken kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+		Long:  "The asset owner issues new tokens that will be credited to the receiver address",
+		Example: fmt.Sprintf(`$ %s tx %s issue 20000000usdtoken kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
 		`, version.ClientName, types.ModuleName),
-		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -75,13 +71,9 @@ func getCmdRedeemTokens(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "redeem [tokens]",
 		Short: "redeem tokens",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`The asset owner redeems (burns) tokens, removing them from the circulating supply
-
-			Example:
-			$ %s tx %s redeem 20000000usdtoken
+		Long:  "The asset owner redeems (burns) tokens, removing them from the circulating supply",
+		Example: fmt.Sprintf(`$ %s tx %s redeem 20000000usdtoken
 		`, version.ClientName, types.ModuleName),
-		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -106,13 +98,9 @@ func getCmdBlockAddress(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "block [address] [denom]",
 		Short: "block an address for the input denom",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`The asset owner blocks and address from holding coins of that denomination. Any tokens of the input denomination held by the address will be sent to the owner address
-
-			Example:
-			$ %s tx %s block kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw usdtoken
+		Long:  "The asset owner blocks an address from holding coins of that denomination. Any tokens of the input denomination held by the address will be sent to the owner address",
+		Example: fmt.Sprintf(`$ %s tx %s block kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw usdtoken
 		`, version.ClientName, types.ModuleName),
-		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -137,17 +125,44 @@ func getCmdBlockAddress(cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+func getCmdUnblockAddress(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "unblock [address] [denom]",
+		Short: "unblock an address for the input denom",
+		Long:  "The asset owner unblocks an address from holding coins of that denomination.",
+		Example: fmt.Sprintf(`$ %s tx %s unblock kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw usdtoken
+		`, version.ClientName, types.ModuleName),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			address, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			err = sdk.ValidateDenom(args[1])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgUnblockAddress(cliCtx.GetFromAddress(), args[1], address)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
 func getCmdPauseAsset(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "pause [denom] [status]",
+		Use:   "set-pause-status [denom] [status]",
 		Short: "pause or unpause an asset",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`The asset owner pauses or unpauses the input asset, halting new issuance and redemption
-
-			Example:
-			$ %s tx %s pause usdtoken true
+		Long:  "The asset owner pauses or unpauses the input asset, halting new issuance and redemption",
+		Example: fmt.Sprintf(`$ %s tx %s pause usdtoken true
 		`, version.ClientName, types.ModuleName),
-		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -163,10 +178,10 @@ func getCmdPauseAsset(cdc *codec.Codec) *cobra.Command {
 			} else if args[1] == "false" {
 				status = false
 			} else {
-				return fmt.Errorf(fmt.Sprintf("status must be true or flase, got %s", args[1]))
+				return fmt.Errorf(fmt.Sprintf("status must be true or false, got %s", args[1]))
 			}
 
-			msg := types.NewMsgChangePauseStatus(cliCtx.GetFromAddress(), args[0], status)
+			msg := types.NewMsgSetPauseStatus(cliCtx.GetFromAddress(), args[0], status)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

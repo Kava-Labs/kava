@@ -110,6 +110,11 @@ func SimulateMsgIssueTokens(ak types.AccountKeeper, k keeper.Keeper) simulation.
 		if recipient == nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+		for _, blockedAddr := range asset.BlockedAddresses {
+			if recipient.GetAddress().Equals(blockedAddr) {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+		}
 		randomAmount := simulation.RandIntBetween(r, 10000000, 1000000000000)
 		msg := types.NewMsgIssueTokens(asset.Owner, sdk.NewCoin(asset.Denom, sdk.NewInt(int64(randomAmount))), recipient.GetAddress())
 		spendableCoins := ownerAcc.SpendableCoins(ctx.BlockTime())
@@ -129,6 +134,7 @@ func SimulateMsgIssueTokens(ak types.AccountKeeper, k keeper.Keeper) simulation.
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("error on issue %s\n%s\n", msg, asset)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -165,14 +171,15 @@ func SimulateMsgRedeemTokens(ak types.AccountKeeper, k keeper.Keeper) simulation
 		var redeemAmount sdk.Int
 		if spendableCoinAmount.Equal(sdk.OneInt()) {
 			redeemAmount = sdk.OneInt()
+		} else {
+			redeemAmount = sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoinAmount.Int64()))))
 		}
-
-		redeemAmount = sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoinAmount.Int64()))))
 
 		msg := types.NewMsgRedeemTokens(asset.Owner, sdk.NewCoin(asset.Denom, redeemAmount))
 		spendableCoins := ownerAcc.SpendableCoins(ctx.BlockTime()).Sub(sdk.NewCoins(sdk.NewCoin(asset.Denom, redeemAmount)))
 		fees, err := simulation.RandomFees(r, ctx, spendableCoins)
 		if err != nil {
+			fmt.Printf("%s\n", msg)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		tx := helpers.GenTx(
@@ -187,6 +194,7 @@ func SimulateMsgRedeemTokens(ak types.AccountKeeper, k keeper.Keeper) simulation
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("error on redeem %s\n%s\n", msg, asset)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -218,6 +226,11 @@ func SimulateMsgBlockAddress(ak types.AccountKeeper, k keeper.Keeper) simulation
 		if blockedAccount.GetAddress().Equals(asset.Owner) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
+		for _, blockedAddr := range asset.BlockedAddresses {
+			if blockedAccount.GetAddress().Equals(blockedAddr) {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+		}
 
 		msg := types.NewMsgBlockAddress(asset.Owner, asset.Denom, blockedAccount.GetAddress())
 		spendableCoins := ownerAcc.SpendableCoins(ctx.BlockTime())
@@ -228,7 +241,7 @@ func SimulateMsgBlockAddress(ak types.AccountKeeper, k keeper.Keeper) simulation
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			helpers.DefaultGenTxGas*2,
 			chainID,
 			[]uint64{ownerAcc.GetAccountNumber()},
 			[]uint64{ownerAcc.GetSequence()},
@@ -237,6 +250,7 @@ func SimulateMsgBlockAddress(ak types.AccountKeeper, k keeper.Keeper) simulation
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("error on block %s\n%s\n", msg, asset)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil
@@ -265,7 +279,7 @@ func SimulateMsgPause(ak types.AccountKeeper, k keeper.Keeper) simulation.Operat
 		// set status to paused/un-paused
 		status := r.Intn(2) == 0
 
-		msg := types.NewMsgChangePauseStatus(asset.Owner, asset.Denom, status)
+		msg := types.NewMsgSetPauseStatus(asset.Owner, asset.Denom, status)
 		spendableCoins := ownerAcc.SpendableCoins(ctx.BlockTime())
 		fees, err := simulation.RandomFees(r, ctx, spendableCoins)
 		if err != nil {
@@ -274,7 +288,7 @@ func SimulateMsgPause(ak types.AccountKeeper, k keeper.Keeper) simulation.Operat
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			helpers.DefaultGenTxGas*2,
 			chainID,
 			[]uint64{ownerAcc.GetAccountNumber()},
 			[]uint64{ownerAcc.GetSequence()},
@@ -283,6 +297,7 @@ func SimulateMsgPause(ak types.AccountKeeper, k keeper.Keeper) simulation.Operat
 
 		_, _, err = app.Deliver(tx)
 		if err != nil {
+			fmt.Printf("error on pause %s\n%s\n", msg, asset)
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, ""), nil, nil

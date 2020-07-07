@@ -110,6 +110,19 @@ func (suite *GenesisTestSuite) TestValidate() {
 			},
 		},
 		{
+			"duplicate denom",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+					types.NewAsset(suite.addrs[1], "usdtoken", []sdk.AccAddress{}, true),
+				},
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "duplicate asset denoms",
+			},
+		},
+		{
 			"duplicate asset",
 			args{
 				assets: types.Assets{

@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
+	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
@@ -26,6 +26,12 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 		return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
 	}
 
+	acc := k.accountKeeper.GetAccount(ctx, receiver)
+	_, ok := acc.(supplyexported.ModuleAccountI)
+	if ok {
+		return sdkerrors.Wrapf(types.ErrIssueToModuleAccount, "address: %s", receiver)
+	}
+
 	// mint new tokens
 	err := k.supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(tokens))
 	if err != nil {
@@ -39,13 +45,13 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeIssue,
-			sdk.NewAttribute(types.AttributeKeyIssueAmount, fmt.Sprintf("%s", tokens)),
+			sdk.NewAttribute(types.AttributeKeyIssueAmount, tokens.String()),
 		),
 	)
 	return nil
 }
 
-// RedeemTokens sends tokens from the owner address  to the module account and burns them
+// RedeemTokens sends tokens from the owner address to the module account and burns them
 func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, tokens.Denom)
 	if !found {
@@ -69,7 +75,7 @@ func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddr
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRedeem,
-			sdk.NewAttribute(types.AttributeKeyRedeemAmount, fmt.Sprintf("%s", tokens)),
+			sdk.NewAttribute(types.AttributeKeyRedeemAmount, tokens.String()),
 		),
 	)
 	return nil
@@ -86,14 +92,14 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	}
 	blocked, _ := k.checkBlockedAddress(ctx, asset, blockedAddress)
 	if blocked {
-		return nil
+		return sdkerrors.Wrapf(types.ErrAccountAlreadyBlocked, "address: %s", blockedAddress)
 	}
 	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress)
 	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeBlock,
-			sdk.NewAttribute(types.AttributeKeyBlock, fmt.Sprintf("%s", blockedAddress)),
+			sdk.NewAttribute(types.AttributeKeyBlock, blockedAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, asset.Denom),
 		),
 	)
@@ -111,7 +117,9 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 	}
 	blocked, i := k.checkBlockedAddress(ctx, asset, addr)
 	if !blocked {
-		return nil
+		if blocked {
+			return sdkerrors.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
+		}
 	}
 
 	blockedAddrs := k.removeBlockedAddress(ctx, asset.BlockedAddresses, i)
@@ -120,15 +128,15 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeUnblock,
-			sdk.NewAttribute(types.AttributeKeyUnblock, fmt.Sprintf("%s", addr)),
+			sdk.NewAttribute(types.AttributeKeyUnblock, addr.String()),
 			sdk.NewAttribute(types.AttributeKeyDenom, asset.Denom),
 		),
 	)
 	return nil
 }
 
-// ChangePauseStatus pauses/un-pauses an asset
-func (k Keeper) ChangePauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom string, status bool) error {
+// SetPauseStatus pauses/un-pauses an asset
+func (k Keeper) SetPauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom string, status bool) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
@@ -139,7 +147,7 @@ func (k Keeper) ChangePauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom s
 	if asset.Paused == status {
 		return nil
 	}
-	asset.Paused = status
+	asset.Paused = !asset.Paused
 	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -160,17 +168,25 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 	for _, address := range asset.BlockedAddresses {
 		account := k.accountKeeper.GetAccount(ctx, address)
 		coinsAmount := account.GetCoins().AmountOf(denom)
-		if coinsAmount.IsPositive() {
-			coins := sdk.NewCoins(sdk.NewCoin(denom, coinsAmount))
-			err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleAccountName, coins)
-			if err != nil {
-				return err
-			}
-			err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, asset.Owner, coins)
-			if err != nil {
-				return err
-			}
+		if !coinsAmount.IsPositive() {
+			continue
 		}
+		coins := sdk.NewCoins(sdk.NewCoin(denom, coinsAmount))
+		err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleAccountName, coins)
+		if err != nil {
+			return err
+		}
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, asset.Owner, coins)
+		if err != nil {
+			return err
+		}
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeSeize,
+				sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
+				sdk.NewAttribute(types.AttributeKeyAddress, address.String()),
+			),
+		)
 	}
 	return nil
 }

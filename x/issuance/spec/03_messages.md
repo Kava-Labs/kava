@@ -51,9 +51,6 @@ type MsgBlockAddress struct {
 * The address is added to the block list, which prevents the account from holding coins of that denom
 * Tokens are sent back to the issuer
 
-```
-
-
 The issuer can pause or un-pause the contract using `MsgChangePauseStatus`
 
 ```go

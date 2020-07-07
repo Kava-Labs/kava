@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -9,7 +11,8 @@ import (
 var _ sdk.Msg = &MsgIssueTokens{}
 var _ sdk.Msg = &MsgRedeemTokens{}
 var _ sdk.Msg = &MsgBlockAddress{}
-var _ sdk.Msg = &MsgChangePauseStatus{}
+var _ sdk.Msg = &MsgUnblockAddress{}
+var _ sdk.Msg = &MsgSetPauseStatus{}
 
 // MsgIssueTokens message type used by the issuer to issue new tokens
 type MsgIssueTokens struct {
@@ -58,6 +61,16 @@ func (msg MsgIssueTokens) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
+// String implements fmt.Stringer
+func (msg MsgIssueTokens) String() string {
+	return fmt.Sprintf(`Issue Tokens:
+	Sender %s
+	Tokens %s
+	Receiver %s
+	`, msg.Sender, msg.Tokens, msg.Receiver,
+	)
+}
+
 // MsgRedeemTokens message type used by the issuer to redeem (burn) tokens
 type MsgRedeemTokens struct {
 	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
@@ -100,19 +113,28 @@ func (msg MsgRedeemTokens) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
+// String implements fmt.Stringer
+func (msg MsgRedeemTokens) String() string {
+	return fmt.Sprintf(`Redeem Tokens:
+	Sender %s
+	Tokens %s
+	`, msg.Sender, msg.Tokens,
+	)
+}
+
 // MsgBlockAddress message type used by the issuer to block an address from holding or transferring tokens
 type MsgBlockAddress struct {
-	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom          string         `json:"denom" yaml:"denom"`
-	BlockedAddress sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
+	Sender  sdk.AccAddress `json:"sender" yaml:"sender"`
+	Denom   string         `json:"denom" yaml:"denom"`
+	Address sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
 }
 
 // NewMsgBlockAddress returns a new MsgIssueTokens
-func NewMsgBlockAddress(sender sdk.AccAddress, denom string, blockedAddr sdk.AccAddress) MsgBlockAddress {
+func NewMsgBlockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress) MsgBlockAddress {
 	return MsgBlockAddress{
-		Sender:         sender,
-		Denom:          denom,
-		BlockedAddress: blockedAddr,
+		Sender:  sender,
+		Denom:   denom,
+		Address: addr,
 	}
 }
 
@@ -127,7 +149,7 @@ func (msg MsgBlockAddress) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if msg.BlockedAddress.Empty() {
+	if msg.Address.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
 	return sdk.ValidateDenom(msg.Denom)
@@ -142,6 +164,16 @@ func (msg MsgBlockAddress) GetSignBytes() []byte {
 // GetSigners returns the addresses of signers that must sign
 func (msg MsgBlockAddress) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
+}
+
+// String implements fmt.Stringer
+func (msg MsgBlockAddress) String() string {
+	return fmt.Sprintf(`Block Address:
+	Sender %s
+	Denom %s
+	Address %s
+	`, msg.Sender, msg.Denom, msg.Address,
+	)
 }
 
 // MsgUnblockAddress message type used by the issuer to unblock an address from holding or transferring tokens
@@ -188,16 +220,26 @@ func (msg MsgUnblockAddress) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-// MsgChangePauseStatus message type used by the issuer to issue new tokens
-type MsgChangePauseStatus struct {
+// String implements fmt.Stringer
+func (msg MsgUnblockAddress) String() string {
+	return fmt.Sprintf(`Unblock Address:
+	Sender %s
+	Denom %s
+	Address %s
+	`, msg.Sender, msg.Denom, msg.Address,
+	)
+}
+
+// MsgSetPauseStatus message type used by the issuer to issue new tokens
+type MsgSetPauseStatus struct {
 	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
 	Denom  string         `json:"denom" yaml:"denom"`
 	Status bool           `json:"status" yaml:"status"`
 }
 
-// NewMsgChangePauseStatus returns a new MsgChangePauseStatus
-func NewMsgChangePauseStatus(sender sdk.AccAddress, denom string, status bool) MsgChangePauseStatus {
-	return MsgChangePauseStatus{
+// NewMsgSetPauseStatus returns a new MsgSetPauseStatus
+func NewMsgSetPauseStatus(sender sdk.AccAddress, denom string, status bool) MsgSetPauseStatus {
+	return MsgSetPauseStatus{
 		Sender: sender,
 		Denom:  denom,
 		Status: status,
@@ -205,13 +247,13 @@ func NewMsgChangePauseStatus(sender sdk.AccAddress, denom string, status bool) M
 }
 
 // Route return the message type used for routing the message.
-func (msg MsgChangePauseStatus) Route() string { return RouterKey }
+func (msg MsgSetPauseStatus) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgChangePauseStatus) Type() string { return "change_pause_status" }
+func (msg MsgSetPauseStatus) Type() string { return "change_pause_status" }
 
 // ValidateBasic does a simple validation check that doesn't require access to state.
-func (msg MsgChangePauseStatus) ValidateBasic() error {
+func (msg MsgSetPauseStatus) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
@@ -219,12 +261,22 @@ func (msg MsgChangePauseStatus) ValidateBasic() error {
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg
-func (msg MsgChangePauseStatus) GetSignBytes() []byte {
+func (msg MsgSetPauseStatus) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // GetSigners returns the addresses of signers that must sign
-func (msg MsgChangePauseStatus) GetSigners() []sdk.AccAddress {
+func (msg MsgSetPauseStatus) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
+}
+
+// String implements fmt.Stringer
+func (msg MsgSetPauseStatus) String() string {
+	return fmt.Sprintf(`Set Pause Status:
+	Sender %s
+	Denom %s
+	Status %t
+	`, msg.Sender, msg.Denom, msg.Status,
+	)
 }

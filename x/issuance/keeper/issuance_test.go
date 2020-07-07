@@ -22,10 +22,11 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	keeper keeper.Keeper
-	app    app.TestApp
-	ctx    sdk.Context
-	addrs  []sdk.AccAddress
+	keeper     keeper.Keeper
+	app        app.TestApp
+	ctx        sdk.Context
+	addrs      []sdk.AccAddress
+	modAccount sdk.AccAddress
 }
 
 // The default state used by each test
@@ -35,10 +36,13 @@ func (suite *KeeperTestSuite) SetupTest() {
 	tApp.InitializeFromGenesisStates()
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	keeper := tApp.GetIssuanceKeeper()
+	modAccount, err := sdk.AccAddressFromBech32("kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w")
+	suite.Require().NoError(err)
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = keeper
 	suite.addrs = addrs
+	suite.modAccount = modAccount
 }
 
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
@@ -135,6 +139,21 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 			errArgs{
 				expectPass: false,
 				contains:   "account is blocked",
+			},
+		},
+		{
+			"issue to module account",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+				},
+				sender:   suite.addrs[0],
+				tokens:   sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				receiver: suite.modAccount,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "cannot issue tokens to module account",
 			},
 		},
 		{
@@ -553,7 +572,7 @@ func (suite *KeeperTestSuite) TestChangePauseStatus() {
 			params := types.NewParams(tc.args.assets)
 			suite.keeper.SetParams(suite.ctx, params)
 
-			err := suite.keeper.ChangePauseStatus(suite.ctx, tc.args.sender, tc.args.denom, tc.args.endStatus)
+			err := suite.keeper.SetPauseStatus(suite.ctx, tc.args.sender, tc.args.denom, tc.args.endStatus)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err, tc.name)
 				asset, found := suite.keeper.GetAsset(suite.ctx, tc.args.denom)

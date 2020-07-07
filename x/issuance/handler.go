@@ -22,8 +22,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgBlockAddress(ctx, k, msg)
 		case types.MsgUnblockAddress:
 			return handleMsgUnblockAddress(ctx, k, msg)
-		case types.MsgChangePauseStatus:
-			return handleMsgChangePauseStatus(ctx, k, msg)
+		case types.MsgSetPauseStatus:
+			return handleMsgSetPauseStatus(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 		}
@@ -65,7 +65,7 @@ func handleMsgRedeemTokens(ctx sdk.Context, k keeper.Keeper, msg types.MsgRedeem
 }
 
 func handleMsgBlockAddress(ctx sdk.Context, k keeper.Keeper, msg types.MsgBlockAddress) (*sdk.Result, error) {
-	err := k.BlockAddress(ctx, msg.Denom, msg.Sender, msg.BlockedAddress)
+	err := k.BlockAddress(ctx, msg.Denom, msg.Sender, msg.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +98,8 @@ func handleMsgUnblockAddress(ctx sdk.Context, k keeper.Keeper, msg types.MsgUnbl
 	}, nil
 }
 
-func handleMsgChangePauseStatus(ctx sdk.Context, k keeper.Keeper, msg types.MsgChangePauseStatus) (*sdk.Result, error) {
-	err := k.ChangePauseStatus(ctx, msg.Sender, msg.Denom, msg.Status)
+func handleMsgSetPauseStatus(ctx sdk.Context, k keeper.Keeper, msg types.MsgSetPauseStatus) (*sdk.Result, error) {
+	err := k.SetPauseStatus(ctx, msg.Sender, msg.Denom, msg.Status)
 	if err != nil {
 		return nil, err
 	}

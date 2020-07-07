@@ -1,9 +1,11 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -19,7 +21,9 @@ var (
 func RandomizedGenState(simState *module.SimulationState) {
 	accs = simState.Accounts
 	params := randomizedParams(simState.Rand)
-	types.NewGenesisState(params)
+	gs := types.NewGenesisState(params)
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, gs))
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
 }
 
 func randomizedParams(r *rand.Rand) types.Params {
@@ -45,6 +49,7 @@ func randomOwner(r *rand.Rand) simulation.Account {
 	return acc
 }
 
+// Max return max of two ints
 func Max(x, y int) int {
 	if x > y {
 		return x

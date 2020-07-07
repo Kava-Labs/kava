@@ -100,7 +100,9 @@ func (a Asset) String() string {
 	return fmt.Sprintf(`Asset:
 	Owner: %s
 	Paused: %t
-	Denom: %s`, a.Owner, a.Paused, a.Denom)
+	Denom: %s
+	Blocked Addresses: %s`,
+		a.Owner, a.Paused, a.Denom, a.BlockedAddresses)
 }
 
 // Assets array of Asset

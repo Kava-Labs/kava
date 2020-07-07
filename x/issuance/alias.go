@@ -17,12 +17,14 @@ const (
 	EventTypeBlock           = types.EventTypeBlock
 	EventTypeUnblock         = types.EventTypeUnblock
 	EventTypePause           = types.EventTypePause
+	EventTypeSeize           = types.EventTypeSeize
 	AttributeValueCategory   = types.AttributeValueCategory
 	AttributeKeyDenom        = types.AttributeKeyDenom
 	AttributeKeyIssueAmount  = types.AttributeKeyIssueAmount
 	AttributeKeyRedeemAmount = types.AttributeKeyRedeemAmount
 	AttributeKeyBlock        = types.AttributeKeyBlock
 	AttributeKeyUnblock      = types.AttributeKeyUnblock
+	AttributeKeyAddress      = types.AttributeKeyAddress
 	AttributeKeyPauseStatus  = types.AttributeKeyPauseStatus
 	ModuleName               = types.ModuleName
 	StoreKey                 = types.StoreKey
@@ -35,42 +37,45 @@ const (
 
 var (
 	// functions aliases
-	NewKeeper               = keeper.NewKeeper
-	NewQuerier              = keeper.NewQuerier
-	RegisterCodec           = types.RegisterCodec
-	NewGenesisState         = types.NewGenesisState
-	DefaultGenesisState     = types.DefaultGenesisState
-	NewMsgIssueTokens       = types.NewMsgIssueTokens
-	NewMsgRedeemTokens      = types.NewMsgRedeemTokens
-	NewMsgBlockAddress      = types.NewMsgBlockAddress
-	NewMsgUnblockAddress    = types.NewMsgUnblockAddress
-	NewMsgChangePauseStatus = types.NewMsgChangePauseStatus
-	NewParams               = types.NewParams
-	DefaultParams           = types.DefaultParams
-	ParamKeyTable           = types.ParamKeyTable
-	NewAsset                = types.NewAsset
+	NewKeeper            = keeper.NewKeeper
+	NewQuerier           = keeper.NewQuerier
+	RegisterCodec        = types.RegisterCodec
+	NewGenesisState      = types.NewGenesisState
+	DefaultGenesisState  = types.DefaultGenesisState
+	NewMsgIssueTokens    = types.NewMsgIssueTokens
+	NewMsgRedeemTokens   = types.NewMsgRedeemTokens
+	NewMsgBlockAddress   = types.NewMsgBlockAddress
+	NewMsgUnblockAddress = types.NewMsgUnblockAddress
+	NewMsgSetPauseStatus = types.NewMsgSetPauseStatus
+	NewParams            = types.NewParams
+	DefaultParams        = types.DefaultParams
+	ParamKeyTable        = types.ParamKeyTable
+	NewAsset             = types.NewAsset
 
 	// variable aliases
-	ModuleCdc         = types.ModuleCdc
-	ErrAssetNotFound  = types.ErrAssetNotFound
-	ErrNotAuthorized  = types.ErrNotAuthorized
-	ErrAssetPaused    = types.ErrAssetPaused
-	ErrAccountBlocked = types.ErrAccountBlocked
-	KeyAssets         = types.KeyAssets
-	DefaultAssets     = types.DefaultAssets
-	ModuleAccountName = types.ModuleAccountName
+	ModuleCdc                  = types.ModuleCdc
+	ErrAssetNotFound           = types.ErrAssetNotFound
+	ErrNotAuthorized           = types.ErrNotAuthorized
+	ErrAssetPaused             = types.ErrAssetPaused
+	ErrAccountBlocked          = types.ErrAccountBlocked
+	ErrAccountAlreadyBlocked   = types.ErrAccountAlreadyBlocked
+	ErrAccountAlreadyUnblocked = types.ErrAccountAlreadyUnblocked
+	ErrIssueToModuleAccount    = types.ErrIssueToModuleAccount
+	KeyAssets                  = types.KeyAssets
+	DefaultAssets              = types.DefaultAssets
+	ModuleAccountName          = types.ModuleAccountName
 )
 
 type (
-	Keeper               = keeper.Keeper
-	GenesisState         = types.GenesisState
-	MsgIssueTokens       = types.MsgIssueTokens
-	MsgRedeemTokens      = types.MsgRedeemTokens
-	MsgBlockAddress      = types.MsgBlockAddress
-	MsgUnblockAddress    = types.MsgUnblockAddress
-	MsgChangePauseStatus = types.MsgChangePauseStatus
-	Params               = types.Params
-	Asset                = types.Asset
-	Assets               = types.Assets
-	QueryAssetParams     = types.QueryAssetParams
+	Keeper            = keeper.Keeper
+	GenesisState      = types.GenesisState
+	MsgIssueTokens    = types.MsgIssueTokens
+	MsgRedeemTokens   = types.MsgRedeemTokens
+	MsgBlockAddress   = types.MsgBlockAddress
+	MsgUnblockAddress = types.MsgUnblockAddress
+	MsgSetPauseStatus = types.MsgSetPauseStatus
+	Params            = types.Params
+	Asset             = types.Asset
+	Assets            = types.Assets
+	QueryAssetParams  = types.QueryAssetParams
 )

@@ -12,7 +12,7 @@ import (
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
-// GetQueryCmd returns the cli query commands for the incentive module
+// GetQueryCmd returns the cli query commands for the issuance module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	issuanceQueryCmd := &cobra.Command{
 		Use:   types.ModuleName,
@@ -31,7 +31,7 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: fmt.Sprintf("get the %s module parameters", types.ModuleName),
-		Long:  "Get the current global incentive module parameters.",
+		Long:  "Get the current global issuance module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)

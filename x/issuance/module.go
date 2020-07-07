@@ -15,6 +15,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/kava-labs/kava/x/issuance/client/cli"
+	"github.com/kava-labs/kava/x/issuance/client/rest"
 	"github.com/kava-labs/kava/x/issuance/simulation"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
@@ -55,13 +57,18 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 
 // RegisterRESTRoutes registers  REST routes for the issuance module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the crisis module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command { return nil }
+// GetTxCmd returns the root tx command for the issuance module.
+func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetTxCmd(cdc)
+}
 
 // GetQueryCmd returns no root query command for the issuance module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd(StoreKey, cdc)
+}
 
 //____________________________________________________________________________
 
@@ -137,7 +144,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 //____________________________________________________________________________
 
-// GenerateGenesisState creates a randomized GenState of the bep3 module
+// GenerateGenesisState creates a randomized GenState of the issuance module
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -147,17 +154,17 @@ func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedP
 	return nil
 }
 
-// RandomizedParams returns nil because bep3 has no params.
+// RandomizedParams returns nil because issuance has no params.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
 }
 
-// RegisterStoreDecoder registers a decoder for bep3 module's types
+// RegisterStoreDecoder registers a decoder for issuance module's types
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns the all the bep3 module operations with their respective weights.
+// WeightedOperations returns the all the issuance module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
 }
