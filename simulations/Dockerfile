@@ -14,9 +14,9 @@ RUN pip install awscli
 WORKDIR /root/kava
 # default home directory is /root
 
+# Download dependencies before adding source files to speed up build times
 COPY go.mod .
 COPY go.sum .
-
 RUN go mod download
 
 # Add source files
@@ -28,12 +28,6 @@ COPY app app
 COPY x x
 COPY Makefile .
 
-# Don't need to install kvd & kvcli for running tests
-ENV LEDGER_ENABLED False
-# RUN make install
-
-# Copy in simulation script after to decrease image build time
 COPY simulations simulations
 
-# Run kvd by default, omit entrypoint to ease using container with kvcli
-CMD ["kvd"]
+# kvd and kcli binaries are not necessary for running the simulations
