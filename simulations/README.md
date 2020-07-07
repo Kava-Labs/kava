@@ -21,7 +21,7 @@ This can run sims but doesn't collect the results. This is handled by a custom s
 
 ## Running sims and uploading to S3
 
-The dockerfile in this repo defines the docker image to run sims. It's just a normal app, but with the aws cli included, and the custom script.
+The dockerfile in this repo defines the docker image to run sims. It includes kava source, and the aws cli, and the custom script.
 
 The custom script reads some input args, runs a sim and uploads the stdout and stderr to a S3 bucket.
 
@@ -31,7 +31,7 @@ AWS Batch allows for "array jobs" which are a way of specifying many duplicates 
 
 - create and submit a new array job (based of the job definition) with
   - image `kava/kava-sim:<some-version>`
-  - command `run-then-upload.sh <starting-seed> <num-blocks> <block-size>`
+  - command `run-then-upload.sh TestFullAppSimulation <starting-seed> <num-blocks> <block-size>`
   - array size of how many sims you want to run
 - any changes needed to the code or script necessitates a rebuild:
   - `docker build -f simulations/Dockerfile -t kava/kava-sim:<some-version> .`
@@ -41,5 +41,3 @@ AWS Batch allows for "array jobs" which are a way of specifying many duplicates 
 
 - click on the compute environment name, to get details, then click the link ECS Cluster Name to get details on the actual machines running
 - for array jobs, click the job name to get details of the individual jobs
-
-## Sims - TODO

@@ -20,7 +20,6 @@ COPY go.sum .
 RUN go mod download
 
 # Add source files
-COPY .git .git
 COPY app app
 COPY cli_test cli_test
 COPY cmd cmd
