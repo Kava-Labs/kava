@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	noOpMsg = simulation.NoOpMsg(types.ModuleName)
+	noOpMsg      = simulation.NoOpMsg(types.ModuleName)
 	randomNumber = []byte{114, 21, 74, 180, 81, 92, 21, 91, 173, 164, 143, 111, 120, 58, 241, 58, 40, 22, 59, 133, 102, 233, 55, 149, 12, 199, 231, 63, 122, 23, 88, 9}
 )
 
@@ -155,7 +155,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 
 		// Construct a MsgClaimAtomicSwap or MsgRefundAtomicSwap future operation
@@ -207,7 +207,7 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
@@ -240,7 +240,7 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil

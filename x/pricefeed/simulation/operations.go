@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -109,7 +110,8 @@ func SimulateMsgUpdatePrices(ak auth.AccountKeeper, keeper keeper.Keeper, blocks
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			// to aid debugging, add the stack trace to the comment field of the returned opMsg
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
