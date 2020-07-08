@@ -21,7 +21,7 @@ This can run sims but doesn't collect the results. This is handled by a custom s
 
 ## Running sims and uploading to S3
 
-The dockerfile in this repo defines the docker image to run sims. It includes kava source, and the aws cli, and the custom script.
+The dockerfile in this repo defines the docker image to run sims. It includes the kava source code, aws cli, and the custom simulation script.
 
 The custom script reads some input args, runs a sim and uploads the stdout and stderr to a S3 bucket.
 
