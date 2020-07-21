@@ -1,10 +1,10 @@
-FROM golang:alpine AS build-env
+FROM golang:1.13-alpine AS build-env
 
 # Set up dependencies
-# bash for debugging
+# bash, jq, curl for debugging
 # git, make for installation
-# libc-dev, gcc, linux-headers, eudev-dev are used for cgo and ledger installation (possibly)
-RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq
+# libc-dev, gcc, linux-headers, eudev-dev are used for cgo and ledger installation
+RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq curl
 
 
 # Set working directory for the build
