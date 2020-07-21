@@ -588,6 +588,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			// Set sender to other and increment current asset supply for outgoing swap
 			if tc.args.direction == types.Outgoing {
 				sender = suite.addrs[6]
+				expectedRecipient = suite.deputy
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, expectedClaimAmount[0])
 				suite.Nil(err)
 			}
@@ -739,16 +740,18 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			// Create atomic swap
 			expectedRefundAmount := cs(c(BNB_DENOM, 50000))
 			sender := suite.deputy
+			expectedRecipient := suite.addrs[9]
 
 			// Set sender to other and increment current asset supply for outgoing swap
 			if tc.args.direction == types.Outgoing {
 				sender = suite.addrs[6]
+				expectedRecipient = suite.deputy
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, expectedRefundAmount[0])
 				suite.Nil(err)
 			}
 
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				types.DefaultMinBlockLock, sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
+				types.DefaultMinBlockLock, sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, true)
 			suite.NoError(err)
 
