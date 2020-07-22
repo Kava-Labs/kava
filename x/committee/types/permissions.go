@@ -260,7 +260,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 	var foundIncomingAPs bool
 	var incomingAPs bep3types.AssetParams
 	for _, change := range proposal.Changes {
-		if !(change.Subspace == bep3types.ModuleName && change.Key == string(bep3types.KeySupportedAssets)) {
+		if !(change.Subspace == bep3types.ModuleName && change.Key == string(bep3types.KeyAssetParams)) {
 			continue
 		}
 		// note: in case of duplicates take the last value
@@ -277,7 +277,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 			return false // not using a panic to help avoid begin blocker panics
 		}
 		var currentAPs bep3types.AssetParams
-		subspace.Get(ctx, bep3types.KeySupportedAssets, &currentAPs) // panics if something goes wrong
+		subspace.Get(ctx, bep3types.KeyAssetParams, &currentAPs) // panics if something goes wrong
 
 		// Check all the incoming changes in the CollateralParams are allowed
 		assetParamsChangesAllowed := perm.AllowedAssetParams.Allows(currentAPs, incomingAPs)

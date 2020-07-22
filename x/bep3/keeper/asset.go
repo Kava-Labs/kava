@@ -117,7 +117,7 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 // UpdateAssetSupplies applies updates to the asset limit from parameters to the asset supplies
 func (k Keeper) UpdateAssetSupplies(ctx sdk.Context) {
 	params := k.GetParams(ctx)
-	for _, supportedAsset := range params.SupportedAssets {
+	for _, supportedAsset := range params.AssetParams {
 		asset, found := k.GetAssetSupply(ctx, []byte(supportedAsset.Denom))
 		if !found {
 			continue

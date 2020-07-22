@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	noOpMsg = simulation.NoOpMsg(types.ModuleName)
+	noOpMsg      = simulation.NoOpMsg(types.ModuleName)
 	randomNumber = []byte{114, 21, 74, 180, 81, 92, 21, 91, 173, 164, 143, 111, 120, 58, 241, 58, 40, 22, 59, 133, 102, 233, 55, 149, 12, 199, 231, 63, 122, 23, 88, 9}
 )
 
@@ -51,30 +51,37 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 
-		// Set up deputy address as it's required for all atomic swaps
-		deputyAddr := k.GetBnbDeputyAddress(ctx)
-		deputyAcc, foundDeputy := simulation.FindAccount(accs, deputyAddr)
-		if !foundDeputy {
-			return noOpMsg, nil, nil
-		}
-
 		// Get asset supplies and shuffle them
 		supplies := k.GetAllAssetSupplies(ctx)
 		r.Shuffle(len(supplies), func(i, j int) {
 			supplies[i], supplies[j] = supplies[j], supplies[i]
 		})
 
-		// Search for an account that holds coins received by an atomic swap
-		minAmountPlusFee := k.GetMinAmount(ctx).Add(k.GetBnbDeputyFixedFee(ctx))
-		senderOut, asset, found := findValidAccountAssetSupplyPair(accs, supplies, func(acc simulation.Account, asset types.AssetSupply) bool {
-			if asset.CurrentSupply.Amount.IsPositive() {
+		senderOut, assetSupply, found := findValidAccountAssetSupplyPair(accs, supplies, func(acc simulation.Account, supply types.AssetSupply) bool {
+			if supply.CurrentSupply.Amount.IsPositive() {
 				authAcc := ak.GetAccount(ctx, acc.Address)
+				// Search for an account that holds coins received by an atomic swap
+				asset, err := k.GetAsset(ctx, supply.Denom)
+				if err != nil {
+					return false
+				}
+				minAmountPlusFee := asset.MinSwapAmount.Add(asset.IncomingSwapFixedFee)
 				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(minAmountPlusFee) {
 					return true
 				}
 			}
 			return false
 		})
+
+		asset, err := k.GetAsset(ctx, assetSupply.Denom)
+		if err != nil {
+			return noOpMsg, nil, err
+		}
+
+		deputyAcc, foundDeputy := simulation.FindAccount(accs, asset.DeputyAddress)
+		if !foundDeputy {
+			return noOpMsg, nil, nil
+		}
 
 		// Set sender, recipient, and denom depending on swap direction
 		var sender simulation.Account
@@ -124,12 +131,13 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		}
 
 		// The maximum amount for all swaps is limited by the total max limit
-		if maximumAmount.GT(k.GetMaxAmount(ctx)) {
-			maximumAmount = k.GetMaxAmount(ctx)
+		if maximumAmount.GT(asset.MaxSwapAmount) {
+			maximumAmount = asset.MaxSwapAmount
 		}
 
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
+		minAmountPlusFee := asset.MinSwapAmount.Add(asset.IncomingSwapFixedFee)
 		if amount.LT(minAmountPlusFee) {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
 		}

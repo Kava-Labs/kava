@@ -31,15 +31,19 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	if len(amount) != 1 {
 		return fmt.Errorf("amount must contain exactly one coin")
 	}
+	asset, err := k.GetAsset(ctx, amount[0].Denom)
+	if err != nil {
+		return err
+	}
 
-	err := k.ValidateLiveAsset(ctx, amount[0])
+	err = k.ValidateLiveAsset(ctx, amount[0])
 	if err != nil {
 		return err
 	}
 
 	// Swap amount must be within the specified swap amount limits
-	if amount[0].Amount.LT(k.GetMinAmount(ctx)) || amount[0].Amount.GT(k.GetMaxAmount(ctx)) {
-		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%d, %d]", amount[0].Amount, k.GetMinAmount(ctx), k.GetMaxAmount(ctx))
+	if amount[0].Amount.LT(asset.MinSwapAmount) || amount[0].Amount.GT(asset.MaxSwapAmount) {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%s, %s]", amount[0].Amount, asset.MinSwapAmount, asset.MaxSwapAmount)
 	}
 
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
@@ -50,8 +54,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	}
 
 	var direction types.SwapDirection
-	deputy := k.GetBnbDeputyAddress(ctx)
-	if sender.Equals(deputy) {
+	if sender.Equals(asset.DeputyAddress) {
 		direction = types.Incoming
 	} else {
 		direction = types.Outgoing
@@ -70,17 +73,17 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
 		if ctx.BlockTime().After(types.SupplyLimitUpgradeTime) {
-			if !recipient.Equals(deputy) {
+			if !recipient.Equals(asset.DeputyAddress) {
 				return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
 			}
 		}
 
 		// Outoing swaps must have a height span within the accepted range
-		if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
-			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
+		if heightSpan < asset.MinBlockLock || heightSpan > asset.MaxBlockLock {
+			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, asset.MinBlockLock, asset.MaxBlockLock)
 		}
 		// Amount in outgoing swaps must be able to pay the deputy's fixed fee.
-		if amount[0].Amount.LTE(k.GetBnbDeputyFixedFee(ctx).Add(k.GetMinAmount(ctx))) {
+		if amount[0].Amount.LTE(asset.IncomingSwapFixedFee.Add(asset.MinSwapAmount)) {
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])

@@ -23,7 +23,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	keeper.SetParams(ctx, gs.Params)
 
 	// Initialize supported assets
-	for _, asset := range gs.Params.SupportedAssets {
+	for _, asset := range gs.Params.AssetParams {
 		zeroCoin := sdk.NewCoin(asset.Denom, sdk.NewInt(0))
 		supply := NewAssetSupply(asset.Denom, zeroCoin, zeroCoin, zeroCoin, sdk.NewCoin(asset.Denom, asset.Limit))
 		keeper.SetAssetSupply(ctx, supply, []byte(asset.Denom))
@@ -33,8 +33,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	// It it required that assets are supported but they do not have to be active
 	for _, supply := range gs.AssetSupplies {
 		// Asset must be supported but does not have to be active
-		coin, found := keeper.GetAssetByDenom(ctx, supply.Denom)
-		if !found {
+		coin, err := keeper.GetAsset(ctx, supply.Denom)
+		if err != nil {
 			panic(fmt.Sprintf("invalid asset supply: %s is not a supported asset", coin.Denom))
 		}
 		if !coin.Limit.Equal(supply.SupplyLimit.Amount) {
@@ -42,7 +42,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		}
 
 		// Increment current, incoming, and outgoing asset supplies
-		err := keeper.IncrementCurrentAssetSupply(ctx, supply.CurrentSupply)
+		err = keeper.IncrementCurrentAssetSupply(ctx, supply.CurrentSupply)
 		if err != nil {
 			panic(err)
 		}

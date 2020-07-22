@@ -14,7 +14,7 @@ var (
 	// ErrInsufficientAmount error for when a swap's amount cannot cover the deputy's fixed fee
 	ErrInsufficientAmount = sdkerrors.Register(ModuleName, 4, "amount cannot cover the deputy fixed fee")
 	// ErrAssetNotSupported error for when an asset is not supported
-	ErrAssetNotSupported = sdkerrors.Register(ModuleName, 5, "asset not on the list of supported assets")
+	ErrAssetNotSupported = sdkerrors.Register(ModuleName, 5, "asset not found")
 	// ErrAssetNotActive error for when an asset is currently inactive
 	ErrAssetNotActive = sdkerrors.Register(ModuleName, 6, "asset is currently inactive")
 	// ErrAssetSupplyNotFound error for when an asset's supply is not found in the store
