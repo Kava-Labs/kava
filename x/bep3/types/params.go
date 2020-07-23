@@ -52,7 +52,7 @@ func DefaultParams() Params {
 type AssetParam struct {
 	Denom                string         `json:"denom" yaml:"denom"`                                     // name of the asset
 	CoinID               int            `json:"coin_id" yaml:"coin_id"`                                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-	Limit                sdk.Int        `json:"limit" yaml:"limit"`                                     // asset supply limit
+	SupplyLimit          AssetSupply    `json:"supply_limit" yaml:"supply_limit"`                       // asset supply limit
 	Active               bool           `json:"active" yaml:"active"`                                   // denotes if asset is available or paused
 	DeputyAddress        sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`                   // the address of the relayer process
 	IncomingSwapFixedFee sdk.Int        `json:"incoming_swap_fixed_fee" yaml:"incoming_swap_fixed_fee"` // the fixed fee charged by the relayer process for incoming swaps
@@ -64,14 +64,14 @@ type AssetParam struct {
 
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
-	denom string, coinID int, limit sdk.Int, active bool,
+	denom string, coinID int, limit AssetSupply, active bool,
 	deputyAddr sdk.AccAddress, incomingFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
 	return AssetParam{
 		Denom:                denom,
 		CoinID:               coinID,
-		Limit:                limit,
+		SupplyLimit:          limit,
 		Active:               active,
 		DeputyAddress:        deputyAddr,
 		IncomingSwapFixedFee: incomingFee,
@@ -95,7 +95,7 @@ func (ap AssetParam) String() string {
 	Max Swap Amount: %s
 	Min Block Lock: %d
 	Max Block Lock: %d`,
-		ap.Denom, ap.CoinID, ap.Limit.String(), ap.Active, ap.DeputyAddress, ap.IncomingSwapFixedFee,
+		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.IncomingSwapFixedFee,
 		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
 }
 
@@ -147,8 +147,8 @@ func validateAssetParams(i interface{}) error {
 			return fmt.Errorf(fmt.Sprintf("asset %s coin id must be a non negative integer", asset.Denom))
 		}
 
-		if !asset.Limit.IsPositive() {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive supply limit", asset.Denom))
+		if err := asset.SupplyLimit.Validate(); err != nil {
+			return fmt.Errorf(fmt.Sprintf("asset %s has invalid supply limit: %v", asset.Denom, err))
 		}
 
 		_, found := coinDenoms[asset.Denom]
