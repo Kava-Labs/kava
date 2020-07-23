@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -140,12 +139,12 @@ func validateAssetParams(i interface{}) error {
 	coinIDs := make(map[int]bool)
 	coinDenoms := make(map[string]bool)
 	for _, asset := range assetParams {
-		if strings.TrimSpace(asset.Denom) == "" {
-			return errors.New("asset denom cannot be empty")
+		if err := sdk.ValidateDenom(asset.Denom); err != nil {
+			return errors.New(fmt.Sprintf("asset denom invalid: %s", asset.Denom))
 		}
 
 		if asset.CoinID < 0 {
-			return fmt.Errorf(fmt.Sprintf("asset %s must be a non negative integer", asset.Denom))
+			return fmt.Errorf(fmt.Sprintf("asset %s coin id must be a non negative integer", asset.Denom))
 		}
 
 		if !asset.Limit.IsPositive() {

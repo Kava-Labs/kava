@@ -29,6 +29,17 @@ func (k Keeper) GetAsset(ctx sdk.Context, denom string) (types.AssetParam, error
 	return types.AssetParam{}, types.ErrAssetNotSupported
 }
 
+// SetAsset sets an asset in the params
+func (k Keeper) SetAsset(ctx sdk.Context, asset types.AssetParam) {
+	params := k.GetParams(ctx)
+	for i := range params.AssetParams {
+		if params.AssetParams[i].Denom == asset.Denom {
+			params.AssetParams[i] = asset
+		}
+	}
+	k.SetParams(ctx, params)
+}
+
 // GetDeputyAddress returns the deputy address for the input denom
 func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
 	asset, err := k.GetAsset(ctx, denom)

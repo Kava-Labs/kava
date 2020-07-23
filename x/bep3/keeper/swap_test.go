@@ -222,7 +222,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, suite.keeper.GetBnbDeputyFixedFee(suite.ctx).Int64())),
+				coins:               cs(c(BNB_DENOM, 1000)),
 				crossChain:          true,
 				direction:           types.Outgoing,
 			},

@@ -44,6 +44,148 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectPass:  true,
 			expectedErr: "",
 		},
+		{
+			name: "valid single asset",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  true,
+			expectedErr: "",
+		},
+		{
+			name: "valid multi asset",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+					types.NewAssetParam(
+						"btcb", 0, sdk.NewInt(1000000000000), true,
+						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
+						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+				},
+			},
+			expectPass:  true,
+			expectedErr: "",
+		},
+		{
+			name: "invalid denom - empty",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "denom invalid",
+		},
+		{
+			name: "invalid denom - bad format",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"BNB", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "denom invalid",
+		},
+		{
+			name: "min block lock equal max block lock",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					243, 243)},
+			},
+			expectPass:  true,
+			expectedErr: "",
+		},
+		{
+			name: "min block lock greater max block lock",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					244, 243)},
+			},
+			expectPass:  false,
+			expectedErr: "minimum block lock > maximum block lock",
+		},
+		{
+			name: "min swap not positive",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(0), sdk.NewInt(10000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "must have a positive minimum swap",
+		},
+		{
+			name: "max swap not positive",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(10000), sdk.NewInt(0),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "must have a positive maximum swap",
+		},
+		{
+			name: "min swap greater max swap",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000000), sdk.NewInt(10000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "minimum swap amount > maximum swap amount",
+		},
+		{
+			name: "negative coin id",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", -714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "coin id must be a non negative",
+		},
+		{
+			name: "negative asset limit",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(-1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "must have a positive supply limit",
+		},
+		{
+			name: "duplicate denom",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, sdk.NewInt(1000000000000), true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+					types.NewAssetParam(
+						"bnb", 0, sdk.NewInt(1000000000000), true,
+						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
+						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+				},
+			},
+			expectPass:  false,
+			expectedErr: "duplicate denom",
+		},
 		// {
 		// 	name: "minimum block lock == maximum block lock",
 		// 	args: args{
@@ -206,15 +348,17 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	}
 
 	for _, tc := range testCases {
-		params := types.NewParams(tc.args.assetParams)
+		suite.Run(tc.name, func() {
+			params := types.NewParams(tc.args.assetParams)
+			err := params.Validate()
+			if tc.expectPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().Contains(err.Error(), tc.expectedErr)
+			}
 
-		err := params.Validate()
-		if tc.expectPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().Contains(err.Error(), tc.expectedErr)
-		}
+		})
 	}
 }
 

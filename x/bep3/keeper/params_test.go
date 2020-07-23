@@ -35,78 +35,81 @@ func (suite *ParamsTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func (suite *ParamsTestSuite) TestGetSetBnbDeputyAddress() {
-	params := suite.keeper.GetParams(suite.ctx)
-	params.BnbDeputyAddress = suite.addrs[1]
-	suite.NotPanics(func() { suite.keeper.SetParams(suite.ctx, params) })
+func (suite *ParamsTestSuite) TestGetSetAsset() {
+	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	suite.NotPanics(func() { suite.keeper.SetAsset(suite.ctx, asset) })
+	_, err = suite.keeper.GetAsset(suite.ctx, "dne")
+	suite.Require().Error(err)
 
-	params = suite.keeper.GetParams(suite.ctx)
-	suite.Equal(suite.addrs[1], params.BnbDeputyAddress)
-	addr := suite.keeper.GetBnbDeputyAddress(suite.ctx)
-	suite.Equal(suite.addrs[1], addr)
-}
-
-func (suite *ParamsTestSuite) TestGetBnbDeputyFixedFee() {
-	params := suite.keeper.GetParams(suite.ctx)
-	bnbDeputyFixedFee := params.BnbDeputyFixedFee
-
-	res := suite.keeper.GetBnbDeputyFixedFee(suite.ctx)
-	suite.Equal(bnbDeputyFixedFee, res)
-}
-
-func (suite *ParamsTestSuite) TestGetMinAmount() {
-	params := suite.keeper.GetParams(suite.ctx)
-	minAmount := params.MinAmount
-
-	res := suite.keeper.GetMinAmount(suite.ctx)
-	suite.Equal(minAmount, res)
-}
-
-func (suite *ParamsTestSuite) TestGetMaxAmount() {
-	params := suite.keeper.GetParams(suite.ctx)
-	maxAmount := params.MaxAmount
-
-	res := suite.keeper.GetMaxAmount(suite.ctx)
-	suite.Equal(maxAmount, res)
-}
-
-func (suite *ParamsTestSuite) TestGetMinBlockLock() {
-	params := suite.keeper.GetParams(suite.ctx)
-	minBlockLock := params.MinBlockLock
-
-	res := suite.keeper.GetMinBlockLock(suite.ctx)
-	suite.Equal(minBlockLock, res)
-}
-
-func (suite *ParamsTestSuite) TestGetMaxBlockLock() {
-	params := suite.keeper.GetParams(suite.ctx)
-	maxBlockLock := params.MaxBlockLock
-
-	res := suite.keeper.GetMaxBlockLock(suite.ctx)
-	suite.Equal(maxBlockLock, res)
+	_, err = suite.keeper.GetAsset(suite.ctx, "inc")
+	suite.Require().NoError(err)
 }
 
 func (suite *ParamsTestSuite) TestGetAssets() {
-	params := suite.keeper.GetParams(suite.ctx)
-	assets := params.SupportedAssets
-
-	res, found := suite.keeper.GetAssets(suite.ctx)
-	suite.True(found)
-	suite.Equal(assets, res)
+	assets, found := suite.keeper.GetAssets(suite.ctx)
+	suite.Require().True(found)
+	suite.Require().Equal(2, len(assets))
 }
 
-func (suite *ParamsTestSuite) TestGetAssetByDenom() {
-	params := suite.keeper.GetParams(suite.ctx)
-	asset := params.SupportedAssets[0]
+func (suite *ParamsTestSuite) TestGetSetDeputyAddress() {
+	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	asset.DeputyAddress = suite.addrs[1]
+	suite.NotPanics(func() { suite.keeper.SetAsset(suite.ctx, asset) })
 
-	res, found := suite.keeper.GetAssetByDenom(suite.ctx, asset.Denom)
-	suite.True(found)
-	suite.Equal(asset, res)
+	asset, err = suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	suite.Equal(suite.addrs[1], asset.DeputyAddress)
+	addr, err := suite.keeper.GetDeputyAddress(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	suite.Equal(suite.addrs[1], addr)
+
+}
+
+func (suite *ParamsTestSuite) TestGetDeputyFixedFee() {
+	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	bnbDeputyFixedFee := asset.IncomingSwapFixedFee
+
+	res, err := suite.keeper.GetIncomingSwapFixedFee(suite.ctx, asset.Denom)
+	suite.Require().NoError(err)
+	suite.Equal(bnbDeputyFixedFee, res)
+}
+
+func (suite *ParamsTestSuite) TestGetMinMaxSwapAmount() {
+	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	minAmount := asset.MinSwapAmount
+
+	res, err := suite.keeper.GetMinSwapAmount(suite.ctx, asset.Denom)
+	suite.Require().NoError(err)
+	suite.Equal(minAmount, res)
+
+	maxAmount := asset.MaxSwapAmount
+	res, err = suite.keeper.GetMaxSwapAmount(suite.ctx, asset.Denom)
+	suite.Require().NoError(err)
+	suite.Equal(maxAmount, res)
+}
+
+func (suite *ParamsTestSuite) TestGetMinMaxBlockLock() {
+	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
+	minLock := asset.MinBlockLock
+
+	res, err := suite.keeper.GetMinBlockLock(suite.ctx, asset.Denom)
+	suite.Require().NoError(err)
+	suite.Equal(minLock, res)
+
+	maxLock := asset.MaxBlockLock
+	res, err = suite.keeper.GetMaxBlockLock(suite.ctx, asset.Denom)
+	suite.Require().NoError(err)
+	suite.Equal(maxLock, res)
 }
 
 func (suite *ParamsTestSuite) TestGetAssetByCoinID() {
-	params := suite.keeper.GetParams(suite.ctx)
-	asset := params.SupportedAssets[0]
+	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
+	suite.Require().NoError(err)
 
 	res, found := suite.keeper.GetAssetByCoinID(suite.ctx, asset.CoinID)
 	suite.True(found)

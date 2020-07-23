@@ -244,11 +244,11 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateAssetSupplies() {
 	// set new asset limit in the params
 	newBnbLimit := c("bnb", 100)
 	params := suite.keeper.GetParams(suite.ctx)
-	for i := range params.SupportedAssets {
-		if params.SupportedAssets[i].Denom != newBnbLimit.Denom {
+	for i := range params.AssetParams {
+		if params.AssetParams[i].Denom != newBnbLimit.Denom {
 			continue
 		}
-		params.SupportedAssets[i].Limit = newBnbLimit.Amount
+		params.AssetParams[i].Limit = newBnbLimit.Amount
 	}
 	suite.keeper.SetParams(suite.ctx, params)
 
@@ -281,11 +281,11 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateAssetSupplies() {
 	// run again with new params, check limit was updated to new param limit
 	finalBnbLimit := c("bnb", 5000000000000)
 	params = suite.keeper.GetParams(suite.ctx)
-	for i := range params.SupportedAssets {
-		if params.SupportedAssets[i].Denom != finalBnbLimit.Denom {
+	for i := range params.AssetParams {
+		if params.AssetParams[i].Denom != finalBnbLimit.Denom {
 			continue
 		}
-		params.SupportedAssets[i].Limit = finalBnbLimit.Amount
+		params.AssetParams[i].Limit = finalBnbLimit.Amount
 	}
 	suite.keeper.SetParams(suite.ctx, params)
 	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(time.Hour)), suite.keeper)

@@ -34,24 +34,30 @@ func ts(minOffset int) int64                { return tmtime.Now().Add(time.Durat
 func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
 		Params: bep3.Params{
-			BnbDeputyAddress:  deputyAddress,
-			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
-			MinAmount:         types.DefaultMinAmount,         // 0
-			MaxAmount:         types.DefaultMaxAmount,         // 10,000
-			MinBlockLock:      types.DefaultMinBlockLock,      // 220
-			MaxBlockLock:      types.DefaultMaxBlockLock,      // 270
-			SupportedAssets: types.AssetParams{
+			AssetParams: types.AssetParams{
 				types.AssetParam{
-					Denom:  "bnb",
-					CoinID: 714,
-					Limit:  StandardSupplyLimit,
-					Active: true,
+					Denom:                "bnb",
+					CoinID:               714,
+					Limit:                StandardSupplyLimit,
+					Active:               true,
+					DeputyAddress:        deputyAddress,
+					IncomingSwapFixedFee: sdk.NewInt(1000),
+					MinSwapAmount:        sdk.OneInt(),
+					MaxSwapAmount:        sdk.NewInt(1000000000000),
+					MinBlockLock:         types.DefaultMinBlockLock,
+					MaxBlockLock:         types.DefaultMaxBlockLock,
 				},
 				types.AssetParam{
-					Denom:  "inc",
-					CoinID: 9999,
-					Limit:  i(100),
-					Active: false,
+					Denom:                "inc",
+					CoinID:               9999,
+					Limit:                i(100),
+					Active:               false,
+					DeputyAddress:        deputyAddress,
+					IncomingSwapFixedFee: sdk.NewInt(1000),
+					MinSwapAmount:        sdk.OneInt(),
+					MaxSwapAmount:        sdk.NewInt(1000000000000),
+					MinBlockLock:         types.DefaultMinBlockLock,
+					MaxBlockLock:         types.DefaultMaxBlockLock,
 				},
 			},
 		},
