@@ -196,6 +196,37 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		simAccount, _ := simulation.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simAccount.Address)
 
+		swap, found := k.GetAtomicSwap(ctx, swapID)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("cannot claim: swap with ID %s not found", swapID)
+		}
+
+		switch swap.Direction {
+		case types.Incoming:
+			err := k.DecrementIncomingAssetSupply(ctx, swap.Amount[0])
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+			err = k.IncrementCurrentAssetSupply(ctx, swap.Amount[0])
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+		case types.Outgoing:
+			err := k.DecrementOutgoingAssetSupply(ctx, swap.Amount[0])
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+			err = k.DecrementCurrentAssetSupply(ctx, swap.Amount[0])
+			if err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+		}
+
+		supply, found := k.GetAssetSupply(ctx, []byte(swap.Amount[0].Denom))
+		if supply.SupplyLimit.IsLT(supply.CurrentSupply.Add(swap.Amount[0])) {
+			return simulation.NoOpMsg(types.ModuleName), nil, nil
+		}
+
 		msg := types.NewMsgClaimAtomicSwap(acc.GetAddress(), swapID, randomNumber)
 
 		fees, err := simulation.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()))
@@ -228,6 +259,22 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
 		simAccount, _ := simulation.RandomAcc(r, accs)
 		acc := ak.GetAccount(ctx, simAccount.Address)
+
+		swap, found := k.GetAtomicSwap(ctx, swapID)
+		if !found {
+			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("cannot refund: swap with ID %s not found", swapID)
+		}
+
+		switch swap.Direction {
+		case types.Incoming:
+			if err := k.DecrementIncomingAssetSupply(ctx, swap.Amount[0]); err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+		case types.Outgoing:
+			if err := k.DecrementOutgoingAssetSupply(ctx, swap.Amount[0]); err != nil {
+				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			}
+		}
 
 		msg := types.NewMsgRefundAtomicSwap(acc.GetAddress(), swapID)
 

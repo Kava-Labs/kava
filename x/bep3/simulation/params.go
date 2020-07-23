@@ -10,55 +10,15 @@ import (
 )
 
 const (
-	keyBnbDeputyAddress  = "BnbDeputyAddress"
-	keyBnbDeputyFixedFee = "BnbDeputyFixedFee"
-	keyMinAmount         = "MinAmount"
-	keyMaxAmount         = "MaxAmount"
-	keyMinBlockLock      = "MinBlockLock"
-	keyMaxBlockLock      = "MaxBlockLock"
-	keySupportedAssets   = "SupportedAssets"
+	keyAssetParams = "AssetParams"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals
 func ParamChanges(r *rand.Rand) []simulation.ParamChange {
-	// We generate MinBlockLock first because the result is required by GenMaxBlockLock()
-	minBlockLockVal := GenMinBlockLock(r)
-	minAmount := GenMinAmount(r)
-
 	return []simulation.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyAddress,
+		simulation.NewSimParamChange(types.ModuleName, keyAssetParams,
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%s\"", GenRandBnbDeputy(r).Address)
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyBnbDeputyFixedFee,
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%s\"", GenRandFixedFee(r).String())
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyMinAmount,
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%s\"", minAmount.String())
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyMaxAmount,
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%s\"", GenMaxAmount(r, minAmount).String())
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyMinBlockLock,
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", minBlockLockVal)
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyMaxBlockLock,
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%d\"", GenMaxBlockLock(r, minBlockLockVal))
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keySupportedAssets,
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("\"%v\"", GenSupportedAssets(r))
+				return fmt.Sprintf("\"%s\"", GenSupportedAssets(r))
 			},
 		),
 	}
