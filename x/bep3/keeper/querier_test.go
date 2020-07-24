@@ -89,7 +89,7 @@ func (suite *QuerierTestSuite) TestQueryAssetSupply() {
 	denom := "bnb"
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAssetSupply}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupply(tmbytes.HexBytes(denom))),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryAssetSupply(denom)),
 	}
 
 	// Execute query and check the []byte result
@@ -101,8 +101,8 @@ func (suite *QuerierTestSuite) TestQueryAssetSupply() {
 	var supply types.AssetSupply
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &supply))
 
-	expectedSupply := types.NewAssetSupply(denom, c(denom, 1000),
-		c(denom, 0), c(denom, 0), c(denom, StandardSupplyLimit.Int64()))
+	expectedSupply := types.NewAssetSupply(c(denom, 1000),
+		c(denom, 0), c(denom, 0), c(denom, 350000000000000))
 	suite.Equal(supply, expectedSupply)
 }
 
@@ -182,6 +182,8 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	bep3GenesisState := NewBep3GenStateMulti(suite.addrs[0])
 	gs := types.GenesisState{}
 	types.ModuleCdc.UnmarshalJSON(bep3GenesisState["bep3"], &gs)
+	// update asset supply to account for swaps that were created in setup
+	gs.Params.AssetParams[0].SupplyLimit.IncomingSupply = c("bnb", 1000)
 	suite.Equal(gs.Params, p)
 }
 

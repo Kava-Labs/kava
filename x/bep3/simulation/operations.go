@@ -61,7 +61,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			if supply.CurrentSupply.Amount.IsPositive() {
 				authAcc := ak.GetAccount(ctx, acc.Address)
 				// Search for an account that holds coins received by an atomic swap
-				asset, err := k.GetAsset(ctx, supply.Denom)
+				asset, err := k.GetAsset(ctx, supply.SupplyLimit.Denom)
 				if err != nil {
 					return false
 				}
@@ -73,7 +73,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			return false
 		})
 
-		asset, err := k.GetAsset(ctx, assetSupply.Denom)
+		asset, err := k.GetAsset(ctx, assetSupply.SupplyLimit.Denom)
 		if err != nil {
 			return noOpMsg, nil, err
 		}
@@ -121,7 +121,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		maximumAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(denom)
 		// The maximum amount for outgoing swaps is limited by the asset's current supply
 		if recipient.Equals(deputyAcc) {
-			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, []byte(denom))
+			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, denom)
 			if !foundAssetSupply {
 				return noOpMsg, nil, fmt.Errorf("no asset supply found")
 			}
@@ -222,7 +222,7 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 			}
 		}
 
-		supply, found := k.GetAssetSupply(ctx, []byte(swap.Amount[0].Denom))
+		supply, found := k.GetAssetSupply(ctx, swap.Amount[0].Denom)
 		if supply.SupplyLimit.IsLT(supply.CurrentSupply.Add(swap.Amount[0])) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}

@@ -18,6 +18,10 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
+// ------------------------------------------
+//				Asset
+// ------------------------------------------
+
 // GetAsset returns the asset param associated with the input denom
 func (k Keeper) GetAsset(ctx sdk.Context, denom string) (types.AssetParam, error) {
 	params := k.GetParams(ctx)
@@ -39,6 +43,16 @@ func (k Keeper) SetAsset(ctx sdk.Context, asset types.AssetParam) {
 	}
 	k.SetParams(ctx, params)
 }
+
+// GetAssets returns a list containing all supported assets
+func (k Keeper) GetAssets(ctx sdk.Context) (types.AssetParams, bool) {
+	params := k.GetParams(ctx)
+	return params.AssetParams, len(params.AssetParams) > 0
+}
+
+// ------------------------------------------
+//				Asset-specific getters
+// ------------------------------------------
 
 // GetDeputyAddress returns the deputy address for the input denom
 func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
@@ -94,12 +108,6 @@ func (k Keeper) GetMaxBlockLock(ctx sdk.Context, denom string) (uint64, error) {
 	return asset.MaxBlockLock, nil
 }
 
-// GetAssets returns a list containing all supported assets
-func (k Keeper) GetAssets(ctx sdk.Context) (types.AssetParams, bool) {
-	params := k.GetParams(ctx)
-	return params.AssetParams, len(params.AssetParams) > 0
-}
-
 // GetAssetByCoinID returns an asset by its denom
 func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam, bool) {
 	params := k.GetParams(ctx)
@@ -121,4 +129,36 @@ func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) error {
 		return sdkerrors.Wrap(types.ErrAssetNotActive, asset.Denom)
 	}
 	return nil
+}
+
+// ------------------------------------------
+//				Asset Supplies
+// ------------------------------------------
+
+// GetAssetSupply gets an asset's current supply from the store.
+func (k Keeper) GetAssetSupply(ctx sdk.Context, denom string) (types.AssetSupply, bool) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return types.AssetSupply{}, false
+	}
+	return asset.SupplyLimit, true
+}
+
+// SetAssetSupply updates an asset's current active supply
+func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom string) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		panic(err)
+	}
+	asset.SupplyLimit = supply
+	k.SetAsset(ctx, asset)
+}
+
+// GetAllAssetSupplies returns all asset supplies from the params
+func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
+	params := k.GetParams(ctx)
+	for _, asset := range params.AssetParams {
+		supplies = append(supplies, asset.SupplyLimit)
+	}
+	return
 }

@@ -3,6 +3,7 @@ package app
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -101,6 +102,33 @@ func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) T
 	}
 	tApp.InitChain(
 		abci.RequestInitChain{
+			Validators:    []abci.ValidatorUpdate{},
+			AppStateBytes: stateBytes,
+		},
+	)
+	tApp.Commit()
+	tApp.BeginBlock(abci.RequestBeginBlock{Header: abci.Header{Height: tApp.LastBlockHeight() + 1}})
+	return tApp
+}
+
+// InitializeFromGenesisStatesWithTime calls InitChain on the app using the default genesis state, overwitten with any passed in genesis states and genesis Time
+func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
+	// Create a default genesis state and overwrite with provided values
+	genesisState := NewDefaultGenesisState()
+	for _, state := range genesisStates {
+		for k, v := range state {
+			genesisState[k] = v
+		}
+	}
+
+	// Initialize the chain
+	stateBytes, err := codec.MarshalJSONIndent(tApp.cdc, genesisState)
+	if err != nil {
+		panic(err)
+	}
+	tApp.InitChain(
+		abci.RequestInitChain{
+			Time:          genTime,
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 		},

@@ -33,7 +33,6 @@ var (
 
 	AtomicSwapKeyPrefix             = []byte{0x00} // prefix for keys that store AtomicSwaps
 	AtomicSwapByBlockPrefix         = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
-	AssetSupplyKeyPrefix            = []byte{0x02} // prefix for keys that store global asset supply counts
 	AtomicSwapLongtermStoragePrefix = []byte{0x03} // prefix for keys of the AtomicSwapLongtermStorage index
 )
 

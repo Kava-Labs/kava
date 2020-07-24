@@ -17,7 +17,7 @@ func TestAssetSupplyValidate(t *testing.T) {
 	}{
 		{
 			msg:     "valid asset",
-			asset:   NewAssetSupply("kava", coin, coin, coin, coin),
+			asset:   NewAssetSupply(coin, coin, coin, coin),
 			expPass: true,
 		},
 		{
@@ -51,11 +51,6 @@ func TestAssetSupplyValidate(t *testing.T) {
 				SupplyLimit:    invalidCoin,
 			},
 			false,
-		},
-		{
-			msg:     "invalid denom",
-			asset:   NewAssetSupply("Invalid Denom", coin, coin, coin, coin),
-			expPass: false,
 		},
 	}
 

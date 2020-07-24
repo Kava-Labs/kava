@@ -81,9 +81,13 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	// bep3 Asset Params
 	testAPs := bep3types.AssetParams{
 		bep3types.AssetParam{
-			Denom:                "bnb",
-			CoinID:               714,
-			Limit:                sdk.NewInt(100000000000000),
+			Denom:  "bnb",
+			CoinID: 714,
+			SupplyLimit: bep3types.NewAssetSupply(
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.NewInt(350000000000000))),
 			Active:               true,
 			DeputyAddress:        testDeputy,
 			IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -93,9 +97,13 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			MaxBlockLock:         bep3types.DefaultMaxBlockLock,
 		},
 		bep3types.AssetParam{
-			Denom:                "inc",
-			CoinID:               9999,
-			Limit:                i(100000000000),
+			Denom:  "inc",
+			CoinID: 9999,
+			SupplyLimit: bep3types.NewAssetSupply(
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.NewInt(100))),
 			Active:               false,
 			DeputyAddress:        testDeputy,
 			IncomingSwapFixedFee: sdk.NewInt(1000),

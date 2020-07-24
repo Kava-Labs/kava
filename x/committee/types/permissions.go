@@ -473,9 +473,10 @@ type AllowedAssetParam struct {
 }
 
 func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool {
+
 	allowed := ((aap.Denom == current.Denom) && (aap.Denom == incoming.Denom)) && // require denoms to be all equal
 		((current.CoinID == incoming.CoinID) || aap.CoinID) &&
-		(current.Limit.Equal(incoming.Limit) || aap.Limit) &&
+		(current.SupplyLimit.Equal(incoming.SupplyLimit) || aap.Limit) &&
 		((current.Active == incoming.Active) || aap.Active)
 	return allowed
 }

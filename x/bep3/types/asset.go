@@ -39,7 +39,21 @@ func (a AssetSupply) Validate() error {
 	if !a.SupplyLimit.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "supply limit %s", a.SupplyLimit)
 	}
+	denom := a.CurrentSupply.Denom
+	if (a.IncomingSupply.Denom != denom) ||
+		(a.OutgoingSupply.Denom != denom) ||
+		(a.SupplyLimit.Denom != denom) {
+		return fmt.Errorf("asset supply denoms do not match %s %s %s %s", a.CurrentSupply.Denom, a.IncomingSupply.Denom, a.OutgoingSupply.Denom, a.SupplyLimit.Denom)
+	}
 	return nil
+}
+
+// Equal returns if two asset supplies are equal
+func (a AssetSupply) Equal(b AssetSupply) bool {
+	return (a.SupplyLimit.IsEqual(b.SupplyLimit) &&
+		a.IncomingSupply.IsEqual(b.IncomingSupply) &&
+		a.CurrentSupply.IsEqual(b.CurrentSupply) &&
+		a.OutgoingSupply.IsEqual(b.OutgoingSupply))
 }
 
 // String implements stringer

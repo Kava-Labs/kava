@@ -2,7 +2,6 @@ package bep3_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -238,61 +237,6 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			}
 		})
 	}
-}
-
-func (suite *ABCITestSuite) TestBeginBlocker_UpdateAssetSupplies() {
-	// set new asset limit in the params
-	newBnbLimit := c("bnb", 100)
-	params := suite.keeper.GetParams(suite.ctx)
-	for i := range params.AssetParams {
-		if params.AssetParams[i].Denom != newBnbLimit.Denom {
-			continue
-		}
-		params.AssetParams[i].Limit = newBnbLimit.Amount
-	}
-	suite.keeper.SetParams(suite.ctx, params)
-
-	// store the old limit for future reference
-	supply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	oldBnbLimit := supply.SupplyLimit
-
-	// run before the upgrade time, check limit was not changed
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(-time.Hour)), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(oldBnbLimit))
-
-	// run at precise upgrade time, check limit was not changed
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(oldBnbLimit))
-
-	// run after upgrade time, check limit was changed
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(time.Nanosecond)), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(newBnbLimit))
-
-	// run again with new params, check limit was updated to new param limit
-	finalBnbLimit := c("bnb", 5000000000000)
-	params = suite.keeper.GetParams(suite.ctx)
-	for i := range params.AssetParams {
-		if params.AssetParams[i].Denom != finalBnbLimit.Denom {
-			continue
-		}
-		params.AssetParams[i].Limit = finalBnbLimit.Amount
-	}
-	suite.keeper.SetParams(suite.ctx, params)
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(time.Hour)), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(finalBnbLimit))
 }
 
 func TestABCITestSuite(t *testing.T) {

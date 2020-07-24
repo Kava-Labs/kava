@@ -39,7 +39,7 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 	return acc
 }
 
-// GenRandBnbDeputyFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
+// GenRandFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
 func GenRandFixedFee(r *rand.Rand) sdk.Int {
 	min := int(1)
 	max := types.DefaultBnbDeputyFixedFee.Int64()
@@ -58,6 +58,17 @@ func GenMaxAmount(r *rand.Rand, minAmount sdk.Int) sdk.Int {
 	min := minAmount.Int64()
 	max := types.DefaultMaxAmount.Int64()
 	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
+}
+
+// GenSupplyLimit generates a random SupplyLimit
+func GenSupplyLimit(r *rand.Rand, denom string, max sdk.Int) types.AssetSupply {
+	max, err := simulation.RandPositiveInt(r, max)
+	if err != nil {
+		panic(err)
+	}
+	return types.NewAssetSupply(
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, max))
 }
 
 // GenMinBlockLock randomized MinBlockLock
@@ -92,13 +103,14 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 
 func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
-	limit, _ := simulation.RandPositiveInt(r, MaxSupplyLimit)
+	limit := GenSupplyLimit(r, denom, MaxSupplyLimit)
+
 	minSwapAmount := GenMinAmount(r)
 	minBlockLock := GenMinBlockLock(r)
 	return types.AssetParam{
 		Denom:                denom,
 		CoinID:               int(coinID.Int64()),
-		Limit:                limit,
+		SupplyLimit:          limit,
 		Active:               true,
 		DeputyAddress:        GenRandBnbDeputy(r).Address,
 		IncomingSwapFixedFee: GenRandFixedFee(r),
@@ -157,7 +169,7 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 		if !found {
 			panic("deputy address not found in available accounts")
 		}
-		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.Limit))
+		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit.SupplyLimit.Amount))
 		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin...)); err != nil {
 			panic(err)
 		}

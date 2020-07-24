@@ -116,6 +116,29 @@ func (suite *ParamsTestSuite) TestGetAssetByCoinID() {
 	suite.Equal(asset, res)
 }
 
+func (suite *ParamsTestSuite) TestGetAllAssetSupplies() {
+
+	supplies := suite.keeper.GetAllAssetSupplies(suite.ctx)
+	suite.Equal(2, len(supplies))
+}
+
+func (suite *ParamsTestSuite) TestGetSetAssetSupply() {
+	denom := "bnb"
+	// Put asset supply in store
+	assetSupply := types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 100000))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, denom)
+
+	// Check asset in store
+	storedAssetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, denom)
+	suite.True(found)
+	suite.Equal(assetSupply, storedAssetSupply)
+
+	// Check fake asset supply not in store
+	fakeDenom := "xyz"
+	_, found = suite.keeper.GetAssetSupply(suite.ctx, fakeDenom)
+	suite.False(found)
+}
+
 func (suite *AssetTestSuite) TestValidateLiveAsset() {
 	type args struct {
 		coin sdk.Coin

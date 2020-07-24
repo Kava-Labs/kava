@@ -9,7 +9,7 @@ import (
 
 // IncrementCurrentAssetSupply increments an asset's supply by the coin
 func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -20,13 +20,13 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Add(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // DecrementCurrentAssetSupply decrement an asset's supply by the coin
 func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -38,13 +38,13 @@ func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Sub(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // IncrementIncomingAssetSupply increments an asset's incoming supply
 func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -56,13 +56,13 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Add(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // DecrementIncomingAssetSupply decrements an asset's incoming supply
 func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -74,13 +74,13 @@ func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Sub(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // IncrementOutgoingAssetSupply increments an asset's outoing supply
 func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -92,13 +92,13 @@ func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.OutgoingSupply = supply.OutgoingSupply.Add(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // DecrementOutgoingAssetSupply decrements an asset's outoing supply
 func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -110,21 +110,6 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.OutgoingSupply = supply.OutgoingSupply.Sub(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
-}
-
-// UpdateAssetSupplies applies updates to the asset limit from parameters to the asset supplies
-func (k Keeper) UpdateAssetSupplies(ctx sdk.Context) {
-	params := k.GetParams(ctx)
-	for _, supportedAsset := range params.AssetParams {
-		asset, found := k.GetAssetSupply(ctx, []byte(supportedAsset.Denom))
-		if !found {
-			continue
-		}
-		if !asset.SupplyLimit.Amount.Equal(supportedAsset.Limit) {
-			asset.SupplyLimit = sdk.NewCoin(supportedAsset.Denom, supportedAsset.Limit)
-			k.SetAssetSupply(ctx, asset, []byte(supportedAsset.Denom))
-		}
-	}
 }

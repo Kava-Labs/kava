@@ -40,9 +40,13 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 		Params: bep3.Params{
 			AssetParams: bep3.AssetParams{
 				bep3.AssetParam{
-					Denom:                "bnb",
-					CoinID:               714,
-					Limit:                StandardSupplyLimit,
+					Denom:  "bnb",
+					CoinID: 714,
+					SupplyLimit: bep3.NewAssetSupply(
+						sdk.NewCoin("bnb", sdk.ZeroInt()),
+						sdk.NewCoin("bnb", sdk.ZeroInt()),
+						sdk.NewCoin("bnb", sdk.ZeroInt()),
+						sdk.NewCoin("bnb", sdk.NewInt(350000000000000))),
 					Active:               true,
 					DeputyAddress:        deputy,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -52,9 +56,13 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 					MaxBlockLock:         bep3.DefaultMaxBlockLock,
 				},
 				bep3.AssetParam{
-					Denom:                "inc",
-					CoinID:               9999,
-					Limit:                i(100000000000),
+					Denom:  "inc",
+					CoinID: 9999,
+					SupplyLimit: bep3.NewAssetSupply(
+						sdk.NewCoin("inc", sdk.ZeroInt()),
+						sdk.NewCoin("inc", sdk.ZeroInt()),
+						sdk.NewCoin("inc", sdk.ZeroInt()),
+						sdk.NewCoin("inc", sdk.NewInt(100000000000))),
 					Active:               true,
 					DeputyAddress:        deputy,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -69,18 +77,15 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 	return bep3Genesis
 }
 
-func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.AssetSupply) {
+func loadSwap(addr sdk.AccAddress, deputy sdk.AccAddress, index int) bep3.AtomicSwap {
 	coin := c(DenomMap[index], 50000)
 	expireOffset := bep3.DefaultMinBlockLock // Default expire height + offet to match timestamp
 	timestamp := ts(index)                   // One minute apart
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
 	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 	swap := bep3.NewAtomicSwap(cs(coin), randomNumberHash,
-		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
+		expireOffset, timestamp, deputy, addr, TestSenderOtherChain,
 		TestRecipientOtherChain, 1, bep3.Open, true, bep3.Incoming)
 
-	supply := bep3.NewAssetSupply(coin.Denom, coin, c(coin.Denom, 0),
-		c(coin.Denom, 0), c(coin.Denom, StandardSupplyLimit.Int64()))
-
-	return swap, supply
+	return swap
 }

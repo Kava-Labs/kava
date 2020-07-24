@@ -13,7 +13,8 @@ import (
 
 type ParamsTestSuite struct {
 	suite.Suite
-	addr sdk.AccAddress
+	addr   sdk.AccAddress
+	supply types.AssetSupplies
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
@@ -21,6 +22,13 @@ func (suite *ParamsTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addr = addrs[0]
+	supply1 := types.NewAssetSupply(
+		sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.NewCoin("bnb", sdk.NewInt(0)),
+		sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.NewCoin("bnb", sdk.NewInt(10000000000000)))
+	supply2 := types.NewAssetSupply(
+		sdk.NewCoin("btcb", sdk.NewInt(0)), sdk.NewCoin("btcb", sdk.NewInt(0)),
+		sdk.NewCoin("btcb", sdk.NewInt(0)), sdk.NewCoin("btcb", sdk.NewInt(10000000000000)))
+	suite.supply = append(suite.supply, supply1, supply2)
 	return
 }
 
@@ -48,7 +56,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "valid single asset",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -59,11 +67,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "valid multi asset",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 					types.NewAssetParam(
-						"btcb", 0, sdk.NewInt(1000000000000), true,
+						"btcb", 0, suite.supply[1], true,
 						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
 						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 				},
@@ -75,7 +83,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "invalid denom - empty",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"", 714, sdk.NewInt(1000000000000), true,
+					"", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -86,7 +94,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "invalid denom - bad format",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"BNB", 714, sdk.NewInt(1000000000000), true,
+					"BNB", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -97,7 +105,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "min block lock equal max block lock",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					243, 243)},
 			},
@@ -108,7 +116,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "min block lock greater max block lock",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					244, 243)},
 			},
@@ -119,7 +127,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "min swap not positive",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(0), sdk.NewInt(10000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -130,7 +138,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "max swap not positive",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(10000), sdk.NewInt(0),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -141,7 +149,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "min swap greater max swap",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000000), sdk.NewInt(10000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -152,7 +160,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "negative coin id",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", -714, sdk.NewInt(1000000000000), true,
+					"bnb", -714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -163,22 +171,25 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			name: "negative asset limit",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(-1000000000000), true,
+					"bnb", 714,
+					types.NewAssetSupply(
+						sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.NewCoin("bnb", sdk.NewInt(0)),
+						sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.Coin{"bnb", sdk.NewInt(-10000000000000)}), true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
-			expectedErr: "must have a positive supply limit",
+			expectedErr: "invalid supply limit",
 		},
 		{
 			name: "duplicate denom",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
-					"bnb", 714, sdk.NewInt(1000000000000), true,
+					"bnb", 714, suite.supply[0], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 					types.NewAssetParam(
-						"bnb", 0, sdk.NewInt(1000000000000), true,
+						"bnb", 0, suite.supply[0], true,
 						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
 						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 				},

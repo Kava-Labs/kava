@@ -50,7 +50,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
 	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
 	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
-		return sdkerrors.Wrap(types.ErrInvalidTimestamp, time.Unix(timestamp, 0).UTC().String())
+		return sdkerrors.Wrap(types.ErrInvalidTimestamp, fmt.Sprintf("block time: %s, timestamp: %s", ctx.BlockTime().String(), time.Unix(timestamp, 0).UTC().String()))
 	}
 
 	var direction types.SwapDirection

@@ -20,10 +20,9 @@ const (
 )
 
 var (
-	StandardSupplyLimit = i(350000000000000)
-	DenomMap            = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
-	TestUser1           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
-	TestUser2           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
+	DenomMap  = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
+	TestUser1 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
+	TestUser2 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
 )
 
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
@@ -36,9 +35,13 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 		Params: bep3.Params{
 			AssetParams: types.AssetParams{
 				types.AssetParam{
-					Denom:                "bnb",
-					CoinID:               714,
-					Limit:                StandardSupplyLimit,
+					Denom:  "bnb",
+					CoinID: 714,
+					SupplyLimit: types.NewAssetSupply(
+						sdk.NewCoin("bnb", sdk.ZeroInt()),
+						sdk.NewCoin("bnb", sdk.ZeroInt()),
+						sdk.NewCoin("bnb", sdk.ZeroInt()),
+						sdk.NewCoin("bnb", sdk.NewInt(350000000000000))),
 					Active:               true,
 					DeputyAddress:        deputyAddress,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -48,9 +51,13 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 					MaxBlockLock:         types.DefaultMaxBlockLock,
 				},
 				types.AssetParam{
-					Denom:                "inc",
-					CoinID:               9999,
-					Limit:                i(100),
+					Denom:  "inc",
+					CoinID: 9999,
+					SupplyLimit: types.NewAssetSupply(
+						sdk.NewCoin("inc", sdk.ZeroInt()),
+						sdk.NewCoin("inc", sdk.ZeroInt()),
+						sdk.NewCoin("inc", sdk.ZeroInt()),
+						sdk.NewCoin("inc", sdk.NewInt(100))),
 					Active:               false,
 					DeputyAddress:        deputyAddress,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -101,5 +108,5 @@ func assetSupplies(count int) types.AssetSupplies {
 }
 
 func assetSupply(denom string) types.AssetSupply {
-	return types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 10000))
+	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 10000))
 }

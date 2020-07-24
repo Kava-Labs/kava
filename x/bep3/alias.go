@@ -112,7 +112,6 @@ var (
 	SupplyLimitUpgradeTime          = types.SupplyLimitUpgradeTime
 	AtomicSwapKeyPrefix             = types.AtomicSwapKeyPrefix
 	AtomicSwapByBlockPrefix         = types.AtomicSwapByBlockPrefix
-	AssetSupplyKeyPrefix            = types.AssetSupplyKeyPrefix
 	AtomicSwapLongtermStoragePrefix = types.AtomicSwapLongtermStoragePrefix
 	AtomicSwapCoinsAccAddr          = types.AtomicSwapCoinsAccAddr
 	KeyAssetParams                  = types.KeyAssetParams
