@@ -39,16 +39,16 @@ func (suite *QuerierTestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	// Set up auth GenesisState
-	_, addrs := app.GeneratePrivKeyAddressPairs(10)
+	_, addrs := app.GeneratePrivKeyAddressPairs(11)
 	coins := []sdk.Coins{}
-	for j := 0; j < 10; j++ {
+	for j := 0; j < 11; j++ {
 		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
 	}
 	authGS := app.NewAuthGenState(addrs, coins)
 
 	tApp.InitializeFromGenesisStates(
 		authGS,
-		NewBep3GenStateMulti(addrs[0]),
+		NewBep3GenStateMulti(addrs[10]),
 	)
 
 	suite.ctx = ctx
@@ -70,11 +70,11 @@ func (suite *QuerierTestSuite) SetupTest() {
 
 		// Create atomic swap and check err
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount, true)
+			addrs[10], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain, amount, true)
 		suite.Nil(err)
 
 		// Calculate swap ID and save
-		swapID := types.CalculateSwapID(randomNumberHash, addrs[0], TestSenderOtherChain)
+		swapID := types.CalculateSwapID(randomNumberHash, addrs[10], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
 		isSwapID[hex.EncodeToString(swapID)] = true
 	}
@@ -179,7 +179,7 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	var p types.Params
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &p))
 
-	bep3GenesisState := NewBep3GenStateMulti(suite.addrs[0])
+	bep3GenesisState := NewBep3GenStateMulti(suite.addrs[10])
 	gs := types.GenesisState{}
 	types.ModuleCdc.UnmarshalJSON(bep3GenesisState["bep3"], &gs)
 	// update asset supply to account for swaps that were created in setup

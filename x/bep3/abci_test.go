@@ -30,14 +30,14 @@ func (suite *ABCITestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	// Set up auth GenesisState
-	_, addrs := app.GeneratePrivKeyAddressPairs(11)
+	_, addrs := app.GeneratePrivKeyAddressPairs(12)
 	coins := []sdk.Coins{}
-	for j := 0; j < 11; j++ {
+	for j := 0; j < 12; j++ {
 		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
 	}
 	authGS := app.NewAuthGenState(addrs, coins)
 	// Initialize test app
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[0]))
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[11]))
 
 	suite.ctx = ctx
 	suite.app = tApp
@@ -60,12 +60,12 @@ func (suite *ABCITestSuite) ResetKeeper() {
 
 		// Create atomic swap and check err to confirm creation
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			suite.addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
+			suite.addrs[11], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
 			amount, true)
 		suite.Nil(err)
 
 		// Store swap's calculated ID and secret random number
-		swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
+		swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[11], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
 		randomNumbers = append(randomNumbers, randomNumber[:])
 	}
