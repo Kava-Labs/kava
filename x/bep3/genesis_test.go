@@ -64,6 +64,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					swap := loadSwap(addrs[i+1], suite.addrs[0], i)
 					swaps = append(swaps, swap)
 				}
+				gs.Params.AssetParams[0].SupplyLimit.IncomingSupply = c("bnb", 50000)
+				gs.Params.AssetParams[1].SupplyLimit.IncomingSupply = c("inc", 50000)
 				gs.AtomicSwaps = swaps
 				return []app.GenesisState{authGS, {"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}}
 			},

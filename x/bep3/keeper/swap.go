@@ -55,6 +55,9 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	var direction types.SwapDirection
 	if sender.Equals(asset.DeputyAddress) {
+		if recipient.Equals(asset.DeputyAddress) {
+			return sdkerrors.Wrapf(types.ErrInvalidAmount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
+		}
 		direction = types.Incoming
 	} else {
 		direction = types.Outgoing
@@ -72,10 +75,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
-		if ctx.BlockTime().After(types.SupplyLimitUpgradeTime) {
-			if !recipient.Equals(asset.DeputyAddress) {
-				return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
-			}
+		if !recipient.Equals(asset.DeputyAddress) {
+			return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
 		}
 
 		// Outoing swaps must have a height span within the accepted range

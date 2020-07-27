@@ -30,7 +30,7 @@ func (k Keeper) GetAsset(ctx sdk.Context, denom string) (types.AssetParam, error
 			return asset, nil
 		}
 	}
-	return types.AssetParam{}, types.ErrAssetNotSupported
+	return types.AssetParam{}, sdkerrors.Wrap(types.ErrAssetNotSupported, denom)
 }
 
 // SetAsset sets an asset in the params

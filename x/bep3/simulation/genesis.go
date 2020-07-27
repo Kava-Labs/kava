@@ -16,21 +16,13 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-// Simulation parameter constants
-const (
-	BnbDeputyAddress  = "bnb_deputy_address"
-	BnbDeputyFixedFee = "bnb_deputy_fixed_fee"
-	MinAmount         = "min_amount"
-	MaxAmount         = "max_amount"
-	MinBlockLock      = "min_block_lock"
-	MaxBlockLock      = "max_block_lock"
-	SupportedAssets   = "supported_assets"
-)
-
 var (
-	MaxSupplyLimit   = sdk.NewInt(1000000000000)
-	accs             []simulation.Account
-	ConsistentDenoms = [3]string{"bnb", "xrp", "btc"}
+	MaxSupplyLimit     = 1000000000000
+	MinSupplyLimit     = 100000000
+	MinSwapAmountLimit = 999
+	accs               []simulation.Account
+	ConsistentDenoms   = [3]string{"bnb", "xrp", "btc"}
+	MinBlockLock       = uint64(5)
 )
 
 // GenRandBnbDeputy randomized BnbDeputyAddress
@@ -46,43 +38,36 @@ func GenRandFixedFee(r *rand.Rand) sdk.Int {
 	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
 }
 
-// GenMinAmount randomized MinAmount in range [0, 1000000000000]
-func GenMinAmount(r *rand.Rand) sdk.Int {
-	min := types.DefaultMinAmount.Int64()
-	max := types.DefaultMaxAmount.Int64()
-	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
+// GenMinSwapAmount randomized MinAmount in range [0, 1000]
+func GenMinSwapAmount(r *rand.Rand) sdk.Int {
+	return sdk.OneInt().Add(simulation.RandomAmount(r, sdk.NewInt(int64(MinSwapAmountLimit))))
 }
 
-// GenMaxAmount randomized MaxAmount
-func GenMaxAmount(r *rand.Rand, minAmount sdk.Int) sdk.Int {
+// GenMaxSwapAmount randomized MaxAmount
+func GenMaxSwapAmount(r *rand.Rand, minAmount sdk.Int, supplyMax sdk.Int) sdk.Int {
 	min := minAmount.Int64()
-	max := types.DefaultMaxAmount.Int64()
+	max := supplyMax.Quo(sdk.NewInt(100)).Int64()
+
 	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
 }
 
 // GenSupplyLimit generates a random SupplyLimit
-func GenSupplyLimit(r *rand.Rand, denom string, max sdk.Int) types.AssetSupply {
-	max, err := simulation.RandPositiveInt(r, max)
-	if err != nil {
-		panic(err)
-	}
+func GenSupplyLimit(r *rand.Rand, denom string, max int) types.AssetSupply {
+	max = simulation.RandIntBetween(r, MinSupplyLimit, max)
 	return types.NewAssetSupply(
 		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
-		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, max))
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.NewInt(int64(max))))
 }
 
 // GenMinBlockLock randomized MinBlockLock
 func GenMinBlockLock(r *rand.Rand) uint64 {
-	min := int(1)
-	max := int(types.DefaultMaxBlockLock)
-	return uint64(r.Intn(max-min) + min)
+	return MinBlockLock
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
 func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
-	min := int(minBlockLock)
-	max := int(types.DefaultMaxBlockLock)
-	return uint64(r.Intn(max-min) + min)
+	max := int(50)
+	return uint64(r.Intn(max-int(MinBlockLock)) + int(MinBlockLock+1))
 }
 
 // GenSupportedAssets gets randomized SupportedAssets
@@ -105,7 +90,7 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
 	limit := GenSupplyLimit(r, denom, MaxSupplyLimit)
 
-	minSwapAmount := GenMinAmount(r)
+	minSwapAmount := GenMinSwapAmount(r)
 	minBlockLock := GenMinBlockLock(r)
 	return types.AssetParam{
 		Denom:                denom,
@@ -115,7 +100,7 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 		DeputyAddress:        GenRandBnbDeputy(r).Address,
 		IncomingSwapFixedFee: GenRandFixedFee(r),
 		MinSwapAmount:        minSwapAmount,
-		MaxSwapAmount:        GenMaxAmount(r, minSwapAmount),
+		MaxSwapAmount:        GenMaxSwapAmount(r, minSwapAmount, limit.SupplyLimit.Amount),
 		MinBlockLock:         minBlockLock,
 		MaxBlockLock:         GenMaxBlockLock(r, minBlockLock),
 	}
@@ -144,11 +129,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
 
-	var supportedAssets types.AssetParams
-	simState.AppParams.GetOrGenerate(
-		simState.Cdc, SupportedAssets, &supportedAssets, simState.Rand,
-		func(r *rand.Rand) { supportedAssets = GenSupportedAssets(r) },
-	)
+	supportedAssets := GenSupportedAssets(simState.Rand)
 
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{

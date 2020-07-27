@@ -50,21 +50,22 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simulation.Account, chainID string,
 	) (simulation.OperationMsg, []simulation.FutureOperation, error) {
-
 		// Get asset supplies and shuffle them
-		supplies := k.GetAllAssetSupplies(ctx)
-		r.Shuffle(len(supplies), func(i, j int) {
-			supplies[i], supplies[j] = supplies[j], supplies[i]
+		assets, found := k.GetAssets(ctx)
+		if !found {
+			return noOpMsg, nil, nil
+		}
+		r.Shuffle(len(assets), func(i, j int) {
+			assets[i], assets[j] = assets[j], assets[i]
 		})
-
-		senderOut, assetSupply, found := findValidAccountAssetSupplyPair(accs, supplies, func(acc simulation.Account, supply types.AssetSupply) bool {
-			if supply.CurrentSupply.Amount.IsPositive() {
-				authAcc := ak.GetAccount(ctx, acc.Address)
-				// Search for an account that holds coins received by an atomic swap
-				asset, err := k.GetAsset(ctx, supply.SupplyLimit.Denom)
-				if err != nil {
+		senderOutgoing, selectedAsset, found := findValidAccountAssetPair(accs, assets, func(simAcc simulation.Account, asset types.AssetParam) bool {
+			if asset.SupplyLimit.CurrentSupply.Amount.IsPositive() {
+				authAcc := ak.GetAccount(ctx, simAcc.Address)
+				// deputy cannot be sender of outgoing swap
+				if authAcc.GetAddress().Equals(asset.DeputyAddress) {
 					return false
 				}
+				// Search for an account that holds coins received by an atomic swap
 				minAmountPlusFee := asset.MinSwapAmount.Add(asset.IncomingSwapFixedFee)
 				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(minAmountPlusFee) {
 					return true
@@ -72,35 +73,38 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			}
 			return false
 		})
-
-		asset, err := k.GetAsset(ctx, assetSupply.SupplyLimit.Denom)
-		if err != nil {
-			return noOpMsg, nil, err
-		}
-
-		deputyAcc, foundDeputy := simulation.FindAccount(accs, asset.DeputyAddress)
-		if !foundDeputy {
-			return noOpMsg, nil, nil
-		}
-
-		// Set sender, recipient, and denom depending on swap direction
 		var sender simulation.Account
 		var recipient simulation.Account
-		var denom string
+		var asset types.AssetParam
+
 		// If an outgoing swap can be created, it's chosen 50% of the time.
 		if found && r.Intn(100) < 50 {
-			sender = senderOut
-			recipient = deputyAcc
-			denom = asset.Denom
-		} else {
-			sender = deputyAcc
-			recipient, _ = simulation.RandomAcc(r, accs)
-			// Randomly select an asset from supported assets
-			assets, foundAsset := k.GetAssets(ctx)
-			if !foundAsset {
-				return noOpMsg, nil, fmt.Errorf("no supported assets found")
+			deputy, found := simulation.FindAccount(accs, selectedAsset.DeputyAddress)
+			if !found {
+				return noOpMsg, nil, nil
 			}
-			denom = assets[r.Intn(len(assets))].Denom
+			sender = senderOutgoing
+			recipient = deputy
+			asset = selectedAsset
+		} else {
+			// if an outgoing swap cannot be created or was not selected, simulate an incoming swap
+			assets, _ := k.GetAssets(ctx)
+			asset = assets[r.Intn(len(assets))]
+			var eligibleAccs []simulation.Account
+			for _, simAcc := range accs {
+				// don't allow recipient of incoming swap to be the deputy
+				if simAcc.Address.Equals(asset.DeputyAddress) {
+					continue
+				}
+				eligibleAccs = append(eligibleAccs, simAcc)
+			}
+			recipient, _ = simulation.RandomAcc(r, eligibleAccs)
+			deputy, found := simulation.FindAccount(accs, asset.DeputyAddress)
+			if !found {
+				return noOpMsg, nil, nil
+			}
+			sender = deputy
+
 		}
 
 		recipientOtherChain := simulation.RandStringOfLength(r, 43)
@@ -118,15 +122,15 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		}
 
 		// Get maximum valid amount
-		maximumAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(denom)
+		maximumAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(asset.Denom)
 		// The maximum amount for outgoing swaps is limited by the asset's current supply
-		if recipient.Equals(deputyAcc) {
-			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, denom)
+		if recipient.Address.Equals(asset.DeputyAddress) {
+			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, asset.Denom)
 			if !foundAssetSupply {
-				return noOpMsg, nil, fmt.Errorf("no asset supply found")
+				return noOpMsg, nil, fmt.Errorf("no asset supply found for %s", asset.Denom)
 			}
-			if maximumAmount.GT(assetSupply.CurrentSupply.Amount) {
-				maximumAmount = assetSupply.CurrentSupply.Amount
+			if maximumAmount.GT(assetSupply.CurrentSupply.Amount.Sub(assetSupply.OutgoingSupply.Amount)) {
+				maximumAmount = assetSupply.CurrentSupply.Amount.Sub(assetSupply.OutgoingSupply.Amount)
 			}
 		}
 
@@ -139,12 +143,12 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
 		minAmountPlusFee := asset.MinSwapAmount.Add(asset.IncomingSwapFixedFee)
 		if amount.LT(minAmountPlusFee) {
-			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", denom), "", false, nil), nil, nil
+			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", asset.Denom), "", false, nil), nil, nil
 		}
-		coins := sdk.NewCoins(sdk.NewCoin(denom, amount))
+		coins := sdk.NewCoins(sdk.NewCoin(asset.Denom, amount))
 
 		// We're assuming that sims are run with -NumBlocks=100
-		heightSpan := uint64(55)
+		heightSpan := uint64(simulation.RandIntBetween(r, int(asset.MinBlockLock), int(asset.MaxBlockLock)))
 
 		msg := types.NewMsgCreateAtomicSwap(
 			sender.Address, recipient.Address, recipientOtherChain, senderOtherChain,
@@ -170,8 +174,10 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		var futureOp simulation.FutureOperation
 		swapID := types.CalculateSwapID(msg.RandomNumberHash, msg.From, msg.SenderOtherChain)
 		if r.Intn(100) < 50 {
-			// Claim future operation
-			executionBlock := uint64(ctx.BlockHeight()) + msg.HeightSpan/2
+			// Claim future operation - choose between next block and the block before height span
+			executionBlock := uint64(
+				int(ctx.BlockHeight()+1) + r.Intn(int(heightSpan-1)))
+
 			futureOp = simulation.FutureOperation{
 				BlockHeight: int(executionBlock),
 				Op:          operationClaimAtomicSwap(ak, k, swapID, randomNumber),
@@ -200,25 +206,27 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("cannot claim: swap with ID %s not found", swapID)
 		}
-
+		// check that asset supply supports claiming (it could have changed due to a param change proposal)
+		// use CacheContext so changes don't take effect
+		cacheCtx, _ := ctx.CacheContext()
 		switch swap.Direction {
 		case types.Incoming:
-			err := k.DecrementIncomingAssetSupply(ctx, swap.Amount[0])
+			err := k.DecrementIncomingAssetSupply(cacheCtx, swap.Amount[0])
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
+				return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - unable to decrement incoming asset supply %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 			}
-			err = k.IncrementCurrentAssetSupply(ctx, swap.Amount[0])
+			err = k.IncrementCurrentAssetSupply(cacheCtx, swap.Amount[0])
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
+				return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - unable to increment current asset supply %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 			}
 		case types.Outgoing:
-			err := k.DecrementOutgoingAssetSupply(ctx, swap.Amount[0])
+			err := k.DecrementOutgoingAssetSupply(cacheCtx, swap.Amount[0])
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
+				return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - unable to decrement outgoing asset supply %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 			}
-			err = k.DecrementCurrentAssetSupply(ctx, swap.Amount[0])
+			err = k.DecrementCurrentAssetSupply(cacheCtx, swap.Amount[0])
 			if err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
+				return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - unable to decrement current asset supply %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 			}
 		}
 
@@ -228,12 +236,10 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		}
 
 		msg := types.NewMsgClaimAtomicSwap(acc.GetAddress(), swapID, randomNumber)
-
 		fees, err := simulation.RandomFees(r, ctx, acc.SpendableCoins(ctx.BlockTime()))
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},
 			fees,
@@ -243,12 +249,10 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 			[]uint64{acc.GetSequence()},
 			simAccount.PrivKey,
 		)
-
 		_, result, err := app.Deliver(tx)
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
@@ -264,15 +268,15 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("cannot refund: swap with ID %s not found", swapID)
 		}
-
+		cacheCtx, _ := ctx.CacheContext()
 		switch swap.Direction {
 		case types.Incoming:
-			if err := k.DecrementIncomingAssetSupply(ctx, swap.Amount[0]); err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			if err := k.DecrementIncomingAssetSupply(cacheCtx, swap.Amount[0]); err != nil {
+				return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not refund - unable to decrement incoming asset supply %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 			}
 		case types.Outgoing:
-			if err := k.DecrementOutgoingAssetSupply(ctx, swap.Amount[0]); err != nil {
-				return simulation.NoOpMsg(types.ModuleName), nil, nil
+			if err := k.DecrementOutgoingAssetSupply(cacheCtx, swap.Amount[0]); err != nil {
+				return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not refund - unable to decrement outgoing asset supply %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 			}
 		}
 
@@ -297,20 +301,19 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
 }
 
 // findValidAccountAssetSupplyPair finds an account for which the callback func returns true
-func findValidAccountAssetSupplyPair(accounts []simulation.Account, supplies types.AssetSupplies,
-	cb func(simulation.Account, types.AssetSupply) bool) (simulation.Account, types.AssetSupply, bool) {
-	for _, supply := range supplies {
+func findValidAccountAssetPair(accounts []simulation.Account, assets types.AssetParams,
+	cb func(simulation.Account, types.AssetParam) bool) (simulation.Account, types.AssetParam, bool) {
+	for _, asset := range assets {
 		for _, acc := range accounts {
-			if isValid := cb(acc, supply); isValid {
-				return acc, supply, true
+			if isValid := cb(acc, asset); isValid {
+				return acc, asset, true
 			}
 		}
 	}
-	return simulation.Account{}, types.AssetSupply{}, false
+	return simulation.Account{}, types.AssetParam{}, false
 }
