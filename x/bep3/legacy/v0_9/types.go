@@ -5,6 +5,27 @@ import (
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
+const (
+	ModuleName = "bep3"
+)
+
+var (
+	DefaultBnbDeputyFixedFee sdk.Int = sdk.NewInt(1000) // 0.00001 BNB
+	DefaultMinAmount         sdk.Int = sdk.ZeroInt()
+	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
+	DefaultMinBlockLock      uint64  = 220
+	DefaultMaxBlockLock      uint64  = 270
+	DefaultSupportedAssets           = AssetParams{
+		AssetParam{
+			Denom:  "bnb",
+			CoinID: 714,
+			Limit:  sdk.NewInt(350000000000000), // 3,500,000 BNB
+			Active: true,
+		},
+	}
+	KeySupportedAssets = []byte("SupportedAssets")
+)
+
 // Params v0.9 governance parameters for bep3 module
 type Params struct {
 	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
@@ -14,6 +35,21 @@ type Params struct {
 	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // Minimum swap block lock
 	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // Maximum swap block lock
 	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
+}
+
+// NewParams returns a new params object
+func NewParams(bnbDeputyAddress sdk.AccAddress, bnbDeputyFixedFee, minAmount,
+	maxAmount sdk.Int, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
+) Params {
+	return Params{
+		BnbDeputyAddress:  bnbDeputyAddress,
+		BnbDeputyFixedFee: bnbDeputyFixedFee,
+		MinAmount:         minAmount,
+		MaxAmount:         maxAmount,
+		MinBlockLock:      minBlockLock,
+		MaxBlockLock:      maxBlockLock,
+		SupportedAssets:   supportedAssets,
+	}
 }
 
 // AssetParam v0.9 governance parameters for each asset supported on kava chain
@@ -32,6 +68,35 @@ type GenesisState struct {
 	Params        Params        `json:"params" yaml:"params"`
 	AtomicSwaps   AtomicSwaps   `json:"atomic_swaps" yaml:"atomic_swaps"`
 	AssetSupplies AssetSupplies `json:"assets_supplies" yaml:"assets_supplies"`
+}
+
+// NewGenesisState creates a new GenesisState object
+func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies) GenesisState {
+	return GenesisState{
+		Params:        params,
+		AtomicSwaps:   swaps,
+		AssetSupplies: supplies,
+	}
+}
+
+// DefaultGenesisState - default GenesisState used by Cosmos Hub
+func DefaultGenesisState() GenesisState {
+	return NewGenesisState(
+		DefaultParams(),
+		AtomicSwaps{},
+		AssetSupplies{},
+	)
+}
+
+// DefaultParams returns default params for bep3 module
+func DefaultParams() Params {
+	defaultBnbDeputyAddress, err := sdk.AccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6")
+	if err != nil {
+		panic(err)
+	}
+
+	return NewParams(defaultBnbDeputyAddress, DefaultBnbDeputyFixedFee, DefaultMinAmount,
+		DefaultMaxAmount, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
 }
 
 // AtomicSwap contains the information for an atomic swap
