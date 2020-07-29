@@ -86,13 +86,15 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaimPeriod() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetClaimPeriodID() {
-	suite.Panics(func() {
-		suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
+	suite.NotPanics(func() {
+		suite.keeper.GetNextClaimPeriodID(suite.ctx, "yolo")
 	})
 	suite.NotPanics(func() {
 		suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
 	})
 	testID := suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
+	suite.Equal(uint64(1), testID)
+	testID = suite.keeper.GetNextClaimPeriodID(suite.ctx, "yolo")
 	suite.Equal(uint64(1), testID)
 }
 
