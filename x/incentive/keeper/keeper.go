@@ -90,6 +90,9 @@ func (k Keeper) GetAllRewardPeriods(ctx sdk.Context) types.RewardPeriods {
 func (k Keeper) GetNextClaimPeriodID(ctx sdk.Context, denom string) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
 	bz := store.Get([]byte(denom))
+	if bz == nil {
+		k.SetNextClaimPeriodID(ctx, denom, 1)
+	}
 	return types.BytesToUint64(bz)
 }
 
