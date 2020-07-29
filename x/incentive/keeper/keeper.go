@@ -92,7 +92,9 @@ func (k Keeper) GetNextClaimPeriodID(ctx sdk.Context, denom string) uint64 {
 	bz := store.Get([]byte(denom))
 	if bz == nil {
 		k.SetNextClaimPeriodID(ctx, denom, 1)
+		return uint64(1)
 	}
+
 	return types.BytesToUint64(bz)
 }
 
