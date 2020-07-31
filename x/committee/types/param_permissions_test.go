@@ -159,13 +159,9 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 	deputyAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 	testAPs := bep3types.AssetParams{
 		bep3types.AssetParam{
-			Denom:  "btc",
-			CoinID: 0,
-			SupplyLimit: bep3types.NewAssetSupply(
-				sdk.NewCoin("btc", sdk.ZeroInt()),
-				sdk.NewCoin("btc", sdk.ZeroInt()),
-				sdk.NewCoin("btc", sdk.ZeroInt()),
-				sdk.NewCoin("btc", sdk.NewInt(100))),
+			Denom:                "btc",
+			CoinID:               0,
+			SupplyLimit:          sdk.NewInt(100),
 			Active:               false,
 			DeputyAddress:        deputyAddress,
 			IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -175,13 +171,9 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 			MaxBlockLock:         bep3types.DefaultMaxBlockLock,
 		},
 		bep3types.AssetParam{
-			Denom:  "bnb",
-			CoinID: 714,
-			SupplyLimit: bep3types.NewAssetSupply(
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.NewInt(350000000000000))),
+			Denom:                "bnb",
+			CoinID:               714,
+			SupplyLimit:          sdk.NewInt(350000000000000),
 			Active:               true,
 			DeputyAddress:        deputyAddress,
 			IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -191,13 +183,9 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 			MaxBlockLock:         bep3types.DefaultMaxBlockLock,
 		},
 		bep3types.AssetParam{
-			Denom:  "xrp",
-			CoinID: 414,
-			SupplyLimit: bep3types.NewAssetSupply(
-				sdk.NewCoin("xrp", sdk.ZeroInt()),
-				sdk.NewCoin("xrp", sdk.ZeroInt()),
-				sdk.NewCoin("xrp", sdk.ZeroInt()),
-				sdk.NewCoin("xrp", sdk.NewInt(350000000000000))),
+			Denom:                "xrp",
+			CoinID:               414,
+			SupplyLimit:          sdk.NewInt(350000000000000),
 			Active:               true,
 			DeputyAddress:        deputyAddress,
 			IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -212,10 +200,10 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 	updatedTestAPs[1] = testAPs[0]
 	updatedTestAPs[2] = testAPs[2]
 
-	updatedTestAPs[0].SupplyLimit.SupplyLimit.Amount = i(1000) // btc
-	updatedTestAPs[1].Active = false                           // bnb
-	updatedTestAPs[2].SupplyLimit.SupplyLimit.Amount = i(1000) // xrp
-	updatedTestAPs[2].Active = false                           // xrp
+	updatedTestAPs[0].SupplyLimit = i(1000) // btc
+	updatedTestAPs[1].Active = false        // bnb
+	updatedTestAPs[2].SupplyLimit = i(1000) // xrp
+	updatedTestAPs[2].Active = false        // xrp
 
 	testcases := []struct {
 		name          string
@@ -608,13 +596,9 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 
 func (suite *PermissionsTestSuite) TestAllowedAssetParam_Allows() {
 	testAP := bep3types.AssetParam{
-		Denom:  "usdx",
-		CoinID: 999,
-		SupplyLimit: bep3types.NewAssetSupply(
-			sdk.NewCoin("usdx", sdk.ZeroInt()),
-			sdk.NewCoin("usdx", sdk.ZeroInt()),
-			sdk.NewCoin("usdx", sdk.ZeroInt()),
-			sdk.NewCoin("usdx", sdk.NewInt(1000000000))),
+		Denom:                "usdx",
+		CoinID:               999,
+		SupplyLimit:          sdk.NewInt(1000000000),
 		Active:               true,
 		DeputyAddress:        sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
 		IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -627,11 +611,11 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParam_Allows() {
 	newCoinidAP.CoinID = 0
 
 	newLimitAP := testAP
-	newLimitAP.SupplyLimit.SupplyLimit.Amount = i(1000)
+	newLimitAP.SupplyLimit = i(1000)
 
 	newCoinidAndLimitAP := testAP
 	newCoinidAndLimitAP.CoinID = 0
-	newCoinidAndLimitAP.SupplyLimit.SupplyLimit.Amount = i(1000)
+	newCoinidAndLimitAP.SupplyLimit = i(1000)
 
 	testcases := []struct {
 		name          string
