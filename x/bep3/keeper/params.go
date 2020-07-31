@@ -131,34 +131,11 @@ func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) error {
 	return nil
 }
 
-// ------------------------------------------
-//				Asset Supplies
-// ------------------------------------------
-
-// GetAssetSupply gets an asset's current supply from the store.
-func (k Keeper) GetAssetSupply(ctx sdk.Context, denom string) (types.AssetSupply, bool) {
+// GetSupplyLimit returns the supply limit for the input denom
+func (k Keeper) GetSupplyLimit(ctx sdk.Context, denom string) (sdk.Int, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
-		return types.AssetSupply{}, false
+		return sdk.Int{}, err
 	}
-	return asset.SupplyLimit, true
-}
-
-// SetAssetSupply updates an asset's current active supply
-func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom string) {
-	asset, err := k.GetAsset(ctx, denom)
-	if err != nil {
-		panic(err)
-	}
-	asset.SupplyLimit = supply
-	k.SetAsset(ctx, asset)
-}
-
-// GetAllAssetSupplies returns all asset supplies from the params
-func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
-	params := k.GetParams(ctx)
-	for _, asset := range params.AssetParams {
-		supplies = append(supplies, asset.SupplyLimit)
-	}
-	return
+	return asset.SupplyLimit, nil
 }

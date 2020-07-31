@@ -14,9 +14,15 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
+	limit, err := k.GetSupplyLimit(ctx, coin.Denom)
+	if err != nil {
+		return err
+	}
+	supplyLimit := sdk.NewCoin(coin.Denom, limit)
+
 	// Resulting current supply must be under asset's limit
-	if supply.SupplyLimit.IsLT(supply.CurrentSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supply.SupplyLimit)
+	if supplyLimit.IsLT(supply.CurrentSupply.Add(coin)) {
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supplyLimit)
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Add(coin)
@@ -51,8 +57,14 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 
 	// 	Result of (current + incoming + amount) must be under asset's limit
 	totalSupply := supply.CurrentSupply.Add(supply.IncomingSupply)
-	if supply.SupplyLimit.IsLT(totalSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supply.SupplyLimit)
+
+	limit, err := k.GetSupplyLimit(ctx, coin.Denom)
+	if err != nil {
+		return err
+	}
+	supplyLimit := sdk.NewCoin(coin.Denom, limit)
+	if supplyLimit.IsLT(totalSupply.Add(coin)) {
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supplyLimit)
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Add(coin)

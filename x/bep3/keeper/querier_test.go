@@ -102,7 +102,7 @@ func (suite *QuerierTestSuite) TestQueryAssetSupply() {
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &supply))
 
 	expectedSupply := types.NewAssetSupply(c(denom, 1000),
-		c(denom, 0), c(denom, 0), c(denom, 350000000000000))
+		c(denom, 0), c(denom, 0))
 	suite.Equal(supply, expectedSupply)
 }
 
@@ -183,7 +183,6 @@ func (suite *QuerierTestSuite) TestQueryParams() {
 	gs := types.GenesisState{}
 	types.ModuleCdc.UnmarshalJSON(bep3GenesisState["bep3"], &gs)
 	// update asset supply to account for swaps that were created in setup
-	gs.Params.AssetParams[0].SupplyLimit.IncomingSupply = c("bnb", 1000)
 	suite.Equal(gs.Params, p)
 }
 

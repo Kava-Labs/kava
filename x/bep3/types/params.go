@@ -52,7 +52,7 @@ func DefaultParams() Params {
 type AssetParam struct {
 	Denom                string         `json:"denom" yaml:"denom"`                                     // name of the asset
 	CoinID               int            `json:"coin_id" yaml:"coin_id"`                                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-	SupplyLimit          AssetSupply    `json:"supply_limit" yaml:"supply_limit"`                       // asset supply limit
+	SupplyLimit          sdk.Int        `json:"supply_limit" yaml:"supply_limit"`                       // asset supply limit
 	Active               bool           `json:"active" yaml:"active"`                                   // denotes if asset is available or paused
 	DeputyAddress        sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`                   // the address of the relayer process
 	IncomingSwapFixedFee sdk.Int        `json:"incoming_swap_fixed_fee" yaml:"incoming_swap_fixed_fee"` // the fixed fee charged by the relayer process for incoming swaps
@@ -64,7 +64,7 @@ type AssetParam struct {
 
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
-	denom string, coinID int, limit AssetSupply, active bool,
+	denom string, coinID int, limit sdk.Int, active bool,
 	deputyAddr sdk.AccAddress, incomingFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
@@ -147,8 +147,8 @@ func validateAssetParams(i interface{}) error {
 			return fmt.Errorf(fmt.Sprintf("asset %s coin id must be a non negative integer", asset.Denom))
 		}
 
-		if err := asset.SupplyLimit.Validate(); err != nil {
-			return fmt.Errorf(fmt.Sprintf("asset %s has invalid supply limit: %v", asset.Denom, err))
+		if asset.SupplyLimit.IsNegative() {
+			return fmt.Errorf(fmt.Sprintf("asset %s has invalid (negative) supply limit: %s", asset.Denom, asset.SupplyLimit))
 		}
 
 		_, found := coinDenoms[asset.Denom]

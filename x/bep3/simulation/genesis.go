@@ -52,11 +52,16 @@ func GenMaxSwapAmount(r *rand.Rand, minAmount sdk.Int, supplyMax sdk.Int) sdk.In
 }
 
 // GenSupplyLimit generates a random SupplyLimit
-func GenSupplyLimit(r *rand.Rand, denom string, max int) types.AssetSupply {
+func GenSupplyLimit(r *rand.Rand, max int) sdk.Int {
 	max = simulation.RandIntBetween(r, MinSupplyLimit, max)
+	return sdk.NewInt(int64(max))
+}
+
+// GenSupplyLimit generates a random SupplyLimit
+func GenAssetSupply(r *rand.Rand, denom string) types.AssetSupply {
 	return types.NewAssetSupply(
 		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
-		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.NewInt(int64(max))))
+		sdk.NewCoin(denom, sdk.ZeroInt()))
 }
 
 // GenMinBlockLock randomized MinBlockLock
@@ -88,7 +93,7 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 
 func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
-	limit := GenSupplyLimit(r, denom, MaxSupplyLimit)
+	limit := GenSupplyLimit(r, MaxSupplyLimit)
 
 	minSwapAmount := GenMinSwapAmount(r)
 	minBlockLock := GenMinBlockLock(r)
@@ -100,7 +105,7 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 		DeputyAddress:        GenRandBnbDeputy(r).Address,
 		IncomingSwapFixedFee: GenRandFixedFee(r),
 		MinSwapAmount:        minSwapAmount,
-		MaxSwapAmount:        GenMaxSwapAmount(r, minSwapAmount, limit.SupplyLimit.Amount),
+		MaxSwapAmount:        GenMaxSwapAmount(r, minSwapAmount, limit),
 		MinBlockLock:         minBlockLock,
 		MaxBlockLock:         GenMaxBlockLock(r, minBlockLock),
 	}
@@ -150,7 +155,7 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 		if !found {
 			panic("deputy address not found in available accounts")
 		}
-		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit.SupplyLimit.Amount))
+		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit))
 		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin...)); err != nil {
 			panic(err)
 		}

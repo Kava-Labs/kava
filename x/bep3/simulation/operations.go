@@ -59,7 +59,11 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			assets[i], assets[j] = assets[j], assets[i]
 		})
 		senderOutgoing, selectedAsset, found := findValidAccountAssetPair(accs, assets, func(simAcc simulation.Account, asset types.AssetParam) bool {
-			if asset.SupplyLimit.CurrentSupply.Amount.IsPositive() {
+			supply, found := k.GetAssetSupply(ctx, asset.Denom)
+			if !found {
+				return false
+			}
+			if supply.CurrentSupply.Amount.IsPositive() {
 				authAcc := ak.GetAccount(ctx, simAcc.Address)
 				// deputy cannot be sender of outgoing swap
 				if authAcc.GetAddress().Equals(asset.DeputyAddress) {
@@ -230,8 +234,15 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 			}
 		}
 
-		supply, found := k.GetAssetSupply(ctx, swap.Amount[0].Denom)
-		if supply.SupplyLimit.IsLT(supply.CurrentSupply.Add(swap.Amount[0])) {
+		asset, err := k.GetAsset(ctx, swap.Amount[0].Denom)
+		if err != nil {
+			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - asset not found %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
+		}
+		supply, found := k.GetAssetSupply(ctx, asset.Denom)
+		if !found {
+			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - asset supply not found %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
+		}
+		if asset.SupplyLimit.LT(supply.CurrentSupply.Amount.Add(swap.Amount[0].Amount)) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 

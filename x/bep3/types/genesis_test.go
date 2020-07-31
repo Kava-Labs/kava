@@ -24,7 +24,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 	coin := sdk.NewCoin("kava", sdk.OneInt())
 	suite.swaps = atomicSwaps(10)
 
-	supply := types.NewAssetSupply(coin, coin, coin, coin)
+	supply := types.NewAssetSupply(coin, coin, coin)
 	suite.supplies = types.AssetSupplies{supply}
 }
 
@@ -73,7 +73,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			if tc.name == "default" {
 				gs = types.DefaultGenesisState()
 			} else {
-				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps)
+				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, suite.supplies)
 			}
 
 			err := gs.Validate()

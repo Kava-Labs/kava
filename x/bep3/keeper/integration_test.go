@@ -35,13 +35,9 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 		Params: bep3.Params{
 			AssetParams: types.AssetParams{
 				types.AssetParam{
-					Denom:  "bnb",
-					CoinID: 714,
-					SupplyLimit: types.NewAssetSupply(
-						sdk.NewCoin("bnb", sdk.ZeroInt()),
-						sdk.NewCoin("bnb", sdk.ZeroInt()),
-						sdk.NewCoin("bnb", sdk.ZeroInt()),
-						sdk.NewCoin("bnb", sdk.NewInt(350000000000000))),
+					Denom:                "bnb",
+					CoinID:               714,
+					SupplyLimit:          sdk.NewInt(350000000000000),
 					Active:               true,
 					DeputyAddress:        deputyAddress,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -51,13 +47,9 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 					MaxBlockLock:         types.DefaultMaxBlockLock,
 				},
 				types.AssetParam{
-					Denom:  "inc",
-					CoinID: 9999,
-					SupplyLimit: types.NewAssetSupply(
-						sdk.NewCoin("inc", sdk.ZeroInt()),
-						sdk.NewCoin("inc", sdk.ZeroInt()),
-						sdk.NewCoin("inc", sdk.ZeroInt()),
-						sdk.NewCoin("inc", sdk.NewInt(100))),
+					Denom:                "inc",
+					CoinID:               9999,
+					SupplyLimit:          sdk.NewInt(100),
 					Active:               false,
 					DeputyAddress:        deputyAddress,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -67,6 +59,18 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 					MaxBlockLock:         types.DefaultMaxBlockLock,
 				},
 			},
+		},
+		Supplies: bep3.AssetSupplies{
+			bep3.NewAssetSupply(
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+			),
+			bep3.NewAssetSupply(
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+			),
 		},
 	}
 	return app.GenesisState{bep3.ModuleName: bep3.ModuleCdc.MustMarshalJSON(bep3Genesis)}
@@ -108,5 +112,5 @@ func assetSupplies(count int) types.AssetSupplies {
 }
 
 func assetSupply(denom string) types.AssetSupply {
-	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 10000))
+	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0))
 }

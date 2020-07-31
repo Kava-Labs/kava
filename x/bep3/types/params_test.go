@@ -14,7 +14,7 @@ import (
 type ParamsTestSuite struct {
 	suite.Suite
 	addr   sdk.AccAddress
-	supply types.AssetSupplies
+	supply []sdk.Int
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
@@ -22,13 +22,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addr = addrs[0]
-	supply1 := types.NewAssetSupply(
-		sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.NewCoin("bnb", sdk.NewInt(0)),
-		sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.NewCoin("bnb", sdk.NewInt(10000000000000)))
-	supply2 := types.NewAssetSupply(
-		sdk.NewCoin("btcb", sdk.NewInt(0)), sdk.NewCoin("btcb", sdk.NewInt(0)),
-		sdk.NewCoin("btcb", sdk.NewInt(0)), sdk.NewCoin("btcb", sdk.NewInt(10000000000000)))
-	suite.supply = append(suite.supply, supply1, supply2)
+	suite.supply = append(suite.supply, sdk.NewInt(10000000000000), sdk.NewInt(10000000000000))
 	return
 }
 
@@ -172,14 +166,12 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
-					types.NewAssetSupply(
-						sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.NewCoin("bnb", sdk.NewInt(0)),
-						sdk.NewCoin("bnb", sdk.NewInt(0)), sdk.Coin{"bnb", sdk.NewInt(-10000000000000)}), true,
+					sdk.NewInt(-10000000000000), true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
-			expectedErr: "invalid supply limit",
+			expectedErr: "invalid (negative) supply limit",
 		},
 		{
 			name: "duplicate denom",

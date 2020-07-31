@@ -40,13 +40,9 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 		Params: bep3.Params{
 			AssetParams: bep3.AssetParams{
 				bep3.AssetParam{
-					Denom:  "bnb",
-					CoinID: 714,
-					SupplyLimit: bep3.NewAssetSupply(
-						sdk.NewCoin("bnb", sdk.ZeroInt()),
-						sdk.NewCoin("bnb", sdk.ZeroInt()),
-						sdk.NewCoin("bnb", sdk.ZeroInt()),
-						sdk.NewCoin("bnb", sdk.NewInt(350000000000000))),
+					Denom:                "bnb",
+					CoinID:               714,
+					SupplyLimit:          sdk.NewInt(350000000000000),
 					Active:               true,
 					DeputyAddress:        deputy,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -56,13 +52,9 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 					MaxBlockLock:         bep3.DefaultMaxBlockLock,
 				},
 				bep3.AssetParam{
-					Denom:  "inc",
-					CoinID: 9999,
-					SupplyLimit: bep3.NewAssetSupply(
-						sdk.NewCoin("inc", sdk.ZeroInt()),
-						sdk.NewCoin("inc", sdk.ZeroInt()),
-						sdk.NewCoin("inc", sdk.ZeroInt()),
-						sdk.NewCoin("inc", sdk.NewInt(100000000000))),
+					Denom:                "inc",
+					CoinID:               9999,
+					SupplyLimit:          sdk.NewInt(100000000000),
 					Active:               true,
 					DeputyAddress:        deputy,
 					IncomingSwapFixedFee: sdk.NewInt(1000),
@@ -73,19 +65,34 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 				},
 			},
 		},
+		Supplies: bep3.AssetSupplies{
+			bep3.NewAssetSupply(
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+			),
+			bep3.NewAssetSupply(
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+			),
+		},
 	}
 	return bep3Genesis
 }
 
-func loadSwap(addr sdk.AccAddress, deputy sdk.AccAddress, index int) bep3.AtomicSwap {
+func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.AssetSupply) {
 	coin := c(DenomMap[index], 50000)
 	expireOffset := bep3.DefaultMinBlockLock // Default expire height + offet to match timestamp
 	timestamp := ts(index)                   // One minute apart
 	randomNumber, _ := bep3.GenerateSecureRandomNumber()
 	randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
 	swap := bep3.NewAtomicSwap(cs(coin), randomNumberHash,
-		expireOffset, timestamp, deputy, addr, TestSenderOtherChain,
+		expireOffset, timestamp, addr, addr, TestSenderOtherChain,
 		TestRecipientOtherChain, 1, bep3.Open, true, bep3.Incoming)
 
-	return swap
+	supply := bep3.NewAssetSupply(coin, c(coin.Denom, 0),
+		c(coin.Denom, 0))
+
+	return swap, supply
 }

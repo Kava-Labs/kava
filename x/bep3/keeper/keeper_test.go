@@ -307,6 +307,35 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 	suite.Equal(expectedSwapIDs, readSwapIDs)
 }
 
+func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
+	denom := "bnb"
+	// Put asset supply in store
+	assetSupply := types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 50000))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, denom)
+
+	// Check asset in store
+	storedAssetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, denom)
+	suite.True(found)
+	suite.Equal(assetSupply, storedAssetSupply)
+
+	// Check fake asset supply not in store
+	fakeDenom := "xyz"
+	_, found = suite.keeper.GetAssetSupply(suite.ctx, fakeDenom)
+	suite.False(found)
+}
+
+func (suite *KeeperTestSuite) TestGetAllAssetSupplies() {
+
+	// Put asset supply in store
+	assetSupply := types.NewAssetSupply(c("bnb", 0), c("bnb", 0), c("bnb", 50000))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "bnb")
+	assetSupply = types.NewAssetSupply(c("inc", 0), c("inc", 0), c("inc", 50000))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "inc")
+
+	supplies := suite.keeper.GetAllAssetSupplies(suite.ctx)
+	suite.Equal(2, len(supplies))
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

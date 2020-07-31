@@ -21,6 +21,9 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	}
 
 	keeper.SetParams(ctx, gs.Params)
+	for _, supply := range gs.Supplies {
+		keeper.SetAssetSupply(ctx, supply, supply.CurrentSupply.Denom)
+	}
 
 	var incomingSupplies sdk.Coins
 	var outgoingSupplies sdk.Coins
@@ -72,18 +75,35 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	}
 
 	// Asset's given incoming/outgoing supply much match the amount of coins in incoming/outgoing atomic swaps
-	assets, _ := keeper.GetAssets(ctx)
-	for _, asset := range assets {
-		incomingSupply := incomingSupplies.AmountOf(asset.Denom)
-		if !asset.SupplyLimit.IncomingSupply.Amount.Equal(incomingSupply) {
+	supplies := keeper.GetAllAssetSupplies(ctx)
+	for _, supply := range supplies {
+		incomingSupply := incomingSupplies.AmountOf(supply.IncomingSupply.Denom)
+		if !supply.IncomingSupply.Amount.Equal(incomingSupply) {
 			panic(fmt.Sprintf("asset's incoming supply %s does not match amount %s in incoming atomic swaps",
-				asset.SupplyLimit.IncomingSupply, incomingSupply))
+				supply.IncomingSupply, incomingSupply))
 		}
-		outgoingSupply := outgoingSupplies.AmountOf(asset.Denom)
-		if !asset.SupplyLimit.OutgoingSupply.Amount.Equal(outgoingSupply) {
+		outgoingSupply := outgoingSupplies.AmountOf(supply.IncomingSupply.Denom)
+		if !supply.OutgoingSupply.Amount.Equal(outgoingSupply) {
 			panic(fmt.Sprintf("asset's outgoing supply %s does not match amount %s in outgoing atomic swaps",
-				asset.SupplyLimit.OutgoingSupply, outgoingSupply))
+				supply.OutgoingSupply, outgoingSupply))
 		}
+		limit, err := keeper.GetSupplyLimit(ctx, supply.IncomingSupply.Denom)
+		if err != nil {
+			panic(err)
+		}
+		if supply.CurrentSupply.Amount.GT(limit) {
+			panic(fmt.Sprintf("asset's current supply %s is over the supply limit %s", supply.CurrentSupply, limit))
+		}
+		if supply.IncomingSupply.Amount.GT(limit) {
+			panic(fmt.Sprintf("asset's incoming supply %s is over the supply limit %s", supply.IncomingSupply, limit))
+		}
+		if supply.IncomingSupply.Amount.Add(supply.CurrentSupply.Amount).GT(limit) {
+			panic(fmt.Sprintf("asset's incoming supply + current supply %s is over the supply limit %s", supply.IncomingSupply.Add(supply.CurrentSupply), limit))
+		}
+		if supply.OutgoingSupply.Amount.GT(limit) {
+			panic(fmt.Sprintf("asset's outgoing supply %s is over the supply limit %s", supply.OutgoingSupply, limit))
+		}
+
 	}
 }
 
@@ -91,5 +111,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllAtomicSwaps(ctx)
-	return NewGenesisState(params, swaps)
+	supplies := k.GetAllAssetSupplies(ctx)
+	return NewGenesisState(params, swaps, supplies)
 }

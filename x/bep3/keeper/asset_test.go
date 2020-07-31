@@ -36,13 +36,14 @@ func (suite *AssetTestSuite) SetupTest() {
 	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(deputy))
 
 	keeper := tApp.GetBep3Keeper()
-
+	params := keeper.GetParams(ctx)
+	params.AssetParams[0].SupplyLimit = sdk.NewInt(50)
+	keeper.SetParams(ctx, params)
 	// Set asset supply with standard value for testing
 	supply := types.AssetSupply{
 		IncomingSupply: c("bnb", 5),
 		OutgoingSupply: c("bnb", 5),
 		CurrentSupply:  c("bnb", 40),
-		SupplyLimit:    c("bnb", 50),
 	}
 	keeper.SetAssetSupply(ctx, supply, supply.IncomingSupply.Denom)
 
