@@ -98,16 +98,16 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	minSwapAmount := GenMinSwapAmount(r)
 	minBlockLock := GenMinBlockLock(r)
 	return types.AssetParam{
-		Denom:                denom,
-		CoinID:               int(coinID.Int64()),
-		SupplyLimit:          limit,
-		Active:               true,
-		DeputyAddress:        GenRandBnbDeputy(r).Address,
-		IncomingSwapFixedFee: GenRandFixedFee(r),
-		MinSwapAmount:        minSwapAmount,
-		MaxSwapAmount:        GenMaxSwapAmount(r, minSwapAmount, limit),
-		MinBlockLock:         minBlockLock,
-		MaxBlockLock:         GenMaxBlockLock(r, minBlockLock),
+		Denom:         denom,
+		CoinID:        int(coinID.Int64()),
+		SupplyLimit:   limit,
+		Active:        true,
+		DeputyAddress: GenRandBnbDeputy(r).Address,
+		FixedFee:      GenRandFixedFee(r),
+		MinSwapAmount: minSwapAmount,
+		MaxSwapAmount: GenMaxSwapAmount(r, minSwapAmount, limit),
+		MinBlockLock:  minBlockLock,
+		MaxBlockLock:  GenMaxBlockLock(r, minBlockLock),
 	}
 }
 

@@ -50,16 +50,16 @@ func DefaultParams() Params {
 
 // AssetParam parameters that must be specified for each bep3 asset
 type AssetParam struct {
-	Denom                string         `json:"denom" yaml:"denom"`                                     // name of the asset
-	CoinID               int            `json:"coin_id" yaml:"coin_id"`                                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-	SupplyLimit          sdk.Int        `json:"supply_limit" yaml:"supply_limit"`                       // asset supply limit
-	Active               bool           `json:"active" yaml:"active"`                                   // denotes if asset is available or paused
-	DeputyAddress        sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`                   // the address of the relayer process
-	IncomingSwapFixedFee sdk.Int        `json:"incoming_swap_fixed_fee" yaml:"incoming_swap_fixed_fee"` // the fixed fee charged by the relayer process for incoming swaps
-	MinSwapAmount        sdk.Int        `json:"min_swap_amount" yaml:"min_swap_amount"`                 // Minimum swap amount
-	MaxSwapAmount        sdk.Int        `json:"max_swap_amount" yaml:"max_swap_amount"`                 // Maximum swap amount
-	MinBlockLock         uint64         `json:"min_block_lock" yaml:"min_block_lock"`                   // Minimum swap block lock
-	MaxBlockLock         uint64         `json:"max_block_lock" yaml:"max_block_lock"`                   // Maximum swap block lock
+	Denom         string         `json:"denom" yaml:"denom"`                     // name of the asset
+	CoinID        int            `json:"coin_id" yaml:"coin_id"`                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+	SupplyLimit   sdk.Int        `json:"supply_limit" yaml:"supply_limit"`       // asset supply limit
+	Active        bool           `json:"active" yaml:"active"`                   // denotes if asset is available or paused
+	DeputyAddress sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`   // the address of the relayer process
+	FixedFee      sdk.Int        `json:"fixed_fee" yaml:"fixed_fee"`             // the fixed fee charged by the relayer process for outgoing swaps
+	MinSwapAmount sdk.Int        `json:"min_swap_amount" yaml:"min_swap_amount"` // Minimum swap amount
+	MaxSwapAmount sdk.Int        `json:"max_swap_amount" yaml:"max_swap_amount"` // Maximum swap amount
+	MinBlockLock  uint64         `json:"min_block_lock" yaml:"min_block_lock"`   // Minimum swap block lock
+	MaxBlockLock  uint64         `json:"max_block_lock" yaml:"max_block_lock"`   // Maximum swap block lock
 }
 
 // NewAssetParam returns a new AssetParam
@@ -69,16 +69,16 @@ func NewAssetParam(
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
 	return AssetParam{
-		Denom:                denom,
-		CoinID:               coinID,
-		SupplyLimit:          limit,
-		Active:               active,
-		DeputyAddress:        deputyAddr,
-		IncomingSwapFixedFee: incomingFee,
-		MinSwapAmount:        minSwapAmount,
-		MaxSwapAmount:        maxSwapAmount,
-		MinBlockLock:         minBlockLock,
-		MaxBlockLock:         maxBlockLock,
+		Denom:         denom,
+		CoinID:        coinID,
+		SupplyLimit:   limit,
+		Active:        active,
+		DeputyAddress: deputyAddr,
+		FixedFee:      incomingFee,
+		MinSwapAmount: minSwapAmount,
+		MaxSwapAmount: maxSwapAmount,
+		MinBlockLock:  minBlockLock,
+		MaxBlockLock:  maxBlockLock,
 	}
 }
 
@@ -95,7 +95,7 @@ func (ap AssetParam) String() string {
 	Max Swap Amount: %s
 	Min Block Lock: %d
 	Max Block Lock: %d`,
-		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.IncomingSwapFixedFee,
+		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.FixedFee,
 		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
 }
 
@@ -140,7 +140,7 @@ func validateAssetParams(i interface{}) error {
 	coinDenoms := make(map[string]bool)
 	for _, asset := range assetParams {
 		if err := sdk.ValidateDenom(asset.Denom); err != nil {
-			return errors.New(fmt.Sprintf("asset denom invalid: %s", asset.Denom))
+			return fmt.Errorf(fmt.Sprintf("asset denom invalid: %s", asset.Denom))
 		}
 
 		if asset.CoinID < 0 {
@@ -172,8 +172,8 @@ func validateAssetParams(i interface{}) error {
 			return fmt.Errorf("bnb deputy address invalid bytes length got %d, want %d", len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
 		}
 
-		if asset.IncomingSwapFixedFee.IsNegative() {
-			return fmt.Errorf("asset %s cannot have negative incoming swap fee %s", asset.Denom, asset.IncomingSwapFixedFee)
+		if asset.FixedFee.IsNegative() {
+			return fmt.Errorf("asset %s cannot have negative incoming swap fee %s", asset.Denom, asset.FixedFee)
 		}
 		if asset.MinBlockLock > asset.MaxBlockLock {
 			return fmt.Errorf("asset %s has minimum block lock > maximum block lock %d > %d", asset.Denom, asset.MinBlockLock, asset.MaxBlockLock)

@@ -70,7 +70,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 					return false
 				}
 				// Search for an account that holds coins received by an atomic swap
-				minAmountPlusFee := asset.MinSwapAmount.Add(asset.IncomingSwapFixedFee)
+				minAmountPlusFee := asset.MinSwapAmount.Add(asset.FixedFee)
 				if authAcc.SpendableCoins(ctx.BlockTime()).AmountOf(asset.Denom).GT(minAmountPlusFee) {
 					return true
 				}
@@ -145,7 +145,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		// Get an amount of coins between 0.1 and 2% of total coins
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
-		minAmountPlusFee := asset.MinSwapAmount.Add(asset.IncomingSwapFixedFee)
+		minAmountPlusFee := asset.MinSwapAmount.Add(asset.FixedFee)
 		if amount.LT(minAmountPlusFee) {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", asset.Denom), "", false, nil), nil, nil
 		}

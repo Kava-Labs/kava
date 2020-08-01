@@ -70,9 +70,9 @@ func (suite *ParamsTestSuite) TestGetSetDeputyAddress() {
 func (suite *ParamsTestSuite) TestGetDeputyFixedFee() {
 	asset, err := suite.keeper.GetAsset(suite.ctx, "bnb")
 	suite.Require().NoError(err)
-	bnbDeputyFixedFee := asset.IncomingSwapFixedFee
+	bnbDeputyFixedFee := asset.FixedFee
 
-	res, err := suite.keeper.GetIncomingSwapFixedFee(suite.ctx, asset.Denom)
+	res, err := suite.keeper.GetFixedFee(suite.ctx, asset.Denom)
 	suite.Require().NoError(err)
 	suite.Equal(bnbDeputyFixedFee, res)
 }

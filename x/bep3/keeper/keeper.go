@@ -193,14 +193,13 @@ func (k Keeper) GetAssetSupply(ctx sdk.Context, denom string) (types.AssetSupply
 	return assetSupply, true
 }
 
-// SetAssetSupply updates an asset's current active supply
+// SetAssetSupply updates an asset's supply
 func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom string) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AssetSupplyPrefix)
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(supply))
 }
 
-// IterateAtomicSwaps provides an iterator over all stored AtomicSwaps.
-// For each AtomicSwap, cb will be called. If cb returns true, the iterator will close and stop.
+// IterateAssetSupplies provides an iterator over all stored AssetSupplies.
 func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.AssetSupply) (stop bool)) {
 	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyPrefix)
 
@@ -215,7 +214,7 @@ func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.Asset
 	}
 }
 
-// GetAllAssetSupplies returns all asset supplies from the params
+// GetAllAssetSupplies returns all asset supplies from the store
 func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSupplies) {
 	k.IterateAssetSupplies(ctx, func(supply types.AssetSupply) bool {
 		supplies = append(supplies, supply)

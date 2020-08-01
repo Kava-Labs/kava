@@ -63,13 +63,13 @@ func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (sdk.AccAddress,
 	return asset.DeputyAddress, nil
 }
 
-// GetIncomingSwapFixedFee returns the fixed fee for incoming swaps
-func (k Keeper) GetIncomingSwapFixedFee(ctx sdk.Context, denom string) (sdk.Int, error) {
+// GetFixedFee returns the fixed fee for incoming swaps
+func (k Keeper) GetFixedFee(ctx sdk.Context, denom string) (sdk.Int, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
 		return sdk.Int{}, err
 	}
-	return asset.IncomingSwapFixedFee, nil
+	return asset.FixedFee, nil
 }
 
 // GetMinSwapAmount returns the minimum swap amount

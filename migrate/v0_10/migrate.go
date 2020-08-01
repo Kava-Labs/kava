@@ -13,15 +13,15 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_10bep3.GenesisState {
 
 	for _, asset := range v0_9Params.SupportedAssets {
 		v10AssetParam := v0_10bep3.AssetParam{
-			Active:               asset.Active,
-			Denom:                asset.Denom,
-			CoinID:               asset.CoinID,
-			DeputyAddress:        v0_9Params.BnbDeputyAddress,
-			IncomingSwapFixedFee: v0_9Params.BnbDeputyFixedFee,
-			MinSwapAmount:        v0_9Params.MinAmount,
-			MaxSwapAmount:        v0_9Params.MaxAmount,
-			MinBlockLock:         v0_9Params.MinBlockLock,
-			MaxBlockLock:         v0_9Params.MaxBlockLock,
+			Active:        asset.Active,
+			Denom:         asset.Denom,
+			CoinID:        asset.CoinID,
+			DeputyAddress: v0_9Params.BnbDeputyAddress,
+			FixedFee:      v0_9Params.BnbDeputyFixedFee,
+			MinSwapAmount: v0_9Params.MinAmount,
+			MaxSwapAmount: v0_9Params.MaxAmount,
+			MinBlockLock:  v0_9Params.MinBlockLock,
+			MaxBlockLock:  v0_9Params.MaxBlockLock,
 			SupplyLimit: v0_10bep3.AssetSupply{
 				SupplyLimit:    sdk.NewCoin(asset.Denom, sdk.ZeroInt()),
 				CurrentSupply:  sdk.NewCoin(asset.Denom, sdk.ZeroInt()),
