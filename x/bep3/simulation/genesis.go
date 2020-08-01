@@ -135,11 +135,17 @@ func RandomizedGenState(simState *module.SimulationState) {
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
 
 	supportedAssets := GenSupportedAssets(simState.Rand)
+	supplies := types.AssetSupplies{}
+	for _, asset := range supportedAssets {
+		supply := GenAssetSupply(simState.Rand, asset.Denom)
+		supplies = append(supplies, supply)
+	}
 
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
 			AssetParams: supportedAssets,
 		},
+		Supplies: supplies,
 	}
 
 	return bep3Genesis
