@@ -88,6 +88,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
+		// Transfer coins to module - only needed for outgoing swaps
+		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
+		if err != nil {
+			return err
+		}
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", direction.String())
 	}
@@ -95,11 +100,8 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return err
 	}
 
-	// Transfer coins to module
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
-	if err != nil {
-		return err
-	}
+	// case incoming - the deputy is basically just informing the chain that a swap in claimable
+	// those coins should be MINTED when claimed
 
 	// Store the details of the swap
 	expireHeight := uint64(ctx.BlockHeight()) + heightSpan
@@ -161,6 +163,16 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		if err != nil {
 			return err
 		}
+		// incoming case - coins should be MINTED, then sent to user
+		err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
+		// Send intended recipient coins
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
@@ -170,14 +182,13 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		if err != nil {
 			return err
 		}
+		// outgoing case  - coins should be burned
+		err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
-	}
-
-	// Send intended recipient coins
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
-	if err != nil {
-		return err
 	}
 
 	// Complete swap
@@ -221,16 +232,15 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
+		// Refund coins to original swap sender for outgoing swaps
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
 	}
 
-	if err != nil {
-		return err
-	}
-
-	// Refund coins to original swap sender
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	if err != nil {
 		return err
 	}
