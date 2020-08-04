@@ -140,15 +140,6 @@ func (k Keeper) GetClaimsByAddressAndDenom(ctx sdk.Context, addr sdk.AccAddress,
 		claims = append(claims, c)
 		return false
 	})
-	id := k.GetNextClaimPeriodID(ctx, denom)
-	_, hasClaimPeriod := k.GetClaimPeriod(ctx, id, denom)
-	if !hasClaimPeriod {
-		c, hasClaim := k.GetClaim(ctx, addr, denom, id)
-		if hasClaim {
-			claims = append(claims, c)
-			found = true
-		}
-	}
 	return claims, found
 }
 
