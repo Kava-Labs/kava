@@ -35,7 +35,7 @@ func (suite *KeeperTestSuite) setupChain() {
 	)
 	supplyKeeper := tApp.GetSupplyKeeper()
 	macc := supplyKeeper.GetModuleAccount(ctx, kavadist.ModuleName)
-	err := supplyKeeper.MintCoins(ctx, macc.GetName(), cs(c("ukava", 500)))
+	err := supplyKeeper.MintCoins(ctx, macc.GetName(), cs(c("ukava", 600)))
 	suite.Require().NoError(err)
 
 	// sets addrs[0] to be a periodic vesting account
@@ -222,6 +222,27 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 			expectedEndTime:         int64(125),
 		},
 		vestingAccountTest{
+			name:      "add period to end of schedule",
+			blockTime: time.Unix(110, 0),
+			args:      args{coins: cs(c("ukava", 100)), length: 20},
+			errArgs:   errArgs{expectErr: false, errType: nil},
+			expectedPeriods: vesting.Periods{
+				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(6), Amount: cs(c("ukava", 200))},
+				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(2), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(6), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(1), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(8), Amount: cs(c("ukava", 100))},
+				vesting.Period{Length: int64(5), Amount: cs(c("ukava", 100))},
+			},
+			expectedOriginalVesting: cs(c("ukava", 1000)),
+			expectedCoins:           cs(c("ukava", 1000)),
+			expectedStartTime:       int64(90),
+			expectedEndTime:         int64(130),
+		},
+		vestingAccountTest{
 			name:                    "insufficient module account balance",
 			blockTime:               time.Unix(90, 0),
 			args:                    args{coins: cs(c("ukava", 1000)), length: 11},
@@ -288,6 +309,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 
 	// add 2 claims that correspond to an existing claim period and one claim that has no corresponding claim period
 	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
+	suite.T().Log(cp1)
 	suite.keeper.SetClaimPeriod(suite.ctx, cp1)
 	// valid claim for addrs[0]
 	c1 := types.NewClaim(suite.addrs[0], c("ukava", 100), "bnb", 1)
@@ -300,7 +322,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.keeper.SetClaim(suite.ctx, c3)
 
 	// existing claim with corresponding claim period successfully claimed by existing periodic vesting account
-	err := suite.keeper.PayoutClaim(suite.ctx, suite.addrs[0], "bnb", 1)
+	err := suite.keeper.PayoutClaim(suite.ctx.WithBlockTime(time.Unix(3700, 0)), suite.addrs[0], "bnb", 1)
 	suite.Require().NoError(err)
 	acc := suite.getAccount(suite.addrs[0])
 	// account is a periodic vesting account
@@ -308,6 +330,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.True(ok)
 	// vesting balance is correct
 	suite.Equal(cs(c("ukava", 500)), vacc.OriginalVesting)
+	suite.T().Log(vacc)
 
 	// existing claim with corresponding claim period successfully claimed by base account
 	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[1], "bnb", 1)

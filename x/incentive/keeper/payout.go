@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -22,6 +24,9 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, denom: %s", id, denom)
 	}
+	fmt.Printf(`called send timelocked coins to account
+		length: %d
+		`, int64(claimPeriod.TimeLock.Seconds()))
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
 	if err != nil {
 		return err
@@ -34,6 +39,7 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimPeriod, fmt.Sprintf("%d", claim.ClaimPeriodID)),
 		),
 	)
 	return nil
@@ -53,8 +59,12 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	case *vesting.PeriodicVestingAccount:
+		fmt.Printf(`called send locked coins to periodic vesting account
+		`)
 		return k.SendTimeLockedCoinsToPeriodicVestingAccount(ctx, senderModule, recipientAddr, amt, length)
 	case *auth.BaseAccount:
+		fmt.Printf(`called send locked coins to base account
+		`)
 		return k.SendTimeLockedCoinsToBaseAccount(ctx, senderModule, recipientAddr, amt, length)
 	default:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
@@ -130,6 +140,15 @@ func (k Keeper) GetClaimsByAddressAndDenom(ctx sdk.Context, addr sdk.AccAddress,
 		claims = append(claims, c)
 		return false
 	})
+	id := k.GetNextClaimPeriodID(ctx, denom)
+	_, hasClaimPeriod := k.GetClaimPeriod(ctx, id, denom)
+	if !hasClaimPeriod {
+		c, hasClaim := k.GetClaim(ctx, addr, denom, id)
+		if hasClaim {
+			claims = append(claims, c)
+			found = true
+		}
+	}
 	return claims, found
 }
 
@@ -167,11 +186,11 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 	}
 
 	// logic for inserting a new vesting period into the existing vesting schedule
-	totalPeriodLength := types.GetTotalVestingPeriodLength(vacc.VestingPeriods)
-	proposedEndTime := ctx.BlockTime().Unix() + length
-	if totalPeriodLength < length {
-		// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
-		newPeriodLength := length - totalPeriodLength
+	remainingLength := vacc.EndTime - ctx.BlockTime().Unix()
+	proposedEndTime := ctx.BlockTime().Unix() + length // 1596497160 + 31536000 = 1628033160
+	if remainingLength < length {                      // false
+		// in the case that the proposed length is longer than the remaining length of all vesting periods, create a new period with length equal to the difference between the proposed length and the previous total length
+		newPeriodLength := length - remainingLength
 		newPeriod := types.NewPeriod(amt, newPeriodLength)
 		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
 		// update the end time so that the sum of all period lengths equals endTime - startTime
