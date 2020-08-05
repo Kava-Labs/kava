@@ -24,9 +24,6 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, 
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, denom: %s", id, denom)
 	}
-	fmt.Printf(`called send timelocked coins to account
-		length: %d
-		`, int64(claimPeriod.TimeLock.Seconds()))
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
 	if err != nil {
 		return err
@@ -59,12 +56,8 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	case *vesting.PeriodicVestingAccount:
-		fmt.Printf(`called send locked coins to periodic vesting account
-		`)
 		return k.SendTimeLockedCoinsToPeriodicVestingAccount(ctx, senderModule, recipientAddr, amt, length)
 	case *auth.BaseAccount:
-		fmt.Printf(`called send locked coins to base account
-		`)
 		return k.SendTimeLockedCoinsToBaseAccount(ctx, senderModule, recipientAddr, amt, length)
 	default:
 		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
