@@ -82,7 +82,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 			panic(fmt.Sprintf("asset's incoming supply %s does not match amount %s in incoming atomic swaps",
 				supply.IncomingSupply, incomingSupply))
 		}
-		outgoingSupply := outgoingSupplies.AmountOf(supply.IncomingSupply.Denom)
+		outgoingSupply := outgoingSupplies.AmountOf(supply.OutgoingSupply.Denom)
 		if !supply.OutgoingSupply.Amount.Equal(outgoingSupply) {
 			panic(fmt.Sprintf("asset's outgoing supply %s does not match amount %s in outgoing atomic swaps",
 				supply.OutgoingSupply, outgoingSupply))

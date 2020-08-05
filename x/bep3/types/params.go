@@ -1,7 +1,6 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -65,7 +64,7 @@ type AssetParam struct {
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
 	denom string, coinID int, limit sdk.Int, active bool,
-	deputyAddr sdk.AccAddress, incomingFee sdk.Int, minSwapAmount sdk.Int,
+	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
 	return AssetParam{
@@ -74,7 +73,7 @@ func NewAssetParam(
 		SupplyLimit:   limit,
 		Active:        active,
 		DeputyAddress: deputyAddr,
-		FixedFee:      incomingFee,
+		FixedFee:      fixedFee,
 		MinSwapAmount: minSwapAmount,
 		MaxSwapAmount: maxSwapAmount,
 		MinBlockLock:  minBlockLock,
@@ -90,7 +89,7 @@ func (ap AssetParam) String() string {
 	Limit: %s
 	Active: %t
 	Deputy Address: %s
-	Incoming Swap Fee: %s
+	Fixed Fee: %s
 	Min Swap Amount: %s
 	Max Swap Amount: %s
 	Min Block Lock: %d
@@ -136,7 +135,6 @@ func validateAssetParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	coinIDs := make(map[int]bool)
 	coinDenoms := make(map[string]bool)
 	for _, asset := range assetParams {
 		if err := sdk.ValidateDenom(asset.Denom); err != nil {
@@ -158,23 +156,18 @@ func validateAssetParams(i interface{}) error {
 
 		coinDenoms[asset.Denom] = true
 
-		_, found = coinIDs[asset.CoinID]
-		if found {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %d", asset.Denom, asset.CoinID))
-		}
-
-		coinIDs[asset.CoinID] = true
 		if asset.DeputyAddress.Empty() {
-			return errors.New("bnb deputy address cannot be empty")
+			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
 		}
 
 		if len(asset.DeputyAddress.Bytes()) != sdk.AddrLen {
-			return fmt.Errorf("bnb deputy address invalid bytes length got %d, want %d", len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
+			return fmt.Errorf("%s deputy address invalid bytes length got %d, want %d", asset.Denom, len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
 		}
 
 		if asset.FixedFee.IsNegative() {
-			return fmt.Errorf("asset %s cannot have negative incoming swap fee %s", asset.Denom, asset.FixedFee)
+			return fmt.Errorf("asset %s cannot have a negative fixed fee %s", asset.Denom, asset.FixedFee)
 		}
+
 		if asset.MinBlockLock > asset.MaxBlockLock {
 			return fmt.Errorf("asset %s has minimum block lock > maximum block lock %d > %d", asset.Denom, asset.MinBlockLock, asset.MaxBlockLock)
 		}
@@ -182,9 +175,11 @@ func validateAssetParams(i interface{}) error {
 		if !asset.MinSwapAmount.IsPositive() {
 			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive minimum swap amount, got %s", asset.Denom, asset.MinSwapAmount))
 		}
+
 		if !asset.MaxSwapAmount.IsPositive() {
 			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive maximum swap amount, got %s", asset.Denom, asset.MaxSwapAmount))
 		}
+
 		if asset.MinSwapAmount.GT(asset.MaxSwapAmount) {
 			return fmt.Errorf("asset %s has minimum swap amount > maximum swap amount %s > %s", asset.Denom, asset.MinSwapAmount, asset.MaxSwapAmount)
 		}

@@ -31,14 +31,14 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 	return acc
 }
 
-// GenRandFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
+// GenRandFixedFee randomized FixedFee in range [1, 10000]
 func GenRandFixedFee(r *rand.Rand) sdk.Int {
 	min := int(1)
 	max := types.DefaultBnbDeputyFixedFee.Int64()
 	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
 }
 
-// GenMinSwapAmount randomized MinAmount in range [0, 1000]
+// GenMinSwapAmount randomized MinAmount in range [1, 1000]
 func GenMinSwapAmount(r *rand.Rand) sdk.Int {
 	return sdk.OneInt().Add(simulation.RandomAmount(r, sdk.NewInt(int64(MinSwapAmountLimit))))
 }
