@@ -178,8 +178,8 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 
 	// logic for inserting a new vesting period into the existing vesting schedule
 	remainingLength := vacc.EndTime - ctx.BlockTime().Unix()
-	proposedEndTime := ctx.BlockTime().Unix() + length // 1596497160 + 31536000 = 1628033160
-	if remainingLength < length {                      // false
+	proposedEndTime := ctx.BlockTime().Unix() + length
+	if remainingLength < length {
 		// in the case that the proposed length is longer than the remaining length of all vesting periods, create a new period with length equal to the difference between the proposed length and the previous total length
 		newPeriodLength := length - remainingLength
 		newPeriod := types.NewPeriod(amt, newPeriodLength)

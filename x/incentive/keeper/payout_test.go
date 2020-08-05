@@ -309,7 +309,6 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 
 	// add 2 claims that correspond to an existing claim period and one claim that has no corresponding claim period
 	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
-	suite.T().Log(cp1)
 	suite.keeper.SetClaimPeriod(suite.ctx, cp1)
 	// valid claim for addrs[0]
 	c1 := types.NewClaim(suite.addrs[0], c("ukava", 100), "bnb", 1)
@@ -330,7 +329,6 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.True(ok)
 	// vesting balance is correct
 	suite.Equal(cs(c("ukava", 500)), vacc.OriginalVesting)
-	suite.T().Log(vacc)
 
 	// existing claim with corresponding claim period successfully claimed by base account
 	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[1], "bnb", 1)
