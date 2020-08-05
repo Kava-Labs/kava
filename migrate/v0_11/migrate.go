@@ -1,18 +1,19 @@
-package v0_10
+package v0_11
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v0_10bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_10"
+	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 )
 
-func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_10bep3.GenesisState {
-	var assetParams v0_10bep3.AssetParams
+// MigrateBep3 migrates from a v0.9 (or v0.10) bep3 genesis state to a v0.11 bep3 genesis state
+func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
+	var assetParams v0_11bep3.AssetParams
 	v0_9Params := oldGenState.Params
 
 	for _, asset := range v0_9Params.SupportedAssets {
-		v10AssetParam := v0_10bep3.AssetParam{
+		v10AssetParam := v0_11bep3.AssetParam{
 			Active:        asset.Active,
 			Denom:         asset.Denom,
 			CoinID:        asset.CoinID,
@@ -22,7 +23,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_10bep3.GenesisState {
 			MaxSwapAmount: v0_9Params.MaxAmount,
 			MinBlockLock:  v0_9Params.MinBlockLock,
 			MaxBlockLock:  v0_9Params.MaxBlockLock,
-			SupplyLimit: v0_10bep3.AssetSupply{
+			SupplyLimit: v0_11bep3.AssetSupply{
 				SupplyLimit:    sdk.NewCoin(asset.Denom, sdk.ZeroInt()),
 				CurrentSupply:  sdk.NewCoin(asset.Denom, sdk.ZeroInt()),
 				IncomingSupply: sdk.NewCoin(asset.Denom, sdk.ZeroInt()),
@@ -41,9 +42,9 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_10bep3.GenesisState {
 			}
 		}
 	}
-	var swaps v0_10bep3.AtomicSwaps
+	var swaps v0_11bep3.AtomicSwaps
 	for _, oldSwap := range oldGenState.AtomicSwaps {
-		newSwap := v0_10bep3.AtomicSwap{
+		newSwap := v0_11bep3.AtomicSwap{
 			Amount:              oldSwap.Amount,
 			RandomNumberHash:    oldSwap.RandomNumberHash,
 			ExpireHeight:        oldSwap.ExpireHeight,
@@ -53,14 +54,14 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_10bep3.GenesisState {
 			SenderOtherChain:    oldSwap.SenderOtherChain,
 			RecipientOtherChain: oldSwap.RecipientOtherChain,
 			ClosedBlock:         oldSwap.ClosedBlock,
-			Status:              v0_10bep3.SwapStatus(oldSwap.Status),
+			Status:              v0_11bep3.SwapStatus(oldSwap.Status),
 			CrossChain:          oldSwap.CrossChain,
-			Direction:           v0_10bep3.SwapDirection(oldSwap.Direction),
+			Direction:           v0_11bep3.SwapDirection(oldSwap.Direction),
 		}
 		swaps = append(swaps, newSwap)
 	}
-	return v0_10bep3.GenesisState{
-		Params: v0_10bep3.Params{
+	return v0_11bep3.GenesisState{
+		Params: v0_11bep3.Params{
 			AssetParams: assetParams},
 		AtomicSwaps: swaps,
 	}

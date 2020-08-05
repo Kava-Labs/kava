@@ -56,12 +56,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	var direction types.SwapDirection
 	if sender.Equals(asset.DeputyAddress) {
 		if recipient.Equals(asset.DeputyAddress) {
-			return sdkerrors.Wrapf(types.ErrInvalidAmount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
+			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
 		}
 		direction = types.Incoming
 	} else {
 		if !recipient.Equals(asset.DeputyAddress) {
-			return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
+			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy must be recipient for outgoing account: %s", recipient)
 		}
 		direction = types.Outgoing
 	}

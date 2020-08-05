@@ -109,7 +109,7 @@ var (
 	ErrSwapNotRefundable            = types.ErrSwapNotRefundable
 	ErrSwapNotClaimable             = types.ErrSwapNotClaimable
 	ErrInvalidAmount                = types.ErrInvalidAmount
-	ErrInvalidOutgoingAccount       = types.ErrInvalidOutgoingAccount
+	ErrInvalidSwapAccount           = types.ErrInvalidSwapAccount
 	AtomicSwapKeyPrefix             = types.AtomicSwapKeyPrefix
 	AtomicSwapByBlockPrefix         = types.AtomicSwapByBlockPrefix
 	AtomicSwapLongtermStoragePrefix = types.AtomicSwapLongtermStoragePrefix
