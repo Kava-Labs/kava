@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -24,13 +25,14 @@ func (suite *GenesisTestSuite) SetupTest() {
 	coin := sdk.NewCoin("kava", sdk.OneInt())
 	suite.swaps = atomicSwaps(10)
 
-	supply := types.NewAssetSupply(coin, coin, coin)
+	supply := types.NewAssetSupply(coin, coin, coin, coin, time.Duration(0))
 	suite.supplies = types.AssetSupplies{supply}
 }
 
 func (suite *GenesisTestSuite) TestValidate() {
 	type args struct {
-		swaps types.AtomicSwaps
+		swaps             types.AtomicSwaps
+		previousBlockTime time.Time
 	}
 	testCases := []struct {
 		name       string
@@ -40,28 +42,32 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"default",
 			args{
-				swaps: types.AtomicSwaps{},
+				swaps:             types.AtomicSwaps{},
+				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			true,
 		},
 		{
 			"with swaps",
 			args{
-				swaps: suite.swaps,
+				swaps:             suite.swaps,
+				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			true,
 		},
 		{
 			"duplicate swaps",
 			args{
-				swaps: types.AtomicSwaps{suite.swaps[2], suite.swaps[2]},
+				swaps:             types.AtomicSwaps{suite.swaps[2], suite.swaps[2]},
+				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
 		},
 		{
 			"invalid swap",
 			args{
-				swaps: types.AtomicSwaps{types.AtomicSwap{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				swaps:             types.AtomicSwaps{types.AtomicSwap{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,
 		},
@@ -73,7 +79,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			if tc.name == "default" {
 				gs = types.DefaultGenesisState()
 			} else {
-				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, suite.supplies)
+				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, suite.supplies, tc.args.previousBlockTime)
 			}
 
 			err := gs.Validate()

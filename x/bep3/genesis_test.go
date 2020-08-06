@@ -96,7 +96,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					bep3.AssetSupply{
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
-						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Add(i(1)).Int64()),
+						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -109,7 +109,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
-				overLimitAmount := assetParam.SupplyLimit.Add(i(1))
+				overLimitAmount := assetParam.SupplyLimit.Limit.Add(i(1))
 
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
@@ -124,7 +124,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up asset supply with overlimit current supply
 				gs.Supplies = bep3.AssetSupplies{
 					bep3.AssetSupply{
-						IncomingSupply: c("bnb", assetParam.SupplyLimit.Add(i(1)).Int64()),
+						IncomingSupply: c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", 0),
 					},
@@ -139,7 +139,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
-				halfLimit := assetParam.SupplyLimit.Int64() / 2
+				halfLimit := assetParam.SupplyLimit.Limit.Int64() / 2
 				overHalfLimit := halfLimit + 1
 
 				// Set up an atomic swap with amount equal to the currently asset supply
@@ -170,7 +170,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
 				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
-				overLimitAmount := assetParam.SupplyLimit.Add(i(1))
+				overLimitAmount := assetParam.SupplyLimit.Limit.Add(i(1))
 
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
@@ -187,7 +187,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 					bep3.AssetSupply{
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
-						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Add(i(1)).Int64()),
+						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Limit.Add(i(1)).Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -266,7 +266,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "negative supported asset limit",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.AssetParams[0].SupplyLimit = i(-100)
+				gs.Params.AssetParams[0].SupplyLimit.Limit = i(-100)
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,

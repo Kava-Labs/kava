@@ -40,9 +40,14 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 		Params: bep3.Params{
 			AssetParams: bep3.AssetParams{
 				bep3.AssetParam{
-					Denom:         "bnb",
-					CoinID:        714,
-					SupplyLimit:   sdk.NewInt(350000000000000),
+					Denom:  "bnb",
+					CoinID: 714,
+					SupplyLimit: bep3.SupplyLimit{
+						Limit:          sdk.NewInt(350000000000000),
+						TimeLimited:    false,
+						TimeBasedLimit: sdk.ZeroInt(),
+						TimePeriod:     time.Hour,
+					},
 					Active:        true,
 					DeputyAddress: deputy,
 					FixedFee:      sdk.NewInt(1000),
@@ -52,9 +57,14 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 					MaxBlockLock:  bep3.DefaultMaxBlockLock,
 				},
 				bep3.AssetParam{
-					Denom:         "inc",
-					CoinID:        9999,
-					SupplyLimit:   sdk.NewInt(100000000000),
+					Denom:  "inc",
+					CoinID: 9999,
+					SupplyLimit: bep3.SupplyLimit{
+						Limit:          sdk.NewInt(100000000000),
+						TimeLimited:    false,
+						TimeBasedLimit: sdk.ZeroInt(),
+						TimePeriod:     time.Hour,
+					},
 					Active:        true,
 					DeputyAddress: deputy,
 					FixedFee:      sdk.NewInt(1000),
@@ -70,11 +80,15 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				time.Duration(0),
 			),
 			bep3.NewAssetSupply(
 				sdk.NewCoin("inc", sdk.ZeroInt()),
 				sdk.NewCoin("inc", sdk.ZeroInt()),
 				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				time.Duration(0),
 			),
 		},
 	}
@@ -92,7 +106,7 @@ func loadSwapAndSupply(addr sdk.AccAddress, index int) (bep3.AtomicSwap, bep3.As
 		TestRecipientOtherChain, 1, bep3.Open, true, bep3.Incoming)
 
 	supply := bep3.NewAssetSupply(coin, c(coin.Denom, 0),
-		c(coin.Denom, 0))
+		c(coin.Denom, 0), c(coin.Denom, 0), time.Duration(0))
 
 	return swap, supply
 }

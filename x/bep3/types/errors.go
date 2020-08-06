@@ -43,4 +43,6 @@ var (
 	ErrInvalidAmount = sdkerrors.Register(ModuleName, 18, "amount is outside acceptable range")
 	// ErrInvalidSwapAccount error for when a swap involves an invalid account
 	ErrInvalidSwapAccount = sdkerrors.Register(ModuleName, 19, "atomic swap has invalid account")
+	// ErrExceedsTimeBasedSupplyLimit error for when the proposed supply increase would put the supply above limit for the current time period
+	ErrExceedsTimeBasedSupplyLimit = sdkerrors.Register(ModuleName, 20, "asset supply over limit for current time period")
 )

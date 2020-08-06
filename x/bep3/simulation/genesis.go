@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -61,7 +62,7 @@ func GenSupplyLimit(r *rand.Rand, max int) sdk.Int {
 func GenAssetSupply(r *rand.Rand, denom string) types.AssetSupply {
 	return types.NewAssetSupply(
 		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
-		sdk.NewCoin(denom, sdk.ZeroInt()))
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
 }
 
 // GenMinBlockLock randomized MinBlockLock
@@ -100,7 +101,7 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	return types.AssetParam{
 		Denom:         denom,
 		CoinID:        int(coinID.Int64()),
-		SupplyLimit:   limit,
+		SupplyLimit:   types.SupplyLimit{limit, false, time.Hour, sdk.ZeroInt()},
 		Active:        true,
 		DeputyAddress: GenRandBnbDeputy(r).Address,
 		FixedFee:      GenRandFixedFee(r),
@@ -161,7 +162,7 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 		if !found {
 			panic("deputy address not found in available accounts")
 		}
-		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit))
+		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit.Limit))
 		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin...)); err != nil {
 			panic(err)
 		}

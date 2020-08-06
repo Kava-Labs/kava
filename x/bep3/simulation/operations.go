@@ -242,7 +242,7 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		if !found {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - asset supply not found %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 		}
-		if asset.SupplyLimit.LT(supply.CurrentSupply.Amount.Add(swap.Amount[0].Amount)) {
+		if asset.SupplyLimit.Limit.LT(supply.CurrentSupply.Amount.Add(swap.Amount[0].Amount)) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 

@@ -100,9 +100,6 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		return err
 	}
 
-	// case incoming - the deputy is basically just informing the chain that a swap in claimable
-	// those coins should be MINTED when claimed
-
 	// Store the details of the swap
 	expireHeight := uint64(ctx.BlockHeight()) + heightSpan
 	atomicSwap := types.NewAtomicSwap(amount, randomNumberHash, expireHeight, timestamp, sender,

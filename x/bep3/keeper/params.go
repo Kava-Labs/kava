@@ -132,10 +132,10 @@ func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) error {
 }
 
 // GetSupplyLimit returns the supply limit for the input denom
-func (k Keeper) GetSupplyLimit(ctx sdk.Context, denom string) (sdk.Int, error) {
+func (k Keeper) GetSupplyLimit(ctx sdk.Context, denom string) (types.SupplyLimit, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
-		return sdk.Int{}, err
+		return types.SupplyLimit{}, err
 	}
 	return asset.SupplyLimit, nil
 }

@@ -2,6 +2,7 @@ package types
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
@@ -17,7 +18,7 @@ func TestAssetSupplyValidate(t *testing.T) {
 	}{
 		{
 			msg:     "valid asset",
-			asset:   NewAssetSupply(coin, coin, coin),
+			asset:   NewAssetSupply(coin, coin, coin, coin, time.Duration(0)),
 			expPass: true,
 		},
 		{
@@ -39,6 +40,27 @@ func TestAssetSupplyValidate(t *testing.T) {
 				IncomingSupply: coin,
 				OutgoingSupply: coin,
 				CurrentSupply:  invalidCoin,
+			},
+			false,
+		},
+		{
+			"invalid time limitedcurrent supply",
+			AssetSupply{
+				IncomingSupply:           coin,
+				OutgoingSupply:           coin,
+				CurrentSupply:            coin,
+				TimeLimitedCurrentSupply: invalidCoin,
+			},
+			false,
+		},
+		{
+			"non matching denoms",
+			AssetSupply{
+				IncomingSupply:           coin,
+				OutgoingSupply:           coin,
+				CurrentSupply:            coin,
+				TimeLimitedCurrentSupply: sdk.NewCoin("lol", sdk.ZeroInt()),
+				TimeElapsed:              time.Hour,
 			},
 			false,
 		},

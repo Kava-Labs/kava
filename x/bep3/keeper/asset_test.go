@@ -37,7 +37,7 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)
-	params.AssetParams[0].SupplyLimit = sdk.NewInt(50)
+	params.AssetParams[0].SupplyLimit.Limit = sdk.NewInt(50)
 	keeper.SetParams(ctx, params)
 	// Set asset supply with standard value for testing
 	supply := types.AssetSupply{

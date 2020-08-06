@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -102,7 +103,7 @@ func (suite *QuerierTestSuite) TestQueryAssetSupply() {
 	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &supply))
 
 	expectedSupply := types.NewAssetSupply(c(denom, 1000),
-		c(denom, 0), c(denom, 0))
+		c(denom, 0), c(denom, 0), c(denom, 0), time.Duration(0))
 	suite.Equal(supply, expectedSupply)
 }
 
