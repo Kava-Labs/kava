@@ -67,10 +67,10 @@ func (gs GenesisState) Validate() error {
 		if err := supply.Validate(); err != nil {
 			return err
 		}
-		if supplyDenoms[supply.IncomingSupply.Denom] {
-			return fmt.Errorf("found duplicate denom in asset supplies %s", supply.IncomingSupply.Denom)
+		if supplyDenoms[supply.GetDenom()] {
+			return fmt.Errorf("found duplicate denom in asset supplies %s", supply.GetDenom())
 		}
-		supplyDenoms[supply.IncomingSupply.Denom] = true
+		supplyDenoms[supply.GetDenom()] = true
 	}
 	return nil
 }

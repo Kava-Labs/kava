@@ -60,5 +60,10 @@ func (a AssetSupply) String() string {
 		a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply)
 }
 
+// GetDenom getter method for the denom of the asset supply
+func (a AssetSupply) GetDenom() string {
+	return a.CurrentSupply.Denom
+}
+
 // AssetSupplies is a slice of AssetSupply
 type AssetSupplies []AssetSupply

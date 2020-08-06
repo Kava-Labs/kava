@@ -45,7 +45,7 @@ func (suite *AssetTestSuite) SetupTest() {
 		OutgoingSupply: c("bnb", 5),
 		CurrentSupply:  c("bnb", 40),
 	}
-	keeper.SetAssetSupply(ctx, supply, supply.IncomingSupply.Denom)
+	keeper.SetAssetSupply(ctx, supply, supply.GetDenom())
 
 	suite.app = tApp
 	suite.ctx = ctx

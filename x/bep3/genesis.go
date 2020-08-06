@@ -22,7 +22,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 
 	keeper.SetParams(ctx, gs.Params)
 	for _, supply := range gs.Supplies {
-		keeper.SetAssetSupply(ctx, supply, supply.CurrentSupply.Denom)
+		keeper.SetAssetSupply(ctx, supply, supply.GetDenom())
 	}
 
 	var incomingSupplies sdk.Coins
@@ -77,17 +77,17 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	// Asset's given incoming/outgoing supply much match the amount of coins in incoming/outgoing atomic swaps
 	supplies := keeper.GetAllAssetSupplies(ctx)
 	for _, supply := range supplies {
-		incomingSupply := incomingSupplies.AmountOf(supply.IncomingSupply.Denom)
+		incomingSupply := incomingSupplies.AmountOf(supply.GetDenom())
 		if !supply.IncomingSupply.Amount.Equal(incomingSupply) {
 			panic(fmt.Sprintf("asset's incoming supply %s does not match amount %s in incoming atomic swaps",
 				supply.IncomingSupply, incomingSupply))
 		}
-		outgoingSupply := outgoingSupplies.AmountOf(supply.OutgoingSupply.Denom)
+		outgoingSupply := outgoingSupplies.AmountOf(supply.GetDenom())
 		if !supply.OutgoingSupply.Amount.Equal(outgoingSupply) {
 			panic(fmt.Sprintf("asset's outgoing supply %s does not match amount %s in outgoing atomic swaps",
 				supply.OutgoingSupply, outgoingSupply))
 		}
-		limit, err := keeper.GetSupplyLimit(ctx, supply.IncomingSupply.Denom)
+		limit, err := keeper.GetSupplyLimit(ctx, supply.GetDenom())
 		if err != nil {
 			panic(err)
 		}

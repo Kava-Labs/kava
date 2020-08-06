@@ -90,7 +90,7 @@ func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	return nil
 }
 
-// IncrementOutgoingAssetSupply increments an asset's outoing supply
+// IncrementOutgoingAssetSupply increments an asset's outgoing supply
 func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
@@ -108,7 +108,7 @@ func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	return nil
 }
 
-// DecrementOutgoingAssetSupply decrements an asset's outoing supply
+// DecrementOutgoingAssetSupply decrements an asset's outgoing supply
 func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {

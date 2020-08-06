@@ -7,10 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
-const (
-	bech32MainPrefix = "kava"
-)
-
 // Parameter keys
 var (
 	KeyAssetParams = []byte("AssetParams")
@@ -138,20 +134,20 @@ func validateAssetParams(i interface{}) error {
 	coinDenoms := make(map[string]bool)
 	for _, asset := range assetParams {
 		if err := sdk.ValidateDenom(asset.Denom); err != nil {
-			return fmt.Errorf(fmt.Sprintf("asset denom invalid: %s", asset.Denom))
+			return fmt.Errorf("asset denom invalid: %s", asset.Denom)
 		}
 
 		if asset.CoinID < 0 {
-			return fmt.Errorf(fmt.Sprintf("asset %s coin id must be a non negative integer", asset.Denom))
+			return fmt.Errorf("asset %s coin id must be a non negative integer", asset.Denom)
 		}
 
 		if asset.SupplyLimit.IsNegative() {
-			return fmt.Errorf(fmt.Sprintf("asset %s has invalid (negative) supply limit: %s", asset.Denom, asset.SupplyLimit))
+			return fmt.Errorf("asset %s has invalid (negative) supply limit: %s", asset.Denom, asset.SupplyLimit)
 		}
 
 		_, found := coinDenoms[asset.Denom]
 		if found {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate denom", asset.Denom))
+			return fmt.Errorf("asset %s cannot have duplicate denom", asset.Denom)
 		}
 
 		coinDenoms[asset.Denom] = true
@@ -173,11 +169,11 @@ func validateAssetParams(i interface{}) error {
 		}
 
 		if !asset.MinSwapAmount.IsPositive() {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive minimum swap amount, got %s", asset.Denom, asset.MinSwapAmount))
+			return fmt.Errorf("asset %s must have a positive minimum swap amount, got %s", asset.Denom, asset.MinSwapAmount)
 		}
 
 		if !asset.MaxSwapAmount.IsPositive() {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive maximum swap amount, got %s", asset.Denom, asset.MaxSwapAmount))
+			return fmt.Errorf("asset %s must have a positive maximum swap amount, got %s", asset.Denom, asset.MaxSwapAmount)
 		}
 
 		if asset.MinSwapAmount.GT(asset.MaxSwapAmount) {
