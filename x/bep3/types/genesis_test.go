@@ -32,6 +32,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 func (suite *GenesisTestSuite) TestValidate() {
 	type args struct {
 		swaps             types.AtomicSwaps
+		supplies          types.AssetSupplies
 		previousBlockTime time.Time
 	}
 	testCases := []struct {
@@ -56,6 +57,24 @@ func (suite *GenesisTestSuite) TestValidate() {
 			true,
 		},
 		{
+			"with supplies",
+			args{
+				swaps:             types.AtomicSwaps{},
+				supplies:          suite.supplies,
+				previousBlockTime: types.DefaultPreviousBlockTime,
+			},
+			true,
+		},
+		{
+			"invalid supply",
+			args{
+				swaps:             types.AtomicSwaps{},
+				supplies:          types.AssetSupplies{types.AssetSupply{IncomingSupply: sdk.Coin{"Invalid", sdk.ZeroInt()}}},
+				previousBlockTime: types.DefaultPreviousBlockTime,
+			},
+			false,
+		},
+		{
 			"duplicate swaps",
 			args{
 				swaps:             types.AtomicSwaps{suite.swaps[2], suite.swaps[2]},
@@ -71,6 +90,13 @@ func (suite *GenesisTestSuite) TestValidate() {
 			},
 			false,
 		},
+		{
+			"blocktime not set",
+			args{
+				swaps: types.AtomicSwaps{},
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -79,7 +105,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			if tc.name == "default" {
 				gs = types.DefaultGenesisState()
 			} else {
-				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, suite.supplies, tc.args.previousBlockTime)
+				gs = types.NewGenesisState(types.DefaultParams(), tc.args.swaps, tc.args.supplies, tc.args.previousBlockTime)
 			}
 
 			err := gs.Validate()
