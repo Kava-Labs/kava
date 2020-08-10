@@ -3,6 +3,7 @@ package simulation
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -27,7 +28,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 
 	oneCoin := sdk.NewCoin("coin", sdk.OneInt())
 	swap := types.NewAtomicSwap(sdk.Coins{oneCoin}, nil, 10, 100, nil, nil, "otherChainSender", "otherChainRec", 200, types.Completed, true, types.Outgoing)
-	supply := types.AssetSupply{IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin}
+	supply := types.AssetSupply{IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin, TimeLimitedCurrentSupply: oneCoin, TimeElapsed: time.Duration(0)}
 	bz := tmbytes.HexBytes([]byte{1, 2})
 
 	kvPairs := kv.Pairs{

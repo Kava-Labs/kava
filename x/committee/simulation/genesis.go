@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -58,7 +59,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		[]types.Proposal{},
 		[]types.Vote{},
 	)
-	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, []byte{})
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, genesisState))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(genesisState)
 }
 

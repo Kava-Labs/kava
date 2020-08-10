@@ -53,6 +53,9 @@ func (a AssetSupply) Validate() error {
 
 // Equal returns if two asset supplies are equal
 func (a AssetSupply) Equal(b AssetSupply) bool {
+	if a.GetDenom() != b.GetDenom() {
+		return false
+	}
 	return (a.IncomingSupply.IsEqual(b.IncomingSupply) &&
 		a.CurrentSupply.IsEqual(b.CurrentSupply) &&
 		a.OutgoingSupply.IsEqual(b.OutgoingSupply) &&
@@ -71,6 +74,11 @@ func (a AssetSupply) String() string {
 		Time elapsed: %s
 		`,
 		a.IncomingSupply, a.OutgoingSupply, a.CurrentSupply, a.TimeLimitedCurrentSupply, a.TimeElapsed)
+}
+
+// GetDenom getter method for the denom of the asset supply
+func (a AssetSupply) GetDenom() string {
+	return a.CurrentSupply.Denom
 }
 
 // AssetSupplies is a slice of AssetSupply

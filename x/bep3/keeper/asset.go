@@ -30,7 +30,7 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	if limit.TimeLimited {
 		timeBasedSupplyLimit := sdk.NewCoin(coin.Denom, limit.TimeBasedLimit)
 		if timeBasedSupplyLimit.IsLT(supply.TimeLimitedCurrentSupply.Add(coin)) {
-			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
+			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, current time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
 		}
 		supply.TimeLimitedCurrentSupply = supply.TimeLimitedCurrentSupply.Add(coin)
 	}
@@ -78,10 +78,10 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	if limit.TimeLimited {
-		totalSupplyTimeLimited := supply.TimeLimitedCurrentSupply.Add(supply.IncomingSupply)
+		timeLimitedTotalSupply := supply.TimeLimitedCurrentSupply.Add(supply.IncomingSupply)
 		timeBasedSupplyLimit := sdk.NewCoin(coin.Denom, limit.TimeBasedLimit)
-		if timeBasedSupplyLimit.IsLT(totalSupplyTimeLimited.Add(coin)) {
-			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, time-based asset supply %s, limit %s", coin, totalSupplyTimeLimited, timeBasedSupplyLimit)
+		if timeBasedSupplyLimit.IsLT(timeLimitedTotalSupply.Add(coin)) {
+			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
 		}
 	}
 
@@ -170,7 +170,7 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 		}
 		if asset.SupplyLimit.TimeLimited {
 			if asset.SupplyLimit.TimePeriod <= supply.TimeElapsed+timeElapsed {
-				supply.TimeElapsed = timeElapsed
+				supply.TimeElapsed = time.Duration(0)
 				supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
 			} else {
 				supply.TimeElapsed = supply.TimeElapsed + timeElapsed

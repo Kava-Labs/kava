@@ -98,10 +98,22 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 
 	minSwapAmount := GenMinSwapAmount(r)
 	minBlockLock := GenMinBlockLock(r)
+	timeLimited := r.Float32() < 0.5
+	timeBasedLimit := sdk.ZeroInt()
+	if timeLimited {
+		// set time-based limit to between 10 and 25% of the total limit
+		min := int(limit.Quo(sdk.NewInt(10)).Int64())
+		max := int(limit.Quo(sdk.NewInt(4)).Int64())
+		timeBasedLimit = sdk.NewInt(int64(simulation.RandIntBetween(r, min, max)))
+	}
 	return types.AssetParam{
-		Denom:         denom,
-		CoinID:        int(coinID.Int64()),
-		SupplyLimit:   types.SupplyLimit{limit, false, time.Hour, sdk.ZeroInt()},
+		Denom:  denom,
+		CoinID: int(coinID.Int64()),
+		SupplyLimit: types.SupplyLimit{
+			Limit:          limit,
+			TimeLimited:    timeLimited,
+			TimePeriod:     time.Hour * 24,
+			TimeBasedLimit: timeBasedLimit},
 		Active:        true,
 		DeputyAddress: GenRandBnbDeputy(r).Address,
 		FixedFee:      GenRandFixedFee(r),
@@ -146,7 +158,8 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 		Params: types.Params{
 			AssetParams: supportedAssets,
 		},
-		Supplies: supplies,
+		Supplies:          supplies,
+		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
 
 	return bep3Genesis

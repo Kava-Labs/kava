@@ -131,6 +131,11 @@ func (sl SupplyLimit) String() string {
 	`, sl.Limit, sl.TimeLimited, sl.TimePeriod, sl.TimeBasedLimit)
 }
 
+// Equals returns true if two supply limits are equal
+func (sl SupplyLimit) Equals(sl2 SupplyLimit) bool {
+	return sl.Limit.Equal(sl2.Limit) && sl.TimeLimited == sl2.TimeLimited && sl.TimePeriod == sl2.TimePeriod && sl.TimeBasedLimit.Equal(sl2.TimeBasedLimit)
+}
+
 // ParamKeyTable Key declaration for parameters
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
@@ -174,7 +179,7 @@ func validateAssetParams(i interface{}) error {
 			return fmt.Errorf(fmt.Sprintf("asset %s has invalid (negative) supply time limit: %s", asset.Denom, asset.SupplyLimit.TimeBasedLimit))
 		}
 
-		if asset.SupplyLimit.TimeLimited && asset.SupplyLimit.TimeBasedLimit.GT(asset.SupplyLimit.Limit) {
+		if asset.SupplyLimit.TimeBasedLimit.GT(asset.SupplyLimit.Limit) {
 			return fmt.Errorf(fmt.Sprintf("asset %s cannot have supply time limit > supply limit: %s>%s", asset.Denom, asset.SupplyLimit.TimeBasedLimit, asset.SupplyLimit.Limit))
 		}
 

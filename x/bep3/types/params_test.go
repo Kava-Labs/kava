@@ -210,6 +210,19 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			expectedErr: "invalid (negative) supply time limit",
 		},
 		{
+			name: "asset time limit greater than overall limit",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714,
+					types.SupplyLimit{sdk.NewInt(10000000000000), true, time.Hour, sdk.NewInt(100000000000000)},
+					true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "supply time limit > supply limit",
+		},
+		{
 			name: "duplicate denom",
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(

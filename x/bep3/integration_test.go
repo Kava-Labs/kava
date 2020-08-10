@@ -91,6 +91,7 @@ func baseGenState(deputy sdk.AccAddress) bep3.GenesisState {
 				time.Duration(0),
 			),
 		},
+		PreviousBlockTime: bep3.DefaultPreviousBlockTime,
 	}
 	return bep3Genesis
 }

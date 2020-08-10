@@ -54,16 +54,16 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 					Denom:  "inc",
 					CoinID: 9999,
 					SupplyLimit: types.SupplyLimit{
-						Limit:          sdk.NewInt(100),
-						TimeLimited:    false,
-						TimeBasedLimit: sdk.ZeroInt(),
+						Limit:          sdk.NewInt(100000000000000),
+						TimeLimited:    true,
+						TimeBasedLimit: sdk.NewInt(50000000000),
 						TimePeriod:     time.Hour,
 					},
 					Active:        false,
 					DeputyAddress: deputyAddress,
 					FixedFee:      sdk.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MaxSwapAmount: sdk.NewInt(100000000000),
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
@@ -85,6 +85,7 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 				time.Duration(0),
 			),
 		},
+		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
 	return app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(bep3Genesis)}
 }
