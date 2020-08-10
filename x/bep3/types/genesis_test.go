@@ -95,7 +95,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			args{
 				swaps: types.AtomicSwaps{},
 			},
-			false,
+			true,
 		},
 	}
 

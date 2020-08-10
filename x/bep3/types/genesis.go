@@ -52,9 +52,6 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if gs.PreviousBlockTime.Equal(time.Time{}) {
-		return fmt.Errorf("previous block time not set")
-	}
 
 	ids := map[string]bool{}
 	for _, swap := range gs.AtomicSwaps {
