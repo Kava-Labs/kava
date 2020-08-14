@@ -51,6 +51,8 @@ var (
 	DefaultParams        = types.DefaultParams
 	ParamKeyTable        = types.ParamKeyTable
 	NewAsset             = types.NewAsset
+	NewRateLimit         = types.NewRateLimit
+	NewAssetSupply       = types.NewAssetSupply
 
 	// variable aliases
 	ModuleCdc                  = types.ModuleCdc
@@ -61,6 +63,10 @@ var (
 	ErrAccountAlreadyBlocked   = types.ErrAccountAlreadyBlocked
 	ErrAccountAlreadyUnblocked = types.ErrAccountAlreadyUnblocked
 	ErrIssueToModuleAccount    = types.ErrIssueToModuleAccount
+	ErrExceedsSupplyLimit      = types.ErrExceedsSupplyLimit
+	ErrAssetUnblockable        = types.ErrAssetUnblockable
+	AssetSupplyPrefix          = types.AssetSupplyPrefix
+	PreviousBlockTimeKey       = types.PreviousBlockTimeKey
 	KeyAssets                  = types.KeyAssets
 	DefaultAssets              = types.DefaultAssets
 	ModuleAccountName          = types.ModuleAccountName
@@ -77,5 +83,8 @@ type (
 	Params            = types.Params
 	Asset             = types.Asset
 	Assets            = types.Assets
+	RateLimit         = types.RateLimit
 	QueryAssetParams  = types.QueryAssetParams
+	AssetSupply       = types.AssetSupply
+	AssetSupplies     = types.AssetSupplies
 )

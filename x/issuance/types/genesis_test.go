@@ -3,6 +3,7 @@ package types_test
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -28,7 +29,8 @@ func (suite *GenesisTestSuite) SetupTest() {
 
 func (suite *GenesisTestSuite) TestValidate() {
 	type args struct {
-		assets types.Assets
+		assets   types.Assets
+		supplies types.AssetSupplies
 	}
 	type errArgs struct {
 		expectPass bool
@@ -42,7 +44,8 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"default",
 			args{
-				assets: types.DefaultAssets,
+				assets:   types.DefaultAssets,
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: true,
@@ -53,8 +56,36 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"with asset",
 			args{
 				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"with asset rate limit",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(1000000000), time.Hour*24)),
+				},
+				supplies: types.AssetSupplies{},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"with multiple assets",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+					types.NewAsset(suite.addrs[0], "pegtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: true,
@@ -65,8 +96,9 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"blocked owner",
 			args{
 				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[0]}, false),
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[0]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: false,
@@ -77,8 +109,9 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"empty owner",
 			args{
 				assets: types.Assets{
-					types.NewAsset(sdk.AccAddress{}, "usdtoken", []sdk.AccAddress{suite.addrs[0]}, false),
+					types.NewAsset(sdk.AccAddress{}, "usdtoken", []sdk.AccAddress{suite.addrs[0]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: false,
@@ -89,8 +122,9 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"empty blocked address",
 			args{
 				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{sdk.AccAddress{}}, false),
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{nil}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: false,
@@ -101,8 +135,9 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"invalid denom",
 			args{
 				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "USD2T ", []sdk.AccAddress{}, false),
+					types.NewAsset(suite.addrs[0], "USD2T ", []sdk.AccAddress{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: false,
@@ -113,9 +148,10 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"duplicate denom",
 			args{
 				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
-					types.NewAsset(suite.addrs[1], "usdtoken", []sdk.AccAddress{}, true),
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+					types.NewAsset(suite.addrs[1], "usdtoken", []sdk.AccAddress{}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: false,
@@ -126,19 +162,33 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"duplicate asset",
 			args{
 				assets: types.Assets{
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
-					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false),
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
+				supplies: types.AssetSupplies{},
 			},
 			errArgs{
 				expectPass: false,
 				contains:   "duplicate asset denoms",
 			},
 		},
+		{
+			"invalid block list",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, false, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+				},
+				supplies: types.AssetSupplies{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "blocked-list should be empty",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := types.NewGenesisState(types.NewParams(tc.args.assets))
+			gs := types.NewGenesisState(types.NewParams(tc.args.assets), tc.args.supplies)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err, tc.name)

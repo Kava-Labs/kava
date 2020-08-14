@@ -21,15 +21,24 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 	if asset.Paused {
 		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
 	}
-	blocked, _ := k.checkBlockedAddress(ctx, asset, receiver)
-	if blocked {
-		return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
+	if asset.Blockable {
+		blocked, _ := k.checkBlockedAddress(ctx, asset, receiver)
+		if blocked {
+			return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
+		}
 	}
-
 	acc := k.accountKeeper.GetAccount(ctx, receiver)
 	_, ok := acc.(supplyexported.ModuleAccountI)
 	if ok {
 		return sdkerrors.Wrapf(types.ErrIssueToModuleAccount, "address: %s", receiver)
+	}
+
+	// for rate-limited assets, check that the issuance isn't over the limit
+	if asset.RateLimit.Active {
+		err := k.IncrementCurrentAssetSupply(ctx, tokens)
+		if err != nil {
+			return err
+		}
 	}
 
 	// mint new tokens
@@ -87,6 +96,9 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
+	if !asset.Blockable {
+		return sdkerrors.Wrap(types.ErrAssetUnblockable, denom)
+	}
 	if !owner.Equals(asset.Owner) {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
@@ -106,11 +118,14 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	return nil
 }
 
-// UnblockAddress adds an address to the blocked list
+// UnblockAddress removes an address from the blocked list
 func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+	}
+	if !asset.Blockable {
+		return sdkerrors.Wrap(types.ErrAssetUnblockable, denom)
 	}
 	if !owner.Equals(asset.Owner) {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
@@ -156,6 +171,20 @@ func (k Keeper) SetPauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom stri
 			sdk.NewAttribute(types.AttributeKeyDenom, asset.Denom),
 		),
 	)
+	return nil
+}
+
+// SeizeCoinsForBlockableAssets seizes coins from blocked addresses for assets that have blocking enabled
+func (k Keeper) SeizeCoinsForBlockableAssets(ctx sdk.Context) error {
+	params := k.GetParams(ctx)
+	for _, asset := range params.Assets {
+		if asset.Blockable {
+			err := k.SeizeCoinsFromBlockedAddresses(ctx, asset.Denom)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
