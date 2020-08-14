@@ -181,4 +181,5 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 		}
 		k.SetAssetSupply(ctx, supply, asset.Denom)
 	}
+	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 }
