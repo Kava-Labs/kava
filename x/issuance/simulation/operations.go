@@ -116,6 +116,21 @@ func SimulateMsgIssueTokens(ak types.AccountKeeper, k keeper.Keeper) simulation.
 			}
 		}
 		randomAmount := simulation.RandIntBetween(r, 10000000, 1000000000000)
+		if asset.RateLimit.Active {
+			supply, found := k.GetAssetSupply(ctx, asset.Denom)
+			if !found {
+				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("issuance - no asset supply for %s", asset.Denom)
+			}
+			if asset.RateLimit.Limit.LT(supply.CurrentSupply.Amount.Add(sdk.NewInt(int64(randomAmount)))) {
+				maxAmount := asset.RateLimit.Limit.Sub(supply.CurrentSupply.Amount)
+				if maxAmount.IsPositive() && maxAmount.GT(sdk.OneInt()) {
+					randomAmount = simulation.RandIntBetween(r, 1, int(maxAmount.Int64()))
+				} else {
+					randomAmount = 1
+				}
+			}
+
+		}
 		msg := types.NewMsgIssueTokens(asset.Owner, sdk.NewCoin(asset.Denom, sdk.NewInt(int64(randomAmount))), recipient.GetAddress())
 		spendableCoins := ownerAcc.SpendableCoins(ctx.BlockTime())
 		fees, err := simulation.RandomFees(r, ctx, spendableCoins)
