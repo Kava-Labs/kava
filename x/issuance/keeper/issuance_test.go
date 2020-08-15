@@ -12,6 +12,7 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -36,6 +37,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates()
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	for _, addr := range addrs {
+		acc := tApp.GetAccountKeeper().NewAccountWithAddress(ctx, addr)
+		tApp.GetAccountKeeper().SetAccount(ctx, acc)
+	}
 	keeper := tApp.GetIssuanceKeeper()
 	modAccount, err := sdk.AccAddressFromBech32("kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w")
 	suite.Require().NoError(err)
@@ -178,6 +183,85 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 			suite.SetupTest()
 			params := types.NewParams(tc.args.assets)
 			suite.keeper.SetParams(suite.ctx, params)
+			err := suite.keeper.IssueTokens(suite.ctx, tc.args.tokens, tc.args.sender, tc.args.receiver)
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err, tc.name)
+				receiverAccount := suite.getAccount(tc.args.receiver)
+				suite.Require().Equal(sdk.NewCoins(tc.args.tokens), receiverAccount.GetCoins())
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
+	type args struct {
+		assets    types.Assets
+		supplies  types.AssetSupplies
+		sender    sdk.AccAddress
+		tokens    sdk.Coin
+		receiver  sdk.AccAddress
+		blockTime time.Time
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	testCases := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{
+			"valid issuance",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+				},
+				supplies: types.AssetSupplies{
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+				},
+				sender:    suite.addrs[0],
+				tokens:    sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				receiver:  suite.addrs[2],
+				blockTime: suite.ctx.BlockTime().Add(time.Hour),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"over-limit issuance",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+				},
+				supplies: types.AssetSupplies{
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+				},
+				sender:    suite.addrs[0],
+				tokens:    sdk.NewCoin("usdtoken", sdk.NewInt(10000000001)),
+				receiver:  suite.addrs[2],
+				blockTime: suite.ctx.BlockTime().Add(time.Hour),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "asset supply over limit",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			params := types.NewParams(tc.args.assets)
+			suite.keeper.SetParams(suite.ctx, params)
+			for _, supply := range tc.args.supplies {
+				suite.keeper.SetAssetSupply(suite.ctx, supply, supply.GetDenom())
+			}
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.blockTime)
 			err := suite.keeper.IssueTokens(suite.ctx, tc.args.tokens, tc.args.sender, tc.args.receiver)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err, tc.name)
@@ -341,6 +425,21 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 			},
 		},
 		{
+			"unblockable token",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{}, false, false, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+				},
+				sender:      suite.addrs[0],
+				blockedAddr: suite.addrs[1],
+				denom:       "usdtoken",
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "asset does not support block/unblock functionality",
+			},
+		},
+		{
 			"non-owner block",
 			args{
 				assets: types.Assets{
@@ -368,6 +467,21 @@ func (suite *KeeperTestSuite) TestBlockAddress() {
 			errArgs{
 				expectPass: false,
 				contains:   "no asset with input denom found",
+			},
+		},
+		{
+			"block non-existing account",
+			args{
+				assets: types.Assets{
+					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
+				},
+				sender:      suite.addrs[0],
+				blockedAddr: sdk.AccAddress(crypto.AddressHash([]byte("RandomAddr"))),
+				denom:       "usdtoken",
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "cannot block account that does not exist in state",
 			},
 		},
 	}

@@ -17,4 +17,5 @@ var (
 	ErrIssueToModuleAccount    = sdkerrors.Register(ModuleName, 8, "cannot issue tokens to module account")
 	ErrExceedsSupplyLimit      = sdkerrors.Register(ModuleName, 9, "asset supply over limit")
 	ErrAssetUnblockable        = sdkerrors.Register(ModuleName, 10, "asset does not support block/unblock functionality")
+	ErrAccountNotFound         = sdkerrors.Register(ModuleName, 11, "cannot block account that does not exist in state")
 )

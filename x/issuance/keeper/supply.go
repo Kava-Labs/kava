@@ -12,7 +12,7 @@ import (
 // CreateNewAssetSupply creates a new AssetSupply in the store for the input denom
 func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetSupply {
 	supply := types.NewAssetSupply(
-		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
+		sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
 	k.SetAssetSupply(ctx, supply, denom)
 	return supply
 }

@@ -15,7 +15,7 @@ type AssetSupply struct {
 }
 
 // NewAssetSupply initializes a new AssetSupply
-func NewAssetSupply(incomingSupply, currentSupply sdk.Coin, timeElapsed time.Duration) AssetSupply {
+func NewAssetSupply(currentSupply sdk.Coin, timeElapsed time.Duration) AssetSupply {
 	return AssetSupply{
 		CurrentSupply: currentSupply,
 		TimeElapsed:   timeElapsed,

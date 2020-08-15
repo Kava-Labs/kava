@@ -58,7 +58,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 				assets: types.Assets{
 					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
-				supplies: types.AssetSupplies{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
+				supplies: types.AssetSupplies{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
 			},
 			errArgs{
 				expectPass: true,
@@ -178,7 +178,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 				assets: types.Assets{
 					types.NewAsset(suite.addrs[0], "usdtoken", []sdk.AccAddress{suite.addrs[1]}, false, false, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
-				supplies: types.AssetSupplies{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
+				supplies: types.AssetSupplies{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour)},
 			},
 			errArgs{
 				expectPass: false,
