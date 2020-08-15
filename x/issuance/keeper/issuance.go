@@ -106,6 +106,10 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	if blocked {
 		return sdkerrors.Wrapf(types.ErrAccountAlreadyBlocked, "address: %s", blockedAddress)
 	}
+	account := k.accountKeeper.GetAccount(ctx, blockedAddress)
+	if account == nil {
+		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", blockedAddress)
+	}
 	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress)
 	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
@@ -196,6 +200,11 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 	}
 	for _, address := range asset.BlockedAddresses {
 		account := k.accountKeeper.GetAccount(ctx, address)
+		if account == nil {
+			// avoids a potential panic
+			// this could happen if, for example, an account was pruned from state but remained in the block list,
+			continue
+		}
 		coinsAmount := account.GetCoins().AmountOf(denom)
 		if !coinsAmount.IsPositive() {
 			continue
