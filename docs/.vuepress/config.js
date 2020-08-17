@@ -20,6 +20,15 @@ module.exports = {
           ]
         },
         {
+          title: "Platform",
+          children: [
+            {
+              title: "Kava Ledger App",
+              path: "/platform/ledger.html"
+            }
+          ]
+        },
+        {
           title: "Kava Tools",
           children: [
             {

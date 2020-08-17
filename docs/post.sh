@@ -4,6 +4,9 @@
 rm -rf Modules
 
 # JavaScript SDK docs
+ rm -rf platform
+
+# JavaScript SDK docs
  rm -rf building
 
  # Kava Tools docs

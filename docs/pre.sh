@@ -10,16 +10,20 @@ for D in ../x/*; do
   fi
 done
 
-baseGitUrl="https://raw.githubusercontent.com/Kava-Labs"
+# Platform docs (Web application, Ledger, etc.)
+platformDir="platform"
+mkdir -p "./${platformDir}"
+cp ./ledger.md "./${platformDir}/ledger.md"
 
 # Client docs (JavaScript SDK)
+baseGitUrl="https://raw.githubusercontent.com/Kava-Labs"
 clientGitRepo="javascript-sdk"
 clientDir="building"
 
 mkdir -p "./${clientDir}"
 curl "${baseGitUrl}/${clientGitRepo}/master/README.md" -o "./${clientDir}/${clientGitRepo}.md"
 echo "---
-parent: 
+parent:
   order: false
 ---" > "./${clientDir}/readme.md"
 
@@ -36,6 +40,6 @@ for T in ${toolDocs[@]}; do
   curl "${baseGitUrl}/${toolsGitRepo}/master/${T}/README.md" -o "./${toolsDir}/${T}.md"
 done
 echo "---
-parent: 
+parent:
   order: false
 ---" > "./${toolsDir}/readme.md"
