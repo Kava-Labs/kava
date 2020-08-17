@@ -221,6 +221,8 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 	updatedTestAPs[1].Active = false              // bnb
 	updatedTestAPs[2].SupplyLimit.Limit = i(1000) // xrp
 	updatedTestAPs[2].Active = false              // xrp
+	updatedTestAPs[2].MinBlockLock = uint64(210)  // xrp
+	updatedTestAPs[2].MaxSwapAmount = sdk.NewInt(10000000000000)
 
 	testcases := []struct {
 		name          string
@@ -241,10 +243,12 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 					Limit: true,
 				},
 				{ // allow all fields
-					Denom:  "xrp",
-					CoinID: true,
-					Limit:  true,
-					Active: true,
+					Denom:         "xrp",
+					CoinID:        true,
+					Limit:         true,
+					Active:        true,
+					MaxSwapAmount: true,
+					MinBlockLock:  true,
 				},
 			},
 			current:       testAPs[:2],
@@ -282,9 +286,11 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 					Limit: true,
 				},
 				{
-					Denom:  "xrp",
-					Limit:  true,
-					Active: true,
+					Denom:         "xrp",
+					Limit:         true,
+					Active:        true,
+					MaxSwapAmount: true,
+					MinBlockLock:  true,
 				},
 			},
 			current:       testAPs,

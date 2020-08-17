@@ -79,7 +79,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
 
-		// Outoing swaps must have a height span within the accepted range
+		// Outgoing swaps must have a height span within the accepted range
 		if heightSpan < asset.MinBlockLock || heightSpan > asset.MaxBlockLock {
 			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, asset.MinBlockLock, asset.MaxBlockLock)
 		}
@@ -88,11 +88,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
-		// Transfer coins to module - only needed for outgoing swaps
-		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
 		if err != nil {
 			return err
 		}
+		// Transfer coins to module - only needed for outgoing swaps
+		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", direction.String())
 	}
@@ -229,11 +229,11 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
-		// Refund coins to original swap sender for outgoing swaps
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 		if err != nil {
 			return err
 		}
+		// Refund coins to original swap sender for outgoing swaps
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
 	}

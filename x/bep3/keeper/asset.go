@@ -108,7 +108,7 @@ func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	return nil
 }
 
-// IncrementOutgoingAssetSupply increments an asset's outoing supply
+// IncrementOutgoingAssetSupply increments an asset's outgoing supply
 func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
@@ -126,7 +126,7 @@ func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	return nil
 }
 
-// DecrementOutgoingAssetSupply decrements an asset's outoing supply
+// DecrementOutgoingAssetSupply decrements an asset's outgoing supply
 func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
@@ -168,16 +168,12 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 		if !found {
 			supply = k.CreateNewAssetSupply(ctx, asset.Denom)
 		}
-		if asset.SupplyLimit.TimeLimited {
-			if asset.SupplyLimit.TimePeriod <= supply.TimeElapsed+timeElapsed {
-				supply.TimeElapsed = time.Duration(0)
-				supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
-			} else {
-				supply.TimeElapsed = supply.TimeElapsed + timeElapsed
-			}
+		newTimeElapsed := supply.TimeElapsed + timeElapsed
+		if asset.SupplyLimit.TimeLimited && newTimeElapsed < asset.SupplyLimit.TimePeriod {
+			supply.TimeElapsed = newTimeElapsed
 		} else {
-			supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
 			supply.TimeElapsed = time.Duration(0)
+			supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
 		}
 		k.SetAssetSupply(ctx, supply, asset.Denom)
 	}
