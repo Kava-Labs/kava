@@ -31,7 +31,7 @@ import (
 	v032tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32"
 	v033tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_33"
 	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/bep3"
+	v0_8bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/incentive"
@@ -90,7 +90,7 @@ func MigrateAppState(v0_3AppState v038genutil.AppMap) v038genutil.AppMap {
 
 	// migrate new modules (by adding new gen states)
 	v0_8AppState[auction.ModuleName] = v0_8Codec.MustMarshalJSON(auction.DefaultGenesisState())
-	v0_8AppState[bep3.ModuleName] = v0_8Codec.MustMarshalJSON(bep3.DefaultGenesisState())
+	v0_8AppState[v0_8bep3.ModuleName] = v0_8Codec.MustMarshalJSON(v0_8bep3.DefaultGenesisState())
 	v0_8AppState[cdp.ModuleName] = v0_8Codec.MustMarshalJSON(cdp.DefaultGenesisState())
 	v0_8AppState[committee.ModuleName] = v0_8Codec.MustMarshalJSON(committee.DefaultGenesisState())
 	v0_8AppState[incentive.ModuleName] = v0_8Codec.MustMarshalJSON(incentive.DefaultGenesisState())

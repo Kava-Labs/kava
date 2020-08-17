@@ -3,6 +3,7 @@ package rest_v0_3
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -22,6 +24,9 @@ import (
 
 	v18de63auth "github.com/kava-labs/kava/migrate/v0_8/sdk/auth/v18de63"
 	v18de63supply "github.com/kava-labs/kava/migrate/v0_8/sdk/supply/v18de63"
+	v18de63sdk "github.com/kava-labs/kava/migrate/v0_8/sdk/types"
+	v032tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32"
+	v032tendermintrpc "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32/rpccore"
 	valvesting "github.com/kava-labs/kava/x/validator-vesting"
 	v0_3valvesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_3"
 )
@@ -30,13 +35,16 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	s := r.PathPrefix("/v0_3").Subrouter()
 
 	s.HandleFunc("/node_info", rpc.NodeInfoRequestHandlerFn(cliCtx)).Methods("GET")
-	s.HandleFunc(
-		"/auth/accounts/{address}", QueryAccountRequestHandlerFn(cliCtx),
-	).Methods("GET")
-	s.HandleFunc("/txs/{hash}", authrest.QueryTxRequestHandlerFn(cliCtx)).Methods("GET")
-	// r.HandleFunc("/txs", QueryTxsRequestHandlerFn(cliCtx)).Methods("GET") // assume they don't need GET here
+
+	s.HandleFunc("/auth/accounts/{address}", QueryAccountRequestHandlerFn(cliCtx)).Methods("GET")
+
+	s.HandleFunc("/txs/{hash}", QueryTxRequestHandlerFn(cliCtx)).Methods("GET")
+	// r.HandleFunc("/txs", QueryTxsRequestHandlerFn(cliCtx)).Methods("GET") // TODO does trust wallet query txs?
 	s.HandleFunc("/txs", authrest.BroadcastTxRequest(cliCtx)).Methods("POST")
 
+	s.HandleFunc("/blocks/latest", LatestBlockRequestHandlerFn(cliCtx)).Methods("GET")
+
+	// These endpoints are unchanged between cosmos v18de63 and v0.38.4, but can't import private methods so copy and pasting handler methods.
 	// Get all delegations from a delegator
 	s.HandleFunc(
 		"/staking/delegators/{delegatorAddr}/delegations",
@@ -55,6 +63,73 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		delegatorRewardsHandlerFn(cliCtx, disttypes.ModuleName),
 	).Methods("GET")
 
+}
+
+// REST handler to get the latest block
+func LatestBlockRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		output, err := getBlock(cliCtx, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		rest.PostProcessResponseBare(w, cliCtx, output)
+	}
+}
+
+func getBlock(cliCtx context.CLIContext, height *int64) ([]byte, error) {
+	// get the node
+	node, err := cliCtx.GetNode()
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := node.Block(height)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert block to old type
+	header := v032tendermint.Header{
+		Version: v032tendermint.Consensus{
+			Block: v032tendermint.Protocol(res.Block.Header.Version.Block),
+			App:   v032tendermint.Protocol(res.Block.Header.Version.App),
+		},
+		ChainID:  res.Block.Header.ChainID,
+		Height:   res.Block.Header.Height,
+		Time:     res.Block.Header.Time,
+		NumTxs:   0, // trust wallet doesn't use this field
+		TotalTxs: 0, // trust wallet doesn't use this field
+
+		LastBlockID: res.Block.Header.LastBlockID,
+
+		LastCommitHash:     res.Block.Header.LastCommitHash,
+		DataHash:           res.Block.Header.DataHash,
+		ValidatorsHash:     res.Block.Header.ValidatorsHash,
+		NextValidatorsHash: res.Block.Header.NextValidatorsHash,
+		ConsensusHash:      res.Block.Header.ConsensusHash,
+		AppHash:            res.Block.Header.AppHash,
+		LastResultsHash:    res.Block.Header.LastResultsHash,
+		EvidenceHash:       res.Block.Header.EvidenceHash,
+		ProposerAddress:    res.Block.Header.ProposerAddress,
+	}
+	block := v032tendermint.Block{
+		Header:     header,
+		Data:       res.Block.Data,
+		Evidence:   res.Block.Evidence,
+		LastCommit: nil, // trust wallet doesn't need to access commit info
+	}
+	blockMeta := v032tendermint.BlockMeta{
+		BlockID: res.BlockID,
+		Header:  header,
+	}
+	oldResponse := v032tendermintrpc.ResultBlock{
+		Block:     &block,
+		BlockMeta: &blockMeta,
+	}
+
+	return codec.Cdc.MarshalJSON(oldResponse)
 }
 
 // QueryAccountRequestHandlerFn handle auth/accounts queries
@@ -98,6 +173,61 @@ func QueryAccountRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, oldAccount)
 	}
+}
+
+// QueryTxRequestHandlerFn implements a REST handler that queries a transaction
+// by hash in a committed block.
+func QueryTxRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		hashHexStr := vars["hash"]
+
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		output, err := utils.QueryTx(cliCtx, hashHexStr)
+		if err != nil {
+			if strings.Contains(err.Error(), hashHexStr) {
+				rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+				return
+			}
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// convert v0.8 TxResponse to a v0.3 Tx Response
+		oldOutput := rollbackTxResponseType(output)
+		if oldOutput.Empty() {
+			rest.WriteErrorResponse(w, http.StatusNotFound, fmt.Sprintf("no transaction found with hash %s", hashHexStr))
+		}
+
+		rest.PostProcessResponseBare(w, cliCtx, oldOutput)
+	}
+}
+
+func rollbackTxResponseType(response sdk.TxResponse) v18de63sdk.TxResponse {
+	events := sdk.StringEvents{}
+	for _, msgLog := range response.Logs {
+		events = append(events, msgLog.Events...)
+	}
+	return v18de63sdk.TxResponse{
+		Height:    response.Height,
+		TxHash:    response.TxHash,
+		Codespace: response.Codespace,
+		Code:      response.Code,
+		Data:      response.Data,
+		RawLog:    response.RawLog,
+		Logs:      nil, // trust wallet doesn't use logs, so leaving them out
+		Info:      response.Info,
+		GasWanted: response.GasWanted,
+		GasUsed:   response.GasUsed,
+		Tx:        response.Tx,
+		Timestamp: response.Timestamp,
+		Events:    events,
+	}
+
 }
 
 func makeCodecV03() *codec.Codec {

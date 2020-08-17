@@ -437,7 +437,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 		return types.AugmentedCDP{CDP: cdp}
 	}
 	// convert collateral value to debt coin
-	totalDebt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
+	totalDebt := cdp.GetTotalPrincipal().Amount
 	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
 	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
 	// create new augmuented cdp

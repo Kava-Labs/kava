@@ -53,16 +53,16 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "import atomic swaps and asset supplies",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				_, addrs := app.GeneratePrivKeyAddressPairs(3)
+				_, addrs := app.GeneratePrivKeyAddressPairs(2)
 				var swaps bep3.AtomicSwaps
 				var supplies bep3.AssetSupplies
-				for i := 0; i < 3; i++ {
+				for i := 0; i < 2; i++ {
 					swap, supply := loadSwapAndSupply(addrs[i], i)
 					swaps = append(swaps, swap)
 					supplies = append(supplies, supply)
 				}
 				gs.AtomicSwaps = swaps
-				gs.AssetSupplies = supplies
+				gs.Supplies = supplies
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: true,
@@ -71,7 +71,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "0 deputy fees",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.BnbDeputyFixedFee = sdk.ZeroInt()
+				gs.Params.AssetParams[0].FixedFee = sdk.ZeroInt()
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: true,
@@ -91,14 +91,12 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "current supply above limit",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				assetParam, _ := suite.keeper.GetAssetByDenom(suite.ctx, "bnb")
-				gs.AssetSupplies = bep3.AssetSupplies{
+				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
+				gs.Supplies = bep3.AssetSupplies{
 					bep3.AssetSupply{
-						Denom:          "bnb",
 						IncomingSupply: c("bnb", 0),
 						OutgoingSupply: c("bnb", 0),
-						CurrentSupply:  c("bnb", assetParam.Limit.Add(i(1)).Int64()),
-						SupplyLimit:    c("bnb", assetParam.Limit.Int64()),
+						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Add(i(1)).Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -110,8 +108,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
-				assetParam, _ := suite.keeper.GetAssetByDenom(suite.ctx, "bnb")
-				overLimitAmount := assetParam.Limit.Add(i(1))
+				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
+				overLimitAmount := assetParam.SupplyLimit.Add(i(1))
 
 				// Set up an atomic swap with amount equal to the currently asset supply
 				_, addrs := app.GeneratePrivKeyAddressPairs(2)
@@ -124,13 +122,11 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.AssetSupplies = bep3.AssetSupplies{
+				gs.Supplies = bep3.AssetSupplies{
 					bep3.AssetSupply{
-						Denom:          "bnb",
-						IncomingSupply: c("bnb", assetParam.Limit.Add(i(1)).Int64()),
+						IncomingSupply: c("bnb", assetParam.SupplyLimit.Add(i(1)).Int64()),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", 0),
-						SupplyLimit:    c("bnb", assetParam.Limit.Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -142,8 +138,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
 				// Set up overlimit amount
-				assetParam, _ := suite.keeper.GetAssetByDenom(suite.ctx, "bnb")
-				halfLimit := assetParam.Limit.Int64() / 2
+				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
+				halfLimit := assetParam.SupplyLimit.Int64() / 2
 				overHalfLimit := halfLimit + 1
 
 				// Set up an atomic swap with amount equal to the currently asset supply
@@ -157,13 +153,41 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
 
 				// Set up asset supply with overlimit current supply
-				gs.AssetSupplies = bep3.AssetSupplies{
+				gs.Supplies = bep3.AssetSupplies{
 					bep3.AssetSupply{
-						Denom:          "bnb",
 						IncomingSupply: c("bnb", halfLimit),
 						OutgoingSupply: c("bnb", 0),
 						CurrentSupply:  c("bnb", overHalfLimit),
-						SupplyLimit:    c("bnb", assetParam.Limit.Int64()),
+					},
+				}
+				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
+			},
+			expectPass: false,
+		},
+		{
+			name: "outgoing supply above limit",
+			genState: func() app.GenesisState {
+				gs := baseGenState(suite.addrs[0])
+				// Set up overlimit amount
+				assetParam, _ := suite.keeper.GetAsset(suite.ctx, "bnb")
+				overLimitAmount := assetParam.SupplyLimit.Add(i(1))
+
+				// Set up an atomic swap with amount equal to the currently asset supply
+				_, addrs := app.GeneratePrivKeyAddressPairs(2)
+				timestamp := ts(0)
+				randomNumber, _ := bep3.GenerateSecureRandomNumber()
+				randomNumberHash := bep3.CalculateRandomHash(randomNumber[:], timestamp)
+				swap := bep3.NewAtomicSwap(cs(c("bnb", overLimitAmount.Int64())), randomNumberHash,
+					bep3.DefaultMinBlockLock, timestamp, addrs[1], suite.addrs[0], TestSenderOtherChain,
+					TestRecipientOtherChain, 0, bep3.Open, true, bep3.Outgoing)
+				gs.AtomicSwaps = bep3.AtomicSwaps{swap}
+
+				// Set up asset supply with overlimit current supply
+				gs.Supplies = bep3.AssetSupplies{
+					bep3.AssetSupply{
+						IncomingSupply: c("bnb", 0),
+						OutgoingSupply: c("bnb", 0),
+						CurrentSupply:  c("bnb", assetParam.SupplyLimit.Add(i(1)).Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -174,13 +198,11 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "asset supply denom is not a supported asset",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.AssetSupplies = bep3.AssetSupplies{
+				gs.Supplies = bep3.AssetSupplies{
 					bep3.AssetSupply{
-						Denom:          "fake",
 						IncomingSupply: c("fake", 0),
 						OutgoingSupply: c("fake", 0),
 						CurrentSupply:  c("fake", 0),
-						SupplyLimit:    c("fake", StandardSupplyLimit.Int64()),
 					},
 				}
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
@@ -225,8 +247,8 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "minimum block lock cannot be > maximum block lock",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.MinBlockLock = 201
-				gs.Params.MaxBlockLock = 200
+				gs.Params.AssetParams[0].MinBlockLock = 201
+				gs.Params.AssetParams[0].MaxBlockLock = 200
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
@@ -235,7 +257,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "empty supported asset denom",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.SupportedAssets[0].Denom = ""
+				gs.Params.AssetParams[0].Denom = ""
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
@@ -244,7 +266,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "negative supported asset limit",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.SupportedAssets[0].Limit = i(-100)
+				gs.Params.AssetParams[0].SupplyLimit = i(-100)
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
@@ -253,7 +275,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			name: "duplicate supported asset denom",
 			genState: func() app.GenesisState {
 				gs := baseGenState(suite.addrs[0])
-				gs.Params.SupportedAssets[1].Denom = "bnb"
+				gs.Params.AssetParams[1].Denom = "bnb"
 				return app.GenesisState{"bep3": bep3.ModuleCdc.MustMarshalJSON(gs)}
 			},
 			expectPass: false,
@@ -261,15 +283,18 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		if tc.expectPass {
-			suite.NotPanics(func() {
-				suite.app.InitializeFromGenesisStates(tc.genState())
-			}, tc.name)
-		} else {
-			suite.Panics(func() {
-				suite.app.InitializeFromGenesisStates(tc.genState())
-			}, tc.name)
-		}
+		suite.Run(tc.name, func() {
+			if tc.expectPass {
+				suite.NotPanics(func() {
+					suite.app.InitializeFromGenesisStates(tc.genState())
+				}, tc.name)
+			} else {
+				suite.Panics(func() {
+					suite.app.InitializeFromGenesisStates(tc.genState())
+				}, tc.name)
+			}
+		})
+
 	}
 }
 

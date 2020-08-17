@@ -26,7 +26,7 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) error {
 	var iterationErr error
 	k.IterateCdpsByDenom(ctx, collateralDenom, func(cdp types.CDP) bool {
-		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.GetTotalPrincipal())
 		// periods = bblock timestamp - fees updated
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
@@ -84,7 +84,7 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
-		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.GetTotalPrincipal())
 		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
 		err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 		if err != nil {

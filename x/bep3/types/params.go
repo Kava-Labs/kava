@@ -1,100 +1,80 @@
 package types
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
-const (
-	bech32MainPrefix = "kava"
-)
-
 // Parameter keys
 var (
-	KeyBnbDeputyAddress  = []byte("BnbDeputyAddress")
-	KeyBnbDeputyFixedFee = []byte("BnbDeputyFixedFee")
-	KeyMinAmount         = []byte("MinAmount")
-	KeyMaxAmount         = []byte("MaxAmount")
-	KeyMinBlockLock      = []byte("MinBlockLock")
-	KeyMaxBlockLock      = []byte("MaxBlockLock")
-	KeySupportedAssets   = []byte("SupportedAssets")
+	KeyAssetParams = []byte("AssetParams")
 
 	DefaultBnbDeputyFixedFee sdk.Int = sdk.NewInt(1000) // 0.00001 BNB
 	DefaultMinAmount         sdk.Int = sdk.ZeroInt()
 	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
 	DefaultMinBlockLock      uint64  = 220
 	DefaultMaxBlockLock      uint64  = 270
-	DefaultSupportedAssets           = AssetParams{
-		AssetParam{
-			Denom:  "bnb",
-			CoinID: 714,
-			Limit:  sdk.NewInt(350000000000000), // 3,500,000 BNB
-			Active: true,
-		},
-	}
 )
 
 // Params governance parameters for bep3 module
 type Params struct {
-	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
-	BnbDeputyFixedFee sdk.Int        `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
-	MinAmount         sdk.Int        `json:"min_amount" yaml:"min_amount"`                     // Minimum swap amount
-	MaxAmount         sdk.Int        `json:"max_amount" yaml:"max_amount"`                     // Maximum swap amount
-	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // Minimum swap block lock
-	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // Maximum swap block lock
-	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
+	AssetParams AssetParams `json:"asset_params" yaml:"asset_params"`
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Bnbchain deputy address: %s,
-	Deputy fixed fee (BNB): %d,
-	Min amount: %d,
-	Max amount: %d,
-	Min block lock: %d,
-	Max block lock: %d,
-	Supported assets: %s`,
-		p.BnbDeputyAddress.String(), p.BnbDeputyFixedFee, p.MinAmount,
-		p.MaxAmount, p.MinBlockLock, p.MaxBlockLock, p.SupportedAssets)
+	AssetParams: %s`,
+		p.AssetParams)
 }
 
 // NewParams returns a new params object
-func NewParams(bnbDeputyAddress sdk.AccAddress, bnbDeputyFixedFee, minAmount,
-	maxAmount sdk.Int, minBlockLock, maxBlockLock uint64, supportedAssets AssetParams,
+func NewParams(ap AssetParams,
 ) Params {
 	return Params{
-		BnbDeputyAddress:  bnbDeputyAddress,
-		BnbDeputyFixedFee: bnbDeputyFixedFee,
-		MinAmount:         minAmount,
-		MaxAmount:         maxAmount,
-		MinBlockLock:      minBlockLock,
-		MaxBlockLock:      maxBlockLock,
-		SupportedAssets:   supportedAssets,
+		AssetParams: ap,
 	}
 }
 
 // DefaultParams returns default params for bep3 module
 func DefaultParams() Params {
-	defaultBnbDeputyAddress, err := sdk.AccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6")
-	if err != nil {
-		panic(err)
-	}
-
-	return NewParams(defaultBnbDeputyAddress, DefaultBnbDeputyFixedFee, DefaultMinAmount,
-		DefaultMaxAmount, DefaultMinBlockLock, DefaultMaxBlockLock, DefaultSupportedAssets)
+	return NewParams(AssetParams{})
 }
 
-// AssetParam governance parameters for each asset within a supported chain
+// AssetParam parameters that must be specified for each bep3 asset
 type AssetParam struct {
-	Denom  string  `json:"denom" yaml:"denom"`     // name of the asset
-	CoinID int     `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
-	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
-	Active bool    `json:"active" yaml:"active"`   // denotes if asset is available or paused
+	Denom         string         `json:"denom" yaml:"denom"`                     // name of the asset
+	CoinID        int            `json:"coin_id" yaml:"coin_id"`                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+	SupplyLimit   sdk.Int        `json:"supply_limit" yaml:"supply_limit"`       // asset supply limit
+	Active        bool           `json:"active" yaml:"active"`                   // denotes if asset is available or paused
+	DeputyAddress sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`   // the address of the relayer process
+	FixedFee      sdk.Int        `json:"fixed_fee" yaml:"fixed_fee"`             // the fixed fee charged by the relayer process for outgoing swaps
+	MinSwapAmount sdk.Int        `json:"min_swap_amount" yaml:"min_swap_amount"` // Minimum swap amount
+	MaxSwapAmount sdk.Int        `json:"max_swap_amount" yaml:"max_swap_amount"` // Maximum swap amount
+	MinBlockLock  uint64         `json:"min_block_lock" yaml:"min_block_lock"`   // Minimum swap block lock
+	MaxBlockLock  uint64         `json:"max_block_lock" yaml:"max_block_lock"`   // Maximum swap block lock
+}
+
+// NewAssetParam returns a new AssetParam
+func NewAssetParam(
+	denom string, coinID int, limit sdk.Int, active bool,
+	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
+	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
+) AssetParam {
+	return AssetParam{
+		Denom:         denom,
+		CoinID:        coinID,
+		SupplyLimit:   limit,
+		Active:        active,
+		DeputyAddress: deputyAddr,
+		FixedFee:      fixedFee,
+		MinSwapAmount: minSwapAmount,
+		MaxSwapAmount: maxSwapAmount,
+		MinBlockLock:  minBlockLock,
+		MaxBlockLock:  maxBlockLock,
+	}
 }
 
 // String implements fmt.Stringer
@@ -103,8 +83,15 @@ func (ap AssetParam) String() string {
 	Denom: %s
 	Coin ID: %d
 	Limit: %s
-	Active: %t`,
-		ap.Denom, ap.CoinID, ap.Limit.String(), ap.Active)
+	Active: %t
+	Deputy Address: %s
+	Fixed Fee: %s
+	Min Swap Amount: %s
+	Max Swap Amount: %s
+	Min Block Lock: %d
+	Max Block Lock: %d`,
+		ap.Denom, ap.CoinID, ap.SupplyLimit, ap.Active, ap.DeputyAddress, ap.FixedFee,
+		ap.MinSwapAmount, ap.MaxSwapAmount, ap.MinBlockLock, ap.MaxBlockLock)
 }
 
 // AssetParams array of AssetParam
@@ -129,149 +116,69 @@ func ParamKeyTable() params.KeyTable {
 // nolint
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyBnbDeputyAddress, &p.BnbDeputyAddress, validateBnbDeputyAddressParam),
-		params.NewParamSetPair(KeyBnbDeputyFixedFee, &p.BnbDeputyFixedFee, validateBnbDeputyFixedFeeParam),
-		params.NewParamSetPair(KeyMinAmount, &p.MinAmount, validateMinAmountParam),
-		params.NewParamSetPair(KeyMaxAmount, &p.MaxAmount, validateMaxAmountParam),
-		params.NewParamSetPair(KeyMinBlockLock, &p.MinBlockLock, validateMinBlockLockParam),
-		params.NewParamSetPair(KeyMaxBlockLock, &p.MaxBlockLock, validateMaxBlockLockParam),
-		params.NewParamSetPair(KeySupportedAssets, &p.SupportedAssets, validateSupportedAssetsParams),
+		params.NewParamSetPair(KeyAssetParams, &p.AssetParams, validateAssetParams),
 	}
 }
 
 // Validate ensure that params have valid values
 func (p Params) Validate() error {
-	if err := validateBnbDeputyAddressParam(p.BnbDeputyAddress); err != nil {
-		return err
-	}
-
-	if err := validateBnbDeputyFixedFeeParam(p.BnbDeputyFixedFee); err != nil {
-		return err
-	}
-
-	if err := validateMinAmountParam(p.MinAmount); err != nil {
-		return err
-	}
-
-	if err := validateMaxAmountParam(p.MaxAmount); err != nil {
-		return err
-	}
-
-	if p.MinAmount.GT(p.MaxAmount) {
-		return fmt.Errorf("minimum amount cannot be > maximum amount, got %d > %d", p.MinAmount, p.MaxAmount)
-	}
-
-	if err := validateMinBlockLockParam(p.MinBlockLock); err != nil {
-		return err
-	}
-
-	if err := validateMaxBlockLockParam(p.MaxBlockLock); err != nil {
-		return err
-	}
-
-	if p.MinBlockLock > p.MaxBlockLock {
-		return fmt.Errorf("minimum block lock cannot be > maximum block lock, got %d > %d", p.MinBlockLock, p.MaxBlockLock)
-	}
-
-	return validateSupportedAssetsParams(p.SupportedAssets)
+	return validateAssetParams(p.AssetParams)
 }
 
-func validateBnbDeputyAddressParam(i interface{}) error {
-	addr, ok := i.(sdk.AccAddress)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if addr.Empty() {
-		return errors.New("bnb deputy address cannot be empty")
-	}
-
-	if len(addr.Bytes()) != sdk.AddrLen {
-		return fmt.Errorf("bnb deputy address invalid bytes length got %d, want %d", len(addr.Bytes()), sdk.AddrLen)
-	}
-
-	return nil
-}
-
-func validateBnbDeputyFixedFeeParam(i interface{}) error {
-	_, ok := i.(sdk.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return nil
-}
-
-func validateMinAmountParam(i interface{}) error {
-	_, ok := i.(sdk.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return nil
-}
-
-func validateMaxAmountParam(i interface{}) error {
-	_, ok := i.(sdk.Int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return nil
-}
-
-func validateMinBlockLockParam(i interface{}) error {
-	_, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return nil
-}
-
-func validateMaxBlockLockParam(i interface{}) error {
-	_, ok := i.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return nil
-}
-
-func validateSupportedAssetsParams(i interface{}) error {
+func validateAssetParams(i interface{}) error {
 	assetParams, ok := i.(AssetParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	coinIDs := make(map[int]bool)
 	coinDenoms := make(map[string]bool)
 	for _, asset := range assetParams {
-		if strings.TrimSpace(asset.Denom) == "" {
-			return errors.New("asset denom cannot be empty")
+		if err := sdk.ValidateDenom(asset.Denom); err != nil {
+			return fmt.Errorf("asset denom invalid: %s", asset.Denom)
 		}
 
 		if asset.CoinID < 0 {
-			return fmt.Errorf(fmt.Sprintf("asset %s must be a non negative integer", asset.Denom))
+			return fmt.Errorf("asset %s coin id must be a non negative integer", asset.Denom)
 		}
 
-		if !asset.Limit.IsPositive() {
-			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive supply limit", asset.Denom))
+		if asset.SupplyLimit.IsNegative() {
+			return fmt.Errorf("asset %s has invalid (negative) supply limit: %s", asset.Denom, asset.SupplyLimit)
 		}
 
 		_, found := coinDenoms[asset.Denom]
 		if found {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate denom", asset.Denom))
+			return fmt.Errorf("asset %s cannot have duplicate denom", asset.Denom)
 		}
 
 		coinDenoms[asset.Denom] = true
 
-		_, found = coinIDs[asset.CoinID]
-		if found {
-			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate coin id %d", asset.Denom, asset.CoinID))
+		if asset.DeputyAddress.Empty() {
+			return fmt.Errorf("deputy address cannot be empty for %s", asset.Denom)
 		}
 
-		coinIDs[asset.CoinID] = true
+		if len(asset.DeputyAddress.Bytes()) != sdk.AddrLen {
+			return fmt.Errorf("%s deputy address invalid bytes length got %d, want %d", asset.Denom, len(asset.DeputyAddress.Bytes()), sdk.AddrLen)
+		}
+
+		if asset.FixedFee.IsNegative() {
+			return fmt.Errorf("asset %s cannot have a negative fixed fee %s", asset.Denom, asset.FixedFee)
+		}
+
+		if asset.MinBlockLock > asset.MaxBlockLock {
+			return fmt.Errorf("asset %s has minimum block lock > maximum block lock %d > %d", asset.Denom, asset.MinBlockLock, asset.MaxBlockLock)
+		}
+
+		if !asset.MinSwapAmount.IsPositive() {
+			return fmt.Errorf("asset %s must have a positive minimum swap amount, got %s", asset.Denom, asset.MinSwapAmount)
+		}
+
+		if !asset.MaxSwapAmount.IsPositive() {
+			return fmt.Errorf("asset %s must have a positive maximum swap amount, got %s", asset.Denom, asset.MaxSwapAmount)
+		}
+
+		if asset.MinSwapAmount.GT(asset.MaxSwapAmount) {
+			return fmt.Errorf("asset %s has minimum swap amount > maximum swap amount %s > %s", asset.Denom, asset.MinSwapAmount, asset.MaxSwapAmount)
+		}
 	}
 
 	return nil

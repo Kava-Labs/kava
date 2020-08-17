@@ -36,12 +36,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+[\#591](https://github.com/Kava-Labs/kava/pull/591) Add a `raw-params` cli method to query raw parameter values for use in manual verification of gov proposals.
+
+[\#596](https://github.com/Kava-Labs/kava/pull/596) Add REST client and CLI query to get module account information for the CDP module
+
 [\#590](https://github.com/Kava-Labs/kava/pull/590) Add CLI query to return kavadist module account balance
 
 [\#584](https://github.com/Kava-Labs/kava/pulls/584) Add REST client and CLI queries for `kavadist` module
 
 [\#578](https://github.com/Kava-Labs/kava/pulls/578) Add v0.3 compatible REST client that supports
-```
+
+```plaintext
 /v0_3/node_info
 /v0_3/auth/accounts/<address>
 /v0_3/<hash>
@@ -50,6 +55,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 /v0_3/staking/delegators/<address>/unbonding_delegations
 /v0_3/distribution/delegators/<address>/rewards
 ```
+
+[\#598](https://github.com/Kava-Labs/kava/pulls/598) CLI and REST queries for committee proposals (ie `kvcli q committee proposal 1`) now query the historical state to return the proposal object before it was deleted from state
 
 ## [v0.8.1](https://github.com/Kava-Labs/kava/releases/tag/v0.8.1) kava-3 Patch Release
 

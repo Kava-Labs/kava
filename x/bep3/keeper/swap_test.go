@@ -146,7 +146,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				timestamp:           suite.timestamps[0],
 				heightSpan:          types.DefaultMinBlockLock,
 				sender:              suite.addrs[1],
-				recipient:           suite.addrs[2],
+				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
 				coins:               cs(c(BNB_DENOM, 50000)),
@@ -168,7 +168,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, suite.keeper.GetBnbDeputyFixedFee(suite.ctx).Int64())),
+				coins:               cs(c(BNB_DENOM, 1000)),
 				crossChain:          true,
 				direction:           types.Outgoing,
 			},
@@ -360,6 +360,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// Increment current asset supply to support outgoing swaps
+			suite.ctx = suite.ctx.WithBlockTime(tc.blockTime)
 			if tc.args.direction == types.Outgoing {
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coins[0])
 				suite.Nil(err)
@@ -377,7 +378,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			ak := suite.app.GetAccountKeeper()
 			senderAccPre := ak.GetAccount(suite.ctx, tc.args.sender)
 			senderBalancePre := senderAccPre.GetCoins().AmountOf(swapAssetDenom)
-			assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(swapAssetDenom))
+			assetSupplyPre, _ := suite.keeper.GetAssetSupply(suite.ctx, swapAssetDenom)
 
 			// Create atomic swap
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, tc.args.randomNumberHash, tc.args.timestamp,
@@ -387,7 +388,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			// Load sender's account after swap creation
 			senderAccPost := ak.GetAccount(suite.ctx, tc.args.sender)
 			senderBalancePost := senderAccPost.GetCoins().AmountOf(swapAssetDenom)
-			assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, []byte(swapAssetDenom))
+			assetSupplyPost, _ := suite.keeper.GetAssetSupply(suite.ctx, swapAssetDenom)
 
 			// Load expected swap ID
 			expectedSwapID := types.CalculateSwapID(tc.args.randomNumberHash, tc.args.sender, tc.args.senderOtherChain)
@@ -533,6 +534,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			// Set sender to other and increment current asset supply for outgoing swap
 			if tc.args.direction == types.Outgoing {
 				sender = suite.addrs[6]
+				expectedRecipient = suite.deputy
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, expectedClaimAmount[0])
 				suite.Nil(err)
 			}
@@ -569,7 +571,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			expectedRecipientAccPre := ak.GetAccount(tc.claimCtx, expectedRecipient)
 			expectedRecipientBalancePre := expectedRecipientAccPre.GetCoins().AmountOf(expectedClaimAmount[0].Denom)
 			// Load asset supplies prior to claim attempt
-			assetSupplyPre, _ := suite.keeper.GetAssetSupply(tc.claimCtx, []byte(expectedClaimAmount[0].Denom))
+			assetSupplyPre, _ := suite.keeper.GetAssetSupply(tc.claimCtx, expectedClaimAmount[0].Denom)
 
 			// Attempt to claim atomic swap
 			err = suite.keeper.ClaimAtomicSwap(tc.claimCtx, expectedRecipient, claimSwapID, claimRandomNumber)
@@ -578,7 +580,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			expectedRecipientAccPost := ak.GetAccount(tc.claimCtx, expectedRecipient)
 			expectedRecipientBalancePost := expectedRecipientAccPost.GetCoins().AmountOf(expectedClaimAmount[0].Denom)
 			// Load asset supplies after the claim attempt
-			assetSupplyPost, _ := suite.keeper.GetAssetSupply(tc.claimCtx, []byte(expectedClaimAmount[0].Denom))
+			assetSupplyPost, _ := suite.keeper.GetAssetSupply(tc.claimCtx, expectedClaimAmount[0].Denom)
 
 			if tc.expectPass {
 				suite.NoError(err)
@@ -684,16 +686,18 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			// Create atomic swap
 			expectedRefundAmount := cs(c(BNB_DENOM, 50000))
 			sender := suite.deputy
+			expectedRecipient := suite.addrs[9]
 
 			// Set sender to other and increment current asset supply for outgoing swap
 			if tc.args.direction == types.Outgoing {
 				sender = suite.addrs[6]
+				expectedRecipient = suite.deputy
 				err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, expectedRefundAmount[0])
 				suite.Nil(err)
 			}
 
 			err := suite.keeper.CreateAtomicSwap(suite.ctx, suite.randomNumberHashes[i], suite.timestamps[i],
-				types.DefaultMinBlockLock, sender, suite.addrs[9], TestSenderOtherChain, TestRecipientOtherChain,
+				types.DefaultMinBlockLock, sender, expectedRecipient, TestSenderOtherChain, TestRecipientOtherChain,
 				expectedRefundAmount, true)
 			suite.NoError(err)
 
@@ -715,7 +719,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			originalSenderAccPre := ak.GetAccount(tc.refundCtx, sender)
 			originalSenderBalancePre := originalSenderAccPre.GetCoins().AmountOf(expectedRefundAmount[0].Denom)
 			// Load asset supply prior to swap refund
-			assetSupplyPre, _ := suite.keeper.GetAssetSupply(tc.refundCtx, []byte(expectedRefundAmount[0].Denom))
+			assetSupplyPre, _ := suite.keeper.GetAssetSupply(tc.refundCtx, expectedRefundAmount[0].Denom)
 
 			// Attempt to refund atomic swap
 			err = suite.keeper.RefundAtomicSwap(tc.refundCtx, sender, refundSwapID)
@@ -724,7 +728,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 			originalSenderAccPost := ak.GetAccount(tc.refundCtx, sender)
 			originalSenderBalancePost := originalSenderAccPost.GetCoins().AmountOf(expectedRefundAmount[0].Denom)
 			// Load asset supply after to swap refund
-			assetSupplyPost, _ := suite.keeper.GetAssetSupply(tc.refundCtx, []byte(expectedRefundAmount[0].Denom))
+			assetSupplyPost, _ := suite.keeper.GetAssetSupply(tc.refundCtx, expectedRefundAmount[0].Denom)
 
 			if tc.expectPass {
 				suite.NoError(err)

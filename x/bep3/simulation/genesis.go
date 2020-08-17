@@ -16,21 +16,13 @@ import (
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
-// Simulation parameter constants
-const (
-	BnbDeputyAddress  = "bnb_deputy_address"
-	BnbDeputyFixedFee = "bnb_deputy_fixed_fee"
-	MinAmount         = "min_amount"
-	MaxAmount         = "max_amount"
-	MinBlockLock      = "min_block_lock"
-	MaxBlockLock      = "max_block_lock"
-	SupportedAssets   = "supported_assets"
-)
-
 var (
-	MaxSupplyLimit   = sdk.NewInt(1000000000000)
-	accs             []simulation.Account
-	ConsistentDenoms = [3]string{"bnb", "xrp", "btc"}
+	MaxSupplyLimit     = 1000000000000
+	MinSupplyLimit     = 100000000
+	MinSwapAmountLimit = 999
+	accs               []simulation.Account
+	ConsistentDenoms   = [3]string{"bnb", "xrp", "btc"}
+	MinBlockLock       = uint64(5)
 )
 
 // GenRandBnbDeputy randomized BnbDeputyAddress
@@ -39,39 +31,48 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 	return acc
 }
 
-// GenRandBnbDeputyFixedFee randomized BnbDeputyFixedFee in range [2, 10000]
-func GenRandBnbDeputyFixedFee(r *rand.Rand) sdk.Int {
+// GenRandFixedFee randomized FixedFee in range [1, 10000]
+func GenRandFixedFee(r *rand.Rand) sdk.Int {
 	min := int(1)
 	max := types.DefaultBnbDeputyFixedFee.Int64()
 	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
 }
 
-// GenMinAmount randomized MinAmount in range [0, 1000000000000]
-func GenMinAmount(r *rand.Rand) sdk.Int {
-	min := types.DefaultMinAmount.Int64()
-	max := types.DefaultMaxAmount.Int64()
+// GenMinSwapAmount randomized MinAmount in range [1, 1000]
+func GenMinSwapAmount(r *rand.Rand) sdk.Int {
+	return sdk.OneInt().Add(simulation.RandomAmount(r, sdk.NewInt(int64(MinSwapAmountLimit))))
+}
+
+// GenMaxSwapAmount randomized MaxAmount
+func GenMaxSwapAmount(r *rand.Rand, minAmount sdk.Int, supplyMax sdk.Int) sdk.Int {
+	min := minAmount.Int64()
+	max := supplyMax.Quo(sdk.NewInt(100)).Int64()
+
 	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
 }
 
-// GenMaxAmount randomized MaxAmount
-func GenMaxAmount(r *rand.Rand, minAmount sdk.Int) sdk.Int {
-	min := minAmount.Int64()
-	max := types.DefaultMaxAmount.Int64()
-	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
+// GenSupplyLimit generates a random SupplyLimit
+func GenSupplyLimit(r *rand.Rand, max int) sdk.Int {
+	max = simulation.RandIntBetween(r, MinSupplyLimit, max)
+	return sdk.NewInt(int64(max))
+}
+
+// GenSupplyLimit generates a random SupplyLimit
+func GenAssetSupply(r *rand.Rand, denom string) types.AssetSupply {
+	return types.NewAssetSupply(
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
+		sdk.NewCoin(denom, sdk.ZeroInt()))
 }
 
 // GenMinBlockLock randomized MinBlockLock
 func GenMinBlockLock(r *rand.Rand) uint64 {
-	min := int(1)
-	max := int(types.DefaultMaxBlockLock)
-	return uint64(r.Intn(max-min) + min)
+	return MinBlockLock
 }
 
 // GenMaxBlockLock randomized MaxBlockLock
 func GenMaxBlockLock(r *rand.Rand, minBlockLock uint64) uint64 {
-	min := int(minBlockLock)
-	max := int(types.DefaultMaxBlockLock)
-	return uint64(r.Intn(max-min) + min)
+	max := int(50)
+	return uint64(r.Intn(max-int(MinBlockLock)) + int(MinBlockLock+1))
 }
 
 // GenSupportedAssets gets randomized SupportedAssets
@@ -92,12 +93,21 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 
 func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
-	limit, _ := simulation.RandPositiveInt(r, MaxSupplyLimit)
+	limit := GenSupplyLimit(r, MaxSupplyLimit)
+
+	minSwapAmount := GenMinSwapAmount(r)
+	minBlockLock := GenMinBlockLock(r)
 	return types.AssetParam{
-		Denom:  denom,
-		CoinID: int(coinID.Int64()),
-		Limit:  limit,
-		Active: true,
+		Denom:         denom,
+		CoinID:        int(coinID.Int64()),
+		SupplyLimit:   limit,
+		Active:        true,
+		DeputyAddress: GenRandBnbDeputy(r).Address,
+		FixedFee:      GenRandFixedFee(r),
+		MinSwapAmount: minSwapAmount,
+		MaxSwapAmount: GenMaxSwapAmount(r, minSwapAmount, limit),
+		MinBlockLock:  minBlockLock,
+		MaxBlockLock:  GenMaxBlockLock(r, minBlockLock),
 	}
 }
 
@@ -123,31 +133,19 @@ func RandomizedGenState(simState *module.SimulationState) {
 }
 
 func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState {
-	bnbDeputy := GenRandBnbDeputy(simState.Rand)
-	bnbDeputyFixedFee := GenRandBnbDeputyFixedFee(simState.Rand)
-	minAmount := types.DefaultMinAmount
-	maxAmount := GenMaxAmount(simState.Rand, minAmount)
 
-	// min/max block lock are hardcoded to 50/100 for expected -NumBlocks=100
-	minBlockLock := uint64(50)
-	maxBlockLock := minBlockLock * 2
-
-	var supportedAssets types.AssetParams
-	simState.AppParams.GetOrGenerate(
-		simState.Cdc, SupportedAssets, &supportedAssets, simState.Rand,
-		func(r *rand.Rand) { supportedAssets = GenSupportedAssets(r) },
-	)
+	supportedAssets := GenSupportedAssets(simState.Rand)
+	supplies := types.AssetSupplies{}
+	for _, asset := range supportedAssets {
+		supply := GenAssetSupply(simState.Rand, asset.Denom)
+		supplies = append(supplies, supply)
+	}
 
 	bep3Genesis := types.GenesisState{
 		Params: types.Params{
-			BnbDeputyAddress:  bnbDeputy.Address,
-			BnbDeputyFixedFee: bnbDeputyFixedFee,
-			MinAmount:         minAmount,
-			MaxAmount:         maxAmount,
-			MinBlockLock:      minBlockLock,
-			MaxBlockLock:      maxBlockLock,
-			SupportedAssets:   supportedAssets,
+			AssetParams: supportedAssets,
 		},
+		Supplies: supplies,
 	}
 
 	return bep3Genesis
@@ -156,22 +154,20 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.GenesisState) (auth.GenesisState, []sdk.Coins) {
 	var authGenesis auth.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[auth.ModuleName], &authGenesis)
-
-	deputy, found := getAccount(authGenesis.Accounts, bep3Genesis.Params.BnbDeputyAddress)
-	if !found {
-		panic("deputy address not found in available accounts")
-	}
-
 	// Load total limit of each supported asset to deputy's account
 	var totalCoins []sdk.Coins
-	for _, asset := range bep3Genesis.Params.SupportedAssets {
-		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.Limit))
+	for _, asset := range bep3Genesis.Params.AssetParams {
+		deputy, found := getAccount(authGenesis.Accounts, asset.DeputyAddress)
+		if !found {
+			panic("deputy address not found in available accounts")
+		}
+		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit))
 		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin...)); err != nil {
 			panic(err)
 		}
 		totalCoins = append(totalCoins, assetCoin)
+		authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, deputy)
 	}
-	authGenesis.Accounts = replaceOrAppendAccount(authGenesis.Accounts, deputy)
 
 	return authGenesis, totalCoins
 }

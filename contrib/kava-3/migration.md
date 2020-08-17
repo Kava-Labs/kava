@@ -48,7 +48,7 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 Set your node to produce the final block of kava-2 at __13:00__ UTC June 10th, 2020. To restart your node with that stop time,
 
-```sh
+```bash
 kvd start --halt-time 1591794000
 ```
 
@@ -70,13 +70,13 @@ The following up steps assume the directory structure below: change filepaths, d
 ### Pre-Migration
 
 1. Backup existing kava-2 .kvd and .kvcli
-```sh
+```bash
 cp -R ~/.kvcli ~/.kvcli.bak
 cp -R ~/.kvd ~/.kvd.bak
 ```
 
 2. Backup existing kava-2 kvd and kvcli binaries (in case of rollback)
-```sh
+```bash
 cp ~/go/bin/kvcli ~/go/bin/kvcli.bak
 cp ~/go/bin/kvd ~/go/bin/kvd.bak
 ```
@@ -89,7 +89,7 @@ We denote `(kava-2)kvd` as the previous client (0.3.5) to be used for commands e
 
 - Ensure that all `kvd` processes have stopped running.
 
-```sh
+```bash
   (kava-2) kvd export --height 2598890 --for-zero-height > kava_2_exported.json
   # Check ShaSum for later reference
   $ jq -S -c -M '' kava_2_exported.json | shasum -a 256
@@ -101,7 +101,7 @@ We denote `(kava-2)kvd` as the previous client (0.3.5) to be used for commands e
 
 This will replace the `kvd` and `kvcli` binaries in your GOPATH.
 
-```sh
+```bash
   # in the `kava` folder
   git pull
   git checkout v0.8.1
@@ -122,14 +122,14 @@ This will replace the `kvd` and `kvcli` binaries in your GOPATH.
 
 This will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx.address` and `key_name.info` for the new keystore to access.
 
-```sh
+```bash
   # Migrate keys
   (kava-3) kvcli keys migrate
 ```
 
 4. Migrate the exported genesis state
 
-```sh
+```bash
   # Migrate genesis state
   (kava-3) kvd migrate kava_2_exported.json > kava_3_migrated.json
   # Check ShaSum for later reference
@@ -140,7 +140,7 @@ This will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx
 
 5. Write Params to genesis state and validate
 
-```sh
+```bash
   # Migrate parameters
   (kava-3) kvd write-params kava_3_migrated.json --chain-id kava-3 --genesis-time 2020-06-10T14:00:00Z > genesis.json
   # Check ShaSum for later reference
@@ -155,7 +155,7 @@ This will scan for any keys in `.kvcli` and produce new files ending in `kavaxxx
 
 6. Restart node with new kava-3 genesis state
 
-```sh
+```bash
   cp genesis.json ~/.kvd/config/genesis.json
   # Unsafe Reset All is a irreversible action that wipes on-chain data and prepares the chain for a start from genesis
   # If you have not backed up your previous kava-2 state, do not proceed.

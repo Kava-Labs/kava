@@ -11,6 +11,7 @@ const (
 	QueryGetCdps                    = "cdps"
 	QueryGetCdpsByCollateralization = "ratio"
 	QueryGetParams                  = "params"
+	QueryGetAccounts                = "accounts"
 	RestOwner                       = "owner"
 	RestCollateralDenom             = "collateral-denom"
 	RestRatio                       = "ratio"
