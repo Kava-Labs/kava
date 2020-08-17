@@ -29,7 +29,7 @@ Note, the current recommended version of the software for mainnet is v0.8.1. The
 
 ### Installation
 
-```sh
+```bash
 git checkout v0.8.1
 make install
 ```

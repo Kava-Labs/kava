@@ -109,7 +109,10 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			sender := sdk.AccAddress(args[1])
+			sender, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
 			senderOtherChain := args[2]
 
 			// Calculate swap ID and convert to human-readable string
@@ -130,7 +133,7 @@ func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply([]byte(args[0])))
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply(args[0]))
 			if err != nil {
 				return err
 			}
@@ -204,11 +207,11 @@ func QueryGetAtomicSwapCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			var atomicSwap types.AtomicSwap
+			var atomicSwap types.AugmentedAtomicSwap
 			cdc.MustUnmarshalJSON(res, &atomicSwap)
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(atomicSwap.String())
+			return cliCtx.PrintOutput(atomicSwap)
 		},
 	}
 }
@@ -286,7 +289,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 				return err
 			}
 
-			var matchingAtomicSwaps types.AtomicSwaps
+			var matchingAtomicSwaps types.AugmentedAtomicSwaps
 			cdc.UnmarshalJSON(res, &matchingAtomicSwaps)
 
 			if len(matchingAtomicSwaps) == 0 {
@@ -294,7 +297,7 @@ $ kvcli q bep3 swaps --page=2 --limit=100
 			}
 
 			cliCtx = cliCtx.WithHeight(height)
-			return cliCtx.PrintOutput(matchingAtomicSwaps.String()) // nolint:errcheck
+			return cliCtx.PrintOutput(matchingAtomicSwaps) // nolint:errcheck
 		},
 	}
 

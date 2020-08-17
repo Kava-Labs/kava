@@ -36,16 +36,16 @@ func (suite *AssetTestSuite) SetupTest() {
 	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(deputy))
 
 	keeper := tApp.GetBep3Keeper()
-
+	params := keeper.GetParams(ctx)
+	params.AssetParams[0].SupplyLimit = sdk.NewInt(50)
+	keeper.SetParams(ctx, params)
 	// Set asset supply with standard value for testing
 	supply := types.AssetSupply{
-		Denom:          "bnb",
 		IncomingSupply: c("bnb", 5),
 		OutgoingSupply: c("bnb", 5),
 		CurrentSupply:  c("bnb", 40),
-		SupplyLimit:    c("bnb", 50),
 	}
-	keeper.SetAssetSupply(ctx, supply, []byte(supply.Denom))
+	keeper.SetAssetSupply(ctx, supply, supply.GetDenom())
 
 	suite.app = tApp
 	suite.ctx = ctx
@@ -95,11 +95,10 @@ func (suite *AssetTestSuite) TestIncrementCurrentAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -155,11 +154,10 @@ func (suite *AssetTestSuite) TestDecrementCurrentAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.DecrementCurrentAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -215,11 +213,9 @@ func (suite *AssetTestSuite) TestIncrementIncomingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
-
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.IncrementIncomingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -275,11 +271,10 @@ func (suite *AssetTestSuite) TestDecrementIncomingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.DecrementIncomingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -335,11 +330,10 @@ func (suite *AssetTestSuite) TestIncrementOutgoingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.IncrementOutgoingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -395,11 +389,9 @@ func (suite *AssetTestSuite) TestDecrementOutgoingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
-
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.DecrementOutgoingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)

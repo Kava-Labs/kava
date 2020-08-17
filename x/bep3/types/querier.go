@@ -20,11 +20,11 @@ const (
 
 // QueryAssetSupply contains the params for query 'custom/bep3/supply'
 type QueryAssetSupply struct {
-	Denom tmbytes.HexBytes `json:"denom" yaml:"denom"`
+	Denom string `json:"denom" yaml:"denom"`
 }
 
 // NewQueryAssetSupply creates a new QueryAssetSupply
-func NewQueryAssetSupply(denom tmbytes.HexBytes) QueryAssetSupply {
+func NewQueryAssetSupply(denom string) QueryAssetSupply {
 	return QueryAssetSupply{
 		Denom: denom,
 	}

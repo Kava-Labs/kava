@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/auction"
-	"github.com/kava-labs/kava/x/bep3"
+	v0_8bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/incentive"
@@ -108,23 +108,23 @@ func addAuctionState(cdc *codec.Codec, appState genutil.AppMap) {
 }
 
 func addBep3State(cdc *codec.Codec, appState genutil.AppMap) {
-	appState[bep3.ModuleName] = cdc.MustMarshalJSON(bep3.NewGenesisState(
-		bep3.NewParams(
+	appState[v0_8bep3.ModuleName] = cdc.MustMarshalJSON(v0_8bep3.NewGenesisState(
+		v0_8bep3.NewParams(
 			mustAccAddressFromBech32(deputyAddressBech32),
-			bep3.DefaultBnbDeputyFixedFee,
-			bep3.DefaultMinAmount,
-			bep3.DefaultMaxAmount,
-			bep3.DefaultMinBlockLock,
-			bep3.DefaultMaxBlockLock,
-			bep3.AssetParams{{
+			v0_8bep3.DefaultBnbDeputyFixedFee,
+			v0_8bep3.DefaultMinAmount,
+			v0_8bep3.DefaultMaxAmount,
+			v0_8bep3.DefaultMinBlockLock,
+			v0_8bep3.DefaultMaxBlockLock,
+			v0_8bep3.AssetParams{{
 				Denom:  bnbDenom,
 				CoinID: 714,
 				Limit:  sdk.NewInt(4_000_000_000_000),
 				Active: true,
 			}},
 		),
-		bep3.AtomicSwaps{},
-		bep3.AssetSupplies{},
+		v0_8bep3.AtomicSwaps{},
+		v0_8bep3.AssetSupplies{},
 	))
 }
 
@@ -203,8 +203,8 @@ func addCommitteeState(cdc *codec.Codec, appState genutil.AppMap) {
 								Key:      string(auction.KeyIncrementCollateral),
 							},
 							{
-								Subspace: bep3.ModuleName,
-								Key:      string(bep3.KeySupportedAssets),
+								Subspace: v0_8bep3.ModuleName,
+								Key:      string(v0_8bep3.KeySupportedAssets),
 							},
 							{
 								Subspace: cdp.ModuleName,

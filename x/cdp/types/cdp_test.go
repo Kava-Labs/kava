@@ -157,7 +157,15 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 			}
 		})
 	}
+}
 
+func (suite *CdpValidationSuite) TestCdpGetTotalPrinciple() {
+	principal := sdk.Coin{"usdx", sdk.NewInt(100500)}
+	acummulatedFees := sdk.Coin{"usdx", sdk.NewInt(25000)}
+
+	cdp := types.CDP{Principal: principal, AccumulatedFees: acummulatedFees}
+
+	suite.Require().Equal(cdp.GetTotalPrincipal(), principal.Add(acummulatedFees))
 }
 
 func TestCdpValidationSuite(t *testing.T) {

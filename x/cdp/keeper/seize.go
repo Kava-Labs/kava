@@ -17,11 +17,11 @@ import (
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.GetTotalPrincipal())
 
 	// Move debt coins from cdp to liquidator account
 	deposits := k.GetDeposits(ctx, cdp.ID)
-	debt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
+	debt := cdp.GetTotalPrincipal().Amount
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	debt = sdk.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
@@ -54,7 +54,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	}
 
 	// Decrement total principal for this collateral type
-	coinsToDecrement := cdp.Principal.Add(cdp.AccumulatedFees)
+	coinsToDecrement := cdp.GetTotalPrincipal()
 	k.DecrementTotalPrincipal(ctx, cdp.Collateral.Denom, coinsToDecrement)
 
 	// Delete CDP from state

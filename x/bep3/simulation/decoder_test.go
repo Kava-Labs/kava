@@ -27,12 +27,12 @@ func TestDecodeDistributionStore(t *testing.T) {
 
 	oneCoin := sdk.NewCoin("coin", sdk.OneInt())
 	swap := types.NewAtomicSwap(sdk.Coins{oneCoin}, nil, 10, 100, nil, nil, "otherChainSender", "otherChainRec", 200, types.Completed, true, types.Outgoing)
-	supply := types.AssetSupply{Denom: "coin", IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin, SupplyLimit: oneCoin}
+	supply := types.AssetSupply{IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin}
 	bz := tmbytes.HexBytes([]byte{1, 2})
 
 	kvPairs := kv.Pairs{
 		kv.Pair{Key: types.AtomicSwapKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(swap)},
-		kv.Pair{Key: types.AssetSupplyKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(supply)},
+		kv.Pair{Key: types.AssetSupplyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(supply)},
 		kv.Pair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
 		kv.Pair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},

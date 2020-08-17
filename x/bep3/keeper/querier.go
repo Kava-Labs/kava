@@ -39,7 +39,7 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	assetSupply, found := keeper.GetAssetSupply(ctx, []byte(requestParams.Denom))
+	assetSupply, found := keeper.GetAssetSupply(ctx, requestParams.Denom)
 	if !found {
 		return nil, sdkerrors.Wrap(types.ErrAssetSupplyNotFound, string(requestParams.Denom))
 	}
@@ -81,8 +81,10 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]b
 		return nil, sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", requestParams.SwapID)
 	}
 
+	augmentedAtomicSwap := types.NewAugmentedAtomicSwap(atomicSwap)
+
 	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, atomicSwap)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedAtomicSwap)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -103,7 +105,13 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		swaps = types.AtomicSwaps{}
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, swaps)
+	augmentedSwaps := types.AugmentedAtomicSwaps{}
+
+	for _, swap := range swaps {
+		augmentedSwaps = append(augmentedSwaps, types.NewAugmentedAtomicSwap(swap))
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, augmentedSwaps)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -76,6 +76,11 @@ func (cdp CDP) Validate() error {
 	return nil
 }
 
+// GetTotalPrinciple returns the total principle for the cdp
+func (cdp CDP) GetTotalPrincipal() sdk.Coin {
+	return cdp.Principal.Add(cdp.AccumulatedFees)
+}
+
 // CDPs a collection of CDP objects
 type CDPs []CDP
 
