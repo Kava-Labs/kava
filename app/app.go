@@ -38,6 +38,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
 	"github.com/kava-labs/kava/x/pricefeed"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -80,6 +81,7 @@ var (
 		bep3.AppModuleBasic{},
 		kavadist.AppModuleBasic{},
 		incentive.AppModuleBasic{},
+		issuance.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -97,6 +99,7 @@ var (
 		cdp.SavingsRateMacc:         {supply.Minter},
 		bep3.ModuleName:             nil,
 		kavadist.ModuleName:         {supply.Minter},
+		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -140,6 +143,7 @@ type App struct {
 	bep3Keeper      bep3.Keeper
 	kavadistKeeper  kavadist.Keeper
 	incentiveKeeper incentive.Keeper
+	issuanceKeeper  issuance.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -164,7 +168,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
 		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
-		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, committee.StoreKey,
+		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, issuance.StoreKey, committee.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -193,6 +197,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	bep3Subspace := app.paramsKeeper.Subspace(bep3.DefaultParamspace)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
 	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
+	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -350,6 +355,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		app.cdpKeeper,
 		app.accountKeeper,
 	)
+	app.issuanceKeeper = issuance.NewKeeper(
+		app.cdc,
+		keys[issuance.StoreKey],
+		issuanceSubspace,
+		app.accountKeeper,
+		app.supplyKeeper,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -379,6 +391,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -389,7 +402,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, incentive.ModuleName, committee.ModuleName,
+		bep3.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
@@ -400,7 +413,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
 		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
-		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName,
+		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -430,6 +443,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
+		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
