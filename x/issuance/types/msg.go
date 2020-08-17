@@ -129,7 +129,7 @@ type MsgBlockAddress struct {
 	Address sdk.AccAddress `json:"blocked_address" yaml:"blocked_address"`
 }
 
-// NewMsgBlockAddress returns a new MsgIssueTokens
+// NewMsgBlockAddress returns a new MsgBlockAddress
 func NewMsgBlockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress) MsgBlockAddress {
 	return MsgBlockAddress{
 		Sender:  sender,
@@ -183,7 +183,7 @@ type MsgUnblockAddress struct {
 	Address sdk.AccAddress `json:"address" yaml:"address"`
 }
 
-// NewMsgUnblockAddress returns a new MsgIssueTokens
+// NewMsgUnblockAddress returns a new MsgUnblockAddress
 func NewMsgUnblockAddress(sender sdk.AccAddress, denom string, addr sdk.AccAddress) MsgUnblockAddress {
 	return MsgUnblockAddress{
 		Sender:  sender,
