@@ -133,7 +133,7 @@ func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply([]byte(args[0])))
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply(args[0]))
 			if err != nil {
 				return err
 			}

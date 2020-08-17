@@ -2,7 +2,6 @@ package bep3_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -31,14 +30,14 @@ func (suite *ABCITestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
 	// Set up auth GenesisState
-	_, addrs := app.GeneratePrivKeyAddressPairs(11)
+	_, addrs := app.GeneratePrivKeyAddressPairs(12)
 	coins := []sdk.Coins{}
-	for j := 0; j < 11; j++ {
+	for j := 0; j < 12; j++ {
 		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
 	}
 	authGS := app.NewAuthGenState(addrs, coins)
 	// Initialize test app
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[0]))
+	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(addrs[11]))
 
 	suite.ctx = ctx
 	suite.app = tApp
@@ -61,12 +60,12 @@ func (suite *ABCITestSuite) ResetKeeper() {
 
 		// Create atomic swap and check err to confirm creation
 		err := suite.keeper.CreateAtomicSwap(suite.ctx, randomNumberHash, timestamp, expireHeight,
-			suite.addrs[0], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
+			suite.addrs[11], suite.addrs[i], TestSenderOtherChain, TestRecipientOtherChain,
 			amount, true)
 		suite.Nil(err)
 
 		// Store swap's calculated ID and secret random number
-		swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[0], TestSenderOtherChain)
+		swapID := bep3.CalculateSwapID(randomNumberHash, suite.addrs[11], TestSenderOtherChain)
 		swapIDs = append(swapIDs, swapID)
 		randomNumbers = append(randomNumbers, randomNumber[:])
 	}
@@ -238,61 +237,6 @@ func (suite *ABCITestSuite) TestBeginBlocker_DeleteClosedAtomicSwapsFromLongterm
 			}
 		})
 	}
-}
-
-func (suite *ABCITestSuite) TestBeginBlocker_UpdateAssetSupplies() {
-	// set new asset limit in the params
-	newBnbLimit := c("bnb", 100)
-	params := suite.keeper.GetParams(suite.ctx)
-	for i := range params.SupportedAssets {
-		if params.SupportedAssets[i].Denom != newBnbLimit.Denom {
-			continue
-		}
-		params.SupportedAssets[i].Limit = newBnbLimit.Amount
-	}
-	suite.keeper.SetParams(suite.ctx, params)
-
-	// store the old limit for future reference
-	supply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	oldBnbLimit := supply.SupplyLimit
-
-	// run before the upgrade time, check limit was not changed
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(-time.Hour)), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(oldBnbLimit))
-
-	// run at precise upgrade time, check limit was not changed
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(oldBnbLimit))
-
-	// run after upgrade time, check limit was changed
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(time.Nanosecond)), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(newBnbLimit))
-
-	// run again with new params, check limit was updated to new param limit
-	finalBnbLimit := c("bnb", 5000000000000)
-	params = suite.keeper.GetParams(suite.ctx)
-	for i := range params.SupportedAssets {
-		if params.SupportedAssets[i].Denom != finalBnbLimit.Denom {
-			continue
-		}
-		params.SupportedAssets[i].Limit = finalBnbLimit.Amount
-	}
-	suite.keeper.SetParams(suite.ctx, params)
-	bep3.BeginBlocker(suite.ctx.WithBlockTime(bep3.SupplyLimitUpgradeTime.Add(time.Hour)), suite.keeper)
-
-	supply, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(finalBnbLimit))
 }
 
 func TestABCITestSuite(t *testing.T) {

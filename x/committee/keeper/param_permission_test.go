@@ -76,19 +76,33 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	testCDPParams.DebtParam = testDP
 	testCDPParams.GlobalDebtLimit = testCPs[0].DebtLimit.Add(testCPs[0].DebtLimit) // correct global debt limit to pass genesis validation
 
+	testDeputy, err := sdk.AccAddressFromBech32("kava1xy7hrjy9r0algz9w3gzm8u6mrpq97kwta747gj")
+	suite.Require().NoError(err)
 	// bep3 Asset Params
 	testAPs := bep3types.AssetParams{
-		{
-			Denom:  "bnb",
-			CoinID: 714,
-			Limit:  i(100000000000),
-			Active: true,
+		bep3types.AssetParam{
+			Denom:         "bnb",
+			CoinID:        714,
+			SupplyLimit:   sdk.NewInt(350000000000000),
+			Active:        true,
+			DeputyAddress: testDeputy,
+			FixedFee:      sdk.NewInt(1000),
+			MinSwapAmount: sdk.OneInt(),
+			MaxSwapAmount: sdk.NewInt(1000000000000),
+			MinBlockLock:  bep3types.DefaultMinBlockLock,
+			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 		},
-		{
-			Denom:  "inc",
-			CoinID: 9999,
-			Limit:  i(100),
-			Active: false,
+		bep3types.AssetParam{
+			Denom:         "inc",
+			CoinID:        9999,
+			SupplyLimit:   sdk.NewInt(100),
+			Active:        false,
+			DeputyAddress: testDeputy,
+			FixedFee:      sdk.NewInt(1000),
+			MinSwapAmount: sdk.OneInt(),
+			MaxSwapAmount: sdk.NewInt(1000000000000),
+			MinBlockLock:  bep3types.DefaultMinBlockLock,
+			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 		},
 	}
 	testAPsUpdatedActive := make(bep3types.AssetParams, len(testAPs))
@@ -97,7 +111,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 
 	// bep3 Genesis
 	testBep3Params := bep3types.DefaultParams()
-	testBep3Params.SupportedAssets = testAPs
+	testBep3Params.AssetParams = testAPs
 
 	// pricefeed Markets
 	testMs := pricefeedtypes.Markets{
@@ -139,7 +153,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtThreshold)},
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyCollateralParams)},
 					{Subspace: cdptypes.ModuleName, Key: string(cdptypes.KeyDebtParam)},
-					{Subspace: bep3types.ModuleName, Key: string(bep3types.KeySupportedAssets)},
+					{Subspace: bep3types.ModuleName, Key: string(bep3types.KeyAssetParams)},
 					{Subspace: pricefeedtypes.ModuleName, Key: string(pricefeedtypes.KeyMarkets)},
 				},
 				AllowedCollateralParams: types.AllowedCollateralParams{
@@ -195,7 +209,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 					},
 					{
 						Subspace: bep3types.ModuleName,
-						Key:      string(bep3types.KeySupportedAssets),
+						Key:      string(bep3types.KeyAssetParams),
 						Value:    string(suite.cdc.MustMarshalJSON(testAPsUpdatedActive)),
 					},
 					{

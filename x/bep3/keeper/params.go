@@ -18,63 +18,100 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
-// GetBnbDeputyAddress returns the Bnbchain's deputy address
-func (k Keeper) GetBnbDeputyAddress(ctx sdk.Context) sdk.AccAddress {
+// ------------------------------------------
+//				Asset
+// ------------------------------------------
+
+// GetAsset returns the asset param associated with the input denom
+func (k Keeper) GetAsset(ctx sdk.Context, denom string) (types.AssetParam, error) {
 	params := k.GetParams(ctx)
-	return params.BnbDeputyAddress
+	for _, asset := range params.AssetParams {
+		if denom == asset.Denom {
+			return asset, nil
+		}
+	}
+	return types.AssetParam{}, sdkerrors.Wrap(types.ErrAssetNotSupported, denom)
 }
 
-// GetBnbDeputyFixedFee returns the deputy's fixed fee
-func (k Keeper) GetBnbDeputyFixedFee(ctx sdk.Context) sdk.Int {
+// SetAsset sets an asset in the params
+func (k Keeper) SetAsset(ctx sdk.Context, asset types.AssetParam) {
 	params := k.GetParams(ctx)
-	return params.BnbDeputyFixedFee
-}
-
-// GetMinAmount returns the minimum amount
-func (k Keeper) GetMinAmount(ctx sdk.Context) sdk.Int {
-	params := k.GetParams(ctx)
-	return params.MinAmount
-}
-
-// GetMaxAmount returns the maximum amount
-func (k Keeper) GetMaxAmount(ctx sdk.Context) sdk.Int {
-	params := k.GetParams(ctx)
-	return params.MaxAmount
-}
-
-// GetMinBlockLock returns the minimum block lock
-func (k Keeper) GetMinBlockLock(ctx sdk.Context) uint64 {
-	params := k.GetParams(ctx)
-	return params.MinBlockLock
-}
-
-// GetMaxBlockLock returns the maximum block lock
-func (k Keeper) GetMaxBlockLock(ctx sdk.Context) uint64 {
-	params := k.GetParams(ctx)
-	return params.MaxBlockLock
+	for i := range params.AssetParams {
+		if params.AssetParams[i].Denom == asset.Denom {
+			params.AssetParams[i] = asset
+		}
+	}
+	k.SetParams(ctx, params)
 }
 
 // GetAssets returns a list containing all supported assets
 func (k Keeper) GetAssets(ctx sdk.Context) (types.AssetParams, bool) {
 	params := k.GetParams(ctx)
-	return params.SupportedAssets, len(params.SupportedAssets) > 0
+	return params.AssetParams, len(params.AssetParams) > 0
 }
 
-// GetAssetByDenom returns an asset by its denom
-func (k Keeper) GetAssetByDenom(ctx sdk.Context, denom string) (types.AssetParam, bool) {
-	params := k.GetParams(ctx)
-	for _, asset := range params.SupportedAssets {
-		if asset.Denom == denom {
-			return asset, true
-		}
+// ------------------------------------------
+//				Asset-specific getters
+// ------------------------------------------
+
+// GetDeputyAddress returns the deputy address for the input denom
+func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return sdk.AccAddress{}, err
 	}
-	return types.AssetParam{}, false
+	return asset.DeputyAddress, nil
+}
+
+// GetFixedFee returns the fixed fee for incoming swaps
+func (k Keeper) GetFixedFee(ctx sdk.Context, denom string) (sdk.Int, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return sdk.Int{}, err
+	}
+	return asset.FixedFee, nil
+}
+
+// GetMinSwapAmount returns the minimum swap amount
+func (k Keeper) GetMinSwapAmount(ctx sdk.Context, denom string) (sdk.Int, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return sdk.Int{}, err
+	}
+	return asset.MinSwapAmount, nil
+}
+
+// GetMaxSwapAmount returns the maximum swap amount
+func (k Keeper) GetMaxSwapAmount(ctx sdk.Context, denom string) (sdk.Int, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return sdk.Int{}, err
+	}
+	return asset.MaxSwapAmount, nil
+}
+
+// GetMinBlockLock returns the minimum block lock
+func (k Keeper) GetMinBlockLock(ctx sdk.Context, denom string) (uint64, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return uint64(0), err
+	}
+	return asset.MinBlockLock, nil
+}
+
+// GetMaxBlockLock returns the maximum block lock
+func (k Keeper) GetMaxBlockLock(ctx sdk.Context, denom string) (uint64, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return uint64(0), err
+	}
+	return asset.MaxBlockLock, nil
 }
 
 // GetAssetByCoinID returns an asset by its denom
 func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam, bool) {
 	params := k.GetParams(ctx)
-	for _, asset := range params.SupportedAssets {
+	for _, asset := range params.AssetParams {
 		if asset.CoinID == coinID {
 			return asset, true
 		}
@@ -84,12 +121,21 @@ func (k Keeper) GetAssetByCoinID(ctx sdk.Context, coinID int) (types.AssetParam,
 
 // ValidateLiveAsset checks if an asset is both supported and active
 func (k Keeper) ValidateLiveAsset(ctx sdk.Context, coin sdk.Coin) error {
-	asset, found := k.GetAssetByDenom(ctx, coin.Denom)
-	if !found {
-		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
+	asset, err := k.GetAsset(ctx, coin.Denom)
+	if err != nil {
+		return err
 	}
 	if !asset.Active {
 		return sdkerrors.Wrap(types.ErrAssetNotActive, asset.Denom)
 	}
 	return nil
+}
+
+// GetSupplyLimit returns the supply limit for the input denom
+func (k Keeper) GetSupplyLimit(ctx sdk.Context, denom string) (sdk.Int, error) {
+	asset, err := k.GetAsset(ctx, denom)
+	if err != nil {
+		return sdk.Int{}, err
+	}
+	return asset.SupplyLimit, nil
 }
