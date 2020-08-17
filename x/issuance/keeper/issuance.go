@@ -106,7 +106,7 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	return nil
 }
 
-// UnblockAddress adds an address to the blocked list
+// UnblockAddress removes an address from the blocked list
 func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
