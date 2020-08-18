@@ -28,7 +28,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[cdp.ModuleName], &cdpGenesis)
 	if len(CollateralDenoms) == 0 {
 		for _, collateral := range cdpGenesis.Params.CollateralParams {
-			CollateralDenoms = append(CollateralDenoms, collateral.Denom)
+			CollateralDenoms = append(CollateralDenoms, collateral.Type)
 		}
 	}
 
@@ -88,7 +88,7 @@ func genRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) 
 		end := start.Add(reward.Duration).UTC()
 		baseRewardAmount := reward.AvailableRewards.Amount.Quo(sdk.NewInt(100)) // base period reward is 1/100 total reward
 		// Earlier periods have larger rewards
-		amount := sdk.NewCoin(reward.Denom, baseRewardAmount.Mul(sdk.NewInt(int64(i))))
+		amount := sdk.NewCoin("ukava", baseRewardAmount.Mul(sdk.NewInt(int64(i))))
 		claimEnd := end.Add(reward.ClaimDuration)
 		claimTimeLock := reward.TimeLock
 		// Create reward period and append to array

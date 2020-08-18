@@ -101,7 +101,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			// calculate the max amount of debt that could be drawn for the chosen deposit
 			maxDebtDraw := collateralDepositValue.Quo(randCollateralParam.LiquidationRatio).TruncateInt()
 			// check that the debt limit hasn't been reached
-			availableAssetDebt := randCollateralParam.DebtLimit.Amount.Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Denom, debtParam.Denom))
+			availableAssetDebt := randCollateralParam.DebtLimit.Amount.Sub(k.GetTotalPrincipal(ctx, randCollateralParam.Type, debtParam.Denom))
 			if availableAssetDebt.LTE(debtParam.DebtFloor) {
 				// debt limit has been reached
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "debt limit reached, cannot open cdp", false, nil), nil, nil
