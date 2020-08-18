@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -62,7 +63,10 @@ func (rp RewardPeriod) Validate() error {
 	if rp.ClaimTimeLock == 0 {
 		return errors.New("reward claim time lock cannot be 0")
 	}
-	return sdk.ValidateDenom(rp.Denom)
+	if strings.TrimSpace(rp.Denom) == "" {
+		return fmt.Errorf("reward period denom cannot be blank: %s", rp)
+	}
+	return nil
 }
 
 // RewardPeriods array of RewardPeriod
@@ -115,7 +119,10 @@ func (cp ClaimPeriod) Validate() error {
 	if cp.TimeLock == 0 {
 		return errors.New("claim period time lock cannot be 0")
 	}
-	return sdk.ValidateDenom(cp.Denom)
+	if strings.TrimSpace(cp.Denom) == "" {
+		return fmt.Errorf("claim period denom cannot be blank: %s", cp)
+	}
+	return nil
 }
 
 // String implements fmt.Stringer
@@ -180,7 +187,10 @@ func (c Claim) Validate() error {
 	if c.ClaimPeriodID == 0 {
 		return errors.New("claim period id cannot be 0")
 	}
-	return sdk.ValidateDenom(c.Denom)
+	if strings.TrimSpace(c.Denom) == "" {
+		return fmt.Errorf("claim denom cannot be blank: %s", c)
+	}
+	return nil
 }
 
 // String implements fmt.Stringer

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -141,7 +142,10 @@ func (r Reward) Validate() error {
 	if r.ClaimDuration <= 0 {
 		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration, r.Denom)
 	}
-	return sdk.ValidateDenom(r.Denom)
+	if strings.TrimSpace(r.Denom) == "" {
+		return fmt.Errorf("denom cannot be blank: %s", r)
+	}
+	return nil
 }
 
 // Rewards array of Reward

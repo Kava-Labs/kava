@@ -32,6 +32,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	testCPs := cdptypes.CollateralParams{
 		{
 			Denom:               "bnb",
+			Type:                "bnb-a",
 			LiquidationRatio:    d("2.0"),
 			DebtLimit:           c("usdx", 1000000000000),
 			StabilityFee:        d("1.000000001547125958"),
@@ -44,6 +45,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 		},
 		{
 			Denom:               "btc",
+			Type:                "btc-a",
 			LiquidationRatio:    d("1.5"),
 			DebtLimit:           c("usdx", 1000000000),
 			StabilityFee:        d("1.000000001547125958"),

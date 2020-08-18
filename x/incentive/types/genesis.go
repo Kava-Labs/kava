@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisClaimPeriodID stores the next claim id and its corresponding denom
@@ -20,7 +19,10 @@ func (gcp GenesisClaimPeriodID) Validate() error {
 	if gcp.ID == 0 {
 		return errors.New("genesis claim period id cannot be 0")
 	}
-	return sdk.ValidateDenom(gcp.Denom)
+	if strings.TrimSpace(gcp.Denom) == "" {
+		return fmt.Errorf("denom cannot be blank: %v", gcp)
+	}
+	return nil
 }
 
 // GenesisClaimPeriodIDs array of GenesisClaimPeriodID

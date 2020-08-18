@@ -196,7 +196,7 @@ func (suite *ParamTestSuite) SetupTest() {
 			},
 			errResult: errResult{
 				expectPass: false,
-				contains:   "invalid denom",
+				contains:   "denom cannot be blank",
 			},
 		},
 	}
