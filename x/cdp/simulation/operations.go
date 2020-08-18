@@ -111,7 +111,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 			// randomly select a debt draw amount
 			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(debtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
 
-			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, collateralDeposit), sdk.NewCoin(debtParam.Denom, debtDraw))
+			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, collateralDeposit), sdk.NewCoin(debtParam.Denom, debtDraw), randCollateralParam.Type)
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},
@@ -158,7 +158,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 		// deposit 25% of the time
 		if hasCoins(spendableCoins, randCollateralParam.Denom) && shouldDeposit(r) {
 			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
-			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount))
+			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount), randCollateralParam.Type)
 
 			tx := helpers.GenTx(
 				[]sdk.Msg{msg},

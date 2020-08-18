@@ -16,10 +16,10 @@ import (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/accounts", getAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralDenom), queryCdpHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps/denom/{%s}", types.RestCollateralDenom), queryCdpsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps/ratio/{%s}/{%s}", types.RestCollateralDenom, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralDenom), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps/denom/{%s}", types.RestCollateralType), queryCdpsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps/ratio/{%s}/{%s}", types.RestCollateralType, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -31,7 +31,7 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestOwner]
-		collateralDenom := vars[types.RestCollateralDenom]
+		collateralType := vars[types.RestCollateralType]
 
 		owner, err := sdk.AccAddressFromBech32(ownerBech32)
 		if err != nil {
@@ -39,7 +39,7 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryCdpParams(owner, collateralDenom)
+		params := types.NewQueryCdpParams(owner, collateralType)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -66,9 +66,9 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		vars := mux.Vars(r)
-		collateralDenom := vars[types.RestCollateralDenom]
+		collateralType := vars[types.RestCollateralType]
 
-		params := types.NewQueryCdpsParams(collateralDenom)
+		params := types.NewQueryCdpsParams(collateralType)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -95,7 +95,7 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		vars := mux.Vars(r)
-		collateralDenom := vars[types.RestCollateralDenom]
+		collateralType := vars[types.RestCollateralType]
 		ratioStr := vars[types.RestRatio]
 
 		ratioDec, sdkError := sdk.NewDecFromStr(ratioStr)
@@ -104,7 +104,7 @@ func queryCdpsByRatioHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryCdpsByRatioParams(collateralDenom, ratioDec)
+		params := types.NewQueryCdpsByRatioParams(collateralType, ratioDec)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
@@ -131,7 +131,7 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestOwner]
-		collateralDenom := vars[types.RestCollateralDenom]
+		collateralType := vars[types.RestCollateralType]
 
 		owner, err := sdk.AccAddressFromBech32(ownerBech32)
 		if err != nil {
@@ -139,7 +139,7 @@ func queryCdpDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		params := types.NewQueryCdpDeposits(owner, collateralDenom)
+		params := types.NewQueryCdpDeposits(owner, collateralType)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {

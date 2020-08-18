@@ -31,12 +31,12 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			continue
 		}
 
-		err := k.UpdateFeesForAllCdps(ctx, cp.Denom)
+		err := k.UpdateFeesForAllCdps(ctx, cp.Type)
 		if err != nil {
 			panic(err)
 		}
 
-		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Denom, cp.LiquidationRatio)
+		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Type, cp.LiquidationRatio)
 		if err != nil && !errors.Is(err, pricefeedtypes.ErrNoValidPrice) {
 			panic(err)
 		}

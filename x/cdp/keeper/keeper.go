@@ -43,22 +43,22 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 }
 
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom
-func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, denom string) sdk.Iterator {
+func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, collateralType string) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, collateralType)
 	if !found {
-		panic(fmt.Sprintf("denom %s prefix not found", denom))
+		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
 	}
 	return sdk.KVStorePrefixIterator(store, types.DenomIterKey(db))
 }
 
 // CdpCollateralRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom
 // matching denom and collateral:debt ratio LESS THAN targetRatio
-func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, denom string, targetRatio sdk.Dec) sdk.Iterator {
+func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, collateralType string, targetRatio sdk.Dec) sdk.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetDenomPrefix(ctx, denom)
+	db, found := k.GetDenomPrefix(ctx, collateralType)
 	if !found {
-		panic(fmt.Sprintf("denom %s prefix not found", denom))
+		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
 	}
 	return store.Iterator(types.CollateralRatioIterKey(db, sdk.ZeroDec()), types.CollateralRatioIterKey(db, targetRatio))
 }
@@ -79,8 +79,8 @@ func (k Keeper) IterateAllCdps(ctx sdk.Context, cb func(cdp types.CDP) (stop boo
 }
 
 // IterateCdpsByDenom iterates over cdps with matching denom and performs a callback function
-func (k Keeper) IterateCdpsByDenom(ctx sdk.Context, denom string, cb func(cdp types.CDP) (stop bool)) {
-	iterator := k.CdpDenomIndexIterator(ctx, denom)
+func (k Keeper) IterateCdpsByDenom(ctx sdk.Context, collateralType string, cb func(cdp types.CDP) (stop bool)) {
+	iterator := k.CdpDenomIndexIterator(ctx, collateralType)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -94,14 +94,13 @@ func (k Keeper) IterateCdpsByDenom(ctx sdk.Context, denom string, cb func(cdp ty
 
 // IterateCdpsByCollateralRatio iterate over cdps with collateral denom equal to denom and
 // collateral:debt ratio LESS THAN targetRatio and performs a callback function.
-func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, denom string, targetRatio sdk.Dec, cb func(cdp types.CDP) (stop bool)) {
-	iterator := k.CdpCollateralRatioIndexIterator(ctx, denom, targetRatio)
+func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, collateralType string, targetRatio sdk.Dec, cb func(cdp types.CDP) (stop bool)) {
+	iterator := k.CdpCollateralRatioIndexIterator(ctx, collateralType, targetRatio)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		db, id, _ := types.SplitCollateralRatioKey(iterator.Key())
-		d := k.getDenomFromByte(ctx, db)
-		cdp, found := k.GetCDP(ctx, d, id)
+		_, id, _ := types.SplitCollateralRatioKey(iterator.Key())
+		cdp, found := k.GetCDP(ctx, collateralType, id)
 		if !found {
 			panic(fmt.Sprintf("cdp %d does not exist", id))
 		}

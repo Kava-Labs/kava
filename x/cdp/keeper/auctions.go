@@ -12,14 +12,14 @@ const (
 )
 
 // AuctionCollateral creates auctions from the input deposits which attempt to raise the corresponding amount of debt
-func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt sdk.Int, bidDenom string) error {
+func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, collateralType string, debt sdk.Int, bidDenom string) error {
 
-	auctionSize := k.getAuctionSize(ctx, deposits[0].Amount.Denom)
+	auctionSize := k.getAuctionSize(ctx, collateralType)
 	totalCollateral := deposits.SumCollateral()
 	for _, deposit := range deposits {
 
 		debtCoveredByDeposit := (sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(totalCollateral))).Mul(sdk.NewDecFromInt(debt)).RoundInt()
-		err := k.CreateAuctionsFromDeposit(ctx, deposit.Amount, deposit.Depositor, debtCoveredByDeposit, auctionSize, bidDenom)
+		err := k.CreateAuctionsFromDeposit(ctx, deposit.Amount, collateralType, deposit.Depositor, debtCoveredByDeposit, auctionSize, bidDenom)
 		if err != nil {
 			return err
 		}
@@ -29,7 +29,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, debt
 
 // CreateAuctionsFromDeposit creates auctions from the input deposit
 func (k Keeper) CreateAuctionsFromDeposit(
-	ctx sdk.Context, collateral sdk.Coin, returnAddr sdk.AccAddress, debt, auctionSize sdk.Int,
+	ctx sdk.Context, collateral sdk.Coin, collateralType string, returnAddr sdk.AccAddress, debt, auctionSize sdk.Int,
 	principalDenom string) error {
 
 	// number of auctions of auctionSize
@@ -69,7 +69,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 			unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
 		}
 
-		penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, debtAmount)
+		penalty := k.ApplyLiquidationPenalty(ctx, collateralType, debtAmount)
 
 		_, err := k.auctionKeeper.StartCollateralAuction(
 			ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, auctionSize),
@@ -95,7 +95,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 		unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
 	}
 
-	penalty := k.ApplyLiquidationPenalty(ctx, collateral.Denom, lastAuctionDebt)
+	penalty := k.ApplyLiquidationPenalty(ctx, collateralType, lastAuctionDebt)
 
 	_, err := k.auctionKeeper.StartCollateralAuction(
 		ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, lastAuctionCollateral),
