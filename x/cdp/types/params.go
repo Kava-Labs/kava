@@ -301,12 +301,8 @@ func validateCollateralParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	type denomtype struct {
-		denom, cdptype string
-	}
-
 	prefixDupMap := make(map[int]bool)
-	typeDupMap := make(map[denomtype]bool)
+	typeDupMap := make(map[string]bool)
 	for _, cp := range collateralParams {
 		if err := sdk.ValidateDenom(cp.Denom); err != nil {
 			return fmt.Errorf("collateral denom invalid %s", cp.Denom)
@@ -336,12 +332,11 @@ func validateCollateralParams(i interface{}) error {
 
 		prefixDupMap[prefix] = true
 
-		dt := denomtype{denom: cp.Denom, cdptype: cp.Type}
-		_, found = typeDupMap[dt]
+		_, found = typeDupMap[cp.Type]
 		if found {
-			return fmt.Errorf("denom %s has duplicate cdp type: %s", cp.Denom, cp.Type)
+			return fmt.Errorf("duplicate cdp collateral type: %s", cp.Type)
 		}
-		typeDupMap[dt] = true
+		typeDupMap[cp.Type] = true
 
 		if !cp.DebtLimit.IsValid() {
 			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)

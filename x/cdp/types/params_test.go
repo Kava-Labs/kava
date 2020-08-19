@@ -449,7 +449,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "duplicate cdp type",
+				contains:   "duplicate cdp collateral type",
 			},
 		},
 		{
