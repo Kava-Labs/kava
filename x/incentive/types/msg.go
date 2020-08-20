@@ -13,15 +13,15 @@ var _ sdk.Msg = &MsgClaimReward{}
 
 // MsgClaimReward message type used to claim rewards
 type MsgClaimReward struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Denom  string         `json:"denom" yaml:"denom"`
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
 }
 
 // NewMsgClaimReward returns a new MsgClaimReward.
-func NewMsgClaimReward(sender sdk.AccAddress, denom string) MsgClaimReward {
+func NewMsgClaimReward(sender sdk.AccAddress, collateralType string) MsgClaimReward {
 	return MsgClaimReward{
-		Sender: sender,
-		Denom:  denom,
+		Sender:         sender,
+		CollateralType: collateralType,
 	}
 }
 
@@ -36,8 +36,8 @@ func (msg MsgClaimReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
-	if strings.TrimSpace(msg.Denom) == "" {
-		return fmt.Errorf("denom cannot be blank")
+	if strings.TrimSpace(msg.CollateralType) == "" {
+		return fmt.Errorf("collateral type cannot be blank")
 	}
 	return nil
 }

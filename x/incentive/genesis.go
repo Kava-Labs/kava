@@ -25,7 +25,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 	k.SetParams(ctx, gs.Params)
 
 	for _, r := range gs.Params.Rewards {
-		k.SetNextClaimPeriodID(ctx, r.Denom, 1)
+		k.SetNextClaimPeriodID(ctx, r.CollateralType, 1)
 	}
 
 	// only set the previous block time if it's different than default
@@ -47,7 +47,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 	}
 
 	for _, id := range gs.NextClaimPeriodIDs {
-		k.SetNextClaimPeriodID(ctx, id.Denom, id.ID)
+		k.SetNextClaimPeriodID(ctx, id.CollateralType, id.ID)
 	}
 
 }

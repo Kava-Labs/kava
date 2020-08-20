@@ -12,9 +12,9 @@ import (
 
 // HandleRewardPeriodExpiry deletes expired RewardPeriods from the store and creates a ClaimPeriod in the store for each expired RewardPeriod
 func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod) {
-	k.CreateUniqueClaimPeriod(ctx, rp.Denom, rp.ClaimEnd, rp.ClaimTimeLock)
+	k.CreateUniqueClaimPeriod(ctx, rp.CollateralType, rp.ClaimEnd, rp.ClaimTimeLock)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	store.Delete([]byte(rp.Denom))
+	store.Delete([]byte(rp.CollateralType))
 	return
 }
 
@@ -36,10 +36,10 @@ func (k Keeper) CreateAndDeleteRewardPeriods(ctx sdk.Context) {
 	params := k.GetParams(ctx)
 
 	for _, r := range params.Rewards {
-		_, found := k.GetRewardPeriod(ctx, r.Denom)
+		_, found := k.GetRewardPeriod(ctx, r.CollateralType)
 		// if governance has made a reward inactive, delete the current period
 		if found && !r.Active {
-			k.DeleteRewardPeriod(ctx, r.Denom)
+			k.DeleteRewardPeriod(ctx, r.CollateralType)
 		}
 		// if a reward period for an active reward is not found, create one
 		if !found && r.Active {
@@ -61,7 +61,7 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 	k.IterateRewardPeriods(ctx, func(rp types.RewardPeriod) bool {
 		expired := false
 		// the total amount of usdx created with the collateral type being incentivized
-		totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, rp.Denom, types.PrincipalDenom)
+		totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, rp.CollateralType, types.PrincipalDenom)
 		// the number of seconds since last payout
 		timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 		if rp.End.Before(ctx.BlockTime()) {
@@ -71,15 +71,15 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 
 		// the amount of rewards to pay (rewardAmount * timeElapsed)
 		rewardsThisPeriod := rp.Reward.Amount.Mul(timeElapsed)
-		id := k.GetNextClaimPeriodID(ctx, rp.Denom)
-		k.cdpKeeper.IterateCdpsByDenom(ctx, rp.Denom, func(cdp cdptypes.CDP) bool {
+		id := k.GetNextClaimPeriodID(ctx, rp.CollateralType)
+		k.cdpKeeper.IterateCdpsByDenom(ctx, rp.CollateralType, func(cdp cdptypes.CDP) bool {
 			rewardsShare := sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Quo(sdk.NewDecFromInt(totalPrincipal))
 			// sanity check - don't create zero claims
 			if rewardsShare.IsZero() {
 				return false
 			}
 			rewardsEarned := rewardsShare.Mul(sdk.NewDecFromInt(rewardsThisPeriod)).RoundInt()
-			k.AddToClaim(ctx, cdp.Owner, rp.Denom, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
+			k.AddToClaim(ctx, cdp.Owner, rp.CollateralType, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
 			return false
 		})
 		if !expired {
@@ -93,9 +93,9 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 }
 
 // CreateUniqueClaimPeriod creates a new claim period in the store and updates the highest claim period id
-func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, denom string, end time.Time, timeLock time.Duration) {
-	id := k.GetNextClaimPeriodID(ctx, denom)
-	claimPeriod := types.NewClaimPeriod(denom, id, end, timeLock)
+func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, collateralType string, end time.Time, timeLock time.Duration) {
+	id := k.GetNextClaimPeriodID(ctx, collateralType)
+	claimPeriod := types.NewClaimPeriod(collateralType, id, end, timeLock)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaimPeriod,
@@ -103,16 +103,16 @@ func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, denom string, end time.
 		),
 	)
 	k.SetClaimPeriod(ctx, claimPeriod)
-	k.SetNextClaimPeriodID(ctx, denom, id+1)
+	k.SetNextClaimPeriodID(ctx, collateralType, id+1)
 }
 
 // AddToClaim adds the amount to an existing claim or creates a new one for that amount
-func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64, amount sdk.Coin) {
-	claim, found := k.GetClaim(ctx, addr, denom, id)
+func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64, amount sdk.Coin) {
+	claim, found := k.GetClaim(ctx, addr, collateralType, id)
 	if found {
 		claim.Reward = claim.Reward.Add(amount)
 	} else {
-		claim = types.NewClaim(addr, amount, denom, id)
+		claim = types.NewClaim(addr, amount, collateralType, id)
 	}
 	k.SetClaim(ctx, claim)
 }

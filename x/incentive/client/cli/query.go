@@ -51,8 +51,8 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			bz, err := cdc.MarshalJSON(types.QueryClaimsParams{
-				Owner: ownerAddress,
-				Denom: args[1],
+				Owner:          ownerAddress,
+				CollateralType: args[1],
 			})
 			if err != nil {
 				return err
