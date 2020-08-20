@@ -64,7 +64,6 @@ type vestingAccountPretty struct {
 }
 
 func (pva PeriodicVestingAccount) MarshalJSON() ([]byte, error) {
-	//pubKey := prettyPublicKey{keyType: "test", value: crypto.AddressHash(pva.PubKey.Bytes())}
 	pubKey := prettyPublicKey{PubKey: pva.PubKey}
 
 	alias := vestingAccountPretty{
