@@ -92,7 +92,7 @@ func genRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) 
 		claimEnd := end.Add(reward.ClaimDuration)
 		claimTimeLock := reward.TimeLock
 		// Create reward period and append to array
-		rewardPeriods[i] = types.NewRewardPeriod(reward.Denom, start, end, amount, claimEnd, claimTimeLock)
+		rewardPeriods[i] = types.NewRewardPeriod(reward.CollateralType, start, end, amount, claimEnd, claimTimeLock)
 		// Update start time of next reward period
 		rewardPeriodStart = end
 	}
@@ -105,7 +105,7 @@ func genClaimPeriods(rewardPeriods types.RewardPeriods) types.ClaimPeriods {
 	claimPeriods := make(types.ClaimPeriods, len(rewardPeriods))
 	for i, rewardPeriod := range rewardPeriods {
 		// Increment reward period count for this denom (this is our claim period's ID)
-		denom := rewardPeriod.Denom
+		denom := rewardPeriod.CollateralType
 		numbRewardPeriods := denomRewardPeriodsCount[denom] + 1
 		denomRewardPeriodsCount[denom] = numbRewardPeriods
 		// Set end and timelock from the associated reward period
@@ -123,11 +123,11 @@ func genNextClaimPeriodIds(cps types.ClaimPeriods) types.GenesisClaimPeriodIDs {
 	mostRecentClaimPeriodByDenom := make(map[string]uint64)
 	var claimPeriodIDs types.GenesisClaimPeriodIDs
 	for _, cp := range cps {
-		if cp.ID <= mostRecentClaimPeriodByDenom[cp.Denom] {
+		if cp.ID <= mostRecentClaimPeriodByDenom[cp.CollateralType] {
 			continue
 		}
-		claimPeriodIDs = append(claimPeriodIDs, types.GenesisClaimPeriodID{Denom: cp.Denom, ID: cp.ID})
-		mostRecentClaimPeriodByDenom[cp.Denom] = cp.ID
+		claimPeriodIDs = append(claimPeriodIDs, types.GenesisClaimPeriodID{CollateralType: cp.CollateralType, ID: cp.ID})
+		mostRecentClaimPeriodByDenom[cp.CollateralType] = cp.ID
 
 	}
 	return claimPeriodIDs

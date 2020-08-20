@@ -38,7 +38,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -58,7 +58,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -78,7 +78,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -86,7 +86,7 @@ func (suite *ParamTestSuite) SetupTest() {
 					},
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -96,7 +96,7 @@ func (suite *ParamTestSuite) SetupTest() {
 			},
 			errResult: errResult{
 				expectPass: false,
-				contains:   "cannot have duplicate reward denoms",
+				contains:   "cannot have duplicate reward collateral type",
 			},
 		},
 		{
@@ -106,7 +106,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * -24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -126,7 +126,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * -8766,
@@ -146,7 +146,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -166,7 +166,7 @@ func (suite *ParamTestSuite) SetupTest() {
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "bnb",
+						CollateralType:   "bnb-a",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(0)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -180,13 +180,13 @@ func (suite *ParamTestSuite) SetupTest() {
 			},
 		},
 		{
-			name: "empty reward denom",
+			name: "empty reward collateral type",
 			params: types.Params{
 				Active: true,
 				Rewards: types.Rewards{
 					types.Reward{
 						Active:           true,
-						Denom:            "",
+						CollateralType:   "",
 						AvailableRewards: sdk.NewCoin("ukava", sdk.NewInt(1)),
 						Duration:         time.Hour * 24 * 7,
 						TimeLock:         time.Hour * 8766,
@@ -196,7 +196,7 @@ func (suite *ParamTestSuite) SetupTest() {
 			},
 			errResult: errResult{
 				expectPass: false,
-				contains:   "denom cannot be blank",
+				contains:   "collateral type cannot be blank",
 			},
 		},
 	}

@@ -13,21 +13,21 @@ import (
 )
 
 // PayoutClaim sends the timelocked claim coins to the input address
-func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64) error {
-	claim, found := k.GetClaim(ctx, addr, denom, id)
+func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64) error {
+	claim, found := k.GetClaim(ctx, addr, collateralType, id)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, denom %s, address: %s", id, denom, addr)
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, collateral type %s, address: %s", id, collateralType, addr)
 	}
-	claimPeriod, found := k.GetClaimPeriod(ctx, id, denom)
+	claimPeriod, found := k.GetClaimPeriod(ctx, id, collateralType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, denom: %s", id, denom)
+		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, collateral type: %s", id, collateralType)
 	}
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
 	if err != nil {
 		return err
 	}
 
-	k.DeleteClaim(ctx, addr, denom, id)
+	k.DeleteClaim(ctx, addr, collateralType, id)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -97,13 +97,13 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 			return false
 		}
 		k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-			if !(c.Denom == cp.Denom && c.ClaimPeriodID == cp.ID) {
+			if !(c.CollateralType == cp.CollateralType && c.ClaimPeriodID == cp.ID) {
 				return false
 			}
-			k.DeleteClaim(ctx, c.Owner, c.Denom, c.ClaimPeriodID)
+			k.DeleteClaim(ctx, c.Owner, c.CollateralType, c.ClaimPeriodID)
 			return false
 		})
-		k.DeleteClaimPeriod(ctx, cp.ID, cp.Denom)
+		k.DeleteClaimPeriod(ctx, cp.ID, cp.CollateralType)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeClaimPeriodExpiry,
@@ -115,14 +115,14 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 	})
 }
 
-// GetClaimsByAddressAndDenom returns all claims for a specific user and address and a bool for if any were found
-func (k Keeper) GetClaimsByAddressAndDenom(ctx sdk.Context, addr sdk.AccAddress, denom string) (claims types.Claims, found bool) {
+// GetClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
+func (k Keeper) GetClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.Claims, found bool) {
 	found = false
 	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.Denom != denom {
+		if cp.CollateralType != collateralType {
 			return false
 		}
-		c, hasClaim := k.GetClaim(ctx, addr, cp.Denom, cp.ID)
+		c, hasClaim := k.GetClaim(ctx, addr, cp.CollateralType, cp.ID)
 		if !hasClaim {
 			return false
 		}

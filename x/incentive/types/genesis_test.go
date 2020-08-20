@@ -20,29 +20,29 @@ func TestGenesisClaimPeriodIDsValidate(t *testing.T) {
 		{
 			"valid",
 			GenesisClaimPeriodIDs{
-				{Denom: "bnb", ID: 1},
+				{CollateralType: "bnb", ID: 1},
 			},
 			true,
 		},
 		{
-			"invalid denom",
+			"invalid collateral type",
 			GenesisClaimPeriodIDs{
-				{Denom: "", ID: 1},
+				{CollateralType: "", ID: 1},
 			},
 			false,
 		},
 		{
 			"invalid ID",
 			GenesisClaimPeriodIDs{
-				{Denom: "bnb", ID: 0},
+				{CollateralType: "bnb", ID: 0},
 			},
 			false,
 		},
 		{
 			"duplicate",
 			GenesisClaimPeriodIDs{
-				{Denom: "bnb", ID: 1},
-				{Denom: "bnb", ID: 1},
+				{CollateralType: "bnb", ID: 1},
+				{CollateralType: "bnb", ID: 1},
 			},
 			false,
 		},
@@ -74,7 +74,7 @@ func TestGenesisStateValidate(t *testing.T) {
 	rewardPeriods := RewardPeriods{NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, 10)}
 	claimPeriods := ClaimPeriods{NewClaimPeriod("bnb", 10, now, 100)}
 	claims := Claims{NewClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), "bnb", 10)}
-	gcps := GenesisClaimPeriodIDs{{Denom: "bnb", ID: 1}}
+	gcps := GenesisClaimPeriodIDs{{CollateralType: "bnb", ID: 1}}
 
 	testCases := []struct {
 		msg          string

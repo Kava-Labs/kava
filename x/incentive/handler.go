@@ -24,13 +24,13 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
 
-	claims, found := k.GetClaimsByAddressAndDenom(ctx, msg.Sender, msg.Denom)
+	claims, found := k.GetClaimsByAddressAndCollateralType(ctx, msg.Sender, msg.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrNoClaimsFound, "address: %s, denom: %s", msg.Sender, msg.Denom)
+		return nil, sdkerrors.Wrapf(types.ErrNoClaimsFound, "address: %s, collateral type: %s", msg.Sender, msg.CollateralType)
 	}
 
 	for _, claim := range claims {
-		err := k.PayoutClaim(ctx, claim.Owner, claim.Denom, claim.ClaimPeriodID)
+		err := k.PayoutClaim(ctx, claim.Owner, claim.CollateralType, claim.ClaimPeriodID)
 		if err != nil {
 			return nil, err
 		}
