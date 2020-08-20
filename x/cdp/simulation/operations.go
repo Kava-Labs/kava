@@ -78,7 +78,7 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 		}
 		spendableCoins = spendableCoins.Sub(fees)
 
-		existingCDP, found := k.GetCdpByOwnerAndDenom(ctx, acc.GetAddress(), randCollateralParam.Denom)
+		existingCDP, found := k.GetCdpByOwnerAndCollateralType(ctx, acc.GetAddress(), randCollateralParam.Denom)
 		if !found {
 			// calculate the minimum amount of collateral that is needed to create a cdp with the debt floor amount of debt and the minimum liquidation ratio
 			// (debtFloor * liquidationRatio)/priceShifted

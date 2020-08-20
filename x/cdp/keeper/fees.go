@@ -27,7 +27,7 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 // UpdateFeesForAllCdps updates the fees for each of the CDPs
 func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralType string) error {
 	var iterationErr error
-	k.IterateCdpsByDenom(ctx, collateralType, func(cdp types.CDP) bool {
+	k.IterateCdpsByCollateralType(ctx, collateralType, func(cdp types.CDP) bool {
 		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 		// periods = bblock timestamp - fees updated
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
@@ -129,7 +129,7 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 // SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
 func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	_, found := k.GetDenomPrefix(ctx, collateralType)
+	_, found := k.GetCollateralTypePrefix(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))
 	}

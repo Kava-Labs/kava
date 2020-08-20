@@ -40,8 +40,8 @@ func (k Keeper) GetDebtParam(ctx sdk.Context, denom string) (types.DebtParam, bo
 	return types.DebtParam{}, false
 }
 
-// GetDenomPrefix returns the prefix of the matching denom
-func (k Keeper) GetDenomPrefix(ctx sdk.Context, collateralType string) (byte, bool) {
+// GetCollateralTypePrefix returns the prefix of the matching denom
+func (k Keeper) GetCollateralTypePrefix(ctx sdk.Context, collateralType string) (byte, bool) {
 	params := k.GetParams(ctx)
 	for _, cp := range params.CollateralParams {
 		if cp.Type == collateralType {
