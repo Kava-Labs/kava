@@ -21,7 +21,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	if err != nil {
 		return err
 	}
-	_, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateralType)
+	_, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if found {
 		return sdkerrors.Wrapf(types.ErrCdpAlreadyExists, "owner %s, denom %s", owner, collateral.Denom)
 	}
@@ -153,8 +153,8 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 	return cdpIDs, true
 }
 
-// GetCdpByOwnerAndDenom queries cdps owned by owner and returns the cdp with matching denom
-func (k Keeper) GetCdpByOwnerAndDenom(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (types.CDP, bool) {
+// GetCdpByOwnerAndCollateralType queries cdps owned by owner and returns the cdp with matching denom
+func (k Keeper) GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (types.CDP, bool) {
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
 	if !found {
 		return types.CDP{}, false
@@ -172,7 +172,7 @@ func (k Keeper) GetCdpByOwnerAndDenom(ctx sdk.Context, owner sdk.AccAddress, col
 func (k Keeper) GetCDP(ctx sdk.Context, collateralType string, cdpID uint64) (types.CDP, bool) {
 	// get store
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetDenomPrefix(ctx, collateralType)
+	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
 	if !found {
 		return types.CDP{}, false
 	}
@@ -190,7 +190,7 @@ func (k Keeper) GetCDP(ctx sdk.Context, collateralType string, cdpID uint64) (ty
 // SetCDP sets a cdp in the store
 func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetDenomPrefix(ctx, cdp.Type)
+	db, found := k.GetCollateralTypePrefix(ctx, cdp.Type)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
@@ -202,7 +202,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 // DeleteCDP deletes a cdp from the store
 func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	db, found := k.GetDenomPrefix(ctx, cdp.Type)
+	db, found := k.GetCollateralTypePrefix(ctx, cdp.Type)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
@@ -220,17 +220,17 @@ func (k Keeper) GetAllCdps(ctx sdk.Context) (cdps types.CDPs) {
 	return
 }
 
-// GetAllCdpsByDenom returns all cdps of a particular collateral type from the store
-func (k Keeper) GetAllCdpsByDenom(ctx sdk.Context, collateralType string) (cdps types.CDPs) {
-	k.IterateCdpsByDenom(ctx, collateralType, func(cdp types.CDP) bool {
+// GetAllCdpsByCollateralType returns all cdps of a particular collateral type from the store
+func (k Keeper) GetAllCdpsByCollateralType(ctx sdk.Context, collateralType string) (cdps types.CDPs) {
+	k.IterateCdpsByCollateralType(ctx, collateralType, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		return false
 	})
 	return
 }
 
-// GetAllCdpsByDenomAndRatio returns all cdps of a particular collateral type and below a certain collateralization ratio
-func (k Keeper) GetAllCdpsByDenomAndRatio(ctx sdk.Context, collateralType string, targetRatio sdk.Dec) (cdps types.CDPs) {
+// GetAllCdpsByCollateralTypeAndRatio returns all cdps of a particular collateral type and below a certain collateralization ratio
+func (k Keeper) GetAllCdpsByCollateralTypeAndRatio(ctx sdk.Context, collateralType string, targetRatio sdk.Dec) (cdps types.CDPs) {
 	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		return false
@@ -293,7 +293,7 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
 func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetDenomPrefix(ctx, collateralType)
+	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
 	}
@@ -303,7 +303,7 @@ func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, collateralType string
 // RemoveCdpCollateralRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
 func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
-	db, found := k.GetDenomPrefix(ctx, collateralType)
+	db, found := k.GetCollateralTypePrefix(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("denom %s prefix not found", collateralType))
 	}

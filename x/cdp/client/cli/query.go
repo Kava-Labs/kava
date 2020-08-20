@@ -26,8 +26,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	cdpQueryCmd.AddCommand(flags.GetCommands(
 		QueryCdpCmd(queryRoute, cdc),
-		QueryCdpsByDenomCmd(queryRoute, cdc),
-		QueryCdpsByDenomAndRatioCmd(queryRoute, cdc),
+		QueryCdpsByCollateralTypeCmd(queryRoute, cdc),
+		QueryCdpsByCollateralTypeAndRatioCmd(queryRoute, cdc),
 		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 		QueryGetAccounts(queryRoute, cdc),
@@ -79,8 +79,8 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 	}
 }
 
-// QueryCdpsByDenomCmd returns the command handler for querying cdps for a collateral type
-func QueryCdpsByDenomCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryCdpsByCollateralTypeCmd returns the command handler for querying cdps for a collateral type
+func QueryCdpsByCollateralTypeCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "cdps [collateral-type]",
 		Short: "query CDPs by collateral",
@@ -115,9 +115,9 @@ $ %s query %s cdps atom-a
 	}
 }
 
-// QueryCdpsByDenomAndRatioCmd returns the command handler for querying cdps
+// QueryCdpsByCollateralTypeAndRatioCmd returns the command handler for querying cdps
 // that are under the specified collateral ratio
-func QueryCdpsByDenomAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryCdpsByCollateralTypeAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "cdps-by-ratio [collateral-type] [collateralization-ratio]",
 		Short: "get cdps under a collateralization ratio",

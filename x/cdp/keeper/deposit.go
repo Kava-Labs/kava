@@ -17,7 +17,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	if err != nil {
 		return err
 	}
-	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateralType)
+	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateralType)
 	}
@@ -56,7 +56,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	if err != nil {
 		return err
 	}
-	cdp, found := k.GetCdpByOwnerAndDenom(ctx, owner, collateralType)
+	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateral.Denom)
 	}

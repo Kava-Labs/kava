@@ -105,10 +105,10 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	suite.Require().True(errors.Is(err, types.ErrCdpAlreadyExists))
 }
 
-func (suite *CdpTestSuite) TestGetSetDenomByte() {
-	_, found := suite.keeper.GetDenomPrefix(suite.ctx, "lol-a")
+func (suite *CdpTestSuite) TestGetSetCollateralTypeByte() {
+	_, found := suite.keeper.GetCollateralTypePrefix(suite.ctx, "lol-a")
 	suite.False(found)
-	db, found := suite.keeper.GetDenomPrefix(suite.ctx, "xrp-a")
+	db, found := suite.keeper.GetCollateralTypePrefix(suite.ctx, "xrp-a")
 	suite.True(found)
 	suite.Equal(byte(0x20), db)
 }
@@ -158,18 +158,18 @@ func (suite *CdpTestSuite) TestGetSetCdpId() {
 	suite.False(found)
 }
 
-func (suite *CdpTestSuite) TestGetSetCdpByOwnerAndDenom() {
+func (suite *CdpTestSuite) TestGetSetCdpByOwnerAndCollateralType() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()))
 	err := suite.keeper.SetCDP(suite.ctx, cdp)
 	suite.NoError(err)
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdp)
-	t, found := suite.keeper.GetCdpByOwnerAndDenom(suite.ctx, addrs[0], "xrp-a")
+	t, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, addrs[0], "xrp-a")
 	suite.True(found)
 	suite.Equal(cdp, t)
-	_, found = suite.keeper.GetCdpByOwnerAndDenom(suite.ctx, addrs[0], "lol-a")
+	_, found = suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, addrs[0], "lol-a")
 	suite.False(found)
-	_, found = suite.keeper.GetCdpByOwnerAndDenom(suite.ctx, addrs[1], "xrp-a")
+	_, found = suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, addrs[1], "xrp-a")
 	suite.False(found)
 	suite.NotPanics(func() { suite.keeper.IndexCdpByOwner(suite.ctx, cdp) })
 }
@@ -204,7 +204,7 @@ func (suite *CdpTestSuite) TestIterateCdps() {
 	suite.Equal(4, len(t))
 }
 
-func (suite *CdpTestSuite) TestIterateCdpsByDenom() {
+func (suite *CdpTestSuite) TestIterateCdpsByCollateralType() {
 	cdps := cdps()
 	for _, c := range cdps {
 		err := suite.keeper.SetCDP(suite.ctx, c)
@@ -213,13 +213,13 @@ func (suite *CdpTestSuite) TestIterateCdpsByDenom() {
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Type, c.Principal)
 		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Type, c.ID, cr)
 	}
-	xrpCdps := suite.keeper.GetAllCdpsByDenom(suite.ctx, "xrp-a")
+	xrpCdps := suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "xrp-a")
 	suite.Equal(3, len(xrpCdps))
-	btcCdps := suite.keeper.GetAllCdpsByDenom(suite.ctx, "btc-a")
+	btcCdps := suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "btc-a")
 	suite.Equal(1, len(btcCdps))
 	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
-	xrpCdps = suite.keeper.GetAllCdpsByDenom(suite.ctx, "xrp-a")
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralType(suite.ctx, "xrp-a")
 	suite.Equal(2, len(xrpCdps))
 	suite.keeper.DeleteCDP(suite.ctx, cdps[1])
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[1])
@@ -238,19 +238,19 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 		cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, c.Collateral, c.Type, c.Principal)
 		suite.keeper.IndexCdpByCollateralRatio(suite.ctx, c.Type, c.ID, cr)
 	}
-	xrpCdps := suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp-a", d("1.25"))
+	xrpCdps := suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("1.25"))
 	suite.Equal(0, len(xrpCdps))
-	xrpCdps = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp-a", d("1.25").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("1.25").Add(sdk.SmallestDec()))
 	suite.Equal(1, len(xrpCdps))
-	xrpCdps = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
 	suite.Equal(2, len(xrpCdps))
-	xrpCdps = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdk.SmallestDec()))
 	suite.Equal(3, len(xrpCdps))
 	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdps[0].Collateral, cdps[0].Type, cdps[0].Principal)
 	suite.keeper.RemoveCdpCollateralRatioIndex(suite.ctx, cdps[0].Type, cdps[0].ID, cr)
-	xrpCdps = suite.keeper.GetAllCdpsByDenomAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
 	suite.Equal(1, len(xrpCdps))
 }
 

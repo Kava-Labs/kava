@@ -77,7 +77,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 	// liquidation ratio = 1.5
 	// normalizedRatio = (1/(0.5/1.5)) = 3
 	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio)
-	cdpsToLiquidate := k.GetAllCdpsByDenomAndRatio(ctx, collateralType, normalizedRatio)
+	cdpsToLiquidate := k.GetAllCdpsByCollateralTypeAndRatio(ctx, collateralType, normalizedRatio)
 	for _, c := range cdpsToLiquidate {
 		err := k.SeizeCollateral(ctx, c)
 		if err != nil {

@@ -80,7 +80,7 @@ func GetCmdDeposit(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Add collateral to an existing cdp.
 
 Example:
-$ %s tx %s deposit kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom --from myKeyName
+$ %s tx %s deposit kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom atom-a --from myKeyName
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -181,7 +181,7 @@ func GetCmdRepay(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Cancel out debt in an existing cdp.
 
 Example:
-$ %s tx %s repay uatom 1000usdx --from myKeyName
+$ %s tx %s repay atom-a 1000usdx --from myKeyName
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

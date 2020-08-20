@@ -153,7 +153,7 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 
 }
 
-func (suite *QuerierTestSuite) TestQueryCdpsByDenom() {
+func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),

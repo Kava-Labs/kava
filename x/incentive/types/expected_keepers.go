@@ -17,7 +17,7 @@ type SupplyKeeper interface {
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
-	IterateCdpsByDenom(ctx sdk.Context, collateralType string, cb func(cdp cdptypes.CDP) (stop bool))
+	IterateCdpsByCollateralType(ctx sdk.Context, collateralType string, cb func(cdp cdptypes.CDP) (stop bool))
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
 }
 
