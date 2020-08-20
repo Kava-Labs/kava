@@ -5,6 +5,8 @@ import (
 
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
+	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
 )
 
 // MigrateBep3 migrates from a v0.9 (or v0.10) bep3 genesis state to a v0.11 bep3 genesis state
@@ -65,4 +67,47 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			AssetParams: assetParams},
 		AtomicSwaps: swaps,
 	}
+}
+
+// MigrateCDP migrates from a v0.9 (or v0.10) cdp genesis state to a v0.11 cdp genesis state
+func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
+	var newCDPs v0_11cdp.CDPs
+	var newDeposits v0_11cdp.Deposits
+	var newCollateralParams v0_11cdp.CollateralParams
+	newStartingID := uint64(0)
+
+	for _, cdp := range oldGenState.CDPs {
+		newCDP := v0_11cdp.NewCDP(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
+		newCDPs = append(newCDPs, newCDP)
+		if cdp.ID >= newStartingID {
+			newStartingID = cdp.ID + 1
+		}
+	}
+
+	for _, dep := range oldGenState.Deposits {
+		newDep := v0_11cdp.NewDeposit(dep.CdpID, dep.Depositor, dep.Amount)
+		newDeposits = append(newDeposits, newDep)
+	}
+
+	for _, cp := range oldGenState.Params.CollateralParams {
+		newCollateralParam := v0_11cdp.NewCollateralParam(cp.Denom, "bnb-a", cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
+		newCollateralParams = append(newCollateralParams, newCollateralParam)
+	}
+
+	oldDebtParam := oldGenState.Params.DebtParam
+
+	newDebtParam := v0_11cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor, oldDebtParam.SavingsRate)
+
+	newParams := v0_11cdp.NewParams(oldGenState.Params.GlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, oldGenState.Params.SavingsDistributionFrequency, false)
+
+	return v0_11cdp.GenesisState{
+		Params:                   newParams,
+		CDPs:                     newCDPs,
+		Deposits:                 newDeposits,
+		StartingCdpID:            newStartingID,
+		DebtDenom:                oldGenState.DebtDenom,
+		GovDenom:                 oldGenState.GovDenom,
+		PreviousDistributionTime: oldGenState.PreviousDistributionTime,
+	}
+
 }
