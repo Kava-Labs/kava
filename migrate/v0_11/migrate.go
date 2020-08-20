@@ -7,6 +7,8 @@ import (
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
+	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 )
 
 // MigrateBep3 migrates from a v0.9 (or v0.10) bep3 genesis state to a v0.11 bep3 genesis state
@@ -110,4 +112,44 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 		PreviousDistributionTime: oldGenState.PreviousDistributionTime,
 	}
 
+}
+
+// MigrateIncentive migrates from a v0.9 (or v0.10) incentive genesis state to a v0.11 incentive genesis state
+func MigrateIncentive(oldGenState v0_9incentive.GenesisState) v0_11incentive.GenesisState {
+	var newRewards v0_11incentive.Rewards
+	var newRewardPeriods v0_11incentive.RewardPeriods
+	var newClaimPeriods v0_11incentive.ClaimPeriods
+	var newClaims v0_11incentive.Claims
+	var newClaimPeriodIds v0_11incentive.GenesisClaimPeriodIDs
+
+	for _, oldReward := range oldGenState.Params.Rewards {
+		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom, oldReward.AvailableRewards, oldReward.Duration, oldReward.TimeLock, oldReward.ClaimDuration)
+		newRewards = append(newRewards, newReward)
+	}
+	newParams := v0_11incentive.NewParams(true, newRewards)
+
+	for _, oldRewardPeriod := range oldGenState.RewardPeriods {
+		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom, oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, oldRewardPeriod.ClaimTimeLock)
+		newRewardPeriods = append(newRewardPeriods, newRewardPeriod)
+	}
+
+	for _, oldClaimPeriod := range oldGenState.ClaimPeriods {
+		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom, oldClaimPeriod.ID, oldClaimPeriod.End, oldClaimPeriod.TimeLock)
+		newClaimPeriods = append(newClaimPeriods, newClaimPeriod)
+	}
+
+	for _, oldClaim := range oldGenState.Claims {
+		newClaim := v0_11incentive.NewClaim(oldClaim.Owner, oldClaim.Reward, oldClaim.Denom, oldClaim.ClaimPeriodID)
+		newClaims = append(newClaims, newClaim)
+	}
+
+	for _, oldClaimPeriodID := range oldGenState.NextClaimPeriodIDs {
+		newClaimPeriodID := v0_11incentive.GenesisClaimPeriodID{
+			CollateralType: oldClaimPeriodID.Denom,
+			ID:             oldClaimPeriodID.ID,
+		}
+		newClaimPeriodIds = append(newClaimPeriodIds, newClaimPeriodID)
+	}
+
+	return v0_11incentive.NewGenesisState(newParams, oldGenState.PreviousBlockTime, newRewardPeriods, newClaimPeriods, newClaims, newClaimPeriodIds)
 }
