@@ -28,6 +28,15 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		k.SetAssetSupply(ctx, supply, supply.GetDenom())
 	}
 
+	for _, asset := range gs.Params.Assets {
+		if asset.RateLimit.Active {
+			_, found := k.GetAssetSupply(ctx, asset.Denom)
+			if !found {
+				k.CreateNewAssetSupply(ctx, asset.Denom)
+			}
+		}
+	}
+
 }
 
 // ExportGenesis export genesis state for issuance module
