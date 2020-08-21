@@ -34,7 +34,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		vars := mux.Vars(r)
 		ownerBech32 := vars[types.RestClaimOwner]
-		denom := vars[types.RestClaimDenom]
+		denom := vars[types.RestClaimCollateralType]
 
 		owner, err := sdk.AccAddressFromBech32(ownerBech32)
 		if err != nil {

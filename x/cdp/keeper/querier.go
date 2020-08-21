@@ -18,7 +18,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryGetCdp:
 			return queryGetCdp(ctx, req, keeper)
 		case types.QueryGetCdps:
-			return queryGetCdpsByDenom(ctx, req, keeper)
+			return queryGetCdpsByCollateralType(ctx, req, keeper)
 		case types.QueryGetCdpsByCollateralization:
 			return queryGetCdpsByRatio(ctx, req, keeper)
 		case types.QueryGetParams:
@@ -41,14 +41,14 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
 	}
 
-	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
+	cdp, found := keeper.GetCdpByOwnerAndCollateralType(ctx, requestParams.Owner, requestParams.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralType)
 	}
 
 	augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
@@ -69,14 +69,14 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
 	}
 
-	cdp, found := keeper.GetCdpByOwnerAndDenom(ctx, requestParams.Owner, requestParams.CollateralDenom)
+	cdp, found := keeper.GetCdpByOwnerAndCollateralType(ctx, requestParams.Owner, requestParams.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralType)
 	}
 
 	deposits := keeper.GetDeposits(ctx, cdp.ID)
@@ -96,17 +96,17 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
 	}
 
-	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralDenom, requestParams.Ratio, "liquidation")
+	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralType, requestParams.Ratio, "liquidation")
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
 	}
 
-	cdps := keeper.GetAllCdpsByDenomAndRatio(ctx, requestParams.CollateralDenom, ratio)
+	cdps := keeper.GetAllCdpsByCollateralTypeAndRatio(ctx, requestParams.CollateralType, ratio)
 	// augment CDPs by adding collateral value and collateralization ratio
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {
@@ -121,18 +121,18 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 // query all cdps with matching collateral denom
-func queryGetCdpsByDenom(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var requestParams types.QueryCdpsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	_, valid := keeper.GetDenomPrefix(ctx, requestParams.CollateralDenom)
+	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralDenom)
+		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
 	}
 
-	cdps := keeper.GetAllCdpsByDenom(ctx, requestParams.CollateralDenom)
+	cdps := keeper.GetAllCdpsByCollateralType(ctx, requestParams.CollateralType)
 	// augment CDPs by adding collateral value and collateralization ratio
 	var augmentedCDPs types.AugmentedCDPs
 	for _, cdp := range cdps {

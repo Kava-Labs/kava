@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestApplyRewardsToCdps() {
 	})
 	suite.Equal(3, len(claims))
 	// there should be no associated claim period, because the reward period has not ended yet
-	_, found := suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
+	_, found := suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb-a")
 	suite.False(found)
 
 	// move ctx to the reward period expiry and check that the claim period has been created and the next claim period id has increased
@@ -128,9 +128,9 @@ func (suite *KeeperTestSuite) TestApplyRewardsToCdps() {
 		// delete the old reward period amd create a new one
 		suite.keeper.CreateAndDeleteRewardPeriods(suite.ctx)
 	})
-	_, found = suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
+	_, found = suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb-a")
 	suite.True(found)
-	testID := suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
+	testID := suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb-a")
 	suite.Equal(uint64(2), testID)
 
 	// move the context forward by 100 periods
@@ -186,6 +186,7 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:               "bnb",
+					Type:                "bnb-a",
 					LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
 					DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
@@ -213,10 +214,10 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 	}
 	incentiveGS := types.NewGenesisState(
 		types.NewParams(
-			true, types.Rewards{types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)},
+			true, types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)},
 		),
 		types.DefaultPreviousBlockTime,
-		types.RewardPeriods{types.NewRewardPeriod("bnb", ctx.BlockTime(), ctx.BlockTime().Add(time.Hour*7*24), c("ukava", 1000), ctx.BlockTime().Add(time.Hour*7*24*2), time.Hour*365*24)},
+		types.RewardPeriods{types.NewRewardPeriod("bnb-a", ctx.BlockTime(), ctx.BlockTime().Add(time.Hour*7*24), c("ukava", 1000), ctx.BlockTime().Add(time.Hour*7*24*2), time.Hour*365*24)},
 		types.ClaimPeriods{},
 		types.Claims{},
 		types.GenesisClaimPeriodIDs{})
@@ -242,11 +243,11 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 	suite.ctx = ctx
 	// create 3 cdps
 	cdpKeeper := tApp.GetCDPKeeper()
-	err := cdpKeeper.AddCdp(suite.ctx, addrs[0], c("bnb", 10000000000), c("usdx", 10000000))
+	err := cdpKeeper.AddCdp(suite.ctx, addrs[0], c("bnb", 10000000000), c("usdx", 10000000), "bnb-a")
 	suite.Require().NoError(err)
-	err = cdpKeeper.AddCdp(suite.ctx, addrs[1], c("bnb", 100000000000), c("usdx", 100000000))
+	err = cdpKeeper.AddCdp(suite.ctx, addrs[1], c("bnb", 100000000000), c("usdx", 100000000), "bnb-a")
 	suite.Require().NoError(err)
-	err = cdpKeeper.AddCdp(suite.ctx, addrs[2], c("bnb", 1000000000000), c("usdx", 1000000000))
+	err = cdpKeeper.AddCdp(suite.ctx, addrs[2], c("bnb", 1000000000000), c("usdx", 1000000000), "bnb-a")
 	suite.Require().NoError(err)
 	// total usd is 1110
 
