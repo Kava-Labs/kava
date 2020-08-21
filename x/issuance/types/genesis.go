@@ -4,26 +4,35 @@ import "bytes"
 
 // GenesisState is the state that must be provided at genesis for the issuance module
 type GenesisState struct {
-	Params Params `json:"params" yaml:"params"`
+	Params   Params        `json:"params" yaml:"params"`
+	Supplies AssetSupplies `json:"supplies" yaml:"supplies"`
 }
 
 // NewGenesisState returns a new GenesisState
-func NewGenesisState(params Params) GenesisState {
+func NewGenesisState(params Params, supplies AssetSupplies) GenesisState {
 	return GenesisState{
-		Params: params,
+		Params:   params,
+		Supplies: supplies,
 	}
 }
 
 // DefaultGenesisState returns the default GenesisState for the issuance module
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params: DefaultParams(),
+		Params:   DefaultParams(),
+		Supplies: AssetSupplies{},
 	}
 }
 
 // Validate performs basic validation of genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
+	for _, supply := range gs.Supplies {
+		err := supply.Validate()
+		if err != nil {
+			return err
+		}
+	}
 	return gs.Params.Validate()
 }
 

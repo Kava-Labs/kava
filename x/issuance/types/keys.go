@@ -16,3 +16,9 @@ const (
 	// QuerierRoute route used for abci queries
 	QuerierRoute = ModuleName
 )
+
+// KVStore key prefixes
+var (
+	AssetSupplyPrefix    = []byte{0x01}
+	PreviousBlockTimeKey = []byte{0x02}
+)
