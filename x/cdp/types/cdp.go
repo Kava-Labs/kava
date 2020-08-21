@@ -12,13 +12,13 @@ import (
 
 // CDP is the state of a single collateralized debt position.
 type CDP struct {
-	ID              uint64         `json:"id" yaml:"id"`       // unique id for cdp
-	Owner           sdk.AccAddress `json:"owner" yaml:"owner"` // Account that authorizes changes to the CDP
-	Type            string         `json:"type" yaml:"type"`
-	Collateral      sdk.Coin       `json:"collateral" yaml:"collateral"` // Amount of collateral stored in this CDP
-	Principal       sdk.Coin       `json:"principal" yaml:"principal"`
-	AccumulatedFees sdk.Coin       `json:"accumulated_fees" yaml:"accumulated_fees"`
-	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"` // Amount of stable coin drawn from this CDP
+	ID              uint64         `json:"id" yaml:"id"`                             // unique id for cdp
+	Owner           sdk.AccAddress `json:"owner" yaml:"owner"`                       // Account that authorizes changes to the CDP
+	Type            string         `json:"type" yaml:"type"`                         // string representing the unique collateral type of the CDP
+	Collateral      sdk.Coin       `json:"collateral" yaml:"collateral"`             // Amount of collateral stored in this CDP
+	Principal       sdk.Coin       `json:"principal" yaml:"principal"`               // Amount of debt drawn using the CDP
+	AccumulatedFees sdk.Coin       `json:"accumulated_fees" yaml:"accumulated_fees"` // Fees accumulated since the CDP was opened or debt was last repayed
+	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"`         // Amount of stable coin drawn from this CDP
 }
 
 // NewCDP creates a new CDP object
