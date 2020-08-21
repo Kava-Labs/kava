@@ -125,8 +125,10 @@ func SimulateMsgIssueTokens(ak types.AccountKeeper, k keeper.Keeper) simulation.
 				maxAmount := asset.RateLimit.Limit.Sub(supply.CurrentSupply.Amount)
 				if maxAmount.IsPositive() && maxAmount.GT(sdk.OneInt()) {
 					randomAmount = simulation.RandIntBetween(r, 1, int(maxAmount.Int64()))
-				} else {
+				} else if maxAmount.Equal(sdk.OneInt()) {
 					randomAmount = 1
+				} else {
+					return simulation.NoOpMsg(types.ModuleName), nil, nil
 				}
 			}
 
