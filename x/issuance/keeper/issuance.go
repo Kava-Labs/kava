@@ -22,7 +22,7 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
 	}
 	if asset.Blockable {
-		blocked, _ := k.checkBlockedAddress(ctx, asset, receiver)
+		blocked, _ := k.checkBlockedAddress(asset, receiver)
 		if blocked {
 			return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
 		}
@@ -102,7 +102,7 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 	if !owner.Equals(asset.Owner) {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
-	blocked, _ := k.checkBlockedAddress(ctx, asset, blockedAddress)
+	blocked, _ := k.checkBlockedAddress(asset, blockedAddress)
 	if blocked {
 		return sdkerrors.Wrapf(types.ErrAccountAlreadyBlocked, "address: %s", blockedAddress)
 	}
@@ -134,14 +134,14 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 	if !owner.Equals(asset.Owner) {
 		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
-	blocked, i := k.checkBlockedAddress(ctx, asset, addr)
+	blocked, i := k.checkBlockedAddress(asset, addr)
 	if !blocked {
 		if blocked {
 			return sdkerrors.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
 		}
 	}
 
-	blockedAddrs := k.removeBlockedAddress(ctx, asset.BlockedAddresses, i)
+	blockedAddrs := k.removeBlockedAddress(asset.BlockedAddresses, i)
 	asset.BlockedAddresses = blockedAddrs
 	k.SetAsset(ctx, asset)
 	ctx.EventManager().EmitEvent(
@@ -229,7 +229,7 @@ func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) er
 	return nil
 }
 
-func (k Keeper) checkBlockedAddress(ctx sdk.Context, asset types.Asset, checkAddress sdk.AccAddress) (bool, int) {
+func (k Keeper) checkBlockedAddress(asset types.Asset, checkAddress sdk.AccAddress) (bool, int) {
 	for i, address := range asset.BlockedAddresses {
 		if address.Equals(checkAddress) {
 			return true, i
@@ -238,7 +238,7 @@ func (k Keeper) checkBlockedAddress(ctx sdk.Context, asset types.Asset, checkAdd
 	return false, 0
 }
 
-func (k Keeper) removeBlockedAddress(ctx sdk.Context, blockedAddrs []sdk.AccAddress, i int) []sdk.AccAddress {
+func (k Keeper) removeBlockedAddress(blockedAddrs []sdk.AccAddress, i int) []sdk.AccAddress {
 	blockedAddrs[len(blockedAddrs)-1], blockedAddrs[i] = blockedAddrs[i], blockedAddrs[len(blockedAddrs)-1]
 	return blockedAddrs[:len(blockedAddrs)-1]
 }
