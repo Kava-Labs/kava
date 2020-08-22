@@ -22,7 +22,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			CoinID:        asset.CoinID,
 			DeputyAddress: v0_9Params.BnbDeputyAddress,
 			FixedFee:      v0_9Params.BnbDeputyFixedFee,
-			MinSwapAmount: v0_9Params.MinAmount,
+			MinSwapAmount: sdk.OneInt(), // set min swap to one - prevents accounnts that hold zero bnb from creating spam txs
 			MaxSwapAmount: v0_9Params.MaxAmount,
 			MinBlockLock:  v0_9Params.MinBlockLock,
 			MaxBlockLock:  v0_9Params.MaxBlockLock,
@@ -36,7 +36,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		assetParams = append(assetParams, v10AssetParam)
 	}
 	for _, supply := range oldGenState.AssetSupplies {
-		newSupply := v0_11bep3.NewAssetSupply(supply.IncomingSupply, supply.OutgoingSupply, supply.CurrentSupply, sdk.Coin{supply.CurrentSupply.Denom, sdk.ZeroInt()}, time.Duration(0))
+		newSupply := v0_11bep3.NewAssetSupply(supply.IncomingSupply, supply.OutgoingSupply, supply.CurrentSupply, sdk.NewCoin(supply.CurrentSupply.Denom, sdk.ZeroInt()), time.Duration(0))
 		assetSupplies = append(assetSupplies, newSupply)
 	}
 	var swaps v0_11bep3.AtomicSwaps
