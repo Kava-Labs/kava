@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/issuance/types"
 )
@@ -38,4 +39,24 @@ func (k Keeper) SetAsset(ctx sdk.Context, asset types.Asset) {
 		}
 	}
 	k.SetParams(ctx, params)
+}
+
+// GetRateLimit returns the rete-limit parameters for the input denom
+func (k Keeper) GetRateLimit(ctx sdk.Context, denom string) (types.RateLimit, error) {
+	asset, found := k.GetAsset(ctx, denom)
+	if !found {
+		sdkerrors.Wrap(types.ErrAssetNotFound, denom)
+	}
+	return asset.RateLimit, nil
+}
+
+// SynchronizeBlockList resets the block list to empty for any asset that is not blockable - could happen if this value is changed via governance
+func (k Keeper) SynchronizeBlockList(ctx sdk.Context) {
+	params := k.GetParams(ctx)
+	for _, asset := range params.Assets {
+		if !asset.Blockable && len(asset.BlockedAddresses) > 0 {
+			asset.BlockedAddresses = []sdk.AccAddress{}
+			k.SetAsset(ctx, asset)
+		}
+	}
 }

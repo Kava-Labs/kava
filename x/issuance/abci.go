@@ -7,11 +7,10 @@ import (
 
 // BeginBlocker iterates over each asset and seizes coins from blocked addresses by returning them to the asset owner
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	params := k.GetParams(ctx)
-	for _, asset := range params.Assets {
-		err := k.SeizeCoinsFromBlockedAddresses(ctx, asset.Denom)
-		if err != nil {
-			panic(err)
-		}
+	err := k.SeizeCoinsForBlockableAssets(ctx)
+	if err != nil {
+		panic(err)
 	}
+	k.SynchronizeBlockList(ctx)
+	k.UpdateTimeBasedSupplyLimits(ctx)
 }

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -67,15 +68,19 @@ type Asset struct {
 	Denom            string           `json:"denom" yaml:"denom"`
 	BlockedAddresses []sdk.AccAddress `json:"blocked_addresses" yaml:"blocked_addresses"`
 	Paused           bool             `json:"paused" yaml:"paused"`
+	Blockable        bool             `json:"blockable" yaml:"blockable"`
+	RateLimit        RateLimit        `json:"rate_limit" yaml:"rate_limit"`
 }
 
 // NewAsset returns a new Asset
-func NewAsset(owner sdk.AccAddress, denom string, blockedAddresses []sdk.AccAddress, paused bool) Asset {
+func NewAsset(owner sdk.AccAddress, denom string, blockedAddresses []sdk.AccAddress, paused bool, blockable bool, limit RateLimit) Asset {
 	return Asset{
 		Owner:            owner,
 		Denom:            denom,
 		BlockedAddresses: blockedAddresses,
 		Paused:           paused,
+		Blockable:        blockable,
+		RateLimit:        limit,
 	}
 }
 
@@ -83,6 +88,9 @@ func NewAsset(owner sdk.AccAddress, denom string, blockedAddresses []sdk.AccAddr
 func (a Asset) Validate() error {
 	if a.Owner.Empty() {
 		return fmt.Errorf("owner must not be empty")
+	}
+	if !a.Blockable && len(a.BlockedAddresses) > 0 {
+		return fmt.Errorf("asset %s does not support blocking, blocked-list should be empty: %s", a.Denom, a.BlockedAddresses)
 	}
 	for _, address := range a.BlockedAddresses {
 		if address.Empty() {
@@ -101,8 +109,9 @@ func (a Asset) String() string {
 	Owner: %s
 	Paused: %t
 	Denom: %s
-	Blocked Addresses: %s`,
-		a.Owner, a.Paused, a.Denom, a.BlockedAddresses)
+	Blocked Addresses: %s
+	Rate limits: %s`,
+		a.Owner, a.Paused, a.Denom, a.BlockedAddresses, a.RateLimit)
 }
 
 // Assets array of Asset
@@ -130,4 +139,29 @@ func (as Assets) String() string {
 		out += a.String()
 	}
 	return out
+}
+
+// RateLimit parameters for rate-limiting the supply of an issued asset
+type RateLimit struct {
+	Active     bool          `json:"active" yaml:"active"`
+	Limit      sdk.Int       `json:"limit" yaml:"limit"`
+	TimePeriod time.Duration `json:"time_period" yaml:"time_period"`
+}
+
+// NewRateLimit initializes a new RateLimit
+func NewRateLimit(active bool, limit sdk.Int, timePeriod time.Duration) RateLimit {
+	return RateLimit{
+		Active:     active,
+		Limit:      limit,
+		TimePeriod: timePeriod,
+	}
+}
+
+// String implements fmt.Stringer
+func (r RateLimit) String() string {
+	return fmt.Sprintf(`
+	Active: %t
+	Limit: %s
+	Time Period: %s`,
+		r.Active, r.Limit, r.TimePeriod)
 }

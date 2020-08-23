@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,7 +22,7 @@ var (
 func RandomizedGenState(simState *module.SimulationState) {
 	accs = simState.Accounts
 	params := randomizedParams(simState.Rand)
-	gs := types.NewGenesisState(params)
+	gs := types.NewGenesisState(params, types.AssetSupplies{})
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, codec.MustMarshalJSONIndent(simState.Cdc, gs))
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(gs)
 }
@@ -38,7 +39,14 @@ func randomizedAssets(r *rand.Rand) types.Assets {
 		denom := strings.ToLower(simulation.RandStringOfLength(r, (r.Intn(3) + 3)))
 		owner := randomOwner(r)
 		paused := r.Intn(2) == 0
-		randomAsset := types.NewAsset(owner.Address, denom, []sdk.AccAddress{}, paused)
+		rateLimited := r.Intn(2) == 0
+		rateLimit := types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))
+		if rateLimited {
+			timeLimit := time.Duration(3600000000000 + (r.Intn(24) + 1))
+			assetLimit := simulation.RandIntBetween(r, 100000000000, 1000000000000)
+			rateLimit = types.NewRateLimit(true, sdk.NewInt(int64(assetLimit)), timeLimit)
+		}
+		randomAsset := types.NewAsset(owner.Address, denom, []sdk.AccAddress{}, paused, true, rateLimit)
 		randomAssets = append(randomAssets, randomAsset)
 	}
 	return randomAssets

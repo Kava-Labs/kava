@@ -160,7 +160,7 @@ func getCmdPauseAsset(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "set-pause-status [denom] [status]",
 		Short: "pause or unpause an asset",
-		Long:  "The asset owner pauses or unpauses the input asset, halting new issuance and redemption",
+		Long:  "The asset owner pauses or un-pauses the input asset, halting new issuance and redemption",
 		Example: fmt.Sprintf(`$ %s tx %s pause usdtoken true
 		`, version.ClientName, types.ModuleName),
 		Args: cobra.ExactArgs(2),
