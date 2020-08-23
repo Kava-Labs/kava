@@ -17,6 +17,7 @@ func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 	testCPs := cdptypes.CollateralParams{
 		{
+			Type:                "bnb-a",
 			Denom:               "bnb",
 			LiquidationRatio:    d("2.0"),
 			DebtLimit:           c("usdx", 1000000000000),
@@ -29,6 +30,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			LiquidationMarketID: "bnb:usd",
 		},
 		{
+			Type:                "btc-a",
 			Denom:               "btc",
 			LiquidationRatio:    d("1.5"),
 			DebtLimit:           c("usdx", 1000000000),
@@ -41,6 +43,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			LiquidationMarketID: "btc:usd",
 		},
 		{
+			Type:                "atom-a",
 			Denom:               "atom",
 			LiquidationRatio:    d("2.0"),
 			DebtLimit:           c("usdx", 1000000000),
@@ -74,15 +77,16 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "disallowed add",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:       "bnb",
+					Type:        "bnb-a",
 					AuctionSize: true,
 				},
 				{
-					Denom:        "btc",
+					Type:         "btc-a",
 					StabilityFee: true,
 				},
 				{ // allow all fields
-					Denom:               "atom",
+					Type:                "atom-a",
+					Denom:               true,
 					LiquidationRatio:    true,
 					DebtLimit:           true,
 					StabilityFee:        true,
@@ -102,12 +106,13 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "disallowed remove",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:       "bnb",
+					Type:        "bnb-a",
 					AuctionSize: true,
 				},
 				{
 					// allow all fields
-					Denom:               "btc",
+					Type:                "btc-a",
+					Denom:               true,
 					LiquidationRatio:    true,
 					DebtLimit:           true,
 					StabilityFee:        true,
@@ -127,15 +132,15 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "allowed change with different order",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:              "bnb",
+					Type:               "bnb-a",
 					LiquidationPenalty: true,
 				},
 				{
-					Denom:     "btc",
+					Type:      "btc-a",
 					DebtLimit: true,
 				},
 				{
-					Denom:              "atom",
+					Type:               "atom-a",
 					DebtLimit:          true,
 					LiquidationPenalty: true,
 				},
@@ -402,6 +407,7 @@ func (suite *PermissionsTestSuite) TestAllowedMarkets_Allows() {
 
 func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 	testCP := cdptypes.CollateralParam{
+		Type:                "bnb-a",
 		Denom:               "bnb",
 		LiquidationRatio:    d("1.5"),
 		DebtLimit:           c("usdx", 1000000000000),
@@ -433,7 +439,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "allowed change",
 			allowed: AllowedCollateralParam{
-				Denom:        "bnb",
+				Type:         "bnb-a",
 				DebtLimit:    true,
 				StabilityFee: true,
 				AuctionSize:  true,
@@ -445,7 +451,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "un-allowed change",
 			allowed: AllowedCollateralParam{
-				Denom:        "bnb",
+				Type:         "bnb-a",
 				DebtLimit:    true,
 				StabilityFee: true,
 				AuctionSize:  true,
@@ -457,7 +463,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "un-allowed mismatching denom",
 			allowed: AllowedCollateralParam{
-				Denom:     "btc",
+				Type:      "btc-a",
 				DebtLimit: true,
 			},
 			current:       testCP,
@@ -468,7 +474,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "allowed no change",
 			allowed: AllowedCollateralParam{
-				Denom:     "bnb",
+				Type:      "bnb-a",
 				DebtLimit: true,
 			},
 			current:       testCP,
@@ -478,7 +484,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "un-allowed change with allowed change",
 			allowed: AllowedCollateralParam{
-				Denom:     "btc",
+				Type:      "btc-a",
 				DebtLimit: true,
 			},
 			current:       testCP,

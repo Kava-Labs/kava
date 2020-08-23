@@ -338,7 +338,7 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 		var foundAllowedCP bool
 		var allowedCP AllowedCollateralParam
 		for _, p := range acps {
-			if p.Denom != incomingCP.Denom {
+			if p.Type != incomingCP.Type {
 				continue
 			}
 			foundAllowedCP = true
@@ -372,7 +372,8 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 }
 
 type AllowedCollateralParam struct {
-	Denom               string `json:"denom" yaml:"denom"`
+	Type                string `json:"type" yaml:"type"`
+	Denom               bool   `json:"denom" yaml:"denom"`
 	LiquidationRatio    bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
 	DebtLimit           bool   `json:"debt_limit" yaml:"debt_limit"`
 	StabilityFee        bool   `json:"stability_fee" yaml:"stability_fee"`
@@ -385,7 +386,8 @@ type AllowedCollateralParam struct {
 }
 
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
-	allowed := ((acp.Denom == current.Denom) && (acp.Denom == incoming.Denom)) && // require denoms to be all equal
+	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collatreral types to be all equal
+		(current.Denom == incoming.Denom || acp.Denom) &&
 		(current.LiquidationRatio.Equal(incoming.LiquidationRatio) || acp.LiquidationRatio) &&
 		(current.DebtLimit.IsEqual(incoming.DebtLimit) || acp.DebtLimit) &&
 		(current.StabilityFee.Equal(incoming.StabilityFee) || acp.StabilityFee) &&

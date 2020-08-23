@@ -7,6 +7,8 @@ import (
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
+	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
+	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 )
@@ -95,7 +97,6 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 		newCollateralParam := v0_11cdp.NewCollateralParam(cp.Denom, "bnb-a", cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
 		newCollateralParams = append(newCollateralParams, newCollateralParam)
 	}
-
 	oldDebtParam := oldGenState.Params.DebtParam
 
 	newDebtParam := v0_11cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor, oldDebtParam.SavingsRate)
@@ -152,4 +153,104 @@ func MigrateIncentive(oldGenState v0_9incentive.GenesisState) v0_11incentive.Gen
 	}
 
 	return v0_11incentive.NewGenesisState(newParams, oldGenState.PreviousBlockTime, newRewardPeriods, newClaimPeriods, newClaims, newClaimPeriodIds)
+}
+
+func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.GenesisState {
+	var newCommittees []v0_11committee.Committee
+	var newStabilityCommittee v0_11committee.Committee
+	var newSafetyCommittee v0_11committee.Committee
+	var newProposals []v0_11committee.Proposal
+	var newVotes []v0_11committee.Vote
+
+	for _, committee := range oldGenState.Committees {
+		if committee.ID == 1 {
+			newStabilityCommittee.Description = committee.Description
+			newStabilityCommittee.ID = committee.ID
+			newStabilityCommittee.Members = committee.Members
+			newStabilityCommittee.VoteThreshold = committee.VoteThreshold
+			newStabilityCommittee.ProposalDuration = committee.ProposalDuration
+			var newStabilityPermissions []v0_11committee.Permission
+			var newStabilitySubParamPermissions v0_11committee.SubParamChangePermission
+			for _, permission := range committee.Permissions {
+				subPermission, ok := permission.(v0_9committee.SubParamChangePermission)
+				if ok {
+					oldCollateralParam := subPermission.AllowedCollateralParams[0]
+					newCollateralParam := v0_11committee.AllowedCollateralParam{
+						Type:                "bnb-a",
+						Denom:               false,
+						AuctionSize:         oldCollateralParam.AuctionSize,
+						ConversionFactor:    oldCollateralParam.ConversionFactor,
+						DebtLimit:           oldCollateralParam.DebtLimit,
+						LiquidationMarketID: oldCollateralParam.LiquidationMarketID,
+						SpotMarketID:        oldCollateralParam.SpotMarketID,
+						LiquidationPenalty:  oldCollateralParam.LiquidationPenalty,
+						LiquidationRatio:    oldCollateralParam.LiquidationRatio,
+						Prefix:              oldCollateralParam.Prefix,
+						StabilityFee:        oldCollateralParam.StabilityFee,
+					}
+					oldDebtParam := subPermission.AllowedDebtParam
+					newDebtParam := v0_11committee.AllowedDebtParam{
+						ConversionFactor: oldDebtParam.ConversionFactor,
+						DebtFloor:        oldDebtParam.DebtFloor,
+						Denom:            oldDebtParam.Denom,
+						ReferenceAsset:   oldDebtParam.ReferenceAsset,
+						SavingsRate:      oldDebtParam.SavingsRate,
+					}
+					oldAssetParam := subPermission.AllowedAssetParams[0]
+					newAssetParam := v0_11committee.AllowedAssetParam{
+						Active: oldAssetParam.Active,
+						CoinID: oldAssetParam.CoinID,
+						Denom:  oldAssetParam.Denom,
+						Limit:  oldAssetParam.Limit,
+					}
+					oldMarketParams := subPermission.AllowedMarkets
+					var newMarketParams v0_11committee.AllowedMarkets
+					for _, oldMarketParam := range oldMarketParams {
+						newMarketParam := v0_11committee.AllowedMarket(oldMarketParam)
+						newMarketParams = append(newMarketParams, newMarketParam)
+					}
+					oldAllowedParams := subPermission.AllowedParams
+					var newAllowedParams v0_11committee.AllowedParams
+					for _, oldAllowedParam := range oldAllowedParams {
+						newAllowedParam := v0_11committee.AllowedParam(oldAllowedParam)
+						newAllowedParams = append(newAllowedParams, newAllowedParam)
+					}
+					newStabilitySubParamPermissions.AllowedAssetParams = v0_11committee.AllowedAssetParams{newAssetParam}
+					newStabilitySubParamPermissions.AllowedCollateralParams = v0_11committee.AllowedCollateralParams{newCollateralParam}
+					newStabilitySubParamPermissions.AllowedDebtParam = newDebtParam
+					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
+					newStabilitySubParamPermissions.AllowedParams = newAllowedParams
+					newStabilityPermissions = append(newStabilityPermissions, newStabilitySubParamPermissions)
+				}
+			}
+			newStabilityPermissions = append(newStabilityPermissions, v0_11committee.TextPermission{})
+			newStabilityCommittee.Permissions = newStabilityPermissions
+			newCommittees = append(newCommittees, newStabilityCommittee)
+		} else {
+			newSafetyCommittee.ID = committee.ID
+			newSafetyCommittee.Description = committee.Description
+			newSafetyCommittee.Members = committee.Members
+			newSafetyCommittee.Permissions = []v0_11committee.Permission{v0_11committee.SoftwareUpgradePermission{}}
+			newSafetyCommittee.VoteThreshold = committee.VoteThreshold
+			newSafetyCommittee.ProposalDuration = committee.ProposalDuration
+			newCommittees = append(newCommittees, newSafetyCommittee)
+		}
+	}
+	for _, oldProp := range oldGenState.Proposals {
+		newPubProposal := v0_11committee.PubProposal(oldProp.PubProposal)
+		newProp := v0_11committee.NewProposal(newPubProposal, oldProp.ID, oldProp.CommitteeID, oldProp.Deadline)
+		newProposals = append(newProposals, newProp)
+	}
+
+	for _, oldVote := range oldGenState.Votes {
+		newVote := v0_11committee.NewVote(oldVote.ProposalID, oldVote.Voter)
+		newVotes = append(newVotes, newVote)
+	}
+
+	return v0_11committee.GenesisState{
+		NextProposalID: oldGenState.NextProposalID,
+		Committees:     newCommittees,
+		Proposals:      newProposals,
+		Votes:          newVotes,
+	}
 }
