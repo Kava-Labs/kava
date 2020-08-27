@@ -213,6 +213,10 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 					var newAllowedParams v0_11committee.AllowedParams
 					for _, oldAllowedParam := range oldAllowedParams {
 						newAllowedParam := v0_11committee.AllowedParam(oldAllowedParam)
+						if oldAllowedParam.Subspace == "bep3" && oldAllowedParam.Key == "SupportedAssets" {
+							newAllowedParam.Key = "AssetParams"
+						}
+
 						newAllowedParams = append(newAllowedParams, newAllowedParam)
 					}
 					newStabilitySubParamPermissions.AllowedAssetParams = v0_11committee.AllowedAssetParams{newAssetParam}
