@@ -323,6 +323,36 @@ func (suite *KeeperTestSuite) TestSendCoinsToPeriodicVestingAccount() {
 				contains:  "insufficient funds",
 			},
 		},
+		{
+			name: "add large period mid schedule",
+			args: args{
+				accArgs: accountArgs{
+					periods: vesting.Periods{
+						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+						vesting.Period{Length: 5, Amount: cs(c("ukava", 5))}},
+					origVestingCoins: cs(c("ukava", 20)),
+					startTime:        100,
+					endTime:          120,
+				},
+				period:              vesting.Period{Length: 50, Amount: cs(c("ukava", 6))},
+				ctxTime:             time.Unix(110, 0),
+				mintModAccountCoins: true,
+				expectedPeriods: vesting.Periods{
+					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vesting.Period{Length: 5, Amount: cs(c("ukava", 5))},
+					vesting.Period{Length: 40, Amount: cs(c("ukava", 6))}},
+				expectedStartTime: 100,
+				expectedEndTime:   160,
+			},
+			errArgs: errArgs{
+				expectErr: false,
+				contains:  "",
+			},
+		},
 	}
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
