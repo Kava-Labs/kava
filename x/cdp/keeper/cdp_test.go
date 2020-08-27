@@ -47,7 +47,9 @@ func (suite *CdpTestSuite) TestAddCdp() {
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 	acc.SetCoins(cs(c("xrp", 200000000), c("btc", 500000000)))
 	ak.SetAccount(suite.ctx, acc)
-	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 26000000), "xrp-a")
+	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 10000000), "btc-a")
+	suite.Require().True(errors.Is(err, types.ErrInvalidCollateral))
+	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 26000000), "xrp-a")
 	suite.Require().True(errors.Is(err, types.ErrInvalidCollateralRatio))
 	err = suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 500000000), c("usdx", 26000000), "xrp-a")
 	suite.Error(err) // insufficient balance
