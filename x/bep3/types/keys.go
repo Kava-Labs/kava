@@ -30,6 +30,7 @@ var (
 	AtomicSwapByBlockPrefix         = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
 	AtomicSwapLongtermStoragePrefix = []byte{0x02} // prefix for keys of the AtomicSwapLongtermStorage index
 	AssetSupplyPrefix               = []byte{0x03}
+	PreviousBlockTimeKey            = []byte{0x04}
 )
 
 // GetAtomicSwapByHeightKey is used by the AtomicSwapByBlock index and AtomicSwapLongtermStorage index

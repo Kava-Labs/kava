@@ -2,9 +2,16 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+
+	tmtime "github.com/tendermint/tendermint/types/time"
+)
+
+const (
+	bech32MainPrefix = "kava"
 )
 
 // Parameter keys
@@ -16,6 +23,7 @@ var (
 	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
 	DefaultMinBlockLock      uint64  = 220
 	DefaultMaxBlockLock      uint64  = 270
+	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(0, 0))
 )
 
 // Params governance parameters for bep3 module
@@ -47,7 +55,7 @@ func DefaultParams() Params {
 type AssetParam struct {
 	Denom         string         `json:"denom" yaml:"denom"`                     // name of the asset
 	CoinID        int            `json:"coin_id" yaml:"coin_id"`                 // SLIP-0044 registered coin type - see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-	SupplyLimit   sdk.Int        `json:"supply_limit" yaml:"supply_limit"`       // asset supply limit
+	SupplyLimit   SupplyLimit    `json:"supply_limit" yaml:"supply_limit"`       // asset supply limit
 	Active        bool           `json:"active" yaml:"active"`                   // denotes if asset is available or paused
 	DeputyAddress sdk.AccAddress `json:"deputy_address" yaml:"deputy_address"`   // the address of the relayer process
 	FixedFee      sdk.Int        `json:"fixed_fee" yaml:"fixed_fee"`             // the fixed fee charged by the relayer process for outgoing swaps
@@ -59,7 +67,7 @@ type AssetParam struct {
 
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
-	denom string, coinID int, limit sdk.Int, active bool,
+	denom string, coinID int, limit SupplyLimit, active bool,
 	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
 	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
@@ -106,6 +114,28 @@ func (aps AssetParams) String() string {
 	return out
 }
 
+// SupplyLimit parameters that control the absolute and time-based limits for an assets's supply
+type SupplyLimit struct {
+	Limit          sdk.Int       `json:"limit" yaml:"limit"`                       // the absolute supply limit for an asset
+	TimeLimited    bool          `json:"time_limited" yaml:"time_limited"`         // boolean for if the supply is also limited by time
+	TimePeriod     time.Duration `json:"time_period" yaml:"time_period"`           // the duration for which the supply time limit applies
+	TimeBasedLimit sdk.Int       `json:"time_based_limit" yaml:"time_based_limit"` // the supply limit for an asset for each time period
+}
+
+// String implements fmt.Stringer
+func (sl SupplyLimit) String() string {
+	return fmt.Sprintf(`%s
+	%t
+	%s
+	%s
+	`, sl.Limit, sl.TimeLimited, sl.TimePeriod, sl.TimeBasedLimit)
+}
+
+// Equals returns true if two supply limits are equal
+func (sl SupplyLimit) Equals(sl2 SupplyLimit) bool {
+	return sl.Limit.Equal(sl2.Limit) && sl.TimeLimited == sl2.TimeLimited && sl.TimePeriod == sl2.TimePeriod && sl.TimeBasedLimit.Equal(sl2.TimeBasedLimit)
+}
+
 // ParamKeyTable Key declaration for parameters
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
@@ -134,20 +164,28 @@ func validateAssetParams(i interface{}) error {
 	coinDenoms := make(map[string]bool)
 	for _, asset := range assetParams {
 		if err := sdk.ValidateDenom(asset.Denom); err != nil {
-			return fmt.Errorf("asset denom invalid: %s", asset.Denom)
+			return fmt.Errorf(fmt.Sprintf("asset denom invalid: %s", asset.Denom))
 		}
 
 		if asset.CoinID < 0 {
-			return fmt.Errorf("asset %s coin id must be a non negative integer", asset.Denom)
+			return fmt.Errorf(fmt.Sprintf("asset %s coin id must be a non negative integer", asset.Denom))
 		}
 
-		if asset.SupplyLimit.IsNegative() {
-			return fmt.Errorf("asset %s has invalid (negative) supply limit: %s", asset.Denom, asset.SupplyLimit)
+		if asset.SupplyLimit.Limit.IsNegative() {
+			return fmt.Errorf(fmt.Sprintf("asset %s has invalid (negative) supply limit: %s", asset.Denom, asset.SupplyLimit.Limit))
+		}
+
+		if asset.SupplyLimit.TimeBasedLimit.IsNegative() {
+			return fmt.Errorf(fmt.Sprintf("asset %s has invalid (negative) supply time limit: %s", asset.Denom, asset.SupplyLimit.TimeBasedLimit))
+		}
+
+		if asset.SupplyLimit.TimeBasedLimit.GT(asset.SupplyLimit.Limit) {
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have supply time limit > supply limit: %s>%s", asset.Denom, asset.SupplyLimit.TimeBasedLimit, asset.SupplyLimit.Limit))
 		}
 
 		_, found := coinDenoms[asset.Denom]
 		if found {
-			return fmt.Errorf("asset %s cannot have duplicate denom", asset.Denom)
+			return fmt.Errorf(fmt.Sprintf("asset %s cannot have duplicate denom", asset.Denom))
 		}
 
 		coinDenoms[asset.Denom] = true
@@ -169,11 +207,11 @@ func validateAssetParams(i interface{}) error {
 		}
 
 		if !asset.MinSwapAmount.IsPositive() {
-			return fmt.Errorf("asset %s must have a positive minimum swap amount, got %s", asset.Denom, asset.MinSwapAmount)
+			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive minimum swap amount, got %s", asset.Denom, asset.MinSwapAmount))
 		}
 
 		if !asset.MaxSwapAmount.IsPositive() {
-			return fmt.Errorf("asset %s must have a positive maximum swap amount, got %s", asset.Denom, asset.MaxSwapAmount)
+			return fmt.Errorf(fmt.Sprintf("asset %s must have a positive maximum swap amount, got %s", asset.Denom, asset.MaxSwapAmount))
 		}
 
 		if asset.MinSwapAmount.GT(asset.MaxSwapAmount) {

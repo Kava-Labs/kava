@@ -4,21 +4,24 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"time"
 )
 
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	Params      Params        `json:"params" yaml:"params"`
-	AtomicSwaps AtomicSwaps   `json:"atomic_swaps" yaml:"atomic_swaps"`
-	Supplies    AssetSupplies `json:"supplies" yaml:"supplies"`
+	Params            Params        `json:"params" yaml:"params"`
+	AtomicSwaps       AtomicSwaps   `json:"atomic_swaps" yaml:"atomic_swaps"`
+	Supplies          AssetSupplies `json:"supplies" yaml:"supplies"`
+	PreviousBlockTime time.Time     `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies) GenesisState {
+func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies, previousBlockTime time.Time) GenesisState {
 	return GenesisState{
-		Params:      params,
-		AtomicSwaps: swaps,
-		Supplies:    supplies,
+		Params:            params,
+		AtomicSwaps:       swaps,
+		Supplies:          supplies,
+		PreviousBlockTime: previousBlockTime,
 	}
 }
 
@@ -28,6 +31,7 @@ func DefaultGenesisState() GenesisState {
 		DefaultParams(),
 		AtomicSwaps{},
 		AssetSupplies{},
+		DefaultPreviousBlockTime,
 	)
 }
 
