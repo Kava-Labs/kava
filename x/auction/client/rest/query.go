@@ -83,6 +83,7 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		var auctionType string
+		var auctionOwner sdk.AccAddress
 		var auctionDenom string
 		var auctionPhase string
 
@@ -93,6 +94,17 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 				auctionType != types.DebtAuctionType {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid auction type %s", x))
 				return
+			}
+		}
+
+		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
+			if auctionType != types.CollateralAuctionType {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot apply phase flag to non-collateral auction type")
+			}
+			auctionOwnerStr := strings.ToLower(strings.TrimSpace(x))
+			auctionOwner, err = sdk.AccAddressFromHex(auctionOwnerStr)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from auction owner %s", auctionOwnerStr))
 			}
 		}
 
@@ -117,7 +129,7 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase)
+		params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase, auctionOwner)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

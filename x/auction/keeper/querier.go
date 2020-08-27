@@ -92,10 +92,23 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 
 	for _, auc := range auctions {
 		matchType, matchDenom, matchPhase := true, true, true
+		matchOwner := false
 
 		// match auction type (if supplied)
 		if len(params.Type) > 0 {
 			matchType = auc.GetType() == params.Type
+		}
+
+		// match auction owner (if supplied)
+		if len(params.Owner) > 0 {
+			if cAuc, ok := auc.(types.CollateralAuction); ok {
+				for _, addr := range cAuc.GetLotReturns().Addresses {
+					if addr.Equals(params.Owner) {
+						matchOwner = true
+						break
+					}
+				}
+			}
 		}
 
 		// match auction denom (if supplied)
@@ -108,7 +121,7 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 			matchPhase = auc.GetPhase() == params.Phase
 		}
 
-		if matchType && matchDenom && matchPhase {
+		if matchType && matchOwner && matchDenom && matchPhase {
 			filteredAuctions = append(filteredAuctions, auc)
 		}
 	}

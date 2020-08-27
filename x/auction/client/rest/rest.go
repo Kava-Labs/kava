@@ -12,6 +12,7 @@ import (
 // nolint
 const (
 	RestType  = "type"
+	RestOwner = "owner"
 	RestDenom = "denom"
 	RestPhase = "phase"
 )
