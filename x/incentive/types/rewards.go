@@ -206,6 +206,35 @@ func (c Claim) String() string {
 // Claims array of Claim
 type Claims []Claim
 
+// AugmentedClaim claim type with information about whether the claim is currently claimable
+type AugmentedClaim struct {
+	Claim Claim
+
+	Claimable bool
+}
+
+func (ac AugmentedClaim) String() string {
+	return fmt.Sprintf(`Claim:
+	Owner: %s,
+	Collateral Type: %s,
+	Reward: %s,
+	Claim Period ID: %d,
+	Claimable: %t,
+	`, ac.Claim.Owner, ac.Claim.CollateralType, ac.Claim.Reward, ac.Claim.ClaimPeriodID, ac.Claimable,
+	)
+}
+
+// NewAugmentedClaim returns a new augmented claim struct
+func NewAugmentedClaim(claim Claim, claimable bool) AugmentedClaim {
+	return AugmentedClaim{
+		Claim:     claim,
+		Claimable: claimable,
+	}
+}
+
+// AugmentedClaims array of AugmentedClaim
+type AugmentedClaims []AugmentedClaim
+
 // Validate checks if all the claims are valid and there are no duplicated
 // entries.
 func (cs Claims) Validate() error {
