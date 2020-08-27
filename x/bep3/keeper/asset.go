@@ -155,7 +155,10 @@ func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetS
 
 // UpdateTimeBasedSupplyLimits updates the time based supply for each asset, resetting it if the current time window has elapsed.
 func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
-	assets, _ := k.GetAssets(ctx)
+	assets, found := k.GetAssets(ctx)
+	if !found {
+		return
+	}
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 	if !found {
 		previousBlockTime = ctx.BlockTime()

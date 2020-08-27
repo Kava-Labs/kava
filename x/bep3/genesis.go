@@ -20,10 +20,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
 
-	// only set the previous block time if it's different than default
-	if !gs.PreviousBlockTime.Equal(DefaultPreviousBlockTime) {
-		keeper.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
-	}
+	keeper.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
 
 	keeper.SetParams(ctx, gs.Params)
 	for _, supply := range gs.Supplies {
