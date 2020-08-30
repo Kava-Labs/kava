@@ -171,12 +171,12 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 				},
 				AllowedCollateralParams: types.AllowedCollateralParams{
 					{
-						Denom:        "bnb",
+						Type:         "bnb-a",
 						DebtLimit:    true,
 						StabilityFee: true,
 					},
 					{ // TODO currently even if a perm doesn't allow a change in one element it must still be present in list
-						Denom: "btc",
+						Type: "btc-a",
 					},
 				},
 				AllowedDebtParam: types.AllowedDebtParam{

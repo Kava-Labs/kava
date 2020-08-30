@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 			},
 			AllowedCollateralParams: types.AllowedCollateralParams{
 				types.AllowedCollateralParam{
-					Denom:        "bnb",
+					Type:         "bnb-a",
 					DebtLimit:    true,
 					StabilityFee: true,
 				},
