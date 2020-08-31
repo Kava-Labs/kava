@@ -22,13 +22,14 @@ type GenesisTestSuite struct {
 
 func (suite *GenesisTestSuite) TestInvalidGenState() {
 	type args struct {
-		params       cdp.Params
-		cdps         cdp.CDPs
-		deposits     cdp.Deposits
-		startingID   uint64
-		debtDenom    string
-		govDenom     string
-		prevDistTime time.Time
+		params          cdp.Params
+		cdps            cdp.CDPs
+		deposits        cdp.Deposits
+		startingID      uint64
+		debtDenom       string
+		govDenom        string
+		prevDistTime    time.Time
+		savingsRateDist sdk.Int
 	}
 	type errArgs struct {
 		expectPass bool
@@ -47,12 +48,13 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "empty debt denom",
 			args: args{
-				params:       cdp.DefaultParams(),
-				cdps:         cdp.CDPs{},
-				deposits:     cdp.Deposits{},
-				debtDenom:    "",
-				govDenom:     cdp.DefaultGovDenom,
-				prevDistTime: cdp.DefaultPreviousDistributionTime,
+				params:          cdp.DefaultParams(),
+				cdps:            cdp.CDPs{},
+				deposits:        cdp.Deposits{},
+				debtDenom:       "",
+				govDenom:        cdp.DefaultGovDenom,
+				prevDistTime:    cdp.DefaultPreviousDistributionTime,
+				savingsRateDist: cdp.DefaultSavingsRateDistributed,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -62,12 +64,13 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "empty gov denom",
 			args: args{
-				params:       cdp.DefaultParams(),
-				cdps:         cdp.CDPs{},
-				deposits:     cdp.Deposits{},
-				debtDenom:    cdp.DefaultDebtDenom,
-				govDenom:     "",
-				prevDistTime: cdp.DefaultPreviousDistributionTime,
+				params:          cdp.DefaultParams(),
+				cdps:            cdp.CDPs{},
+				deposits:        cdp.Deposits{},
+				debtDenom:       cdp.DefaultDebtDenom,
+				govDenom:        "",
+				prevDistTime:    cdp.DefaultPreviousDistributionTime,
+				savingsRateDist: cdp.DefaultSavingsRateDistributed,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -77,22 +80,40 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		{
 			name: "empty distribution time",
 			args: args{
-				params:       cdp.DefaultParams(),
-				cdps:         cdp.CDPs{},
-				deposits:     cdp.Deposits{},
-				debtDenom:    cdp.DefaultDebtDenom,
-				govDenom:     cdp.DefaultGovDenom,
-				prevDistTime: time.Time{},
+				params:          cdp.DefaultParams(),
+				cdps:            cdp.CDPs{},
+				deposits:        cdp.Deposits{},
+				debtDenom:       cdp.DefaultDebtDenom,
+				govDenom:        cdp.DefaultGovDenom,
+				prevDistTime:    time.Time{},
+				savingsRateDist: cdp.DefaultSavingsRateDistributed,
 			},
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "previous distribution time not set",
 			},
 		},
+		{
+			name: "negative savings rate distributed",
+			args: args{
+				params:          cdp.DefaultParams(),
+				cdps:            cdp.CDPs{},
+				deposits:        cdp.Deposits{},
+				debtDenom:       cdp.DefaultDebtDenom,
+				govDenom:        cdp.DefaultGovDenom,
+				prevDistTime:    cdp.DefaultPreviousDistributionTime,
+				savingsRateDist: sdk.NewInt(-100),
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "savings rate distributed invalid",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := cdp.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID, tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime)
+			gs := cdp.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID,
+				tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime, tc.args.savingsRateDist)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)

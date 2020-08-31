@@ -14,19 +14,20 @@ import (
 
 // Parameter keys
 var (
-	KeyGlobalDebtLimit       = []byte("GlobalDebtLimit")
-	KeyCollateralParams      = []byte("CollateralParams")
-	KeyDebtParam             = []byte("DebtParam")
-	KeyDistributionFrequency = []byte("DistributionFrequency")
-	KeyCircuitBreaker        = []byte("CircuitBreaker")
-	KeyDebtThreshold         = []byte("DebtThreshold")
-	KeyDebtLot               = []byte("DebtLot")
-	KeySurplusThreshold      = []byte("SurplusThreshold")
-	KeySurplusLot            = []byte("SurplusLot")
-	DefaultGlobalDebt        = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
-	DefaultCircuitBreaker    = false
-	DefaultCollateralParams  = CollateralParams{}
-	DefaultDebtParam         = DebtParam{
+	KeyGlobalDebtLimit        = []byte("GlobalDebtLimit")
+	KeyCollateralParams       = []byte("CollateralParams")
+	KeyDebtParam              = []byte("DebtParam")
+	KeyDistributionFrequency  = []byte("DistributionFrequency")
+	KeyCircuitBreaker         = []byte("CircuitBreaker")
+	KeyDebtThreshold          = []byte("DebtThreshold")
+	KeyDebtLot                = []byte("DebtLot")
+	KeySurplusThreshold       = []byte("SurplusThreshold")
+	KeySurplusLot             = []byte("SurplusLot")
+	KeySavingsRateDistributed = []byte("SavingsRateDistributed")
+	DefaultGlobalDebt         = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
+	DefaultCircuitBreaker     = false
+	DefaultCollateralParams   = CollateralParams{}
+	DefaultDebtParam          = DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
 		ConversionFactor: sdk.NewInt(6),
@@ -43,6 +44,7 @@ var (
 	DefaultDebtLot                      = sdk.NewInt(10000000000)
 	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
 	DefaultSavingsDistributionFrequency = time.Hour * 12
+	DefaultSavingsRateDistributed       = sdk.NewInt(0)
 	minCollateralPrefix                 = 0
 	maxCollateralPrefix                 = 255
 	stabilityFeeMax                     = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR

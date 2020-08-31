@@ -47,6 +47,7 @@ var sep = []byte(":")
 // - 0x07<denom>:feeRate
 // - 0x08:previousDistributionTime
 // - 0x09<marketID>:downTime
+// - 0x10:totalDistributed
 
 // KVStore key prefixes
 var (
@@ -60,6 +61,7 @@ var (
 	PrincipalKeyPrefix          = []byte{0x07}
 	PreviousDistributionTimeKey = []byte{0x08}
 	PricefeedStatusKeyPrefix    = []byte{0x09}
+	SavingsRateDistributedKey   = []byte{0x10}
 )
 
 // GetCdpIDBytes returns the byte representation of the cdpID

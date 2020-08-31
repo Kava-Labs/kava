@@ -110,3 +110,30 @@ func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, collateralType str
 
 	}
 }
+
+// SetSavingsRateDistributed sets the SavingsRateDistributed in the store
+func (k Keeper) SetSavingsRateDistributed(ctx sdk.Context, totalDistributed sdk.Int) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRateDistributedKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalDistributed)
+	store.Set(types.SavingsRateDistributedKey, bz)
+}
+
+// GetSavingsRateDistributed gets the SavingsRateDistributed from the store
+func (k Keeper) GetSavingsRateDistributed(ctx sdk.Context) sdk.Int {
+	var savingsRateDistributed sdk.Int
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRateDistributedKey)
+	bz := store.Get(types.SavingsRateDistributedKey)
+	if bz == nil {
+		return savingsRateDistributed
+	}
+
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &savingsRateDistributed)
+	return savingsRateDistributed
+}
+
+// IncrementSavingsRateDistributed increments the savings rate distributed counter
+func (k Keeper) IncrementSavingsRateDistributed(ctx sdk.Context, distribution sdk.Int) {
+	currDistributed := k.GetSavingsRateDistributed(ctx)
+	newTotalDistributed := currDistributed.Add(distribution)
+	k.SetSavingsRateDistributed(ctx, newTotalDistributed)
+}

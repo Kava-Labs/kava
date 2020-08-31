@@ -17,10 +17,12 @@ type GenesisState struct {
 	DebtDenom                string    `json:"debt_denom" yaml:"debt_denom"`
 	GovDenom                 string    `json:"gov_denom" yaml:"gov_denom"`
 	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml:"previous_distribution_time"`
+	SavingsRateDistributed   sdk.Int   `json:"savings_rate_distributed" yaml:"savings_rate_distributed"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousDistTime time.Time) GenesisState {
+func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
+	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int) GenesisState {
 	return GenesisState{
 		Params:                   params,
 		CDPs:                     cdps,
@@ -29,6 +31,7 @@ func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID 
 		DebtDenom:                debtDenom,
 		GovDenom:                 govDenom,
 		PreviousDistributionTime: previousDistTime,
+		SavingsRateDistributed:   savingsRateDist,
 	}
 }
 
@@ -42,6 +45,7 @@ func DefaultGenesisState() GenesisState {
 		DefaultDebtDenom,
 		DefaultGovDenom,
 		DefaultPreviousDistributionTime,
+		DefaultSavingsRateDistributed,
 	)
 }
 
@@ -63,6 +67,10 @@ func (gs GenesisState) Validate() error {
 
 	if gs.PreviousDistributionTime.IsZero() {
 		return fmt.Errorf("previous distribution time not set")
+	}
+
+	if gs.SavingsRateDistributed.IsNegative() {
+		return fmt.Errorf("savings rate distributed invalid")
 	}
 
 	if err := sdk.ValidateDenom(gs.DebtDenom); err != nil {
