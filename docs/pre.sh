@@ -19,7 +19,7 @@ clientDir="building"
 mkdir -p "./${clientDir}"
 curl "${baseGitUrl}/${clientGitRepo}/master/README.md" -o "./${clientDir}/${clientGitRepo}.md"
 echo "---
-parent: 
+parent:
   order: false
 ---" > "./${clientDir}/readme.md"
 
@@ -35,7 +35,10 @@ mkdir -p "./${toolsDir}"
 for T in ${toolDocs[@]}; do
   curl "${baseGitUrl}/${toolsGitRepo}/master/${T}/README.md" -o "./${toolsDir}/${T}.md"
 done
+
+# Copy the community tools
+cp communitytools.md "./${toolsDir}/community.md"
 echo "---
-parent: 
+parent:
   order: false
 ---" > "./${toolsDir}/readme.md"
