@@ -171,7 +171,7 @@ test-basic: test
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 
 test:
-	@go test ./...
+	@go test $$(go list ./... | grep -v 'migrate\|contrib')
 
 test-rest:
 	rest_test/./run_all_tests_from_make.sh

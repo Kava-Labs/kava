@@ -9,7 +9,6 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -20,10 +19,9 @@ const (
 )
 
 var (
-	StandardSupplyLimit = i(350000000000000)
-	DenomMap            = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
-	TestUser1           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
-	TestUser2           = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
+	DenomMap  = map[int]string{0: "btc", 1: "eth", 2: "bnb", 3: "xrp", 4: "dai"}
+	TestUser1 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
+	TestUser2 = sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2")))
 )
 
 func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
@@ -33,30 +31,63 @@ func ts(minOffset int) int64                { return tmtime.Now().Add(time.Durat
 
 func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
-		Params: bep3.Params{
-			BnbDeputyAddress:  deputyAddress,
-			BnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee, // 1000
-			MinAmount:         types.DefaultMinAmount,         // 0
-			MaxAmount:         types.DefaultMaxAmount,         // 10,000
-			MinBlockLock:      types.DefaultMinBlockLock,      // 220
-			MaxBlockLock:      types.DefaultMaxBlockLock,      // 270
-			SupportedAssets: types.AssetParams{
+		Params: types.Params{
+			AssetParams: types.AssetParams{
 				types.AssetParam{
 					Denom:  "bnb",
 					CoinID: 714,
-					Limit:  StandardSupplyLimit,
-					Active: true,
+					SupplyLimit: types.SupplyLimit{
+						Limit:          sdk.NewInt(350000000000000),
+						TimeLimited:    false,
+						TimeBasedLimit: sdk.ZeroInt(),
+						TimePeriod:     time.Hour,
+					},
+					Active:        true,
+					DeputyAddress: deputyAddress,
+					FixedFee:      sdk.NewInt(1000),
+					MinSwapAmount: sdk.OneInt(),
+					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MinBlockLock:  types.DefaultMinBlockLock,
+					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
 				types.AssetParam{
 					Denom:  "inc",
 					CoinID: 9999,
-					Limit:  i(100),
-					Active: false,
+					SupplyLimit: types.SupplyLimit{
+						Limit:          sdk.NewInt(100000000000000),
+						TimeLimited:    true,
+						TimeBasedLimit: sdk.NewInt(50000000000),
+						TimePeriod:     time.Hour,
+					},
+					Active:        false,
+					DeputyAddress: deputyAddress,
+					FixedFee:      sdk.NewInt(1000),
+					MinSwapAmount: sdk.OneInt(),
+					MaxSwapAmount: sdk.NewInt(100000000000),
+					MinBlockLock:  types.DefaultMinBlockLock,
+					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
 			},
 		},
+		Supplies: types.AssetSupplies{
+			types.NewAssetSupply(
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				time.Duration(0),
+			),
+			types.NewAssetSupply(
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				time.Duration(0),
+			),
+		},
+		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
-	return app.GenesisState{bep3.ModuleName: bep3.ModuleCdc.MustMarshalJSON(bep3Genesis)}
+	return app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(bep3Genesis)}
 }
 
 func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
@@ -95,5 +126,5 @@ func assetSupplies(count int) types.AssetSupplies {
 }
 
 func assetSupply(denom string) types.AssetSupply {
-	return types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 10000))
+	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 0), time.Duration(0))
 }

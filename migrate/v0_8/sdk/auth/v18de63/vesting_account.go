@@ -1,6 +1,12 @@
 package v18de63
 
 import (
+	"encoding/json"
+	"strconv"
+
+	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -29,6 +35,52 @@ type PeriodicVestingAccount struct {
 	*BaseVestingAccount
 	StartTime      int64   `json:"start_time" yaml:"start_time"`           // when the coins start to vest
 	VestingPeriods Periods `json:"vesting_periods" yaml:"vesting_periods"` // the vesting schedule
+}
+
+type prettyPublicKey struct {
+	PubKey crypto.PubKey
+}
+
+func (p prettyPublicKey) MarshalJSON() ([]byte, error) {
+	cdc := codec.New()
+	codec.RegisterCrypto(cdc)
+	return cdc.MarshalJSON(p.PubKey)
+}
+
+type vestingAccountPretty struct {
+	Address          sdk.AccAddress  `json:"address" yaml:"address"`
+	Coins            sdk.Coins       `json:"coins" yaml:"coins"`
+	PubKey           prettyPublicKey `json:"public_key" yaml:"public_key"`
+	AccountNumber    string          `json:"account_number" yaml:"account_number"`
+	Sequence         string          `json:"sequence" yaml:"sequence"`
+	OriginalVesting  sdk.Coins       `json:"original_vesting" yaml:"original_vesting"`
+	DelegatedFree    sdk.Coins       `json:"delegated_free" yaml:"delegated_free"`
+	DelegatedVesting sdk.Coins       `json:"delegated_vesting" yaml:"delegated_vesting"`
+	EndTime          int64           `json:"end_time" yaml:"end_time"`
+
+	// custom fields based on concrete vesting type which can be omitted
+	StartTime      int64   `json:"start_time,omitempty" yaml:"start_time,omitempty"`
+	VestingPeriods Periods `json:"vesting_periods,omitempty" yaml:"vesting_periods,omitempty"`
+}
+
+func (pva PeriodicVestingAccount) MarshalJSON() ([]byte, error) {
+	pubKey := prettyPublicKey{PubKey: pva.PubKey}
+
+	alias := vestingAccountPretty{
+		Address:          pva.Address,
+		Coins:            pva.Coins,
+		PubKey:           pubKey,
+		AccountNumber:    strconv.FormatUint(pva.AccountNumber, 10),
+		Sequence:         strconv.FormatUint(pva.Sequence, 10),
+		OriginalVesting:  pva.OriginalVesting,
+		DelegatedFree:    pva.DelegatedFree,
+		DelegatedVesting: pva.DelegatedVesting,
+		EndTime:          pva.EndTime,
+		StartTime:        pva.StartTime,
+		VestingPeriods:   pva.VestingPeriods,
+	}
+
+	return json.Marshal(alias)
 }
 
 // DelayedVestingAccount implements the VestingAccount interface. It vests all

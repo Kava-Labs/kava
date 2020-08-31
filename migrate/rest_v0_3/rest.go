@@ -239,6 +239,7 @@ func makeCodecV03() *codec.Codec {
 	v0_3valvesting.RegisterCodec(v0_3Codec)
 	return v0_3Codec
 }
+
 func rollbackAccountType(newAccount authexported.Account) v18de63auth.Account {
 	switch acc := newAccount.(type) {
 

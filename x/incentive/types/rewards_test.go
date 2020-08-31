@@ -93,15 +93,15 @@ func TestRewardPeriodsValidate(t *testing.T) {
 			false,
 		},
 		{
-			"invalid denom",
+			"invalid collateral type",
 			RewardPeriods{
 				{
-					Start:         now,
-					End:           now.Add(time.Hour),
-					Reward:        sdk.NewCoin("bnb", sdk.OneInt()),
-					ClaimEnd:      now,
-					ClaimTimeLock: 10,
-					Denom:         "",
+					Start:          now,
+					End:            now.Add(time.Hour),
+					Reward:         sdk.NewCoin("bnb", sdk.OneInt()),
+					ClaimEnd:       now,
+					ClaimTimeLock:  10,
+					CollateralType: "",
 				},
 			},
 			false,
@@ -170,9 +170,9 @@ func TestClaimPeriodsValidate(t *testing.T) {
 			false,
 		},
 		{
-			"invalid denom",
+			"invalid collateral type",
 			ClaimPeriods{
-				{ID: 10, End: now, TimeLock: 100, Denom: ""},
+				{ID: 10, End: now, TimeLock: 100, CollateralType: ""},
 			},
 			false,
 		},
@@ -243,13 +243,13 @@ func TestClaimsValidate(t *testing.T) {
 			false,
 		},
 		{
-			"invalid denom",
+			"invalid collateral type",
 			Claims{
 				{
-					Owner:         owner,
-					Reward:        sdk.NewCoin("bnb", sdk.OneInt()),
-					ClaimPeriodID: 10,
-					Denom:         "",
+					Owner:          owner,
+					Reward:         sdk.NewCoin("bnb", sdk.OneInt()),
+					ClaimPeriodID:  10,
+					CollateralType: "",
 				},
 			},
 			false,

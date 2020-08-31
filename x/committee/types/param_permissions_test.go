@@ -1,10 +1,13 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // Avoid cluttering test cases with long function names
@@ -16,6 +19,7 @@ func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 	testCPs := cdptypes.CollateralParams{
 		{
+			Type:                "bnb-a",
 			Denom:               "bnb",
 			LiquidationRatio:    d("2.0"),
 			DebtLimit:           c("usdx", 1000000000000),
@@ -28,6 +32,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			LiquidationMarketID: "bnb:usd",
 		},
 		{
+			Type:                "btc-a",
 			Denom:               "btc",
 			LiquidationRatio:    d("1.5"),
 			DebtLimit:           c("usdx", 1000000000),
@@ -40,6 +45,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			LiquidationMarketID: "btc:usd",
 		},
 		{
+			Type:                "atom-a",
 			Denom:               "atom",
 			LiquidationRatio:    d("2.0"),
 			DebtLimit:           c("usdx", 1000000000),
@@ -73,15 +79,16 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "disallowed add",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:       "bnb",
+					Type:        "bnb-a",
 					AuctionSize: true,
 				},
 				{
-					Denom:        "btc",
+					Type:         "btc-a",
 					StabilityFee: true,
 				},
 				{ // allow all fields
-					Denom:               "atom",
+					Type:                "atom-a",
+					Denom:               true,
 					LiquidationRatio:    true,
 					DebtLimit:           true,
 					StabilityFee:        true,
@@ -101,12 +108,13 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "disallowed remove",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:       "bnb",
+					Type:        "bnb-a",
 					AuctionSize: true,
 				},
 				{
 					// allow all fields
-					Denom:               "btc",
+					Type:                "btc-a",
+					Denom:               true,
 					LiquidationRatio:    true,
 					DebtLimit:           true,
 					StabilityFee:        true,
@@ -126,15 +134,15 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 			name: "allowed change with different order",
 			allowed: AllowedCollateralParams{
 				{
-					Denom:              "bnb",
+					Type:               "bnb-a",
 					LiquidationPenalty: true,
 				},
 				{
-					Denom:     "btc",
+					Type:      "btc-a",
 					DebtLimit: true,
 				},
 				{
-					Denom:              "atom",
+					Type:               "atom-a",
 					DebtLimit:          true,
 					LiquidationPenalty: true,
 				},
@@ -155,24 +163,58 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParams_Allows() {
 }
 
 func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
+	deputyAddress := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 	testAPs := bep3types.AssetParams{
-		{
-			Denom:  "bnb",
-			CoinID: 714,
-			Limit:  i(1000000000000),
-			Active: true,
-		},
-		{
+		bep3types.AssetParam{
 			Denom:  "btc",
 			CoinID: 0,
-			Limit:  i(1000000000000),
-			Active: true,
+			SupplyLimit: bep3types.SupplyLimit{
+				Limit:          sdk.NewInt(100),
+				TimeLimited:    true,
+				TimeBasedLimit: sdk.NewInt(50000000000),
+				TimePeriod:     time.Hour,
+			},
+			Active:        false,
+			DeputyAddress: deputyAddress,
+			FixedFee:      sdk.NewInt(1000),
+			MinSwapAmount: sdk.OneInt(),
+			MaxSwapAmount: sdk.NewInt(1000000000000),
+			MinBlockLock:  bep3types.DefaultMinBlockLock,
+			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 		},
-		{
+		bep3types.AssetParam{
+			Denom:  "bnb",
+			CoinID: 714,
+			SupplyLimit: bep3types.SupplyLimit{
+				Limit:          sdk.NewInt(350000000000000),
+				TimeLimited:    true,
+				TimeBasedLimit: sdk.NewInt(50000000000),
+				TimePeriod:     time.Hour,
+			},
+			Active:        true,
+			DeputyAddress: deputyAddress,
+			FixedFee:      sdk.NewInt(1000),
+			MinSwapAmount: sdk.OneInt(),
+			MaxSwapAmount: sdk.NewInt(1000000000000),
+			MinBlockLock:  bep3types.DefaultMinBlockLock,
+			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
+		},
+		bep3types.AssetParam{
 			Denom:  "xrp",
-			CoinID: 144,
-			Limit:  i(1000000000000),
-			Active: true,
+			CoinID: 414,
+			SupplyLimit: bep3types.SupplyLimit{
+				Limit:          sdk.NewInt(350000000000000),
+				TimeLimited:    true,
+				TimeBasedLimit: sdk.NewInt(50000000000),
+				TimePeriod:     time.Hour,
+			},
+			Active:        true,
+			DeputyAddress: deputyAddress,
+			FixedFee:      sdk.NewInt(1000),
+			MinSwapAmount: sdk.OneInt(),
+			MaxSwapAmount: sdk.NewInt(1000000000000),
+			MinBlockLock:  bep3types.DefaultMinBlockLock,
+			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 		},
 	}
 	updatedTestAPs := make(bep3types.AssetParams, len(testAPs))
@@ -180,10 +222,12 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 	updatedTestAPs[1] = testAPs[0]
 	updatedTestAPs[2] = testAPs[2]
 
-	updatedTestAPs[0].Limit = i(1000) // btc
-	updatedTestAPs[1].Active = false  // bnb
-	updatedTestAPs[2].Limit = i(1000) // xrp
-	updatedTestAPs[2].Active = false  // xrp
+	updatedTestAPs[0].SupplyLimit.Limit = i(1000) // btc
+	updatedTestAPs[1].Active = false              // bnb
+	updatedTestAPs[2].SupplyLimit.Limit = i(1000) // xrp
+	updatedTestAPs[2].Active = false              // xrp
+	updatedTestAPs[2].MinBlockLock = uint64(210)  // xrp
+	updatedTestAPs[2].MaxSwapAmount = sdk.NewInt(10000000000000)
 
 	testcases := []struct {
 		name          string
@@ -204,10 +248,12 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 					Limit: true,
 				},
 				{ // allow all fields
-					Denom:  "xrp",
-					CoinID: true,
-					Limit:  true,
-					Active: true,
+					Denom:         "xrp",
+					CoinID:        true,
+					Limit:         true,
+					Active:        true,
+					MaxSwapAmount: true,
+					MinBlockLock:  true,
 				},
 			},
 			current:       testAPs[:2],
@@ -238,15 +284,18 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParams_Allows() {
 				{
 					Denom:  "bnb",
 					Active: true,
+					Limit:  true,
 				},
 				{
 					Denom: "btc",
 					Limit: true,
 				},
 				{
-					Denom:  "xrp",
-					Limit:  true,
-					Active: true,
+					Denom:         "xrp",
+					Limit:         true,
+					Active:        true,
+					MaxSwapAmount: true,
+					MinBlockLock:  true,
 				},
 			},
 			current:       testAPs,
@@ -381,6 +430,7 @@ func (suite *PermissionsTestSuite) TestAllowedMarkets_Allows() {
 
 func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 	testCP := cdptypes.CollateralParam{
+		Type:                "bnb-a",
 		Denom:               "bnb",
 		LiquidationRatio:    d("1.5"),
 		DebtLimit:           c("usdx", 1000000000000),
@@ -412,7 +462,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "allowed change",
 			allowed: AllowedCollateralParam{
-				Denom:        "bnb",
+				Type:         "bnb-a",
 				DebtLimit:    true,
 				StabilityFee: true,
 				AuctionSize:  true,
@@ -424,7 +474,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "un-allowed change",
 			allowed: AllowedCollateralParam{
-				Denom:        "bnb",
+				Type:         "bnb-a",
 				DebtLimit:    true,
 				StabilityFee: true,
 				AuctionSize:  true,
@@ -436,7 +486,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "un-allowed mismatching denom",
 			allowed: AllowedCollateralParam{
-				Denom:     "btc",
+				Type:      "btc-a",
 				DebtLimit: true,
 			},
 			current:       testCP,
@@ -447,7 +497,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "allowed no change",
 			allowed: AllowedCollateralParam{
-				Denom:     "bnb",
+				Type:      "bnb-a",
 				DebtLimit: true,
 			},
 			current:       testCP,
@@ -457,7 +507,7 @@ func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
 		{
 			name: "un-allowed change with allowed change",
 			allowed: AllowedCollateralParam{
-				Denom:     "btc",
+				Type:      "btc-a",
 				DebtLimit: true,
 			},
 			current:       testCP,
@@ -577,18 +627,29 @@ func (suite *PermissionsTestSuite) TestAllowedAssetParam_Allows() {
 	testAP := bep3types.AssetParam{
 		Denom:  "usdx",
 		CoinID: 999,
-		Limit:  i(1000000000),
-		Active: true,
+		SupplyLimit: bep3types.SupplyLimit{
+			Limit:          sdk.NewInt(350000000000000),
+			TimeLimited:    true,
+			TimeBasedLimit: sdk.NewInt(50000000000),
+			TimePeriod:     time.Hour,
+		},
+		Active:        true,
+		DeputyAddress: sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+		FixedFee:      sdk.NewInt(1000),
+		MinSwapAmount: sdk.OneInt(),
+		MaxSwapAmount: sdk.NewInt(1000000000000),
+		MinBlockLock:  bep3types.DefaultMinBlockLock,
+		MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 	}
 	newCoinidAP := testAP
 	newCoinidAP.CoinID = 0
 
 	newLimitAP := testAP
-	newLimitAP.Limit = i(1000)
+	newLimitAP.SupplyLimit.Limit = i(1000)
 
 	newCoinidAndLimitAP := testAP
 	newCoinidAndLimitAP.CoinID = 0
-	newCoinidAndLimitAP.Limit = i(1000)
+	newCoinidAndLimitAP.SupplyLimit.Limit = i(1000)
 
 	testcases := []struct {
 		name          string

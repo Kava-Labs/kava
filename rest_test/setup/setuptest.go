@@ -121,6 +121,7 @@ func sendBtcCdp() {
 		addr,
 		sdk.NewInt64Coin("btc", 200000000),
 		sdk.NewInt64Coin("usdx", 10000000),
+		"btc-a",
 	)
 
 	// helper methods for transactions
@@ -154,6 +155,7 @@ func sendXrpCdp() {
 		addr,
 		sdk.NewInt64Coin("xrp", 200000000),
 		sdk.NewInt64Coin("usdx", 10000000),
+		"xrp-a",
 	)
 
 	// helper methods for transactions

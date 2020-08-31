@@ -33,24 +33,24 @@ var (
 )
 
 // Keys
-// 0x00:Denom <> RewardPeriod the current active reward period (max 1 reward period per denom)
-// 0x01:Denom:ID <> ClaimPeriod object for that ID, indexed by denom and ID
-// 0x02:Denom:ID:Owner <> Claim object, indexed by Denom, ID and owner
-// 0x03:Denom <> NextClaimPeriodIDPrefix the ID of the next claim period, indexed by denom
+// 0x00:CollateralType <> RewardPeriod the current active reward period (max 1 reward period per collateral type)
+// 0x01:CollateralType:ID <> ClaimPeriod object for that ID, indexed by collateral type and ID
+// 0x02:CollateralType:ID:Owner <> Claim object, indexed by collateral type, ID and owner
+// 0x03:CollateralType <> NextClaimPeriodIDPrefix the ID of the next claim period, indexed by collateral type
 
 // BytesToUint64 returns uint64 format from a byte array
 func BytesToUint64(bz []byte) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-// GetClaimPeriodPrefix returns the key (denom + id) for a claim prefix
-func GetClaimPeriodPrefix(denom string, id uint64) []byte {
-	return createKey([]byte(denom), sdk.Uint64ToBigEndian(id))
+// GetClaimPeriodPrefix returns the key (collateral type + id) for a claim prefix
+func GetClaimPeriodPrefix(collateralType string, id uint64) []byte {
+	return createKey([]byte(collateralType), sdk.Uint64ToBigEndian(id))
 }
 
-// GetClaimPrefix returns the key (denom + id + address) for a claim
-func GetClaimPrefix(addr sdk.AccAddress, denom string, id uint64) []byte {
-	return createKey([]byte(denom), sdk.Uint64ToBigEndian(id), addr)
+// GetClaimPrefix returns the key (collateral type + id + address) for a claim
+func GetClaimPrefix(addr sdk.AccAddress, collateralType string, id uint64) []byte {
+	return createKey([]byte(collateralType), sdk.Uint64ToBigEndian(id), addr)
 }
 
 func createKey(bytes ...[]byte) (r []byte) {

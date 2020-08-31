@@ -19,16 +19,18 @@ var (
 
 func TestMsgCreateCDP(t *testing.T) {
 	tests := []struct {
-		description string
-		sender      sdk.AccAddress
-		collateral  sdk.Coin
-		principal   sdk.Coin
-		expectPass  bool
+		description    string
+		sender         sdk.AccAddress
+		collateral     sdk.Coin
+		principal      sdk.Coin
+		collateralType string
+		expectPass     bool
 	}{
-		{"create cdp", addrs[0], coinsSingle, coinsSingle, true},
-		{"create cdp no collateral", addrs[0], coinsZero, coinsSingle, false},
-		{"create cdp no debt", addrs[0], coinsSingle, coinsZero, false},
-		{"create cdp empty owner", sdk.AccAddress{}, coinsSingle, coinsSingle, false},
+		{"create cdp", addrs[0], coinsSingle, coinsSingle, "type-a", true},
+		{"create cdp no collateral", addrs[0], coinsZero, coinsSingle, "type-a", false},
+		{"create cdp no debt", addrs[0], coinsSingle, coinsZero, "type-a", false},
+		{"create cdp empty owner", sdk.AccAddress{}, coinsSingle, coinsSingle, "type-a", false},
+		{"create cdp empty type", addrs[0], coinsSingle, coinsSingle, "", false},
 	}
 
 	for _, tc := range tests {
@@ -36,6 +38,7 @@ func TestMsgCreateCDP(t *testing.T) {
 			tc.sender,
 			tc.collateral,
 			tc.principal,
+			tc.collateralType,
 		)
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
@@ -47,17 +50,19 @@ func TestMsgCreateCDP(t *testing.T) {
 
 func TestMsgDeposit(t *testing.T) {
 	tests := []struct {
-		description string
-		sender      sdk.AccAddress
-		depositor   sdk.AccAddress
-		collateral  sdk.Coin
-		expectPass  bool
+		description    string
+		sender         sdk.AccAddress
+		depositor      sdk.AccAddress
+		collateral     sdk.Coin
+		collateralType string
+		expectPass     bool
 	}{
-		{"deposit", addrs[0], addrs[1], coinsSingle, true},
-		{"deposit", addrs[0], addrs[0], coinsSingle, true},
-		{"deposit no collateral", addrs[0], addrs[1], coinsZero, false},
-		{"deposit empty owner", sdk.AccAddress{}, addrs[1], coinsSingle, false},
-		{"deposit empty depositor", addrs[0], sdk.AccAddress{}, coinsSingle, false},
+		{"deposit", addrs[0], addrs[1], coinsSingle, "type-a", true},
+		{"deposit same owner", addrs[0], addrs[0], coinsSingle, "type-a", true},
+		{"deposit no collateral", addrs[0], addrs[1], coinsZero, "type-a", false},
+		{"deposit empty owner", sdk.AccAddress{}, addrs[1], coinsSingle, "type-a", false},
+		{"deposit empty depositor", addrs[0], sdk.AccAddress{}, coinsSingle, "type-a", false},
+		{"deposit empty type", addrs[0], addrs[0], coinsSingle, "", false},
 	}
 
 	for _, tc := range tests {
@@ -65,6 +70,7 @@ func TestMsgDeposit(t *testing.T) {
 			tc.sender,
 			tc.depositor,
 			tc.collateral,
+			tc.collateralType,
 		)
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
@@ -76,17 +82,19 @@ func TestMsgDeposit(t *testing.T) {
 
 func TestMsgWithdraw(t *testing.T) {
 	tests := []struct {
-		description string
-		sender      sdk.AccAddress
-		depositor   sdk.AccAddress
-		collateral  sdk.Coin
-		expectPass  bool
+		description    string
+		sender         sdk.AccAddress
+		depositor      sdk.AccAddress
+		collateral     sdk.Coin
+		collateralType string
+		expectPass     bool
 	}{
-		{"withdraw", addrs[0], addrs[1], coinsSingle, true},
-		{"withdraw", addrs[0], addrs[0], coinsSingle, true},
-		{"withdraw no collateral", addrs[0], addrs[1], coinsZero, false},
-		{"withdraw empty owner", sdk.AccAddress{}, addrs[1], coinsSingle, false},
-		{"withdraw empty depositor", addrs[0], sdk.AccAddress{}, coinsSingle, false},
+		{"withdraw", addrs[0], addrs[1], coinsSingle, "type-a", true},
+		{"withdraw", addrs[0], addrs[0], coinsSingle, "type-a", true},
+		{"withdraw no collateral", addrs[0], addrs[1], coinsZero, "type-a", false},
+		{"withdraw empty owner", sdk.AccAddress{}, addrs[1], coinsSingle, "type-a", false},
+		{"withdraw empty depositor", addrs[0], sdk.AccAddress{}, coinsSingle, "type-a", false},
+		{"withdraw empty type", addrs[0], addrs[0], coinsSingle, "", false},
 	}
 
 	for _, tc := range tests {
@@ -94,6 +102,7 @@ func TestMsgWithdraw(t *testing.T) {
 			tc.sender,
 			tc.depositor,
 			tc.collateral,
+			tc.collateralType,
 		)
 		if tc.expectPass {
 			require.NoError(t, msg.ValidateBasic(), "test: %v", tc.description)
@@ -105,11 +114,11 @@ func TestMsgWithdraw(t *testing.T) {
 
 func TestMsgDrawDebt(t *testing.T) {
 	tests := []struct {
-		description string
-		sender      sdk.AccAddress
-		denom       string
-		principal   sdk.Coin
-		expectPass  bool
+		description    string
+		sender         sdk.AccAddress
+		collateralType string
+		principal      sdk.Coin
+		expectPass     bool
 	}{
 		{"draw debt", addrs[0], sdk.DefaultBondDenom, coinsSingle, true},
 		{"draw debt no debt", addrs[0], sdk.DefaultBondDenom, coinsZero, false},
@@ -120,7 +129,7 @@ func TestMsgDrawDebt(t *testing.T) {
 	for _, tc := range tests {
 		msg := NewMsgDrawDebt(
 			tc.sender,
-			tc.denom,
+			tc.collateralType,
 			tc.principal,
 		)
 		if tc.expectPass {

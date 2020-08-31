@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -13,7 +14,8 @@ import (
 
 type ParamsTestSuite struct {
 	suite.Suite
-	addr sdk.AccAddress
+	addr   sdk.AccAddress
+	supply []types.SupplyLimit
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
@@ -21,20 +23,26 @@ func (suite *ParamsTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addr = addrs[0]
+	supply1 := types.SupplyLimit{
+		Limit:          sdk.NewInt(10000000000000),
+		TimeLimited:    false,
+		TimeBasedLimit: sdk.ZeroInt(),
+		TimePeriod:     time.Hour,
+	}
+	supply2 := types.SupplyLimit{
+		Limit:          sdk.NewInt(10000000000000),
+		TimeLimited:    true,
+		TimeBasedLimit: sdk.NewInt(100000000000),
+		TimePeriod:     time.Hour * 24,
+	}
+	suite.supply = append(suite.supply, supply1, supply2)
 	return
 }
 
 func (suite *ParamsTestSuite) TestParamValidation() {
-	type LoadParams func() types.Params
 
 	type args struct {
-		bnbDeputyAddress  sdk.AccAddress
-		bnbDeputyFixedFee sdk.Int
-		minAmount         sdk.Int
-		maxAmount         sdk.Int
-		minBlockLock      uint64
-		maxBlockLock      uint64
-		supportedAssets   types.AssetParams
+		assetParams types.AssetParams
 	}
 
 	testCases := []struct {
@@ -46,189 +54,203 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		{
 			name: "default",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets:   types.DefaultSupportedAssets,
+				assetParams: types.AssetParams{},
 			},
 			expectPass:  true,
 			expectedErr: "",
 		},
 		{
-			name: "minimum block lock == maximum block lock",
+			name: "valid single asset",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      243,
-				maxBlockLock:      243,
-				supportedAssets:   types.DefaultSupportedAssets,
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  true,
 			expectedErr: "",
 		},
 		{
-			name: "minimum amount greater than maximum amount",
+			name: "valid single asset time limited",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         sdk.NewInt(10000000),
-				maxAmount:         sdk.NewInt(100000),
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets:   types.DefaultSupportedAssets,
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[1], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
-			expectPass:  false,
-			expectedErr: "minimum amount cannot be > maximum amount",
+			expectPass:  true,
+			expectedErr: "",
 		},
 		{
-			name: "minimum block lock greater than maximum block lock",
+			name: "valid multi asset",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      500,
-				maxBlockLock:      400,
-				supportedAssets:   types.DefaultSupportedAssets,
-			},
-			expectPass:  false,
-			expectedErr: "minimum block lock cannot be > maximum block lock",
-		},
-		{
-			name: "empty asset denom",
-			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets: types.AssetParams{
-					types.AssetParam{
-						Denom:  "",
-						CoinID: 714,
-						Limit:  sdk.NewInt(100000000000),
-						Active: true,
-					},
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+					types.NewAssetParam(
+						"btcb", 0, suite.supply[1], true,
+						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
+						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 				},
 			},
-			expectPass:  false,
-			expectedErr: "asset denom cannot be empty",
+			expectPass:  true,
+			expectedErr: "",
 		},
 		{
-			name: "negative asset coin ID",
+			name: "invalid denom - empty",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets: types.AssetParams{
-					types.AssetParam{
-						Denom:  "bnb",
-						CoinID: -1,
-						Limit:  sdk.NewInt(100000000000),
-						Active: true,
-					},
-				},
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
-			expectedErr: "must be a non negative integer",
+			expectedErr: "denom invalid",
+		},
+		{
+			name: "invalid denom - bad format",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"BNB", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "denom invalid",
+		},
+		{
+			name: "min block lock equal max block lock",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					243, 243)},
+			},
+			expectPass:  true,
+			expectedErr: "",
+		},
+		{
+			name: "min block lock greater max block lock",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					244, 243)},
+			},
+			expectPass:  false,
+			expectedErr: "minimum block lock > maximum block lock",
+		},
+		{
+			name: "min swap not positive",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(0), sdk.NewInt(10000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "must have a positive minimum swap",
+		},
+		{
+			name: "max swap not positive",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(10000), sdk.NewInt(0),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "must have a positive maximum swap",
+		},
+		{
+			name: "min swap greater max swap",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000000), sdk.NewInt(10000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "minimum swap amount > maximum swap amount",
+		},
+		{
+			name: "negative coin id",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", -714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "coin id must be a non negative",
 		},
 		{
 			name: "negative asset limit",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets: types.AssetParams{
-					types.AssetParam{
-						Denom:  "bnb",
-						CoinID: 714,
-						Limit:  sdk.NewInt(-10000),
-						Active: true,
-					},
-				},
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714,
+					types.SupplyLimit{sdk.NewInt(-10000000000000), false, time.Hour, sdk.ZeroInt()}, true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
-			expectedErr: "must have a positive supply limit",
+			expectedErr: "invalid (negative) supply limit",
 		},
 		{
-			name: "duplicate asset denom",
+			name: "negative asset time limit",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets: types.AssetParams{
-					types.AssetParam{
-						Denom:  "bnb",
-						CoinID: 714,
-						Limit:  sdk.NewInt(100000000000),
-						Active: true,
-					},
-					types.AssetParam{
-						Denom:  "bnb",
-						CoinID: 114,
-						Limit:  sdk.NewInt(500000000),
-						Active: false,
-					},
-				},
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714,
+					types.SupplyLimit{sdk.NewInt(10000000000000), false, time.Hour, sdk.NewInt(-10000000000000)}, true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
-			expectedErr: "cannot have duplicate denom",
+			expectedErr: "invalid (negative) supply time limit",
 		},
 		{
-			name: "duplicate asset coin ID",
+			name: "asset time limit greater than overall limit",
 			args: args{
-				bnbDeputyAddress:  suite.addr,
-				bnbDeputyFixedFee: types.DefaultBnbDeputyFixedFee,
-				minAmount:         types.DefaultMinAmount,
-				maxAmount:         types.DefaultMaxAmount,
-				minBlockLock:      types.DefaultMinBlockLock,
-				maxBlockLock:      types.DefaultMaxBlockLock,
-				supportedAssets: types.AssetParams{
-					types.AssetParam{
-						Denom:  "bnb",
-						CoinID: 714,
-						Limit:  sdk.NewInt(100000000000),
-						Active: true,
-					},
-					types.AssetParam{
-						Denom:  "fake",
-						CoinID: 714,
-						Limit:  sdk.NewInt(500000000),
-						Active: false,
-					},
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714,
+					types.SupplyLimit{sdk.NewInt(10000000000000), true, time.Hour, sdk.NewInt(100000000000000)},
+					true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "supply time limit > supply limit",
+		},
+		{
+			name: "duplicate denom",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
+					types.NewAssetParam(
+						"bnb", 0, suite.supply[0], true,
+						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
+						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 				},
 			},
 			expectPass:  false,
-			expectedErr: "cannot have duplicate coin id",
+			expectedErr: "duplicate denom",
 		},
 	}
 
 	for _, tc := range testCases {
-		params := types.NewParams(tc.args.bnbDeputyAddress, tc.args.bnbDeputyFixedFee, tc.args.minAmount,
-			tc.args.maxAmount, tc.args.minBlockLock, tc.args.maxBlockLock, tc.args.supportedAssets)
-
-		err := params.Validate()
-		if tc.expectPass {
-			suite.Require().NoError(err, tc.name)
-		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().Contains(err.Error(), tc.expectedErr)
-		}
+		suite.Run(tc.name, func() {
+			params := types.NewParams(tc.args.assetParams)
+			err := params.Validate()
+			if tc.expectPass {
+				suite.Require().NoError(err, tc.name)
+			} else {
+				suite.Require().Error(err, tc.name)
+				suite.Require().Contains(err.Error(), tc.expectedErr)
+			}
+		})
 	}
 }
 

@@ -140,8 +140,8 @@ func (suite *KeeperTestSuite) TestIterateMethods() {
 	suite.Equal(2, len(claims))
 
 	var genIDs types.GenesisClaimPeriodIDs
-	suite.keeper.IterateClaimPeriodIDKeysAndValues(suite.ctx, func(denom string, id uint64) (stop bool) {
-		genID := types.GenesisClaimPeriodID{Denom: denom, ID: id}
+	suite.keeper.IterateClaimPeriodIDKeysAndValues(suite.ctx, func(collateralType string, id uint64) (stop bool) {
+		genID := types.GenesisClaimPeriodID{CollateralType: collateralType, ID: id}
 		genIDs = append(genIDs, genID)
 		return false
 	})

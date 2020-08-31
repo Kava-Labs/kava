@@ -26,8 +26,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	cdpQueryCmd.AddCommand(flags.GetCommands(
 		QueryCdpCmd(queryRoute, cdc),
-		QueryCdpsByDenomCmd(queryRoute, cdc),
-		QueryCdpsByDenomAndRatioCmd(queryRoute, cdc),
+		QueryCdpsByCollateralTypeCmd(queryRoute, cdc),
+		QueryCdpsByCollateralTypeAndRatioCmd(queryRoute, cdc),
 		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 		QueryGetAccounts(queryRoute, cdc),
@@ -39,13 +39,13 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryCdpCmd returns the command handler for querying a particular cdp
 func QueryCdpCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdp [owner-addr] [collateral-name]",
+		Use:   "cdp [owner-addr] [collateral-type]",
 		Short: "get info about a cdp",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Get a CDP by the owner address and the collateral name.
 
 Example:
-$ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
+$ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -57,8 +57,8 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 				return err
 			}
 			bz, err := cdc.MarshalJSON(types.QueryCdpParams{
-				CollateralDenom: args[1],
-				Owner:           ownerAddress,
+				CollateralType: args[1],
+				Owner:          ownerAddress,
 			})
 			if err != nil {
 				return err
@@ -79,23 +79,23 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 	}
 }
 
-// QueryCdpsByDenomCmd returns the command handler for querying cdps for a collateral type
-func QueryCdpsByDenomCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryCdpsByCollateralTypeCmd returns the command handler for querying cdps for a collateral type
+func QueryCdpsByCollateralTypeCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdps [collateral-name]",
+		Use:   "cdps [collateral-type]",
 		Short: "query CDPs by collateral",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`List all CDPs collateralized with the specified asset.
 
 Example:
-$ %s query %s cdps uatom
+$ %s query %s cdps atom-a
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Prepare params for querier
-			bz, err := cdc.MarshalJSON(types.QueryCdpsParams{CollateralDenom: args[0]})
+			bz, err := cdc.MarshalJSON(types.QueryCdpsParams{CollateralType: args[0]})
 			if err != nil {
 				return err
 			}
@@ -115,18 +115,18 @@ $ %s query %s cdps uatom
 	}
 }
 
-// QueryCdpsByDenomAndRatioCmd returns the command handler for querying cdps
+// QueryCdpsByCollateralTypeAndRatioCmd returns the command handler for querying cdps
 // that are under the specified collateral ratio
-func QueryCdpsByDenomAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func QueryCdpsByCollateralTypeAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cdps-by-ratio [collateral-name] [collateralization-ratio]",
+		Use:   "cdps-by-ratio [collateral-type] [collateralization-ratio]",
 		Short: "get cdps under a collateralization ratio",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`List all CDPs under a specified collateralization ratio.
 Collateralization ratio is: collateral * price / debt.
 
 Example:
-$ %s query %s cdps-by-ratio uatom 1.5
+$ %s query %s cdps-by-ratio atom-a 1.6
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -138,8 +138,8 @@ $ %s query %s cdps-by-ratio uatom 1.5
 				return err
 			}
 			bz, err := cdc.MarshalJSON(types.QueryCdpsByRatioParams{
-				CollateralDenom: args[0],
-				Ratio:           ratio,
+				CollateralType: args[0],
+				Ratio:          ratio,
 			})
 			if err != nil {
 				return err
@@ -163,13 +163,13 @@ $ %s query %s cdps-by-ratio uatom 1.5
 // QueryCdpDepositsCmd returns the command handler for querying the deposits of a particular cdp
 func QueryCdpDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "deposits [owner-addr] [collateral-name]",
+		Use:   "deposits [owner-addr] [collateral-type]",
 		Short: "get deposits for a cdp",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Get the deposits of a CDP.
 
 Example:
-$ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
+$ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 `, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -181,8 +181,8 @@ $ %s query %s deposits kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw uatom
 				return err
 			}
 			bz, err := cdc.MarshalJSON(types.QueryCdpParams{
-				CollateralDenom: args[1],
-				Owner:           ownerAddress,
+				CollateralType: args[1],
+				Owner:          ownerAddress,
 			})
 			if err != nil {
 				return err

@@ -260,7 +260,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 	var foundIncomingAPs bool
 	var incomingAPs bep3types.AssetParams
 	for _, change := range proposal.Changes {
-		if !(change.Subspace == bep3types.ModuleName && change.Key == string(bep3types.KeySupportedAssets)) {
+		if !(change.Subspace == bep3types.ModuleName && change.Key == string(bep3types.KeyAssetParams)) {
 			continue
 		}
 		// note: in case of duplicates take the last value
@@ -277,7 +277,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 			return false // not using a panic to help avoid begin blocker panics
 		}
 		var currentAPs bep3types.AssetParams
-		subspace.Get(ctx, bep3types.KeySupportedAssets, &currentAPs) // panics if something goes wrong
+		subspace.Get(ctx, bep3types.KeyAssetParams, &currentAPs) // panics if something goes wrong
 
 		// Check all the incoming changes in the CollateralParams are allowed
 		assetParamsChangesAllowed := perm.AllowedAssetParams.Allows(currentAPs, incomingAPs)
@@ -338,7 +338,7 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 		var foundAllowedCP bool
 		var allowedCP AllowedCollateralParam
 		for _, p := range acps {
-			if p.Denom != incomingCP.Denom {
+			if p.Type != incomingCP.Type {
 				continue
 			}
 			foundAllowedCP = true
@@ -372,7 +372,8 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 }
 
 type AllowedCollateralParam struct {
-	Denom               string `json:"denom" yaml:"denom"`
+	Type                string `json:"type" yaml:"type"`
+	Denom               bool   `json:"denom" yaml:"denom"`
 	LiquidationRatio    bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
 	DebtLimit           bool   `json:"debt_limit" yaml:"debt_limit"`
 	StabilityFee        bool   `json:"stability_fee" yaml:"stability_fee"`
@@ -385,7 +386,8 @@ type AllowedCollateralParam struct {
 }
 
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
-	allowed := ((acp.Denom == current.Denom) && (acp.Denom == incoming.Denom)) && // require denoms to be all equal
+	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collateral types to be all equal
+		(current.Denom == incoming.Denom || acp.Denom) &&
 		(current.LiquidationRatio.Equal(incoming.LiquidationRatio) || acp.LiquidationRatio) &&
 		(current.DebtLimit.IsEqual(incoming.DebtLimit) || acp.DebtLimit) &&
 		(current.StabilityFee.Equal(incoming.StabilityFee) || acp.StabilityFee) &&
@@ -465,18 +467,25 @@ func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) b
 	return allAllowed
 }
 
+// AllowedAssetParam bep3 asset parameters that can be changed by committee
 type AllowedAssetParam struct {
-	Denom  string `json:"denom" yaml:"denom"`
-	CoinID bool   `json:"coin_id" yaml:"coin_id"`
-	Limit  bool   `json:"limit" yaml:"limit"`
-	Active bool   `json:"active" yaml:"active"`
+	Denom         string `json:"denom" yaml:"denom"`
+	CoinID        bool   `json:"coin_id" yaml:"coin_id"`
+	Limit         bool   `json:"limit" yaml:"limit"`
+	Active        bool   `json:"active" yaml:"active"`
+	MaxSwapAmount bool   `json:"max_swap_amount" yaml:"max_swap_amount"`
+	MinBlockLock  bool   `json:"min_block_lock" yaml:"min_block_lock"`
 }
 
+// Allows bep3 AssetParam parameters than can be changed by committee
 func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool {
+
 	allowed := ((aap.Denom == current.Denom) && (aap.Denom == incoming.Denom)) && // require denoms to be all equal
 		((current.CoinID == incoming.CoinID) || aap.CoinID) &&
-		(current.Limit.Equal(incoming.Limit) || aap.Limit) &&
-		((current.Active == incoming.Active) || aap.Active)
+		(current.SupplyLimit.Equals(incoming.SupplyLimit) || aap.Limit) &&
+		((current.Active == incoming.Active) || aap.Active) &&
+		((current.MaxSwapAmount.Equal(incoming.MaxSwapAmount)) || aap.MaxSwapAmount) &&
+		((current.MinBlockLock == incoming.MinBlockLock) || aap.MinBlockLock)
 	return allowed
 }
 

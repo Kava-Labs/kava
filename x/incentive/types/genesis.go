@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GenesisClaimPeriodID stores the next claim id and its corresponding denom
+// GenesisClaimPeriodID stores the next claim id and its corresponding collateral type
 type GenesisClaimPeriodID struct {
-	Denom string `json:"denom" yaml:"denom"`
-	ID    uint64 `json:"id" yaml:"id"`
+	CollateralType string `json:"collateral_type" yaml:"collateral_type"`
+	ID             uint64 `json:"id" yaml:"id"`
 }
 
 // Validate performs a basic check of a GenesisClaimPeriodID fields.
@@ -20,7 +19,10 @@ func (gcp GenesisClaimPeriodID) Validate() error {
 	if gcp.ID == 0 {
 		return errors.New("genesis claim period id cannot be 0")
 	}
-	return sdk.ValidateDenom(gcp.Denom)
+	if strings.TrimSpace(gcp.CollateralType) == "" {
+		return fmt.Errorf("collateral type cannot be blank: %v", gcp)
+	}
+	return nil
 }
 
 // GenesisClaimPeriodIDs array of GenesisClaimPeriodID
@@ -32,9 +34,9 @@ func (gcps GenesisClaimPeriodIDs) Validate() error {
 	seenIDS := make(map[string]bool)
 	var key string
 	for _, gcp := range gcps {
-		key = gcp.Denom + string(gcp.ID)
+		key = gcp.CollateralType + string(gcp.ID)
 		if seenIDS[key] {
-			return fmt.Errorf("duplicated genesis claim period with id %d and denom %s", gcp.ID, gcp.Denom)
+			return fmt.Errorf("duplicated genesis claim period with id %d and collateral type %s", gcp.ID, gcp.CollateralType)
 		}
 
 		if err := gcp.Validate(); err != nil {

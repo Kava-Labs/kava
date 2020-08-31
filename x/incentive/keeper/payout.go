@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -13,27 +15,28 @@ import (
 )
 
 // PayoutClaim sends the timelocked claim coins to the input address
-func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, denom string, id uint64) error {
-	claim, found := k.GetClaim(ctx, addr, denom, id)
+func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64) error {
+	claim, found := k.GetClaim(ctx, addr, collateralType, id)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, denom %s, address: %s", id, denom, addr)
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, collateral type %s, address: %s", id, collateralType, addr)
 	}
-	claimPeriod, found := k.GetClaimPeriod(ctx, id, denom)
+	claimPeriod, found := k.GetClaimPeriod(ctx, id, collateralType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, denom: %s", id, denom)
+		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, collateral type: %s", id, collateralType)
 	}
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
 	if err != nil {
 		return err
 	}
 
-	k.DeleteClaim(ctx, addr, denom, id)
+	k.DeleteClaim(ctx, addr, collateralType, id)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimPeriod, fmt.Sprintf("%d", claim.ClaimPeriodID)),
 		),
 	)
 	return nil
@@ -97,13 +100,13 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 			return false
 		}
 		k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-			if !(c.Denom == cp.Denom && c.ClaimPeriodID == cp.ID) {
+			if !(c.CollateralType == cp.CollateralType && c.ClaimPeriodID == cp.ID) {
 				return false
 			}
-			k.DeleteClaim(ctx, c.Owner, c.Denom, c.ClaimPeriodID)
+			k.DeleteClaim(ctx, c.Owner, c.CollateralType, c.ClaimPeriodID)
 			return false
 		})
-		k.DeleteClaimPeriod(ctx, cp.ID, cp.Denom)
+		k.DeleteClaimPeriod(ctx, cp.ID, cp.CollateralType)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeClaimPeriodExpiry,
@@ -115,14 +118,14 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 	})
 }
 
-// GetClaimsByAddressAndDenom returns all claims for a specific user and address and a bool for if any were found
-func (k Keeper) GetClaimsByAddressAndDenom(ctx sdk.Context, addr sdk.AccAddress, denom string) (claims types.Claims, found bool) {
+// GetClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
+func (k Keeper) GetClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.Claims, found bool) {
 	found = false
 	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.Denom != denom {
+		if cp.CollateralType != collateralType {
 			return false
 		}
-		c, hasClaim := k.GetClaim(ctx, addr, cp.Denom, cp.ID)
+		c, hasClaim := k.GetClaim(ctx, addr, cp.CollateralType, cp.ID)
 		if !hasClaim {
 			return false
 		}
@@ -141,16 +144,22 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 	// Add the new vesting coins to OriginalVesting
 	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt...)
 	// update vesting periods
+	// EndTime = 100
+	// BlockTime  = 110
+	// length == 6
 	if vacc.EndTime < ctx.BlockTime().Unix() {
 		// edge case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
 		// append a new period to the vesting account, update the end time, update the account in the store and return
-		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length
+		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length // 110 - 100 + 6 = 16
 		newPeriod := types.NewPeriod(amt, newPeriodLength)
 		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
 		vacc.EndTime = ctx.BlockTime().Unix() + length
 		k.accountKeeper.SetAccount(ctx, vacc)
 		return
 	}
+	// StartTime = 110
+	// BlockTime = 100
+	// length = 6
 	if vacc.StartTime > ctx.BlockTime().Unix() {
 		// edge case two - the vesting account's start time is in the future (all periods have not started)
 		// update the start time to now and adjust the period lengths in place - a new period will be inserted in the next code block
@@ -158,7 +167,7 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 		for i, period := range vacc.VestingPeriods {
 			updatedPeriod := period
 			if i == 0 {
-				updatedPeriod = types.NewPeriod(period.Amount, (vacc.StartTime-ctx.BlockTime().Unix())+period.Length)
+				updatedPeriod = types.NewPeriod(period.Amount, (vacc.StartTime-ctx.BlockTime().Unix())+period.Length) // 110 - 100 + 6 = 16
 			}
 			updatedPeriods = append(updatedPeriods, updatedPeriod)
 		}
@@ -167,11 +176,12 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 	}
 
 	// logic for inserting a new vesting period into the existing vesting schedule
-	totalPeriodLength := types.GetTotalVestingPeriodLength(vacc.VestingPeriods)
+	remainingLength := vacc.EndTime - ctx.BlockTime().Unix()
+	elapsedTime := ctx.BlockTime().Unix() - vacc.StartTime
 	proposedEndTime := ctx.BlockTime().Unix() + length
-	if totalPeriodLength < length {
-		// in the case that the proposed length is longer than the sum of all previous period lengths, create a new period with length equal to the difference between the proposed length and the previous total length
-		newPeriodLength := length - totalPeriodLength
+	if remainingLength < length {
+		// in the case that the proposed length is longer than the remaining length of all vesting periods, create a new period with length equal to the difference between the proposed length and the previous total length
+		newPeriodLength := length - remainingLength
 		newPeriod := types.NewPeriod(amt, newPeriodLength)
 		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
 		// update the end time so that the sum of all period lengths equals endTime - startTime
@@ -184,6 +194,19 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 		// Expected result:
 		// {[l: 1, a: 1], [l:2, a: 1], [l:2, a:x], [l:6, a:3], [l:5, a:3]}
 
+		// StartTime = 100
+		// Periods = [5,5,5,5]
+		// EndTime = 120
+		// BlockTime = 101
+		// length = 2
+
+		// for period in Periods:
+		// iteration  1:
+		// lengthCounter = 5
+		// if 5 < 101 - 100 + 2 - no
+		// if 5 = 3 - no
+		// else
+		// newperiod = 2 - 0
 		newPeriods := vesting.Periods{}
 		lengthCounter := int64(0)
 		appendRemaining := false
@@ -193,14 +216,14 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 				continue
 			}
 			lengthCounter += period.Length
-			if lengthCounter < length {
+			if lengthCounter < elapsedTime+length { // 1
 				newPeriods = append(newPeriods, period)
-			} else if lengthCounter == length {
+			} else if lengthCounter == elapsedTime+length {
 				newPeriod := types.NewPeriod(period.Amount.Add(amt...), period.Length)
 				newPeriods = append(newPeriods, newPeriod)
 				appendRemaining = true
 			} else {
-				newPeriod := types.NewPeriod(amt, length-types.GetTotalVestingPeriodLength(newPeriods))
+				newPeriod := types.NewPeriod(amt, elapsedTime+length-types.GetTotalVestingPeriodLength(newPeriods))
 				previousPeriod := types.NewPeriod(period.Amount, period.Length-newPeriod.Length)
 				newPeriods = append(newPeriods, newPeriod, previousPeriod)
 				appendRemaining = true

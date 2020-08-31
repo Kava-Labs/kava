@@ -38,7 +38,7 @@ const (
 	QueryGetCdpsByCollateralization = types.QueryGetCdpsByCollateralization
 	QueryGetParams                  = types.QueryGetParams
 	RestOwner                       = types.RestOwner
-	RestCollateralDenom             = types.RestCollateralDenom
+	RestCollateralType              = types.RestCollateralType
 	RestRatio                       = types.RestRatio
 )
 
