@@ -108,7 +108,7 @@ func (suite *QuerierTestSuite) TestQueryAuctions() {
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetAuctions}, "/"),
 		Data: types.ModuleCdc.MustMarshalJSON(
-			types.NewQueryAllAuctionParams(int(1), int(TestAuctionCount), "", "", ""),
+			types.NewQueryAllAuctionParams(int(1), int(TestAuctionCount), "", "", "", nil),
 		),
 	}
 

@@ -1,12 +1,11 @@
 package keeper
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -91,8 +90,7 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 	filteredAuctions := make(types.Auctions, 0, len(auctions))
 
 	for _, auc := range auctions {
-		matchType, matchDenom, matchPhase := true, true, true
-		matchOwner := false
+		matchType, matchOwner, matchDenom, matchPhase := true, true, true, true
 
 		// match auction type (if supplied)
 		if len(params.Type) > 0 {
@@ -102,11 +100,15 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 		// match auction owner (if supplied)
 		if len(params.Owner) > 0 {
 			if cAuc, ok := auc.(types.CollateralAuction); ok {
+				foundOwnerAddr := false
 				for _, addr := range cAuc.GetLotReturns().Addresses {
 					if addr.Equals(params.Owner) {
-						matchOwner = true
+						foundOwnerAddr = true
 						break
 					}
+				}
+				if !foundOwnerAddr {
+					matchOwner = false
 				}
 			}
 		}
