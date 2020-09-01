@@ -32,6 +32,11 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 	totalSurplus := sdk.NewDecFromInt(surplusToDistribute)
 	totalSupply := sdk.NewDecFromInt(totalSupplyLessModAccounts.AmountOf(debtDenom))
 
+	// Update total savings rate distributed by surplus to distribute
+	currDistributed := k.GetSavingsRateDistributed(ctx)
+	newTotalDistributed := currDistributed.Add(surplusToDistribute)
+	k.SetSavingsRateDistributed(ctx, newTotalDistributed)
+
 	var iterationErr error
 	// TODO: avoid iterating over all the accounts by keeping the stored stable coin
 	// holders' addresses separately.

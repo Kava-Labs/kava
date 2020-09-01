@@ -130,10 +130,3 @@ func (k Keeper) GetSavingsRateDistributed(ctx sdk.Context) sdk.Int {
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &savingsRateDistributed)
 	return savingsRateDistributed
 }
-
-// IncrementSavingsRateDistributed increments the savings rate distributed counter
-func (k Keeper) IncrementSavingsRateDistributed(ctx sdk.Context, distribution sdk.Int) {
-	currDistributed := k.GetSavingsRateDistributed(ctx)
-	newTotalDistributed := currDistributed.Add(distribution)
-	k.SetSavingsRateDistributed(ctx, newTotalDistributed)
-}
