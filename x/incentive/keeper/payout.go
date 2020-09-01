@@ -118,8 +118,8 @@ func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
 	})
 }
 
-// GetClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
-func (k Keeper) GetClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.Claims, found bool) {
+// GetActiveClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
+func (k Keeper) GetActiveClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.Claims, found bool) {
 	found = false
 	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
 		if cp.CollateralType != collateralType {
@@ -134,6 +134,32 @@ func (k Keeper) GetClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.Ac
 		return false
 	})
 	return claims, found
+}
+
+// GetAllClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
+func (k Keeper) GetAllClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.AugmentedClaims, found bool) {
+	found = false
+	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
+		if cp.CollateralType != collateralType {
+			return false
+		}
+		c, hasClaim := k.GetClaim(ctx, addr, cp.CollateralType, cp.ID)
+		if !hasClaim {
+			return false
+		}
+		ac := types.NewAugmentedClaim(c, true)
+		found = true
+		claims = append(claims, ac)
+		return false
+	})
+	nextClaimID := k.GetNextClaimPeriodID(ctx, collateralType)
+	c, hasClaim := k.GetClaim(ctx, addr, collateralType, nextClaimID)
+	if !hasClaim {
+		return claims, found
+	}
+	ac := types.NewAugmentedClaim(c, false)
+	claims = append(claims, ac)
+	return claims, true
 }
 
 // addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for
