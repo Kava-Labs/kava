@@ -38,8 +38,6 @@ make install
 
 The scheduled mainnet upgrade to `kava-3` took place on June 10th, 2020 at 14:00 UTC. The current version of Kava for `kava-3` is [__v0.10.0__](https://github.com/Kava-Labs/kava/releases/tag/v0.10.0).
 
-Migration instructions can be found [here](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md).
-
 The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-3)
 
 The canonical genesis file hash is

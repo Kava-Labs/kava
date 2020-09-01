@@ -76,7 +76,7 @@ This version mitigates a memory leak in tendermint that was found prior to launc
 
 The default tendermint pruning strategy, `pruning="syncable"` is currently unsafe due to a [memory leak](https://github.com/tendermint/iavl/issues/256) that can cause irrecoverable data loss. This patch release prevents `kvd` from being started with the `pruning="syncable"` configuration. Until a patch for tendermint is released, the ONLY pruning strategies that are safe to run are `everything` (an archival node) or `nothing` (only the most recent state is kept). It is strongly recommended that validators use `pruning="nothing"` for kava-3. It is expected that a patch to tendermint will be released in a non-breaking manner and that nodes will be able to update seamlessly after the launch of kava-3.
 
-The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md). Please note the additional section on [pruning](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md#Pruning).
+The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md). Please note the additional section on [pruning](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md#Pruning).
 
 ## [v0.8.0](https://github.com/Kava-Labs/kava/releases/tag/v0.8.0) kava-3 Release
 
@@ -84,7 +84,7 @@ This version is intended to be the canonical software version for upgrading the 
 
 ### Migration
 
-The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md)
+The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md)
 
 ### Features
 
