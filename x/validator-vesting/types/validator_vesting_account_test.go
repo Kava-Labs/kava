@@ -442,3 +442,62 @@ func TestGenesisAccountValidate(t *testing.T) {
 		}
 	}
 }
+
+func TestMarshalJSON(t *testing.T) {
+	testTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	periods := vestingtypes.Periods{
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25))},
+	}
+	testAddrs := CreateTestAddrs(2)
+	testPk := CreateTestPubKeys(1)[0]
+	testConsAddr := sdk.ConsAddress(testPk.Address())
+
+	testCases := []struct {
+		name    string
+		account *ValidatorVestingAccount
+	}{
+		{
+			name: "normal",
+			account: NewValidatorVestingAccount(
+				auth.NewBaseAccount(
+					testAddrs[0],
+					cs(c(stakeDenom, 100)),
+					testPk,
+					0,
+					1,
+				),
+				testTime.Unix(),
+				periods,
+				testConsAddr,
+				testAddrs[1],
+				1000000,
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		bz, err := ModuleCdc.MarshalJSON(tc.account)
+		require.NoError(t, err)
+
+		var reconstructedAccount *ValidatorVestingAccount
+		err = ModuleCdc.UnmarshalJSON(bz, &reconstructedAccount)
+		require.NoError(t, err)
+
+		// first check debt coins using coin equality function, then overwrite to avoid problems with testify's Equality check
+		require.Truef(t,
+			tc.account.DebtAfterFailedVesting.IsEqual(reconstructedAccount.DebtAfterFailedVesting),
+			"DebtAfterFailedVesting not equal, expected: %+v, actual: %+v",
+			tc.account.DebtAfterFailedVesting,
+			reconstructedAccount.DebtAfterFailedVesting,
+		)
+		reconstructedAccount.DebtAfterFailedVesting = tc.account.DebtAfterFailedVesting
+
+		require.Equal(t, tc.account, reconstructedAccount)
+	}
+}
+
+// TODO replace other instances
+func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
+func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
