@@ -9,6 +9,7 @@ const (
 	QueryGetCdp                     = "cdp"
 	QueryGetCdpDeposits             = "deposits"
 	QueryGetCdps                    = "cdps"
+	QueryGetV2Cdps                  = "v2cdps"
 	QueryGetCdpsByCollateralization = "ratio"
 	QueryGetParams                  = "params"
 	QueryGetAccounts                = "accounts"
@@ -26,6 +27,26 @@ type QueryCdpsParams struct {
 func NewQueryCdpsParams(collateralType string) QueryCdpsParams {
 	return QueryCdpsParams{
 		CollateralType: collateralType,
+	}
+}
+
+// QueryV2CdpsParams is the params for a filtered CDP query
+type QueryV2CdpsParams struct {
+	Page            int            `json:"page" yaml:"page"`
+	Limit           int            `json:"limit" yaml:"limit"`
+	CollateralDenom string         `json:"collateral_denom" yaml:"collateral_denom"`
+	Owner           sdk.AccAddress `json:"owner" yaml:"owner"`
+	ID              uint64         `json:"id" yaml:"id"`
+}
+
+// NewQueryV2CdpsParams creates a new QueryV2CdpsParams
+func NewQueryV2CdpsParams(page, limit int, collateralDenom string, owner sdk.AccAddress, id uint64) QueryV2CdpsParams {
+	return QueryV2CdpsParams{
+		Page:            page,
+		Limit:           limit,
+		CollateralDenom: collateralDenom,
+		Owner:           owner,
+		ID:              id,
 	}
 }
 

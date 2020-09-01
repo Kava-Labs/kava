@@ -3,6 +3,7 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -17,6 +18,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetCdp:
 			return queryGetCdp(ctx, req, keeper)
+		case types.QueryGetV2Cdps:
+			return queryGetV2Cdps(ctx, req, keeper)
 		case types.QueryGetCdps:
 			return queryGetCdpsByCollateralType(ctx, req, keeper)
 		case types.QueryGetCdpsByCollateralization:
@@ -177,4 +180,73 @@ func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
+}
+
+// query cdps in store and filter by request params
+func queryGetV2Cdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryV2CdpsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	// Filter CDPs
+	unfilteredCDPs := keeper.GetAllCdps(ctx)
+	cdps := filterCDPs(ctx, unfilteredCDPs, params)
+
+	var augmentedCDPs types.AugmentedCDPs
+	if cdps == nil {
+		augmentedCDPs = types.AugmentedCDPs{}
+	}
+
+	// Augment CDPs by adding collateral value and collateralization ratio
+	for _, cdp := range cdps {
+		augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
+		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+// filterCDPs retrieves CDPs filtered by a given set of params.
+// If no filters are provided, all CDPs will be returned in paginated form.
+func filterCDPs(ctx sdk.Context, cdps types.CDPs, params types.QueryV2CdpsParams) types.CDPs {
+	filteredCDPs := make(types.CDPs, 0, len(cdps))
+
+	for _, cdp := range cdps {
+		matchCollateralDenom, matchOwner, matchID := true, true, true
+
+		// match cdp collateral denom (if supplied)
+		if len(params.CollateralDenom) > 0 {
+			matchCollateralDenom = cdp.Collateral.Denom == params.CollateralDenom
+		}
+
+		// match cdp owner (if supplied)
+		if len(params.Owner) > 0 {
+			matchOwner = cdp.Owner.Equals(params.Owner)
+		}
+
+		// match cdp ID (if supplied)
+		if params.ID != 0 {
+			matchID = cdp.ID == (params.ID)
+		}
+
+		if matchCollateralDenom && matchOwner && matchID {
+			filteredCDPs = append(filteredCDPs, cdp)
+		}
+	}
+
+	start, end := client.Paginate(len(filteredCDPs), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		filteredCDPs = types.CDPs{}
+	} else {
+		filteredCDPs = filteredCDPs[start:end]
+	}
+
+	return filteredCDPs
 }

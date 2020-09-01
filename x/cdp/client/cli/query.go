@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -14,6 +16,13 @@ import (
 	supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/kava-labs/kava/x/cdp/types"
+)
+
+// Query CDP flags
+const (
+	flagCollateralDenom = "collateral-denom"
+	flagOwner           = "owner"
+	flagID              = "id"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -26,6 +35,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	cdpQueryCmd.AddCommand(flags.GetCommands(
 		QueryCdpCmd(queryRoute, cdc),
+		QueryGetV2CdpsCmd(queryRoute, cdc),
 		QueryCdpsByCollateralTypeCmd(queryRoute, cdc),
 		QueryCdpsByCollateralTypeAndRatioCmd(queryRoute, cdc),
 		QueryCdpDepositsCmd(queryRoute, cdc),
@@ -77,6 +87,92 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 			return cliCtx.PrintOutput(cdp)
 		},
 	}
+}
+
+// QueryGetV2CdpsCmd queries the cdps in the store
+func QueryGetV2CdpsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "v2cdps",
+		Short: "query cdps with optional filters",
+		Long: strings.TrimSpace(`Query for all paginated cdps that match optional filters:
+Example:
+$ kvcli q cdp cdps --collateral-denom=bnb
+$ kvcli q cdp cdps --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
+$ kvcli q cdp cdps --id=21
+`,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			strCollateralDenom := viper.GetString(flagCollateralDenom)
+			strOwner := viper.GetString(flagOwner)
+			strID := viper.GetString(flagID)
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
+			var (
+				cdpCollateralDenom string
+				cdpOwner           sdk.AccAddress
+				cdpID              uint64
+			)
+
+			params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralDenom, cdpOwner, cdpID)
+
+			if len(strCollateralDenom) != 0 {
+				cdpCollateralDenom = strings.ToLower(strings.TrimSpace(strCollateralDenom))
+				err := sdk.ValidateDenom(cdpCollateralDenom)
+				if err != nil {
+					return err
+				}
+				params.CollateralDenom = cdpCollateralDenom
+			}
+
+			if len(strOwner) != 0 {
+				cdpOwner, err := sdk.AccAddressFromBech32(strings.ToLower(strings.TrimSpace(strOwner)))
+				if err != nil {
+					return fmt.Errorf("cannot parse address from cdp owner %s", strOwner)
+				}
+				params.Owner = cdpOwner
+			}
+
+			if len(strID) != 0 {
+				cdpID, err := strconv.Atoi(strID)
+				if err != nil {
+					return fmt.Errorf("cannot parse cdp ID %s", strID)
+				}
+				params.ID = uint64(cdpID)
+			}
+
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetV2Cdps), bz)
+			if err != nil {
+				return err
+			}
+
+			// Decode and print results
+			var matchingCDPs types.AugmentedCDPs
+			cdc.MustUnmarshalJSON(res, &matchingCDPs)
+			if len(matchingCDPs) == 0 {
+				return fmt.Errorf("No matching CDPs found")
+			}
+
+			cliCtx = cliCtx.WithHeight(height)
+			return cliCtx.PrintOutput(matchingCDPs) // nolint:errcheck
+		},
+	}
+
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of CDPs to to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of CDPs to query for")
+	cmd.Flags().String(flagCollateralDenom, "", "(optional) filter by CDP collateral denom")
+	cmd.Flags().String(flagOwner, "", "(optional) filter by CDP owner")
+	cmd.Flags().String(flagID, "", "(optional) filter by CDP ID")
+
+	return cmd
 }
 
 // QueryCdpsByCollateralTypeCmd returns the command handler for querying cdps for a collateral type
