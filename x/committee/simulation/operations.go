@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	distsim "github.com/cosmos/cosmos-sdk/x/distribution/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/kava-labs/kava/x/committee/keeper"
@@ -32,8 +33,9 @@ func WeightedOperations(appParams simulation.AppParams, cdc *codec.Codec, ak Acc
 
 	for _, wContent := range wContents {
 		wContent := wContent // pin variable
-		if wContent.AppParamsKey == OpWeightSubmitCommitteeChangeProposal {
+		if wContent.AppParamsKey == OpWeightSubmitCommitteeChangeProposal || wContent.AppParamsKey == distsim.OpWeightSubmitCommunitySpendProposal {
 			// don't include committee change/delete proposals as they're not enabled for submission to committees
+			// don't include community pool proposals as the generator func sometimes returns nil // TODO replace generator with a better one
 			continue
 		}
 		var weight int
@@ -74,6 +76,9 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 		}
 		// pick a committee that has permissions for proposal
 		pp := types.PubProposal(contentSim(r, ctx, accs))
+		if pp == nil {
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (conent generation function returned nil)", "", false, nil), nil, nil
+		}
 		var selectedCommittee types.Committee
 		var found bool
 		for _, c := range committees {

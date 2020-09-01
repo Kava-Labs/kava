@@ -62,7 +62,7 @@ func (suite *AuctionTestSuite) TestCollateralAuction() {
 	err := sk.MintCoins(suite.ctx, types.LiquidatorMacc, cs(c("debt", 21000000000), c("bnb", 190000000000)))
 	suite.Require().NoError(err)
 	testDeposit := types.NewDeposit(1, suite.addrs[0], c("bnb", 190000000000))
-	err = suite.keeper.AuctionCollateral(suite.ctx, types.Deposits{testDeposit}, i(21000000000), "usdx")
+	err = suite.keeper.AuctionCollateral(suite.ctx, types.Deposits{testDeposit}, "bnb-a", i(21000000000), "usdx")
 	suite.Require().NoError(err)
 }
 

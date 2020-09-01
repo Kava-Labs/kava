@@ -1,7 +1,9 @@
 package keeper_test
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -36,16 +38,18 @@ func (suite *AssetTestSuite) SetupTest() {
 	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(deputy))
 
 	keeper := tApp.GetBep3Keeper()
-
+	params := keeper.GetParams(ctx)
+	params.AssetParams[0].SupplyLimit.Limit = sdk.NewInt(50)
+	params.AssetParams[1].SupplyLimit.Limit = sdk.NewInt(100)
+	params.AssetParams[1].SupplyLimit.TimeBasedLimit = sdk.NewInt(15)
+	keeper.SetParams(ctx, params)
 	// Set asset supply with standard value for testing
-	supply := types.AssetSupply{
-		Denom:          "bnb",
-		IncomingSupply: c("bnb", 5),
-		OutgoingSupply: c("bnb", 5),
-		CurrentSupply:  c("bnb", 40),
-		SupplyLimit:    c("bnb", 50),
-	}
-	keeper.SetAssetSupply(ctx, supply, []byte(supply.Denom))
+	supply := types.NewAssetSupply(c("bnb", 5), c("bnb", 5), c("bnb", 40), c("bnb", 0), time.Duration(0))
+	keeper.SetAssetSupply(ctx, supply, supply.IncomingSupply.Denom)
+
+	supply = types.NewAssetSupply(c("inc", 10), c("inc", 5), c("inc", 5), c("inc", 0), time.Duration(0))
+	keeper.SetAssetSupply(ctx, supply, supply.IncomingSupply.Denom)
+	keeper.SetPreviousBlockTime(ctx, ctx.BlockTime())
 
 	suite.app = tApp
 	suite.ctx = ctx
@@ -95,11 +99,10 @@ func (suite *AssetTestSuite) TestIncrementCurrentAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -108,6 +111,64 @@ func (suite *AssetTestSuite) TestIncrementCurrentAssetSupply() {
 			} else {
 				suite.Error(err)
 				suite.Equal(preSupply.CurrentSupply, postSupply.CurrentSupply)
+			}
+		})
+	}
+}
+
+func (suite *AssetTestSuite) TestIncrementTimeLimitedCurrentAssetSupply() {
+	type args struct {
+		coin           sdk.Coin
+		expectedSupply types.AssetSupply
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	testCases := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{
+			"normal",
+			args{
+				coin: c("inc", 5),
+				expectedSupply: types.AssetSupply{
+					IncomingSupply:           c("inc", 10),
+					OutgoingSupply:           c("inc", 5),
+					CurrentSupply:            c("inc", 10),
+					TimeLimitedCurrentSupply: c("inc", 5),
+					TimeElapsed:              time.Duration(0)},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"over limit",
+			args{
+				coin:           c("inc", 16),
+				expectedSupply: types.AssetSupply{},
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "asset supply over limit for current time period",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.SetupTest()
+		suite.Run(tc.name, func() {
+			err := suite.keeper.IncrementCurrentAssetSupply(suite.ctx, tc.args.coin)
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+				supply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
+				suite.Require().Equal(tc.args.expectedSupply, supply)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
 	}
@@ -155,11 +216,10 @@ func (suite *AssetTestSuite) TestDecrementCurrentAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.DecrementCurrentAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -215,11 +275,9 @@ func (suite *AssetTestSuite) TestIncrementIncomingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
-
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.IncrementIncomingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -228,6 +286,64 @@ func (suite *AssetTestSuite) TestIncrementIncomingAssetSupply() {
 			} else {
 				suite.Error(err)
 				suite.Equal(preSupply.IncomingSupply, postSupply.IncomingSupply)
+			}
+		})
+	}
+}
+
+func (suite *AssetTestSuite) TestIncrementTimeLimitedIncomingAssetSupply() {
+	type args struct {
+		coin           sdk.Coin
+		expectedSupply types.AssetSupply
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	testCases := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{
+			"normal",
+			args{
+				coin: c("inc", 5),
+				expectedSupply: types.AssetSupply{
+					IncomingSupply:           c("inc", 15),
+					OutgoingSupply:           c("inc", 5),
+					CurrentSupply:            c("inc", 5),
+					TimeLimitedCurrentSupply: c("inc", 0),
+					TimeElapsed:              time.Duration(0)},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"over limit",
+			args{
+				coin:           c("inc", 6),
+				expectedSupply: types.AssetSupply{},
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "asset supply over limit for current time period",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.SetupTest()
+		suite.Run(tc.name, func() {
+			err := suite.keeper.IncrementIncomingAssetSupply(suite.ctx, tc.args.coin)
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+				supply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
+				suite.Require().Equal(tc.args.expectedSupply, supply)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
 	}
@@ -275,11 +391,10 @@ func (suite *AssetTestSuite) TestDecrementIncomingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.DecrementIncomingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -335,11 +450,10 @@ func (suite *AssetTestSuite) TestIncrementOutgoingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
 
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.IncrementOutgoingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -395,11 +509,9 @@ func (suite *AssetTestSuite) TestDecrementOutgoingAssetSupply() {
 	for _, tc := range testCases {
 		suite.SetupTest()
 		suite.Run(tc.name, func() {
-			supplyKeyPrefix := []byte(tc.args.coin.Denom)
-
-			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			preSupply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 			err := suite.keeper.DecrementOutgoingAssetSupply(suite.ctx, tc.args.coin)
-			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, supplyKeyPrefix)
+			postSupply, _ := suite.keeper.GetAssetSupply(suite.ctx, tc.args.coin.Denom)
 
 			if tc.expectPass {
 				suite.True(found)
@@ -413,23 +525,179 @@ func (suite *AssetTestSuite) TestDecrementOutgoingAssetSupply() {
 	}
 }
 
-func (suite *AssetTestSuite) TestUpdateAssetSupplies() {
-	// set new asset limit in the params
-	newBnbLimit := c("bnb", 100)
-	params := suite.keeper.GetParams(suite.ctx)
-	for i := range params.SupportedAssets {
-		if params.SupportedAssets[i].Denom != newBnbLimit.Denom {
-			continue
-		}
-		params.SupportedAssets[i].Limit = newBnbLimit.Amount
+func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
+	type args struct {
+		asset          string
+		duration       time.Duration
+		expectedSupply types.AssetSupply
 	}
-	suite.keeper.SetParams(suite.ctx, params)
-
-	suite.keeper.UpdateAssetSupplies(suite.ctx)
-
-	supply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(newBnbLimit.Denom))
-	suite.True(found)
-	suite.True(supply.SupplyLimit.IsEqual(newBnbLimit))
+	type errArgs struct {
+		expectPanic bool
+		contains    string
+	}
+	testCases := []struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}{
+		{
+			"rate-limited increment time",
+			args{
+				asset:          "inc",
+				duration:       time.Second,
+				expectedSupply: types.NewAssetSupply(c("inc", 10), c("inc", 5), c("inc", 5), c("inc", 0), time.Second),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+		{
+			"rate-limited increment time half",
+			args{
+				asset:          "inc",
+				duration:       time.Minute * 30,
+				expectedSupply: types.NewAssetSupply(c("inc", 10), c("inc", 5), c("inc", 5), c("inc", 0), time.Minute*30),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+		{
+			"rate-limited period change",
+			args{
+				asset:          "inc",
+				duration:       time.Hour + time.Second,
+				expectedSupply: types.NewAssetSupply(c("inc", 10), c("inc", 5), c("inc", 5), c("inc", 0), time.Duration(0)),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+		{
+			"rate-limited period change exact",
+			args{
+				asset:          "inc",
+				duration:       time.Hour,
+				expectedSupply: types.NewAssetSupply(c("inc", 10), c("inc", 5), c("inc", 5), c("inc", 0), time.Duration(0)),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+		{
+			"rate-limited period change big",
+			args{
+				asset:          "inc",
+				duration:       time.Hour * 4,
+				expectedSupply: types.NewAssetSupply(c("inc", 10), c("inc", 5), c("inc", 5), c("inc", 0), time.Duration(0)),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+		{
+			"non rate-limited increment time",
+			args{
+				asset:          "bnb",
+				duration:       time.Second,
+				expectedSupply: types.NewAssetSupply(c("bnb", 5), c("bnb", 5), c("bnb", 40), c("bnb", 0), time.Duration(0)),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+		{
+			"new asset increment time",
+			args{
+				asset:          "lol",
+				duration:       time.Second,
+				expectedSupply: types.NewAssetSupply(c("lol", 0), c("lol", 0), c("lol", 0), c("lol", 0), time.Second),
+			},
+			errArgs{
+				expectPanic: false,
+				contains:    "",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.SetupTest()
+		suite.Run(tc.name, func() {
+			deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
+			newParams := types.Params{
+				AssetParams: types.AssetParams{
+					types.AssetParam{
+						Denom:  "bnb",
+						CoinID: 714,
+						SupplyLimit: types.SupplyLimit{
+							Limit:          sdk.NewInt(350000000000000),
+							TimeLimited:    false,
+							TimeBasedLimit: sdk.ZeroInt(),
+							TimePeriod:     time.Hour,
+						},
+						Active:        true,
+						DeputyAddress: deputy,
+						FixedFee:      sdk.NewInt(1000),
+						MinSwapAmount: sdk.OneInt(),
+						MaxSwapAmount: sdk.NewInt(1000000000000),
+						MinBlockLock:  types.DefaultMinBlockLock,
+						MaxBlockLock:  types.DefaultMaxBlockLock,
+					},
+					types.AssetParam{
+						Denom:  "inc",
+						CoinID: 9999,
+						SupplyLimit: types.SupplyLimit{
+							Limit:          sdk.NewInt(100),
+							TimeLimited:    true,
+							TimeBasedLimit: sdk.NewInt(10),
+							TimePeriod:     time.Hour,
+						},
+						Active:        false,
+						DeputyAddress: deputy,
+						FixedFee:      sdk.NewInt(1000),
+						MinSwapAmount: sdk.OneInt(),
+						MaxSwapAmount: sdk.NewInt(1000000000000),
+						MinBlockLock:  types.DefaultMinBlockLock,
+						MaxBlockLock:  types.DefaultMaxBlockLock,
+					},
+					types.AssetParam{
+						Denom:  "lol",
+						CoinID: 9999,
+						SupplyLimit: types.SupplyLimit{
+							Limit:          sdk.NewInt(100),
+							TimeLimited:    true,
+							TimeBasedLimit: sdk.NewInt(10),
+							TimePeriod:     time.Hour,
+						},
+						Active:        false,
+						DeputyAddress: deputy,
+						FixedFee:      sdk.NewInt(1000),
+						MinSwapAmount: sdk.OneInt(),
+						MaxSwapAmount: sdk.NewInt(1000000000000),
+						MinBlockLock:  types.DefaultMinBlockLock,
+						MaxBlockLock:  types.DefaultMaxBlockLock,
+					},
+				},
+			}
+			suite.keeper.SetParams(suite.ctx, newParams)
+			suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(tc.args.duration))
+			suite.NotPanics(
+				func() {
+					suite.keeper.UpdateTimeBasedSupplyLimits(suite.ctx)
+				},
+			)
+			if !tc.errArgs.expectPanic {
+				supply, found := suite.keeper.GetAssetSupply(suite.ctx, tc.args.asset)
+				suite.Require().True(found)
+				suite.Require().Equal(tc.args.expectedSupply, supply)
+			}
+		})
+	}
 }
 
 func TestAssetTestSuite(t *testing.T) {

@@ -4,21 +4,24 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"time"
 )
 
 // GenesisState - all bep3 state that must be provided at genesis
 type GenesisState struct {
-	Params        Params        `json:"params" yaml:"params"`
-	AtomicSwaps   AtomicSwaps   `json:"atomic_swaps" yaml:"atomic_swaps"`
-	AssetSupplies AssetSupplies `json:"assets_supplies" yaml:"assets_supplies"`
+	Params            Params        `json:"params" yaml:"params"`
+	AtomicSwaps       AtomicSwaps   `json:"atomic_swaps" yaml:"atomic_swaps"`
+	Supplies          AssetSupplies `json:"supplies" yaml:"supplies"`
+	PreviousBlockTime time.Time     `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies) GenesisState {
+func NewGenesisState(params Params, swaps AtomicSwaps, supplies AssetSupplies, previousBlockTime time.Time) GenesisState {
 	return GenesisState{
-		Params:        params,
-		AtomicSwaps:   swaps,
-		AssetSupplies: supplies,
+		Params:            params,
+		AtomicSwaps:       swaps,
+		Supplies:          supplies,
+		PreviousBlockTime: previousBlockTime,
 	}
 }
 
@@ -28,6 +31,7 @@ func DefaultGenesisState() GenesisState {
 		DefaultParams(),
 		AtomicSwaps{},
 		AssetSupplies{},
+		DefaultPreviousBlockTime,
 	)
 }
 
@@ -49,19 +53,6 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	denoms := map[string]bool{}
-	for _, asset := range gs.AssetSupplies {
-		if denoms[asset.Denom] {
-			return fmt.Errorf("found duplicate asset denom %s", asset.Denom)
-		}
-
-		if err := asset.Validate(); err != nil {
-			return err
-		}
-
-		denoms[asset.Denom] = true
-	}
-
 	ids := map[string]bool{}
 	for _, swap := range gs.AtomicSwaps {
 		if ids[hex.EncodeToString(swap.GetSwapID())] {
@@ -73,6 +64,17 @@ func (gs GenesisState) Validate() error {
 		}
 
 		ids[hex.EncodeToString(swap.GetSwapID())] = true
+	}
+
+	supplyDenoms := map[string]bool{}
+	for _, supply := range gs.Supplies {
+		if err := supply.Validate(); err != nil {
+			return err
+		}
+		if supplyDenoms[supply.GetDenom()] {
+			return fmt.Errorf("found duplicate denom in asset supplies %s", supply.GetDenom())
+		}
+		supplyDenoms[supply.GetDenom()] = true
 	}
 	return nil
 }

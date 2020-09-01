@@ -27,7 +27,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Result, error) {
-	err := k.AddCdp(ctx, msg.Sender, msg.Collateral, msg.Principal)
+	err := k.AddCdp(ctx, msg.Sender, msg.Collateral, msg.Principal, msg.CollateralType)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Resul
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)
-	id, _ := k.GetCdpID(ctx, msg.Sender, msg.Collateral.Denom)
+	id, _ := k.GetCdpID(ctx, msg.Sender, msg.CollateralType)
 
 	return &sdk.Result{
 		Data:   GetCdpIDBytes(id),
@@ -48,7 +48,7 @@ func handleMsgCreateCDP(ctx sdk.Context, k Keeper, msg MsgCreateCDP) (*sdk.Resul
 }
 
 func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) (*sdk.Result, error) {
-	err := k.DepositCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral)
+	err := k.DepositCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral, msg.CollateralType)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func handleMsgDeposit(ctx sdk.Context, k Keeper, msg MsgDeposit) (*sdk.Result, e
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) (*sdk.Result, error) {
-	err := k.WithdrawCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral)
+	err := k.WithdrawCollateral(ctx, msg.Owner, msg.Depositor, msg.Collateral, msg.CollateralType)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func handleMsgWithdraw(ctx sdk.Context, k Keeper, msg MsgWithdraw) (*sdk.Result,
 }
 
 func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) (*sdk.Result, error) {
-	err := k.AddPrincipal(ctx, msg.Sender, msg.CdpDenom, msg.Principal)
+	err := k.AddPrincipal(ctx, msg.Sender, msg.CollateralType, msg.Principal)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func handleMsgDrawDebt(ctx sdk.Context, k Keeper, msg MsgDrawDebt) (*sdk.Result,
 }
 
 func handleMsgRepayDebt(ctx sdk.Context, k Keeper, msg MsgRepayDebt) (*sdk.Result, error) {
-	err := k.RepayPrincipal(ctx, msg.Sender, msg.CdpDenom, msg.Payment)
+	err := k.RepayPrincipal(ctx, msg.Sender, msg.CollateralType, msg.Payment)
 	if err != nil {
 		return nil, err
 	}

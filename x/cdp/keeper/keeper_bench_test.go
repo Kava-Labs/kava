@@ -86,7 +86,7 @@ func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
 	)
 	cdpKeeper := tApp.GetCDPKeeper()
 	for i := 0; i < n; i++ {
-		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000))
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000), "btc-a")
 		if err != nil {
 			panic("failed to create cdp")
 		}
@@ -138,7 +138,7 @@ func BenchmarkCdpCreation(b *testing.B) {
 	cdpKeeper := tApp.GetCDPKeeper()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000))
+		err := cdpKeeper.AddCdp(ctx, addrs[i], coins[i][0], c("usdx", 100000000), "btc-a")
 		if err != nil {
 			b.Error("unexpected error")
 		}

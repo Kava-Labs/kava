@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 			},
 			AllowedCollateralParams: types.AllowedCollateralParams{
 				types.AllowedCollateralParam{
-					Denom:        "bnb",
+					Type:         "bnb-a",
 					DebtLimit:    true,
 					StabilityFee: true,
 				},
@@ -87,6 +87,7 @@ func (suite *KeeperTestSuite) TestSubmitProposal() {
 
 	testCP := cdptypes.CollateralParams{{
 		Denom:               "bnb",
+		Type:                "bnb-a",
 		LiquidationRatio:    d("1.5"),
 		DebtLimit:           c("usdx", 1000000000000),
 		StabilityFee:        d("1.000000001547125958"), // %5 apr

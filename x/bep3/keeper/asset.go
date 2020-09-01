@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -9,24 +11,38 @@ import (
 
 // IncrementCurrentAssetSupply increments an asset's supply by the coin
 func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
+	limit, err := k.GetSupplyLimit(ctx, coin.Denom)
+	if err != nil {
+		return err
+	}
+	supplyLimit := sdk.NewCoin(coin.Denom, limit.Limit)
+
 	// Resulting current supply must be under asset's limit
-	if supply.SupplyLimit.IsLT(supply.CurrentSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supply.SupplyLimit)
+	if supplyLimit.IsLT(supply.CurrentSupply.Add(coin)) {
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supplyLimit)
+	}
+
+	if limit.TimeLimited {
+		timeBasedSupplyLimit := sdk.NewCoin(coin.Denom, limit.TimeBasedLimit)
+		if timeBasedSupplyLimit.IsLT(supply.TimeLimitedCurrentSupply.Add(coin)) {
+			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, current time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
+		}
+		supply.TimeLimitedCurrentSupply = supply.TimeLimitedCurrentSupply.Add(coin)
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Add(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // DecrementCurrentAssetSupply decrement an asset's supply by the coin
 func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -38,31 +54,45 @@ func (k Keeper) DecrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Sub(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // IncrementIncomingAssetSupply increments an asset's incoming supply
 func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
 
 	// 	Result of (current + incoming + amount) must be under asset's limit
 	totalSupply := supply.CurrentSupply.Add(supply.IncomingSupply)
-	if supply.SupplyLimit.IsLT(totalSupply.Add(coin)) {
-		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supply.SupplyLimit)
+
+	limit, err := k.GetSupplyLimit(ctx, coin.Denom)
+	if err != nil {
+		return err
+	}
+	supplyLimit := sdk.NewCoin(coin.Denom, limit.Limit)
+	if supplyLimit.IsLT(totalSupply.Add(coin)) {
+		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supplyLimit)
+	}
+
+	if limit.TimeLimited {
+		timeLimitedTotalSupply := supply.TimeLimitedCurrentSupply.Add(supply.IncomingSupply)
+		timeBasedSupplyLimit := sdk.NewCoin(coin.Denom, limit.TimeBasedLimit)
+		if timeBasedSupplyLimit.IsLT(timeLimitedTotalSupply.Add(coin)) {
+			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
+		}
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Add(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
 // DecrementIncomingAssetSupply decrements an asset's incoming supply
 func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -74,13 +104,13 @@ func (k Keeper) DecrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Sub(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
-// IncrementOutgoingAssetSupply increments an asset's outoing supply
+// IncrementOutgoingAssetSupply increments an asset's outgoing supply
 func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -92,13 +122,13 @@ func (k Keeper) IncrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.OutgoingSupply = supply.OutgoingSupply.Add(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
-// DecrementOutgoingAssetSupply decrements an asset's outoing supply
+// DecrementOutgoingAssetSupply decrements an asset's outgoing supply
 func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
-	supply, found := k.GetAssetSupply(ctx, []byte(coin.Denom))
+	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
 		return sdkerrors.Wrap(types.ErrAssetNotSupported, coin.Denom)
 	}
@@ -110,21 +140,45 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	}
 
 	supply.OutgoingSupply = supply.OutgoingSupply.Sub(coin)
-	k.SetAssetSupply(ctx, supply, []byte(coin.Denom))
+	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
 }
 
-// UpdateAssetSupplies applies updates to the asset limit from parameters to the asset supplies
-func (k Keeper) UpdateAssetSupplies(ctx sdk.Context) {
-	params := k.GetParams(ctx)
-	for _, supportedAsset := range params.SupportedAssets {
-		asset, found := k.GetAssetSupply(ctx, []byte(supportedAsset.Denom))
-		if !found {
-			continue
-		}
-		if !asset.SupplyLimit.Amount.Equal(supportedAsset.Limit) {
-			asset.SupplyLimit = sdk.NewCoin(supportedAsset.Denom, supportedAsset.Limit)
-			k.SetAssetSupply(ctx, asset, []byte(supportedAsset.Denom))
-		}
+// CreateNewAssetSupply creates a new AssetSupply in the store for the input denom
+func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetSupply {
+	supply := types.NewAssetSupply(
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
+	k.SetAssetSupply(ctx, supply, denom)
+	return supply
+}
+
+// UpdateTimeBasedSupplyLimits updates the time based supply for each asset, resetting it if the current time window has elapsed.
+func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
+	assets, found := k.GetAssets(ctx)
+	if !found {
+		return
 	}
+	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+	if !found {
+		previousBlockTime = ctx.BlockTime()
+		k.SetPreviousBlockTime(ctx, previousBlockTime)
+	}
+	timeElapsed := ctx.BlockTime().Sub(previousBlockTime)
+	for _, asset := range assets {
+		supply, found := k.GetAssetSupply(ctx, asset.Denom)
+		// if a new asset has been added by governance, create a new asset supply for it in the store
+		if !found {
+			supply = k.CreateNewAssetSupply(ctx, asset.Denom)
+		}
+		newTimeElapsed := supply.TimeElapsed + timeElapsed
+		if asset.SupplyLimit.TimeLimited && newTimeElapsed < asset.SupplyLimit.TimePeriod {
+			supply.TimeElapsed = newTimeElapsed
+		} else {
+			supply.TimeElapsed = time.Duration(0)
+			supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
+		}
+		k.SetAssetSupply(ctx, supply, asset.Denom)
+	}
+	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 }

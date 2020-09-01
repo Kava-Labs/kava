@@ -31,29 +31,38 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	if len(amount) != 1 {
 		return fmt.Errorf("amount must contain exactly one coin")
 	}
+	asset, err := k.GetAsset(ctx, amount[0].Denom)
+	if err != nil {
+		return err
+	}
 
-	err := k.ValidateLiveAsset(ctx, amount[0])
+	err = k.ValidateLiveAsset(ctx, amount[0])
 	if err != nil {
 		return err
 	}
 
 	// Swap amount must be within the specified swap amount limits
-	if amount[0].Amount.LT(k.GetMinAmount(ctx)) || amount[0].Amount.GT(k.GetMaxAmount(ctx)) {
-		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%d, %d]", amount[0].Amount, k.GetMinAmount(ctx), k.GetMaxAmount(ctx))
+	if amount[0].Amount.LT(asset.MinSwapAmount) || amount[0].Amount.GT(asset.MaxSwapAmount) {
+		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%s, %s]", amount[0].Amount, asset.MinSwapAmount, asset.MaxSwapAmount)
 	}
 
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
 	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
 	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
 	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
-		return sdkerrors.Wrap(types.ErrInvalidTimestamp, time.Unix(timestamp, 0).UTC().String())
+		return sdkerrors.Wrap(types.ErrInvalidTimestamp, fmt.Sprintf("block time: %s, timestamp: %s", ctx.BlockTime().String(), time.Unix(timestamp, 0).UTC().String()))
 	}
 
 	var direction types.SwapDirection
-	deputy := k.GetBnbDeputyAddress(ctx)
-	if sender.Equals(deputy) {
+	if sender.Equals(asset.DeputyAddress) {
+		if recipient.Equals(asset.DeputyAddress) {
+			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
+		}
 		direction = types.Incoming
 	} else {
+		if !recipient.Equals(asset.DeputyAddress) {
+			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy must be recipient for outgoing account: %s", recipient)
+		}
 		direction = types.Outgoing
 	}
 
@@ -69,30 +78,24 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		// Incoming swaps have already had their fees collected by the deputy during the relay process.
 		err = k.IncrementIncomingAssetSupply(ctx, amount[0])
 	case types.Outgoing:
-		if ctx.BlockTime().After(types.SupplyLimitUpgradeTime) {
-			if !recipient.Equals(deputy) {
-				return sdkerrors.Wrapf(types.ErrInvalidOutgoingAccount, "%s", recipient)
-			}
-		}
 
-		// Outoing swaps must have a height span within the accepted range
-		if heightSpan < k.GetMinBlockLock(ctx) || heightSpan > k.GetMaxBlockLock(ctx) {
-			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, k.GetMinBlockLock(ctx), k.GetMaxBlockLock(ctx))
+		// Outgoing swaps must have a height span within the accepted range
+		if heightSpan < asset.MinBlockLock || heightSpan > asset.MaxBlockLock {
+			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, asset.MinBlockLock, asset.MaxBlockLock)
 		}
 		// Amount in outgoing swaps must be able to pay the deputy's fixed fee.
-		if amount[0].Amount.LTE(k.GetBnbDeputyFixedFee(ctx).Add(k.GetMinAmount(ctx))) {
+		if amount[0].Amount.LTE(asset.FixedFee.Add(asset.MinSwapAmount)) {
 			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
+		if err != nil {
+			return err
+		}
+		// Transfer coins to module - only needed for outgoing swaps
+		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", direction.String())
 	}
-	if err != nil {
-		return err
-	}
-
-	// Transfer coins to module
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
 	if err != nil {
 		return err
 	}
@@ -157,6 +160,16 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		if err != nil {
 			return err
 		}
+		// incoming case - coins should be MINTED, then sent to user
+		err = k.supplyKeeper.MintCoins(ctx, types.ModuleName, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
+		// Send intended recipient coins
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
 		if err != nil {
@@ -166,14 +179,13 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 		if err != nil {
 			return err
 		}
+		// outgoing case  - coins should be burned
+		err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, atomicSwap.Amount)
+		if err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
-	}
-
-	// Send intended recipient coins
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Recipient, atomicSwap.Amount)
-	if err != nil {
-		return err
 	}
 
 	// Complete swap
@@ -217,16 +229,15 @@ func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []
 		err = k.DecrementIncomingAssetSupply(ctx, atomicSwap.Amount[0])
 	case types.Outgoing:
 		err = k.DecrementOutgoingAssetSupply(ctx, atomicSwap.Amount[0])
+		if err != nil {
+			return err
+		}
+		// Refund coins to original swap sender for outgoing swaps
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	default:
 		err = fmt.Errorf("invalid swap direction: %s", atomicSwap.Direction.String())
 	}
 
-	if err != nil {
-		return err
-	}
-
-	// Refund coins to original swap sender
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, atomicSwap.Sender, atomicSwap.Amount)
 	if err != nil {
 		return err
 	}

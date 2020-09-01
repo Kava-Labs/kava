@@ -154,7 +154,7 @@ func queryAssetSupplyHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Prepare params for querier
 		vars := mux.Vars(r)
-		denom := []byte(vars[restDenom])
+		denom := vars[restDenom]
 		params := types.NewQueryAssetSupply(denom)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)

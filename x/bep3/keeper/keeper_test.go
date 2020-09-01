@@ -308,64 +308,32 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
-	suite.ResetChain()
-
 	denom := "bnb"
 	// Put asset supply in store
-	assetSupply := types.NewAssetSupply(denom, c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 100000))
-	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, []byte(denom))
+	assetSupply := types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 0), time.Duration(0))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, denom)
 
 	// Check asset in store
-	storedAssetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, []byte(denom))
+	storedAssetSupply, found := suite.keeper.GetAssetSupply(suite.ctx, denom)
 	suite.True(found)
 	suite.Equal(assetSupply, storedAssetSupply)
 
 	// Check fake asset supply not in store
 	fakeDenom := "xyz"
-	_, found = suite.keeper.GetAssetSupply(suite.ctx, []byte(fakeDenom))
+	_, found = suite.keeper.GetAssetSupply(suite.ctx, fakeDenom)
 	suite.False(found)
 }
 
-func (suite *KeeperTestSuite) TestIterateAssetSupplies() {
-	suite.ResetChain()
-
-	// Set asset supplies
-	supplies := assetSupplies(5)
-	for _, supply := range supplies {
-		suite.keeper.SetAssetSupply(suite.ctx, supply, []byte(supply.Denom))
-	}
-
-	// Read each asset supply from the store
-	var readSupplies types.AssetSupplies
-	suite.keeper.IterateAssetSupplies(suite.ctx, func(a types.AssetSupply) bool {
-		readSupplies = append(readSupplies, a)
-		return false
-	})
-
-	// Check expected values
-	for i := 0; i < len(supplies); i++ {
-		suite.Contains(readSupplies, supplies[i])
-	}
-}
-
 func (suite *KeeperTestSuite) TestGetAllAssetSupplies() {
-	suite.ResetChain()
 
-	// Set asset supplies
-	count := 3
-	supplies := assetSupplies(count)
-	for _, supply := range supplies {
-		suite.keeper.SetAssetSupply(suite.ctx, supply, []byte(supply.Denom))
-	}
+	// Put asset supply in store
+	assetSupply := types.NewAssetSupply(c("bnb", 0), c("bnb", 0), c("bnb", 50000), c("bnb", 0), time.Duration(0))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "bnb")
+	assetSupply = types.NewAssetSupply(c("inc", 0), c("inc", 0), c("inc", 50000), c("inc", 0), time.Duration(0))
+	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "inc")
 
-	// Get all asset supplies
-	readSupplies := suite.keeper.GetAllAssetSupplies(suite.ctx)
-	suite.Equal(count, len(readSupplies))
-
-	// Check expected values
-	for i := 0; i < count; i++ {
-		suite.Contains(readSupplies, supplies[i])
-	}
+	supplies := suite.keeper.GetAllAssetSupplies(suite.ctx)
+	suite.Equal(2, len(supplies))
 }
 
 func TestKeeperTestSuite(t *testing.T) {

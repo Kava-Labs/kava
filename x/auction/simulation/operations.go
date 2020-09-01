@@ -70,7 +70,7 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 			openAuctions[i], openAuctions[j] = openAuctions[j], openAuctions[i]
 		})
 
-		// search through auctions and an accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
+		// search through auctions and accounts to find a pair where a bid can be placed (ie account has enough coins to place bid on auction)
 		blockTime := ctx.BlockHeader().Time
 		params := keeper.GetParams(ctx)
 		bidder, openAuction, found := findValidAccountAuctionPair(accs, openAuctions, func(acc simulation.Account, auc types.Auction) bool {

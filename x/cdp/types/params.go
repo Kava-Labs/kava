@@ -107,7 +107,8 @@ func DefaultParams() Params {
 
 // CollateralParam governance parameters for each collateral type within the cdp module
 type CollateralParam struct {
-	Denom               string   `json:"denom" yaml:"denom"`                             // Coin name of collateral type
+	Denom               string   `json:"denom" yaml:"denom"` // Coin name of collateral type
+	Type                string   `json:"type" yaml:"type"`
 	LiquidationRatio    sdk.Dec  `json:"liquidation_ratio" yaml:"liquidation_ratio"`     // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
 	DebtLimit           sdk.Coin `json:"debt_limit" yaml:"debt_limit"`                   // Maximum amount of debt allowed to be drawn from this collateral type
 	StabilityFee        sdk.Dec  `json:"stability_fee" yaml:"stability_fee"`             // per second stability fee for loans opened using this collateral
@@ -123,6 +124,7 @@ type CollateralParam struct {
 func (cp CollateralParam) String() string {
 	return fmt.Sprintf(`Collateral:
 	Denom: %s
+	Type: %s
 	Liquidation Ratio: %s
 	Stability Fee: %s
 	Liquidation Penalty: %s
@@ -132,7 +134,7 @@ func (cp CollateralParam) String() string {
 	Spot Market ID: %s
 	Liquidation Market ID: %s
 	Conversion Factor: %s`,
-		cp.Denom, cp.LiquidationRatio, cp.StabilityFee, cp.LiquidationPenalty, cp.DebtLimit, cp.AuctionSize, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
+		cp.Denom, cp.Type, cp.LiquidationRatio, cp.StabilityFee, cp.LiquidationPenalty, cp.DebtLimit, cp.AuctionSize, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
 }
 
 // CollateralParams array of CollateralParam
@@ -299,8 +301,8 @@ func validateCollateralParams(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	collateralDupMap := make(map[string]bool)
 	prefixDupMap := make(map[int]bool)
+	typeDupMap := make(map[string]bool)
 	for _, cp := range collateralParams {
 		if err := sdk.ValidateDenom(cp.Denom); err != nil {
 			return fmt.Errorf("collateral denom invalid %s", cp.Denom)
@@ -308,6 +310,10 @@ func validateCollateralParams(i interface{}) error {
 
 		if strings.TrimSpace(cp.SpotMarketID) == "" {
 			return fmt.Errorf("spot market id cannot be blank %s", cp)
+		}
+
+		if strings.TrimSpace(cp.Type) == "" {
+			return fmt.Errorf("collateral type cannot be blank %s", cp)
 		}
 
 		if strings.TrimSpace(cp.LiquidationMarketID) == "" {
@@ -326,12 +332,11 @@ func validateCollateralParams(i interface{}) error {
 
 		prefixDupMap[prefix] = true
 
-		_, found = collateralDupMap[cp.Denom]
+		_, found = typeDupMap[cp.Type]
 		if found {
-			return fmt.Errorf("duplicate collateral denom: %s", cp.Denom)
+			return fmt.Errorf("duplicate cdp collateral type: %s", cp.Type)
 		}
-
-		collateralDupMap[cp.Denom] = true
+		typeDupMap[cp.Type] = true
 
 		if !cp.DebtLimit.IsValid() {
 			return fmt.Errorf("debt limit for all collaterals should be positive, is %s for %s", cp.DebtLimit, cp.Denom)
