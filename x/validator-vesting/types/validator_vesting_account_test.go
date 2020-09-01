@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto/multisig"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -454,6 +455,8 @@ func TestMarshalJSON(t *testing.T) {
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
 
+	testMultisigPk := multisig.NewPubKeyMultisigThreshold(6, CreateTestPubKeys(10))
+
 	testCases := []struct {
 		name    string
 		account *ValidatorVestingAccount
@@ -472,7 +475,24 @@ func TestMarshalJSON(t *testing.T) {
 				periods,
 				testConsAddr,
 				testAddrs[1],
-				1000000,
+				90,
+			),
+		},
+		{
+			name: "multisig",
+			account: NewValidatorVestingAccount(
+				auth.NewBaseAccount(
+					testAddrs[0],
+					cs(c(stakeDenom, 1)),
+					testMultisigPk,
+					412,
+					67,
+				),
+				testTime.Unix(),
+				periods,
+				testConsAddr,
+				testAddrs[1],
+				67,
 			),
 		},
 	}
