@@ -96,9 +96,10 @@ func QueryGetV2CdpsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "query cdps with optional filters",
 		Long: strings.TrimSpace(`Query for all paginated cdps that match optional filters:
 Example:
-$ kvcli q cdp cdps --collateral-denom=bnb
-$ kvcli q cdp cdps --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
-$ kvcli q cdp cdps --id=21
+$ kvcli q cdp v2cdps --collateral-denom=bnb
+$ kvcli q cdp v2cdps --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
+$ kvcli q cdp v2cdps --id=21
+$ kvcli q cdp v2cdps --page=2 --limit=100
 `,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
