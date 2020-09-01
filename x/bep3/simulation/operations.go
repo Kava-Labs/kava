@@ -183,7 +183,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 
 		// Construct a MsgClaimAtomicSwap or MsgRefundAtomicSwap future operation
@@ -274,7 +274,7 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		)
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
@@ -322,7 +322,7 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
