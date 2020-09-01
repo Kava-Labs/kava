@@ -185,6 +185,7 @@ func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTim
 		k.stakingKeeper.IterateDelegations(ctx, vv.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
 			_, err := k.stakingKeeper.Undelegate(ctx, d.GetDelegatorAddr(), d.GetValidatorAddr(), d.GetShares())
 			if err != nil {
+				// TODO what should we do instead of panic here?
 				panic(err)
 			}
 			return false
