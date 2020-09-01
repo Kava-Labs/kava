@@ -99,10 +99,10 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
 			if auctionType != types.CollateralAuctionType {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot apply phase flag to non-collateral auction type")
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot apply owner flag to non-collateral auction type")
 			}
 			auctionOwnerStr := strings.ToLower(strings.TrimSpace(x))
-			auctionOwner, err = sdk.AccAddressFromHex(auctionOwnerStr)
+			auctionOwner, err = sdk.AccAddressFromBech32(auctionOwnerStr)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from auction owner %s", auctionOwnerStr))
 			}

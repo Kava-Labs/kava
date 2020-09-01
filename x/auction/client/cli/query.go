@@ -125,7 +125,7 @@ $ kvcli q auction auctions --page=2 --limit=100
 					return fmt.Errorf("cannot apply owner flag to non-collateral auction type")
 				}
 				auctionOwnerStr := strings.ToLower(strings.TrimSpace(strOwner))
-				auctionOwner, err := sdk.AccAddressFromHex(auctionOwnerStr)
+				auctionOwner, err := sdk.AccAddressFromBech32(auctionOwnerStr)
 				if err != nil {
 					return fmt.Errorf("cannot parse address from auction owner %s", auctionOwnerStr)
 				}
@@ -185,7 +185,7 @@ $ kvcli q auction auctions --page=2 --limit=100
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of auctions to to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of auctions to query for")
 	cmd.Flags().String(flagType, "", "(optional) filter by auction type, type: collateral, debt, surplus")
-	cmd.Flags().String(flagDenom, "", "(optional) filter by collater auction owner")
+	cmd.Flags().String(flagOwner, "", "(optional) filter by collateral auction owner")
 	cmd.Flags().String(flagDenom, "", "(optional) filter by auction denom")
 	cmd.Flags().String(flagPhase, "", "(optional) filter by collateral auction phase, phase: forward/reverse")
 
