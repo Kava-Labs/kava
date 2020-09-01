@@ -24,7 +24,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
 
-	claims, found := k.GetClaimsByAddressAndCollateralType(ctx, msg.Sender, msg.CollateralType)
+	claims, found := k.GetActiveClaimsByAddressAndCollateralType(ctx, msg.Sender, msg.CollateralType)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrNoClaimsFound, "address: %s, collateral type: %s", msg.Sender, msg.CollateralType)
 	}
