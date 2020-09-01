@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ```
 
 [\#598](https://github.com/Kava-Labs/kava/pulls/598) CLI and REST queries for committee proposals (ie `kvcli q committee proposal 1`) now query the historical state to return the proposal object before it was deleted from state
+[\#625](https://github.com/Kava-Labs/kava/pull/625) The Cosmos SDK has been updated to v0.39.1. This brings with it several breaking changes detailed [in their changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.39.1/CHANGELOG.md). Notably account JSON serialization has been modified to use amino instead of the Go stdlib, so numbers are serialized to strings, and public keys are no longer encoded into bech32 strings. Also pruning config has changed: `pruning=everything` and `pruning=nothing` still work but there are different flags for custom pruning configuration.
 
 ## [v0.8.1](https://github.com/Kava-Labs/kava/releases/tag/v0.8.1) kava-3 Patch Release
 
