@@ -8,6 +8,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
+// REST Variable names
+// nolint
+const (
+	RestOwner           = "owner"
+	RestCollateralDenom = "collateral-denom"
+	RestID              = "id"
+)
+
 // RegisterRoutes - Central function to define routes that get registered by the main application
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	registerQueryRoutes(cliCtx, r)
