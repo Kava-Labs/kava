@@ -1,3 +1,4 @@
-.git/
 build/
+**/node_modules/
+.git/
 docs/
