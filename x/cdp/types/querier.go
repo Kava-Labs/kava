@@ -13,6 +13,7 @@ const (
 	QueryGetCdpsByCollateralization = "ratio"
 	QueryGetParams                  = "params"
 	QueryGetAccounts                = "accounts"
+	QueryGetSavingsRateDistributed  = "savingsratedist"
 	RestOwner                       = "owner"
 	RestCollateralType              = "collateral-type"
 	RestRatio                       = "ratio"

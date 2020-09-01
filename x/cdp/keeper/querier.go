@@ -30,6 +30,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetDeposits(ctx, req, keeper)
 		case types.QueryGetAccounts:
 			return queryGetAccounts(ctx, req, keeper)
+		case types.QueryGetSavingsRateDistributed:
+			return queryGetSavingsRateDistributed(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -176,6 +178,19 @@ func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(supply.ModuleCdc, accounts)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+// query get savings rate distributed in the cdp store
+func queryGetSavingsRateDistributed(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	// Get savings rate distributed
+	savingsRateDist := keeper.GetSavingsRateDistributed(ctx)
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, savingsRateDist)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -41,6 +41,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 		QueryGetAccounts(queryRoute, cdc),
+		QueryGetSavingsRateDistributed(queryRoute, cdc),
 	)...)
 
 	return cdpQueryCmd
@@ -305,7 +306,7 @@ func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "get the cdp module parameters",
-		Long:  "Get the current global cdp module parameters.",
+		Long:  "get the current global cdp module parameters.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -325,11 +326,12 @@ func QueryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
+// QueryGetAccounts queries CDP module accounts
 func QueryGetAccounts(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "accounts",
-		Short: "Get module accounts",
-		Long:  "Get cdp module account addresses",
+		Short: "get module accounts",
+		Long:  "get cdp module account addresses",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -345,6 +347,33 @@ func QueryGetAccounts(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			var out []supply.ModuleAccount
 			if err := cdc.UnmarshalJSON(res, &out); err != nil {
 				return fmt.Errorf("failed to unmarshal accounts: %w", err)
+			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+// QueryGetSavingsRateDistributed queries the total amount of savings rate distributed in USDX
+func QueryGetSavingsRateDistributed(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "savingsratedist",
+		Short: "get total amount of savings rate distributed in USDX",
+		Long:  "get total amount of savings rate distributed",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetSavingsRateDistributed), nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out sdk.Int
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal sdk.Int: %w", err)
 			}
 			return cliCtx.PrintOutput(out)
 		},
