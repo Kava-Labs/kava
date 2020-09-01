@@ -208,9 +208,9 @@ type Claims []Claim
 
 // AugmentedClaim claim type with information about whether the claim is currently claimable
 type AugmentedClaim struct {
-	Claim Claim
+	Claim Claim `json:"claim" yaml:"claim"`
 
-	Claimable bool
+	Claimable bool `json:"claimable" yaml:"claimable"`
 }
 
 func (ac AugmentedClaim) String() string {
