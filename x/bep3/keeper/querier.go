@@ -39,7 +39,7 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	assetSupply, found := keeper.GetAssetSupply(ctx, []byte(requestParams.Denom))
+	assetSupply, found := keeper.GetAssetSupply(ctx, requestParams.Denom)
 	if !found {
 		return nil, sdkerrors.Wrap(types.ErrAssetSupplyNotFound, string(requestParams.Denom))
 	}

@@ -13,9 +13,9 @@ import (
 )
 
 type msgTest struct {
-	from       sdk.AccAddress
-	denom      string
-	expectPass bool
+	from           sdk.AccAddress
+	collateralType string
+	expectPass     bool
 }
 
 type MsgTestSuite struct {
@@ -27,19 +27,19 @@ type MsgTestSuite struct {
 func (suite *MsgTestSuite) SetupTest() {
 	tests := []msgTest{
 		{
-			from:       sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-			denom:      "bnb",
-			expectPass: true,
+			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+			collateralType: "bnb",
+			expectPass:     true,
 		},
 		{
-			from:       sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-			denom:      "",
-			expectPass: false,
+			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
+			collateralType: "",
+			expectPass:     false,
 		},
 		{
-			from:       sdk.AccAddress{},
-			denom:      "bnb",
-			expectPass: false,
+			from:           sdk.AccAddress{},
+			collateralType: "bnb",
+			expectPass:     false,
 		},
 	}
 	suite.tests = tests
@@ -47,7 +47,7 @@ func (suite *MsgTestSuite) SetupTest() {
 
 func (suite *MsgTestSuite) TestMsgValidation() {
 	for _, t := range suite.tests {
-		msg := types.NewMsgClaimReward(t.from, t.denom)
+		msg := types.NewMsgClaimReward(t.from, t.collateralType)
 		err := msg.ValidateBasic()
 		if t.expectPass {
 			suite.Require().NoError(err)

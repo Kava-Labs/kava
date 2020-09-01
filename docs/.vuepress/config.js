@@ -29,6 +29,10 @@ module.exports = {
             {
               title: "Auction Bot",
               path: "/tools/auction.html",
+            },
+            {
+              title: "Community Tools",
+              path: "/tools/community.html",
             }
           ]
         },

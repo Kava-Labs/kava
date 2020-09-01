@@ -46,6 +46,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 [\#578](https://github.com/Kava-Labs/kava/pulls/578) Add v0.3 compatible REST client that supports
 
+[\#629](https://github.com/Kava-Labs/kava/pulls/629) Add CDP collateral type as a field for CDPs and collateral parameters.
+
+### Breaking changes
+
+* CDPs have an additional field, Type, which is a string that represents the unique collateral type that this CDP holds. This enables, for example, a single denom such as 'bnb' to have two CDP types, 'bnb-a' and 'bnb-b'.
+* CollateralParam has an additional field, Type, which is a string that represents the collateral type of CDPs that this collateral parameter governs. It must be non-empty at genesis or when altering CDP fields. It is UNSAFE to alter the type of an existing collateral param using unchain governance.
+* CDP messages must specify the collateral type 'bnb-a', rather than the denom of the cdp.
+* In the incentive module, fields previously named `Denom` have been changed to `CollateralType`. Previously, 'Denom' was validated to check that it satisfied `sdk.ValidateDenom`, now, the validation checks that the `CollateralType` is not blank.
+* Incentive module messages now require the user to specify the collateral type ('bnb-a'), rather than the denom of the cdp ('bnb')
+
 ```plaintext
 /v0_3/node_info
 /v0_3/auth/accounts/<address>
@@ -66,7 +76,7 @@ This version mitigates a memory leak in tendermint that was found prior to launc
 
 The default tendermint pruning strategy, `pruning="syncable"` is currently unsafe due to a [memory leak](https://github.com/tendermint/iavl/issues/256) that can cause irrecoverable data loss. This patch release prevents `kvd` from being started with the `pruning="syncable"` configuration. Until a patch for tendermint is released, the ONLY pruning strategies that are safe to run are `everything` (an archival node) or `nothing` (only the most recent state is kept). It is strongly recommended that validators use `pruning="nothing"` for kava-3. It is expected that a patch to tendermint will be released in a non-breaking manner and that nodes will be able to update seamlessly after the launch of kava-3.
 
-The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md). Please note the additional section on [pruning](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md#Pruning).
+The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md). Please note the additional section on [pruning](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md#Pruning).
 
 ## [v0.8.0](https://github.com/Kava-Labs/kava/releases/tag/v0.8.0) kava-3 Release
 
@@ -74,7 +84,7 @@ This version is intended to be the canonical software version for upgrading the 
 
 ### Migration
 
-The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/master/contrib/kava-3/migration.md)
+The steps for upgrading to kava-3 can be found [here](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md)
 
 ### Features
 

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,7 +94,7 @@ func validateRewardsParam(i interface{}) error {
 // Reward stores the specified state for a single reward period.
 type Reward struct {
 	Active           bool          `json:"active" yaml:"active"`                       // governance switch to disable a period
-	Denom            string        `json:"denom" yaml:"denom"`                         // the collateral denom rewards apply to, must be found in the cdp collaterals
+	CollateralType   string        `json:"collateral_type" yaml:"collateral_type"`     // the collateral type rewards apply to, must be found in the cdp collaterals
 	AvailableRewards sdk.Coin      `json:"available_rewards" yaml:"available_rewards"` // the total amount of coins distributed per period
 	Duration         time.Duration `json:"duration" yaml:"duration"`                   // the duration of the period
 	TimeLock         time.Duration `json:"time_lock" yaml:"time_lock"`                 // how long rewards for this period are timelocked
@@ -101,10 +102,10 @@ type Reward struct {
 }
 
 // NewReward returns a new Reward
-func NewReward(active bool, denom string, reward sdk.Coin, duration time.Duration, timelock time.Duration, claimDuration time.Duration) Reward {
+func NewReward(active bool, collateralType string, reward sdk.Coin, duration time.Duration, timelock time.Duration, claimDuration time.Duration) Reward {
 	return Reward{
 		Active:           active,
-		Denom:            denom,
+		CollateralType:   collateralType,
 		AvailableRewards: reward,
 		Duration:         duration,
 		TimeLock:         timelock,
@@ -116,32 +117,35 @@ func NewReward(active bool, denom string, reward sdk.Coin, duration time.Duratio
 func (r Reward) String() string {
 	return fmt.Sprintf(`Reward:
 	Active: %t,
-	Denom: %s,
+	CollateralType: %s,
 	Available Rewards: %s,
 	Duration: %s,
 	Time Lock: %s,
 	Claim Duration: %s`,
-		r.Active, r.Denom, r.AvailableRewards, r.Duration, r.TimeLock, r.ClaimDuration)
+		r.Active, r.CollateralType, r.AvailableRewards, r.Duration, r.TimeLock, r.ClaimDuration)
 }
 
 // Validate performs a basic check of a reward fields.
 func (r Reward) Validate() error {
 	if !r.AvailableRewards.IsValid() {
-		return fmt.Errorf("invalid reward coins %s for %s", r.AvailableRewards, r.Denom)
+		return fmt.Errorf("invalid reward coins %s for %s", r.AvailableRewards, r.CollateralType)
 	}
 	if !r.AvailableRewards.IsPositive() {
-		return fmt.Errorf("reward amount must be positive, is %s for %s", r.AvailableRewards, r.Denom)
+		return fmt.Errorf("reward amount must be positive, is %s for %s", r.AvailableRewards, r.CollateralType)
 	}
 	if r.Duration <= 0 {
-		return fmt.Errorf("reward duration must be positive, is %s for %s", r.Duration, r.Denom)
+		return fmt.Errorf("reward duration must be positive, is %s for %s", r.Duration, r.CollateralType)
 	}
 	if r.TimeLock < 0 {
-		return fmt.Errorf("reward timelock must be non-negative, is %s for %s", r.TimeLock, r.Denom)
+		return fmt.Errorf("reward timelock must be non-negative, is %s for %s", r.TimeLock, r.CollateralType)
 	}
 	if r.ClaimDuration <= 0 {
-		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration, r.Denom)
+		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration, r.CollateralType)
 	}
-	return sdk.ValidateDenom(r.Denom)
+	if strings.TrimSpace(r.CollateralType) == "" {
+		return fmt.Errorf("collateral type cannot be blank: %s", r)
+	}
+	return nil
 }
 
 // Rewards array of Reward
@@ -150,17 +154,17 @@ type Rewards []Reward
 // Validate checks if all the rewards are valid and there are no duplicated
 // entries.
 func (rs Rewards) Validate() error {
-	rewardDenoms := make(map[string]bool)
+	rewardCollateralTypes := make(map[string]bool)
 	for _, r := range rs {
-		if rewardDenoms[r.Denom] {
-			return fmt.Errorf("cannot have duplicate reward denoms: %s", r.Denom)
+		if rewardCollateralTypes[r.CollateralType] {
+			return fmt.Errorf("cannot have duplicate reward collateral types: %s", r.CollateralType)
 		}
 
 		if err := r.Validate(); err != nil {
 			return err
 		}
 
-		rewardDenoms[r.Denom] = true
+		rewardCollateralTypes[r.CollateralType] = true
 	}
 	return nil
 }

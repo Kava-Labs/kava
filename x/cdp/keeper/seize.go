@@ -17,11 +17,11 @@ import (
 // (this is the equivalent of saying that fees are no longer accumulated by a cdp once it gets liquidated)
 func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 
 	// Move debt coins from cdp to liquidator account
 	deposits := k.GetDeposits(ctx, cdp.ID)
-	debt := cdp.Principal.Amount.Add(cdp.AccumulatedFees.Amount)
+	debt := cdp.GetTotalPrincipal().Amount
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	debt = sdk.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
@@ -48,23 +48,23 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 		)
 	}
 
-	err = k.AuctionCollateral(ctx, deposits, debt, cdp.Principal.Denom)
+	err = k.AuctionCollateral(ctx, deposits, cdp.Type, debt, cdp.Principal.Denom)
 	if err != nil {
 		return err
 	}
 
 	// Decrement total principal for this collateral type
-	coinsToDecrement := cdp.Principal.Add(cdp.AccumulatedFees)
-	k.DecrementTotalPrincipal(ctx, cdp.Collateral.Denom, coinsToDecrement)
+	coinsToDecrement := cdp.GetTotalPrincipal()
+	k.DecrementTotalPrincipal(ctx, cdp.Type, coinsToDecrement)
 
 	// Delete CDP from state
 	k.RemoveCdpOwnerIndex(ctx, cdp)
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 	return k.DeleteCDP(ctx, cdp)
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
-func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, liquidationRatio sdk.Dec) error {
+func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdk.Dec) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 	// liquidation ratio = 1.5
 	// normalizedRatio = (1/(0.5/1.5)) = 3
 	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio)
-	cdpsToLiquidate := k.GetAllCdpsByDenomAndRatio(ctx, denom, normalizedRatio)
+	cdpsToLiquidate := k.GetAllCdpsByCollateralTypeAndRatio(ctx, collateralType, normalizedRatio)
 	for _, c := range cdpsToLiquidate {
 		err := k.SeizeCollateral(ctx, c)
 		if err != nil {
@@ -88,8 +88,8 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, denom string, li
 }
 
 // ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty
-func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, denom string, debt sdk.Int) sdk.Int {
-	penalty := k.getLiquidationPenalty(ctx, denom)
+func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, collateralType string, debt sdk.Int) sdk.Int {
+	penalty := k.getLiquidationPenalty(ctx, collateralType)
 	return sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
 }
 

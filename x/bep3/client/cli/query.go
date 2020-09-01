@@ -109,7 +109,10 @@ func QueryCalcSwapIDCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			sender := sdk.AccAddress(args[1])
+			sender, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
 			senderOtherChain := args[2]
 
 			// Calculate swap ID and convert to human-readable string
@@ -130,7 +133,7 @@ func QueryGetAssetSupplyCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Prepare query params
-			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply([]byte(args[0])))
+			bz, err := cdc.MarshalJSON(types.NewQueryAssetSupply(args[0]))
 			if err != nil {
 				return err
 			}

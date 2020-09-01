@@ -28,7 +28,7 @@ const (
 	QuerierRoute               = types.QuerierRoute
 	QueryGetClaims             = types.QueryGetClaims
 	RestClaimOwner             = types.RestClaimOwner
-	RestClaimDenom             = types.RestClaimDenom
+	RestClaimCollateralType    = types.RestClaimCollateralType
 	QueryGetParams             = types.QueryGetParams
 )
 

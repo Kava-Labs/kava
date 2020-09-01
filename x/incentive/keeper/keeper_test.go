@@ -86,13 +86,15 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaimPeriod() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetClaimPeriodID() {
-	suite.Panics(func() {
-		suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
+	suite.NotPanics(func() {
+		suite.keeper.GetNextClaimPeriodID(suite.ctx, "yolo")
 	})
 	suite.NotPanics(func() {
 		suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
 	})
 	testID := suite.keeper.GetNextClaimPeriodID(suite.ctx, "bnb")
+	suite.Equal(uint64(1), testID)
+	testID = suite.keeper.GetNextClaimPeriodID(suite.ctx, "yolo")
 	suite.Equal(uint64(1), testID)
 }
 
@@ -138,8 +140,8 @@ func (suite *KeeperTestSuite) TestIterateMethods() {
 	suite.Equal(2, len(claims))
 
 	var genIDs types.GenesisClaimPeriodIDs
-	suite.keeper.IterateClaimPeriodIDKeysAndValues(suite.ctx, func(denom string, id uint64) (stop bool) {
-		genID := types.GenesisClaimPeriodID{Denom: denom, ID: id}
+	suite.keeper.IterateClaimPeriodIDKeysAndValues(suite.ctx, func(collateralType string, id uint64) (stop bool) {
+		genID := types.GenesisClaimPeriodID{CollateralType: collateralType, ID: id}
 		genIDs = append(genIDs, genID)
 		return false
 	})
@@ -157,8 +159,8 @@ func (suite *KeeperTestSuite) addObjectsToStore() {
 	suite.keeper.SetClaimPeriod(suite.ctx, cp1)
 	suite.keeper.SetClaimPeriod(suite.ctx, cp2)
 
-	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
-	suite.keeper.SetNextClaimPeriodID(suite.ctx, "xrp", 1)
+	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 2)
+	suite.keeper.SetNextClaimPeriodID(suite.ctx, "xrp", 2)
 
 	c1 := types.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", 1)
 	c2 := types.NewClaim(suite.addrs[0], c("ukava", 1000000), "xrp", 1)

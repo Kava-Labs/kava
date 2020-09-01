@@ -16,10 +16,10 @@ import (
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp", postCdpHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/cdp/{owner}/{denom}/deposits", postDepositHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/cdp/{owner}/{denom}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/cdp/{owner}/{denom}/draw", postDrawHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/cdp/{owner}/{denom}/repay", postRepayHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{collateralType}/deposits", postDepositHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{collateralType}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{collateralType}/draw", postDrawHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/{collateralType}/repay", postRepayHandlerFn(cliCtx)).Methods("POST")
 
 }
 
@@ -50,6 +50,7 @@ func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Sender,
 			requestBody.Collateral,
 			requestBody.Principal,
+			requestBody.CollateralType,
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -76,6 +77,7 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Owner,
 			requestBody.Depositor,
 			requestBody.Collateral,
+			requestBody.CollateralType,
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -102,6 +104,7 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Owner,
 			requestBody.Depositor,
 			requestBody.Collateral,
+			requestBody.CollateralType,
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -137,7 +140,7 @@ func postDrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		msg := types.NewMsgDrawDebt(
 			requestBody.Owner,
-			requestBody.Denom,
+			requestBody.CollateralType,
 			requestBody.Principal,
 		)
 		if err := msg.ValidateBasic(); err != nil {
@@ -174,7 +177,7 @@ func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		msg := types.NewMsgRepayDebt(
 			requestBody.Owner,
-			requestBody.Denom,
+			requestBody.CollateralType,
 			requestBody.Payment,
 		)
 		if err := msg.ValidateBasic(); err != nil {

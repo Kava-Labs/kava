@@ -76,6 +76,9 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 		}
 		// pick a committee that has permissions for proposal
 		pp := types.PubProposal(contentSim(r, ctx, accs))
+		if pp == nil {
+			return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation (conent generation function returned nil)", "", false, nil), nil, nil
+		}
 		var selectedCommittee types.Committee
 		var found bool
 		for _, c := range committees {

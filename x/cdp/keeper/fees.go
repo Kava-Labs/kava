@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -9,11 +11,11 @@ import (
 
 // CalculateFees returns the fees accumulated since fees were last calculated based on
 // the input amount of outstanding debt (principal) and the number of periods (seconds) that have passed
-func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.Int, denom string) sdk.Coin {
+func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.Int, collateralType string) sdk.Coin {
 	// how fees are calculated:
 	// feesAccumulated = (outstandingDebt * (feeRate^periods)) - outstandingDebt
 	// Note that since we can't do x^y using sdk.Decimal, we are converting to int and using RelativePow
-	feePerSecond := k.getFeeRate(ctx, denom)
+	feePerSecond := k.getFeeRate(ctx, collateralType)
 	scalar := sdk.NewInt(1000000000000000000)
 	feeRateInt := feePerSecond.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
 	accumulator := sdk.NewDecFromInt(types.RelativePow(feeRateInt, periods, scalar)).Mul(sdk.SmallestDec())
@@ -23,14 +25,14 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 }
 
 // UpdateFeesForAllCdps updates the fees for each of the CDPs
-func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) error {
+func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralType string) error {
 	var iterationErr error
-	k.IterateCdpsByDenom(ctx, collateralDenom, func(cdp types.CDP) bool {
-		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
+	k.IterateCdpsByCollateralType(ctx, collateralType, func(cdp types.CDP) bool {
+		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 		// periods = bblock timestamp - fees updated
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
-		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralDenom)
+		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralType)
 
 		// exit without updating fees if amount has rounded down to zero
 		// cdp will get updated next block when newFees, newFeesSavings, newFeesSurplus >0
@@ -62,9 +64,9 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 			return true
 		}
 
-		previousDebt := k.GetTotalPrincipal(ctx, collateralDenom, dp.Denom)
+		previousDebt := k.GetTotalPrincipal(ctx, cdp.Type, dp.Denom)
 		newDebt := previousDebt.Add(newFees.Amount)
-		k.SetTotalPrincipal(ctx, collateralDenom, dp.Denom, newDebt)
+		k.SetTotalPrincipal(ctx, cdp.Type, dp.Denom, newDebt)
 
 		// mint surplus coins divided between the liquidator and savings module accounts.
 		err = k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
@@ -84,8 +86,8 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
-		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Collateral.Denom, cdp.ID, oldCollateralToDebtRatio)
+		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 		err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 		if err != nil {
 			iterationErr = err
@@ -97,27 +99,27 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralDenom string) er
 }
 
 // IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
-func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralDenom string, principal sdk.Coin) {
-	total := k.GetTotalPrincipal(ctx, collateralDenom, principal.Denom)
+func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralType string, principal sdk.Coin) {
+	total := k.GetTotalPrincipal(ctx, collateralType, principal.Denom)
 	total = total.Add(principal.Amount)
-	k.SetTotalPrincipal(ctx, collateralDenom, principal.Denom, total)
+	k.SetTotalPrincipal(ctx, collateralType, principal.Denom, total)
 }
 
 // DecrementTotalPrincipal decrements the total amount of debt that has been drawn for a particular collateral type
-func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralDenom string, principal sdk.Coin) {
-	total := k.GetTotalPrincipal(ctx, collateralDenom, principal.Denom)
+func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralType string, principal sdk.Coin) {
+	total := k.GetTotalPrincipal(ctx, collateralType, principal.Denom)
 	// NOTE: negative total principal can happen in tests due to rounding errors
 	// in fee calculation
 	total = sdk.MaxInt(total.Sub(principal.Amount), sdk.ZeroInt())
-	k.SetTotalPrincipal(ctx, collateralDenom, principal.Denom, total)
+	k.SetTotalPrincipal(ctx, collateralType, principal.Denom, total)
 }
 
 // GetTotalPrincipal returns the total amount of principal that has been drawn for a particular collateral
-func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralDenom string, principalDenom string) (total sdk.Int) {
+func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string) (total sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	bz := store.Get([]byte(collateralDenom + principalDenom))
+	bz := store.Get([]byte(collateralType + principalDenom))
 	if bz == nil {
-		k.SetTotalPrincipal(ctx, collateralDenom, principalDenom, sdk.ZeroInt())
+		k.SetTotalPrincipal(ctx, collateralType, principalDenom, sdk.ZeroInt())
 		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &total)
@@ -125,7 +127,11 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralDenom string, princ
 }
 
 // SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
-func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralDenom string, principalDenom string, total sdk.Int) {
+func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	store.Set([]byte(collateralDenom+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
+	_, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", collateralType))
+	}
+	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
 }

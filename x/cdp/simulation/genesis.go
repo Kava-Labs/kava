@@ -79,6 +79,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 				CollateralParams: types.CollateralParams{
 					{
 						Denom:               "xrp",
+						Type:                "xrp-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 20000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000004431822130"),
@@ -91,6 +92,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 					},
 					{
 						Denom:               "btc",
+						Type:                "btc-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.25"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 50000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000000782997609"),
@@ -103,6 +105,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 					},
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 30000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000002293273137"),
@@ -140,6 +143,7 @@ func randomCdpGenState(selection int) types.GenesisState {
 				CollateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 100000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000002293273137"),

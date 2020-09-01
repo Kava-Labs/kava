@@ -43,4 +43,6 @@ var (
 	ErrDenomPrefixNotFound = sdkerrors.Register(ModuleName, 18, "denom prefix not found")
 	// ErrPricefeedDown error for when a price for the input denom is not found
 	ErrPricefeedDown = sdkerrors.Register(ModuleName, 19, "no price found for collateral")
+	// ErrInvalidCollateral error for when the input collateral denom does not match the expected collateral denom
+	ErrInvalidCollateral = sdkerrors.Register(ModuleName, 20, "invalid collateral for input collateral type")
 )

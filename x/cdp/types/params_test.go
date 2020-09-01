@@ -66,6 +66,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -103,6 +104,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -140,6 +142,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -177,6 +180,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -189,6 +193,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 					},
 					{
 						Denom:               "xrp",
+						Type:                "xrp-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -226,6 +231,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -238,6 +244,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 					},
 					{
 						Denom:               "xrp",
+						Type:                "xrp-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -275,6 +282,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -287,6 +295,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 					},
 					{
 						Denom:               "xrp",
+						Type:                "xrp-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("susd", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -361,6 +370,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -392,12 +402,13 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 		},
 		{
-			name: "invalid collateral params duplicate denom",
+			name: "invalid collateral params duplicate denom + type",
 			args: args{
 				globalDebtLimit: sdk.NewInt64Coin("usdx", 2000000000000),
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -410,6 +421,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 					},
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -437,7 +449,58 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "duplicate collateral denom",
+				contains:   "duplicate cdp collateral type",
+			},
+		},
+		{
+			name: "valid collateral params duplicate denom + different type",
+			args: args{
+				globalDebtLimit: sdk.NewInt64Coin("usdx", 2000000000000),
+				collateralParams: types.CollateralParams{
+					{
+						Denom:               "bnb",
+						Type:                "bnb-a",
+						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
+						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
+						LiquidationPenalty:  sdk.MustNewDecFromStr("0.05"),
+						AuctionSize:         sdk.NewInt(50000000000),
+						Prefix:              0x20,
+						SpotMarketID:        "bnb:usd",
+						LiquidationMarketID: "bnb:usd",
+						ConversionFactor:    sdk.NewInt(8),
+					},
+					{
+						Denom:               "bnb",
+						Type:                "bnb-b",
+						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
+						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
+						LiquidationPenalty:  sdk.MustNewDecFromStr("0.05"),
+						AuctionSize:         sdk.NewInt(50000000000),
+						Prefix:              0x21,
+						SpotMarketID:        "bnb:usd",
+						LiquidationMarketID: "bnb:usd",
+						ConversionFactor:    sdk.NewInt(8),
+					},
+				},
+				debtParam: types.DebtParam{
+					Denom:            "usdx",
+					ReferenceAsset:   "usd",
+					ConversionFactor: sdk.NewInt(6),
+					DebtFloor:        sdk.NewInt(10000000),
+					SavingsRate:      sdk.MustNewDecFromStr("0.95"),
+				},
+				surplusThreshold: types.DefaultSurplusThreshold,
+				surplusLot:       types.DefaultSurplusLot,
+				debtThreshold:    types.DefaultDebtThreshold,
+				debtLot:          types.DefaultDebtLot,
+				distributionFreq: types.DefaultSavingsDistributionFrequency,
+				breaker:          types.DefaultCircuitBreaker,
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
 			},
 		},
 		{
@@ -447,6 +510,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -459,6 +523,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 					},
 					{
 						Denom:               "xrp",
+						Type:                "xrp-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -496,6 +561,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.Coin{},
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -533,6 +599,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -570,6 +637,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -607,6 +675,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 1000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.1"),
@@ -644,6 +713,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),
@@ -681,6 +751,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				collateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
+						Type:                "bnb-a",
 						LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
 						DebtLimit:           sdk.NewInt64Coin("usdx", 2000000000000),
 						StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"),

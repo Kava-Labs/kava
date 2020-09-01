@@ -56,12 +56,12 @@ func (suite *FeeTestSuite) createCdps() {
 	// use the created account to create a cdp that SHOULD have fees updated
 	// to get a ratio between 100 - 110% of liquidation ratio we can use 200xrp ($50) and 24 usdx (208% collateralization with liquidation ratio of 200%)
 	// create CDP for the first address
-	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 24000000))
+	err := suite.keeper.AddCdp(suite.ctx, addrs[0], c("xrp", 200000000), c("usdx", 24000000), "xrp-a")
 	suite.NoError(err) // check that no error was thrown
 
 	// use the other account to create a cdp that SHOULD NOT have fees updated - 500% collateralization
 	// create CDP for the second address
-	err = suite.keeper.AddCdp(suite.ctx, addrs[1], c("xrp", 200000000), c("usdx", 10000000))
+	err = suite.keeper.AddCdp(suite.ctx, addrs[1], c("xrp", 200000000), c("usdx", 10000000), "xrp-a")
 	suite.NoError(err) // check that no error was thrown
 
 }
@@ -76,11 +76,11 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	// fees to accumulate, in this example 600 seconds
 	oldtime := suite.ctx.BlockTime()
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 600))
-	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp")
+	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp-a")
 	suite.NoError(err) // check that we don't have any error
 
 	// cdp we expect fees to accumulate for
-	cdp1, found := suite.keeper.GetCDP(suite.ctx, "xrp", 1)
+	cdp1, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", 1)
 	suite.True(found)
 	// check fees are not zero
 	// check that the fees have been updated
@@ -89,7 +89,7 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.Amount)
 	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
 	// cdp we expect fees to not accumulate for because of rounding to zero
-	cdp2, found := suite.keeper.GetCDP(suite.ctx, "xrp", 2)
+	cdp2, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", 2)
 	suite.True(found)
 	// check fees are zero
 	suite.True(cdp2.AccumulatedFees.IsZero())

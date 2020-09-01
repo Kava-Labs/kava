@@ -59,7 +59,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 
 	// set the per second fee rate for each collateral type
 	for _, cp := range gs.Params.CollateralParams {
-		k.SetTotalPrincipal(ctx, cp.Denom, gs.Params.DebtParam.Denom, sdk.ZeroInt())
+		k.SetTotalPrincipal(ctx, cp.Type, gs.Params.DebtParam.Denom, sdk.ZeroInt())
 	}
 
 	// add cdps
@@ -72,9 +72,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 			panic(fmt.Sprintf("error setting cdp: %v", err))
 		}
 		k.IndexCdpByOwner(ctx, cdp)
-		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Principal.Add(cdp.AccumulatedFees))
-		k.IndexCdpByCollateralRatio(ctx, cdp.Collateral.Denom, cdp.ID, ratio)
-		k.IncrementTotalPrincipal(ctx, cdp.Collateral.Denom, cdp.Principal.Add(cdp.AccumulatedFees))
+		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+		k.IndexCdpByCollateralRatio(ctx, cdp.Type, cdp.ID, ratio)
+		k.IncrementTotalPrincipal(ctx, cdp.Type, cdp.GetTotalPrincipal())
 	}
 
 	k.SetNextCdpID(ctx, gs.StartingCdpID)

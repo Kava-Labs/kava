@@ -14,7 +14,7 @@ var (
 	// ErrInsufficientAmount error for when a swap's amount cannot cover the deputy's fixed fee
 	ErrInsufficientAmount = sdkerrors.Register(ModuleName, 4, "amount cannot cover the deputy fixed fee")
 	// ErrAssetNotSupported error for when an asset is not supported
-	ErrAssetNotSupported = sdkerrors.Register(ModuleName, 5, "asset not on the list of supported assets")
+	ErrAssetNotSupported = sdkerrors.Register(ModuleName, 5, "asset not found")
 	// ErrAssetNotActive error for when an asset is currently inactive
 	ErrAssetNotActive = sdkerrors.Register(ModuleName, 6, "asset is currently inactive")
 	// ErrAssetSupplyNotFound error for when an asset's supply is not found in the store
@@ -41,6 +41,8 @@ var (
 	ErrSwapNotClaimable = sdkerrors.Register(ModuleName, 17, "atomic swap is not claimable")
 	// ErrInvalidAmount error for when a swap's amount is outside acceptable range
 	ErrInvalidAmount = sdkerrors.Register(ModuleName, 18, "amount is outside acceptable range")
-	// ErrInvalidOutgoingAccount error for when an outgoing swap has a recipient value that is not the deputy address
-	ErrInvalidOutgoingAccount = sdkerrors.Register(ModuleName, 19, "invalid recipient address for outgoing swap")
+	// ErrInvalidSwapAccount error for when a swap involves an invalid account
+	ErrInvalidSwapAccount = sdkerrors.Register(ModuleName, 19, "atomic swap has invalid account")
+	// ErrExceedsTimeBasedSupplyLimit error for when the proposed supply increase would put the supply above limit for the current time period
+	ErrExceedsTimeBasedSupplyLimit = sdkerrors.Register(ModuleName, 20, "asset supply over limit for current time period")
 )
