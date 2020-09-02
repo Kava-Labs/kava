@@ -116,7 +116,7 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Collateral.Denom+"-a")),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Type)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Nil(err)
@@ -156,10 +156,10 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsParams(suite.cdps[0].Collateral.Denom + "-a")),
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralType}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams(suite.cdps[0].Type)),
 	}
-	bz, err := suite.querier(ctx, []string{types.QueryGetCdps}, query)
+	bz, err := suite.querier(ctx, []string{types.QueryGetCdpsByCollateralType}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
@@ -168,10 +168,10 @@ func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
 	suite.Equal(50, len(c))
 
 	query = abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsParams("lol-a")),
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralType}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams("lol-a")),
 	}
-	_, err = suite.querier(ctx, []string{types.QueryGetCdps}, query)
+	_, err = suite.querier(ctx, []string{types.QueryGetCdpsByCollateralType}, query)
 	suite.Error(err)
 }
 
@@ -265,7 +265,7 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpDeposits}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Collateral.Denom+"-a")),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Type)),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdpDeposits}, query)
