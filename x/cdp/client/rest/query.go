@@ -230,13 +230,13 @@ func queryV2CdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		var cdpCollateralDenom string
+		var cdpCollateralType string
 		var cdpOwner sdk.AccAddress
 		var cdpID uint64
 
-		if x := r.URL.Query().Get(RestCollateralDenom); len(x) != 0 {
-			cdpCollateralDenom = strings.TrimSpace(x)
-			err := sdk.ValidateDenom(cdpCollateralDenom)
+		if x := r.URL.Query().Get(RestCollateralType); len(x) != 0 {
+			cdpCollateralType = strings.TrimSpace(x)
+			err := sdk.ValidateDenom(cdpCollateralType)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
@@ -259,7 +259,7 @@ func queryV2CdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralDenom, cdpOwner, cdpID)
+		params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

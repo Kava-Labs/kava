@@ -20,9 +20,9 @@ import (
 
 // Query CDP flags
 const (
-	flagCollateralDenom = "collateral-denom"
-	flagOwner           = "owner"
-	flagID              = "id"
+	flagCollateralType = "collateral-type"
+	flagOwner          = "owner"
+	flagID             = "id"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -97,34 +97,34 @@ func QueryGetV2CdpsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "query cdps with optional filters",
 		Long: strings.TrimSpace(`Query for all paginated cdps that match optional filters:
 Example:
-$ kvcli q cdp v2cdps --collateral-denom=bnb
+$ kvcli q cdp v2cdps --collateral-type=bnb
 $ kvcli q cdp v2cdps --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
 $ kvcli q cdp v2cdps --id=21
 $ kvcli q cdp v2cdps --page=2 --limit=100
 `,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			strCollateralDenom := viper.GetString(flagCollateralDenom)
+			strCollateralType := viper.GetString(flagCollateralType)
 			strOwner := viper.GetString(flagOwner)
 			strID := viper.GetString(flagID)
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
 			var (
-				cdpCollateralDenom string
-				cdpOwner           sdk.AccAddress
-				cdpID              uint64
+				cdpCollateralType string
+				cdpOwner          sdk.AccAddress
+				cdpID             uint64
 			)
 
-			params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralDenom, cdpOwner, cdpID)
+			params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID)
 
-			if len(strCollateralDenom) != 0 {
-				cdpCollateralDenom = strings.ToLower(strings.TrimSpace(strCollateralDenom))
-				err := sdk.ValidateDenom(cdpCollateralDenom)
+			if len(strCollateralType) != 0 {
+				cdpCollateralType = strings.ToLower(strings.TrimSpace(strCollateralType))
+				err := sdk.ValidateDenom(cdpCollateralType)
 				if err != nil {
 					return err
 				}
-				params.CollateralDenom = cdpCollateralDenom
+				params.CollateralType = cdpCollateralType
 			}
 
 			if len(strOwner) != 0 {
@@ -170,7 +170,7 @@ $ kvcli q cdp v2cdps --page=2 --limit=100
 
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of CDPs to to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of CDPs to query for")
-	cmd.Flags().String(flagCollateralDenom, "", "(optional) filter by CDP collateral denom")
+	cmd.Flags().String(flagCollateralType, "", "(optional) filter by CDP collateral type")
 	cmd.Flags().String(flagOwner, "", "(optional) filter by CDP owner")
 	cmd.Flags().String(flagID, "", "(optional) filter by CDP ID")
 

@@ -234,11 +234,11 @@ func filterCDPs(ctx sdk.Context, cdps types.CDPs, params types.QueryV2CdpsParams
 	filteredCDPs := make(types.CDPs, 0, len(cdps))
 
 	for _, cdp := range cdps {
-		matchCollateralDenom, matchOwner, matchID := true, true, true
+		matchCollateralType, matchOwner, matchID := true, true, true
 
 		// match cdp collateral denom (if supplied)
-		if len(params.CollateralDenom) > 0 {
-			matchCollateralDenom = cdp.Collateral.Denom == params.CollateralDenom
+		if len(params.CollateralType) > 0 {
+			matchCollateralType = cdp.Type == params.CollateralType
 		}
 
 		// match cdp owner (if supplied)
@@ -251,7 +251,7 @@ func filterCDPs(ctx sdk.Context, cdps types.CDPs, params types.QueryV2CdpsParams
 			matchID = cdp.ID == (params.ID)
 		}
 
-		if matchCollateralDenom && matchOwner && matchID {
+		if matchCollateralType && matchOwner && matchID {
 			filteredCDPs = append(filteredCDPs, cdp)
 		}
 	}

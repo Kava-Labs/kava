@@ -11,9 +11,9 @@ import (
 // REST Variable names
 // nolint
 const (
-	RestOwner           = "owner"
-	RestCollateralDenom = "collateral-denom"
-	RestID              = "id"
+	RestOwner          = "owner"
+	RestCollateralType = "collateral-type"
+	RestID             = "id"
 )
 
 // RegisterRoutes - Central function to define routes that get registered by the main application
