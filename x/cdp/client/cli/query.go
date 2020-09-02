@@ -356,7 +356,7 @@ func QueryGetAccounts(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // QueryGetSavingsRateDistributed queries the total amount of savings rate distributed in USDX
 func QueryGetSavingsRateDistributed(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "savingsratedist",
+		Use:   "savings-rate-dist",
 		Short: "get total amount of savings rate distributed in USDX",
 		Long:  "get total amount of savings rate distributed",
 		Args:  cobra.NoArgs,
