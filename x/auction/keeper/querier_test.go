@@ -41,7 +41,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	_, addrs := app.GeneratePrivKeyAddressPairs(10)
 	buyer := addrs[0]
 	modName := cdp.LiquidatorMacc
 
@@ -64,8 +64,16 @@ func (suite *QuerierTestSuite) SetupTest() {
 	// Populate with auctions
 	randSrc := rand.New(rand.NewSource(int64(1234)))
 	for j := 0; j < TestAuctionCount; j++ {
-		lotAmount := simulation.RandIntBetween(randSrc, 10, 100)
-		id, err := suite.keeper.StartSurplusAuction(suite.ctx, modName, c("token1", int64(lotAmount)), "token2")
+		var id uint64
+		var err error
+		lotAmount := int64(simulation.RandIntBetween(randSrc, 10, 100))
+		ownerAddrIndex := simulation.RandIntBetween(randSrc, 1, 9)
+		if ownerAddrIndex%2 == 0 {
+			id, err = suite.keeper.StartSurplusAuction(suite.ctx, modName, c("token1", lotAmount), "token2")
+		} else {
+			id, err = suite.keeper.StartCollateralAuction(suite.ctx, modName, c("token1", lotAmount), c("usdx", int64(20)),
+				[]sdk.AccAddress{addrs[ownerAddrIndex]}, []sdk.Int{sdk.NewInt(lotAmount)}, c("debt", int64(10)))
+		}
 		suite.NoError(err)
 
 		auc, found := suite.keeper.GetAuction(suite.ctx, id)

@@ -96,7 +96,7 @@ func (suite *SavingsTestSuite) TestGetSetPreviousDistributionTime() {
 func (suite *SavingsTestSuite) TestGetSetSavingsRateDistributed() {
 	// Savings rate dist set to 0 when the default genesis is used
 	preSavingsRateDistAmount := suite.keeper.GetSavingsRateDistributed(suite.ctx)
-	suite.True(preSavingsRateDistAmount.Equal(sdk.ZeroInt()))
+	suite.True(preSavingsRateDistAmount.Equal(types.DefaultSavingsRateDistributed))
 
 	// Adding new dist amount to existing dist so default genesis value can be updated in the future
 	amountToDistribute := sdk.NewInt(9876543210)
