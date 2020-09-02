@@ -23,6 +23,7 @@ const (
 	flagCollateralType = "collateral-type"
 	flagOwner          = "owner"
 	flagID             = "id"
+	flagRatio          = "ratio" // returns CDPs under the given collateralization ratio threshold
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -35,9 +36,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	cdpQueryCmd.AddCommand(flags.GetCommands(
 		QueryCdpCmd(queryRoute, cdc),
-		QueryGetV2CdpsCmd(queryRoute, cdc),
-		QueryCdpsByCollateralTypeCmd(queryRoute, cdc),
-		QueryCdpsByCollateralTypeAndRatioCmd(queryRoute, cdc),
+		QueryGetCdpsCmd(queryRoute, cdc),
 		QueryCdpDepositsCmd(queryRoute, cdc),
 		QueryParamsCmd(queryRoute, cdc),
 		QueryGetAccounts(queryRoute, cdc),
@@ -90,23 +89,25 @@ $ %s query %s cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw atom-a
 	}
 }
 
-// QueryGetV2CdpsCmd queries the cdps in the store
-func QueryGetV2CdpsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// QueryGetCdpsCmd queries the cdps in the store
+func QueryGetCdpsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "v2cdps",
+		Use:   "cdps",
 		Short: "query cdps with optional filters",
 		Long: strings.TrimSpace(`Query for all paginated cdps that match optional filters:
 Example:
-$ kvcli q cdp v2cdps --collateral-type=bnb
-$ kvcli q cdp v2cdps --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
-$ kvcli q cdp v2cdps --id=21
-$ kvcli q cdp v2cdps --page=2 --limit=100
+$ kvcli q cdp cdps --collateral-type=bnb
+$ kvcli q cdp cdps --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
+$ kvcli q cdp cdps --id=21
+$ kvcli q cdp cdps --ratio=2.75
+$ kvcli q cdp cdps --page=2 --limit=100
 `,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			strCollateralType := viper.GetString(flagCollateralType)
 			strOwner := viper.GetString(flagOwner)
 			strID := viper.GetString(flagID)
+			strRatio := viper.GetString(flagRatio)
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
@@ -114,16 +115,13 @@ $ kvcli q cdp v2cdps --page=2 --limit=100
 				cdpCollateralType string
 				cdpOwner          sdk.AccAddress
 				cdpID             uint64
+				cdpRatio          sdk.Dec
 			)
 
-			params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID)
+			params := types.NewQueryCdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID, cdpRatio)
 
 			if len(strCollateralType) != 0 {
 				cdpCollateralType = strings.ToLower(strings.TrimSpace(strCollateralType))
-				err := sdk.ValidateDenom(cdpCollateralType)
-				if err != nil {
-					return err
-				}
 				params.CollateralType = cdpCollateralType
 			}
 
@@ -136,11 +134,20 @@ $ kvcli q cdp v2cdps --page=2 --limit=100
 			}
 
 			if len(strID) != 0 {
-				cdpID, err := strconv.Atoi(strID)
+				cdpID, err := strconv.ParseUint(strID, 10, 64)
 				if err != nil {
 					return fmt.Errorf("cannot parse cdp ID %s", strID)
 				}
-				params.ID = uint64(cdpID)
+				params.ID = cdpID
+			}
+
+			params.Ratio = sdk.ZeroDec()
+			if len(strRatio) != 0 {
+				cdpRatio, err := sdk.NewDecFromStr(strRatio)
+				if err != nil {
+					return fmt.Errorf("cannot parse cdp ratio %s", strRatio)
+				}
+				params.Ratio = cdpRatio
 			}
 
 			bz, err := cdc.MarshalJSON(params)
@@ -151,7 +158,7 @@ $ kvcli q cdp v2cdps --page=2 --limit=100
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetV2Cdps), bz)
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdps), bz)
 			if err != nil {
 				return err
 			}
@@ -173,89 +180,9 @@ $ kvcli q cdp v2cdps --page=2 --limit=100
 	cmd.Flags().String(flagCollateralType, "", "(optional) filter by CDP collateral type")
 	cmd.Flags().String(flagOwner, "", "(optional) filter by CDP owner")
 	cmd.Flags().String(flagID, "", "(optional) filter by CDP ID")
+	cmd.Flags().String(flagRatio, "", "(optional) filter by CDP collateralization ratio threshold")
 
 	return cmd
-}
-
-// QueryCdpsByCollateralTypeCmd returns the command handler for querying cdps for a collateral type
-func QueryCdpsByCollateralTypeCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "cdps [collateral-type]",
-		Short: "query CDPs by collateral",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`List all CDPs collateralized with the specified asset.
-
-Example:
-$ %s query %s cdps atom-a
-`, version.ClientName, types.ModuleName)),
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Prepare params for querier
-			bz, err := cdc.MarshalJSON(types.QueryCdpsParams{CollateralType: args[0]})
-			if err != nil {
-				return err
-			}
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdps)
-			res, _, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var cdps types.AugmentedCDPs
-			cdc.MustUnmarshalJSON(res, &cdps)
-			return cliCtx.PrintOutput(cdps)
-		},
-	}
-}
-
-// QueryCdpsByCollateralTypeAndRatioCmd returns the command handler for querying cdps
-// that are under the specified collateral ratio
-func QueryCdpsByCollateralTypeAndRatioCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "cdps-by-ratio [collateral-type] [collateralization-ratio]",
-		Short: "get cdps under a collateralization ratio",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`List all CDPs under a specified collateralization ratio.
-Collateralization ratio is: collateral * price / debt.
-
-Example:
-$ %s query %s cdps-by-ratio atom-a 1.6
-`, version.ClientName, types.ModuleName)),
-		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Prepare params for querier
-			ratio, err := sdk.NewDecFromStr(args[1])
-			if err != nil {
-				return err
-			}
-			bz, err := cdc.MarshalJSON(types.QueryCdpsByRatioParams{
-				CollateralType: args[0],
-				Ratio:          ratio,
-			})
-			if err != nil {
-				return err
-			}
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdpsByCollateralization)
-			res, _, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var cdps types.AugmentedCDPs
-			cdc.MustUnmarshalJSON(res, &cdps)
-			return cliCtx.PrintOutput(cdps)
-		},
-	}
 }
 
 // QueryCdpDepositsCmd returns the command handler for querying the deposits of a particular cdp

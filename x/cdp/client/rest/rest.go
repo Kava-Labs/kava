@@ -14,6 +14,7 @@ const (
 	RestOwner          = "owner"
 	RestCollateralType = "collateral-type"
 	RestID             = "id"
+	RestRatio          = "ratio"
 )
 
 // RegisterRoutes - Central function to define routes that get registered by the main application

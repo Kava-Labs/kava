@@ -7,49 +7,17 @@ import (
 // Querier routes for the cdp module
 const (
 	QueryGetCdp                     = "cdp"
-	QueryGetCdpDeposits             = "deposits"
 	QueryGetCdps                    = "cdps"
-	QueryGetV2Cdps                  = "v2cdps"
-	QueryGetCdpsByCollateralization = "ratio"
+	QueryGetCdpDeposits             = "deposits"
+	QueryGetCdpsByCollateralization = "ratio"          // legacy query, maintained for REST API
+	QueryGetCdpsByCollateralType    = "collateralType" // legacy query, maintained for REST API
 	QueryGetParams                  = "params"
 	QueryGetAccounts                = "accounts"
-	QueryGetSavingsRateDistributed  = "savingsratedist"
+	QueryGetSavingsRateDistributed  = "savings-rate-dist"
 	RestOwner                       = "owner"
 	RestCollateralType              = "collateral-type"
 	RestRatio                       = "ratio"
 )
-
-// QueryCdpsParams params for query /cdp/cdps
-type QueryCdpsParams struct {
-	CollateralType string // get CDPs with this collateral type
-}
-
-// NewQueryCdpsParams returns QueryCdpsParams
-func NewQueryCdpsParams(collateralType string) QueryCdpsParams {
-	return QueryCdpsParams{
-		CollateralType: collateralType,
-	}
-}
-
-// QueryV2CdpsParams is the params for a filtered CDP query
-type QueryV2CdpsParams struct {
-	Page           int            `json:"page" yaml:"page"`
-	Limit          int            `json:"limit" yaml:"limit"`
-	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
-	Owner          sdk.AccAddress `json:"owner" yaml:"owner"`
-	ID             uint64         `json:"id" yaml:"id"`
-}
-
-// NewQueryV2CdpsParams creates a new QueryV2CdpsParams
-func NewQueryV2CdpsParams(page, limit int, collateralType string, owner sdk.AccAddress, id uint64) QueryV2CdpsParams {
-	return QueryV2CdpsParams{
-		Page:           page,
-		Limit:          limit,
-		CollateralType: collateralType,
-		Owner:          owner,
-		ID:             id,
-	}
-}
 
 // QueryCdpParams params for query /cdp/cdp
 type QueryCdpParams struct {
@@ -65,6 +33,28 @@ func NewQueryCdpParams(owner sdk.AccAddress, collateralType string) QueryCdpPara
 	}
 }
 
+// QueryCdpsParams is the params for a filtered CDP query
+type QueryCdpsParams struct {
+	Page           int            `json:"page" yaml:"page"`
+	Limit          int            `json:"limit" yaml:"limit"`
+	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
+	Owner          sdk.AccAddress `json:"owner" yaml:"owner"`
+	ID             uint64         `json:"id" yaml:"id"`
+	Ratio          sdk.Dec        `json:"ratio" yaml:"ratio"`
+}
+
+// NewQueryCdpsParams creates a new QueryCdpsParams
+func NewQueryCdpsParams(page, limit int, collateralType string, owner sdk.AccAddress, id uint64, ratio sdk.Dec) QueryCdpsParams {
+	return QueryCdpsParams{
+		Page:           page,
+		Limit:          limit,
+		CollateralType: collateralType,
+		Owner:          owner,
+		ID:             id,
+		Ratio:          ratio,
+	}
+}
+
 // QueryCdpDeposits params for query /cdp/deposits
 type QueryCdpDeposits struct {
 	CollateralType string         // get CDPs with this collateral type
@@ -75,6 +65,18 @@ type QueryCdpDeposits struct {
 func NewQueryCdpDeposits(owner sdk.AccAddress, collateralType string) QueryCdpDeposits {
 	return QueryCdpDeposits{
 		Owner:          owner,
+		CollateralType: collateralType,
+	}
+}
+
+// QueryCdpsByCollateralTypeParams params for query /cdp/cdps/{denom}
+type QueryCdpsByCollateralTypeParams struct {
+	CollateralType string // get CDPs with this collateral type
+}
+
+// NewQueryCdpsByCollateralTypeParams returns QueryCdpsByCollateralTypeParams
+func NewQueryCdpsByCollateralTypeParams(collateralType string) QueryCdpsByCollateralTypeParams {
+	return QueryCdpsByCollateralTypeParams{
 		CollateralType: collateralType,
 	}
 }

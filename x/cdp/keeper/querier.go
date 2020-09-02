@@ -18,16 +18,16 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetCdp:
 			return queryGetCdp(ctx, req, keeper)
-		case types.QueryGetV2Cdps:
-			return queryGetV2Cdps(ctx, req, keeper)
 		case types.QueryGetCdps:
+			return queryGetCdps(ctx, req, keeper)
+		case types.QueryGetCdpDeposits:
+			return queryGetDeposits(ctx, req, keeper)
+		case types.QueryGetCdpsByCollateralType: // legacy, maintained for REST API
 			return queryGetCdpsByCollateralType(ctx, req, keeper)
-		case types.QueryGetCdpsByCollateralization:
+		case types.QueryGetCdpsByCollateralization: // legacy, maintained for REST API
 			return queryGetCdpsByRatio(ctx, req, keeper)
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
-		case types.QueryGetCdpDeposits:
-			return queryGetDeposits(ctx, req, keeper)
 		case types.QueryGetAccounts:
 			return queryGetAccounts(ctx, req, keeper)
 		case types.QueryGetSavingsRateDistributed:
@@ -48,7 +48,7 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndCollateralType(ctx, requestParams.Owner, requestParams.CollateralType)
@@ -76,7 +76,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 
 	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndCollateralType(ctx, requestParams.Owner, requestParams.CollateralType)
@@ -103,7 +103,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	}
 	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralType, requestParams.Ratio, "liquidation")
@@ -125,16 +125,16 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
-// query all cdps with matching collateral denom
+// query all cdps with matching collateral type
 func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var requestParams types.QueryCdpsParams
+	var requestParams types.QueryCdpsByCollateralTypeParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, valid := keeper.GetCollateralTypePrefix(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrCollateralNotSupported, requestParams.CollateralType)
+		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	cdps := keeper.GetAllCdpsByCollateralType(ctx, requestParams.CollateralType)
@@ -198,8 +198,8 @@ func queryGetSavingsRateDistributed(ctx sdk.Context, req abci.RequestQuery, keep
 }
 
 // query cdps in store and filter by request params
-func queryGetV2Cdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params types.QueryV2CdpsParams
+func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryCdpsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -207,18 +207,7 @@ func queryGetV2Cdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 
 	// Filter CDPs
 	unfilteredCDPs := keeper.GetAllCdps(ctx)
-	cdps := filterCDPs(ctx, unfilteredCDPs, params)
-
-	var augmentedCDPs types.AugmentedCDPs
-	if cdps == nil {
-		augmentedCDPs = types.AugmentedCDPs{}
-	}
-
-	// Augment CDPs by adding collateral value and collateralization ratio
-	for _, cdp := range cdps {
-		augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
-		augmentedCDPs = append(augmentedCDPs, augmentedCDP)
-	}
+	augmentedCDPs := filterCDPs(ctx, keeper, unfilteredCDPs, params)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, augmentedCDPs)
 	if err != nil {
@@ -230,35 +219,42 @@ func queryGetV2Cdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 
 // filterCDPs retrieves CDPs filtered by a given set of params.
 // If no filters are provided, all CDPs will be returned in paginated form.
-func filterCDPs(ctx sdk.Context, cdps types.CDPs, params types.QueryV2CdpsParams) types.CDPs {
-	filteredCDPs := make(types.CDPs, 0, len(cdps))
+func filterCDPs(ctx sdk.Context, k Keeper, cdps types.CDPs, params types.QueryCdpsParams) types.AugmentedCDPs {
+	filteredCDPs := make(types.AugmentedCDPs, 0, len(cdps))
 
 	for _, cdp := range cdps {
-		matchCollateralType, matchOwner, matchID := true, true, true
+		augmentedCDP := k.LoadAugmentedCDP(ctx, cdp)
+
+		matchCollateralType, matchOwner, matchID, matchRatio := true, true, true, true
 
 		// match cdp collateral denom (if supplied)
 		if len(params.CollateralType) > 0 {
-			matchCollateralType = cdp.Type == params.CollateralType
+			matchCollateralType = augmentedCDP.Type == params.CollateralType
 		}
 
 		// match cdp owner (if supplied)
 		if len(params.Owner) > 0 {
-			matchOwner = cdp.Owner.Equals(params.Owner)
+			matchOwner = augmentedCDP.Owner.Equals(params.Owner)
 		}
 
 		// match cdp ID (if supplied)
 		if params.ID != 0 {
-			matchID = cdp.ID == (params.ID)
+			matchID = augmentedCDP.ID == params.ID
 		}
 
-		if matchCollateralType && matchOwner && matchID {
-			filteredCDPs = append(filteredCDPs, cdp)
+		// match cdp ratio (if supplied)
+		if params.Ratio.GT(sdk.ZeroDec()) {
+			matchRatio = augmentedCDP.CollateralizationRatio.LTE(params.Ratio)
+		}
+
+		if matchCollateralType && matchOwner && matchID && matchRatio {
+			filteredCDPs = append(filteredCDPs, augmentedCDP)
 		}
 	}
 
 	start, end := client.Paginate(len(filteredCDPs), params.Page, params.Limit, 100)
 	if start < 0 || end < 0 {
-		filteredCDPs = types.CDPs{}
+		filteredCDPs = types.AugmentedCDPs{}
 	} else {
 		filteredCDPs = filteredCDPs[start:end]
 	}

@@ -20,10 +20,10 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/savingsRateDist", getSavingsRateDistributedHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps/collateralType/{%s}", types.RestCollateralType), queryCdpsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps/ratio/{%s}/{%s}", types.RestCollateralType, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps"), queryCdpsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps/collateralType/{%s}", types.RestCollateralType), queryCdpsByCollateralTypeHandlerFn(cliCtx)).Methods("GET")     // legacy
+	r.HandleFunc(fmt.Sprintf("/cdp/cdps/ratio/{%s}/{%s}", types.RestCollateralType, types.RestRatio), queryCdpsByRatioHandlerFn(cliCtx)).Methods("GET") // legacy
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/deposits/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpDepositsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/cdp/cdps"), queryV2CdpsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -62,7 +62,7 @@ func queryCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpsByCollateralTypeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -72,7 +72,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		vars := mux.Vars(r)
 		collateralType := vars[types.RestCollateralType]
 
-		params := types.NewQueryCdpsParams(collateralType)
+		params := types.NewQueryCdpsByCollateralTypeParams(collateralType)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -80,7 +80,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetCdps), bz)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetCdpsByCollateralType), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
@@ -216,7 +216,7 @@ func getSavingsRateDistributedHandler(cliCtx context.CLIContext) http.HandlerFun
 	}
 }
 
-func queryV2CdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -233,14 +233,10 @@ func queryV2CdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		var cdpCollateralType string
 		var cdpOwner sdk.AccAddress
 		var cdpID uint64
+		var cdpRatio sdk.Dec
 
 		if x := r.URL.Query().Get(RestCollateralType); len(x) != 0 {
 			cdpCollateralType = strings.TrimSpace(x)
-			err := sdk.ValidateDenom(cdpCollateralType)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
 		}
 
 		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
@@ -259,14 +255,22 @@ func queryV2CdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryV2CdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID)
+		if x := r.URL.Query().Get(RestRatio); len(x) != 0 {
+			cdpRatio, err = sdk.NewDecFromStr(strings.TrimSpace(x))
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+		}
+
+		params := types.NewQueryCdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID, cdpRatio)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetV2Cdps)
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetCdps)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
