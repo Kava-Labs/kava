@@ -121,6 +121,7 @@ func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio s
 		CDP: CDP{
 			ID:              cdp.ID,
 			Owner:           cdp.Owner,
+			Type:            cdp.Type,
 			Collateral:      cdp.Collateral,
 			Principal:       cdp.Principal,
 			AccumulatedFees: cdp.AccumulatedFees,
@@ -146,7 +147,7 @@ func (augCDP AugmentedCDP) String() string {
 	Collateralization ratio: %s`,
 		augCDP.Owner,
 		augCDP.ID,
-		augCDP.Collateral.Denom,
+		augCDP.Type,
 		augCDP.Collateral,
 		augCDP.CollateralValue,
 		augCDP.Principal,
