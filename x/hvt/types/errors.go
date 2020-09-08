@@ -28,4 +28,5 @@ var (
 	ErrInsufficientModAccountBalance = sdkerrors.Register(ModuleName, 11, "module account has insufficient balance to pay reward")
 	ErrInvalidAccountType            = sdkerrors.Register(ModuleName, 12, "account type not supported")
 	ErrAccountNotFound               = sdkerrors.Register(ModuleName, 13, "account not found")
+	ErrClaimExpired                  = sdkerrors.Register(ModuleName, 14, "claim period expired")
 )

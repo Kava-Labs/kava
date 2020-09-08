@@ -21,7 +21,6 @@ const (
 	Large  RewardMultiplier = "large"
 
 	LP    DepositType = "lp"
-	Gov   DepositType = "gov"
 	Stake DepositType = "stake"
 )
 
@@ -37,7 +36,7 @@ func (rm RewardMultiplier) IsValid() error {
 // IsValid checks if the input is one of the expected strings
 func (dt DepositType) IsValid() error {
 	switch dt {
-	case LP, Gov:
+	case LP, Stake:
 		return nil
 	}
 	return fmt.Errorf("invalid deposit type: %s", dt)

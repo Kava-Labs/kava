@@ -25,7 +25,13 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 			continue
 		}
 		totalDeposited := k.GetTotalDeposited(ctx, types.LP, lps.DepositDenom)
+		if totalDeposited.IsZero() {
+			continue
+		}
 		rewardsToDistribute := lps.Reward.Amount.Mul(timeElapsed)
+		if rewardsToDistribute.IsZero() {
+			continue
+		}
 
 		k.IterateDepositsByTypeAndDenom(ctx, types.LP, lps.DepositDenom, func(dep types.Deposit) (stop bool) {
 			rewardsShare := sdk.NewDecFromInt(dep.Amount.Amount).Quo(sdk.NewDecFromInt(totalDeposited))
@@ -33,35 +39,10 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 				return false
 			}
 			rewardsEarned := rewardsShare.Mul(sdk.NewDecFromInt(rewardsToDistribute)).RoundInt()
-			if rewardsEarned.GT(rewardsToDistribute) {
-				rewardsEarned = rewardsToDistribute
-			}
 			if rewardsEarned.IsZero() {
 				return false
 			}
 			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, dep.Type, sdk.NewCoin(lps.Reward.Denom, rewardsEarned))
-			rewardsToDistribute = rewardsToDistribute.Sub(rewardsEarned)
-			return false
-		})
-	}
-
-	for _, gds := range params.GovernanceDistributionSchedules {
-		if gds.End.Before(ctx.BlockTime()) {
-			continue
-		}
-		totalDeposited := k.GetTotalDeposited(ctx, types.Gov, gds.DepositDenom)
-
-		k.IterateDepositsByTypeAndDenom(ctx, types.Gov, gds.DepositDenom, func(dep types.Deposit) (stop bool) {
-			rewardsToDistribute := gds.Reward.Amount.Mul(timeElapsed)
-			rewardsShare := sdk.NewDecFromInt(dep.Amount.Amount).Quo(sdk.NewDecFromInt(totalDeposited))
-			if rewardsShare.IsZero() {
-				return false
-			}
-			rewardsEarned := rewardsShare.Mul(sdk.NewDecFromInt(rewardsToDistribute)).RoundInt()
-			if rewardsEarned.IsZero() {
-				return false
-			}
-			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, dep.Type, sdk.NewCoin(gds.Reward.Denom, rewardsEarned))
 			return false
 		})
 	}
@@ -96,6 +77,9 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 	}
 	bondMacc := k.stakingKeeper.GetBondedPool(ctx)
 	bondedCoinAmount := bondMacc.GetCoins().AmountOf(dds.DistributionSchedule.DepositDenom)
+	if bondedCoinAmount.IsZero() {
+		return
+	}
 	previousDistributionTime, found := k.GetPreviousDelegatorDistribution(ctx, dds.DistributionSchedule.DepositDenom)
 	if !found {
 		return
@@ -103,9 +87,17 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistributionTime.Unix())
 	rewardsToDistribute := dds.DistributionSchedule.Reward.Amount.Mul(timeElapsed)
 
-	// map that has each validator address (sdk.ValAddress) as a key and the coversion factor for going from delegator shares to tokens for delegations to that validator. If a validator has never been slashed, the conversion factor will be 1.0
+	// create a map that has each validator address (sdk.ValAddress) as a key and the coversion factor for going from delegator shares to tokens for delegations to that validator.
+	// If a validator has never been slashed, the conversion factor will be 1.0, if they have been, it will be < 1.0
 	sharesToTokens := make(map[string]sdk.Dec)
-	k.stakingKeeper.IterateLastValidators(ctx, func(index int64, validator stakingexported.ValidatorI) (stop bool) {
+	k.stakingKeeper.IterateValidators(ctx, func(index int64, validator stakingexported.ValidatorI) (stop bool) {
+		if validator.GetTokens().IsZero() {
+			return false
+		}
+		// don't include a validator if it's unbonded - ie delegators don't accumulate rewards when delegated to an unbonded validator
+		if validator.GetStatus() == sdk.Unbonded {
+			return false
+		}
 		sharesToTokens[validator.GetOperator().String()] = (validator.GetDelegatorShares()).Quo(sdk.NewDecFromInt(validator.GetTokens()))
 		return false
 	})
@@ -116,16 +108,22 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 			delegationTokens := conversionFactor.Mul(delegation.Shares)
 			delegationShare := delegationTokens.Quo(sdk.NewDecFromInt(bondedCoinAmount))
 			rewardsEarned := delegationShare.Mul(sdk.NewDecFromInt(rewardsToDistribute)).RoundInt()
-			if rewardsEarned.GT(rewardsToDistribute) {
-				rewardsEarned = rewardsToDistribute
-			}
 			if rewardsEarned.IsZero() {
 				return false
 			}
 			k.AddToClaim(ctx, delegation.DelegatorAddress, dds.DistributionSchedule.DepositDenom, types.Stake, sdk.NewCoin(dds.DistributionSchedule.Reward.Denom, rewardsEarned))
-			rewardsToDistribute = rewardsToDistribute.Sub(rewardsEarned)
 		}
 		return false
 	})
+}
 
+// AddToClaim adds the input amount to an existing claim or creates a new one
+func (k Keeper) AddToClaim(ctx sdk.Context, owner sdk.AccAddress, depositDenom string, depositType types.DepositType, amountToAdd sdk.Coin) {
+	claim, found := k.GetClaim(ctx, owner, depositDenom, depositType)
+	if !found {
+		claim = types.NewClaim(owner, depositDenom, amountToAdd, depositType)
+	} else {
+		claim.Amount = claim.Amount.Add(amountToAdd)
+	}
+	k.SetClaim(ctx, claim)
 }

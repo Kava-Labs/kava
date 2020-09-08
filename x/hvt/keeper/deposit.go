@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/kava-labs/kava/x/hvt/types"
 )
@@ -17,9 +18,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 
 	switch depositType {
 	case types.LP:
-		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.LPAccount, sdk.NewCoins(amount))
-	case types.Gov:
-		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.GovAccount, sdk.NewCoins(amount))
+		err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, sdk.NewCoins(amount))
 	default:
 		return sdkerrors.Wrap(types.ErrInvalidDepositType, string(depositType))
 	}
@@ -45,8 +44,6 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, amount sdk.Coin, depositType ty
 	switch depositType {
 	case types.LP:
 		err = k.ValidateLPDeposit(ctx, amount, depositType)
-	case types.Gov:
-		err = k.ValidateGovDeposit(ctx, amount, depositType)
 	default:
 		return sdkerrors.Wrap(types.ErrInvalidDepositType, string(depositType))
 	}
@@ -59,31 +56,12 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, amount sdk.Coin, depositType ty
 // ValidateLPDeposit validates that a liquidity provider deposit
 func (k Keeper) ValidateLPDeposit(ctx sdk.Context, amount sdk.Coin, depositType types.DepositType) error {
 	params := k.GetParams(ctx)
-	found := false
 	for _, lps := range params.LiquidityProviderSchedules {
 		if lps.DepositDenom == amount.Denom {
-			found = true
+			return nil
 		}
-	}
-	if found {
-		return nil
 	}
 	return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", amount.Denom)
-}
-
-// ValidateGovDeposit validates that a governance distribution deposit
-func (k Keeper) ValidateGovDeposit(ctx sdk.Context, amount sdk.Coin, depositType types.DepositType) error {
-	params := k.GetParams(ctx)
-	found := false
-	for _, gds := range params.GovernanceDistributionSchedules {
-		if gds.DepositDenom == amount.Denom {
-			found = true
-		}
-	}
-	if found {
-		return nil
-	}
-	return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "governance distribution denom %s not found", amount.Denom)
 }
 
 // Withdraw returns some or all of a deposit back to original depositor
@@ -99,9 +77,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	var err error
 	switch depositType {
 	case types.LP:
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.LPAccount, depositor, sdk.NewCoins(amount))
-	case types.Gov:
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.GovAccount, depositor, sdk.NewCoins(amount))
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
 	default:
 		return sdkerrors.Wrap(types.ErrInvalidDepositType, string(depositType))
 	}
@@ -116,4 +92,15 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	k.SetDeposit(ctx, deposit)
 
 	return nil
+}
+
+// GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
+func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositType types.DepositType, depositDenom string) (total sdk.Int) {
+
+	var macc supplyExported.ModuleAccountI
+	switch depositType {
+	case types.LP:
+		macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+	}
+	return macc.GetCoins().AmountOf(depositDenom)
 }

@@ -27,17 +27,16 @@ const (
 	AttributeKeyClaimPeriod    = types.AttributeKeyClaimPeriod
 	ModuleName                 = types.ModuleName
 	LPAccount                  = types.LPAccount
-	GovAccount                 = types.GovAccount
+	DelegatorAccount           = types.DelegatorAccount
+	ModuleAccountName          = types.ModuleAccountName
 	StoreKey                   = types.StoreKey
 	RouterKey                  = types.RouterKey
 	QuerierRoute               = types.QuerierRoute
 	DefaultParamspace          = types.DefaultParamspace
-	KavaDistMacc               = types.KavaDistMacc
 	Small                      = types.Small
 	Medium                     = types.Medium
 	Large                      = types.Large
 	LP                         = types.LP
-	Gov                        = types.Gov
 	Stake                      = types.Stake
 	QueryGetParams             = types.QueryGetParams
 	QueryGetBalance            = types.QueryGetBalance
@@ -87,7 +86,6 @@ var (
 	ClaimsKeyPrefix                   = types.ClaimsKeyPrefix
 	KeyActive                         = types.KeyActive
 	KeyLPSchedules                    = types.KeyLPSchedules
-	KeyGovSchedules                   = types.KeyGovSchedules
 	KeyDelegatorSchedule              = types.KeyDelegatorSchedule
 	DefaultActive                     = types.DefaultActive
 	DefaultGovSchedules               = types.DefaultGovSchedules

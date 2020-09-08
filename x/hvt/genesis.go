@@ -22,9 +22,21 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 	}
 
 	// check if the module account exists
-	moduleAcc := supplyKeeper.GetModuleAccount(ctx, KavaDistMacc)
-	if moduleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", KavaDistMacc))
+	LPModuleAcc := supplyKeeper.GetModuleAccount(ctx, LPAccount)
+	if LPModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", LPAccount))
+	}
+
+	// check if the module account exists
+	DelegatorModuleAcc := supplyKeeper.GetModuleAccount(ctx, DelegatorAccount)
+	if DelegatorModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", DelegatorAccount))
+	}
+
+	// check if the module account exists
+	DepositModuleAccount := supplyKeeper.GetModuleAccount(ctx, ModuleAccountName)
+	if DepositModuleAccount == nil {
+		panic(fmt.Sprintf("%s module account has not been set", DepositModuleAccount))
 	}
 
 }

@@ -11,8 +11,11 @@ const (
 	// LPAccount LP distribution module account
 	LPAccount = "harvest_lp_distribution"
 
-	// GovAccount governance distribution module account
-	GovAccount = "harvest_gov_distribution"
+	// DelegatorAccount delegator distribution module account
+	DelegatorAccount = "harvest_delegator_distribution"
+
+	// ModuleAccountName name of module account used to hold deposits
+	ModuleAccountName = "harvest"
 
 	// StoreKey Top level store key where all module items will be stored
 	StoreKey = ModuleName
@@ -25,9 +28,6 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
-
-	// KavaDistMacc module account for kavadist
-	KavaDistMacc = ModuleName
 )
 
 var (

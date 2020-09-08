@@ -28,16 +28,6 @@ func (k Keeper) GetLPSchedule(ctx sdk.Context, denom string) (types.Distribution
 	return types.DistributionSchedule{}, false
 }
 
-func (k Keeper) GetGovSchedule(ctx sdk.Context, denom string) (types.DistributionSchedule, bool) {
-	params := k.GetParams(ctx)
-	for _, gds := range params.GovernanceDistributionSchedules {
-		if gds.DepositDenom == denom {
-			return gds, true
-		}
-	}
-	return types.DistributionSchedule{}, false
-}
-
 func (k Keeper) GetDelegatorSchedule(ctx sdk.Context, denom string) (types.DelegatorDistributionSchedule, bool) {
 	params := k.GetParams(ctx)
 	for _, dds := range params.DelegatorDistributionSchedules {

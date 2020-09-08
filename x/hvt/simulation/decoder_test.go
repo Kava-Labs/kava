@@ -27,9 +27,14 @@ func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
 	prevBlockTime := time.Now().UTC()
+	deposit := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoin("bnb", sdk.NewInt(1)), "lp")
+	claim := types.NewClaim(sdk.AccAddress("test"), "bnb", sdk.NewCoin("hard", sdk.NewInt(100)), "stake")
 
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
+		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
+		kv.Pair{Key: []byte(types.PreviousDelegationDistributionKey), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
+		kv.Pair{Key: []byte(types.DepositsKeyPrefix), Value: cdc.MustMarshalBinaryBare(deposit)},
+		kv.Pair{Key: []byte(types.ClaimsKeyPrefix), Value: cdc.MustMarshalBinaryBare(claim)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -38,6 +43,9 @@ func TestDecodeDistributionStore(t *testing.T) {
 		expectedLog string
 	}{
 		{"PreviousBlockTime", fmt.Sprintf("%s\n%s", prevBlockTime, prevBlockTime)},
+		{"PreviousDistributionTime", fmt.Sprintf("%s\n%s", prevBlockTime, prevBlockTime)},
+		{"Deposit", fmt.Sprintf("%s\n%s", deposit, deposit)},
+		{"Claim", fmt.Sprintf("%s\n%s", claim, claim)},
 		{"other", ""},
 	}
 	for i, tt := range tests {

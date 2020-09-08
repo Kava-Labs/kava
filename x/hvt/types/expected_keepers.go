@@ -27,6 +27,8 @@ type AccountKeeper interface {
 
 type StakingKeeper interface {
 	IterateLastValidators(ctx sdk.Context, fn func(index int64, validator stakingexported.ValidatorI) (stop bool))
+	IterateValidators(sdk.Context,
+		func(index int64, validator stakingexported.ValidatorI) (stop bool))
 	IterateAllDelegations(ctx sdk.Context, cb func(delegation stakingtypes.Delegation) (stop bool))
 	GetBondedPool(ctx sdk.Context) (bondedPool exported.ModuleAccountI)
 	BondDenom(ctx sdk.Context) (res string)

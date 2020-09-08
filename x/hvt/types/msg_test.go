@@ -46,7 +46,7 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 			args: args{
 				depositor:   addrs[0],
 				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "GOV",
+				depositType: "LP",
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -109,7 +109,7 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 			args: args{
 				sender:      addrs[0],
 				denom:       "bnb",
-				depositType: "gov",
+				depositType: "stake",
 				multiplier:  "small",
 			},
 			expectPass:  true,

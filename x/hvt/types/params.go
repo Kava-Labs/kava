@@ -17,7 +17,6 @@ import (
 var (
 	KeyActive                 = []byte("Active")
 	KeyLPSchedules            = []byte("LPSchedules")
-	KeyGovSchedules           = []byte("GovSchedules")
 	KeyDelegatorSchedule      = []byte("DelegatorSchedule")
 	DefaultActive             = true
 	DefaultGovSchedules       = DistributionSchedules{}
@@ -29,10 +28,9 @@ var (
 
 // Params governance parameters for kavadist module
 type Params struct {
-	Active                          bool                           `json:"active" yaml:"active"`
-	LiquidityProviderSchedules      DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
-	GovernanceDistributionSchedules DistributionSchedules          `json:"governance_distribution_schedules" yaml:"governance_distribution_schedules"`
-	DelegatorDistributionSchedules  DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
+	Active                         bool                           `json:"active" yaml:"active"`
+	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
+	DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
 }
 
 // DistributionSchedule distribution schedule for liquidity providers
@@ -150,6 +148,7 @@ func (dds DelegatorDistributionSchedule) Validate() error {
 	return nil
 }
 
+// DelegatorDistributionSchedules slice of DelegatorDistributionSchedule
 type DelegatorDistributionSchedules []DelegatorDistributionSchedule
 
 // Validate checks if all the LiquidityProviderSchedules are valid and there are no duplicated
@@ -173,15 +172,15 @@ func (dds DelegatorDistributionSchedules) Validate() error {
 // Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 type Multiplier struct {
 	Name         RewardMultiplier `json:"name" yaml:"name"`
-	LockDuration time.Duration    `json:"lock_duration" yaml:"lock_duration"`
+	MonthsLockup int              `json:"months_lockup" yaml:"months_lockup"`
 	Factor       sdk.Dec          `json:"factor" yaml:"factor"`
 }
 
 // NewMultiplier returns a new Multiplier
-func NewMultiplier(name RewardMultiplier, duration time.Duration, factor sdk.Dec) Multiplier {
+func NewMultiplier(name RewardMultiplier, lockup int, factor sdk.Dec) Multiplier {
 	return Multiplier{
 		Name:         name,
-		LockDuration: duration,
+		MonthsLockup: lockup,
 		Factor:       factor,
 	}
 }
@@ -190,18 +189,17 @@ func NewMultiplier(name RewardMultiplier, duration time.Duration, factor sdk.Dec
 type Multipliers []Multiplier
 
 // NewParams returns a new params object
-func NewParams(active bool, lps, gds DistributionSchedules, dds DelegatorDistributionSchedules) Params {
+func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules) Params {
 	return Params{
-		Active:                          active,
-		LiquidityProviderSchedules:      lps,
-		GovernanceDistributionSchedules: gds,
-		DelegatorDistributionSchedules:  dds,
+		Active:                         active,
+		LiquidityProviderSchedules:     lps,
+		DelegatorDistributionSchedules: dds,
 	}
 }
 
 // DefaultParams returns default params for kavadist module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultLPSchedules, DefaultGovSchedules, DefaultDelegatorSchedules)
+	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules)
 }
 
 // String implements fmt.Stringer
@@ -209,8 +207,7 @@ func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
-	Governance Distribution Schedules %s
-	Delegator Distribution Schedule %s`, p.Active, p.LiquidityProviderSchedules, p.GovernanceDistributionSchedules, p.DelegatorDistributionSchedules)
+	Delegator Distribution Schedule %s`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -223,7 +220,6 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
 		params.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
-		params.NewParamSetPair(KeyGovSchedules, &p.GovernanceDistributionSchedules, validateGovParams),
 		params.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
 	}
 }
@@ -234,9 +230,6 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateGovParams(p.GovernanceDistributionSchedules); err != nil {
-		return err
-	}
 	if err := validateDelegatorParams(p.DelegatorDistributionSchedules); err != nil {
 		return err
 	}
@@ -254,22 +247,6 @@ func validateActiveParam(i interface{}) error {
 }
 
 func validateLPParams(i interface{}) error {
-	dss, ok := i.(DistributionSchedules)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	for _, ds := range dss {
-		err := ds.Validate()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func validateGovParams(i interface{}) error {
 	dss, ok := i.(DistributionSchedules)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

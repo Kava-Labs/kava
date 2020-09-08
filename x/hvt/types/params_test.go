@@ -33,7 +33,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			name: "default",
 			args: args{
 				lps:    types.DefaultLPSchedules,
-				gds:    types.DefaultGovSchedules,
 				dds:    types.DefaultDelegatorSchedules,
 				active: types.DefaultActive,
 			},
@@ -44,13 +43,10 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			name: "valid",
 			args: args{
 				lps: types.DistributionSchedules{
-					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, time.Duration(0), sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, time.Hour*24*180, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, time.Hour*24*365*2, sdk.OneDec())}),
-				},
-				gds: types.DistributionSchedules{
-					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, time.Duration(0), sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, time.Hour*24*180, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, time.Hour*24*365*2, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
 				},
 				dds: types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
-					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, time.Duration(0), sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, time.Hour*24*180, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, time.Hour*24*365*2, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
 					time.Hour*24,
 				),
 				},
@@ -62,7 +58,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.gds, tc.args.dds)
+			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds)
 			err := params.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

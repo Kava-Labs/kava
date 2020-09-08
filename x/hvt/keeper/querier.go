@@ -39,7 +39,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 
 // queryGetBalance returns current balance of kavadist module account
 func queryGetBalance(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	acc := k.supplyKeeper.GetModuleAccount(ctx, types.KavaDistMacc)
+	acc := k.supplyKeeper.GetModuleAccount(ctx, types.LPAccount)
 	bz, err := codec.MarshalJSONIndent(k.cdc, acc.GetCoins())
 
 	if err != nil {

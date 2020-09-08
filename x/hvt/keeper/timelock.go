@@ -76,23 +76,16 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 	vacc := acc.(*vesting.PeriodicVestingAccount)
 	// Add the new vesting coins to OriginalVesting
 	vacc.OriginalVesting = vacc.OriginalVesting.Add(amt...)
-	// update vesting periods
-	// EndTime = 100
-	// BlockTime  = 110
-	// length == 6
 	if vacc.EndTime < ctx.BlockTime().Unix() {
 		// edge case one - the vesting account's end time is in the past (ie, all previous vesting periods have completed)
 		// append a new period to the vesting account, update the end time, update the account in the store and return
-		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length // 110 - 100 + 6 = 16
+		newPeriodLength := (ctx.BlockTime().Unix() - vacc.EndTime) + length
 		newPeriod := types.NewPeriod(amt, newPeriodLength)
 		vacc.VestingPeriods = append(vacc.VestingPeriods, newPeriod)
 		vacc.EndTime = ctx.BlockTime().Unix() + length
 		k.accountKeeper.SetAccount(ctx, vacc)
 		return
 	}
-	// StartTime = 110
-	// BlockTime = 100
-	// length = 6
 	if vacc.StartTime > ctx.BlockTime().Unix() {
 		// edge case two - the vesting account's start time is in the future (all periods have not started)
 		// update the start time to now and adjust the period lengths in place - a new period will be inserted in the next code block
@@ -121,25 +114,6 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 		vacc.EndTime = proposedEndTime
 	} else {
 		// In the case that the proposed length is less than or equal to the sum of all previous period lengths, insert the period and update other periods as necessary.
-		// EXAMPLE (l is length, a is amount)
-		// Original Periods: {[l: 1 a: 1], [l: 2, a: 1], [l:8, a:3], [l: 5, a: 3]}
-		// Period we want to insert [l: 5, a: x]
-		// Expected result:
-		// {[l: 1, a: 1], [l:2, a: 1], [l:2, a:x], [l:6, a:3], [l:5, a:3]}
-
-		// StartTime = 100
-		// Periods = [5,5,5,5]
-		// EndTime = 120
-		// BlockTime = 101
-		// length = 2
-
-		// for period in Periods:
-		// iteration  1:
-		// lengthCounter = 5
-		// if 5 < 101 - 100 + 2 - no
-		// if 5 = 3 - no
-		// else
-		// newperiod = 2 - 0
 		newPeriods := vesting.Periods{}
 		lengthCounter := int64(0)
 		appendRemaining := false
@@ -149,7 +123,7 @@ func (k Keeper) addCoinsToVestingSchedule(ctx sdk.Context, addr sdk.AccAddress, 
 				continue
 			}
 			lengthCounter += period.Length
-			if lengthCounter < elapsedTime+length { // 1
+			if lengthCounter < elapsedTime+length {
 				newPeriods = append(newPeriods, period)
 			} else if lengthCounter == elapsedTime+length {
 				newPeriod := types.NewPeriod(period.Amount.Add(amt...), period.Length)

@@ -8,26 +8,23 @@ import (
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params              Params    `json:"params" yaml:"params"`
-	PreviousBlockTime   time.Time `json:"previous_block_time" yaml:"previous_block_time"`
-	InitialDistribution bool      `json:"initial_distribution" yaml:"initial_distribution"`
+	Params            Params    `json:"params" yaml:"params"`
+	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, previousBlockTime time.Time, initialDistribution bool) GenesisState {
+func NewGenesisState(params Params, previousBlockTime time.Time) GenesisState {
 	return GenesisState{
-		Params:              params,
-		PreviousBlockTime:   previousBlockTime,
-		InitialDistribution: initialDistribution,
+		Params:            params,
+		PreviousBlockTime: previousBlockTime,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:              DefaultParams(),
-		PreviousBlockTime:   DefaultPreviousBlockTime,
-		InitialDistribution: true,
+		Params:            DefaultParams(),
+		PreviousBlockTime: DefaultPreviousBlockTime,
 	}
 }
 
