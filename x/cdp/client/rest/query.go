@@ -244,6 +244,7 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			cdpOwner, err = sdk.AccAddressFromBech32(cdpOwnerStr)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from cdp owner %s", cdpOwnerStr))
+				return
 			}
 		}
 
