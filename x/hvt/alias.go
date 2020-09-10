@@ -39,7 +39,9 @@ const (
 	LP                         = types.LP
 	Stake                      = types.Stake
 	QueryGetParams             = types.QueryGetParams
-	QueryGetBalance            = types.QueryGetBalance
+	QueryGetModuleAccounts     = types.QueryGetModuleAccounts
+	QueryGetDeposits           = types.QueryGetDeposits
+	QueryGetClaims             = types.QueryGetClaims
 )
 
 var (
@@ -63,6 +65,9 @@ var (
 	ParamKeyTable                    = types.ParamKeyTable
 	NewPeriod                        = types.NewPeriod
 	GetTotalVestingPeriodLength      = types.GetTotalVestingPeriodLength
+	NewQueryDepositParams            = types.NewQueryDepositParams
+	NewQueryClaimParams              = types.NewQueryClaimParams
+	NewQueryAccountParams            = types.NewQueryAccountParams
 	NewKeeper                        = keeper.NewKeeper
 	NewQuerier                       = keeper.NewQuerier
 
@@ -80,10 +85,13 @@ var (
 	ErrInsufficientModAccountBalance  = types.ErrInsufficientModAccountBalance
 	ErrInvalidAccountType             = types.ErrInvalidAccountType
 	ErrAccountNotFound                = types.ErrAccountNotFound
+	ErrClaimExpired                   = types.ErrClaimExpired
 	PreviousBlockTimeKey              = types.PreviousBlockTimeKey
 	PreviousDelegationDistributionKey = types.PreviousDelegationDistributionKey
 	DepositsKeyPrefix                 = types.DepositsKeyPrefix
 	ClaimsKeyPrefix                   = types.ClaimsKeyPrefix
+	DepositTypesDepositQuery          = types.DepositTypesDepositQuery
+	DepositTypesClaimQuery            = types.DepositTypesClaimQuery
 	KeyActive                         = types.KeyActive
 	KeyLPSchedules                    = types.KeyLPSchedules
 	KeyDelegatorSchedule              = types.KeyDelegatorSchedule
@@ -111,5 +119,8 @@ type (
 	DelegatorDistributionSchedules = types.DelegatorDistributionSchedules
 	Multiplier                     = types.Multiplier
 	Multipliers                    = types.Multipliers
+	QueryDepositParams             = types.QueryDepositParams
+	QueryClaimParams               = types.QueryClaimParams
+	QueryAccountParams             = types.QueryAccountParams
 	Keeper                         = keeper.Keeper
 )

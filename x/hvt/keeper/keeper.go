@@ -98,7 +98,6 @@ func (k Keeper) DeleteDeposit(ctx sdk.Context, deposit types.Deposit) {
 
 // IterateDeposits iterates over all deposit objects in the store and performs a callback function
 func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
-
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
@@ -149,6 +148,34 @@ func (k Keeper) SetClaim(ctx sdk.Context, claim types.Claim) {
 func (k Keeper) DeleteClaim(ctx sdk.Context, claim types.Claim) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
 	store.Delete(types.ClaimKey(claim.Type, claim.DepositDenom, claim.Owner))
+}
+
+// IterateClaims iterates over all claim objects in the store and performs a callback function
+func (k Keeper) IterateClaims(ctx sdk.Context, cb func(claim types.Claim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var claim types.Claim
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &claim)
+		if cb(claim) {
+			break
+		}
+	}
+}
+
+// IterateClaimsByTypeAndDenom iterates over all claim objects in the store with the matching deposit type and deposit denom and performs a callback function
+func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, depositType types.DepositType, depositDenom string, cb func(claim types.Claim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, types.DepositTypeIteratorKey(depositType, depositDenom))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var claim types.Claim
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &claim)
+		if cb(claim) {
+			break
+		}
+	}
 }
 
 // BondDenom returns the bond denom from the staking keeper

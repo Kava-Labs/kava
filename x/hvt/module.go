@@ -61,10 +61,12 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the crisis module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command { return nil }
+// GetTxCmd returns the root tx command for the harvest module.
+func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetTxCmd(cdc)
+}
 
-// GetQueryCmd returns no root query command for the kavadist module.
+// GetQueryCmd returns no root query command for the harvest module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(types.StoreKey, cdc)
 }
@@ -108,7 +110,7 @@ func (am AppModule) NewHandler() sdk.Handler {
 
 // QuerierRoute module querier route name
 func (AppModule) QuerierRoute() string {
-	return ModuleName
+	return QuerierRoute
 }
 
 // NewQuerierHandler returns no sdk.Querier.

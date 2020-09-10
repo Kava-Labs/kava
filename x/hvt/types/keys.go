@@ -6,7 +6,7 @@ import (
 
 const (
 	// ModuleName name that will be used throughout the module
-	ModuleName = "hvt"
+	ModuleName = "harvest"
 
 	// LPAccount LP distribution module account
 	LPAccount = "harvest_lp_distribution"

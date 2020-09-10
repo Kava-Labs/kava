@@ -24,6 +24,12 @@ const (
 	Stake DepositType = "stake"
 )
 
+// Queryable deposit types
+var (
+	DepositTypesDepositQuery = []DepositType{LP}
+	DepositTypesClaimQuery   = []DepositType{LP, Stake}
+)
+
 // IsValid checks if the input is one of the expected strings
 func (rm RewardMultiplier) IsValid() error {
 	switch rm {
