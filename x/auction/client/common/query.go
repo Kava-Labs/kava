@@ -80,7 +80,7 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 	}
 
 	queryCLIContext := cliCtx.WithHeight(maxHeight)
-	res, height, err = queryCLIContext.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextAuctionID), nil)
+	res, height, err = queryCLIContext.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuction), bz)
 	if err != nil {
 		return nil, 0, err
 	}
