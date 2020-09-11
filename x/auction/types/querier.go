@@ -7,11 +7,20 @@ const (
 	QueryGetAuctions = "auctions"
 	// QueryGetParams is the query path for querying the global auction params
 	QueryGetParams = "params"
+	// QueryNextAuctionID is the query path for querying the id of the next auction
+	QueryNextAuctionID = "next-auction-id"
 )
 
 // QueryAuctionParams params for query /auction/auction
 type QueryAuctionParams struct {
 	AuctionID uint64
+}
+
+// NewQueryAuctionParams returns a new QueryAuctionParams
+func NewQueryAuctionParams(id uint64) QueryAuctionParams {
+	return QueryAuctionParams{
+		AuctionID: id,
+	}
 }
 
 // QueryAllAuctionParams is the params for an auctions query

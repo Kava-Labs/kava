@@ -17,6 +17,8 @@ const (
 	AttributeKeyLot           = types.AttributeKeyLot
 	AttributeKeyMaxBid        = types.AttributeKeyMaxBid
 	AttributeValueCategory    = types.AttributeValueCategory
+	CollateralAuctionType     = types.CollateralAuctionType
+	DebtAuctionType           = types.DebtAuctionType
 	DefaultBidDuration        = types.DefaultBidDuration
 	DefaultMaxAuctionDuration = types.DefaultMaxAuctionDuration
 	DefaultNextAuctionID      = types.DefaultNextAuctionID
@@ -24,13 +26,17 @@ const (
 	EventTypeAuctionBid       = types.EventTypeAuctionBid
 	EventTypeAuctionClose     = types.EventTypeAuctionClose
 	EventTypeAuctionStart     = types.EventTypeAuctionStart
+	ForwardAuctionPhase       = types.ForwardAuctionPhase
 	ModuleName                = types.ModuleName
 	QuerierRoute              = types.QuerierRoute
 	QueryGetAuction           = types.QueryGetAuction
 	QueryGetAuctions          = types.QueryGetAuctions
 	QueryGetParams            = types.QueryGetParams
+	QueryNextAuctionID        = types.QueryNextAuctionID
+	ReverseAuctionPhase       = types.ReverseAuctionPhase
 	RouterKey                 = types.RouterKey
 	StoreKey                  = types.StoreKey
+	SurplusAuctionType        = types.SurplusAuctionType
 )
 
 var (
@@ -52,6 +58,7 @@ var (
 	NewMsgPlaceBid           = types.NewMsgPlaceBid
 	NewParams                = types.NewParams
 	NewQueryAllAuctionParams = types.NewQueryAllAuctionParams
+	NewQueryAuctionParams    = types.NewQueryAuctionParams
 	NewSurplusAuction        = types.NewSurplusAuction
 	NewWeightedAddresses     = types.NewWeightedAddresses
 	ParamKeyTable            = types.ParamKeyTable
