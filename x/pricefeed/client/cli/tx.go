@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
@@ -43,7 +44,9 @@ func GetCmdPostPrice(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "postprice [marketID] [price] [expiry]",
 		Short: "post the latest price for a particular market with a given expiry as a UNIX time",
-		Args:  cobra.ExactArgs(3),
+		Example: fmt.Sprintf("%s tx %s postprice bnb:usd 25 9999999999 --from validator",
+			version.ClientName, types.ModuleName),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
