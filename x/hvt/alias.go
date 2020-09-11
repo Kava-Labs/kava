@@ -12,36 +12,38 @@ import (
 // ALIASGEN: github.com/kava-labs/kava/x/hvt/keeper
 
 const (
-	EventTypeHarvest           = types.EventTypeHarvest
-	EventTypeClaim             = types.EventTypeClaim
-	EventTypeRewardPeriod      = types.EventTypeRewardPeriod
-	EventTypeClaimPeriod       = types.EventTypeClaimPeriod
-	EventTypeClaimPeriodExpiry = types.EventTypeClaimPeriodExpiry
-	EventTypeLPDeposit         = types.EventTypeLPDeposit
-	EventTypeGovDeposit        = types.EventTypeGovDeposit
-	AttributeValueCategory     = types.AttributeValueCategory
-	AttributeKeyDeposit        = types.AttributeKeyDeposit
-	AttributeKeyClaimedBy      = types.AttributeKeyClaimedBy
-	AttributeKeyClaimAmount    = types.AttributeKeyClaimAmount
-	AttributeKeyRewardPeriod   = types.AttributeKeyRewardPeriod
-	AttributeKeyClaimPeriod    = types.AttributeKeyClaimPeriod
-	ModuleName                 = types.ModuleName
-	LPAccount                  = types.LPAccount
-	DelegatorAccount           = types.DelegatorAccount
-	ModuleAccountName          = types.ModuleAccountName
-	StoreKey                   = types.StoreKey
-	RouterKey                  = types.RouterKey
-	QuerierRoute               = types.QuerierRoute
-	DefaultParamspace          = types.DefaultParamspace
-	Small                      = types.Small
-	Medium                     = types.Medium
-	Large                      = types.Large
-	LP                         = types.LP
-	Stake                      = types.Stake
-	QueryGetParams             = types.QueryGetParams
-	QueryGetModuleAccounts     = types.QueryGetModuleAccounts
-	QueryGetDeposits           = types.QueryGetDeposits
-	QueryGetClaims             = types.QueryGetClaims
+	EventTypeHarvestDelegatorDistribution = types.EventTypeHarvestDelegatorDistribution
+	EventTypeHarvestDeposit               = types.EventTypeHarvestDeposit
+	EventTypeDeleteHarvestDeposit         = types.EventTypeDeleteHarvestDeposit
+	EventTypeHarvestLPDistribution        = types.EventTypeHarvestLPDistribution
+	EventTypeHarvestWithdrawal            = types.EventTypeHarvestWithdrawal
+	EventTypeClaimHarvestReward           = types.EventTypeClaimHarvestReward
+	AttributeValueCategory                = types.AttributeValueCategory
+	AttributeKeyBlockHeight               = types.AttributeKeyBlockHeight
+	AttributeKeyDeposit                   = types.AttributeKeyDeposit
+	AttributeKeyDepositType               = types.AttributeKeyDepositType
+	AttributeKeyDepositDenom              = types.AttributeKeyDepositDenom
+	AttributeKeyDepositor                 = types.AttributeKeyDepositor
+	AttributeKeyClaimHolder               = types.AttributeKeyClaimHolder
+	AttributeKeyClaimAmount               = types.AttributeKeyClaimAmount
+	AttributeKeyClaimMultiplier           = types.AttributeKeyClaimMultiplier
+	ModuleName                            = types.ModuleName
+	LPAccount                             = types.LPAccount
+	DelegatorAccount                      = types.DelegatorAccount
+	ModuleAccountName                     = types.ModuleAccountName
+	StoreKey                              = types.StoreKey
+	RouterKey                             = types.RouterKey
+	QuerierRoute                          = types.QuerierRoute
+	DefaultParamspace                     = types.DefaultParamspace
+	Small                                 = types.Small
+	Medium                                = types.Medium
+	Large                                 = types.Large
+	LP                                    = types.LP
+	Stake                                 = types.Stake
+	QueryGetParams                        = types.QueryGetParams
+	QueryGetModuleAccounts                = types.QueryGetModuleAccounts
+	QueryGetDeposits                      = types.QueryGetDeposits
+	QueryGetClaims                        = types.QueryGetClaims
 )
 
 var (

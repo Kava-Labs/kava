@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -16,11 +18,16 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 		k.SetPreviousBlockTime(ctx, previousBlockTime)
 		return
 	}
+	params := k.GetParams(ctx)
+	if !params.Active {
+		return
+	}
 	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 
-	params := k.GetParams(ctx)
-
 	for _, lps := range params.LiquidityProviderSchedules {
+		if !lps.Active {
+			continue
+		}
 		if lps.End.Before(ctx.BlockTime()) {
 			continue
 		}
@@ -32,7 +39,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 		if rewardsToDistribute.IsZero() {
 			continue
 		}
-
+		rewardsDistributed := sdk.ZeroInt()
 		k.IterateDepositsByTypeAndDenom(ctx, types.LP, lps.DepositDenom, func(dep types.Deposit) (stop bool) {
 			rewardsShare := sdk.NewDecFromInt(dep.Amount.Amount).Quo(sdk.NewDecFromInt(totalDeposited))
 			if rewardsShare.IsZero() {
@@ -43,8 +50,17 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 				return false
 			}
 			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, dep.Type, sdk.NewCoin(lps.Reward.Denom, rewardsEarned))
+			rewardsDistributed = rewardsDistributed.Add(rewardsEarned)
 			return false
 		})
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeHarvestLPDistribution,
+				sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprintf("%d", ctx.BlockHeight())),
+				sdk.NewAttribute(types.AttributeKeyRewardsDistribution, rewardsDistributed.String()),
+				sdk.NewAttribute(types.AttributeKeyDepositDenom, lps.DepositDenom),
+			),
+		)
 	}
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 }
@@ -57,6 +73,9 @@ func (k Keeper) ShouldDistributeValidatorRewards(ctx sdk.Context, denom string) 
 		return false
 	}
 	params := k.GetParams(ctx)
+	if !params.Active {
+		return false
+	}
 	for _, dds := range params.DelegatorDistributionSchedules {
 		if denom != dds.DistributionSchedule.DepositDenom {
 			continue
@@ -73,6 +92,9 @@ func (k Keeper) ShouldDistributeValidatorRewards(ctx sdk.Context, denom string) 
 func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 	dds, found := k.GetDelegatorSchedule(ctx, denom)
 	if !found {
+		return
+	}
+	if !dds.DistributionSchedule.Active {
 		return
 	}
 	bondMacc := k.stakingKeeper.GetBondedPool(ctx)
@@ -102,6 +124,8 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 		return false
 	})
 
+	rewardsDistributed := sdk.ZeroInt()
+
 	k.stakingKeeper.IterateAllDelegations(ctx, func(delegation stakingtypes.Delegation) (stop bool) {
 		conversionFactor, ok := sharesToTokens[delegation.ValidatorAddress.String()]
 		if ok {
@@ -112,9 +136,20 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 				return false
 			}
 			k.AddToClaim(ctx, delegation.DelegatorAddress, dds.DistributionSchedule.DepositDenom, types.Stake, sdk.NewCoin(dds.DistributionSchedule.Reward.Denom, rewardsEarned))
+			rewardsDistributed = rewardsDistributed.Add(rewardsEarned)
 		}
 		return false
 	})
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeHarvestDelegatorDistribution,
+			sdk.NewAttribute(types.AttributeKeyBlockHeight, fmt.Sprintf("%d", ctx.BlockHeight())),
+			sdk.NewAttribute(types.AttributeKeyRewardsDistribution, rewardsDistributed.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositDenom, denom),
+		),
+	)
+
 }
 
 // AddToClaim adds the input amount to an existing claim or creates a new one

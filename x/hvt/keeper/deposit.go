@@ -35,6 +35,16 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 
 	k.SetDeposit(ctx, deposit)
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeHarvestDeposit,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositor, deposit.Depositor.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositDenom, deposit.Amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
+		),
+	)
+
 	return nil
 }
 
@@ -84,10 +94,30 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	if err != nil {
 		return err
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeHarvestWithdrawal,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositDenom, amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
+		),
+	)
+
 	if deposit.Amount.IsEqual(amount) {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDeleteHarvestDeposit,
+				sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
+				sdk.NewAttribute(types.AttributeKeyDepositDenom, amount.Denom),
+				sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
+			),
+		)
 		k.DeleteDeposit(ctx, deposit)
 		return nil
 	}
+
 	deposit.Amount = deposit.Amount.Sub(amount)
 	k.SetDeposit(ctx, deposit)
 

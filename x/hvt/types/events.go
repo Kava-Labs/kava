@@ -2,18 +2,20 @@ package types
 
 // Event types for cdp module
 const (
-	EventTypeHarvest           = ModuleName
-	EventTypeClaim             = "claim_reward"
-	EventTypeRewardPeriod      = "new_reward_period"
-	EventTypeClaimPeriod       = "new_claim_period"
-	EventTypeClaimPeriodExpiry = "claim_period_expiry"
-	EventTypeLPDeposit         = "lp_deposit"
-	EventTypeGovDeposit        = "gov_deposit"
-
-	AttributeValueCategory   = ModuleName
-	AttributeKeyDeposit      = "deposit"
-	AttributeKeyClaimedBy    = "claimed_by"
-	AttributeKeyClaimAmount  = "claim_amount"
-	AttributeKeyRewardPeriod = "reward_period"
-	AttributeKeyClaimPeriod  = "claim_period"
+	EventTypeHarvestDeposit               = "harvest_deposit"
+	EventTypeHarvestDelegatorDistribution = "harvest_delegator_distribution"
+	EventTypeHarvestLPDistribution        = "harvest_lp_distribution"
+	EventTypeDeleteHarvestDeposit         = "delete_harvest_deposit"
+	EventTypeHarvestWithdrawal            = "harvest_withdrawal"
+	EventTypeClaimHarvestReward           = "claim_harvest_reward"
+	AttributeValueCategory                = ModuleName
+	AttributeKeyBlockHeight               = "block_height"
+	AttributeKeyRewardsDistribution       = "rewards_distributed"
+	AttributeKeyDeposit                   = "deposit"
+	AttributeKeyDepositType               = "deposit_type"
+	AttributeKeyDepositDenom              = "deposit_denom"
+	AttributeKeyDepositor                 = "depositor"
+	AttributeKeyClaimHolder               = "claim_holder"
+	AttributeKeyClaimAmount               = "claim_amount"
+	AttributeKeyClaimMultiplier           = "claim_multiplier"
 )

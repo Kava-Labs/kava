@@ -6,21 +6,39 @@ order: 2
 
 ## Parameters and Genesis State
 
-`Parameters` define the rate at which inflationary coins are minted and for how long inflationary periods last.
+`Parameters` define the distribution schedule of hard tokens that will be distributed to delegators and depositors, respectively.
 
 ```go
-// Params governance parameters for kavadist module
+// Params governance parameters for harvest module
 type Params struct {
-	Active  bool    `json:"active" yaml:"active"`
-	Periods Periods `json:"periods" yaml:"periods"`
+  Active                         bool                           `json:"active" yaml:"active"`
+  LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
+  DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
 }
 
-// Period stores the specified start and end dates, and the inflation, expressed as a decimal representing the yearly APR of tokens that will be minted during that period
-type Period struct {
-	Start     time.Time `json:"start" yaml:"start"`         // example "2020-03-01T15:20:00Z"
-	End       time.Time `json:"end" yaml:"end"`             // example "2020-06-01T15:20:00Z"
-	Inflation sdk.Dec   `json:"inflation" yaml:"inflation"` // example "1.000000003022265980"  - 10% inflation
+// DistributionSchedule distribution schedule for liquidity providers
+type DistributionSchedule struct {
+  Active           bool        `json:"active" yaml:"active"`
+  DepositDenom     string      `json:"deposit_denom" yaml:"deposit_denom"`
+  Start            time.Time   `json:"start" yaml:"start"`
+  End              time.Time   `json:"end" yaml:"end"`
+  Reward           sdk.Coin    `json:"reward" yaml:"reward"`
+  ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
+  ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"`
 }
+
+// DistributionSchedules slice of DistributionSchedule
+type DistributionSchedules []DistributionSchedule
+
+// DelegatorDistributionSchedule distribution schedule for delegators
+type DelegatorDistributionSchedule struct {
+  DistributionSchedule DistributionSchedule `json:"distribution_schedule" yaml:"distribution_schedule"`
+
+  DistributionFrequency time.Duration `json:"distribution_frequency" yaml:"distribution_frequency"`
+}
+
+// DelegatorDistributionSchedules slice of DelegatorDistributionSchedule
+type DelegatorDistributionSchedules []DelegatorDistributionSchedule
 ```
 
 `GenesisState` defines the state that must be persisted when the blockchain stops/restarts in order for normal function of the kavadist module to resume.
@@ -28,7 +46,7 @@ type Period struct {
 ```go
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params            Params    `json:"params" yaml:"params"`
-	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
+  Params            Params    `json:"params" yaml:"params"`
+  PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
 }
 ```

@@ -29,6 +29,16 @@ func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, deposit
 	if err != nil {
 		return err
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaimHarvestReward,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, claim.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimHolder, claimHolder.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositDenom, depositDenom),
+			sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
+			sdk.NewAttribute(types.AttributeKeyClaimMultiplier, string(multiplier)),
+		),
+	)
 	k.DeleteClaim(ctx, claim)
 	return nil
 }

@@ -26,7 +26,7 @@ var (
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
-// Params governance parameters for kavadist module
+// Params governance parameters for harvest module
 type Params struct {
 	Active                         bool                           `json:"active" yaml:"active"`
 	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`

@@ -55,7 +55,7 @@ var (
 	_ sdk.Msg = &MsgWithdraw{}
 )
 
-// MsgDeposit deposit collateral to an existing cdp.
+// MsgDeposit deposit collateral to the harvest module.
 type MsgDeposit struct {
 	Depositor   sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	Amount      sdk.Coin       `json:"amount" yaml:"amount"`
@@ -108,7 +108,7 @@ func (msg MsgDeposit) String() string {
 `, msg.Depositor, msg.Amount, msg.DepositType)
 }
 
-// MsgWithdraw deposit collateral to an existing cdp.
+// MsgWithdraw withdraw from the harvest module.
 type MsgWithdraw struct {
 	Depositor   sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	Amount      sdk.Coin       `json:"amount" yaml:"amount"`
