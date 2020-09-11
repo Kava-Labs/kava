@@ -67,6 +67,7 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 	for _, info := range searchResult.Txs {
 		for _, msg := range info.Tx.GetMsgs() {
 			if msg.Type() == "place_bid" {
+				found = true
 				if info.Height > maxHeight {
 					maxHeight = info.Height
 				}
