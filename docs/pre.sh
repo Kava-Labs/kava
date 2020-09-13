@@ -36,6 +36,14 @@ for T in ${toolDocs[@]}; do
   curl "${baseGitUrl}/${toolsGitRepo}/master/${T}/README.md" -o "./${toolsDir}/${T}.md"
 done
 
+# Add Go tools
+goToolsGitRepo="go-tools"
+goToolsDocs=("sentinel")
+
+for T in ${goToolsDocs[@]}; do
+  curl "${baseGitUrl}/${goToolsGitRepo}/master/${T}/README.md" -o "./${toolsDir}/${T}.md"
+done
+
 # Copy the community tools
 cp communitytools.md "./${toolsDir}/community.md"
 echo "---

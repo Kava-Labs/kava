@@ -31,6 +31,10 @@ module.exports = {
               path: "/tools/auction.html",
             },
             {
+              title: "Sentinel",
+              path: "/tools/sentinel.html",
+            },
+            {
               title: "Community Tools",
               path: "/tools/community.html",
             }
