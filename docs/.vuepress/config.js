@@ -89,7 +89,7 @@ module.exports = {
         },
         {
           service: "discord",
-          url: "https://discord.com/invite/kQzh3Uv"
+          url: "https://discord.gg/JJYnuCx"
         },
         {
           service: "github",
