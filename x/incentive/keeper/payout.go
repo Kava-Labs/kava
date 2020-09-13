@@ -51,6 +51,12 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 
 	// 0. Get the account from the account keeper and do a type switch, error if it's a validator vesting account or module account (can make this work for validator vesting later if necessary)
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
+	if acc == nil {
+		return sdkerrors.Wrapf(types.ErrAccountNotFound, recipientAddr.String())
+	}
+	if length == 0 {
+		return k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+	}
 
 	switch acc.(type) {
 	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:

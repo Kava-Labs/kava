@@ -12,4 +12,5 @@ var (
 	ErrInvalidAccountType            = sdkerrors.Register(ModuleName, 3, "account type not supported")
 	ErrNoClaimsFound                 = sdkerrors.Register(ModuleName, 4, "no claims with collateral type found for address")
 	ErrInsufficientModAccountBalance = sdkerrors.Register(ModuleName, 5, "module account has insufficient balance to pay claim")
+	ErrAccountNotFound               = sdkerrors.Register(ModuleName, 6, "account not found")
 )
