@@ -410,6 +410,8 @@
                   $ref: '#/definitions/CoinCollateral'
                 principal:
                   $ref: '#/definitions/CoinPrincipal'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -441,6 +443,12 @@
             required: true
             type: string
             x-example: xrp
+          - in: path
+            name: collateral_type
+            description: Collateral type
+            required: true
+            type: string
+            x-example: xrp-a
           - description: deposit cdp post parameters
             name: post_deposit_req
             in: body
@@ -456,6 +464,8 @@
                   $ref: '#/definitions/Address'
                 collateral:
                   $ref: '#/definitions/CoinCollateral'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -487,6 +497,12 @@
             required: true
             type: string
             x-example: xrp
+          - in: path
+            name: collateral_type
+            description: Collateral type
+            required: true
+            type: string
+            x-example: xrp-a
           - description: withdraw cdp post parameters
             name: post_withdraw_req
             in: body
@@ -502,6 +518,8 @@
                   $ref: '#/definitions/Address'
                 collateral:
                   $ref: '#/definitions/CoinCollateral'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -533,6 +551,12 @@
             required: true
             type: string
             x-example: xrp
+          - in: path
+            name: collateral_type
+            description: Collateral type
+            required: true
+            type: string
+            x-example: xrp-a
           - description: draw cdp post parameters
             name: post_draw_req
             in: body
@@ -546,6 +570,8 @@
                   $ref: '#/definitions/Address'
                 principal:
                   $ref: '#/definitions/CoinPrincipal'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -577,6 +603,12 @@
             required: true
             type: string
             x-example: xrp
+        - in: path
+            name: collateral_type
+            description: Collateral type
+            required: true
+            type: string
+            x-example: xrp-a
           - description: repay cdp post parameters
             name: post_repay_req
             in: body
@@ -590,6 +622,8 @@
                   $ref: '#/definitions/Address'
                 payment:
                   $ref: '#/definitions/CoinPrincipal'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -669,9 +703,18 @@
                 surplus_auction_threshold:
                   type: string
                   example: '1000000000'
+                surplus_auction_lot:
+                  type: string
+                  example: '10000000'
                 debt_auction_threshold:
                   type: string
                   example: '1000000000'
+                surplus_auction_lot:
+                  type: string
+                  example: '10000000'
+                savings_distribution_frequency:
+                  type: string
+                  example: '60000000'
                 circuit_breaker:
                   type: boolean
                   example: false
@@ -3457,6 +3500,9 @@
         amount:
           type: string
           example: '555555'
+    CollateralType:
+      type: string
+      example: xrp-a
     CoinCollateral:
       type: object
       properties:
