@@ -4120,8 +4120,6 @@
         initiator:
           type: string
           example: liquidator
-        owner:
-          $ref: '#/definitions/Address'
         lot:
           $ref: '#/definitions/CoinCollateral'
         bidder:
