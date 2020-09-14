@@ -37,12 +37,3 @@ func (k Keeper) GetDelegatorSchedule(ctx sdk.Context, denom string) (types.Deleg
 	}
 	return types.DelegatorDistributionSchedule{}, false
 }
-
-func (k Keeper) GetMultiplier(schedule types.DistributionSchedule, multiplierType types.RewardMultiplier) (types.Multiplier, bool) {
-	for _, multiplier := range schedule.ClaimMultipliers {
-		if multiplier.Name == multiplierType {
-			return multiplier, true
-		}
-	}
-	return types.Multiplier{}, false
-}

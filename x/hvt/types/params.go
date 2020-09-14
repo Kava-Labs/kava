@@ -171,18 +171,28 @@ func (dds DelegatorDistributionSchedules) Validate() error {
 
 // Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 type Multiplier struct {
-	Name         RewardMultiplier `json:"name" yaml:"name"`
-	MonthsLockup int              `json:"months_lockup" yaml:"months_lockup"`
-	Factor       sdk.Dec          `json:"factor" yaml:"factor"`
+	Name         MultiplierName `json:"name" yaml:"name"`
+	MonthsLockup int            `json:"months_lockup" yaml:"months_lockup"`
+	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
 }
 
 // NewMultiplier returns a new Multiplier
-func NewMultiplier(name RewardMultiplier, lockup int, factor sdk.Dec) Multiplier {
+func NewMultiplier(name MultiplierName, lockup int, factor sdk.Dec) Multiplier {
 	return Multiplier{
 		Name:         name,
 		MonthsLockup: lockup,
 		Factor:       factor,
 	}
+}
+
+// GetMultiplier returns the named multiplier from the input distribution schedule
+func (ds DistributionSchedule) GetMultiplier(name MultiplierName) (Multiplier, bool) {
+	for _, multiplier := range ds.ClaimMultipliers {
+		if multiplier.Name == name {
+			return multiplier, true
+		}
+	}
+	return Multiplier{}, false
 }
 
 // Multipliers slice of Multiplier

@@ -9,8 +9,17 @@ import (
 	"github.com/kava-labs/kava/x/hvt/types"
 )
 
+const (
+	// BeginningOfMonth incentive rewards that are claimed after the 15th at 14:00UTC of the month always vest on the first of the month
+	BeginningOfMonth = 1
+	// MidMonth incentive rewards that are claimed before the 15th at 14:00UTC of the month always vest on the 15 of the month
+	MidMonth = 15
+	// PaymentHour incentive rewards always vest at 14:00UTC
+	PaymentHour = 14
+)
+
 // ClaimReward sends the reward amount to the reward owner and deletes the claim from the store
-func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, depositDenom string, depositType types.DepositType, multiplier types.RewardMultiplier) error {
+func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, depositDenom string, depositType types.DepositType, multiplier types.MultiplierName) error {
 
 	claim, found := k.GetClaim(ctx, claimHolder, depositDenom, depositType)
 	if !found {
@@ -52,26 +61,26 @@ func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (i
 		return 0, nil
 	case types.Medium, types.Large:
 		currentDay := ctx.BlockTime().Day()
-		payDay := 1
+		payDay := BeginningOfMonth
 		monthOffset := 1
-		if currentDay < 15 || (currentDay == 15 && ctx.BlockTime().Hour() < 14) {
-			payDay = 15
+		if currentDay < MidMonth || (currentDay == MidMonth && ctx.BlockTime().Hour() < PaymentHour) {
+			payDay = MidMonth
 			monthOffset = 0
 		}
-		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, 14, 0, 0, 0, time.UTC).AddDate(0, multiplier.MonthsLockup+monthOffset, 0)
+		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, multiplier.MonthsLockup+monthOffset, 0)
 		return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
 	}
 	return 0, types.ErrInvalidMultiplier
 }
 
-func (k Keeper) claimLPReward(ctx sdk.Context, claim types.Claim, rewardMultiplier types.RewardMultiplier) error {
+func (k Keeper) claimLPReward(ctx sdk.Context, claim types.Claim, multiplierName types.MultiplierName) error {
 	lps, found := k.GetLPSchedule(ctx, claim.DepositDenom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrLPScheduleNotFound, claim.DepositDenom)
 	}
-	multiplier, found := k.GetMultiplier(lps, rewardMultiplier)
+	multiplier, found := lps.GetMultiplier(multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(rewardMultiplier))
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
 	}
 	if ctx.BlockTime().After(lps.ClaimEnd) {
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), lps.ClaimEnd)
@@ -89,14 +98,14 @@ func (k Keeper) claimLPReward(ctx sdk.Context, claim types.Claim, rewardMultipli
 	return k.SendTimeLockedCoinsToAccount(ctx, types.LPAccount, claim.Owner, sdk.NewCoins(rewardCoin), length)
 }
 
-func (k Keeper) claimDelegatorReward(ctx sdk.Context, claim types.Claim, rewardMultiplier types.RewardMultiplier) error {
+func (k Keeper) claimDelegatorReward(ctx sdk.Context, claim types.Claim, multiplierName types.MultiplierName) error {
 	dss, found := k.GetDelegatorSchedule(ctx, claim.DepositDenom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrLPScheduleNotFound, claim.DepositDenom)
 	}
-	multiplier, found := k.GetMultiplier(dss.DistributionSchedule, rewardMultiplier)
+	multiplier, found := dss.DistributionSchedule.GetMultiplier(multiplierName)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(rewardMultiplier))
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
 	}
 	if ctx.BlockTime().After(dss.DistributionSchedule.ClaimEnd) {
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), dss.DistributionSchedule.ClaimEnd)

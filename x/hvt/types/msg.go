@@ -8,17 +8,17 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// RewardMultiplier type for valid reward multiplier strings
-type RewardMultiplier string
+// MultiplierName name for valid multiplier
+type MultiplierName string
 
 // DepositType type for valid deposit type strings
 type DepositType string
 
 // Valid reward multipliers and reward types
 const (
-	Small  RewardMultiplier = "small"
-	Medium RewardMultiplier = "medium"
-	Large  RewardMultiplier = "large"
+	Small  MultiplierName = "small"
+	Medium MultiplierName = "medium"
+	Large  MultiplierName = "large"
 
 	LP    DepositType = "lp"
 	Stake DepositType = "stake"
@@ -31,12 +31,12 @@ var (
 )
 
 // IsValid checks if the input is one of the expected strings
-func (rm RewardMultiplier) IsValid() error {
-	switch rm {
+func (mn MultiplierName) IsValid() error {
+	switch mn {
 	case Small, Medium, Large:
 		return nil
 	}
-	return fmt.Errorf("invalid reward multiplier: %s", rm)
+	return fmt.Errorf("invalid multiplier name: %s", mn)
 }
 
 // IsValid checks if the input is one of the expected strings
@@ -163,19 +163,19 @@ func (msg MsgWithdraw) String() string {
 
 // MsgClaimReward message type used to claim rewards
 type MsgClaimReward struct {
-	Sender           sdk.AccAddress `json:"sender" yaml:"sender"`
-	DepositDenom     string         `json:"deposit_denom" yaml:"deposit_denom"`
-	RewardMultiplier string         `json:"reward_multiplier" yaml:"reward_multiplier"`
-	DepositType      string         `json:"deposit_type" yaml:"deposit_type"`
+	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	DepositDenom   string         `json:"deposit_denom" yaml:"deposit_denom"`
+	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
+	DepositType    string         `json:"deposit_type" yaml:"deposit_type"`
 }
 
 // NewMsgClaimReward returns a new MsgClaimReward.
 func NewMsgClaimReward(sender sdk.AccAddress, depositDenom, depositType, multiplier string) MsgClaimReward {
 	return MsgClaimReward{
-		Sender:           sender,
-		DepositDenom:     depositDenom,
-		RewardMultiplier: multiplier,
-		DepositType:      depositType,
+		Sender:         sender,
+		DepositDenom:   depositDenom,
+		MultiplierName: multiplier,
+		DepositType:    depositType,
 	}
 }
 
@@ -196,7 +196,7 @@ func (msg MsgClaimReward) ValidateBasic() error {
 	if err := DepositType(strings.ToLower(msg.DepositType)).IsValid(); err != nil {
 		return err
 	}
-	return RewardMultiplier(strings.ToLower(msg.RewardMultiplier)).IsValid()
+	return MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid()
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.

@@ -135,7 +135,7 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 				multiplier:  "huge",
 			},
 			expectPass:  false,
-			expectedErr: "reward multiplier",
+			expectedErr: "invalid multiplier name",
 		},
 	}
 	for _, tc := range testCases {

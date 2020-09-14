@@ -28,7 +28,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
-	err := k.ClaimReward(ctx, msg.Sender, msg.DepositDenom, types.DepositType(strings.ToLower(msg.DepositType)), types.RewardMultiplier(strings.ToLower(msg.RewardMultiplier)))
+	err := k.ClaimReward(ctx, msg.Sender, msg.DepositDenom, types.DepositType(strings.ToLower(msg.DepositType)), types.MultiplierName(strings.ToLower(msg.MultiplierName)))
 	if err != nil {
 		return nil, err
 	}

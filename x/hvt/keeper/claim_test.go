@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 		claimOwner                sdk.AccAddress
 		denom                     string
 		depositType               types.DepositType
-		multiplier                types.RewardMultiplier
+		multiplier                types.MultiplierName
 		blockTime                 time.Time
 		createClaim               bool
 		claimAmount               sdk.Coin
