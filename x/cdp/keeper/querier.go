@@ -220,11 +220,6 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.AugmentedCDPs {
 	var matchCollateralType, matchOwner, matchID, matchRatio types.CDPs
 
-	// match cdp collateral denom (if supplied)
-	if len(params.CollateralType) > 0 {
-		matchCollateralType = k.GetAllCdpsByCollateralType(ctx, params.CollateralType)
-	}
-
 	// match cdp owner (if supplied)
 	if len(params.Owner) > 0 {
 		denoms := k.GetCollateralTypes(ctx)
@@ -233,6 +228,20 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 			if found {
 				matchOwner = append(matchOwner, cdp)
 			}
+		}
+	}
+
+	// match cdp collateral denom (if supplied)
+	if len(params.CollateralType) > 0 {
+		// if owner is specified only iterate over already matched cdps for efficiency
+		if len(params.Owner) > 0 {
+			for _, cdp := range matchOwner {
+				if cdp.Type == params.CollateralType {
+					matchCollateralType = append(matchCollateralType, cdp)
+				}
+			}
+		} else {
+			matchCollateralType = k.GetAllCdpsByCollateralType(ctx, params.CollateralType)
 		}
 	}
 
