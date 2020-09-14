@@ -206,7 +206,7 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	}
 
 	// Filter CDPs
-	filteredCDPs := filterCDPs(ctx, keeper, params)
+	filteredCDPs := FilterCDPs(ctx, keeper, params)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, filteredCDPs)
 	if err != nil {
@@ -216,8 +216,8 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte
 	return bz, nil
 }
 
-// filterCDPs queries the store for all CDPs that match query params
-func filterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.AugmentedCDPs {
+// FilterCDPs queries the store for all CDPs that match query params
+func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.AugmentedCDPs {
 	var matchCollateralType, matchOwner, matchID, matchRatio types.CDPs
 
 	// match cdp collateral denom (if supplied)
@@ -272,21 +272,21 @@ func filterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 	}
 	if len(matchOwner) > 0 {
 		if len(commonCDPs) > 0 {
-			commonCDPs = findIntersection(commonCDPs, matchOwner)
+			commonCDPs = FindIntersection(commonCDPs, matchOwner)
 		} else {
 			commonCDPs = matchOwner
 		}
 	}
 	if len(matchID) > 0 {
 		if len(commonCDPs) > 0 {
-			commonCDPs = findIntersection(commonCDPs, matchID)
+			commonCDPs = FindIntersection(commonCDPs, matchID)
 		} else {
 			commonCDPs = matchID
 		}
 	}
 	if len(matchRatio) > 0 {
 		if len(commonCDPs) > 0 {
-			commonCDPs = findIntersection(commonCDPs, matchRatio)
+			commonCDPs = FindIntersection(commonCDPs, matchRatio)
 		} else {
 			commonCDPs = matchRatio
 		}
@@ -311,8 +311,8 @@ func filterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 	return paginatedCDPs
 }
 
-// findIntersection finds the intersection of two CDP arrays in linear time complexity O(n + n)
-func findIntersection(x types.CDPs, y types.CDPs) types.CDPs {
+// FindIntersection finds the intersection of two CDP arrays in linear time complexity O(n + n)
+func FindIntersection(x types.CDPs, y types.CDPs) types.CDPs {
 	cdpSet := make(types.CDPs, 0)
 	cdpMap := make(map[uint64]bool)
 
