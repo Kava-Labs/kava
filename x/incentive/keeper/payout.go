@@ -42,7 +42,7 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType
 	return nil
 }
 
-// SendTimeLockedCoinsToAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account, it is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
+// SendTimeLockedCoinsToAccount sends time-locked coins from the input module account to the recipient. If the recipients account is not a vesting account and the input length is greater than zero, the recipient account is converted to a periodic vesting account and the coins are added to the vesting balance as a vesting period with the input length.
 func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins, length int64) error {
 	macc := k.supplyKeeper.GetModuleAccount(ctx, senderModule)
 	if !macc.GetCoins().IsAllGTE(amt) {
@@ -51,6 +51,12 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 
 	// 0. Get the account from the account keeper and do a type switch, error if it's a validator vesting account or module account (can make this work for validator vesting later if necessary)
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
+	if acc == nil {
+		return sdkerrors.Wrapf(types.ErrAccountNotFound, recipientAddr.String())
+	}
+	if length == 0 {
+		return k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
+	}
 
 	switch acc.(type) {
 	case *validatorvesting.ValidatorVestingAccount, supplyExported.ModuleAccountI:
