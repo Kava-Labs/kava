@@ -674,7 +674,6 @@
                         type: number
           500:
             description: Server internal error
-
     /cdp/parameters:
       get:
         summary: Get the parameters of the cdp module
@@ -848,6 +847,73 @@
                     $ref: '#/definitions/CdpDepositResponse'
           500:
             description: Server internal error
+    /cdp/savings-rate-dist:
+      get:
+        summary: Get the total savings rate distributed by the cdp module
+        tags:
+          - CDP
+        produces:
+          - application/json
+        responses:
+          200:
+            description: The distributed savings rate
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  savings_rate_distributed:
+                    type: string
+                    example: "5000000000000"
+          500:
+            description: Server internal error
+    /cdp/cdps:
+      get:
+        summary: Query all active cdps
+        tags:
+          - CDP
+        produces:
+          - application/json
+      parameters:
+          - in: query
+            name: owner
+            description: Owner address in bech32 format
+            required: false
+            type: string
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+          - in: query
+            name: collateral-type
+            description: Collateral type
+            required: false
+            type: string
+            x-example: xrp-a
+          - in: query
+            name: id
+            description: CDP ID
+            required: false
+            type: string
+            x-example: "4"
+          - in: query
+            name: ratio
+            description: Collateralization ratio
+            required: false
+            type: string
+            x-example: "2.75"
+        responses:
+          200:
+            description: Query cdps
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    $ref: '#/definitions/CdpResponse'
+          500:
+            description: Internal Server Error
     /bep3/swap/create:
       post:
         summary: Generate a create atomic swap transaction
@@ -3950,6 +4016,9 @@
           example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         collateral:
           $ref: '#/definitions/CoinCollateral'
+        type:
+          type: string
+          example: "xrp-a"
         principal:
           $ref: '#/definitions/CoinPrincipal'
         accumulated_fees:
@@ -4033,6 +4102,15 @@
         bid_duration:
           type: string
           example: 600000000000
+        increment_surplus:
+          type: string
+          example: "0.05"
+        increment_debt:
+          type: string
+          example: "0.05"
+        increment_collateral:
+          type: string
+          example: "0.05"
     AuctionResponse:
       type: object
       properties:
@@ -4042,6 +4120,8 @@
         initiator:
           type: string
           example: liquidator
+        owner:
+          $ref: '#/definitions/Address'
         lot:
           $ref: '#/definitions/CoinCollateral'
         bidder:
