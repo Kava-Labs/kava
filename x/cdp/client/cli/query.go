@@ -148,6 +148,9 @@ $ kvcli q cdp cdps --page=2 --limit=100
 					return fmt.Errorf("cannot parse cdp ratio %s", strRatio)
 				}
 				params.Ratio = cdpRatio
+			} else {
+				// Set to sdk.Dec(0) so that if not specified in params it doesn't panic when unmarshaled
+				params.Ratio = sdk.ZeroDec()
 			}
 
 			bz, err := cdc.MarshalJSON(params)

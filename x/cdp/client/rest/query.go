@@ -262,6 +262,9 @@ func queryCdpsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
 			}
+		} else {
+			// Set to sdk.Dec(0) so that if not specified in params it doesn't panic when unmarshaled
+			cdpRatio = sdk.ZeroDec()
 		}
 
 		params := types.NewQueryCdpsParams(page, limit, cdpCollateralType, cdpOwner, cdpID, cdpRatio)
