@@ -100,7 +100,7 @@ clean:
 # This tool checks local markdown links as well.
 # Set to exclude riot links as they trigger false positives
 link-check:
-	@go run github.com/raviqqe/liche -r . --exclude "^http://127.*|^https://riot.im/app*|^http://kava-testnet*|^https://testnet-dex*|^https://kava3.data.kava.io*|^https://ipfs.io*"
+	@go run github.com/raviqqe/liche -r . --exclude "^http://127.*|^https://riot.im/app*|^http://kava-testnet*|^https://testnet-dex*|^https://kava3.data.kava.io*|^https://ipfs.io*|^https://apps.apple.com*"
 
 
 lint:
