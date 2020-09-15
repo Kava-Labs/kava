@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultPage  = 1
-	defaultLimit = 30
+	defaultLimit = 100
 )
 
 // QueryAuctionByID returns an auction from state if present or falls back to searching old blocks
@@ -34,7 +34,6 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 		return auction, height, nil
 	}
 
-	// NOTE: !errors.Is(err, types.ErrUnknownProposal) does not work here
 	if err != nil && !strings.Contains(err.Error(), "auction not found") {
 		return nil, 0, err
 	}
@@ -56,6 +55,9 @@ func QueryAuctionByID(cliCtx context.CLIContext, cdc *codec.Codec, queryRoute st
 		fmt.Sprintf("%s.%s='%s'", types.EventTypeAuctionBid, types.AttributeKeyAuctionID, []byte(fmt.Sprintf("%d", auctionID))),
 	}
 
+	// if the auction is closed, query for previous bid transactions
+	// note, will only fetch a maximum of 100 bids, so if an auction had more than that this
+	// query may fail to retreive the final state of the auction
 	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
 	if err != nil {
 		return nil, 0, err
