@@ -438,12 +438,6 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
-            required: true
-            type: string
-            x-example: xrp
-          - in: path
             name: collateral_type
             description: Collateral type
             required: true
@@ -491,12 +485,6 @@
             required: true
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-          - in: path
-            name: denom
-            description: Collateral denom
-            required: true
-            type: string
-            x-example: xrp
           - in: path
             name: collateral_type
             description: Collateral type
@@ -546,12 +534,6 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
-            required: true
-            type: string
-            x-example: xrp
-          - in: path
             name: collateral_type
             description: Collateral type
             required: true
@@ -597,12 +579,6 @@
             required: true
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-          - in: path
-            name: denom
-            description: Collateral denom
-            required: true
-            type: string
-            x-example: xrp
         - in: path
             name: collateral_type
             description: Collateral type
