@@ -69,8 +69,8 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("previous distribution time not set")
 	}
 
-	if gs.SavingsRateDistributed.IsNegative() {
-		return fmt.Errorf("savings rate distributed invalid")
+	if err := validateSavingsRateDistributed(gs.SavingsRateDistributed); err != nil {
+		return err
 	}
 
 	if err := sdk.ValidateDenom(gs.DebtDenom); err != nil {
@@ -79,6 +79,19 @@ func (gs GenesisState) Validate() error {
 
 	if err := sdk.ValidateDenom(gs.GovDenom); err != nil {
 		return fmt.Errorf(fmt.Sprintf("gov denom invalid: %v", err))
+	}
+
+	return nil
+}
+
+func validateSavingsRateDistributed(i interface{}) error {
+	savingsRateDist, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if savingsRateDist.IsNegative() {
+		return fmt.Errorf("savings rate distribution shouldnot be negative: %s", savingsRateDist)
 	}
 
 	return nil
