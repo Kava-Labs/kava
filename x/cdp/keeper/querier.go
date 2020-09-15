@@ -276,24 +276,24 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 	}
 
 	// Find the intersection of any matched CDPs
-	if len(matchCollateralType) > 0 {
+	if len(params.CollateralType) > 0 {
 		commonCDPs = matchCollateralType
 	}
-	if len(matchOwner) > 0 {
+	if len(params.Owner) > 0 {
 		if len(commonCDPs) > 0 {
 			commonCDPs = FindIntersection(commonCDPs, matchOwner)
 		} else {
 			commonCDPs = matchOwner
 		}
 	}
-	if len(matchID) > 0 {
+	if params.ID != 0 {
 		if len(commonCDPs) > 0 {
 			commonCDPs = FindIntersection(commonCDPs, matchID)
 		} else {
 			commonCDPs = matchID
 		}
 	}
-	if len(matchRatio) > 0 {
+	if params.Ratio.GT(sdk.ZeroDec()) {
 		if len(commonCDPs) > 0 {
 			commonCDPs = FindIntersection(commonCDPs, matchRatio)
 		} else {
