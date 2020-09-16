@@ -292,7 +292,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) types.A
 				commonCDPs = matchOwner
 			}
 		} else {
-			return types.AugmentedCDPs{}
+			commonCDPs = matchOwner
 		}
 	}
 	if params.ID != 0 {
