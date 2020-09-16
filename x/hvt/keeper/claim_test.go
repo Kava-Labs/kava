@@ -5,12 +5,14 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hvt/types"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 func (suite *KeeperTestSuite) TestClaim() {
@@ -23,6 +25,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 		blockTime                 time.Time
 		createClaim               bool
 		claimAmount               sdk.Coin
+		validatorVesting          bool
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
 		expectedVestingAccount    bool
@@ -48,6 +51,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(33)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(967))),
 				expectedVestingAccount:    false,
@@ -69,6 +73,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(33)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(967))),
 				expectedVestingAccount:    false,
@@ -90,6 +95,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(50)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(950))),
 				expectedVestingAccount:    true,
@@ -111,6 +117,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
 				expectedVestingAccount:    true,
@@ -123,6 +130,50 @@ func (suite *KeeperTestSuite) TestClaim() {
 			},
 		},
 		{
+			"valid validator vesting",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test2"))),
+				denom:                     "bnb",
+				depositType:               types.LP,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				createClaim:               true,
+				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          true,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
+				expectedVestingAccount:    true,
+				expectedVestingLength:     64281600,
+				multiplier:                types.Large,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"invalid validator vesting",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				denom:                     "bnb",
+				depositType:               types.LP,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				createClaim:               true,
+				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          true,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
+				expectedVestingAccount:    true,
+				expectedVestingLength:     64281600,
+				multiplier:                types.Large,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "receiver account type not supported",
+			},
+		},
+		{
 			"claim not found",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
@@ -132,6 +183,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               false,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
 				expectedVestingAccount:    false,
@@ -153,6 +205,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2022, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
 				expectedVestingAccount:    false,
@@ -174,6 +227,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				validatorVesting:          false,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
 				expectedVestingAccount:    true,
@@ -194,7 +248,12 @@ func (suite *KeeperTestSuite) TestClaim() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
-			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.claimOwner}, []sdk.Coins{sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000)))})
+			authGS := app.NewAuthGenState(
+				[]sdk.AccAddress{tc.args.claimOwner, tc.args.receiver},
+				[]sdk.Coins{
+					sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+					sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				})
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{
@@ -207,6 +266,30 @@ func (suite *KeeperTestSuite) TestClaim() {
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
+			if tc.args.validatorVesting {
+				ak := tApp.GetAccountKeeper()
+				acc := ak.GetAccount(ctx, tc.args.claimOwner)
+				bacc := auth.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+				bva, err := vesting.NewBaseVestingAccount(
+					bacc,
+					sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(20))), time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC).Unix()+100)
+				suite.Require().NoError(err)
+				vva := validatorvesting.NewValidatorVestingAccountRaw(
+					bva,
+					time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC).Unix(),
+					vesting.Periods{
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))},
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))},
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))},
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))}},
+					sdk.ConsAddress(crypto.AddressHash([]byte("test"))),
+					sdk.AccAddress{},
+					95,
+				)
+				err = vva.Validate()
+				suite.Require().NoError(err)
+				ak.SetAccount(ctx, vva)
+			}
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.LPAccount, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
 			supplyKeeper.MintCoins(ctx, types.DelegatorAccount, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
@@ -223,7 +306,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			err := suite.keeper.ClaimReward(suite.ctx, tc.args.claimOwner, tc.args.receiver, tc.args.denom, tc.args.depositType, tc.args.multiplier)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
-				acc := suite.getAccount(tc.args.claimOwner)
+				acc := suite.getAccount(tc.args.receiver)
 				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
 				mAcc := suite.getModuleAccount(types.LPAccount)
 				if tc.args.depositType == types.Stake {
