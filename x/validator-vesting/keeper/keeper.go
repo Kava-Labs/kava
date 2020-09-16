@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -185,8 +186,13 @@ func (k Keeper) HandleVestingDebt(ctx sdk.Context, addr sdk.AccAddress, blockTim
 		k.stakingKeeper.IterateDelegations(ctx, vv.Address, func(index int64, d stakingexported.DelegationI) (stop bool) {
 			_, err := k.stakingKeeper.Undelegate(ctx, d.GetDelegatorAddr(), d.GetValidatorAddr(), d.GetShares())
 			if err != nil {
-				// TODO what should we do instead of panic here?
-				panic(err)
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(
+						types.EventTypeBeginBlockError,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+						sdk.NewAttribute(types.AttributeKeyError, fmt.Sprintf("%s", sdkerrors.Wrapf(types.ErrFailedUndelegation, "%s", err.Error()))),
+					),
+				)
 			}
 			return false
 		})
