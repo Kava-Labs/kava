@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/auction/client/common"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
@@ -54,22 +55,12 @@ func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("auction-id '%s' not a valid uint", args[0])
 			}
-			bz, err := cdc.MarshalJSON(types.QueryAuctionParams{
-				AuctionID: id,
-			})
+
+			auction, height, err := common.QueryAuctionByID(cliCtx, cdc, queryRoute, id)
 			if err != nil {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuction), bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var auction types.Auction
-			cdc.MustUnmarshalJSON(res, &auction)
 			auctionWithPhase := types.NewAuctionWithPhase(auction)
 
 			cliCtx = cliCtx.WithHeight(height)

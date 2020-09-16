@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
+	"github.com/kava-labs/kava/x/auction/client/common"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
@@ -41,28 +42,13 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.QueryAuctionParams{AuctionID: auctionID})
+		auction, height, err := common.QueryAuctionByID(cliCtx, cliCtx.Codec, types.ModuleName, auctionID)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		// Query
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetAuction), bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
-
-		var auction types.Auction
-		err = cliCtx.Codec.UnmarshalJSON(res, &auction)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
 		auctionWithPhase := types.NewAuctionWithPhase(auction)
 		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithPhase))
 	}
