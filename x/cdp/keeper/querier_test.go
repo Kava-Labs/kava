@@ -328,6 +328,13 @@ func (suite *QuerierTestSuite) TestFindIntersection() {
 
 	intersection2 := keeper.FindIntersection(c, d)
 	suite.Require().Equal(intersection2, expectedIntersection2)
+
+	e := types.CDPs{suite.cdps[0]}
+	f := types.CDPs{}
+	expectedIntersection3 := types.CDPs{}
+
+	intersection3 := keeper.FindIntersection(e, f)
+	suite.Require().Equal(intersection3, expectedIntersection3)
 }
 
 func (suite *QuerierTestSuite) TestFilterCDPs() {
