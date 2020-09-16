@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -46,7 +45,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:               "kvd",
 		Short:             "Kava Daemon (server)",
-		PersistentPreRunE: persistentPreRunEFn(ctx),
+		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
 	rootCmd.AddCommand(
@@ -91,9 +90,14 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 		skipUpgradeHeights[int64(h)] = true
 	}
 
+	pruningOpts, err := server.GetPruningOptionsFromFlags()
+	if err != nil {
+		panic(err)
+	}
+
 	return app.NewApp(
 		logger, db, traceStore, true, skipUpgradeHeights, invCheckPeriod,
-		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
+		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
 		baseapp.SetHaltTime(viper.GetUint64(server.FlagHaltTime)),
@@ -115,28 +119,4 @@ func exportAppStateAndTMValidators(
 	}
 	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
-}
-
-// persistentPreRunEFn wraps the sdk function server.PersistentPreRunEFn to error on invaid pruning config.
-func persistentPreRunEFn(ctx *server.Context) func(*cobra.Command, []string) error {
-
-	originalFunc := server.PersistentPreRunEFn(ctx)
-
-	return func(cmd *cobra.Command, args []string) error {
-
-		if err := originalFunc(cmd, args); err != nil {
-			return err
-		}
-
-		// check pruning config for `kvd start`
-		if cmd.Name() == "start" {
-			if viper.GetString("pruning") == store.PruningStrategySyncable {
-				return fmt.Errorf(
-					"invalid app config: pruning == '%s'. Update config (%s) with pruning set to '%s' or '%s'.",
-					store.PruningStrategySyncable, viper.ConfigFileUsed(), store.PruningStrategyNothing, store.PruningStrategyEverything,
-				)
-			}
-		}
-		return nil
-	}
 }

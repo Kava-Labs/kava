@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/crypto/multisig"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,15 +25,15 @@ func TestNewAccount(t *testing.T) {
 	now := tmtime.Now()
 	endTime := now.Add(24 * time.Hour).Unix()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	bva, _ := vesting.NewBaseVestingAccount(&bacc, origCoins, endTime)
@@ -46,15 +47,15 @@ func TestNewAccount(t *testing.T) {
 func TestGetVestedCoinsValidatorVestingAcc(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
@@ -70,36 +71,32 @@ func TestGetVestedCoinsValidatorVestingAcc(t *testing.T) {
 	// require 50% of coins vested after successful period 1 vesting
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vestedCoins = vva.GetVestedCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestedCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), vestedCoins)
 
 	// require 50% of coins vested after unsuccessful period 1 vesting
 	// NOTE: There is a fairly important semantic distinction here. It seems tempting to say that a failed vesting period should mean that 'GetVestedCoins' should not return those coins. While the point of a validator vesting account is to 'seize' or 'burn' unsuccessfully vested coins, they do in fact vest and become spendable. The intuition is that they have to be spendable in order for the bank keeper to allow us to send/burn them. If they were not vested, then a validator vesting account that failed all of it's vesting periods would never return/burn the coins because it would never have a spendable balance by which to do so. They way we prevent them from being spent in a way other than return/burn is by sending them in the BeginBlock and thus beating any other transfers that would otherwise occur.
 	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	vestedCoins = vva.GetVestedCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestedCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), vestedCoins)
 
 	// require period 2 coins don't vest until period is over
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	// even if the vesting period was somehow successful, should still only return 50% of coins as vested, since the second vesting period hasn't completed.
 	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestedCoins = vva.GetVestedCoins(now.Add(15 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestedCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), vestedCoins)
 
 	// require 75% of coins vested after successful period 2
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestedCoins = vva.GetVestedCoins(now.Add(18 * time.Hour))
-	require.Equal(t,
-		sdk.Coins{
-			sdk.NewInt64Coin(feeDenom, 750), sdk.NewInt64Coin(stakeDenom, 75)}, vestedCoins)
+	require.Equal(t, cs(c(feeDenom, 750), c(stakeDenom, 75)), vestedCoins)
 
 	// require 75% of coins vested after successful period 1 and unsuccessful period 2.
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.VestingPeriodProgress[1] = VestingProgress{true, false}
 	vestedCoins = vva.GetVestedCoins(now.Add(18 * time.Hour))
-	require.Equal(t,
-		sdk.Coins{
-			sdk.NewInt64Coin(feeDenom, 750), sdk.NewInt64Coin(stakeDenom, 75)}, vestedCoins)
+	require.Equal(t, cs(c(feeDenom, 750), c(stakeDenom, 75)), vestedCoins)
 
 	// require 100% of coins vested after all periods complete successfully
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
@@ -121,15 +118,15 @@ func TestGetVestedCoinsValidatorVestingAcc(t *testing.T) {
 func TestGetVestingCoinsValidatorVestingAcc(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
@@ -145,33 +142,31 @@ func TestGetVestingCoinsValidatorVestingAcc(t *testing.T) {
 	// require 50% of coins vesting after successful period 1 vesting
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vestingCoins = vva.GetVestingCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestingCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), vestingCoins)
 
 	// require 50% of coins vesting after unsuccessful period 1 vesting
 	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	vestingCoins = vva.GetVestingCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestingCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), vestingCoins)
 
 	// require period 2 coins still vesting until period is over
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	// should never happen, but still won't affect vesting balance
 	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestingCoins = vva.GetVestingCoins(now.Add(15 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, vestingCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), vestingCoins)
 
 	// require 25% of coins vesting after successful period 2
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.VestingPeriodProgress[1] = VestingProgress{true, true}
 	vestingCoins = vva.GetVestingCoins(now.Add(18 * time.Hour))
-	require.Equal(t,
-		sdk.Coins{
-			sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}, vestingCoins)
+	require.Equal(t, cs(c(feeDenom, 250), c(stakeDenom, 25)), vestingCoins)
 
 	// require 25% of coins vesting after successful period 1 and unsuccessful period 2
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	vva.VestingPeriodProgress[1] = VestingProgress{true, false}
 	vestingCoins = vva.GetVestingCoins(now.Add(18 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}, vestingCoins)
+	require.Equal(t, cs(c(feeDenom, 250), c(stakeDenom, 25)), vestingCoins)
 
 	// require no coins vesting after all periods complete successfully
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
@@ -193,15 +188,15 @@ func TestGetVestingCoinsValidatorVestingAcc(t *testing.T) {
 func TestSpendableCoinsValidatorVestingAccount(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
@@ -213,21 +208,21 @@ func TestSpendableCoinsValidatorVestingAccount(t *testing.T) {
 	// require that all vested coins (50%) are spendable when period 1 completes successfully
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	spendableCoins = vva.SpendableCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, spendableCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), spendableCoins)
 
 	// require that 50% of coins are spendable after period 1 completes unsuccessfully. See note above. The reason the coins are still 'spendable' is that we need to be able to transfer the coins to the return address/burn them. Making them not spendable means that it would be impossible to recover the debt for a validator vesting account for which all periods failed.
 	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	spendableCoins = vva.SpendableCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}, spendableCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 50)), spendableCoins)
 
 	// receive some coins
-	recvAmt := sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}
+	recvAmt := cs(c(stakeDenom, 50))
 	vva.SetCoins(vva.GetCoins().Add(recvAmt...))
 
 	// require that all vested coins (50%) are spendable plus any received after period 1 completes successfully
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
 	spendableCoins = vva.SpendableCoins(now.Add(12 * time.Hour))
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 100)}, spendableCoins)
+	require.Equal(t, cs(c(feeDenom, 500), c(stakeDenom, 100)), spendableCoins)
 
 	// spend all spendable coins
 	vva.SetCoins(vva.GetCoins().Sub(spendableCoins))
@@ -240,15 +235,15 @@ func TestSpendableCoinsValidatorVestingAccount(t *testing.T) {
 func TestGetFailedVestedCoins(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
@@ -256,7 +251,7 @@ func TestGetFailedVestedCoins(t *testing.T) {
 	vva.VestingPeriodProgress[0] = VestingProgress{true, false}
 	// require that period 1 coins are failed if the period completed unsuccessfully.
 	require.Equal(t,
-		sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)},
+		cs(c(feeDenom, 500), c(stakeDenom, 50)),
 		vva.GetFailedVestedCoins(),
 	)
 
@@ -270,15 +265,15 @@ func TestGetFailedVestedCoins(t *testing.T) {
 func TestTrackDelegationValidatorVestingAcc(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
@@ -301,20 +296,20 @@ func TestTrackDelegationValidatorVestingAcc(t *testing.T) {
 	// require the ability to delegate all vesting coins (50%) and all vested coins (50%)
 	bacc.SetCoins(origCoins)
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
-	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedVesting)
+	vva.TrackDelegation(now.Add(12*time.Hour), cs(c(stakeDenom, 50)))
+	require.Equal(t, cs(c(stakeDenom, 50)), vva.DelegatedVesting)
 	require.Nil(t, vva.DelegatedFree)
 
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
-	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedVesting)
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedFree)
+	vva.TrackDelegation(now.Add(12*time.Hour), cs(c(stakeDenom, 50)))
+	require.Equal(t, cs(c(stakeDenom, 50)), vva.DelegatedVesting)
+	require.Equal(t, cs(c(stakeDenom, 50)), vva.DelegatedFree)
 
 	// require no modifications when delegation amount is zero or not enough funds
 	bacc.SetCoins(origCoins)
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
 	require.Panics(t, func() {
-		vva.TrackDelegation(now.Add(24*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 1000000)})
+		vva.TrackDelegation(now.Add(24*time.Hour), cs(c(stakeDenom, 1000000)))
 	})
 	require.Nil(t, vva.DelegatedVesting)
 	require.Nil(t, vva.DelegatedFree)
@@ -323,15 +318,15 @@ func TestTrackDelegationValidatorVestingAcc(t *testing.T) {
 func TestTrackUndelegationPeriodicVestingAcc(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 	vva := NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
@@ -357,7 +352,7 @@ func TestTrackUndelegationPeriodicVestingAcc(t *testing.T) {
 	bacc.SetCoins(origCoins)
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
 	require.Panics(t, func() {
-		vva.TrackUndelegation(sdk.Coins{sdk.NewInt64Coin(stakeDenom, 0)})
+		vva.TrackUndelegation(sdk.Coins{c(stakeDenom, 0)})
 	})
 	require.Nil(t, vva.DelegatedFree)
 	require.Nil(t, vva.DelegatedVesting)
@@ -365,32 +360,32 @@ func TestTrackUndelegationPeriodicVestingAcc(t *testing.T) {
 	// successfully vest period 1 and delegate to two validators
 	vva = NewValidatorVestingAccount(&bacc, now.Unix(), periods, testConsAddr, nil, 90)
 	vva.VestingPeriodProgress[0] = VestingProgress{true, true}
-	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
-	vva.TrackDelegation(now.Add(12*time.Hour), sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
+	vva.TrackDelegation(now.Add(12*time.Hour), cs(c(stakeDenom, 50)))
+	vva.TrackDelegation(now.Add(12*time.Hour), cs(c(stakeDenom, 50)))
 
 	// undelegate from one validator that got slashed 50%
-	vva.TrackUndelegation(sdk.Coins{sdk.NewInt64Coin(stakeDenom, 25)})
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 25)}, vva.DelegatedFree)
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)}, vva.DelegatedVesting)
+	vva.TrackUndelegation(cs(c(stakeDenom, 25)))
+	require.Equal(t, cs(c(stakeDenom, 25)), vva.DelegatedFree)
+	require.Equal(t, cs(c(stakeDenom, 50)), vva.DelegatedVesting)
 
 	// undelegate from the other validator that did not get slashed
-	vva.TrackUndelegation(sdk.Coins{sdk.NewInt64Coin(stakeDenom, 50)})
+	vva.TrackUndelegation(cs(c(stakeDenom, 50)))
 	require.Nil(t, vva.DelegatedFree)
-	require.Equal(t, sdk.Coins{sdk.NewInt64Coin(stakeDenom, 25)}, vva.DelegatedVesting)
+	require.Equal(t, cs(c(stakeDenom, 25)), vva.DelegatedVesting)
 }
 
 func TestGenesisAccountValidate(t *testing.T) {
 	now := tmtime.Now()
 	periods := vestingtypes.Periods{
-		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 500), sdk.NewInt64Coin(stakeDenom, 50)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
-		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: sdk.Coins{sdk.NewInt64Coin(feeDenom, 250), sdk.NewInt64Coin(stakeDenom, 25)}},
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
 	}
 
 	testAddr := CreateTestAddrs(1)[0]
 	testPk := CreateTestPubKeys(1)[0]
 	testConsAddr := sdk.ConsAddress(testPk.Address())
-	origCoins := sdk.Coins{sdk.NewInt64Coin(feeDenom, 1000), sdk.NewInt64Coin(stakeDenom, 100)}
+	origCoins := cs(c(feeDenom, 1000), c(stakeDenom, 100))
 	bacc := auth.NewBaseAccountWithAddress(testAddr)
 	bacc.SetCoins(origCoins)
 
@@ -440,5 +435,78 @@ func TestGenesisAccountValidate(t *testing.T) {
 		} else {
 			require.Error(t, err, tt.name)
 		}
+	}
+}
+
+func TestMarshalJSON(t *testing.T) {
+	testTime := tmtime.Now()
+	periods := vestingtypes.Periods{
+		vestingtypes.Period{Length: int64(12 * 60 * 60), Amount: cs(c(feeDenom, 500), c(stakeDenom, 50))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+		vestingtypes.Period{Length: int64(6 * 60 * 60), Amount: cs(c(feeDenom, 250), c(stakeDenom, 25))},
+	}
+	testAddrs := CreateTestAddrs(2)
+	testPk := CreateTestPubKeys(1)[0]
+	testConsAddr := sdk.ConsAddress(testPk.Address())
+	testMultisigPk := multisig.NewPubKeyMultisigThreshold(6, CreateTestPubKeys(10))
+
+	testCases := []struct {
+		name    string
+		account *ValidatorVestingAccount
+	}{
+		{
+			name: "normal",
+			account: NewValidatorVestingAccount(
+				auth.NewBaseAccount(
+					testAddrs[0],
+					cs(c(stakeDenom, 100)),
+					testPk,
+					0,
+					1,
+				),
+				testTime.Unix(),
+				periods,
+				testConsAddr,
+				testAddrs[1],
+				90,
+			),
+		},
+		{
+			name: "multisig",
+			account: NewValidatorVestingAccount(
+				auth.NewBaseAccount(
+					testAddrs[0],
+					cs(c(stakeDenom, 1)),
+					testMultisigPk,
+					412,
+					67,
+				),
+				testTime.Unix(),
+				periods,
+				testConsAddr,
+				testAddrs[1],
+				67,
+			),
+		},
+	}
+
+	for _, tc := range testCases {
+		bz, err := ModuleCdc.MarshalJSON(tc.account)
+		require.NoError(t, err)
+
+		var reconstructedAccount *ValidatorVestingAccount
+		err = ModuleCdc.UnmarshalJSON(bz, &reconstructedAccount)
+		require.NoError(t, err)
+
+		// first check debt coins using coin equality function, then overwrite to avoid problems with testify's Equality check
+		require.Truef(t,
+			tc.account.DebtAfterFailedVesting.IsEqual(reconstructedAccount.DebtAfterFailedVesting),
+			"DebtAfterFailedVesting not equal, expected: %+v, actual: %+v",
+			tc.account.DebtAfterFailedVesting,
+			reconstructedAccount.DebtAfterFailedVesting,
+		)
+		reconstructedAccount.DebtAfterFailedVesting = tc.account.DebtAfterFailedVesting
+
+		require.Equal(t, tc.account, reconstructedAccount)
 	}
 }
