@@ -10,7 +10,7 @@ import (
 	"github.com/kava-labs/kava/x/hvt/types"
 )
 
-// NewHandler creates an sdk.Handler for kavadist messages
+// NewHandler creates an sdk.Handler for harvest messages
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
@@ -28,7 +28,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
-	err := k.ClaimReward(ctx, msg.Sender, msg.DepositDenom, types.DepositType(strings.ToLower(msg.DepositType)), types.MultiplierName(strings.ToLower(msg.MultiplierName)))
+	err := k.ClaimReward(ctx, msg.Sender, msg.Receiver, msg.DepositDenom, types.DepositType(strings.ToLower(msg.DepositType)), types.MultiplierName(strings.ToLower(msg.MultiplierName)))
 	if err != nil {
 		return nil, err
 	}

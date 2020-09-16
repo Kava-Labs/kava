@@ -6,7 +6,7 @@ import (
 
 // Claim defines an amount of coins that the owner can claim
 type Claim struct {
-	Owner        sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
 	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
 	Amount       sdk.Coin       `json:"amount" yaml:"amount"`
 	Type         DepositType    `json:"type" yaml:"type"`

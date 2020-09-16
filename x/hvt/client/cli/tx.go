@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -65,7 +66,7 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "withdraw [amount] [deposit-type]",
-		Short: "withdraw coins to harvest",
+		Short: "withdraw coins from harvest",
 		Args:  cobra.ExactArgs(3),
 		Example: fmt.Sprintf(
 			`%s tx %s withdraw 10000000bnb lp --from <key>`, version.ClientName, types.ModuleName,
@@ -89,17 +90,25 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 
 func getCmdClaimReward(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim [deposit-denom] [deposit-type] [multiplier]",
-		Short: "withdraw coins to harvest",
-		Args:  cobra.ExactArgs(3),
+		Use:   "claim [receiver-addr] [deposit-denom] [deposit-type] [multiplier]",
+		Short: "claim HARD tokens to receiver address",
+		Long: strings.TrimSpace(
+			`sends accumulated HARD tokens from the harvest module account to the receiver address.
+			Note that receiver address should match the sender address,
+			unless the sender is a validator-vesting account`),
+		Args: cobra.ExactArgs(4),
 		Example: fmt.Sprintf(
-			`%s tx %s claim bnb lp large --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s claim kava1hgcfsuwc889wtdmt8pjy7qffua9dd2tralu64j bnb lp large --from <key>`, version.ClientName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			msg := types.NewMsgClaimReward(cliCtx.GetFromAddress(), args[1], args[2], args[3])
+			receiver, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgClaimReward(cliCtx.GetFromAddress(), receiver, args[2], args[3], args[4])
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

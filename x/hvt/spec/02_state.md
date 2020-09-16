@@ -22,7 +22,7 @@ type DistributionSchedule struct {
   DepositDenom     string      `json:"deposit_denom" yaml:"deposit_denom"`
   Start            time.Time   `json:"start" yaml:"start"`
   End              time.Time   `json:"end" yaml:"end"`
-  Reward           sdk.Coin    `json:"reward" yaml:"reward"`
+  RewardsPerSecond sdk.Coin    `json:"rewards_per_second" yaml:"rewards_per_second"`
   ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
   ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"`
 }
@@ -41,7 +41,7 @@ type DelegatorDistributionSchedule struct {
 type DelegatorDistributionSchedules []DelegatorDistributionSchedule
 ```
 
-`GenesisState` defines the state that must be persisted when the blockchain stops/restarts in order for normal function of the kavadist module to resume.
+`GenesisState` defines the state that must be persisted when the blockchain stops/restarts in order for normal function of the harvest module to resume.
 
 ```go
 // GenesisState is the state that must be provided at genesis.

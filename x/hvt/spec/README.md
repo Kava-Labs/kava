@@ -1,11 +1,11 @@
 <!--
 order: 0
-title: "Kavadist Overview"
+title: "Harvest Overview"
 parent:
-  title: "kavadist"
+  title: "harvest"
 -->
 
-# `kavadist`
+# `harvest`
 
 <!-- TOC -->
 1. **[Concepts](01_concepts.md)**
@@ -17,4 +17,4 @@ parent:
 
 ## Abstract
 
-`x/kavadist` is an implementation of a Cosmos SDK Module that allows for governance controlled minting of coins into a module account. Coins are minted during inflationary periods, which each period have a governance specified APR and duration. This module does not provide functionality for spending or distributing the minted coins.
+`x/hvt` is an implementation of a Cosmos SDK Module that will serve as the basis for a cross-chain money market platform. The current version of the module defines how HARD tokens are distributed, while future versions of this module will define lending, borrowing, distribution, incentives, and governance for the money market module.

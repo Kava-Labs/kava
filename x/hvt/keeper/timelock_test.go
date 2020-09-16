@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					time.Hour*24,
 				),
 				},
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			if tc.args.accArgs.vestingAccountBefore {
 				ak := tApp.GetAccountKeeper()

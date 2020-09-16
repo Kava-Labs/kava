@@ -12,7 +12,6 @@ The harvest module has the following parameters:
 | LiquidityProviderSchedules        | array (LiquidityProviderSchedule)     | [{see below}] | array of params for each supported asset         |
 | DelegatorDistributionSchedules    | array (DelegatorDistributionSchedule) | [{see below}] | array of params for staking incentive assets     |
 
-
 Each `LiquidityProviderSchedules` has the following parameters
 
 | Key              | Type               | Example                  | Description                                                    |
@@ -21,7 +20,7 @@ Each `LiquidityProviderSchedules` has the following parameters
 | DepositDenom     | string             | "bnb"                    | coin denom of the asset which can be deposited                 |
 | Start            | time.Time          | "2020-06-01T15:20:00Z"   | the time when the period will end                              |
 | End              | time.Time          | "2020-06-01T15:20:00Z"   | the time when the period will end                              |
-| Reward           | Coin               | "500hard"                | HARD tokens per second that can be claimed by depositors       |
+| RewardsPerSecond | Coin               | "500hard"                | HARD tokens per second that can be claimed by depositors       |
 | ClaimEnd         | time.Time          | "2022-06-01T15:20:00Z"   | the time at which users can no longer claim HARD tokens        |
 | ClaimMultipliers | array (Multiplier) | [{see below}]            | reward multipliers for users claiming HARD tokens              |
 
@@ -33,7 +32,7 @@ Each `DelegatorDistributionSchedule` has the following parameters
 | DepositDenom          | string             | "bnb"                    | coin denom of the asset which can be deposited                 |
 | Start                 | time.Time          | "2020-06-01T15:20:00Z"   | the time when the period will end                              |
 | End                   | time.Time          | "2020-06-01T15:20:00Z"   | the time when the period will end                              |
-| Reward                | Coin               | "500hard"                | HARD tokens per second that can be claimed by depositors       |
+| RewardsPerSecond      | Coin               | "500hard"                | HARD tokens per second that can be claimed by depositors       |
 | ClaimEnd              | time.Time          | "2022-06-01T15:20:00Z"   | the time at which users can no longer claim HARD tokens        |
 | ClaimMultipliers      | array (Multiplier) | [{see below}]            | reward multipliers for users claiming HARD tokens              |
 | DistributionFrequency | time.Duration      | "24hr"                   | frequency at which delegation rewards are accumulated          |

@@ -1,6 +1,6 @@
 package types
 
-// Event types for cdp module
+// Event types for harvest module
 const (
 	EventTypeHarvestDeposit               = "harvest_deposit"
 	EventTypeHarvestDelegatorDistribution = "harvest_delegator_distribution"

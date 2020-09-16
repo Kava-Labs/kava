@@ -12,7 +12,7 @@ import (
 	"github.com/kava-labs/kava/x/hvt/types"
 )
 
-// DecodeStore unmarshals the KVPair's Value to the corresponding cdp type
+// DecodeStore unmarshals the KVPair's Value to the corresponding harvest type
 func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], types.PreviousBlockTimeKey), bytes.Equal(kvA.Key[:1], types.PreviousDelegationDistributionKey):

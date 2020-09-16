@@ -4,27 +4,40 @@ import (
 	"bytes"
 	"fmt"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	tmtime "github.com/tendermint/tendermint/types/time"
+)
+
+// GenesisState default values
+var (
+	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
+	DefaultDistributionTimes = GenesisDistributionTimes{}
 )
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params            Params    `json:"params" yaml:"params"`
-	PreviousBlockTime time.Time `json:"previous_block_time" yaml:"previous_block_time"`
+	Params                    Params                   `json:"params" yaml:"params"`
+	PreviousBlockTime         time.Time                `json:"previous_block_time" yaml:"previous_block_time"`
+	PreviousDistributionTimes GenesisDistributionTimes `json:"previous_distribution_times" yaml:"previous_distribution_times"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, previousBlockTime time.Time) GenesisState {
+func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes) GenesisState {
 	return GenesisState{
-		Params:            params,
-		PreviousBlockTime: previousBlockTime,
+		Params:                    params,
+		PreviousBlockTime:         previousBlockTime,
+		PreviousDistributionTimes: previousDistTimes,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:            DefaultParams(),
-		PreviousBlockTime: DefaultPreviousBlockTime,
+		Params:                    DefaultParams(),
+		PreviousBlockTime:         DefaultPreviousBlockTime,
+		PreviousDistributionTimes: DefaultDistributionTimes,
 	}
 }
 
@@ -37,6 +50,14 @@ func (gs GenesisState) Validate() error {
 	}
 	if gs.PreviousBlockTime.Equal(time.Time{}) {
 		return fmt.Errorf("previous block time not set")
+	}
+	for _, gdt := range gs.PreviousDistributionTimes {
+		if gdt.PreviousDistributionTime.Equal(time.Time{}) {
+			return fmt.Errorf("previous distribution time not set for %s", gdt.Denom)
+		}
+		if err := sdk.ValidateDenom(gdt.Denom); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -52,3 +73,12 @@ func (gs GenesisState) Equal(gs2 GenesisState) bool {
 func (gs GenesisState) IsEmpty() bool {
 	return gs.Equal(GenesisState{})
 }
+
+// GenesisDistributionTime stores the previous distribution time and its corresponding denom
+type GenesisDistributionTime struct {
+	Denom                    string    `json:"denom" yaml:"denom"`
+	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml:"previous_distribution_time"`
+}
+
+// GenesisDistributionTimes slice of GenesisDistributionTime
+type GenesisDistributionTimes []GenesisDistributionTime

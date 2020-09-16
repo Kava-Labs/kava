@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 					time.Hour*24,
 				),
 				},
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			keeper := tApp.GetHarvestKeeper()
 			suite.app = tApp
@@ -295,7 +295,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 					time.Hour*24,
 				),
 				},
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			keeper := tApp.GetHarvestKeeper()
 			suite.app = tApp

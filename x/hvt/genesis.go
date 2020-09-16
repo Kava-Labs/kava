@@ -21,6 +21,12 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
 	}
 
+	for _, pdt := range gs.PreviousDistributionTimes {
+		if !pdt.PreviousDistributionTime.Equal(DefaultPreviousBlockTime) {
+			k.SetPreviousDelegationDistribution(ctx, pdt.PreviousDistributionTime, pdt.Denom)
+		}
+	}
+
 	// check if the module account exists
 	LPModuleAcc := supplyKeeper.GetModuleAccount(ctx, LPAccount)
 	if LPModuleAcc == nil {
@@ -41,12 +47,19 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 
 }
 
-// ExportGenesis export genesis state for cdp module
+// ExportGenesis export genesis state for harvest module
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	params := k.GetParams(ctx)
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 	if !found {
 		previousBlockTime = DefaultPreviousBlockTime
 	}
-	return NewGenesisState(params, previousBlockTime)
+	previousDistTimes := GenesisDistributionTimes{}
+	for _, dds := range params.DelegatorDistributionSchedules {
+		previousDistTime, found := k.GetPreviousDelegatorDistribution(ctx, dds.DistributionSchedule.DepositDenom)
+		if found {
+			previousDistTimes = append(previousDistTimes, GenesisDistributionTime{PreviousDistributionTime: previousDistTime, Denom: dds.DistributionSchedule.DepositDenom})
+		}
+	}
+	return NewGenesisState(params, previousBlockTime, previousDistTimes)
 }

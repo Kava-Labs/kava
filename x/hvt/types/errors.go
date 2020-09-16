@@ -24,9 +24,15 @@ var (
 	// ErrGovScheduleNotFound error for governance distribution rewards schedule not found
 	ErrGovScheduleNotFound = sdkerrors.Register(ModuleName, 9, "no governance rewards schedule found")
 	// ErrInvalidMultiplier error for multiplier not found
-	ErrInvalidMultiplier             = sdkerrors.Register(ModuleName, 10, "invalid rewards multiplier")
+	ErrInvalidMultiplier = sdkerrors.Register(ModuleName, 10, "invalid rewards multiplier")
+	// ErrInsufficientModAccountBalance error for module account with innsufficient balance
 	ErrInsufficientModAccountBalance = sdkerrors.Register(ModuleName, 11, "module account has insufficient balance to pay reward")
-	ErrInvalidAccountType            = sdkerrors.Register(ModuleName, 12, "account type not supported")
-	ErrAccountNotFound               = sdkerrors.Register(ModuleName, 13, "account not found")
-	ErrClaimExpired                  = sdkerrors.Register(ModuleName, 14, "claim period expired")
+	// ErrInvalidAccountType error for unsupported accounts
+	ErrInvalidAccountType = sdkerrors.Register(ModuleName, 12, "receiver account type not supported")
+	// ErrAccountNotFound error for accounts that are not found in state
+	ErrAccountNotFound = sdkerrors.Register(ModuleName, 13, "account not found")
+	// ErrClaimExpired error for expired claims
+	ErrClaimExpired = sdkerrors.Register(ModuleName, 14, "claim period expired")
+	// ErrInvalidReceiver error for when sending and receiving accounts don't match
+	ErrInvalidReceiver = sdkerrors.Register(ModuleName, 15, "receiver account must match sender account")
 )

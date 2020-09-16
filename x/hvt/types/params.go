@@ -8,8 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 
-	tmtime "github.com/tendermint/tendermint/types/time"
-
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
@@ -22,7 +20,6 @@ var (
 	DefaultGovSchedules       = DistributionSchedules{}
 	DefaultLPSchedules        = DistributionSchedules{}
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
-	DefaultPreviousBlockTime  = tmtime.Canonical(time.Unix(0, 0))
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
@@ -39,7 +36,7 @@ type DistributionSchedule struct {
 	DepositDenom     string      `json:"deposit_denom" yaml:"deposit_denom"`
 	Start            time.Time   `json:"start" yaml:"start"`
 	End              time.Time   `json:"end" yaml:"end"`
-	Reward           sdk.Coin    `json:"reward" yaml:"reward"`
+	RewardsPerSecond sdk.Coin    `json:"rewards_per_second" yaml:"rewards_per_second"`
 	ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
 	ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"`
 }
@@ -51,7 +48,7 @@ func NewDistributionSchedule(active bool, denom string, start, end time.Time, re
 		DepositDenom:     denom,
 		Start:            start,
 		End:              end,
-		Reward:           reward,
+		RewardsPerSecond: reward,
 		ClaimEnd:         claimEnd,
 		ClaimMultipliers: multipliers,
 	}
@@ -63,19 +60,19 @@ func (ds DistributionSchedule) String() string {
 	Deposit Denom: %s,
 	Start: %s,
 	End: %s,
-	Reward: %s,
+	Rewards Per Second: %s,
 	Claim End: %s,
 	Active: %t
-	`, ds.DepositDenom, ds.Start, ds.End, ds.Reward, ds.ClaimEnd, ds.Active)
+	`, ds.DepositDenom, ds.Start, ds.End, ds.RewardsPerSecond, ds.ClaimEnd, ds.Active)
 }
 
 // Validate performs a basic check of a distribution schedule.
 func (ds DistributionSchedule) Validate() error {
-	if !ds.Reward.IsValid() {
-		return fmt.Errorf("invalid reward coins %s for %s", ds.Reward, ds.DepositDenom)
+	if !ds.RewardsPerSecond.IsValid() {
+		return fmt.Errorf("invalid reward coins %s for %s", ds.RewardsPerSecond, ds.DepositDenom)
 	}
-	if !ds.Reward.IsPositive() {
-		return fmt.Errorf("reward amount must be positive, is %s for %s", ds.Reward, ds.DepositDenom)
+	if !ds.RewardsPerSecond.IsPositive() {
+		return fmt.Errorf("reward amount must be positive, is %s for %s", ds.RewardsPerSecond, ds.DepositDenom)
 	}
 	if ds.Start.IsZero() {
 		return errors.New("reward period start time cannot be 0")
@@ -88,6 +85,11 @@ func (ds DistributionSchedule) Validate() error {
 	}
 	if ds.ClaimEnd.Before(ds.End) {
 		return fmt.Errorf("claim end time %s cannot be before end time %s", ds.ClaimEnd, ds.End)
+	}
+	for _, multiplier := range ds.ClaimMultipliers {
+		if err := multiplier.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -185,6 +187,21 @@ func NewMultiplier(name MultiplierName, lockup int, factor sdk.Dec) Multiplier {
 	}
 }
 
+// Validate multiplier param
+func (m Multiplier) Validate() error {
+	if err := m.Name.IsValid(); err != nil {
+		return err
+	}
+	if m.MonthsLockup < 0 {
+		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
+	}
+	if m.Factor.IsNegative() {
+		return fmt.Errorf("expected non-negative factor, got %s", m.Factor.String())
+	}
+
+	return nil
+}
+
 // GetMultiplier returns the named multiplier from the input distribution schedule
 func (ds DistributionSchedule) GetMultiplier(name MultiplierName) (Multiplier, bool) {
 	for _, multiplier := range ds.ClaimMultipliers {
@@ -207,7 +224,7 @@ func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistribution
 	}
 }
 
-// DefaultParams returns default params for kavadist module
+// DefaultParams returns default params for harvest module
 func DefaultParams() Params {
 	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules)
 }

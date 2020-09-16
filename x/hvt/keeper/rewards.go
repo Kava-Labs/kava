@@ -35,7 +35,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 		if totalDeposited.IsZero() {
 			continue
 		}
-		rewardsToDistribute := lps.Reward.Amount.Mul(timeElapsed)
+		rewardsToDistribute := lps.RewardsPerSecond.Amount.Mul(timeElapsed)
 		if rewardsToDistribute.IsZero() {
 			continue
 		}
@@ -49,7 +49,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 			if rewardsEarned.IsZero() {
 				return false
 			}
-			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, dep.Type, sdk.NewCoin(lps.Reward.Denom, rewardsEarned))
+			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, dep.Type, sdk.NewCoin(lps.RewardsPerSecond.Denom, rewardsEarned))
 			rewardsDistributed = rewardsDistributed.Add(rewardsEarned)
 			return false
 		})
@@ -107,7 +107,7 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 		return
 	}
 	timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistributionTime.Unix())
-	rewardsToDistribute := dds.DistributionSchedule.Reward.Amount.Mul(timeElapsed)
+	rewardsToDistribute := dds.DistributionSchedule.RewardsPerSecond.Amount.Mul(timeElapsed)
 
 	// create a map that has each validator address (sdk.ValAddress) as a key and the coversion factor for going from delegator shares to tokens for delegations to that validator.
 	// If a validator has never been slashed, the conversion factor will be 1.0, if they have been, it will be < 1.0
@@ -135,7 +135,9 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 			if rewardsEarned.IsZero() {
 				return false
 			}
-			k.AddToClaim(ctx, delegation.DelegatorAddress, dds.DistributionSchedule.DepositDenom, types.Stake, sdk.NewCoin(dds.DistributionSchedule.Reward.Denom, rewardsEarned))
+			k.AddToClaim(
+				ctx, delegation.DelegatorAddress, dds.DistributionSchedule.DepositDenom,
+				types.Stake, sdk.NewCoin(dds.DistributionSchedule.RewardsPerSecond.Denom, rewardsEarned))
 			rewardsDistributed = rewardsDistributed.Add(rewardsEarned)
 		}
 		return false

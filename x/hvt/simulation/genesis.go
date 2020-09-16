@@ -16,7 +16,7 @@ const (
 	BaseAprPadding = "0.000000003022265980"
 )
 
-// RandomizedGenState generates a random GenesisState for kavadist module
+// RandomizedGenState generates a random GenesisState for harvest module
 func RandomizedGenState(simState *module.SimulationState) {
 	// params := genRandomParams(simState)
 	// if err := params.Validate(); err != nil {

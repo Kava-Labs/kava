@@ -128,7 +128,7 @@ func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin, depositType strin
 func (msg MsgWithdraw) Route() string { return RouterKey }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgWithdraw) Type() string { return "harvest_withdrawal" }
+func (msg MsgWithdraw) Type() string { return "harvest_withdraw" }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
@@ -164,15 +164,17 @@ func (msg MsgWithdraw) String() string {
 // MsgClaimReward message type used to claim rewards
 type MsgClaimReward struct {
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
+	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
 	DepositDenom   string         `json:"deposit_denom" yaml:"deposit_denom"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 	DepositType    string         `json:"deposit_type" yaml:"deposit_type"`
 }
 
 // NewMsgClaimReward returns a new MsgClaimReward.
-func NewMsgClaimReward(sender sdk.AccAddress, depositDenom, depositType, multiplier string) MsgClaimReward {
+func NewMsgClaimReward(sender, receiver sdk.AccAddress, depositDenom, depositType, multiplier string) MsgClaimReward {
 	return MsgClaimReward{
 		Sender:         sender,
+		Receiver:       receiver,
 		DepositDenom:   depositDenom,
 		MultiplierName: multiplier,
 		DepositType:    depositType,
@@ -189,6 +191,9 @@ func (msg MsgClaimReward) Type() string { return "claim_harvest_reward" }
 func (msg MsgClaimReward) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	if msg.Receiver.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
 	if err := sdk.ValidateDenom(msg.DepositDenom); err != nil {
 		return fmt.Errorf("collateral type cannot be blank")

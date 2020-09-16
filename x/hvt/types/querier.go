@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Querier routes for the kavadist module
+// Querier routes for the harvest module
 const (
 	QueryGetParams         = "params"
 	QueryGetModuleAccounts = "accounts"

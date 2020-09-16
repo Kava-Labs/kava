@@ -17,7 +17,7 @@ const (
 	RestName  = "name"
 )
 
-// RegisterRoutes registers kavadist-related REST handlers to a router
+// RegisterRoutes registers harvest-related REST handlers to a router
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	registerQueryRoutes(cliCtx, r)
 	registerTxRoutes(cliCtx, r)
@@ -43,6 +43,7 @@ type PostCreateWithdrawReq struct {
 type PostClaimReq struct {
 	BaseReq      rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	From         sdk.AccAddress `json:"from" yaml:"from"`
+	Receiver     sdk.AccAddress `json:"receiver" yaml:"receiver"`
 	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
 	DepositType  string         `json:"deposit_type" yaml:"deposit_type"`
 	Multiplier   string         `json:"multiplier" yaml:"multiplier"`

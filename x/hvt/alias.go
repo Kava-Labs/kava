@@ -8,6 +8,9 @@ import (
 )
 
 const (
+	BeginningOfMonth                      = keeper.BeginningOfMonth
+	MidMonth                              = keeper.MidMonth
+	PaymentHour                           = keeper.PaymentHour
 	AttributeKeyBlockHeight               = types.AttributeKeyBlockHeight
 	AttributeKeyClaimAmount               = types.AttributeKeyClaimAmount
 	AttributeKeyClaimHolder               = types.AttributeKeyClaimHolder
@@ -74,6 +77,7 @@ var (
 	ClaimsKeyPrefix                   = types.ClaimsKeyPrefix
 	DefaultActive                     = types.DefaultActive
 	DefaultDelegatorSchedules         = types.DefaultDelegatorSchedules
+	DefaultDistributionTimes          = types.DefaultDistributionTimes
 	DefaultGovSchedules               = types.DefaultGovSchedules
 	DefaultLPSchedules                = types.DefaultLPSchedules
 	DefaultPreviousBlockTime          = types.DefaultPreviousBlockTime
@@ -112,6 +116,8 @@ type (
 	DepositType                    = types.DepositType
 	DistributionSchedule           = types.DistributionSchedule
 	DistributionSchedules          = types.DistributionSchedules
+	GenesisDistributionTime        = types.GenesisDistributionTime
+	GenesisDistributionTimes       = types.GenesisDistributionTimes
 	GenesisState                   = types.GenesisState
 	MsgClaimReward                 = types.MsgClaimReward
 	MsgDeposit                     = types.MsgDeposit

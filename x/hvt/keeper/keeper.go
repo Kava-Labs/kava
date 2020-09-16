@@ -11,7 +11,7 @@ import (
 	"github.com/kava-labs/kava/x/hvt/types"
 )
 
-// Keeper keeper for the cdp module
+// Keeper keeper for the harvest module
 type Keeper struct {
 	key           sdk.StoreKey
 	cdc           *codec.Codec

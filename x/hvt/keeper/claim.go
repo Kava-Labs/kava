@@ -7,31 +7,36 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/hvt/types"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 const (
-	// BeginningOfMonth incentive rewards that are claimed after the 15th at 14:00UTC of the month always vest on the first of the month
+	// BeginningOfMonth harvest rewards that are claimed after the 15th at 14:00UTC of the month always vest on the first of the month
 	BeginningOfMonth = 1
-	// MidMonth incentive rewards that are claimed before the 15th at 14:00UTC of the month always vest on the 15 of the month
+	// MidMonth harvest rewards that are claimed before the 15th at 14:00UTC of the month always vest on the 15 of the month
 	MidMonth = 15
-	// PaymentHour incentive rewards always vest at 14:00UTC
+	// PaymentHour harvest rewards always vest at 14:00UTC
 	PaymentHour = 14
 )
 
 // ClaimReward sends the reward amount to the reward owner and deletes the claim from the store
-func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, depositDenom string, depositType types.DepositType, multiplier types.MultiplierName) error {
+func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, receiver sdk.AccAddress, depositDenom string, depositType types.DepositType, multiplier types.MultiplierName) error {
 
 	claim, found := k.GetClaim(ctx, claimHolder, depositDenom, depositType)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "no %s %s claim found for %s", depositDenom, depositType, claimHolder)
 	}
 
-	var err error
+	err := k.validateSenderReceiver(ctx, claimHolder, receiver)
+	if err != nil {
+		return err
+	}
+
 	switch depositType {
 	case types.LP:
-		err = k.claimLPReward(ctx, claim, multiplier)
+		err = k.claimLPReward(ctx, claim, receiver, multiplier)
 	case types.Stake:
-		err = k.claimDelegatorReward(ctx, claim, multiplier)
+		err = k.claimDelegatorReward(ctx, claim, receiver, multiplier)
 	default:
 		return sdkerrors.Wrap(types.ErrInvalidDepositType, string(depositType))
 	}
@@ -73,7 +78,7 @@ func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (i
 	return 0, types.ErrInvalidMultiplier
 }
 
-func (k Keeper) claimLPReward(ctx sdk.Context, claim types.Claim, multiplierName types.MultiplierName) error {
+func (k Keeper) claimLPReward(ctx sdk.Context, claim types.Claim, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
 	lps, found := k.GetLPSchedule(ctx, claim.DepositDenom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrLPScheduleNotFound, claim.DepositDenom)
@@ -95,10 +100,10 @@ func (k Keeper) claimLPReward(ctx sdk.Context, claim types.Claim, multiplierName
 		return err
 	}
 
-	return k.SendTimeLockedCoinsToAccount(ctx, types.LPAccount, claim.Owner, sdk.NewCoins(rewardCoin), length)
+	return k.SendTimeLockedCoinsToAccount(ctx, types.LPAccount, receiver, sdk.NewCoins(rewardCoin), length)
 }
 
-func (k Keeper) claimDelegatorReward(ctx sdk.Context, claim types.Claim, multiplierName types.MultiplierName) error {
+func (k Keeper) claimDelegatorReward(ctx sdk.Context, claim types.Claim, receiver sdk.AccAddress, multiplierName types.MultiplierName) error {
 	dss, found := k.GetDelegatorSchedule(ctx, claim.DepositDenom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrLPScheduleNotFound, claim.DepositDenom)
@@ -121,5 +126,23 @@ func (k Keeper) claimDelegatorReward(ctx sdk.Context, claim types.Claim, multipl
 		return err
 	}
 
-	return k.SendTimeLockedCoinsToAccount(ctx, types.DelegatorAccount, claim.Owner, sdk.NewCoins(rewardCoin), length)
+	return k.SendTimeLockedCoinsToAccount(ctx, types.DelegatorAccount, receiver, sdk.NewCoins(rewardCoin), length)
+}
+
+func (k Keeper) validateSenderReceiver(ctx sdk.Context, sender, receiver sdk.AccAddress) error {
+	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
+	if senderAcc == nil {
+		return sdkerrors.Wrapf(types.ErrAccountNotFound, sender.String())
+	}
+	switch senderAcc.(type) {
+	case *validatorvesting.ValidatorVestingAccount:
+		if sender.Equals(receiver) {
+			return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", senderAcc)
+		}
+	default:
+		if !sender.Equals(receiver) {
+			return sdkerrors.Wrapf(types.ErrInvalidReceiver, "%s", sender)
+		}
+	}
+	return nil
 }

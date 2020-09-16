@@ -25,7 +25,7 @@ const (
 	flagDepositType  = "deposit-type"
 )
 
-// GetQueryCmd returns the cli query commands for the kavadist module
+// GetQueryCmd returns the cli query commands for the harvest module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	harvestQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -81,7 +81,7 @@ func queryModAccountsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 		Example:
 		$ kvcli q harvest accounts
-		$ kvcli q harvest accounts --name harvest`,
+		$ kvcli q harvest accounts --name harvest|harvest_delegator_distribution|harvest_lp_distribution`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

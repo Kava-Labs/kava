@@ -56,7 +56,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	return gs.Validate()
 }
 
-// RegisterRESTRoutes registers  REST routes for the kavadist module.
+// RegisterRESTRoutes registers  REST routes for the harvest module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
@@ -145,7 +145,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 
 //____________________________________________________________________________
 
-// GenerateGenesisState creates a randomized GenState of the auction module
+// GenerateGenesisState creates a randomized GenState of the harvest module
 func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -155,17 +155,17 @@ func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedP
 	return nil
 }
 
-// RandomizedParams returns nil because auction has no params.
+// RandomizedParams returns nil because harvest has no params.
 func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
 	return simulation.ParamChanges(r)
 }
 
-// RegisterStoreDecoder registers a decoder for auction module's types
+// RegisterStoreDecoder registers a decoder for harvest module's types
 func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	sdr[StoreKey] = simulation.DecodeStore
 }
 
-// WeightedOperations returns the all the auction module operations with their respective weights.
+// WeightedOperations returns the all the harvest module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 	return nil
 }

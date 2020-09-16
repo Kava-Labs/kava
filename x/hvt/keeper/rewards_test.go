@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 					time.Hour*24,
 				),
 				},
-			), tc.args.previousBlockTime)
+			), tc.args.previousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, cs(tc.args.totalDeposits))
@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestApplyDelegatorRewards() {
 					time.Hour*24,
 				),
 				},
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			keeper := tApp.GetHarvestKeeper()
 			keeper.SetPreviousDelegationDistribution(ctx, tc.args.previousDistributionTime, "ukava")

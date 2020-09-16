@@ -16,6 +16,7 @@ import (
 func (suite *KeeperTestSuite) TestClaim() {
 	type args struct {
 		claimOwner                sdk.AccAddress
+		receiver                  sdk.AccAddress
 		denom                     string
 		depositType               types.DepositType
 		multiplier                types.MultiplierName
@@ -41,6 +42,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			"valid liquid claim",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
 				depositType:               types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
@@ -61,6 +63,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			"valid liquid delegator claim",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
 				depositType:               types.Stake,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
@@ -81,6 +84,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			"valid medium vesting claim",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
 				depositType:               types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
@@ -101,6 +105,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			"valid large vesting claim",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
 				depositType:               types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
@@ -121,6 +126,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			"claim not found",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
 				depositType:               types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
@@ -141,6 +147,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 			"claim expired",
 			args{
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
 				depositType:               types.LP,
 				blockTime:                 time.Date(2022, 11, 1, 14, 0, 0, 0, time.UTC),
@@ -155,6 +162,27 @@ func (suite *KeeperTestSuite) TestClaim() {
 			errArgs{
 				expectPass: false,
 				contains:   "claim period expired",
+			},
+		},
+		{
+			"different receiver address",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test2"))),
+				denom:                     "bnb",
+				depositType:               types.LP,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				createClaim:               true,
+				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(100)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(900))),
+				expectedVestingAccount:    true,
+				expectedVestingLength:     64281600,
+				multiplier:                types.Large,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "receiver account must match sender account",
 			},
 		},
 	}
@@ -177,7 +205,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 					time.Hour*24,
 				),
 				},
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.LPAccount, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
@@ -192,7 +220,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				suite.Require().NotPanics(func() { suite.keeper.SetClaim(suite.ctx, claim) })
 			}
 
-			err := suite.keeper.ClaimReward(suite.ctx, tc.args.claimOwner, tc.args.denom, tc.args.depositType, tc.args.multiplier)
+			err := suite.keeper.ClaimReward(suite.ctx, tc.args.claimOwner, tc.args.receiver, tc.args.denom, tc.args.depositType, tc.args.multiplier)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.claimOwner)
