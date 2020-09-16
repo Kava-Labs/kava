@@ -91,7 +91,7 @@ func validateSavingsRateDistributed(i interface{}) error {
 	}
 
 	if savingsRateDist.IsNegative() {
-		return fmt.Errorf("savings rate distribution shouldnot be negative: %s", savingsRateDist)
+		return fmt.Errorf("savings rate distributed should not be negative: %s", savingsRateDist)
 	}
 
 	return nil

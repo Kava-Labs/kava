@@ -106,7 +106,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "savings rate distributed invalid",
+				contains:   "savings rate distributed should not be negative",
 			},
 		},
 	}
@@ -119,6 +119,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.T().Log(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
