@@ -31,6 +31,16 @@ func (k Keeper) GetCollateral(ctx sdk.Context, collateralType string) (types.Col
 	return types.CollateralParam{}, false
 }
 
+// GetCollateralTypes returns an array of collateral types
+func (k Keeper) GetCollateralTypes(ctx sdk.Context) []string {
+	params := k.GetParams(ctx)
+	var denoms []string
+	for _, cp := range params.CollateralParams {
+		denoms = append(denoms, cp.Type)
+	}
+	return denoms
+}
+
 // GetDebtParam returns the debt param with matching denom
 func (k Keeper) GetDebtParam(ctx sdk.Context, denom string) (types.DebtParam, bool) {
 	dp := k.GetParams(ctx).DebtParam

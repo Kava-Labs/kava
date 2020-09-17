@@ -76,7 +76,8 @@ func (msg MsgCreateCDP) String() string {
   Sender:         %s
 	Collateral: %s
 	Principal: %s
-`, msg.Sender, msg.Collateral, msg.Principal)
+	Collateral Type: %s
+`, msg.Sender, msg.Collateral, msg.Principal, msg.CollateralType)
 }
 
 // MsgDeposit deposit collateral to an existing cdp.

@@ -244,6 +244,11 @@ func (a CollateralAuction) GetPhase() string {
 	return ForwardAuctionPhase
 }
 
+// GetLotReturns returns a collateral auction's lot owners
+func (a CollateralAuction) GetLotReturns() WeightedAddresses {
+	return a.LotReturns
+}
+
 // Validate validates the CollateralAuction fields values.
 func (a CollateralAuction) Validate() error {
 	if !a.CorrespondingDebt.IsValid() {

@@ -1,5 +1,9 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 const (
 	// QueryGetAuction is the query path for querying one auction
 	QueryGetAuction = "auction"
@@ -25,19 +29,21 @@ func NewQueryAuctionParams(id uint64) QueryAuctionParams {
 
 // QueryAllAuctionParams is the params for an auctions query
 type QueryAllAuctionParams struct {
-	Page  int    `json:"page" yaml:"page"`
-	Limit int    `json:"limit" yaml:"limit"`
-	Type  string `json:"type" yaml:"type"`
-	Denom string `json:"denom" yaml:"denom"`
-	Phase string `json:"phase" yaml:"phase"`
+	Page  int            `json:"page" yaml:"page"`
+	Limit int            `json:"limit" yaml:"limit"`
+	Type  string         `json:"type" yaml:"type"`
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+	Denom string         `json:"denom" yaml:"denom"`
+	Phase string         `json:"phase" yaml:"phase"`
 }
 
 // NewQueryAllAuctionParams creates a new QueryAllAuctionParams
-func NewQueryAllAuctionParams(page, limit int, aucType, aucDenom, aucPhase string) QueryAllAuctionParams {
+func NewQueryAllAuctionParams(page, limit int, aucType, aucDenom, aucPhase string, aucOwner sdk.AccAddress) QueryAllAuctionParams {
 	return QueryAllAuctionParams{
 		Page:  page,
 		Limit: limit,
 		Type:  aucType,
+		Owner: aucOwner,
 		Denom: aucDenom,
 		Phase: aucPhase,
 	}
