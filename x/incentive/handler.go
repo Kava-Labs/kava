@@ -1,6 +1,8 @@
 package incentive
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -30,7 +32,7 @@ func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimRe
 	}
 
 	for _, claim := range claims {
-		err := k.PayoutClaim(ctx, claim.Owner, claim.CollateralType, claim.ClaimPeriodID)
+		err := k.PayoutClaim(ctx, claim.Owner, claim.CollateralType, claim.ClaimPeriodID, types.MultiplierName(strings.ToLower(msg.MultiplierName)))
 		if err != nil {
 			return nil, err
 		}

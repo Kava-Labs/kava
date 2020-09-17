@@ -12,7 +12,7 @@ import (
 
 // HandleRewardPeriodExpiry deletes expired RewardPeriods from the store and creates a ClaimPeriod in the store for each expired RewardPeriod
 func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod) {
-	k.CreateUniqueClaimPeriod(ctx, rp.CollateralType, rp.ClaimEnd, rp.ClaimTimeLock)
+	k.CreateUniqueClaimPeriod(ctx, rp.CollateralType, rp.ClaimEnd, rp.ClaimMultipliers)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
 	store.Delete([]byte(rp.CollateralType))
 	return
@@ -93,9 +93,9 @@ func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
 }
 
 // CreateUniqueClaimPeriod creates a new claim period in the store and updates the highest claim period id
-func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, collateralType string, end time.Time, timeLock time.Duration) {
+func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, collateralType string, end time.Time, multipliers types.Multipliers) {
 	id := k.GetNextClaimPeriodID(ctx, collateralType)
-	claimPeriod := types.NewClaimPeriod(collateralType, id, end, timeLock)
+	claimPeriod := types.NewClaimPeriod(collateralType, id, end, multipliers)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaimPeriod,

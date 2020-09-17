@@ -67,12 +67,15 @@ func genRewards(r *rand.Rand) types.Rewards {
 		// total reward is in range (half max total reward, max total reward)
 		amount := simulation.RandIntBetween(r, int(MaxTotalAssetReward.Int64()/2), int(MaxTotalAssetReward.Int64()))
 		totalRewards := sdk.NewInt64Coin(RewardDenom, int64(amount))
-		// generate a random number of hours between 6-48 to use for reward's times
-		numbHours := simulation.RandIntBetween(r, 6, 48)
-		duration := time.Duration(time.Hour * time.Duration(numbHours))
-		timeLock := time.Duration(time.Hour * time.Duration(numbHours/2)) // half as long as duration
-		claimDuration := time.Hour * time.Duration(numbHours*2)           // twice as long as duration
-		rewards[i] = types.NewReward(active, denom, totalRewards, duration, timeLock, claimDuration)
+		// generate a random number of months for lockups
+		numMonthsSmall := simulation.RandIntBetween(r, 0, 6)
+		numMonthsLarge := simulation.RandIntBetween(r, 7, 12)
+		multiplierSmall := types.NewMultiplier(types.Small, numMonthsSmall, sdk.MustNewDecFromStr("0.33"))
+		multiplierLarge := types.NewMultiplier(types.Large, numMonthsLarge, sdk.MustNewDecFromStr("1.0"))
+
+		duration := time.Duration(time.Hour * time.Duration(simulation.RandIntBetween(r, 1, 48)))
+		claimDuration := time.Hour * time.Duration(simulation.RandIntBetween(r, 1, 48)) // twice as long as duration
+		rewards[i] = types.NewReward(active, denom, totalRewards, duration, types.Multipliers{multiplierSmall, multiplierLarge}, claimDuration)
 	}
 	return rewards
 }
@@ -90,9 +93,9 @@ func genRewardPeriods(r *rand.Rand, timestamp time.Time, rewards types.Rewards) 
 		// Earlier periods have larger rewards
 		amount := sdk.NewCoin("ukava", baseRewardAmount.Mul(sdk.NewInt(int64(i))))
 		claimEnd := end.Add(reward.ClaimDuration)
-		claimTimeLock := reward.TimeLock
+		claimMultipliers := reward.ClaimMultipliers
 		// Create reward period and append to array
-		rewardPeriods[i] = types.NewRewardPeriod(reward.CollateralType, start, end, amount, claimEnd, claimTimeLock)
+		rewardPeriods[i] = types.NewRewardPeriod(reward.CollateralType, start, end, amount, claimEnd, claimMultipliers)
 		// Update start time of next reward period
 		rewardPeriodStart = end
 	}
@@ -110,9 +113,9 @@ func genClaimPeriods(rewardPeriods types.RewardPeriods) types.ClaimPeriods {
 		denomRewardPeriodsCount[denom] = numbRewardPeriods
 		// Set end and timelock from the associated reward period
 		end := rewardPeriod.ClaimEnd
-		claimTimeLock := rewardPeriod.ClaimTimeLock
+		claimMultipliers := rewardPeriod.ClaimMultipliers
 		// Create the new claim period for this reward period
-		claimPeriods[i] = types.NewClaimPeriod(denom, numbRewardPeriods, end, claimTimeLock)
+		claimPeriods[i] = types.NewClaimPeriod(denom, numbRewardPeriods, end, claimMultipliers)
 	}
 	return claimPeriods
 }

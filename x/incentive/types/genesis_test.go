@@ -68,11 +68,11 @@ func TestGenesisStateValidate(t *testing.T) {
 	rewards := Rewards{
 		NewReward(
 			true, "bnb", sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-			time.Hour*24*7, time.Hour*8766, time.Hour*24*14,
+			time.Hour*24*7, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}, time.Hour*24*14,
 		),
 	}
-	rewardPeriods := RewardPeriods{NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, 10)}
-	claimPeriods := ClaimPeriods{NewClaimPeriod("bnb", 10, now, 100)}
+	rewardPeriods := RewardPeriods{NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))})}
+	claimPeriods := ClaimPeriods{NewClaimPeriod("bnb", 10, now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))})}
 	claims := Claims{NewClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), "bnb", 10)}
 	gcps := GenesisClaimPeriodIDs{{CollateralType: "bnb", ID: 1}}
 

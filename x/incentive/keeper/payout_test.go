@@ -85,8 +85,8 @@ func (suite *KeeperTestSuite) setupExpiredClaims() {
 	)
 
 	// creates two claim periods, one expired, and one that expires in the future
-	cp1 := types.NewClaimPeriod("bnb", 1, time.Unix(90, 0), time.Hour*8766)
-	cp2 := types.NewClaimPeriod("xrp", 1, time.Unix(110, 0), time.Hour*8766)
+	cp1 := types.NewClaimPeriod("bnb", 1, time.Unix(90, 0), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})
+	cp2 := types.NewClaimPeriod("xrp", 1, time.Unix(110, 0), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})
 	suite.keeper = tApp.GetIncentiveKeeper()
 	suite.keeper.SetClaimPeriod(ctx, cp1)
 	suite.keeper.SetClaimPeriod(ctx, cp2)
@@ -421,7 +421,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.setupChain() // adds 3 accounts - 1 periodic vesting account, 1 base account, and 1 validator vesting account
 
 	// add 2 claims that correspond to an existing claim period and one claim that has no corresponding claim period
-	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
+	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})
 	suite.keeper.SetClaimPeriod(suite.ctx, cp1)
 	// valid claim for addrs[0]
 	c1 := types.NewClaim(suite.addrs[0], c("ukava", 100), "bnb", 1)
@@ -434,7 +434,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.keeper.SetClaim(suite.ctx, c3)
 
 	// existing claim with corresponding claim period successfully claimed by existing periodic vesting account
-	err := suite.keeper.PayoutClaim(suite.ctx.WithBlockTime(time.Unix(3700, 0)), suite.addrs[0], "bnb", 1)
+	err := suite.keeper.PayoutClaim(suite.ctx.WithBlockTime(time.Unix(3700, 0)), suite.addrs[0], "bnb", 1, types.Large)
 	suite.Require().NoError(err)
 	acc := suite.getAccount(suite.addrs[0])
 	// account is a periodic vesting account
@@ -444,7 +444,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.Equal(cs(c("ukava", 500)), vacc.OriginalVesting)
 
 	// existing claim with corresponding claim period successfully claimed by base account
-	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[1], "bnb", 1)
+	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[1], "bnb", 1, types.Large)
 	suite.Require().NoError(err)
 	acc = suite.getAccount(suite.addrs[1])
 	// account has become a periodic vesting account
@@ -454,10 +454,10 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	suite.Equal(cs(c("ukava", 100)), vacc.OriginalVesting)
 
 	// addrs[3] has no claims
-	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[3], "bnb", 1)
+	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[3], "bnb", 1, types.Large)
 	suite.Require().True(errors.Is(err, types.ErrClaimNotFound))
 	// addrs[0] has an xrp claim, but there is not corresponding claim period
-	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[0], "xrp", 1)
+	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[0], "xrp", 1, types.Large)
 	suite.Require().True(errors.Is(err, types.ErrClaimPeriodNotFound))
 }
 
