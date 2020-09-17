@@ -47,7 +47,7 @@ func NewParams(active bool, rewards Rewards) Params {
 	}
 }
 
-// DefaultParams returns default params for kavadist module
+// DefaultParams returns default params for incentive module
 func DefaultParams() Params {
 	return NewParams(DefaultActive, DefaultRewards)
 }
