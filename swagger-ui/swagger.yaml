@@ -579,7 +579,7 @@
             required: true
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-        - in: path
+          - in: path
             name: collateral_type
             description: Collateral type
             required: true
@@ -684,9 +684,6 @@
                 debt_auction_threshold:
                   type: string
                   example: '1000000000'
-                surplus_auction_lot:
-                  type: string
-                  example: '10000000'
                 savings_distribution_frequency:
                   type: string
                   example: '60000000'
@@ -833,14 +830,14 @@
         responses:
           200:
             description: The distributed savings rate
-              properties:
-                height:
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                savings_rate_distributed:
                   type: string
-                  example: "100"
-                result:
-                  savings_rate_distributed:
-                    type: string
-                    example: "5000000000000"
+                  example: "5000000000000"
           500:
             description: Server internal error
     /cdp/cdps:
@@ -851,45 +848,45 @@
         produces:
           - application/json
       parameters:
-          - in: query
-            name: owner
-            description: Owner address in bech32 format
-            required: false
-            type: string
-            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
-          - in: query
-            name: collateral-type
-            description: Collateral type
-            required: false
-            type: string
-            x-example: xrp-a
-          - in: query
-            name: id
-            description: CDP ID
-            required: false
-            type: string
-            x-example: "4"
-          - in: query
-            name: ratio
-            description: Collateralization ratio
-            required: false
-            type: string
-            x-example: "2.75"
-        responses:
-          200:
-            description: Query cdps
-            schema:
-              type: object
-              properties:
-                height:
-                  type: string
-                  example: "100"
-                result:
-                  type: array
-                  items:
-                    $ref: '#/definitions/CdpResponse'
-          500:
-            description: Internal Server Error
+        - in: query
+          name: owner
+          description: Owner address in bech32 format
+          required: false
+          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        - in: query
+          name: collateral-type
+          description: Collateral type
+          required: false
+          type: string
+          x-example: xrp-a
+        - in: query
+          name: id
+          description: CDP ID
+          required: false
+          type: string
+          x-example: "4"
+        - in: query
+          name: ratio
+          description: Collateralization ratio
+          required: false
+          type: string
+          x-example: "2.75"
+      responses:
+        200:
+          description: Query cdps
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                items:
+                  $ref: '#/definitions/CdpResponse'
+        500:
+          description: Internal Server Error
     /bep3/swap/create:
       post:
         summary: Generate a create atomic swap transaction
