@@ -70,8 +70,8 @@ func genRewards(r *rand.Rand) types.Rewards {
 		// generate a random number of months for lockups
 		numMonthsSmall := simulation.RandIntBetween(r, 0, 6)
 		numMonthsLarge := simulation.RandIntBetween(r, 7, 12)
-		multiplierSmall := types.NewMultiplier(types.Small, numMonthsSmall, sdk.MustNewDecFromStr("0.33"))
-		multiplierLarge := types.NewMultiplier(types.Large, numMonthsLarge, sdk.MustNewDecFromStr("1.0"))
+		multiplierSmall := types.NewMultiplier(types.Small, int64(numMonthsSmall), sdk.MustNewDecFromStr("0.33"))
+		multiplierLarge := types.NewMultiplier(types.Large, int64(numMonthsLarge), sdk.MustNewDecFromStr("1.0"))
 
 		duration := time.Duration(time.Hour * time.Duration(simulation.RandIntBetween(r, 1, 48)))
 		claimDuration := time.Hour * time.Duration(simulation.RandIntBetween(r, 1, 48)) // twice as long as duration

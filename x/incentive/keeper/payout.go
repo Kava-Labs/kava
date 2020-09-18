@@ -35,7 +35,7 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType
 		return types.ErrZeroClaim
 	}
 	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
-	length := ctx.BlockTime().AddDate(0, multiplier.MonthsLockup, 0).Unix()
+	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
 
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
 	if err != nil {
