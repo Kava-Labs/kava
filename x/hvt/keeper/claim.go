@@ -67,12 +67,12 @@ func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (i
 	case types.Medium, types.Large:
 		currentDay := ctx.BlockTime().Day()
 		payDay := BeginningOfMonth
-		monthOffset := 1
+		monthOffset := int64(1)
 		if currentDay < MidMonth || (currentDay == MidMonth && ctx.BlockTime().Hour() < PaymentHour) {
 			payDay = MidMonth
-			monthOffset = 0
+			monthOffset = int64(0)
 		}
-		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, multiplier.MonthsLockup+monthOffset, 0)
+		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(multiplier.MonthsLockup+monthOffset), 0)
 		return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
 	}
 	return 0, types.ErrInvalidMultiplier

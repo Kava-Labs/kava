@@ -174,12 +174,12 @@ func (dds DelegatorDistributionSchedules) Validate() error {
 // Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 type Multiplier struct {
 	Name         MultiplierName `json:"name" yaml:"name"`
-	MonthsLockup int            `json:"months_lockup" yaml:"months_lockup"`
+	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
 	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
 }
 
 // NewMultiplier returns a new Multiplier
-func NewMultiplier(name MultiplierName, lockup int, factor sdk.Dec) Multiplier {
+func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier {
 	return Multiplier{
 		Name:         name,
 		MonthsLockup: lockup,
