@@ -16,6 +16,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 func (suite *KeeperTestSuite) setupChain() {
@@ -417,50 +418,6 @@ func (suite *KeeperTestSuite) TestSendCoinsToInvalidAccount() {
 	suite.Require().True(errors.Is(err, types.ErrInvalidAccountType))
 }
 
-func (suite *KeeperTestSuite) TestPayoutClaim() {
-	suite.setupChain() // adds 3 accounts - 1 periodic vesting account, 1 base account, and 1 validator vesting account
-
-	// add 2 claims that correspond to an existing claim period and one claim that has no corresponding claim period
-	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})
-	suite.keeper.SetClaimPeriod(suite.ctx, cp1)
-	// valid claim for addrs[0]
-	c1 := types.NewClaim(suite.addrs[0], c("ukava", 100), "bnb", 1)
-	// invalid claim for addrs[0]
-	c2 := types.NewClaim(suite.addrs[0], c("ukava", 100), "xrp", 1)
-	// valid claim for addrs[1]
-	c3 := types.NewClaim(suite.addrs[1], c("ukava", 100), "bnb", 1)
-	suite.keeper.SetClaim(suite.ctx, c1)
-	suite.keeper.SetClaim(suite.ctx, c2)
-	suite.keeper.SetClaim(suite.ctx, c3)
-
-	// existing claim with corresponding claim period successfully claimed by existing periodic vesting account
-	err := suite.keeper.PayoutClaim(suite.ctx.WithBlockTime(time.Unix(3700, 0)), suite.addrs[0], "bnb", 1, types.Large)
-	suite.Require().NoError(err)
-	acc := suite.getAccount(suite.addrs[0])
-	// account is a periodic vesting account
-	vacc, ok := acc.(*vesting.PeriodicVestingAccount)
-	suite.True(ok)
-	// vesting balance is correct
-	suite.Equal(cs(c("ukava", 500)), vacc.OriginalVesting)
-
-	// existing claim with corresponding claim period successfully claimed by base account
-	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[1], "bnb", 1, types.Large)
-	suite.Require().NoError(err)
-	acc = suite.getAccount(suite.addrs[1])
-	// account has become a periodic vesting account
-	vacc, ok = acc.(*vesting.PeriodicVestingAccount)
-	suite.True(ok)
-	// vesting balance is correct
-	suite.Equal(cs(c("ukava", 100)), vacc.OriginalVesting)
-
-	// addrs[3] has no claims
-	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[3], "bnb", 1, types.Large)
-	suite.Require().True(errors.Is(err, types.ErrClaimNotFound))
-	// addrs[0] has an xrp claim, but there is not corresponding claim period
-	err = suite.keeper.PayoutClaim(suite.ctx, suite.addrs[0], "xrp", 1, types.Large)
-	suite.Require().True(errors.Is(err, types.ErrClaimPeriodNotFound))
-}
-
 func (suite *KeeperTestSuite) TestDeleteExpiredClaimPeriods() {
 	suite.setupExpiredClaims() // creates new app state with one non-expired claim period (xrp) and one expired claim period (bnb) as well  as a claim that corresponds to each claim period
 
@@ -490,4 +447,230 @@ func (suite *KeeperTestSuite) TestDeleteExpiredClaimPeriods() {
 	_, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "xrp", 1)
 	suite.True(found)
 
+}
+
+func (suite *KeeperTestSuite) TestPayoutClaim() {
+	type args struct {
+		claimOwner                sdk.AccAddress
+		collateralType            string
+		id                        uint64
+		multiplier                types.MultiplierName
+		blockTime                 time.Time
+		rewards                   types.Rewards
+		rewardperiods             types.RewardPeriods
+		claimPeriods              types.ClaimPeriods
+		claims                    types.Claims
+		genIDs                    types.GenesisClaimPeriodIDs
+		active                    bool
+		validatorVesting          bool
+		expectedAccountBalance    sdk.Coins
+		expectedModAccountBalance sdk.Coins
+		expectedVestingAccount    bool
+		expectedVestingLength     int64
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	type claimTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	testCases := []claimTest{
+		{
+			"valid small claim",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				collateralType:            "bnb-a",
+				id:                        1,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				rewards:                   types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)},
+				rewardperiods:             types.RewardPeriods{types.NewRewardPeriod("bnb-a", time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), c("ukava", 1000), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claimPeriods:              types.ClaimPeriods{types.NewClaimPeriod("bnb-a", 1, time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claims:                    types.Claims{types.NewClaim(sdk.AccAddress(crypto.AddressHash([]byte("test"))), sdk.NewCoin("ukava", sdk.NewInt(1000)), "bnb-a", 1)},
+				genIDs:                    types.GenesisClaimPeriodIDs{types.GenesisClaimPeriodID{CollateralType: "bnb-a", ID: 2}},
+				active:                    true,
+				validatorVesting:          false,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500))),
+				expectedVestingAccount:    true,
+				expectedVestingLength:     time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).AddDate(0, 1, 0).Unix() - time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Unix(),
+				multiplier:                types.Small,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid large claim",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				collateralType:            "bnb-a",
+				id:                        1,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				rewards:                   types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)},
+				rewardperiods:             types.RewardPeriods{types.NewRewardPeriod("bnb-a", time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), c("ukava", 1000), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claimPeriods:              types.ClaimPeriods{types.NewClaimPeriod("bnb-a", 1, time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claims:                    types.Claims{types.NewClaim(sdk.AccAddress(crypto.AddressHash([]byte("test"))), sdk.NewCoin("ukava", sdk.NewInt(1000)), "bnb-a", 1)},
+				genIDs:                    types.GenesisClaimPeriodIDs{types.GenesisClaimPeriodID{CollateralType: "bnb-a", ID: 2}},
+				active:                    true,
+				validatorVesting:          false,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.Coins(nil),
+				expectedVestingAccount:    true,
+				expectedVestingLength:     time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).AddDate(0, 12, 0).Unix() - time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Unix(),
+				multiplier:                types.Large,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid liquid claim",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				collateralType:            "bnb-a",
+				id:                        1,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				rewards:                   types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)},
+				rewardperiods:             types.RewardPeriods{types.NewRewardPeriod("bnb-a", time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), c("ukava", 1000), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24*2), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claimPeriods:              types.ClaimPeriods{types.NewClaimPeriod("bnb-a", 1, time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claims:                    types.Claims{types.NewClaim(sdk.AccAddress(crypto.AddressHash([]byte("test"))), sdk.NewCoin("ukava", sdk.NewInt(1000)), "bnb-a", 1)},
+				genIDs:                    types.GenesisClaimPeriodIDs{types.GenesisClaimPeriodID{CollateralType: "bnb-a", ID: 2}},
+				active:                    true,
+				validatorVesting:          false,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500))),
+				expectedVestingAccount:    false,
+				expectedVestingLength:     0,
+				multiplier:                types.Small,
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"no matching claim",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				collateralType:            "btcb-a",
+				id:                        1,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				rewards:                   types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)},
+				rewardperiods:             types.RewardPeriods{types.NewRewardPeriod("bnb-a", time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), c("ukava", 1000), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24*2), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claimPeriods:              types.ClaimPeriods{types.NewClaimPeriod("bnb-a", 1, time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claims:                    types.Claims{types.NewClaim(sdk.AccAddress(crypto.AddressHash([]byte("test"))), sdk.NewCoin("ukava", sdk.NewInt(1000)), "bnb-a", 1)},
+				genIDs:                    types.GenesisClaimPeriodIDs{types.GenesisClaimPeriodID{CollateralType: "bnb-a", ID: 2}},
+				active:                    true,
+				validatorVesting:          false,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500))),
+				expectedVestingAccount:    false,
+				expectedVestingLength:     0,
+				multiplier:                types.Small,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "no claim with input id found for owner and collateral type",
+			},
+		},
+		{
+			"validator vesting claim",
+			args{
+				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				collateralType:            "bnb-a",
+				id:                        1,
+				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
+				rewards:                   types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)},
+				rewardperiods:             types.RewardPeriods{types.NewRewardPeriod("bnb-a", time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), c("ukava", 1000), time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claimPeriods:              types.ClaimPeriods{types.NewClaimPeriod("bnb-a", 1, time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC).Add(time.Hour*7*24), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
+				claims:                    types.Claims{types.NewClaim(sdk.AccAddress(crypto.AddressHash([]byte("test"))), sdk.NewCoin("ukava", sdk.NewInt(1000)), "bnb-a", 1)},
+				genIDs:                    types.GenesisClaimPeriodIDs{types.GenesisClaimPeriodID{CollateralType: "bnb-a", ID: 2}},
+				active:                    true,
+				validatorVesting:          true,
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500)), sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(500))),
+				expectedVestingAccount:    false,
+				expectedVestingLength:     0,
+				multiplier:                types.Small,
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "account type not supported",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// create new app with one funded account
+			config := sdk.GetConfig()
+			app.SetBech32AddressPrefixes(config)
+			// Initialize test app and set context
+			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
+			authGS := app.NewAuthGenState(
+				[]sdk.AccAddress{tc.args.claimOwner},
+				[]sdk.Coins{
+					sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				})
+			incentiveGS := types.NewGenesisState(types.NewParams(tc.args.active, tc.args.rewards), types.DefaultPreviousBlockTime, tc.args.rewardperiods, tc.args.claimPeriods, tc.args.claims, tc.args.genIDs)
+			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(incentiveGS)})
+			if tc.args.validatorVesting {
+				ak := tApp.GetAccountKeeper()
+				acc := ak.GetAccount(ctx, tc.args.claimOwner)
+				bacc := auth.NewBaseAccount(acc.GetAddress(), acc.GetCoins(), acc.GetPubKey(), acc.GetAccountNumber(), acc.GetSequence())
+				bva, err := vesting.NewBaseVestingAccount(
+					bacc,
+					sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(20))), time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC).Unix()+100)
+				suite.Require().NoError(err)
+				vva := validatorvesting.NewValidatorVestingAccountRaw(
+					bva,
+					time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC).Unix(),
+					vesting.Periods{
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))},
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))},
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))},
+						vesting.Period{Length: 25, Amount: cs(c("bnb", 5))}},
+					sdk.ConsAddress(crypto.AddressHash([]byte("test"))),
+					sdk.AccAddress{},
+					95,
+				)
+				err = vva.Validate()
+				suite.Require().NoError(err)
+				ak.SetAccount(ctx, vva)
+			}
+			supplyKeeper := tApp.GetSupplyKeeper()
+			supplyKeeper.MintCoins(ctx, types.IncentiveMacc, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))))
+			keeper := tApp.GetIncentiveKeeper()
+			suite.app = tApp
+			suite.ctx = ctx
+			suite.keeper = keeper
+
+			err := suite.keeper.PayoutClaim(suite.ctx, tc.args.claimOwner, tc.args.collateralType, tc.args.id, tc.args.multiplier)
+
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+				acc := suite.getAccount(tc.args.claimOwner)
+				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
+				mAcc := suite.getModuleAccount(types.IncentiveMacc)
+				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
+				vacc, ok := acc.(*vesting.PeriodicVestingAccount)
+				if tc.args.expectedVestingAccount {
+					suite.Require().True(ok)
+					suite.Require().Equal(tc.args.expectedVestingLength, vacc.VestingPeriods[0].Length)
+				} else {
+					suite.Require().False(ok)
+				}
+				_, f := suite.keeper.GetClaim(ctx, tc.args.claimOwner, tc.args.collateralType, tc.args.id)
+				suite.Require().False(f)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
 }
