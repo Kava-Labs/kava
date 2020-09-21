@@ -15,7 +15,7 @@ import (
 )
 
 // PayoutClaim sends the timelocked claim coins to the input address
-func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64) error {
+func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64, multiplierName types.MultiplierName) error {
 	claim, found := k.GetClaim(ctx, addr, collateralType, id)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, collateral type %s, address: %s", id, collateralType, addr)
@@ -24,7 +24,20 @@ func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, collateral type: %s", id, collateralType)
 	}
-	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(claim.Reward), int64(claimPeriod.TimeLock.Seconds()))
+
+	multiplier, found := claimPeriod.GetMultiplier(multiplierName)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
+	}
+
+	rewardAmount := sdk.NewDecFromInt(claim.Reward.Amount).Mul(multiplier.Factor).RoundInt()
+	if rewardAmount.IsZero() {
+		return types.ErrZeroClaim
+	}
+	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
+	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
+
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
 	if err != nil {
 		return err
 	}

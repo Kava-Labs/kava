@@ -93,7 +93,7 @@ func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedP
 	return nil
 }
 
-// WeightedOperations returns the all the bep3 module operations with their respective weights.
+// WeightedOperations returns the all the incentive module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.supplyKeeper, am.keeper)
 }

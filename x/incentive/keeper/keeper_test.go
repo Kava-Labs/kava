@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteRewardPeriod() {
-	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
+	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
 	_, found := suite.keeper.GetRewardPeriod(suite.ctx, "bnb")
 	suite.False(found)
 	suite.NotPanics(func() {
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteRewardPeriod() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteClaimPeriod() {
-	cp := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
+	cp := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
 	_, found := suite.keeper.GetClaimPeriod(suite.ctx, 1, "bnb")
 	suite.False(found)
 	suite.NotPanics(func() {
@@ -149,13 +149,13 @@ func (suite *KeeperTestSuite) TestIterateMethods() {
 }
 
 func (suite *KeeperTestSuite) addObjectsToStore() {
-	rp1 := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
-	rp2 := types.NewRewardPeriod("xrp", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
+	rp1 := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
+	rp2 := types.NewRewardPeriod("xrp", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
 	suite.keeper.SetRewardPeriod(suite.ctx, rp1)
 	suite.keeper.SetRewardPeriod(suite.ctx, rp2)
 
-	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
-	cp2 := types.NewClaimPeriod("xrp", 1, suite.ctx.BlockTime().Add(time.Hour*168), time.Hour*8766)
+	cp1 := types.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
+	cp2 := types.NewClaimPeriod("xrp", 1, suite.ctx.BlockTime().Add(time.Hour*168), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
 	suite.keeper.SetClaimPeriod(suite.ctx, cp1)
 	suite.keeper.SetClaimPeriod(suite.ctx, cp2)
 
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) addObjectsToStore() {
 	suite.keeper.SetClaim(suite.ctx, c2)
 
 	params := types.NewParams(
-		true, types.Rewards{types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)},
+		true, types.Rewards{types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))}, time.Hour*7*24)},
 	)
 	suite.keeper.SetParams(suite.ctx, params)
 

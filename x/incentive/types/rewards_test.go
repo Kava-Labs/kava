@@ -21,7 +21,7 @@ func TestRewardPeriodsValidate(t *testing.T) {
 		{
 			"valid",
 			RewardPeriods{
-				NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, 10),
+				NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}),
 			},
 			true,
 		},
@@ -80,14 +80,14 @@ func TestRewardPeriodsValidate(t *testing.T) {
 			false,
 		},
 		{
-			"zero claim time lock",
+			"negative time lock",
 			RewardPeriods{
 				{
-					Start:         now,
-					End:           now.Add(time.Hour),
-					Reward:        sdk.NewCoin("bnb", sdk.OneInt()),
-					ClaimEnd:      now,
-					ClaimTimeLock: 0,
+					Start:            now,
+					End:              now.Add(time.Hour),
+					Reward:           sdk.NewCoin("bnb", sdk.OneInt()),
+					ClaimEnd:         now,
+					ClaimMultipliers: Multipliers{NewMultiplier(Small, -1, sdk.MustNewDecFromStr("0.33"))},
 				},
 			},
 			false,
@@ -96,12 +96,12 @@ func TestRewardPeriodsValidate(t *testing.T) {
 			"invalid collateral type",
 			RewardPeriods{
 				{
-					Start:          now,
-					End:            now.Add(time.Hour),
-					Reward:         sdk.NewCoin("bnb", sdk.OneInt()),
-					ClaimEnd:       now,
-					ClaimTimeLock:  10,
-					CollateralType: "",
+					Start:            now,
+					End:              now.Add(time.Hour),
+					Reward:           sdk.NewCoin("bnb", sdk.OneInt()),
+					ClaimEnd:         now,
+					ClaimMultipliers: Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))},
+					CollateralType:   "",
 				},
 			},
 			false,
@@ -109,8 +109,8 @@ func TestRewardPeriodsValidate(t *testing.T) {
 		{
 			"duplicate reward period",
 			RewardPeriods{
-				NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, 10),
-				NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, 10),
+				NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}),
+				NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}),
 			},
 			false,
 		},
@@ -137,7 +137,7 @@ func TestClaimPeriodsValidate(t *testing.T) {
 		{
 			"valid",
 			ClaimPeriods{
-				NewClaimPeriod("bnb", 10, now, 100),
+				NewClaimPeriod("bnb", 10, now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}),
 			},
 			true,
 		},
@@ -156,31 +156,38 @@ func TestClaimPeriodsValidate(t *testing.T) {
 			false,
 		},
 		{
-			"zero time lock",
+			"negative time lock",
 			ClaimPeriods{
-				{ID: 10, End: now, TimeLock: 0},
+				{ID: 10, End: now, ClaimMultipliers: Multipliers{NewMultiplier(Small, -1, sdk.MustNewDecFromStr("0.33"))}},
+			},
+			false,
+		},
+		{
+			"negative multiplier",
+			ClaimPeriods{
+				NewClaimPeriod("bnb", 10, now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("-0.33"))}),
 			},
 			false,
 		},
 		{
 			"start time > end time",
 			ClaimPeriods{
-				{ID: 10, End: now, TimeLock: 0},
+				{ID: 10, End: now, ClaimMultipliers: Multipliers{NewMultiplier(Small, -1, sdk.MustNewDecFromStr("0.33"))}},
 			},
 			false,
 		},
 		{
 			"invalid collateral type",
 			ClaimPeriods{
-				{ID: 10, End: now, TimeLock: 100, CollateralType: ""},
+				{ID: 10, End: now, ClaimMultipliers: Multipliers{NewMultiplier(Small, -1, sdk.MustNewDecFromStr("0.33"))}, CollateralType: ""},
 			},
 			false,
 		},
 		{
 			"duplicate reward period",
 			ClaimPeriods{
-				NewClaimPeriod("bnb", 10, now, 100),
-				NewClaimPeriod("bnb", 10, now, 100),
+				NewClaimPeriod("bnb", 10, now, Multipliers{NewMultiplier(Small, -1, sdk.MustNewDecFromStr("0.33"))}),
+				NewClaimPeriod("bnb", 10, now, Multipliers{NewMultiplier(Small, -1, sdk.MustNewDecFromStr("0.33"))}),
 			},
 			false,
 		},
