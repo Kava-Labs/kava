@@ -28,7 +28,7 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/parameters", types.QuerierRoute)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryGetParams)
 
 		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
