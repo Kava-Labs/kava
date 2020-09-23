@@ -63,24 +63,76 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		"btcb",
 		0,
 		v0_11bep3.SupplyLimit{
-			Limit:          sdk.NewInt(10000000000), // TODO: 100 BTC limit at launch?
-			TimeLimited:    false,                   // TODO: Rate limiting?
+			Limit:          sdk.NewInt(10000000000), // 100 BTC limit at launch
+			TimeLimited:    false,
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
-		v0_9Params.BnbDeputyAddress, // TODO do we want to get an additional deputy address from binance?
+		v0_9Params.BnbDeputyAddress, // TODO get an additional deputy address from binance
 		v0_9Params.BnbDeputyFixedFee,
 		sdk.OneInt(),
-		sdk.NewInt(1000000000), // TODO: 10 BTC max swap?
+		sdk.NewInt(1000000000),
 		220,
 		270,
 	)
-	btcbAssetSupply := v0_11bep3.NewAssetSupply(sdk.NewCoin("btcb", sdk.ZeroInt()), sdk.NewCoin("btcb", sdk.ZeroInt()), sdk.NewCoin("btcb", sdk.ZeroInt()), sdk.NewCoin("btcb", sdk.ZeroInt()), time.Duration(0))
+	btcbAssetSupply := v0_11bep3.NewAssetSupply(
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		time.Duration(0))
 	assetParams = append(assetParams, btcbAssetParam)
 	assetSupplies = append(assetSupplies, btcbAssetSupply)
+	xrpbAssetParam := v0_11bep3.NewAssetParam(
+		"xrpb",
+		144,
+		v0_11bep3.SupplyLimit{
+			Limit:          sdk.NewInt(1000000000000), // 1,000,000 XRP limit at launch
+			TimeLimited:    false,
+			TimePeriod:     time.Duration(0),
+			TimeBasedLimit: sdk.ZeroInt()},
+		true,
+		v0_9Params.BnbDeputyAddress, // TODO  get an additional deputy address from binance
+		v0_9Params.BnbDeputyFixedFee,
+		sdk.OneInt(),
+		sdk.NewInt(100000000000),
+		220,
+		270,
+	)
+	xrpbAssetSupply := v0_11bep3.NewAssetSupply(
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		time.Duration(0))
+	assetParams = append(assetParams, xrpbAssetParam)
+	assetSupplies = append(assetSupplies, xrpbAssetSupply)
+	busdAssetParam := v0_11bep3.NewAssetParam(
+		"busd",
+		727, // note - no official SLIP 44 ID
+		v0_11bep3.SupplyLimit{
+			Limit:          sdk.NewInt(10000000000000), // 100,000 BUSD limit at launch
+			TimeLimited:    false,
+			TimePeriod:     time.Duration(0),
+			TimeBasedLimit: sdk.ZeroInt()},
+		true,
+		v0_9Params.BnbDeputyAddress, // TODO  get an additional deputy address from binance
+		v0_9Params.BnbDeputyFixedFee,
+		sdk.OneInt(),
+		sdk.NewInt(1000000000000),
+		220,
+		270,
+	)
+	busdAssetSupply := v0_11bep3.NewAssetSupply(
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		time.Duration(0))
+	assetParams = append(assetParams, busdAssetParam)
+	assetSupplies = append(assetSupplies, busdAssetSupply)
 	return v0_11bep3.GenesisState{
-		Params: v0_11bep3.Params{
-			AssetParams: assetParams},
+		Params:            v0_11bep3.NewParams(assetParams),
 		AtomicSwaps:       swaps,
 		Supplies:          assetSupplies,
 		PreviousBlockTime: v0_11bep3.DefaultPreviousBlockTime,
