@@ -269,6 +269,15 @@ func (m Multiplier) Validate() error {
 	return nil
 }
 
+// String implements fmt.Stringer
+func (m Multiplier) String() string {
+	return fmt.Sprintf(`Claim Multiplier:
+	Name: %s
+	Months Lockup %d
+	Factor %s
+	`, m.Name, m.MonthsLockup, m.Factor)
+}
+
 // Multipliers slice of Multiplier
 type Multipliers []Multiplier
 
