@@ -11,7 +11,7 @@ import (
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
 	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
-	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	v0_11incentive "github.com/kava-labs/kava/x/incentive"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 )
 
@@ -123,19 +123,22 @@ func MigrateIncentive(oldGenState v0_9incentive.GenesisState) v0_11incentive.Gen
 	var newClaims v0_11incentive.Claims
 	var newClaimPeriodIds v0_11incentive.GenesisClaimPeriodIDs
 
+	newMultiplier := v0_11incentive.NewMultiplier(v0_11incentive.Large, 12, sdk.OneDec())
+
 	for _, oldReward := range oldGenState.Params.Rewards {
-		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom, oldReward.AvailableRewards, oldReward.Duration, oldReward.TimeLock, oldReward.ClaimDuration)
+		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom, oldReward.AvailableRewards, oldReward.Duration, v0_11incentive.Multipliers{newMultiplier}, oldReward.ClaimDuration)
 		newRewards = append(newRewards, newReward)
 	}
 	newParams := v0_11incentive.NewParams(true, newRewards)
 
 	for _, oldRewardPeriod := range oldGenState.RewardPeriods {
-		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom, oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, oldRewardPeriod.ClaimTimeLock)
+
+		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom, oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, v0_11incentive.Multipliers{newMultiplier})
 		newRewardPeriods = append(newRewardPeriods, newRewardPeriod)
 	}
 
 	for _, oldClaimPeriod := range oldGenState.ClaimPeriods {
-		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom, oldClaimPeriod.ID, oldClaimPeriod.End, oldClaimPeriod.TimeLock)
+		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom, oldClaimPeriod.ID, oldClaimPeriod.End, v0_11incentive.Multipliers{newMultiplier})
 		newClaimPeriods = append(newClaimPeriods, newClaimPeriod)
 	}
 

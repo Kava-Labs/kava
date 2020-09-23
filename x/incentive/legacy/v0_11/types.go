@@ -9,6 +9,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Valid reward multipliers
+const (
+	Small  MultiplierName = "small"
+	Medium MultiplierName = "medium"
+	Large  MultiplierName = "large"
+)
+
 // GenesisClaimPeriodID stores the next claim id and its corresponding collateral type
 type GenesisClaimPeriodID struct {
 	CollateralType string `json:"collateral_type" yaml:"collateral_type"`
@@ -92,6 +99,18 @@ func (gs GenesisState) Validate() error {
 	return gs.NextClaimPeriodIDs.Validate()
 }
 
+// MultiplierName name for valid multiplier
+type MultiplierName string
+
+// IsValid checks if the input is one of the expected strings
+func (mn MultiplierName) IsValid() error {
+	switch mn {
+	case Small, Medium, Large:
+		return nil
+	}
+	return fmt.Errorf("invalid multiplier name: %s", mn)
+}
+
 // Params governance parameters for the incentive module
 type Params struct {
 	Active  bool    `json:"active" yaml:"active"` // top level governance switch to disable all rewards
@@ -138,18 +157,18 @@ type Reward struct {
 	CollateralType   string        `json:"collateral_type" yaml:"collateral_type"`     // the collateral type rewards apply to, must be found in the cdp collaterals
 	AvailableRewards sdk.Coin      `json:"available_rewards" yaml:"available_rewards"` // the total amount of coins distributed per period
 	Duration         time.Duration `json:"duration" yaml:"duration"`                   // the duration of the period
-	TimeLock         time.Duration `json:"time_lock" yaml:"time_lock"`                 // how long rewards for this period are timelocked
+	ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"` // the reward multiplier and timelock schedule - applied at the time users claim rewards
 	ClaimDuration    time.Duration `json:"claim_duration" yaml:"claim_duration"`       // how long users have after the period ends to claim their rewards
 }
 
 // NewReward returns a new Reward
-func NewReward(active bool, collateralType string, reward sdk.Coin, duration time.Duration, timelock time.Duration, claimDuration time.Duration) Reward {
+func NewReward(active bool, collateralType string, reward sdk.Coin, duration time.Duration, multiplier Multipliers, claimDuration time.Duration) Reward {
 	return Reward{
 		Active:           active,
 		CollateralType:   collateralType,
 		AvailableRewards: reward,
 		Duration:         duration,
-		TimeLock:         timelock,
+		ClaimMultipliers: multiplier,
 		ClaimDuration:    claimDuration,
 	}
 }
@@ -161,9 +180,9 @@ func (r Reward) String() string {
 	CollateralType: %s,
 	Available Rewards: %s,
 	Duration: %s,
-	Time Lock: %s,
+	%s,
 	Claim Duration: %s`,
-		r.Active, r.CollateralType, r.AvailableRewards, r.Duration, r.TimeLock, r.ClaimDuration)
+		r.Active, r.CollateralType, r.AvailableRewards, r.Duration, r.ClaimMultipliers, r.ClaimDuration)
 }
 
 // Validate performs a basic check of a reward fields.
@@ -177,8 +196,8 @@ func (r Reward) Validate() error {
 	if r.Duration <= 0 {
 		return fmt.Errorf("reward duration must be positive, is %s for %s", r.Duration, r.CollateralType)
 	}
-	if r.TimeLock < 0 {
-		return fmt.Errorf("reward timelock must be non-negative, is %s for %s", r.TimeLock, r.CollateralType)
+	if err := r.ClaimMultipliers.Validate(); err != nil {
+		return err
 	}
 	if r.ClaimDuration <= 0 {
 		return fmt.Errorf("claim duration must be positive, is %s for %s", r.ClaimDuration, r.CollateralType)
@@ -219,14 +238,67 @@ func (rs Rewards) String() string {
 	return out
 }
 
+// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
+type Multiplier struct {
+	Name         MultiplierName `json:"name" yaml:"name"`
+	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
+	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
+}
+
+// NewMultiplier returns a new Multiplier
+func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier {
+	return Multiplier{
+		Name:         name,
+		MonthsLockup: lockup,
+		Factor:       factor,
+	}
+}
+
+// Validate multiplier param
+func (m Multiplier) Validate() error {
+	if err := m.Name.IsValid(); err != nil {
+		return err
+	}
+	if m.MonthsLockup < 0 {
+		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
+	}
+	if m.Factor.IsNegative() {
+		return fmt.Errorf("expected non-negative factor, got %s", m.Factor.String())
+	}
+
+	return nil
+}
+
+// Multipliers slice of Multiplier
+type Multipliers []Multiplier
+
+// Validate validates each multiplier
+func (ms Multipliers) Validate() error {
+	for _, m := range ms {
+		if err := m.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// String implements fmt.Stringer
+func (ms Multipliers) String() string {
+	out := "Claim Multipliers\n"
+	for _, s := range ms {
+		out += fmt.Sprintf("%s\n", s)
+	}
+	return out
+}
+
 // RewardPeriod stores the state of an ongoing reward
 type RewardPeriod struct {
-	CollateralType string        `json:"collateral_type" yaml:"collateral_type"`
-	Start          time.Time     `json:"start" yaml:"start"`
-	End            time.Time     `json:"end" yaml:"end"`
-	Reward         sdk.Coin      `json:"reward" yaml:"reward"` // per second reward payouts
-	ClaimEnd       time.Time     `json:"claim_end" yaml:"claim_end"`
-	ClaimTimeLock  time.Duration `json:"claim_time_lock" yaml:"claim_time_lock"` // the amount of time rewards are timelocked once they are sent to users
+	CollateralType   string      `json:"collateral_type" yaml:"collateral_type"`
+	Start            time.Time   `json:"start" yaml:"start"`
+	End              time.Time   `json:"end" yaml:"end"`
+	Reward           sdk.Coin    `json:"reward" yaml:"reward"` // per second reward payouts
+	ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
+	ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"` // the reward multiplier and timelock schedule - applied at the time users claim rewards
 }
 
 // String implements fmt.Stringer
@@ -237,19 +309,19 @@ func (rp RewardPeriod) String() string {
 	End: %s,
 	Reward: %s,
 	Claim End: %s,
-	Claim Time Lock: %s
-	`, rp.CollateralType, rp.Start, rp.End, rp.Reward, rp.ClaimEnd, rp.ClaimTimeLock)
+	%s
+	`, rp.CollateralType, rp.Start, rp.End, rp.Reward, rp.ClaimEnd, rp.ClaimMultipliers)
 }
 
 // NewRewardPeriod returns a new RewardPeriod
-func NewRewardPeriod(collateralType string, start time.Time, end time.Time, reward sdk.Coin, claimEnd time.Time, claimTimeLock time.Duration) RewardPeriod {
+func NewRewardPeriod(collateralType string, start time.Time, end time.Time, reward sdk.Coin, claimEnd time.Time, claimMultipliers Multipliers) RewardPeriod {
 	return RewardPeriod{
-		CollateralType: collateralType,
-		Start:          start,
-		End:            end,
-		Reward:         reward,
-		ClaimEnd:       claimEnd,
-		ClaimTimeLock:  claimTimeLock,
+		CollateralType:   collateralType,
+		Start:            start,
+		End:              end,
+		Reward:           reward,
+		ClaimEnd:         claimEnd,
+		ClaimMultipliers: claimMultipliers,
 	}
 }
 
@@ -270,8 +342,8 @@ func (rp RewardPeriod) Validate() error {
 	if rp.ClaimEnd.IsZero() {
 		return errors.New("reward period claim end time cannot be 0")
 	}
-	if rp.ClaimTimeLock == 0 {
-		return errors.New("reward claim time lock cannot be 0")
+	if err := rp.ClaimMultipliers.Validate(); err != nil {
+		return err
 	}
 	if strings.TrimSpace(rp.CollateralType) == "" {
 		return fmt.Errorf("reward period collateral type cannot be blank: %s", rp)
@@ -302,19 +374,19 @@ func (rps RewardPeriods) Validate() error {
 
 // ClaimPeriod stores the state of an ongoing claim period
 type ClaimPeriod struct {
-	CollateralType string        `json:"collateral_type" yaml:"collateral_type"`
-	ID             uint64        `json:"id" yaml:"id"`
-	End            time.Time     `json:"end" yaml:"end"`
-	TimeLock       time.Duration `json:"time_lock" yaml:"time_lock"`
+	CollateralType   string      `json:"collateral_type" yaml:"collateral_type"`
+	ID               uint64      `json:"id" yaml:"id"`
+	End              time.Time   `json:"end" yaml:"end"`
+	ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"`
 }
 
 // NewClaimPeriod returns a new ClaimPeriod
-func NewClaimPeriod(collateralType string, id uint64, end time.Time, timeLock time.Duration) ClaimPeriod {
+func NewClaimPeriod(collateralType string, id uint64, end time.Time, multipliers Multipliers) ClaimPeriod {
 	return ClaimPeriod{
-		CollateralType: collateralType,
-		ID:             id,
-		End:            end,
-		TimeLock:       timeLock,
+		CollateralType:   collateralType,
+		ID:               id,
+		End:              end,
+		ClaimMultipliers: multipliers,
 	}
 }
 
@@ -326,8 +398,8 @@ func (cp ClaimPeriod) Validate() error {
 	if cp.End.IsZero() {
 		return errors.New("claim period end time cannot be 0")
 	}
-	if cp.TimeLock == 0 {
-		return errors.New("claim period time lock cannot be 0")
+	if err := cp.ClaimMultipliers.Validate(); err != nil {
+		return err
 	}
 	if strings.TrimSpace(cp.CollateralType) == "" {
 		return fmt.Errorf("claim period collateral type cannot be blank: %s", cp)
@@ -341,8 +413,18 @@ func (cp ClaimPeriod) String() string {
 	Collateral Type: %s,
 	ID: %d,
 	End: %s,
-	Claim Time Lock: %s
-	`, cp.CollateralType, cp.ID, cp.End, cp.TimeLock)
+	%s
+	`, cp.CollateralType, cp.ID, cp.End, cp.ClaimMultipliers)
+}
+
+// GetMultiplier returns the named multiplier from the input claim period
+func (cp ClaimPeriod) GetMultiplier(name MultiplierName) (Multiplier, bool) {
+	for _, multiplier := range cp.ClaimMultipliers {
+		if multiplier.Name == name {
+			return multiplier, true
+		}
+	}
+	return Multiplier{}, false
 }
 
 // ClaimPeriods array of ClaimPeriod
@@ -442,11 +524,11 @@ func NewRewardPeriodFromReward(reward Reward, blockTime time.Time) RewardPeriod 
 	rewardsPerSecond := sdk.NewDecFromInt(reward.AvailableRewards.Amount).Quo(sdk.NewDecFromInt(sdk.NewInt(int64(reward.Duration.Seconds())))).TruncateInt()
 	rewardCoinPerSecond := sdk.NewCoin(reward.AvailableRewards.Denom, rewardsPerSecond)
 	return RewardPeriod{
-		CollateralType: reward.CollateralType,
-		Start:          blockTime,
-		End:            blockTime.Add(reward.Duration),
-		Reward:         rewardCoinPerSecond,
-		ClaimEnd:       blockTime.Add(reward.Duration).Add(reward.ClaimDuration),
-		ClaimTimeLock:  reward.TimeLock,
+		CollateralType:   reward.CollateralType,
+		Start:            blockTime,
+		End:              blockTime.Add(reward.Duration),
+		Reward:           rewardCoinPerSecond,
+		ClaimEnd:         blockTime.Add(reward.Duration).Add(reward.ClaimDuration),
+		ClaimMultipliers: reward.ClaimMultipliers,
 	}
 }
