@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/auction/client/common"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
@@ -21,6 +22,7 @@ const (
 	flagType  = "type"
 	flagDenom = "denom"
 	flagPhase = "phase"
+	flagOwner = "owner"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -54,22 +56,12 @@ func QueryGetAuctionCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("auction-id '%s' not a valid uint", args[0])
 			}
-			bz, err := cdc.MarshalJSON(types.QueryAuctionParams{
-				AuctionID: id,
-			})
+
+			auction, height, err := common.QueryAuctionByID(cliCtx, cdc, queryRoute, id)
 			if err != nil {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetAuction), bz)
-			if err != nil {
-				return err
-			}
-
-			// Decode and print results
-			var auction types.Auction
-			cdc.MustUnmarshalJSON(res, &auction)
 			auctionWithPhase := types.NewAuctionWithPhase(auction)
 
 			cliCtx = cliCtx.WithHeight(height)
@@ -86,6 +78,7 @@ func QueryGetAuctionsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(`Query for all paginated auctions that match optional filters:
 Example:
 $ kvcli q auction auctions --type=(collateral|surplus|debt)
+$ kvcli q auction auctions --owner=kava1hatdq32u5x4wnxrtv5wzjzmq49sxgjgsj0mffm
 $ kvcli q auction auctions --denom=bnb
 $ kvcli q auction auctions --phase=(forward|reverse)
 $ kvcli q auction auctions --page=2 --limit=100
@@ -93,6 +86,7 @@ $ kvcli q auction auctions --page=2 --limit=100
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			strType := viper.GetString(flagType)
+			strOwner := viper.GetString(flagOwner)
 			strDenom := viper.GetString(flagDenom)
 			strPhase := viper.GetString(flagPhase)
 			page := viper.GetInt(flags.FlagPage)
@@ -100,11 +94,12 @@ $ kvcli q auction auctions --page=2 --limit=100
 
 			var (
 				auctionType  string
+				auctionOwner sdk.AccAddress
 				auctionDenom string
 				auctionPhase string
 			)
 
-			params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase)
+			params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase, auctionOwner)
 
 			if len(strType) != 0 {
 				auctionType = strings.ToLower(strings.TrimSpace(strType))
@@ -114,6 +109,18 @@ $ kvcli q auction auctions --page=2 --limit=100
 					return fmt.Errorf("invalid auction type %s", strType)
 				}
 				params.Type = auctionType
+			}
+
+			if len(auctionOwner) != 0 {
+				if auctionType != types.CollateralAuctionType {
+					return fmt.Errorf("cannot apply owner flag to non-collateral auction type")
+				}
+				auctionOwnerStr := strings.ToLower(strings.TrimSpace(strOwner))
+				auctionOwner, err := sdk.AccAddressFromBech32(auctionOwnerStr)
+				if err != nil {
+					return fmt.Errorf("cannot parse address from auction owner %s", auctionOwnerStr)
+				}
+				params.Owner = auctionOwner
 			}
 
 			if len(strDenom) != 0 {
@@ -169,6 +176,7 @@ $ kvcli q auction auctions --page=2 --limit=100
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of auctions to to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of auctions to query for")
 	cmd.Flags().String(flagType, "", "(optional) filter by auction type, type: collateral, debt, surplus")
+	cmd.Flags().String(flagOwner, "", "(optional) filter by collateral auction owner")
 	cmd.Flags().String(flagDenom, "", "(optional) filter by auction denom")
 	cmd.Flags().String(flagPhase, "", "(optional) filter by collateral auction phase, phase: forward/reverse")
 

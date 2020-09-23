@@ -20,6 +20,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", ModuleName, err))
 	}
 
+	keeper.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
+
 	keeper.SetParams(ctx, gs.Params)
 	for _, supply := range gs.Supplies {
 		keeper.SetAssetSupply(ctx, supply, supply.GetDenom())
@@ -91,17 +93,17 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 		if err != nil {
 			panic(err)
 		}
-		if supply.CurrentSupply.Amount.GT(limit) {
-			panic(fmt.Sprintf("asset's current supply %s is over the supply limit %s", supply.CurrentSupply, limit))
+		if supply.CurrentSupply.Amount.GT(limit.Limit) {
+			panic(fmt.Sprintf("asset's current supply %s is over the supply limit %s", supply.CurrentSupply, limit.Limit))
 		}
-		if supply.IncomingSupply.Amount.GT(limit) {
-			panic(fmt.Sprintf("asset's incoming supply %s is over the supply limit %s", supply.IncomingSupply, limit))
+		if supply.IncomingSupply.Amount.GT(limit.Limit) {
+			panic(fmt.Sprintf("asset's incoming supply %s is over the supply limit %s", supply.IncomingSupply, limit.Limit))
 		}
-		if supply.IncomingSupply.Amount.Add(supply.CurrentSupply.Amount).GT(limit) {
-			panic(fmt.Sprintf("asset's incoming supply + current supply %s is over the supply limit %s", supply.IncomingSupply.Add(supply.CurrentSupply), limit))
+		if supply.IncomingSupply.Amount.Add(supply.CurrentSupply.Amount).GT(limit.Limit) {
+			panic(fmt.Sprintf("asset's incoming supply + current supply %s is over the supply limit %s", supply.IncomingSupply.Add(supply.CurrentSupply), limit.Limit))
 		}
-		if supply.OutgoingSupply.Amount.GT(limit) {
-			panic(fmt.Sprintf("asset's outgoing supply %s is over the supply limit %s", supply.OutgoingSupply, limit))
+		if supply.OutgoingSupply.Amount.GT(limit.Limit) {
+			panic(fmt.Sprintf("asset's outgoing supply %s is over the supply limit %s", supply.OutgoingSupply, limit.Limit))
 		}
 
 	}
@@ -112,5 +114,9 @@ func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	params := k.GetParams(ctx)
 	swaps := k.GetAllAtomicSwaps(ctx)
 	supplies := k.GetAllAssetSupplies(ctx)
-	return NewGenesisState(params, swaps, supplies)
+	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+	if !found {
+		previousBlockTime = DefaultPreviousBlockTime
+	}
+	return NewGenesisState(params, swaps, supplies, previousBlockTime)
 }

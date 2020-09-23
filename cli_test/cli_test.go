@@ -302,6 +302,40 @@ func TestKvCLISend(t *testing.T) {
 	f.Cleanup()
 }
 
+func TestKvCLISendMultiplePerBlock(t *testing.T) {
+	t.Parallel()
+	f := InitFixtures(t)
+
+	// start kvd server
+	proc := f.GDStart()
+	defer proc.Stop(false)
+
+	// Save key addresses for later use
+	fooAddr := f.KeyAddress(keyFoo)
+	barAddr := f.KeyAddress(keyBar)
+
+	fooAcc := f.QueryAccount(fooAddr)
+	startTokens := fooAcc.GetCoins().AmountOf(fooDenom)
+
+	sendTokens := sdk.TokensFromConsensusPower(1)
+
+	numTxsToSend := 30
+	for i := 0; i < numTxsToSend; i++ {
+		seq := fooAcc.GetSequence() + uint64(i)
+		f.TxSend(keyFoo, barAddr, sdk.NewCoin(fooDenom, sendTokens), "-y", fmt.Sprintf("--sequence=%d", seq), "--broadcast-mode=sync")
+	}
+	tests.WaitForNextNBlocksTM(1, f.Port)
+
+	// Ensure account balances match expected
+	totalSent := sendTokens.MulRaw(int64(numTxsToSend))
+	barAcc := f.QueryAccount(barAddr)
+	require.Equal(t, totalSent, barAcc.GetCoins().AmountOf(fooDenom))
+	fooAcc = f.QueryAccount(fooAddr)
+	require.Equal(t, startTokens.Sub(totalSent), fooAcc.GetCoins().AmountOf(fooDenom))
+
+	f.Cleanup()
+}
+
 func TestKvCLIGasAuto(t *testing.T) {
 	// https://github.com/cosmos/cosmos-sdk/pull/5179
 	t.Skip()

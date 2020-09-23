@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -18,11 +20,19 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 	if err != nil {
 		return err
 	}
-	supplyLimit := sdk.NewCoin(coin.Denom, limit)
+	supplyLimit := sdk.NewCoin(coin.Denom, limit.Limit)
 
 	// Resulting current supply must be under asset's limit
 	if supplyLimit.IsLT(supply.CurrentSupply.Add(coin)) {
 		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supplyLimit)
+	}
+
+	if limit.TimeLimited {
+		timeBasedSupplyLimit := sdk.NewCoin(coin.Denom, limit.TimeBasedLimit)
+		if timeBasedSupplyLimit.IsLT(supply.TimeLimitedCurrentSupply.Add(coin)) {
+			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, current time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
+		}
+		supply.TimeLimitedCurrentSupply = supply.TimeLimitedCurrentSupply.Add(coin)
 	}
 
 	supply.CurrentSupply = supply.CurrentSupply.Add(coin)
@@ -62,9 +72,17 @@ func (k Keeper) IncrementIncomingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	if err != nil {
 		return err
 	}
-	supplyLimit := sdk.NewCoin(coin.Denom, limit)
+	supplyLimit := sdk.NewCoin(coin.Denom, limit.Limit)
 	if supplyLimit.IsLT(totalSupply.Add(coin)) {
 		return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, totalSupply, supplyLimit)
+	}
+
+	if limit.TimeLimited {
+		timeLimitedTotalSupply := supply.TimeLimitedCurrentSupply.Add(supply.IncomingSupply)
+		timeBasedSupplyLimit := sdk.NewCoin(coin.Denom, limit.TimeBasedLimit)
+		if timeBasedSupplyLimit.IsLT(timeLimitedTotalSupply.Add(coin)) {
+			return sdkerrors.Wrapf(types.ErrExceedsTimeBasedSupplyLimit, "increase %s, time-based asset supply %s, limit %s", coin, supply.TimeLimitedCurrentSupply, timeBasedSupplyLimit)
+		}
 	}
 
 	supply.IncomingSupply = supply.IncomingSupply.Add(coin)
@@ -124,4 +142,43 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 	supply.OutgoingSupply = supply.OutgoingSupply.Sub(coin)
 	k.SetAssetSupply(ctx, supply, coin.Denom)
 	return nil
+}
+
+// CreateNewAssetSupply creates a new AssetSupply in the store for the input denom
+func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetSupply {
+	supply := types.NewAssetSupply(
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
+	k.SetAssetSupply(ctx, supply, denom)
+	return supply
+}
+
+// UpdateTimeBasedSupplyLimits updates the time based supply for each asset, resetting it if the current time window has elapsed.
+func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
+	assets, found := k.GetAssets(ctx)
+	if !found {
+		return
+	}
+	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+	if !found {
+		previousBlockTime = ctx.BlockTime()
+		k.SetPreviousBlockTime(ctx, previousBlockTime)
+	}
+	timeElapsed := ctx.BlockTime().Sub(previousBlockTime)
+	for _, asset := range assets {
+		supply, found := k.GetAssetSupply(ctx, asset.Denom)
+		// if a new asset has been added by governance, create a new asset supply for it in the store
+		if !found {
+			supply = k.CreateNewAssetSupply(ctx, asset.Denom)
+		}
+		newTimeElapsed := supply.TimeElapsed + timeElapsed
+		if asset.SupplyLimit.TimeLimited && newTimeElapsed < asset.SupplyLimit.TimePeriod {
+			supply.TimeElapsed = newTimeElapsed
+		} else {
+			supply.TimeElapsed = time.Duration(0)
+			supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
+		}
+		k.SetAssetSupply(ctx, supply, asset.Denom)
+	}
+	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 }

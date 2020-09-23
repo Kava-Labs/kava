@@ -85,10 +85,13 @@ func getRandomValidatorConsAddr(simState *module.SimulationState, rint int) sdk.
 
 func getRandomVestingPeriods(duration int64, r *rand.Rand, origCoins sdk.Coins) vestingtypes.Periods {
 	maxPeriods := int64(50)
+	if duration <= 0 {
+		panic("duration in getRandomVestingPeriods cannot be <= 0")
+	}
 	if duration < maxPeriods {
 		maxPeriods = duration
 	}
-	numPeriods := simulation.RandIntBetween(r, 1, int(maxPeriods))
+	numPeriods := r.Intn(int(maxPeriods)) + 1 // ensures >= 1, 0 check above prevents Intn panicking
 	lenPeriod := duration / int64(numPeriods)
 	periodLengths := make([]int64, numPeriods)
 	totalLength := int64(0)

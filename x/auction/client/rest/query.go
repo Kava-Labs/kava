@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
+	"github.com/kava-labs/kava/x/auction/client/common"
 	"github.com/kava-labs/kava/x/auction/types"
 )
 
@@ -41,28 +42,13 @@ func queryAuctionHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		bz, err := cliCtx.Codec.MarshalJSON(types.QueryAuctionParams{AuctionID: auctionID})
+		auction, height, err := common.QueryAuctionByID(cliCtx, cliCtx.Codec, types.ModuleName, auctionID)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		// Query
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetAuction), bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
 		// Decode and return results
 		cliCtx = cliCtx.WithHeight(height)
-
-		var auction types.Auction
-		err = cliCtx.Codec.UnmarshalJSON(res, &auction)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
 		auctionWithPhase := types.NewAuctionWithPhase(auction)
 		rest.PostProcessResponse(w, cliCtx, cliCtx.Codec.MustMarshalJSON(auctionWithPhase))
 	}
@@ -83,6 +69,7 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		var auctionType string
+		var auctionOwner sdk.AccAddress
 		var auctionDenom string
 		var auctionPhase string
 
@@ -93,6 +80,17 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 				auctionType != types.DebtAuctionType {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid auction type %s", x))
 				return
+			}
+		}
+
+		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
+			if auctionType != types.CollateralAuctionType {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "cannot apply owner flag to non-collateral auction type")
+			}
+			auctionOwnerStr := strings.ToLower(strings.TrimSpace(x))
+			auctionOwner, err = sdk.AccAddressFromBech32(auctionOwnerStr)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from auction owner %s", auctionOwnerStr))
 			}
 		}
 
@@ -117,7 +115,7 @@ func queryAuctionsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase)
+		params := types.NewQueryAllAuctionParams(page, limit, auctionType, auctionDenom, auctionPhase, auctionOwner)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

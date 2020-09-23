@@ -137,7 +137,9 @@ var (
 	DefaultDebtLot                      = types.DefaultDebtLot
 	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
 	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
+	DefaultSavingsRateDistributed       = types.DefaultSavingsRateDistributed
 	MaxSortableDec                      = types.MaxSortableDec
+	SavingsRateDistributedKey           = types.SavingsRateDistributedKey
 )
 
 type (

@@ -11,18 +11,19 @@ order: 2
 ```go
 // Params governance parameters for the incentive module
 type Params struct {
-	Active  bool    `json:"active" yaml:"active"` // top level governance switch to disable all rewards
-	Rewards Rewards `json:"rewards" yaml:"rewards"`
+  Active  bool    `json:"active" yaml:"active"` // top level governance switch to disable all rewards
+  Rewards Rewards `json:"rewards" yaml:"rewards"`
 }
 
 // Reward stores the specified state for a single reward period.
+// Reward stores the specified state for a single reward period.
 type Reward struct {
-	Active           bool          `json:"active" yaml:"active"`                       // governance switch to disable a period
-	Denom            string        `json:"denom" yaml:"denom"`                         // the collateral denom rewards apply to, must be found in the cdp collaterals
-	AvailableRewards sdk.Coin      `json:"available_rewards" yaml:"available_rewards"` // the total amount of coins distributed per period
-	Duration         time.Duration `json:"duration" yaml:"duration"`                   // the duration of the period
-	TimeLock         time.Duration `json:"time_lock" yaml:"time_lock"`                 // how long rewards for this period are timelocked
-	ClaimDuration    time.Duration `json:"claim_duration" yaml:"claim_duration"`       // how long users have after the period ends to claim their rewards
+  Active           bool          `json:"active" yaml:"active"`                       // governance switch to disable a period
+  CollateralType   string        `json:"collateral_type" yaml:"collateral_type"`     // the collateral type rewards apply to, must be found in the cdp collaterals
+  AvailableRewards sdk.Coin      `json:"available_rewards" yaml:"available_rewards"` // the total amount of coins distributed per period
+  Duration         time.Duration `json:"duration" yaml:"duration"`                   // the duration of the period
+  ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"` // the reward multiplier and timelock schedule - applied at the time users claim rewards
+  ClaimDuration    time.Duration `json:"claim_duration" yaml:"claim_duration"`       // how long users have after the period ends to claim their rewards
 }
 ```
 
@@ -31,12 +32,12 @@ type Reward struct {
 ```go
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params             Params                `json:"params" yaml:"params"`
-	PreviousBlockTime  time.Time             `json:"previous_block_time" yaml:"previous_block_time"`
-	RewardPeriods      RewardPeriods         `json:"reward_periods" yaml:"reward_periods"`
-	ClaimPeriods       ClaimPeriods          `json:"claim_periods" yaml:"claim_periods"`
-	Claims             Claims                `json:"claims" yaml:"claims"`
-	NextClaimPeriodIDs GenesisClaimPeriodIDs `json:"next_claim_period_ids" yaml:"next_claim_period_ids"`
+  Params             Params                `json:"params" yaml:"params"`
+  PreviousBlockTime  time.Time             `json:"previous_block_time" yaml:"previous_block_time"`
+  RewardPeriods      RewardPeriods         `json:"reward_periods" yaml:"reward_periods"`
+  ClaimPeriods       ClaimPeriods          `json:"claim_periods" yaml:"claim_periods"`
+  Claims             Claims                `json:"claims" yaml:"claims"`
+  NextClaimPeriodIDs GenesisClaimPeriodIDs `json:"next_claim_period_ids" yaml:"next_claim_period_ids"`
 }
 ```
 

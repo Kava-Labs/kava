@@ -7,7 +7,7 @@
 
 
 # Parse Input Args
-# get simulation type
+# get simulation type, eg TestFullAppSimulation
 simType=$1
 # get seed
 startingSeed=$2

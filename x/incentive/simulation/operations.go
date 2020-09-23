@@ -78,7 +78,7 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 		claimer, claim, found := findValidAccountClaimPair(accs, openClaims, func(acc simulation.Account, claim types.Claim) bool {
 			if validAccounts[acc.Address.String()] { // Address must be valid type
 				if claim.Owner.Equals(acc.Address) { // Account must be claim owner
-					allClaims, found := k.GetClaimsByAddressAndCollateralType(ctx, claim.Owner, claim.CollateralType)
+					allClaims, found := k.GetActiveClaimsByAddressAndCollateralType(ctx, claim.Owner, claim.CollateralType)
 					if found { // found should always be true
 						var rewards sdk.Coins
 						for _, individualClaim := range allClaims {
@@ -105,7 +105,13 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("couldn't find account %s", claimer.Address)
 		}
 
-		msg := types.NewMsgClaimReward(claimer.Address, claim.CollateralType)
+		multiplierName := types.Small
+
+		if simulation.RandIntBetween(r, 0, 1) == 0 {
+			multiplierName = types.Large
+		}
+
+		msg := types.NewMsgClaimReward(claimer.Address, claim.CollateralType, string(multiplierName))
 
 		tx := helpers.GenTx(
 			[]sdk.Msg{msg},

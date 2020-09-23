@@ -58,6 +58,11 @@ func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {
 			return false
 		}
 
+		// update total savings rate distributed by surplus to distribute
+		previousSavingsDistributed := k.GetSavingsRateDistributed(ctx)
+		newTotalDistributed := previousSavingsDistributed.Add(interest)
+		k.SetSavingsRateDistributed(ctx, newTotalDistributed)
+
 		interestCoins := sdk.NewCoins(sdk.NewCoin(debtDenom, interest))
 		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, acc.GetAddress(), interestCoins)
 		if err != nil {

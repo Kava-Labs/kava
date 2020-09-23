@@ -410,6 +410,8 @@
                   $ref: '#/definitions/CoinCollateral'
                 principal:
                   $ref: '#/definitions/CoinPrincipal'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -419,7 +421,7 @@
             description: Invalid request
           500:
             description: Server internal error
-    /cdp/{owner}/{denom}/deposits:
+    /cdp/{owner}/{collateral-type}/deposits:
       post:
         summary: Create a deposit to cdp transaction
         tags:
@@ -436,11 +438,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: collateral_type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
           - description: deposit cdp post parameters
             name: post_deposit_req
             in: body
@@ -456,6 +458,8 @@
                   $ref: '#/definitions/Address'
                 collateral:
                   $ref: '#/definitions/CoinCollateral'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -465,7 +469,7 @@
             description: Invalid request
           500:
             description: Server internal error
-    /cdp/{owner}/{denom}/withdraw:
+    /cdp/{owner}/{collateral-type}/withdraw:
       post:
         summary: create a withdraw collateral transaction
         tags:
@@ -482,11 +486,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: collateral_type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
           - description: withdraw cdp post parameters
             name: post_withdraw_req
             in: body
@@ -502,6 +506,8 @@
                   $ref: '#/definitions/Address'
                 collateral:
                   $ref: '#/definitions/CoinCollateral'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -511,7 +517,7 @@
             description: Invalid request
           500:
             description: Server internal error
-    /cdp/{owner}/{denom}/draw:
+    /cdp/{owner}/{collateral-type}/draw:
       post:
         summary: Create a draw debt transaction
         tags:
@@ -528,11 +534,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: collateral_type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
           - description: draw cdp post parameters
             name: post_draw_req
             in: body
@@ -546,6 +552,8 @@
                   $ref: '#/definitions/Address'
                 principal:
                   $ref: '#/definitions/CoinPrincipal'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -555,7 +563,7 @@
             description: Invalid request
           500:
             description: Server internal error
-    /cdp/{owner}/{denom}/repay:
+    /cdp/{owner}/{collateral-type}/repay:
       post:
         summary: Repay debt from a CDP
         tags:
@@ -572,11 +580,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: collateral_type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
           - description: repay cdp post parameters
             name: post_repay_req
             in: body
@@ -590,6 +598,8 @@
                   $ref: '#/definitions/Address'
                 payment:
                   $ref: '#/definitions/CoinPrincipal'
+                collateral_type:
+                  $ref: '#/definitions/CollateralType'
         responses:
           200:
             description: Tx was successfully generated
@@ -640,7 +650,6 @@
                         type: number
           500:
             description: Server internal error
-
     /cdp/parameters:
       get:
         summary: Get the parameters of the cdp module
@@ -669,17 +678,23 @@
                 surplus_auction_threshold:
                   type: string
                   example: '1000000000'
+                surplus_auction_lot:
+                  type: string
+                  example: '10000000'
                 debt_auction_threshold:
                   type: string
                   example: '1000000000'
+                savings_distribution_frequency:
+                  type: string
+                  example: '60000000'
                 circuit_breaker:
                   type: boolean
                   example: false
           500:
             description: Server internal error
-    /cdp/cdps/cdp/{owner}/{denom}:
+    /cdp/cdps/cdp/{owner}/{collateral-type}:
       get:
-        summary: Get the cdp associated with the input owner address and collateral denom
+        summary: Get the cdp associated with the input owner address and collateral type
         tags:
           - CDP
         produces:
@@ -692,11 +707,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
         responses:
           200:
             description: CDP associated with owner
@@ -704,23 +719,23 @@
               $ref: '#/definitions/CdpResponse'
           500:
             description: Server internal error
-    /cdp/cdps/denom/{denom}:
+    /cdp/cdps/denom/{collateral-type}:
       get:
-        summary: Get all cdps with collateral type equal to the input collateral denom
+        summary: Get all cdps with collateral type equal to the input collateral type
         tags:
           - CDP
         produces:
           - application/json
         parameters:
           - in: path
-            name: denom
-            description: Collateral denom
+            name: type
+            description: Collateral Type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
         responses:
           200:
-            description: All CDPs with the input collateral denom
+            description: All CDPs with the input collateral type
             schema:
               type: object
               properties:
@@ -734,20 +749,20 @@
                     $ref: '#/definitions/CdpResponse'
           500:
             description: Server internal error
-    /cdp/cdps/ratio/{denom}/{ratio}:
+    /cdp/cdps/ratio/{collateral-type}/{ratio}:
       get:
-        summary: Get all cdps with collateral type equal to the input collateral denom and collateralization ratio strictly less than the input ratio
+        summary: Get all cdps with collateral type equal to the input collateral type and collateralization ratio strictly less than the input ratio
         tags:
           - CDP
         produces:
           - application/json
         parameters:
           - in: path
-            name: denom
-            description: Collateral denom
+            name: type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
           - in: path
             name: ratio
             description: Collateralization ratio
@@ -756,7 +771,7 @@
             x-example: "2.0"
         responses:
           200:
-            description: All CDPs with the input collateral denom and collateralization ratio less than the input ratio
+            description: All CDPs with the input collateral type and collateralization ratio less than the input ratio
             schema:
               type: object
               properties:
@@ -770,9 +785,9 @@
                     $ref: '#/definitions/CdpResponse'
           500:
             description: Server internal error
-    /cdp/cdps/cdp/deposits/{owner}/{denom}:
+    /cdp/cdps/cdp/deposits/{owner}/{collateral-type}:
       get:
-        summary: Get the deposits associated with the cdp owned by the input owner address and with collateral type equal to the input collateral denom
+        summary: Get the deposits associated with the cdp owned by an address for a collateral type
         tags:
           - CDP
         produces:
@@ -785,11 +800,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: type
+            description: Collateral type
             required: true
             type: string
-            x-example: xrp
+            x-example: xrp-a
         responses:
           200:
             description: Deposits associated with the cdp
@@ -805,6 +820,73 @@
                     $ref: '#/definitions/CdpDepositResponse'
           500:
             description: Server internal error
+    /cdp/savings-rate-dist:
+      get:
+        summary: Get the total savings rate distributed by the cdp module
+        tags:
+          - CDP
+        produces:
+          - application/json
+        responses:
+          200:
+            description: The distributed savings rate
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                savings_rate_distributed:
+                  type: string
+                  example: "5000000000000"
+          500:
+            description: Server internal error
+    /cdp/cdps:
+      get:
+        summary: Query all active cdps
+        tags:
+          - CDP
+        produces:
+          - application/json
+      parameters:
+        - in: query
+          name: owner
+          description: Owner address in bech32 format
+          required: false
+          type: string
+          x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        - in: query
+          name: collateral-type
+          description: Collateral type
+          required: false
+          type: string
+          x-example: xrp-a
+        - in: query
+          name: id
+          description: CDP ID
+          required: false
+          type: string
+          x-example: "4"
+        - in: query
+          name: ratio
+          description: Collateralization ratio
+          required: false
+          type: string
+          x-example: "2.75"
+      responses:
+        200:
+          description: Query cdps
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                type: array
+                items:
+                  $ref: '#/definitions/CdpResponse'
+        500:
+          description: Internal Server Error
     /bep3/swap/create:
       post:
         summary: Generate a create atomic swap transaction
@@ -1273,7 +1355,7 @@
                   $ref: '#/definitions/BaseReq'
                 owner:
                   $ref: '#/definitions/Address'
-                denom:
+                type:
                   type: string
                   example: bnb
         responses:
@@ -1285,9 +1367,9 @@
             description: Invalid request
           500:
             description: Internal server error
-    /incentive/claims/{owner}/{denom}:
+    /incentive/claims/{owner}/{collateral-type}:
       get:
-        summary: Get outstanding claims for the input owner and denom
+        summary: Get outstanding claims for the input owner and collateral type
         tags:
           - Incentive
         produces:
@@ -1299,11 +1381,11 @@
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
           - in: path
-            name: denom
-            description: Collateral denom
+            name: type
+            description: Collateral type
             required: true
             type: string
-            x-example: bnb
+            x-example: bnb-a
         responses:
           200:
             description: USDX Incentive Claims
@@ -3457,6 +3539,9 @@
         amount:
           type: string
           example: '555555'
+    CollateralType:
+      type: string
+      example: xrp-a
     CoinCollateral:
       type: object
       properties:
@@ -3904,6 +3989,9 @@
           example: kava1q53rwutgpzx7szcrgzqguxyccjpzt9j4cyctn9
         collateral:
           $ref: '#/definitions/CoinCollateral'
+        type:
+          type: string
+          example: "xrp-a"
         principal:
           $ref: '#/definitions/CoinPrincipal'
         accumulated_fees:
@@ -3987,6 +4075,15 @@
         bid_duration:
           type: string
           example: 600000000000
+        increment_surplus:
+          type: string
+          example: "0.05"
+        increment_debt:
+          type: string
+          example: "0.05"
+        increment_collateral:
+          type: string
+          example: "0.05"
     AuctionResponse:
       type: object
       properties:

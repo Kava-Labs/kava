@@ -44,7 +44,7 @@ func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 			$ %s tx %s claim kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb
 		`, version.ClientName, types.ModuleName),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -54,7 +54,7 @@ func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgClaimReward(owner, args[1])
+			msg := types.NewMsgClaimReward(owner, args[1], args[2])
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

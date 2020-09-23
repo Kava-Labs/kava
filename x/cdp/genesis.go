@@ -88,6 +88,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
 	}
+
+	k.SetSavingsRateDistributed(ctx, gs.SavingsRateDistributed)
 }
 
 // ExportGenesis export genesis state for cdp module
@@ -108,11 +110,12 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	cdpID := k.GetNextCdpID(ctx)
 	debtDenom := k.GetDebtDenom(ctx)
 	govDenom := k.GetGovDenom(ctx)
+	savingsRateDist := k.GetSavingsRateDistributed(ctx)
 
 	previousDistributionTime, found := k.GetPreviousSavingsDistribution(ctx)
 	if !found {
 		previousDistributionTime = DefaultPreviousDistributionTime
 	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime, savingsRateDist)
 }

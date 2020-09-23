@@ -15,13 +15,15 @@ var _ sdk.Msg = &MsgClaimReward{}
 type MsgClaimReward struct {
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
 	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
+	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 }
 
 // NewMsgClaimReward returns a new MsgClaimReward.
-func NewMsgClaimReward(sender sdk.AccAddress, collateralType string) MsgClaimReward {
+func NewMsgClaimReward(sender sdk.AccAddress, collateralType, multiplierName string) MsgClaimReward {
 	return MsgClaimReward{
 		Sender:         sender,
 		CollateralType: collateralType,
+		MultiplierName: multiplierName,
 	}
 }
 
@@ -39,7 +41,7 @@ func (msg MsgClaimReward) ValidateBasic() error {
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return fmt.Errorf("collateral type cannot be blank")
 	}
-	return nil
+	return MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid()
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.

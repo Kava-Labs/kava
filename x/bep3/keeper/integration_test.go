@@ -9,7 +9,6 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/bep3/types"
 )
 
@@ -32,12 +31,17 @@ func ts(minOffset int) int64                { return tmtime.Now().Add(time.Durat
 
 func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 	bep3Genesis := types.GenesisState{
-		Params: bep3.Params{
+		Params: types.Params{
 			AssetParams: types.AssetParams{
 				types.AssetParam{
-					Denom:         "bnb",
-					CoinID:        714,
-					SupplyLimit:   sdk.NewInt(350000000000000),
+					Denom:  "bnb",
+					CoinID: 714,
+					SupplyLimit: types.SupplyLimit{
+						Limit:          sdk.NewInt(350000000000000),
+						TimeLimited:    false,
+						TimeBasedLimit: sdk.ZeroInt(),
+						TimePeriod:     time.Hour,
+					},
 					Active:        true,
 					DeputyAddress: deputyAddress,
 					FixedFee:      sdk.NewInt(1000),
@@ -47,33 +51,43 @@ func NewBep3GenStateMulti(deputyAddress sdk.AccAddress) app.GenesisState {
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
 				types.AssetParam{
-					Denom:         "inc",
-					CoinID:        9999,
-					SupplyLimit:   sdk.NewInt(100),
+					Denom:  "inc",
+					CoinID: 9999,
+					SupplyLimit: types.SupplyLimit{
+						Limit:          sdk.NewInt(100000000000000),
+						TimeLimited:    true,
+						TimeBasedLimit: sdk.NewInt(50000000000),
+						TimePeriod:     time.Hour,
+					},
 					Active:        false,
 					DeputyAddress: deputyAddress,
 					FixedFee:      sdk.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MaxSwapAmount: sdk.NewInt(100000000000),
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
 			},
 		},
-		Supplies: bep3.AssetSupplies{
-			bep3.NewAssetSupply(
+		Supplies: types.AssetSupplies{
+			types.NewAssetSupply(
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
 				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				time.Duration(0),
 			),
-			bep3.NewAssetSupply(
+			types.NewAssetSupply(
 				sdk.NewCoin("inc", sdk.ZeroInt()),
 				sdk.NewCoin("inc", sdk.ZeroInt()),
 				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdk.ZeroInt()),
+				time.Duration(0),
 			),
 		},
+		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
-	return app.GenesisState{bep3.ModuleName: bep3.ModuleCdc.MustMarshalJSON(bep3Genesis)}
+	return app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(bep3Genesis)}
 }
 
 func atomicSwaps(ctx sdk.Context, count int) types.AtomicSwaps {
@@ -112,5 +126,5 @@ func assetSupplies(count int) types.AssetSupplies {
 }
 
 func assetSupply(denom string) types.AssetSupply {
-	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0))
+	return types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 0), c(denom, 0), time.Duration(0))
 }

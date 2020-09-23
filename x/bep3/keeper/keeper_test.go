@@ -310,7 +310,7 @@ func (suite *KeeperTestSuite) TestIterateAtomicSwapsLongtermStorage() {
 func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
 	denom := "bnb"
 	// Put asset supply in store
-	assetSupply := types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 50000))
+	assetSupply := types.NewAssetSupply(c(denom, 0), c(denom, 0), c(denom, 50000), c(denom, 0), time.Duration(0))
 	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, denom)
 
 	// Check asset in store
@@ -327,9 +327,9 @@ func (suite *KeeperTestSuite) TestGetSetAssetSupply() {
 func (suite *KeeperTestSuite) TestGetAllAssetSupplies() {
 
 	// Put asset supply in store
-	assetSupply := types.NewAssetSupply(c("bnb", 0), c("bnb", 0), c("bnb", 50000))
+	assetSupply := types.NewAssetSupply(c("bnb", 0), c("bnb", 0), c("bnb", 50000), c("bnb", 0), time.Duration(0))
 	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "bnb")
-	assetSupply = types.NewAssetSupply(c("inc", 0), c("inc", 0), c("inc", 50000))
+	assetSupply = types.NewAssetSupply(c("inc", 0), c("inc", 0), c("inc", 50000), c("inc", 0), time.Duration(0))
 	suite.keeper.SetAssetSupply(suite.ctx, assetSupply, "inc")
 
 	supplies := suite.keeper.GetAllAssetSupplies(suite.ctx)

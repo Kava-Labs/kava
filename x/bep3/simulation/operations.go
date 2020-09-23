@@ -127,14 +127,26 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		// Get maximum valid amount
 		maximumAmount := senderAcc.SpendableCoins(ctx.BlockTime()).Sub(fees).AmountOf(asset.Denom)
+		assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, asset.Denom)
+		if !foundAssetSupply {
+			return noOpMsg, nil, fmt.Errorf("no asset supply found for %s", asset.Denom)
+		}
 		// The maximum amount for outgoing swaps is limited by the asset's current supply
 		if recipient.Address.Equals(asset.DeputyAddress) {
-			assetSupply, foundAssetSupply := k.GetAssetSupply(ctx, asset.Denom)
-			if !foundAssetSupply {
-				return noOpMsg, nil, fmt.Errorf("no asset supply found for %s", asset.Denom)
-			}
+
 			if maximumAmount.GT(assetSupply.CurrentSupply.Amount.Sub(assetSupply.OutgoingSupply.Amount)) {
 				maximumAmount = assetSupply.CurrentSupply.Amount.Sub(assetSupply.OutgoingSupply.Amount)
+			}
+		} else {
+			// the maximum amount for incoming swaps in limited by the asset's incoming supply + current supply (rate-limited if applicable)  + swap amount being less than the supply limit
+			var currentRemainingSupply sdk.Int
+			if asset.SupplyLimit.TimeLimited {
+				currentRemainingSupply = asset.SupplyLimit.Limit.Sub(assetSupply.IncomingSupply.Amount).Sub(assetSupply.TimeLimitedCurrentSupply.Amount)
+			} else {
+				currentRemainingSupply = asset.SupplyLimit.Limit.Sub(assetSupply.IncomingSupply.Amount).Sub(assetSupply.CurrentSupply.Amount)
+			}
+			if currentRemainingSupply.LT(maximumAmount) {
+				maximumAmount = currentRemainingSupply
 			}
 		}
 
@@ -147,7 +159,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 		amount := maximumAmount.Quo(sdk.NewInt(int64(simulation.RandIntBetween(r, 50, 1000))))
 		minAmountPlusFee := asset.MinSwapAmount.Add(asset.FixedFee)
 		if amount.LT(minAmountPlusFee) {
-			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (all funds exhausted for asset %s)", asset.Denom), "", false, nil), nil, nil
+			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (account funds exhausted for asset %s)", asset.Denom), "", false, nil), nil, nil
 		}
 		coins := sdk.NewCoins(sdk.NewCoin(asset.Denom, amount))
 
@@ -171,7 +183,7 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 
 		// Construct a MsgClaimAtomicSwap or MsgRefundAtomicSwap future operation
@@ -242,7 +254,7 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		if !found {
 			return simulation.NewOperationMsgBasic(types.ModuleName, fmt.Sprintf("no-operation (could not claim - asset supply not found %s)", swap.Amount[0].Denom), "", false, nil), nil, nil
 		}
-		if asset.SupplyLimit.LT(supply.CurrentSupply.Amount.Add(swap.Amount[0].Amount)) {
+		if asset.SupplyLimit.Limit.LT(supply.CurrentSupply.Amount.Add(swap.Amount[0].Amount)) {
 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 		}
 
@@ -262,7 +274,7 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		)
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}
@@ -310,7 +322,7 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 
 		_, result, err := app.Deliver(tx)
 		if err != nil {
-			return simulation.NoOpMsg(types.ModuleName), nil, err
+			return simulation.NewOperationMsg(msg, false, fmt.Sprintf("%+v", err)), nil, err
 		}
 		return simulation.NewOperationMsg(msg, true, result.Log), nil, nil
 	}

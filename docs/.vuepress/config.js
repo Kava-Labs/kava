@@ -29,6 +29,14 @@ module.exports = {
             {
               title: "Auction Bot",
               path: "/tools/auction.html",
+            },
+            {
+              title: "Sentinel",
+              path: "/tools/sentinel.html",
+            },
+            {
+              title: "Community Tools",
+              path: "/tools/community.html",
             }
           ]
         },
@@ -81,7 +89,7 @@ module.exports = {
         },
         {
           service: "discord",
-          url: "https://discord.com/invite/kQzh3Uv"
+          url: "https://discord.gg/JJYnuCx"
         },
         {
           service: "github",

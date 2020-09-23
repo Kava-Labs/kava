@@ -3,6 +3,7 @@ package simulation
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -22,12 +23,13 @@ func makeTestCodec() (cdc *codec.Codec) {
 	return
 }
 
-func TestDecodeDistributionStore(t *testing.T) {
+func TestDecodeBep3Store(t *testing.T) {
 	cdc := makeTestCodec()
+	prevBlockTime := time.Now().UTC()
 
 	oneCoin := sdk.NewCoin("coin", sdk.OneInt())
 	swap := types.NewAtomicSwap(sdk.Coins{oneCoin}, nil, 10, 100, nil, nil, "otherChainSender", "otherChainRec", 200, types.Completed, true, types.Outgoing)
-	supply := types.AssetSupply{IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin}
+	supply := types.AssetSupply{IncomingSupply: oneCoin, OutgoingSupply: oneCoin, CurrentSupply: oneCoin, TimeLimitedCurrentSupply: oneCoin, TimeElapsed: time.Duration(0)}
 	bz := tmbytes.HexBytes([]byte{1, 2})
 
 	kvPairs := kv.Pairs{
@@ -35,6 +37,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		kv.Pair{Key: types.AssetSupplyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(supply)},
 		kv.Pair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
 		kv.Pair{Key: types.AtomicSwapByBlockPrefix, Value: bz},
+		kv.Pair{Key: types.PreviousBlockTimeKey, Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -46,6 +49,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		{"AssetSupply", fmt.Sprintf("%v\n%v", supply, supply)},
 		{"AtomicSwapByBlock", fmt.Sprintf("%s\n%s", bz, bz)},
 		{"AtomicSwapLongtermStorage", fmt.Sprintf("%s\n%s", bz, bz)},
+		{"PreviousBlockTime", fmt.Sprintf("%s\n%s", prevBlockTime, prevBlockTime)},
 		{"other", ""},
 	}
 	for i, tt := range tests {

@@ -1,6 +1,8 @@
 package v0_9
 
 import (
+	"encoding/json"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
@@ -141,6 +143,50 @@ const (
 	Expired   SwapStatus = 0x03
 )
 
+// MarshalJSON marshals the SwapStatus
+func (status SwapStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(status.String())
+}
+
+// UnmarshalJSON unmarshals the SwapStatus
+func (status *SwapStatus) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	*status = NewSwapStatusFromString(s)
+	return nil
+}
+
+// NewSwapStatusFromString converts string to SwapStatus type
+func NewSwapStatusFromString(str string) SwapStatus {
+	switch str {
+	case "Open", "open":
+		return Open
+	case "Completed", "completed":
+		return Completed
+	case "Expired", "expired":
+		return Expired
+	default:
+		return NULL
+	}
+}
+
+// String returns the string representation of a SwapStatus
+func (status SwapStatus) String() string {
+	switch status {
+	case Open:
+		return "Open"
+	case Completed:
+		return "Completed"
+	case Expired:
+		return "Expired"
+	default:
+		return "NULL"
+	}
+}
+
 // SwapDirection is the direction of an AtomicSwap
 type SwapDirection byte
 
@@ -149,3 +195,52 @@ const (
 	Incoming SwapDirection = 0x01
 	Outgoing SwapDirection = 0x02
 )
+
+// NewSwapDirectionFromString converts string to SwapDirection type
+func NewSwapDirectionFromString(str string) SwapDirection {
+	switch str {
+	case "Incoming", "incoming", "inc", "I", "i":
+		return Incoming
+	case "Outgoing", "outgoing", "out", "O", "o":
+		return Outgoing
+	default:
+		return INVALID
+	}
+}
+
+// String returns the string representation of a SwapDirection
+func (direction SwapDirection) String() string {
+	switch direction {
+	case Incoming:
+		return "Incoming"
+	case Outgoing:
+		return "Outgoing"
+	default:
+		return "INVALID"
+	}
+}
+
+// MarshalJSON marshals the SwapDirection
+func (direction SwapDirection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(direction.String())
+}
+
+// UnmarshalJSON unmarshals the SwapDirection
+func (direction *SwapDirection) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	*direction = NewSwapDirectionFromString(s)
+	return nil
+}
+
+// IsValid returns true if the swap direction is valid and false otherwise.
+func (direction SwapDirection) IsValid() bool {
+	if direction == Incoming ||
+		direction == Outgoing {
+		return true
+	}
+	return false
+}

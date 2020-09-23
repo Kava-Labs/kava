@@ -1,12 +1,11 @@
 package keeper
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -21,6 +20,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryAuctions(ctx, req, keeper)
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper)
+		case types.QueryNextAuctionID:
+			return queryNextAuctionID(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -91,11 +92,27 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 	filteredAuctions := make(types.Auctions, 0, len(auctions))
 
 	for _, auc := range auctions {
-		matchType, matchDenom, matchPhase := true, true, true
+		matchType, matchOwner, matchDenom, matchPhase := true, true, true, true
 
 		// match auction type (if supplied)
 		if len(params.Type) > 0 {
 			matchType = auc.GetType() == params.Type
+		}
+
+		// match auction owner (if supplied)
+		if len(params.Owner) > 0 {
+			if cAuc, ok := auc.(types.CollateralAuction); ok {
+				foundOwnerAddr := false
+				for _, addr := range cAuc.GetLotReturns().Addresses {
+					if addr.Equals(params.Owner) {
+						foundOwnerAddr = true
+						break
+					}
+				}
+				if !foundOwnerAddr {
+					matchOwner = false
+				}
+			}
 		}
 
 		// match auction denom (if supplied)
@@ -108,7 +125,7 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 			matchPhase = auc.GetPhase() == params.Phase
 		}
 
-		if matchType && matchDenom && matchPhase {
+		if matchType && matchOwner && matchDenom && matchPhase {
 			filteredAuctions = append(filteredAuctions, auc)
 		}
 	}
@@ -121,4 +138,14 @@ func filterAuctions(ctx sdk.Context, auctions types.Auctions, params types.Query
 	}
 
 	return filteredAuctions
+}
+
+func queryNextAuctionID(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	nextAuctionID, _ := keeper.GetNextAuctionID(ctx)
+
+	bz, err := types.ModuleCdc.MarshalJSON(nextAuctionID)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	return bz, nil
 }

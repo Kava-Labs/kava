@@ -120,6 +120,7 @@ var (
 	DefaultMaxAmount                = types.DefaultMaxAmount
 	DefaultMinBlockLock             = types.DefaultMinBlockLock
 	DefaultMaxBlockLock             = types.DefaultMaxBlockLock
+	DefaultPreviousBlockTime        = types.DefaultPreviousBlockTime
 )
 
 type (
@@ -141,6 +142,7 @@ type (
 	AtomicSwaps          = types.AtomicSwaps
 	SwapStatus           = types.SwapStatus
 	SwapDirection        = types.SwapDirection
+	SupplyLimit          = types.SupplyLimit
 	AugmentedAtomicSwap  = types.AugmentedAtomicSwap
 	AugmentedAtomicSwaps = types.AugmentedAtomicSwaps
 )

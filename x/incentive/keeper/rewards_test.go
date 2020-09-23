@@ -15,7 +15,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestExpireRewardPeriod() {
-	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
+	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})
 	suite.keeper.SetRewardPeriod(suite.ctx, rp)
 	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
 	suite.NotPanics(func() {
@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestExpireRewardPeriod() {
 }
 
 func (suite *KeeperTestSuite) TestAddToClaim() {
-	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), time.Hour*8766)
+	rp := types.NewRewardPeriod("bnb", suite.ctx.BlockTime(), suite.ctx.BlockTime().Add(time.Hour*168), c("ukava", 100000000), suite.ctx.BlockTime().Add(time.Hour*168*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})
 	suite.keeper.SetRewardPeriod(suite.ctx, rp)
 	suite.keeper.SetNextClaimPeriodID(suite.ctx, "bnb", 1)
 	suite.keeper.HandleRewardPeriodExpiry(suite.ctx, rp)
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestAddToClaim() {
 }
 
 func (suite *KeeperTestSuite) TestCreateRewardPeriod() {
-	reward := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
+	reward := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)
 	suite.NotPanics(func() {
 		suite.keeper.CreateNewRewardPeriod(suite.ctx, reward)
 	})
@@ -53,9 +53,9 @@ func (suite *KeeperTestSuite) TestCreateRewardPeriod() {
 }
 
 func (suite *KeeperTestSuite) TestCreateAndDeleteRewardsPeriods() {
-	reward1 := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
-	reward2 := types.NewReward(false, "xrp", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
-	reward3 := types.NewReward(false, "btc", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)
+	reward1 := types.NewReward(true, "bnb", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)
+	reward2 := types.NewReward(false, "xrp", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)
+	reward3 := types.NewReward(false, "btc", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)
 	// add a reward period to the store for a non-active reward
 	suite.NotPanics(func() {
 		suite.keeper.CreateNewRewardPeriod(suite.ctx, reward3)
@@ -214,10 +214,10 @@ func (suite *KeeperTestSuite) setupCdpChain() {
 	}
 	incentiveGS := types.NewGenesisState(
 		types.NewParams(
-			true, types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, time.Hour*24*365, time.Hour*7*24)},
+			true, types.Rewards{types.NewReward(true, "bnb-a", c("ukava", 1000000000), time.Hour*7*24, types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))}, time.Hour*7*24)},
 		),
 		types.DefaultPreviousBlockTime,
-		types.RewardPeriods{types.NewRewardPeriod("bnb-a", ctx.BlockTime(), ctx.BlockTime().Add(time.Hour*7*24), c("ukava", 1000), ctx.BlockTime().Add(time.Hour*7*24*2), time.Hour*365*24)},
+		types.RewardPeriods{types.NewRewardPeriod("bnb-a", ctx.BlockTime(), ctx.BlockTime().Add(time.Hour*7*24), c("ukava", 1000), ctx.BlockTime().Add(time.Hour*7*24*2), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Large, 12, sdk.MustNewDecFromStr("1.0"))})},
 		types.ClaimPeriods{},
 		types.Claims{},
 		types.GenesisClaimPeriodIDs{})

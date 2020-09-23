@@ -69,7 +69,7 @@ func genRandomInflation(r *rand.Rand) sdk.Dec {
 	aprInflation := sdk.OneDec().Add(extraAprInflation)
 
 	// convert APR inflation to SPR (inflation per second)
-	inflationSpr, err := approxRoot(aprInflation, uint64(SecondsPerYear))
+	inflationSpr, err := aprInflation.ApproxRoot(uint64(SecondsPerYear))
 	if err != nil {
 		panic(fmt.Sprintf("error generating random inflation %v", err))
 	}

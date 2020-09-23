@@ -116,7 +116,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler returns no sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return nil
+	return NewQuerier(am.keeper)
 }
 
 // InitGenesis module init-genesis

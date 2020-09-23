@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -221,4 +222,21 @@ func (k Keeper) GetAllAssetSupplies(ctx sdk.Context) (supplies types.AssetSuppli
 		return false
 	})
 	return
+}
+
+// GetPreviousBlockTime get the blocktime for the previous block
+func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
+	b := store.Get([]byte{})
+	if b == nil {
+		return time.Time{}, false
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &blockTime)
+	return blockTime, true
+}
+
+// SetPreviousBlockTime set the time of the previous block
+func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
+	store.Set([]byte{}, k.cdc.MustMarshalBinaryLengthPrefixed(blockTime))
 }

@@ -386,7 +386,7 @@ type AllowedCollateralParam struct {
 }
 
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
-	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collatreral types to be all equal
+	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collateral types to be all equal
 		(current.Denom == incoming.Denom || acp.Denom) &&
 		(current.LiquidationRatio.Equal(incoming.LiquidationRatio) || acp.LiquidationRatio) &&
 		(current.DebtLimit.IsEqual(incoming.DebtLimit) || acp.DebtLimit) &&
@@ -467,19 +467,25 @@ func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) b
 	return allAllowed
 }
 
+// AllowedAssetParam bep3 asset parameters that can be changed by committee
 type AllowedAssetParam struct {
-	Denom  string `json:"denom" yaml:"denom"`
-	CoinID bool   `json:"coin_id" yaml:"coin_id"`
-	Limit  bool   `json:"limit" yaml:"limit"`
-	Active bool   `json:"active" yaml:"active"`
+	Denom         string `json:"denom" yaml:"denom"`
+	CoinID        bool   `json:"coin_id" yaml:"coin_id"`
+	Limit         bool   `json:"limit" yaml:"limit"`
+	Active        bool   `json:"active" yaml:"active"`
+	MaxSwapAmount bool   `json:"max_swap_amount" yaml:"max_swap_amount"`
+	MinBlockLock  bool   `json:"min_block_lock" yaml:"min_block_lock"`
 }
 
+// Allows bep3 AssetParam parameters than can be changed by committee
 func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool {
 
 	allowed := ((aap.Denom == current.Denom) && (aap.Denom == incoming.Denom)) && // require denoms to be all equal
 		((current.CoinID == incoming.CoinID) || aap.CoinID) &&
-		(current.SupplyLimit.Equal(incoming.SupplyLimit) || aap.Limit) &&
-		((current.Active == incoming.Active) || aap.Active)
+		(current.SupplyLimit.Equals(incoming.SupplyLimit) || aap.Limit) &&
+		((current.Active == incoming.Active) || aap.Active) &&
+		((current.MaxSwapAmount.Equal(incoming.MaxSwapAmount)) || aap.MaxSwapAmount) &&
+		((current.MinBlockLock == incoming.MinBlockLock) || aap.MinBlockLock)
 	return allowed
 }
 

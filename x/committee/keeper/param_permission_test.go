@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -83,9 +84,14 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	// bep3 Asset Params
 	testAPs := bep3types.AssetParams{
 		bep3types.AssetParam{
-			Denom:         "bnb",
-			CoinID:        714,
-			SupplyLimit:   sdk.NewInt(350000000000000),
+			Denom:  "bnb",
+			CoinID: 714,
+			SupplyLimit: bep3types.SupplyLimit{
+				Limit:          sdk.NewInt(350000000000000),
+				TimeLimited:    false,
+				TimeBasedLimit: sdk.ZeroInt(),
+				TimePeriod:     time.Hour,
+			},
 			Active:        true,
 			DeputyAddress: testDeputy,
 			FixedFee:      sdk.NewInt(1000),
@@ -95,9 +101,14 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 		},
 		bep3types.AssetParam{
-			Denom:         "inc",
-			CoinID:        9999,
-			SupplyLimit:   sdk.NewInt(100),
+			Denom:  "inc",
+			CoinID: 9999,
+			SupplyLimit: bep3types.SupplyLimit{
+				Limit:          sdk.NewInt(100000000000000),
+				TimeLimited:    true,
+				TimeBasedLimit: sdk.NewInt(50000000000),
+				TimePeriod:     time.Hour,
+			},
 			Active:        false,
 			DeputyAddress: testDeputy,
 			FixedFee:      sdk.NewInt(1000),

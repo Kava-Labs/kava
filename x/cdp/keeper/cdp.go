@@ -350,6 +350,9 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin, collate
 	if !found {
 		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateral.Denom)
 	}
+	if cp.Denom != collateral.Denom {
+		return sdkerrors.Wrapf(types.ErrInvalidCollateral, "collateral type: %s expected denom: %s got: %s", collateralType, cp.Denom, collateral.Denom)
+	}
 	ok := k.GetMarketStatus(ctx, cp.SpotMarketID)
 	if !ok {
 		return sdkerrors.Wrap(types.ErrPricefeedDown, collateral.Denom)

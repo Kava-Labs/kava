@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -14,7 +15,7 @@ import (
 type ParamsTestSuite struct {
 	suite.Suite
 	addr   sdk.AccAddress
-	supply []sdk.Int
+	supply []types.SupplyLimit
 }
 
 func (suite *ParamsTestSuite) SetupTest() {
@@ -22,7 +23,19 @@ func (suite *ParamsTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addr = addrs[0]
-	suite.supply = append(suite.supply, sdk.NewInt(10000000000000), sdk.NewInt(10000000000000))
+	supply1 := types.SupplyLimit{
+		Limit:          sdk.NewInt(10000000000000),
+		TimeLimited:    false,
+		TimeBasedLimit: sdk.ZeroInt(),
+		TimePeriod:     time.Hour,
+	}
+	supply2 := types.SupplyLimit{
+		Limit:          sdk.NewInt(10000000000000),
+		TimeLimited:    true,
+		TimeBasedLimit: sdk.NewInt(100000000000),
+		TimePeriod:     time.Hour * 24,
+	}
+	suite.supply = append(suite.supply, supply1, supply2)
 	return
 }
 
@@ -51,6 +64,17 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  true,
+			expectedErr: "",
+		},
+		{
+			name: "valid single asset time limited",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714, suite.supply[1], true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
@@ -166,12 +190,37 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
-					sdk.NewInt(-10000000000000), true,
+					types.SupplyLimit{sdk.NewInt(-10000000000000), false, time.Hour, sdk.ZeroInt()}, true,
 					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
 			expectedErr: "invalid (negative) supply limit",
+		},
+		{
+			name: "negative asset time limit",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714,
+					types.SupplyLimit{sdk.NewInt(10000000000000), false, time.Hour, sdk.NewInt(-10000000000000)}, true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "invalid (negative) supply time limit",
+		},
+		{
+			name: "asset time limit greater than overall limit",
+			args: args{
+				assetParams: types.AssetParams{types.NewAssetParam(
+					"bnb", 714,
+					types.SupplyLimit{sdk.NewInt(10000000000000), true, time.Hour, sdk.NewInt(100000000000000)},
+					true,
+					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
+			},
+			expectPass:  false,
+			expectedErr: "supply time limit > supply limit",
 		},
 		{
 			name: "duplicate denom",
@@ -201,7 +250,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				suite.Require().Error(err, tc.name)
 				suite.Require().Contains(err.Error(), tc.expectedErr)
 			}
-
 		})
 	}
 }

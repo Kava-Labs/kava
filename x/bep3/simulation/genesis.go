@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -61,7 +62,7 @@ func GenSupplyLimit(r *rand.Rand, max int) sdk.Int {
 func GenAssetSupply(r *rand.Rand, denom string) types.AssetSupply {
 	return types.NewAssetSupply(
 		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
-		sdk.NewCoin(denom, sdk.ZeroInt()))
+		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
 }
 
 // GenMinBlockLock randomized MinBlockLock
@@ -97,10 +98,22 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 
 	minSwapAmount := GenMinSwapAmount(r)
 	minBlockLock := GenMinBlockLock(r)
+	timeLimited := r.Float32() < 0.5
+	timeBasedLimit := sdk.ZeroInt()
+	if timeLimited {
+		// set time-based limit to between 10 and 25% of the total limit
+		min := int(limit.Quo(sdk.NewInt(10)).Int64())
+		max := int(limit.Quo(sdk.NewInt(4)).Int64())
+		timeBasedLimit = sdk.NewInt(int64(simulation.RandIntBetween(r, min, max)))
+	}
 	return types.AssetParam{
-		Denom:         denom,
-		CoinID:        int(coinID.Int64()),
-		SupplyLimit:   limit,
+		Denom:  denom,
+		CoinID: int(coinID.Int64()),
+		SupplyLimit: types.SupplyLimit{
+			Limit:          limit,
+			TimeLimited:    timeLimited,
+			TimePeriod:     time.Hour * 24,
+			TimeBasedLimit: timeBasedLimit},
 		Active:        true,
 		DeputyAddress: GenRandBnbDeputy(r).Address,
 		FixedFee:      GenRandFixedFee(r),
@@ -145,7 +158,8 @@ func loadRandomBep3GenState(simState *module.SimulationState) types.GenesisState
 		Params: types.Params{
 			AssetParams: supportedAssets,
 		},
-		Supplies: supplies,
+		Supplies:          supplies,
+		PreviousBlockTime: types.DefaultPreviousBlockTime,
 	}
 
 	return bep3Genesis
@@ -161,7 +175,7 @@ func loadAuthGenState(simState *module.SimulationState, bep3Genesis types.Genesi
 		if !found {
 			panic("deputy address not found in available accounts")
 		}
-		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit))
+		assetCoin := sdk.NewCoins(sdk.NewCoin(asset.Denom, asset.SupplyLimit.Limit))
 		if err := deputy.SetCoins(deputy.GetCoins().Add(assetCoin...)); err != nil {
 			panic(err)
 		}

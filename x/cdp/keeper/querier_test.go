@@ -116,7 +116,7 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdp}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Collateral.Denom+"-a")),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpParams(suite.cdps[0].Owner, suite.cdps[0].Type)),
 	}
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdp}, query)
 	suite.Nil(err)
@@ -156,10 +156,10 @@ func (suite *QuerierTestSuite) TestQueryCdp() {
 func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsParams(suite.cdps[0].Collateral.Denom + "-a")),
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralType}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams(suite.cdps[0].Type)),
 	}
-	bz, err := suite.querier(ctx, []string{types.QueryGetCdps}, query)
+	bz, err := suite.querier(ctx, []string{types.QueryGetCdpsByCollateralType}, query)
 	suite.Nil(err)
 	suite.NotNil(bz)
 
@@ -168,10 +168,10 @@ func (suite *QuerierTestSuite) TestQueryCdpsByCollateralType() {
 	suite.Equal(50, len(c))
 
 	query = abci.RequestQuery{
-		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsParams("lol-a")),
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpsByCollateralType}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpsByCollateralTypeParams("lol-a")),
 	}
-	_, err = suite.querier(ctx, []string{types.QueryGetCdps}, query)
+	_, err = suite.querier(ctx, []string{types.QueryGetCdpsByCollateralType}, query)
 	suite.Error(err)
 }
 
@@ -265,7 +265,7 @@ func (suite *QuerierTestSuite) TestQueryDeposits() {
 	ctx := suite.ctx.WithIsCheckTx(false)
 	query := abci.RequestQuery{
 		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdpDeposits}, "/"),
-		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Collateral.Denom+"-a")),
+		Data: types.ModuleCdc.MustMarshalJSON(types.NewQueryCdpDeposits(suite.cdps[0].Owner, suite.cdps[0].Type)),
 	}
 
 	bz, err := suite.querier(ctx, []string{types.QueryGetCdpDeposits}, query)
@@ -301,6 +301,89 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 	suite.Require().True(findByName("cdp"))
 	suite.Require().True(findByName("liquidator"))
 	suite.Require().True(findByName("savings"))
+}
+
+func (suite *QuerierTestSuite) TestQuerySavingsRateDistributed() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	bz, err := suite.querier(ctx, []string{types.QueryGetSavingsRateDistributed}, abci.RequestQuery{})
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	var distAmount sdk.Int
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &distAmount))
+	suite.True(sdk.ZeroInt().Equal(distAmount))
+}
+
+func (suite *QuerierTestSuite) TestFindIntersection() {
+	a := types.CDPs{suite.cdps[0], suite.cdps[1], suite.cdps[2], suite.cdps[3], suite.cdps[4]}
+	b := types.CDPs{suite.cdps[3], suite.cdps[4], suite.cdps[5], suite.cdps[6], suite.cdps[7]}
+	expectedIntersection1 := types.CDPs{suite.cdps[3], suite.cdps[4]}
+
+	intersection1 := keeper.FindIntersection(a, b)
+	suite.Require().Equal(intersection1, expectedIntersection1)
+
+	c := types.CDPs{suite.cdps[0], suite.cdps[1], suite.cdps[2], suite.cdps[3], suite.cdps[4]}
+	d := types.CDPs{suite.cdps[5], suite.cdps[6], suite.cdps[7], suite.cdps[8], suite.cdps[9]}
+	expectedIntersection2 := types.CDPs{}
+
+	intersection2 := keeper.FindIntersection(c, d)
+	suite.Require().Equal(intersection2, expectedIntersection2)
+
+	e := types.CDPs{suite.cdps[0]}
+	f := types.CDPs{}
+	expectedIntersection3 := types.CDPs{}
+
+	intersection3 := keeper.FindIntersection(e, f)
+	suite.Require().Equal(intersection3, expectedIntersection3)
+}
+
+func (suite *QuerierTestSuite) TestFilterCDPs() {
+	paramsType := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.ZeroDec())
+	filteredCDPs1 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsType)
+	suite.Require().Equal(len(filteredCDPs1), 50)
+
+	paramsOwner := types.NewQueryCdpsParams(1, 100, "", suite.cdps[10].Owner, 0, sdk.ZeroDec())
+	filteredCDPs2 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsOwner)
+	suite.Require().Equal(len(filteredCDPs2), 1)
+	suite.Require().Equal(filteredCDPs2[0].Owner, suite.cdps[10].Owner)
+
+	paramsID := types.NewQueryCdpsParams(1, 100, "", sdk.AccAddress{}, 68, sdk.ZeroDec())
+	filteredCDPs3 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsID)
+	suite.Require().Equal(len(filteredCDPs3), 1)
+	suite.Require().Equal(filteredCDPs3[0].ID, suite.cdps[68-1].ID)
+
+	ratioCountBtc := 0
+	btcRatio := d("2500")
+	for _, cdp := range suite.cdps {
+		if cdp.Type == "btc-a" {
+			absoluteRatio := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Type, cdp.Principal)
+			collateralizationRatio, _ := suite.keeper.CalculateCollateralizationRatioFromAbsoluteRatio(suite.ctx, cdp.Type, absoluteRatio, "liquidation")
+			if collateralizationRatio.LT(btcRatio) {
+				ratioCountBtc += 1
+			}
+		}
+	}
+	paramsTypeAndRatio := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.NewDec(2500))
+	filteredCDPs4 := keeper.FilterCDPs(suite.ctx, suite.keeper, paramsTypeAndRatio)
+	suite.Require().Equal(len(filteredCDPs4), ratioCountBtc)
+}
+
+func (suite *QuerierTestSuite) TestQueryCdps() {
+	ctx := suite.ctx.WithIsCheckTx(false)
+	params := types.NewQueryCdpsParams(1, 100, "btc-a", sdk.AccAddress{}, 0, sdk.ZeroDec())
+
+	query := abci.RequestQuery{
+		Path: strings.Join([]string{custom, types.QuerierRoute, types.QueryGetCdps}, "/"),
+		Data: types.ModuleCdc.MustMarshalJSON(params),
+	}
+
+	bz, err := suite.querier(ctx, []string{types.QueryGetCdps}, query)
+	suite.Nil(err)
+	suite.NotNil(bz)
+
+	output := types.AugmentedCDPs{}
+	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &output))
+	suite.Equal(50, len(output))
 }
 
 func TestQuerierTestSuite(t *testing.T) {
