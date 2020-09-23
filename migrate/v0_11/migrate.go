@@ -9,7 +9,7 @@ import (
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
-	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
+	v0_11committee "github.com/kava-labs/kava/x/committee"
 	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
@@ -158,6 +158,7 @@ func MigrateIncentive(oldGenState v0_9incentive.GenesisState) v0_11incentive.Gen
 	return v0_11incentive.NewGenesisState(newParams, oldGenState.PreviousBlockTime, newRewardPeriods, newClaimPeriods, newClaims, newClaimPeriodIds)
 }
 
+// MigrateCommittee migrates from a v0.9 (or v0.10) committee genesis state to a v0.11 committee genesis state
 func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.GenesisState {
 	var newCommittees []v0_11committee.Committee
 	var newStabilityCommittee v0_11committee.Committee
