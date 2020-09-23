@@ -112,10 +112,12 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 					}
 					oldAssetParam := subPermission.AllowedAssetParams[0]
 					newAssetParam := v0_11committee.AllowedAssetParam{
-						Active: oldAssetParam.Active,
-						CoinID: oldAssetParam.CoinID,
-						Denom:  oldAssetParam.Denom,
-						Limit:  oldAssetParam.Limit,
+						Active:        oldAssetParam.Active,
+						CoinID:        oldAssetParam.CoinID,
+						Denom:         oldAssetParam.Denom,
+						Limit:         oldAssetParam.Limit,
+						MaxSwapAmount: true,
+						MinBlockLock:  true,
 					}
 					oldMarketParams := subPermission.AllowedMarkets
 					var newMarketParams v0_11committee.AllowedMarkets
@@ -133,8 +135,50 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 
 						newAllowedParams = append(newAllowedParams, newAllowedParam)
 					}
-					newStabilitySubParamPermissions.AllowedAssetParams = v0_11committee.AllowedAssetParams{newAssetParam}
-					newStabilitySubParamPermissions.AllowedCollateralParams = v0_11committee.AllowedCollateralParams{newCollateralParam}
+
+					// --------------- ADD BUSD, XRP-B, BTC-B BEP3 parameters to Stability Committee Permissions
+					busdAllowedAssetParam := v0_11committee.AllowedAssetParam{
+						Active:        true,
+						CoinID:        true, // allow busd coinID to be updated in case it gets its own slip-44
+						Denom:         "busd",
+						Limit:         true,
+						MaxSwapAmount: true,
+						MinBlockLock:  true,
+					}
+					xrpbAllowedAssetParam := v0_11committee.AllowedAssetParam{
+						Active:        true,
+						CoinID:        false,
+						Denom:         "xrpb",
+						Limit:         true,
+						MaxSwapAmount: true,
+						MinBlockLock:  true,
+					}
+					btcbAllowedAssetParam := v0_11committee.AllowedAssetParam{
+						Active:        true,
+						CoinID:        false,
+						Denom:         "btcb",
+						Limit:         true,
+						MaxSwapAmount: true,
+						MinBlockLock:  true,
+					}
+					// --------- ADD BTC-B, XRP-B, BUSD(a), BUSD(b) cdp collateral params to stability committee
+					busdaAllowedCollateralParam := v0_11committee.NewAllowedCollateralParam(
+						"busd-a", false, false, true, true, true, false, false, false, false, false,
+					)
+					busdbAllowedCollateralParam := v0_11committee.NewAllowedCollateralParam(
+						"busd-b", false, false, true, true, true, false, false, false, false, false,
+					)
+					btcbAllowedCollateralParam := v0_11committee.NewAllowedCollateralParam(
+						"btcb-a", false, false, true, true, true, false, false, false, false, false,
+					)
+					xrpbAllowedCollateralParam := v0_11committee.NewAllowedCollateralParam(
+						"xrpb-a", false, false, true, true, true, false, false, false, false, false,
+					)
+
+					newStabilitySubParamPermissions.AllowedAssetParams = v0_11committee.AllowedAssetParams{
+						newAssetParam, busdAllowedAssetParam, btcbAllowedAssetParam, xrpbAllowedAssetParam}
+					newStabilitySubParamPermissions.AllowedCollateralParams = v0_11committee.AllowedCollateralParams{
+						newCollateralParam, busdaAllowedCollateralParam, busdbAllowedCollateralParam, btcbAllowedCollateralParam, xrpbAllowedCollateralParam}
 					newStabilitySubParamPermissions.AllowedDebtParam = newDebtParam
 					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
 					newStabilitySubParamPermissions.AllowedParams = newAllowedParams

@@ -385,6 +385,26 @@ type AllowedCollateralParam struct {
 	ConversionFactor    bool   `json:"conversion_factor" yaml:"conversion_factor"`
 }
 
+// NewAllowedCollateralParam return a new AllowedCollateralParam
+func NewAllowedCollateralParam(
+	ctype string, denom, liqRatio, debtLimit,
+	stabilityFee, auctionSize, liquidationPenalty,
+	prefix, spotMarket, liquidationMarket, conversionFactor bool) AllowedCollateralParam {
+	return AllowedCollateralParam{
+		Type:                ctype,
+		Denom:               denom,
+		LiquidationRatio:    liqRatio,
+		DebtLimit:           debtLimit,
+		StabilityFee:        stabilityFee,
+		AuctionSize:         auctionSize,
+		LiquidationPenalty:  liquidationPenalty,
+		Prefix:              prefix,
+		SpotMarketID:        spotMarket,
+		LiquidationMarketID: liquidationMarket,
+		ConversionFactor:    conversionFactor,
+	}
+}
+
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
 	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collateral types to be all equal
 		(current.Denom == incoming.Denom || acp.Denom) &&
