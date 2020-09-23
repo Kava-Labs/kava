@@ -122,6 +122,23 @@ type CollateralParam struct {
 	ConversionFactor    sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`         // factor for converting internal units to one base unit of collateral
 }
 
+// NewCollateralParam returns a new CollateralParam
+func NewCollateralParam(denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int, liqPenalty sdk.Dec, prefix byte, spotMarketID, liquidationMarketID string, conversionFactor sdk.Int) CollateralParam {
+	return CollateralParam{
+		Denom:               denom,
+		Type:                ctype,
+		LiquidationRatio:    liqRatio,
+		DebtLimit:           debtLimit,
+		StabilityFee:        stabilityFee,
+		AuctionSize:         auctionSize,
+		LiquidationPenalty:  liqPenalty,
+		Prefix:              prefix,
+		SpotMarketID:        spotMarketID,
+		LiquidationMarketID: liquidationMarketID,
+		ConversionFactor:    conversionFactor,
+	}
+}
+
 // String implements fmt.Stringer
 func (cp CollateralParam) String() string {
 	return fmt.Sprintf(`Collateral:
@@ -158,6 +175,17 @@ type DebtParam struct {
 	ConversionFactor sdk.Int `json:"conversion_factor" yaml:"conversion_factor"`
 	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"`     // minimum active loan size, used to prevent dust
 	SavingsRate      sdk.Dec `json:"savings_rate" yaml:"savings_rate"` // the percentage of stability fees that are redirected to savings rate
+}
+
+// NewDebtParam returns a new DebtParam
+func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int, savingsRate sdk.Dec) DebtParam {
+	return DebtParam{
+		Denom:            denom,
+		ReferenceAsset:   refAsset,
+		ConversionFactor: conversionFactor,
+		DebtFloor:        debtFloor,
+		SavingsRate:      savingsRate,
+	}
 }
 
 func (dp DebtParam) String() string {

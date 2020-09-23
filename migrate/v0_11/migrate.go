@@ -7,7 +7,7 @@ import (
 
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
-	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	v0_11cdp "github.com/kava-labs/kava/x/cdp"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
 	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
@@ -80,7 +80,7 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 	newStartingID := uint64(0)
 
 	for _, cdp := range oldGenState.CDPs {
-		newCDP := v0_11cdp.NewCDP(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
+		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
 		newCDPs = append(newCDPs, newCDP)
 		if cdp.ID >= newStartingID {
 			newStartingID = cdp.ID + 1
@@ -102,15 +102,16 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 
 	newParams := v0_11cdp.NewParams(oldGenState.Params.GlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, oldGenState.Params.SavingsDistributionFrequency, false)
 
-	return v0_11cdp.GenesisState{
-		Params:                   newParams,
-		CDPs:                     newCDPs,
-		Deposits:                 newDeposits,
-		StartingCdpID:            newStartingID,
-		DebtDenom:                oldGenState.DebtDenom,
-		GovDenom:                 oldGenState.GovDenom,
-		PreviousDistributionTime: oldGenState.PreviousDistributionTime,
-	}
+	return v0_11cdp.NewGenesisState(
+		newParams,
+		newCDPs,
+		newDeposits,
+		newStartingID,
+		oldGenState.DebtDenom,
+		oldGenState.GovDenom,
+		oldGenState.PreviousDistributionTime,
+		sdk.ZeroInt(),
+	)
 
 }
 

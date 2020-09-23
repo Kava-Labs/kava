@@ -528,10 +528,12 @@ type GenesisState struct {
 	DebtDenom                string    `json:"debt_denom" yaml:"debt_denom"`
 	GovDenom                 string    `json:"gov_denom" yaml:"gov_denom"`
 	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml:"previous_distribution_time"`
+	SavingsRateDistributed   sdk.Int   `json:"savings_rate_distributed" yaml:"savings_rate_distributed"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64, debtDenom, govDenom string, previousDistTime time.Time) GenesisState {
+func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
+	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int) GenesisState {
 	return GenesisState{
 		Params:                   params,
 		CDPs:                     cdps,
@@ -540,6 +542,7 @@ func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID 
 		DebtDenom:                debtDenom,
 		GovDenom:                 govDenom,
 		PreviousDistributionTime: previousDistTime,
+		SavingsRateDistributed:   savingsRateDist,
 	}
 }
 
@@ -563,12 +566,29 @@ func (gs GenesisState) Validate() error {
 		return fmt.Errorf("previous distribution time not set")
 	}
 
+	if err := validateSavingsRateDistributed(gs.SavingsRateDistributed); err != nil {
+		return err
+	}
+
 	if err := sdk.ValidateDenom(gs.DebtDenom); err != nil {
 		return fmt.Errorf(fmt.Sprintf("debt denom invalid: %v", err))
 	}
 
 	if err := sdk.ValidateDenom(gs.GovDenom); err != nil {
 		return fmt.Errorf(fmt.Sprintf("gov denom invalid: %v", err))
+	}
+
+	return nil
+}
+
+func validateSavingsRateDistributed(i interface{}) error {
+	savingsRateDist, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if savingsRateDist.IsNegative() {
+		return fmt.Errorf("savings rate distributed should not be negative: %s", savingsRateDist)
 	}
 
 	return nil

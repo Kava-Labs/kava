@@ -35,6 +35,19 @@ func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType
 	}
 }
 
+// NewCDP creates a new CDP object
+func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal, fees sdk.Coin, time time.Time) CDP {
+	return CDP{
+		ID:              id,
+		Owner:           owner,
+		Type:            collateralType,
+		Collateral:      collateral,
+		Principal:       principal,
+		AccumulatedFees: fees,
+		FeesUpdated:     time,
+	}
+}
+
 // String implements fmt.stringer
 func (cdp CDP) String() string {
 	return strings.TrimSpace(fmt.Sprintf(`CDP:
