@@ -14,6 +14,7 @@ import (
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
+	v0_11harvest "github.com/kava-labs/kava/x/hvt"
 	v0_11validator_vesting "github.com/kava-labs/kava/x/validator-vesting"
 	v0_9validator_vesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_9"
 )
@@ -191,5 +192,14 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 			panic(fmt.Sprintf("unrecognized account type: %T", acc))
 		}
 	}
-	return v39_1auth.DefaultGenesisState()
+
+	// ---- add harvest module accounts -------
+	lpMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.LPAccount, v39_1supply.Minter, v39_1supply.Burner)
+	lpMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(80000000000000))))
+	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(lpMacc))
+	delegatorMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.DelegatorAccount, v39_1supply.Minter, v39_1supply.Burner)
+	delegatorMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(40000000000000))))
+	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(delegatorMacc))
+
+	return v39_1auth.NewGenesisState(v39_1auth.Params(oldGenState.Params), newAccounts)
 }
