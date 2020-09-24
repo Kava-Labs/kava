@@ -59,5 +59,5 @@ func TestMigrateAuth(t *testing.T) {
 	newGenState := MigrateAuth(oldGenState)
 	err = v39_1auth.ValidateGenesis(newGenState)
 	require.NoError(t, err)
-
+	require.Equal(t, len(oldGenState.Accounts)+2, len(newGenState.Accounts))
 }
