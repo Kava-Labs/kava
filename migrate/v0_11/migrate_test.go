@@ -35,3 +35,9 @@ func TestMigrateBep3(t *testing.T) {
 	err = newGenState.Validate()
 	require.NoError(t, err)
 }
+
+func TestMigrateHarvest(t *testing.T) {
+	newGenState := MigrateHarvest()
+	err := newGenState.Validate()
+	require.NoError(t, err)
+}
