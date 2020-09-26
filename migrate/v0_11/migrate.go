@@ -19,6 +19,9 @@ import (
 	v0_9validator_vesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_9"
 )
 
+var deputyBnbBalance sdk.Coin
+var hardBalance sdk.Coin
+
 // MigrateBep3 migrates from a v0.9 (or v0.10) bep3 genesis state to a v0.11 bep3 genesis state
 func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 	var assetParams v0_11bep3.AssetParams
@@ -79,11 +82,19 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 // MigrateAuth migrates from a v0.38.5 auth genesis state to a v0.39.1 auth genesis state
 func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 	var newAccounts v39_1authexported.GenesisAccounts
-
+	deputyAddr, err := sdk.AccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6")
+	if err != nil {
+		panic(err)
+	}
 	for _, account := range oldGenState.Accounts {
 		switch acc := account.(type) {
 		case *v38_5auth.BaseAccount:
 			a := v39_1auth.BaseAccount(*acc)
+			// Remove deputy bnb
+			if a.GetAddress().Equals(deputyAddr) {
+				deputyBnbBalance = sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb"))
+				a.SetCoins(a.GetCoins().Sub(sdk.NewCoins(sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb")))))
+			}
 			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&a))
 
 		case *v38_5auth.BaseVestingAccount:
@@ -200,6 +211,15 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 	delegatorMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.DelegatorAccount, v39_1supply.Minter, v39_1supply.Burner)
 	delegatorMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(40000000000000))))
 	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(delegatorMacc))
+	hardBalance = sdk.NewCoin("hard", sdk.NewInt(120000000000000))
 
 	return v39_1auth.NewGenesisState(v39_1auth.Params(oldGenState.Params), newAccounts)
+}
+
+// MigrateSupply reconciles supply from kava-3 to kava-4
+// deputy balance of bnb coins is removed (deputy now mints coins)
+// hard token supply is added
+func MigrateSupply(oldGenState v39_1supply.GenesisState, deputyBalance sdk.Coin, hardBalance sdk.Coin) v39_1supply.GenesisState {
+	oldGenState.Supply = oldGenState.Supply.Sub(sdk.Coins{deputyBalance}).Add(hardBalance)
+	return oldGenState
 }
