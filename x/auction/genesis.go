@@ -35,6 +35,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper
 	if !moduleAcc.GetCoins().IsEqual(totalAuctionCoins) {
 		panic(fmt.Sprintf("total auction coins (%s) do not equal (%s) module account (%s) ", moduleAcc.GetCoins(), ModuleName, totalAuctionCoins))
 	}
+	err = keeper.CloseExpiredAuctions(ctx)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
