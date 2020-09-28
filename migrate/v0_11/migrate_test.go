@@ -12,10 +12,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
+	v39_1auth_vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	v39_1supply "github.com/cosmos/cosmos-sdk/x/supply"
+
 	"github.com/kava-labs/kava/app"
 	v38_5auth "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/auth"
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
+	v0_11validator_vesting "github.com/kava-labs/kava/x/validator-vesting"
 	v0_9validator_vesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_9"
 )
 
@@ -60,4 +64,40 @@ func TestMigrateAuth(t *testing.T) {
 	err = v39_1auth.ValidateGenesis(newGenState)
 	require.NoError(t, err)
 	require.Equal(t, len(oldGenState.Accounts)+2, len(newGenState.Accounts))
+}
+
+func TestMigrateAuthExact(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "auth-v09-simplified.json"))
+	require.NoError(t, err)
+
+	var oldGenState v38_5auth.GenesisState
+
+	v09_cdc := codec.New()
+	codec.RegisterCrypto(v09_cdc)
+	v38_5auth.RegisterCodec(v09_cdc)
+	v38_5auth.RegisterCodecVesting(v09_cdc)
+	v38_5supply.RegisterCodec(v09_cdc)
+	v0_9validator_vesting.RegisterCodec(v09_cdc)
+
+	require.NotPanics(t, func() {
+		v09_cdc.MustUnmarshalJSON(bz, &oldGenState)
+	})
+
+	newGenState := MigrateAuth(oldGenState)
+
+	v011_cdc := codec.New()
+	codec.RegisterCrypto(v011_cdc)
+	v39_1auth.RegisterCodec(v011_cdc)
+	v39_1auth_vesting.RegisterCodec(v011_cdc)
+	v39_1supply.RegisterCodec(v011_cdc)
+	v0_11validator_vesting.RegisterCodec(v011_cdc)
+
+	newGenStateBz, err := v011_cdc.MarshalJSON(newGenState)
+	require.NoError(t, err)
+
+	expectedGenStateBz, err := ioutil.ReadFile(filepath.Join("testdata", "auth-v011-simplified.json"))
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(expectedGenStateBz), string(newGenStateBz))
+
 }
