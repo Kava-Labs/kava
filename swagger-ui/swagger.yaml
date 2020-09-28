@@ -19,6 +19,8 @@
       description: Incentive module APIs
     - name: Pricefeed
       description: Auction module APIs
+    - name: Harvest
+      description: Harvest module APIs
     - name: Committee
       description: Committee module APIs
     - name: Auth
@@ -39,6 +41,8 @@
       description: Minting module APIs
     - name: Kavadist
       description: Kavadist module APIs
+    - name: Issuance
+      description: Issuance module APIs
     - name: Misc
       description: Query app version
   schemes:
@@ -1696,6 +1700,436 @@
             description: Invalid query parameters
           500:
             description: Internal Server Error
+    /harvest/deposit:
+      post:
+        summary: Deposit funds to harvest liquidity pool
+        tags:
+          - Harvest
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: harvest deposit body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                depositor:
+                  $ref: '#/definitions/Address'
+                amount:
+                  $ref: '#/definitions/Coin'
+                deposit_type:
+                  type: string
+                  example: lp
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /harvest/withdraw:
+      post:
+        summary: Withdraw funds from harvest liquidity pool
+        tags:
+          - Harvest
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: harvest withdraw body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                depositor:
+                  $ref: '#/definitions/Address'
+                amount:
+                  $ref: '#/definitions/Coin'
+                deposit_type:
+                  type: string
+                  example: lp
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /harvest/claim:
+      post:
+        summary: Claim rewards from harvest liquidity pool
+        tags:
+          - Harvest
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: harvest claim body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                sender:
+                  $ref: '#/definitions/Address'
+                receiver:
+                  $ref: '#/definitions/Address'
+                deposit_denom:
+                  type: string
+                  example: bnb
+                multiplier_name:
+                  type: string
+                  example: small
+                deposit_type:
+                  type: string
+                  example: lp
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /harvest/parameters:
+      get:
+        summary: Get the current parameters of the harvest module
+        tags:
+          - Harvest
+        produces:
+          - application/json
+        responses:
+          200:
+            description: Harvest module parameters
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/HarvestParams'
+          500:
+            description: Server internal error
+    /harvest/accounts:
+      get:
+        summary: Get the harvest module accounts
+        tags:
+          - Harvest
+        produces:
+          - application/json
+        responses:
+          200:
+            description: The harvest module accounts
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      account_number:
+                        type: number
+                      address:
+                        $ref: '#/definitions/Address'
+                      coins:
+                        type: array
+                        items:
+                          $ref: '#/definitions/Coin'
+                      name:
+                        type: string
+                      permissions:
+                        type: array
+                        items:
+                          type: string
+                      public_key:
+                        $ref: "#/definitions/PublicKey"
+                      sequence:
+                        type: number
+          500:
+            description: Server internal error
+    /harvest/deposits:
+      get:
+        summary: Get harvest deposits
+        tags:
+          - Harvest
+        produces:
+          - application/json
+        parameters:
+          - in: query
+            name: deposit_denom
+            description: Deposit coin denom
+            required: false
+            type: string
+            x-example: btc
+          - in: query
+            name: deposit_type
+            description: Deposit type
+            required: false
+            type: string
+            x-example: lp
+          - in: query
+            name: owner
+            description: Owner address in bech32 format
+            required: false
+            type: string
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        responses:
+          200:
+            description: harvest deposits
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/HarvestDepositResponse'
+          500:
+            description: Server internal error
+    /harvest/claims:
+      get:
+        summary: Get outstanding harvest claims
+        tags:
+          - Harvest
+        produces:
+          - application/json
+        parameters:
+          - in: query
+            name: deposit_denom
+            description: Deposit coin denom
+            required: false
+            type: string
+            x-example: btc
+          - in: query
+            name: deposit_type
+            description: Deposit type
+            required: false
+            type: string
+            x-example: lp
+          - in: query
+            name: owner
+            description: Owner address in bech32 format
+            required: false
+            type: string
+            x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+        responses:
+          200:
+            description: harvest claims
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/HarvestClaimResponse'
+          500:
+            description: Server internal error
+    /issuance/issue:
+      post:
+        summary: Issue tokens
+        tags:
+          - Issuance
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Issue tokens body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                sender:
+                  $ref: '#/definitions/Address'
+                tokens:
+                  $ref: '#/definitions/Coin'
+                receiver:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /issuance/redeem:
+      post:
+        summary: Redeem tokens
+        tags:
+          - Issuance
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Redeem tokens body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                sender:
+                  $ref: '#/definitions/Address'
+                tokens:
+                  $ref: '#/definitions/Coin'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /issuance/block:
+      post:
+        summary: Block an address from using an issued token
+        tags:
+          - Issuance
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Block address body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                sender:
+                  $ref: '#/definitions/Address'
+                denom:
+                  type: string
+                  example: "usdt"
+                blocked_address:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /issuance/unblock:
+      post:
+        summary: Unblock an address from using an issued token
+        tags:
+          - Issuance
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Unblock address body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                sender:
+                  $ref: '#/definitions/Address'
+                denom:
+                  type: string
+                  example: "usdt"
+                address:
+                  $ref: '#/definitions/Address'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /issuance/pause:
+      post:
+        summary: Set an issued token's pause status
+        tags:
+          - Issuance
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: body
+            name: Set pause status body
+            schema:
+              properties:
+                base_req:
+                  $ref: '#/definitions/BaseReq'
+                sender:
+                  $ref: '#/definitions/Address'
+                denom:
+                  type: string
+                  example: "usdt"
+                status:
+                  type: boolean
+                  example: true
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/definitions/StdTx'
+          400:
+            description: Invalid request
+          500:
+            description: Internal server error
+    /issuance/parameters:
+      get:
+        summary: Get the current parameters of the Issuance module
+        tags:
+          - Issuance
+        produces:
+          - application/json
+        responses:
+          200:
+            description: Issuance parameters
+            schema:
+              type: object
+              properties:
+                height:
+                  type: string
+                  example: "100"
+                result:
+                  type: array
+                  x-nullable: true
+                  items:
+                    $ref: '#/definitions/IssuanceParams'
+          500:
+            description: Server internal error
     /bank/balances/{address}:
       get:
         summary: Get the account balances
@@ -3509,10 +3943,6 @@
       type: string
       description: span of blocks for which an atomic swap is valid
       example: "3600"
-    CrossChain:
-      type: boolean
-      description: boolean for if the swap is a cross-chain swap
-      example: true
     DeputyAddress:
       type: string
       description: bep3 deputy
@@ -4066,6 +4496,129 @@
         active:
           type: boolean
           example: true
+    HarvestParams:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        liquidity_provider_schedules:
+          type: array
+          items:
+            $ref: '#/definitions/DistributionSchedule'
+        delegator_distribution_schedules:
+          type: array
+          items:
+            $ref: '#/definitions/DelegatorDistributionSchedule'
+    DistributionSchedule:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        deposit_denom:
+          type: string
+          example: 'xrp'
+        start:
+          type: string
+          example: 1601220026
+        end:
+          type: string
+          example: 1601930050
+        rewards_per_second:
+          $ref: '#/definitions/Coin'
+        claim_end:
+          type: string
+          example: 1602227044
+        claim_multipliers:
+          type: array
+          items:
+            $ref: '#/definitions/ClaimMultipliers'
+    ClaimMultipliers:
+      type: object
+      properties:
+        name:
+          $ref: '#/definitions/MultiplierName'
+        months_lockup:
+          type: string
+          example: 6
+        factor:
+          type: string
+          example: '0.5'
+    DelegatorDistributionSchedule:
+      type: object
+      properties:
+        distribution_schedule:
+          $ref: '#/definitions/DistributionSchedule'
+        distribution_frequency:
+          type: string
+          example: 2958000000000000
+    HarvestDepositResponse:
+      type: object
+      properties:
+        depositor:
+          $ref: '#/definitions/Address'
+        amount:
+          $ref: '#/definitions/Coin'
+        type:
+          $ref: '#/definitions/Address'
+    HarvestClaimResponse:
+      type: object
+      properties:
+        owner:
+          $ref: '#/definitions/Address'
+        deposit_denom:
+          type: string
+          example: 'xrp'
+        amount:
+          $ref: '#/definitions/Coin'
+        type:
+          $ref: '#/definitions/DepositType'
+    DepositType:
+      type: string
+      example: "lp"
+    MultiplierName:
+      type: string
+      example: "small"
+    IssuanceParams:
+      type: object
+      properties:
+        assets:
+          type: array
+          items:
+            $ref: '#/definitions/IssuanceAsset'
+    IssuanceAsset:
+      type: object
+      properties:
+        owner:
+          $ref: '#/definitions/Address'
+        denom:
+          type: string
+          example: "btc"
+        blocked_addresses:
+          type: array
+          items:
+            $ref: '#/definitions/Address'
+        paused:
+          type: boolean
+          example: false
+        blockable:
+          type: boolean
+          example: true
+        rate_limit:
+          $ref: '#/definitions/RateLimit'
+    RateLimit:
+      type: object
+      properties:
+        active:
+          type: boolean
+          example: true
+        limit:
+          type: string
+          example: 500000000
+        time_period:
+          type: string
+          example: 518400000000000
     AuctionParameters:
       type: object
       properties:
