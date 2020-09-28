@@ -73,14 +73,11 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 	var newCDPs v0_11cdp.CDPs
 	var newDeposits v0_11cdp.Deposits
 	var newCollateralParams v0_11cdp.CollateralParams
-	newStartingID := uint64(0)
+	newStartingID := oldGenState.StartingCdpID
 
 	for _, cdp := range oldGenState.CDPs {
 		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
 		newCDPs = append(newCDPs, newCDP)
-		if cdp.ID >= newStartingID {
-			newStartingID = cdp.ID + 1
-		}
 	}
 
 	for _, dep := range oldGenState.Deposits {
