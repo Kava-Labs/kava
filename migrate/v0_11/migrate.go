@@ -94,7 +94,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		true,
 		mustAccAddressFromBech32("kava1c0ju5vnwgpgxnrktfnkccuth9xqc68dcdpzpas"),
 		sdk.NewInt(100000), // 0.001 XRP fee
-		sdk.NewInt(10001),
+		sdk.NewInt(100001),
 		sdk.NewInt(10000000000000),
 		220,
 		270,
