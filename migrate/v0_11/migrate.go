@@ -125,6 +125,50 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 						newMarketParam := v0_11committee.AllowedMarket(oldMarketParam)
 						newMarketParams = append(newMarketParams, newMarketParam)
 					}
+					// add btc, xrp, busd markets to committee
+					btcMarketParam := v0_11committee.AllowedMarket{
+						MarketID:   "btc:usd",
+						BaseAsset:  false,
+						QuoteAsset: false,
+						Oracles:    false,
+						Active:     true,
+					}
+					btc30MarketParam := v0_11committee.AllowedMarket{
+						MarketID:   "btc:usd:30",
+						BaseAsset:  false,
+						QuoteAsset: false,
+						Oracles:    false,
+						Active:     true,
+					}
+					xrpMarketParam := v0_11committee.AllowedMarket{
+						MarketID:   "xrp:usd",
+						BaseAsset:  false,
+						QuoteAsset: false,
+						Oracles:    false,
+						Active:     true,
+					}
+					xrp30MarketParam := v0_11committee.AllowedMarket{
+						MarketID:   "xrp:usd:30",
+						BaseAsset:  false,
+						QuoteAsset: false,
+						Oracles:    false,
+						Active:     true,
+					}
+					busdMarketParam := v0_11committee.AllowedMarket{
+						MarketID:   "busd:usd",
+						BaseAsset:  false,
+						QuoteAsset: false,
+						Oracles:    false,
+						Active:     true,
+					}
+					busd30MarketParam := v0_11committee.AllowedMarket{
+						MarketID:   "busd:usd:30",
+						BaseAsset:  false,
+						QuoteAsset: false,
+						Oracles:    false,
+						Active:     true,
+					}
+					newMarketParams = append(newMarketParams, btcMarketParam, btc30MarketParam, xrpMarketParam, xrp30MarketParam, busdMarketParam, busd30MarketParam)
 					oldAllowedParams := subPermission.AllowedParams
 					var newAllowedParams v0_11committee.AllowedParams
 					for _, oldAllowedParam := range oldAllowedParams {
