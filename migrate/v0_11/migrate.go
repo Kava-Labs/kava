@@ -22,7 +22,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			CoinID:        asset.CoinID,
 			DeputyAddress: v0_9Params.BnbDeputyAddress,
 			FixedFee:      v0_9Params.BnbDeputyFixedFee,
-			MinSwapAmount: sdk.OneInt(), // set min swap to one - prevents accounts that hold zero bnb from creating spam txs
+			MinSwapAmount: v0_9Params.BnbDeputyFixedFee.Add(sdk.OneInt()), // set min swap to one (after fees)- prevents accounts that hold zero bnb from creating spam txs
 			MaxSwapAmount: v0_9Params.MaxAmount,
 			MinBlockLock:  v0_9Params.MinBlockLock,
 			MaxBlockLock:  v0_9Params.MaxBlockLock,
@@ -117,8 +117,8 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
 		mustAccAddressFromBech32("kava1hh4x3a4suu5zyaeauvmv7ypf7w9llwlfufjmuu"),
-		v0_9Params.BnbDeputyFixedFee,
-		sdk.OneInt(),
+		sdk.NewInt(200000),
+		sdk.NewInt(200001),
 		sdk.NewInt(1000000000000),
 		220,
 		270,
