@@ -84,18 +84,18 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 	assetParams = append(assetParams, btcbAssetParam)
 	assetSupplies = append(assetSupplies, btcbAssetSupply)
 	xrpbAssetParam := v0_11bep3.NewAssetParam(
-		"xrpb",
+		"xrpb", // NOTE: XRPB has 8 decimals on binance chain, whereas XRP has 6 decimals natively
 		144,
 		v0_11bep3.SupplyLimit{
-			Limit:          sdk.NewInt(1000000000000), // 1,000,000 XRP limit at launch
+			Limit:          sdk.NewInt(100000000000000), // 1,000,000 XRP limit at launch
 			TimeLimited:    false,
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
 		mustAccAddressFromBech32("kava1c0ju5vnwgpgxnrktfnkccuth9xqc68dcdpzpas"),
-		v0_9Params.BnbDeputyFixedFee,
-		sdk.OneInt(),
-		sdk.NewInt(100000000000),
+		sdk.NewInt(100000), // 0.001 XRP fee
+		sdk.NewInt(10001),
+		sdk.NewInt(10000000000000),
 		220,
 		270,
 	)
