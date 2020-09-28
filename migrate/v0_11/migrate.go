@@ -8,6 +8,7 @@ import (
 	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
 	v39_1authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	v39_1vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	v39_1gov "github.com/cosmos/cosmos-sdk/x/gov"
 	v39_1supply "github.com/cosmos/cosmos-sdk/x/supply"
 
 	v38_5auth "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/auth"
@@ -221,5 +222,11 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 // hard token supply is added
 func MigrateSupply(oldGenState v39_1supply.GenesisState, deputyBalance sdk.Coin, hardBalance sdk.Coin) v39_1supply.GenesisState {
 	oldGenState.Supply = oldGenState.Supply.Sub(sdk.Coins{deputyBalance}).Add(hardBalance)
+	return oldGenState
+}
+
+// MigrateGov migrates gov genesis state
+func MigrateGov(oldGenState v39_1gov.GenesisState) v39_1gov.GenesisState {
+	oldGenState.VotingParams.VotingPeriod = time.Hour * 24 * 7
 	return oldGenState
 }
