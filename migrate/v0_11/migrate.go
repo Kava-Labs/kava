@@ -79,30 +79,30 @@ func MigrateIncentive(oldGenState v0_9incentive.GenesisState) v0_11incentive.Gen
 	newMultiplier := v0_11incentive.NewMultiplier(v0_11incentive.Large, 12, sdk.OneDec())
 
 	for _, oldReward := range oldGenState.Params.Rewards {
-		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom, oldReward.AvailableRewards, oldReward.Duration, v0_11incentive.Multipliers{newMultiplier}, oldReward.ClaimDuration)
+		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom+"-a", oldReward.AvailableRewards, oldReward.Duration, v0_11incentive.Multipliers{newMultiplier}, oldReward.ClaimDuration)
 		newRewards = append(newRewards, newReward)
 	}
 	newParams := v0_11incentive.NewParams(true, newRewards)
 
 	for _, oldRewardPeriod := range oldGenState.RewardPeriods {
 
-		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom, oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, v0_11incentive.Multipliers{newMultiplier})
+		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom+"-a", oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, v0_11incentive.Multipliers{newMultiplier})
 		newRewardPeriods = append(newRewardPeriods, newRewardPeriod)
 	}
 
 	for _, oldClaimPeriod := range oldGenState.ClaimPeriods {
-		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom, oldClaimPeriod.ID, oldClaimPeriod.End, v0_11incentive.Multipliers{newMultiplier})
+		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom+"-a", oldClaimPeriod.ID, oldClaimPeriod.End, v0_11incentive.Multipliers{newMultiplier})
 		newClaimPeriods = append(newClaimPeriods, newClaimPeriod)
 	}
 
 	for _, oldClaim := range oldGenState.Claims {
-		newClaim := v0_11incentive.NewClaim(oldClaim.Owner, oldClaim.Reward, oldClaim.Denom, oldClaim.ClaimPeriodID)
+		newClaim := v0_11incentive.NewClaim(oldClaim.Owner, oldClaim.Reward, oldClaim.Denom+"-a", oldClaim.ClaimPeriodID)
 		newClaims = append(newClaims, newClaim)
 	}
 
 	for _, oldClaimPeriodID := range oldGenState.NextClaimPeriodIDs {
 		newClaimPeriodID := v0_11incentive.GenesisClaimPeriodID{
-			CollateralType: oldClaimPeriodID.Denom,
+			CollateralType: oldClaimPeriodID.Denom + "-a",
 			ID:             oldClaimPeriodID.ID,
 		}
 		newClaimPeriodIds = append(newClaimPeriodIds, newClaimPeriodID)
