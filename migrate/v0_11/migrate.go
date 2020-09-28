@@ -69,8 +69,8 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
 		mustAccAddressFromBech32("kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc"),
-		v0_9Params.BnbDeputyFixedFee,
-		sdk.OneInt(),
+		sdk.NewInt(2), // 2 satoshi fee
+		sdk.NewInt(3),
 		sdk.NewInt(1000000000),
 		220,
 		270,
