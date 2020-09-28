@@ -1704,7 +1704,7 @@
       post:
         summary: Deposit funds to harvest liquidity pool
         tags:
-          - harvest
+          - Harvest
         consumes:
           - application/json
         produces:
@@ -1736,7 +1736,7 @@
       post:
         summary: Withdraw funds from harvest liquidity pool
         tags:
-          - harvest
+          - Harvest
         consumes:
           - application/json
         produces:
@@ -1768,7 +1768,7 @@
       post:
         summary: Claim rewards from harvest liquidity pool
         tags:
-          - harvest
+          - Harvest
         consumes:
           - application/json
         produces:
