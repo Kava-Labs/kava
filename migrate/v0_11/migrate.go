@@ -68,7 +68,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
-		v0_9Params.BnbDeputyAddress, // TODO get an additional deputy address from binance
+		mustAccAddressFromBech32("kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc"),
 		v0_9Params.BnbDeputyFixedFee,
 		sdk.OneInt(),
 		sdk.NewInt(1000000000),
@@ -92,7 +92,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
-		v0_9Params.BnbDeputyAddress, // TODO  get an additional deputy address from binance
+		mustAccAddressFromBech32("kava1c0ju5vnwgpgxnrktfnkccuth9xqc68dcdpzpas"),
 		v0_9Params.BnbDeputyFixedFee,
 		sdk.OneInt(),
 		sdk.NewInt(100000000000),
@@ -116,7 +116,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
 		true,
-		v0_9Params.BnbDeputyAddress, // TODO  get an additional deputy address from binance
+		mustAccAddressFromBech32("kava1hh4x3a4suu5zyaeauvmv7ypf7w9llwlfufjmuu"),
 		v0_9Params.BnbDeputyFixedFee,
 		sdk.OneInt(),
 		sdk.NewInt(1000000000000),
@@ -137,4 +137,12 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		Supplies:          assetSupplies,
 		PreviousBlockTime: v0_11bep3.DefaultPreviousBlockTime,
 	}
+}
+
+func mustAccAddressFromBech32(bech32Addr string) sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(bech32Addr)
+	if err != nil {
+		panic(err)
+	}
+	return addr
 }
