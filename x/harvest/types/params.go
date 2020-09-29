@@ -74,6 +74,9 @@ func (ds DistributionSchedule) Validate() error {
 	if !ds.RewardsPerSecond.IsPositive() {
 		return fmt.Errorf("reward amount must be positive, is %s for %s", ds.RewardsPerSecond, ds.DepositDenom)
 	}
+	if ds.RewardsPerSecond.Denom != "hard" {
+		return fmt.Errorf("reward denom should be hard, is %s", ds.RewardsPerSecond.Denom)
+	}
 	if ds.Start.IsZero() {
 		return errors.New("reward period start time cannot be 0")
 	}
