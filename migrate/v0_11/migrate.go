@@ -77,21 +77,22 @@ func MigrateIncentive(oldGenState v0_9incentive.GenesisState) v0_11incentive.Gen
 	var newClaimPeriodIds v0_11incentive.GenesisClaimPeriodIDs
 
 	newMultiplier := v0_11incentive.NewMultiplier(v0_11incentive.Large, 12, sdk.OneDec())
+	smallMultiplier := v0_11incentive.NewMultiplier(v0_11incentive.Small, 1, sdk.MustNewDecFromStr("0.25"))
 
 	for _, oldReward := range oldGenState.Params.Rewards {
-		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom+"-a", oldReward.AvailableRewards, oldReward.Duration, v0_11incentive.Multipliers{newMultiplier}, oldReward.ClaimDuration)
+		newReward := v0_11incentive.NewReward(oldReward.Active, oldReward.Denom+"-a", oldReward.AvailableRewards, oldReward.Duration, v0_11incentive.Multipliers{smallMultiplier, newMultiplier}, oldReward.ClaimDuration)
 		newRewards = append(newRewards, newReward)
 	}
 	newParams := v0_11incentive.NewParams(true, newRewards)
 
 	for _, oldRewardPeriod := range oldGenState.RewardPeriods {
 
-		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom+"-a", oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, v0_11incentive.Multipliers{newMultiplier})
+		newRewardPeriod := v0_11incentive.NewRewardPeriod(oldRewardPeriod.Denom+"-a", oldRewardPeriod.Start, oldRewardPeriod.End, oldRewardPeriod.Reward, oldRewardPeriod.ClaimEnd, v0_11incentive.Multipliers{smallMultiplier, newMultiplier})
 		newRewardPeriods = append(newRewardPeriods, newRewardPeriod)
 	}
 
 	for _, oldClaimPeriod := range oldGenState.ClaimPeriods {
-		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom+"-a", oldClaimPeriod.ID, oldClaimPeriod.End, v0_11incentive.Multipliers{newMultiplier})
+		newClaimPeriod := v0_11incentive.NewClaimPeriod(oldClaimPeriod.Denom+"-a", oldClaimPeriod.ID, oldClaimPeriod.End, v0_11incentive.Multipliers{smallMultiplier, newMultiplier})
 		newClaimPeriods = append(newClaimPeriods, newClaimPeriod)
 	}
 

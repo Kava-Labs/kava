@@ -49,4 +49,6 @@ func TestMigrateIncentive(t *testing.T) {
 	newGenState := MigrateIncentive(oldGenState)
 	err = newGenState.Validate()
 	require.NoError(t, err)
+	bz = cdc.MustMarshalJSON(newGenState)
+	ioutil.WriteFile(filepath.Join("testdata", "incentive-v11.json"), bz, 0644)
 }
