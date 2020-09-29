@@ -31,6 +31,9 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 		if lps.End.Before(ctx.BlockTime()) {
 			continue
 		}
+		if lps.Start.After(ctx.BlockTime()) {
+			continue
+		}
 		totalDeposited := k.GetTotalDeposited(ctx, types.LP, lps.DepositDenom)
 		if totalDeposited.IsZero() {
 			continue
@@ -80,6 +83,9 @@ func (k Keeper) ShouldDistributeValidatorRewards(ctx sdk.Context, denom string) 
 		if denom != dds.DistributionSchedule.DepositDenom {
 			continue
 		}
+		if dds.DistributionSchedule.End.Before(ctx.BlockTime()) {
+			continue
+		}
 		timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistributionTime.Unix())
 		if timeElapsed.GTE(sdk.NewInt(int64(dds.DistributionFrequency.Seconds()))) {
 			return true
@@ -95,6 +101,9 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 		return
 	}
 	if !dds.DistributionSchedule.Active {
+		return
+	}
+	if dds.DistributionSchedule.Start.After(ctx.BlockTime()) {
 		return
 	}
 	bondMacc := k.stakingKeeper.GetBondedPool(ctx)
