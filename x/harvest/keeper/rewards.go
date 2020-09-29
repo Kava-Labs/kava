@@ -81,7 +81,7 @@ func (k Keeper) ShouldDistributeValidatorRewards(ctx sdk.Context, denom string) 
 			continue
 		}
 		timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousDistributionTime.Unix())
-		if timeElapsed.GTE(sdk.NewInt(int64(dds.DistributionFrequency))) {
+		if timeElapsed.GTE(sdk.NewInt(int64(dds.DistributionFrequency.Seconds()))) {
 			return true
 		}
 	}
