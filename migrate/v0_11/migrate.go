@@ -14,7 +14,7 @@ import (
 
 	v38_5auth "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/auth"
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
-	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
+	v0_11bep3 "github.com/kava-labs/kava/x/bep3"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
@@ -37,13 +37,13 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 	v0_9Params := oldGenState.Params
 
 	for _, asset := range v0_9Params.SupportedAssets {
-		v10AssetParam := v0_11bep3.AssetParam{
+		v11AssetParam := v0_11bep3.AssetParam{
 			Active:        asset.Active,
 			Denom:         asset.Denom,
 			CoinID:        asset.CoinID,
 			DeputyAddress: v0_9Params.BnbDeputyAddress,
 			FixedFee:      v0_9Params.BnbDeputyFixedFee,
-			MinSwapAmount: sdk.OneInt(), // set min swap to one - prevents accounts that hold zero bnb from creating spam txs
+			MinSwapAmount: v0_9Params.BnbDeputyFixedFee.Add(sdk.OneInt()), // set min swap to one (after fees)- prevents accounts that hold zero bnb from creating spam txs
 			MaxSwapAmount: v0_9Params.MaxAmount,
 			MinBlockLock:  v0_9Params.MinBlockLock,
 			MaxBlockLock:  v0_9Params.MaxBlockLock,
@@ -54,7 +54,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 				TimeBasedLimit: sdk.ZeroInt(),
 			},
 		}
-		assetParams = append(assetParams, v10AssetParam)
+		assetParams = append(assetParams, v11AssetParam)
 	}
 	for _, supply := range oldGenState.AssetSupplies {
 		newSupply := v0_11bep3.NewAssetSupply(supply.IncomingSupply, supply.OutgoingSupply, supply.CurrentSupply, sdk.NewCoin(supply.CurrentSupply.Denom, sdk.ZeroInt()), time.Duration(0))
@@ -78,9 +78,86 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		}
 		swaps = append(swaps, newSwap)
 	}
+
+	// -------------- ADD BTCB To BEP3 params --------------------
+	btcbAssetParam := v0_11bep3.NewAssetParam(
+		"btcb",
+		0,
+		v0_11bep3.SupplyLimit{
+			Limit:          sdk.NewInt(100000000), // 1 BTC limit at launch
+			TimeLimited:    false,
+			TimePeriod:     time.Duration(0),
+			TimeBasedLimit: sdk.ZeroInt()},
+		true,
+		mustAccAddressFromBech32("kava14qsmvzprqvhwmgql9fr0u3zv9n2qla8zhnm5pc"),
+		sdk.NewInt(2), // 2 satoshi fee
+		sdk.NewInt(3),
+		sdk.NewInt(1000000000),
+		220,
+		270,
+	)
+	btcbAssetSupply := v0_11bep3.NewAssetSupply(
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		sdk.NewCoin("btcb", sdk.ZeroInt()),
+		time.Duration(0))
+	assetParams = append(assetParams, btcbAssetParam)
+	assetSupplies = append(assetSupplies, btcbAssetSupply)
+
+	// -------------- ADD XRPB To BEP3 params --------------------
+	xrpbAssetParam := v0_11bep3.NewAssetParam(
+		"xrpb", // NOTE: XRPB has 8 decimals on binance chain, whereas XRP has 6 decimals natively
+		144,
+		v0_11bep3.SupplyLimit{
+			Limit:          sdk.NewInt(1000000000000), // 10,000 XRP limit at launch
+			TimeLimited:    false,
+			TimePeriod:     time.Duration(0),
+			TimeBasedLimit: sdk.ZeroInt()},
+		true,
+		mustAccAddressFromBech32("kava1c0ju5vnwgpgxnrktfnkccuth9xqc68dcdpzpas"),
+		sdk.NewInt(100000), // 0.001 XRP fee
+		sdk.NewInt(100001),
+		sdk.NewInt(10000000000000),
+		220,
+		270,
+	)
+	xrpbAssetSupply := v0_11bep3.NewAssetSupply(
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		sdk.NewCoin("xrpb", sdk.ZeroInt()),
+		time.Duration(0))
+	assetParams = append(assetParams, xrpbAssetParam)
+	assetSupplies = append(assetSupplies, xrpbAssetSupply)
+
+	// -------------- ADD BUSD To BEP3 params --------------------
+	busdAssetParam := v0_11bep3.NewAssetParam(
+		"busd",
+		727, // note - no official SLIP 44 ID
+		v0_11bep3.SupplyLimit{
+			Limit:          sdk.NewInt(100000000000), // 1,000 BUSD limit at launch
+			TimeLimited:    false,
+			TimePeriod:     time.Duration(0),
+			TimeBasedLimit: sdk.ZeroInt()},
+		true,
+		mustAccAddressFromBech32("kava1hh4x3a4suu5zyaeauvmv7ypf7w9llwlfufjmuu"),
+		sdk.NewInt(20000),
+		sdk.NewInt(20001),
+		sdk.NewInt(1000000000000),
+		220,
+		270,
+	)
+	busdAssetSupply := v0_11bep3.NewAssetSupply(
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		sdk.NewCoin("busd", sdk.ZeroInt()),
+		time.Duration(0))
+	assetParams = append(assetParams, busdAssetParam)
+	assetSupplies = append(assetSupplies, busdAssetSupply)
 	return v0_11bep3.GenesisState{
-		Params: v0_11bep3.Params{
-			AssetParams: assetParams},
+		Params:            v0_11bep3.NewParams(assetParams),
 		AtomicSwaps:       swaps,
 		Supplies:          assetSupplies,
 		PreviousBlockTime: v0_11bep3.DefaultPreviousBlockTime,
