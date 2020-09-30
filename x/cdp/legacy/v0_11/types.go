@@ -1,54 +1,141 @@
-package types
+package v0_11
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/params"
-
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// Parameter keys
 var (
-	KeyGlobalDebtLimit        = []byte("GlobalDebtLimit")
-	KeyCollateralParams       = []byte("CollateralParams")
-	KeyDebtParam              = []byte("DebtParam")
-	KeyDistributionFrequency  = []byte("DistributionFrequency")
-	KeyCircuitBreaker         = []byte("CircuitBreaker")
-	KeyDebtThreshold          = []byte("DebtThreshold")
-	KeyDebtLot                = []byte("DebtLot")
-	KeySurplusThreshold       = []byte("SurplusThreshold")
-	KeySurplusLot             = []byte("SurplusLot")
-	KeySavingsRateDistributed = []byte("SavingsRateDistributed")
-	DefaultGlobalDebt         = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
-	DefaultCircuitBreaker     = false
-	DefaultCollateralParams   = CollateralParams{}
-	DefaultDebtParam          = DebtParam{
-		Denom:            "usdx",
-		ReferenceAsset:   "usd",
-		ConversionFactor: sdk.NewInt(6),
-		DebtFloor:        sdk.NewInt(10000000),
-		SavingsRate:      sdk.MustNewDecFromStr("0.95"),
-	}
-	DefaultCdpStartingID                = uint64(1)
-	DefaultDebtDenom                    = "debt"
-	DefaultGovDenom                     = "ukava"
-	DefaultStableDenom                  = "usdx"
-	DefaultSurplusThreshold             = sdk.NewInt(500000000000)
-	DefaultDebtThreshold                = sdk.NewInt(100000000000)
-	DefaultSurplusLot                   = sdk.NewInt(10000000000)
-	DefaultDebtLot                      = sdk.NewInt(10000000000)
-	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
-	DefaultSavingsDistributionFrequency = time.Hour * 12
-	DefaultSavingsRateDistributed       = sdk.NewInt(0)
-	minCollateralPrefix                 = 0
-	maxCollateralPrefix                 = 255
-	stabilityFeeMax                     = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
+	stabilityFeeMax     = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
+	minCollateralPrefix = 0
+	maxCollateralPrefix = 255
 )
+
+// CDP is the state of a single collateralized debt position.
+type CDP struct {
+	ID              uint64         `json:"id" yaml:"id"`       // unique id for cdp
+	Owner           sdk.AccAddress `json:"owner" yaml:"owner"` // Account that authorizes changes to the CDP
+	Type            string         `json:"type" yaml:"type"`
+	Collateral      sdk.Coin       `json:"collateral" yaml:"collateral"` // Amount of collateral stored in this CDP
+	Principal       sdk.Coin       `json:"principal" yaml:"principal"`
+	AccumulatedFees sdk.Coin       `json:"accumulated_fees" yaml:"accumulated_fees"`
+	FeesUpdated     time.Time      `json:"fees_updated" yaml:"fees_updated"` // Amount of stable coin drawn from this CDP
+}
+
+// NewCDP creates a new CDP object
+func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal, fees sdk.Coin, time time.Time) CDP {
+	return CDP{
+		ID:              id,
+		Owner:           owner,
+		Type:            collateralType,
+		Collateral:      collateral,
+		Principal:       principal,
+		AccumulatedFees: fees,
+		FeesUpdated:     time,
+	}
+}
+
+func (cdp CDP) Validate() error {
+	if cdp.ID == 0 {
+		return errors.New("cdp id cannot be 0")
+	}
+	if cdp.Owner.Empty() {
+		return errors.New("cdp owner cannot be empty")
+	}
+	if !cdp.Collateral.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral %s", cdp.Collateral)
+	}
+	if !cdp.Principal.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal %s", cdp.Principal)
+	}
+	if !cdp.AccumulatedFees.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "accumulated fees %s", cdp.AccumulatedFees)
+	}
+	if cdp.FeesUpdated.IsZero() {
+		return errors.New("cdp updated fee time cannot be zero")
+	}
+	if strings.TrimSpace(cdp.Type) == "" {
+		return fmt.Errorf("cdp type cannot be empty")
+	}
+	return nil
+}
+
+// String implements fmt.stringer
+func (cdp CDP) String() string {
+	return strings.TrimSpace(fmt.Sprintf(`CDP:
+	Owner:      %s
+	ID: %d
+	Collateral Type: %s
+	Collateral: %s
+	Principal: %s
+	AccumulatedFees: %s
+	Fees Last Updated: %s`,
+		cdp.Owner,
+		cdp.ID,
+		cdp.Type,
+		cdp.Collateral,
+		cdp.Principal,
+		cdp.AccumulatedFees,
+		cdp.FeesUpdated,
+	))
+}
+
+// CDPs a collection of CDP objects
+type CDPs []CDP
+
+// Validate validates each CDP
+func (cdps CDPs) Validate() error {
+	for _, cdp := range cdps {
+		if err := cdp.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Deposit defines an amount of coins deposited by an account to a cdp
+type Deposit struct {
+	CdpID     uint64         `json:"cdp_id" yaml:"cdp_id"`       //  cdpID of the cdp
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` //  Address of the depositor
+	Amount    sdk.Coin       `json:"amount" yaml:"amount"`       //  Deposit amount
+}
+
+// NewDeposit creates a new Deposit object
+func NewDeposit(cdpID uint64, depositor sdk.AccAddress, amount sdk.Coin) Deposit {
+	return Deposit{cdpID, depositor, amount}
+}
+
+// Validate performs a basic validation of the deposit fields.
+func (d Deposit) Validate() error {
+	if d.CdpID == 0 {
+		return errors.New("deposit's cdp id cannot be 0")
+	}
+	if d.Depositor.Empty() {
+		return errors.New("depositor cannot be empty")
+	}
+	if !d.Amount.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit %s", d.Amount)
+	}
+	return nil
+}
+
+// Deposits a collection of Deposit objects
+type Deposits []Deposit
+
+// Validate validates each deposit
+func (ds Deposits) Validate() error {
+	for _, d := range ds {
+		if err := d.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // Params governance parameters for cdp module
 type Params struct {
@@ -61,23 +148,6 @@ type Params struct {
 	DebtAuctionLot               sdk.Int          `json:"debt_auction_lot" yaml:"debt_auction_lot"`
 	SavingsDistributionFrequency time.Duration    `json:"savings_distribution_frequency" yaml:"savings_distribution_frequency"`
 	CircuitBreaker               bool             `json:"circuit_breaker" yaml:"circuit_breaker"`
-}
-
-// String implements fmt.Stringer
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	Global Debt Limit: %s
-	Collateral Params: %s
-	Debt Params: %s
-	Surplus Auction Threshold: %s
-	Surplus Auction Lot: %s
-	Debt Auction Threshold: %s
-	Debt Auction Lot: %s
-	Savings Distribution Frequency: %s
-	Circuit Breaker: %t`,
-		p.GlobalDebtLimit, p.CollateralParams, p.DebtParam, p.SurplusAuctionThreshold, p.SurplusAuctionLot,
-		p.DebtAuctionThreshold, p.DebtAuctionLot, p.SavingsDistributionFrequency, p.CircuitBreaker,
-	)
 }
 
 // NewParams returns a new params object
@@ -98,12 +168,20 @@ func NewParams(
 	}
 }
 
-// DefaultParams returns default params for cdp module
-func DefaultParams() Params {
-	return NewParams(
-		DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParam, DefaultSurplusThreshold,
-		DefaultSurplusLot, DefaultDebtThreshold, DefaultDebtLot, DefaultSavingsDistributionFrequency,
-		DefaultCircuitBreaker,
+// String implements fmt.Stringer
+func (p Params) String() string {
+	return fmt.Sprintf(`Params:
+	Global Debt Limit: %s
+	Collateral Params: %s
+	Debt Params: %s
+	Surplus Auction Threshold: %s
+	Surplus Auction Lot: %s
+	Debt Auction Threshold: %s
+	Debt Auction Lot: %s
+	Savings Distribution Frequency: %s
+	Circuit Breaker: %t`,
+		p.GlobalDebtLimit, p.CollateralParams, p.DebtParam, p.SurplusAuctionThreshold, p.SurplusAuctionLot,
+		p.DebtAuctionThreshold, p.DebtAuctionLot, p.SavingsDistributionFrequency, p.CircuitBreaker,
 	)
 }
 
@@ -196,40 +274,6 @@ func (dp DebtParam) String() string {
 	Debt Floor %s
 	Savings  Rate %s
 	`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor, dp.SavingsRate)
-}
-
-// DebtParams array of DebtParam
-type DebtParams []DebtParam
-
-// String implements fmt.Stringer
-func (dps DebtParams) String() string {
-	out := "Debt Params\n"
-	for _, dp := range dps {
-		out += fmt.Sprintf("%s\n", dp)
-	}
-	return out
-}
-
-// ParamKeyTable Key declaration for parameters
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
-}
-
-// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
-// pairs of auth module's parameters.
-// nolint
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyGlobalDebtLimit, &p.GlobalDebtLimit, validateGlobalDebtLimitParam),
-		params.NewParamSetPair(KeyCollateralParams, &p.CollateralParams, validateCollateralParams),
-		params.NewParamSetPair(KeyDebtParam, &p.DebtParam, validateDebtParam),
-		params.NewParamSetPair(KeyCircuitBreaker, &p.CircuitBreaker, validateCircuitBreakerParam),
-		params.NewParamSetPair(KeySurplusThreshold, &p.SurplusAuctionThreshold, validateSurplusAuctionThresholdParam),
-		params.NewParamSetPair(KeySurplusLot, &p.SurplusAuctionLot, validateSurplusAuctionLotParam),
-		params.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
-		params.NewParamSetPair(KeyDebtLot, &p.DebtAuctionLot, validateDebtAuctionLotParam),
-		params.NewParamSetPair(KeyDistributionFrequency, &p.SavingsDistributionFrequency, validateSavingsDistributionFrequencyParam),
-	}
 }
 
 // Validate checks that the parameters have valid values.
@@ -470,6 +514,81 @@ func validateSavingsDistributionFrequencyParam(i interface{}) error {
 
 	if sdf.Seconds() <= float64(0) {
 		return fmt.Errorf("savings distribution frequency should be positive: %s", sdf)
+	}
+
+	return nil
+}
+
+// GenesisState is the state that must be provided at genesis.
+type GenesisState struct {
+	Params                   Params    `json:"params" yaml:"params"`
+	CDPs                     CDPs      `json:"cdps" yaml:"cdps"`
+	Deposits                 Deposits  `json:"deposits" yaml:"deposits"`
+	StartingCdpID            uint64    `json:"starting_cdp_id" yaml:"starting_cdp_id"`
+	DebtDenom                string    `json:"debt_denom" yaml:"debt_denom"`
+	GovDenom                 string    `json:"gov_denom" yaml:"gov_denom"`
+	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml:"previous_distribution_time"`
+	SavingsRateDistributed   sdk.Int   `json:"savings_rate_distributed" yaml:"savings_rate_distributed"`
+}
+
+// NewGenesisState returns a new genesis state
+func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
+	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int) GenesisState {
+	return GenesisState{
+		Params:                   params,
+		CDPs:                     cdps,
+		Deposits:                 deposits,
+		StartingCdpID:            startingCdpID,
+		DebtDenom:                debtDenom,
+		GovDenom:                 govDenom,
+		PreviousDistributionTime: previousDistTime,
+		SavingsRateDistributed:   savingsRateDist,
+	}
+}
+
+// Validate performs basic validation of genesis data returning an
+// error for any failed validation criteria.
+func (gs GenesisState) Validate() error {
+
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
+	if err := gs.CDPs.Validate(); err != nil {
+		return err
+	}
+
+	if err := gs.Deposits.Validate(); err != nil {
+		return err
+	}
+
+	if gs.PreviousDistributionTime.IsZero() {
+		return fmt.Errorf("previous distribution time not set")
+	}
+
+	if err := validateSavingsRateDistributed(gs.SavingsRateDistributed); err != nil {
+		return err
+	}
+
+	if err := sdk.ValidateDenom(gs.DebtDenom); err != nil {
+		return fmt.Errorf(fmt.Sprintf("debt denom invalid: %v", err))
+	}
+
+	if err := sdk.ValidateDenom(gs.GovDenom); err != nil {
+		return fmt.Errorf(fmt.Sprintf("gov denom invalid: %v", err))
+	}
+
+	return nil
+}
+
+func validateSavingsRateDistributed(i interface{}) error {
+	savingsRateDist, ok := i.(sdk.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if savingsRateDist.IsNegative() {
+		return fmt.Errorf("savings rate distributed should not be negative: %s", savingsRateDist)
 	}
 
 	return nil
