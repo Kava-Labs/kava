@@ -39,6 +39,11 @@ func TestMigrateBep3(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestMigrateHarvest(t *testing.T) {
+	newGenState := MigrateHarvest()
+	err := newGenState.Validate()
+	require.NoError(t, err)
+}
 func TestMigrateCdp(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "cdp-v09.json"))
 	require.NoError(t, err)
