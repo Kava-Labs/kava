@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
 	v39_1authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	v39_1vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	v39_1gov "github.com/cosmos/cosmos-sdk/x/gov"
 	v39_1supply "github.com/cosmos/cosmos-sdk/x/supply"
@@ -225,9 +226,15 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 		panic(err)
 	}
 	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(delegatorMacc))
-	hardBalance = sdk.NewCoin("hard", sdk.NewInt(120000000000000))
+	hardBalance = sdk.NewCoin("hard", sdk.NewInt(200000000000000))
+
+	hardTeam := createHardTeamVestingAccount()
+	hardTreasury := createHardTreasuryVestingAccount()
+	hardIEO := createHardIEOAccount()
+	newAccounts = append(newAccounts, hardTeam, hardTreasury, &hardIEO)
 
 	return v39_1auth.NewGenesisState(v39_1auth.Params(oldGenState.Params), newAccounts)
+
 }
 
 // MigrateSupply reconciles supply from kava-3 to kava-4
@@ -315,4 +322,86 @@ func MigratePricefeed(oldGenState v0_9pricefeed.GenesisState) v0_11pricefeed.Gen
 	newParams := v0_11pricefeed.NewParams(newMarkets)
 
 	return v0_11pricefeed.NewGenesisState(newParams, newPostedPrices)
+}
+
+func mustAccAddressFromBech32(bech32Addr string) sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(bech32Addr)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func createHardTeamVestingAccount() *v39_1vesting.PeriodicVestingAccount {
+	bacc := v39_1auth.NewBaseAccountWithAddress(mustAccAddressFromBech32("kava17a9m9zxs3r5zhxnultt5k5kyer0afd7kc8dq80"))
+	coins := sdk.NewCoin("hard", sdk.NewInt(20000000000000))
+	tokenSchedule := []sdk.Coin{
+		sdk.NewCoin("hard", sdk.NewInt(6666666720000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+	}
+	err := bacc.SetCoins(sdk.NewCoins(coins))
+	if err != nil {
+		panic(err)
+	}
+	bva, err := v39_1vesting.NewBaseVestingAccount(&bacc, sdk.NewCoins(coins), 1697378400)
+	if err != nil {
+		panic(err)
+	}
+	vestingPeriodLengths := []int64{31536000, 7948800, 7776000, 7862400, 7948800, 7948800, 7776000, 7862400, 7948800}
+
+	periods := v39_1vesting.Periods{}
+	for i, vestingCoin := range tokenSchedule {
+		period := v39_1vesting.Period{Length: vestingPeriodLengths[i], Amount: sdk.NewCoins(vestingCoin)}
+		periods = append(periods, period)
+	}
+	return vesting.NewPeriodicVestingAccountRaw(bva, 1602770400, periods)
+}
+
+func createHardTreasuryVestingAccount() *v39_1vesting.PeriodicVestingAccount {
+	bacc := v39_1auth.NewBaseAccountWithAddress(mustAccAddressFromBech32("kava1yqt02z2e4gpt4w0jnw9n0hnqyfu45afns669r2"))
+	coins := sdk.NewCoin("hard", sdk.NewInt(50000000000000))
+	originalVestingCoins := sdk.NewCoin("hard", sdk.NewInt(35000000000000))
+	tokenSchedule := []sdk.Coin{
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+	}
+	err := bacc.SetCoins(sdk.NewCoins(coins))
+	if err != nil {
+		panic(err)
+	}
+	bva, err := v39_1vesting.NewBaseVestingAccount(&bacc, sdk.NewCoins(originalVestingCoins), 1665842400)
+	if err != nil {
+		panic(err)
+	}
+	vestingPeriodLengths := []int64{7948800, 7776000, 7862400, 7948800, 7948800, 7776000, 7862400, 7948800}
+
+	periods := v39_1vesting.Periods{}
+	for i, vestingCoin := range tokenSchedule {
+		period := v39_1vesting.Period{Length: vestingPeriodLengths[i], Amount: sdk.NewCoins(vestingCoin)}
+		periods = append(periods, period)
+	}
+	return vesting.NewPeriodicVestingAccountRaw(bva, 1602770400, periods)
+}
+
+func createHardIEOAccount() v39_1auth.BaseAccount {
+	bacc := v39_1auth.NewBaseAccountWithAddress(mustAccAddressFromBech32("kava16yapwtdxm5hkjfpeatr39vhu5c336fgf4utlyf"))
+	coins := sdk.NewCoin("hard", sdk.NewInt(10000000000000))
+	err := bacc.SetCoins(sdk.NewCoins(coins))
+	if err != nil {
+		panic(err)
+	}
+	return bacc
 }

@@ -456,6 +456,228 @@
         "public_key": "",
         "sequence": "0"
       }
+    },
+    {
+      "type": "cosmos-sdk/PeriodicVestingAccount",
+      "value": {
+        "address": "kava17a9m9zxs3r5zhxnultt5k5kyer0afd7kc8dq80",
+        "coins": [
+          {
+            "denom": "hard",
+            "amount": "20000000000000"
+          }
+        ],
+        "public_key": null,
+        "account_number": "0",
+        "sequence": "0",
+        "original_vesting": [
+          {
+            "denom": "hard",
+            "amount": "20000000000000"
+          }
+        ],
+        "delegated_free": [],
+        "delegated_vesting": [],
+        "end_time": "1697378400",
+        "start_time": "1602770400",
+        "vesting_periods": [
+          {
+            "length": "31536000",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "6666666720000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7776000",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7862400",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7776000",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7862400",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "1666666660000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "cosmos-sdk/PeriodicVestingAccount",
+      "value": {
+        "address": "kava1yqt02z2e4gpt4w0jnw9n0hnqyfu45afns669r2",
+        "coins": [
+          {
+            "denom": "hard",
+            "amount": "50000000000000"
+          }
+        ],
+        "public_key": null,
+        "account_number": "0",
+        "sequence": "0",
+        "original_vesting": [
+          {
+            "denom": "hard",
+            "amount": "35000000000000"
+          }
+        ],
+        "delegated_free": [],
+        "delegated_vesting": [],
+        "end_time": "1665842400",
+        "start_time": "1602770400",
+        "vesting_periods": [
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7776000",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7862400",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7776000",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7862400",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          },
+          {
+            "length": "7948800",
+            "amount": [
+              {
+                "denom": "hard",
+                "amount": "4375000000000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "cosmos-sdk/Account",
+      "value": {
+        "address": "kava16yapwtdxm5hkjfpeatr39vhu5c336fgf4utlyf",
+        "coins": [
+          {
+            "denom": "hard",
+            "amount": "10000000000000"
+          }
+        ],
+        "public_key": null,
+        "account_number": "0",
+        "sequence": "0"
+      }
     }
   ]
 }
