@@ -61,10 +61,11 @@ func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, receive
 // note that pay dates are always the 1st or 15th of the month at 14:00UTC.
 func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (int64, error) {
 
-	switch multiplier.Name {
-	case types.Small:
+	if multiplier.MonthsLockup == 0 {
 		return 0, nil
-	case types.Medium, types.Large:
+	}
+	switch multiplier.Name {
+	case types.Small, types.Medium, types.Large:
 		currentDay := ctx.BlockTime().Day()
 		payDay := BeginningOfMonth
 		monthOffset := int64(1)

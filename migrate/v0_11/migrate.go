@@ -16,6 +16,8 @@ import (
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
+	v0_11cdp "github.com/kava-labs/kava/x/cdp"
+	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
 	v0_11harvest "github.com/kava-labs/kava/x/harvest"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
@@ -249,6 +251,76 @@ func MigrateSupply(oldGenState v39_1supply.GenesisState, deputyBalance sdk.Coin,
 func MigrateGov(oldGenState v39_1gov.GenesisState) v39_1gov.GenesisState {
 	oldGenState.VotingParams.VotingPeriod = time.Hour * 24 * 7
 	return oldGenState
+}
+
+// MigrateHarvest initializes the harvest genesis state for kava-4
+func MigrateHarvest() v0_11harvest.GenesisState {
+	// total HARD per second for lps (week one): 633761
+	// HARD per second for delegators (week one): 1267522
+	incentiveGoLiveDate := time.Date(2020, 10, 16, 14, 0, 0, 0, time.UTC)
+	incentiveEndDate := time.Date(2024, 10, 16, 14, 0, 0, 0, time.UTC)
+	claimEndDate := time.Date(2025, 10, 16, 14, 0, 0, 0, time.UTC)
+	harvestGS := v0_11harvest.NewGenesisState(v0_11harvest.NewParams(
+		true,
+		v0_11harvest.DistributionSchedules{
+			v0_11harvest.NewDistributionSchedule(true, "usdx", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(310543)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			v0_11harvest.NewDistributionSchedule(true, "hard", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(285193)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			v0_11harvest.NewDistributionSchedule(true, "bnb", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(12675)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(25350)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+		},
+		v0_11harvest.DelegatorDistributionSchedules{v0_11harvest.NewDelegatorDistributionSchedule(
+			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(1267522)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			time.Hour*24,
+		),
+		},
+	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes)
+	return harvestGS
+}
+
+// MigrateCDP migrates from a v0.9 (or v0.10) cdp genesis state to a v0.11 cdp genesis state
+func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
+	var newCDPs v0_11cdp.CDPs
+	var newDeposits v0_11cdp.Deposits
+	var newCollateralParams v0_11cdp.CollateralParams
+	newStartingID := oldGenState.StartingCdpID
+
+	for _, cdp := range oldGenState.CDPs {
+		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
+		newCDPs = append(newCDPs, newCDP)
+	}
+
+	for _, dep := range oldGenState.Deposits {
+		newDep := v0_11cdp.NewDeposit(dep.CdpID, dep.Depositor, dep.Amount)
+		newDeposits = append(newDeposits, newDep)
+	}
+
+	for _, cp := range oldGenState.Params.CollateralParams {
+		newCollateralParam := v0_11cdp.NewCollateralParam(cp.Denom, "bnb-a", cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, 0x01, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
+		newCollateralParams = append(newCollateralParams, newCollateralParam)
+	}
+	btcbCollateralParam := v0_11cdp.NewCollateralParam("btcb", "btcb-a", sdk.MustNewDecFromStr("1.5"), sdk.NewCoin("usdx", sdk.NewInt(100000000000)), sdk.MustNewDecFromStr("1.000000001547125958"), sdk.NewInt(100000000), sdk.MustNewDecFromStr("0.075000000000000000"), 0x02, "btc:usd", "btc:usd:30", sdk.NewInt(8))
+	busdaCollateralParam := v0_11cdp.NewCollateralParam("busd", "busd-a", sdk.MustNewDecFromStr("1.01"), sdk.NewCoin("usdx", sdk.NewInt(3000000000000)), sdk.OneDec(), sdk.NewInt(1000000000000), sdk.MustNewDecFromStr("0.075000000000000000"), 0x03, "busd:usd", "busd:usd:30", sdk.NewInt(8))
+	busdbCollateralParam := v0_11cdp.NewCollateralParam("busd", "busd-b", sdk.MustNewDecFromStr("1.1"), sdk.NewCoin("usdx", sdk.NewInt(1000000000000)), sdk.MustNewDecFromStr("1.000000012857214317"), sdk.NewInt(1000000000000), sdk.MustNewDecFromStr("0.075000000000000000"), 0x04, "busd:usd", "busd:usd:30", sdk.NewInt(8))
+	xrpbCollateralParam := v0_11cdp.NewCollateralParam("xrpb", "xrpb-a", sdk.MustNewDecFromStr("1.5"), sdk.NewCoin("usdx", sdk.NewInt(100000000000)), sdk.MustNewDecFromStr("1.000000001547125958"), sdk.NewInt(4000000000000), sdk.MustNewDecFromStr("0.075000000000000000"), 0x05, "xrp:usd", "xrp:usd:30", sdk.NewInt(8))
+	newCollateralParams = append(newCollateralParams, btcbCollateralParam, busdaCollateralParam, busdbCollateralParam, xrpbCollateralParam)
+	oldDebtParam := oldGenState.Params.DebtParam
+
+	newDebtParam := v0_11cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor, oldDebtParam.SavingsRate)
+
+	newGlobalDebtLimit := oldGenState.Params.GlobalDebtLimit.Add(btcbCollateralParam.DebtLimit).Add(busdaCollateralParam.DebtLimit).Add(busdbCollateralParam.DebtLimit).Add(xrpbCollateralParam.DebtLimit)
+
+	newParams := v0_11cdp.NewParams(newGlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, oldGenState.Params.SavingsDistributionFrequency, false)
+
+	return v0_11cdp.NewGenesisState(
+		newParams,
+		newCDPs,
+		newDeposits,
+		newStartingID,
+		oldGenState.DebtDenom,
+		oldGenState.GovDenom,
+		oldGenState.PreviousDistributionTime,
+		sdk.ZeroInt(),
+	)
 }
 
 // MigrateIncentive migrates from a v0.9 (or v0.10) incentive genesis state to a v0.11 incentive genesis state
