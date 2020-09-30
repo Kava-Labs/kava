@@ -63,7 +63,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		"btcb",
 		0,
 		v0_11bep3.SupplyLimit{
-			Limit:          sdk.NewInt(10000000000), // 100 BTC limit at launch
+			Limit:          sdk.NewInt(100000000), // 1 BTC limit at launch
 			TimeLimited:    false,
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
@@ -89,7 +89,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		"xrpb", // NOTE: XRPB has 8 decimals on binance chain, whereas XRP has 6 decimals natively
 		144,
 		v0_11bep3.SupplyLimit{
-			Limit:          sdk.NewInt(100000000000000), // 1,000,000 XRP limit at launch
+			Limit:          sdk.NewInt(1000000000000), // 10,000 XRP limit at launch
 			TimeLimited:    false,
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
@@ -115,7 +115,7 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		"busd",
 		727, // note - no official SLIP 44 ID
 		v0_11bep3.SupplyLimit{
-			Limit:          sdk.NewInt(10000000000000), // 100,000 BUSD limit at launch
+			Limit:          sdk.NewInt(100000000000), // 1,000 BUSD limit at launch
 			TimeLimited:    false,
 			TimePeriod:     time.Duration(0),
 			TimeBasedLimit: sdk.ZeroInt()},
