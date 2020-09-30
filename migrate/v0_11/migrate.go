@@ -1,10 +1,19 @@
 package v0_11
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
+	v39_1authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	v39_1vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	v39_1gov "github.com/cosmos/cosmos-sdk/x/gov"
+	v39_1supply "github.com/cosmos/cosmos-sdk/x/supply"
 
+	v38_5auth "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/auth"
+	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp"
@@ -14,7 +23,12 @@ import (
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	v0_9pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_9"
+	v0_11validator_vesting "github.com/kava-labs/kava/x/validator-vesting"
+	v0_9validator_vesting "github.com/kava-labs/kava/x/validator-vesting/legacy/v0_9"
 )
+
+var deputyBnbBalance sdk.Coin
+var hardBalance sdk.Coin
 
 // MigrateBep3 migrates from a v0.9 (or v0.10) bep3 genesis state to a v0.11 bep3 genesis state
 func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
@@ -71,6 +85,172 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		Supplies:          assetSupplies,
 		PreviousBlockTime: v0_11bep3.DefaultPreviousBlockTime,
 	}
+}
+
+// MigrateAuth migrates from a v0.38.5 auth genesis state to a v0.39.1 auth genesis state
+func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
+	var newAccounts v39_1authexported.GenesisAccounts
+	deputyAddr, err := sdk.AccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6")
+	if err != nil {
+		panic(err)
+	}
+	for _, account := range oldGenState.Accounts {
+		switch acc := account.(type) {
+		case *v38_5auth.BaseAccount:
+			a := v39_1auth.BaseAccount(*acc)
+			// Remove deputy bnb
+			if a.GetAddress().Equals(deputyAddr) {
+				deputyBnbBalance = sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb"))
+				err := a.SetCoins(a.GetCoins().Sub(sdk.NewCoins(sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb")))))
+				if err != nil {
+					panic(err)
+				}
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&a))
+
+		case *v38_5auth.BaseVestingAccount:
+			ba := v39_1auth.BaseAccount(*(acc.BaseAccount))
+			bva := v39_1vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.OriginalVesting,
+				DelegatedFree:    acc.DelegatedFree,
+				DelegatedVesting: acc.DelegatedVesting,
+				EndTime:          acc.EndTime,
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&bva))
+
+		case *v38_5auth.ContinuousVestingAccount:
+			ba := v39_1auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			bva := v39_1vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedVesting,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			cva := v39_1vesting.ContinuousVestingAccount{
+				BaseVestingAccount: &bva,
+				StartTime:          acc.StartTime,
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&cva))
+
+		case *v38_5auth.DelayedVestingAccount:
+			ba := v39_1auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			bva := v39_1vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedVesting,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			dva := v39_1vesting.DelayedVestingAccount{
+				BaseVestingAccount: &bva,
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&dva))
+
+		case *v38_5auth.PeriodicVestingAccount:
+			ba := v39_1auth.BaseAccount(*(acc.BaseVestingAccount.BaseAccount))
+			bva := v39_1vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedVesting,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			var newPeriods v39_1vesting.Periods
+			for _, p := range acc.VestingPeriods {
+				newPeriods = append(newPeriods, v39_1vesting.Period(p))
+			}
+			pva := v39_1vesting.PeriodicVestingAccount{
+				BaseVestingAccount: &bva,
+				StartTime:          acc.StartTime,
+				VestingPeriods:     newPeriods,
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&pva))
+
+		case *v38_5supply.ModuleAccount:
+			ba := v39_1auth.BaseAccount(*(acc.BaseAccount))
+			ma := v39_1supply.ModuleAccount{
+				BaseAccount: &ba,
+				Name:        acc.Name,
+				Permissions: acc.Permissions,
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&ma))
+
+		case *v0_9validator_vesting.ValidatorVestingAccount:
+			ba := v39_1auth.BaseAccount(*(acc.BaseAccount))
+			bva := v39_1vesting.BaseVestingAccount{
+				BaseAccount:      &ba,
+				OriginalVesting:  acc.BaseVestingAccount.OriginalVesting,
+				DelegatedFree:    acc.BaseVestingAccount.DelegatedFree,
+				DelegatedVesting: acc.BaseVestingAccount.DelegatedVesting,
+				EndTime:          acc.BaseVestingAccount.EndTime,
+			}
+			var newPeriods v39_1vesting.Periods
+			for _, p := range acc.VestingPeriods {
+				newPeriods = append(newPeriods, v39_1vesting.Period(p))
+			}
+			pva := v39_1vesting.PeriodicVestingAccount{
+				BaseVestingAccount: &bva,
+				StartTime:          acc.StartTime,
+				VestingPeriods:     newPeriods,
+			}
+			var newVestingProgress []v0_11validator_vesting.VestingProgress
+			for _, p := range acc.VestingPeriodProgress {
+				newVestingProgress = append(newVestingProgress, v0_11validator_vesting.VestingProgress(p))
+			}
+			vva := v0_11validator_vesting.ValidatorVestingAccount{
+				PeriodicVestingAccount: &pva,
+				ValidatorAddress:       acc.ValidatorAddress,
+				ReturnAddress:          acc.ReturnAddress,
+				SigningThreshold:       acc.SigningThreshold,
+				CurrentPeriodProgress:  v0_11validator_vesting.CurrentPeriodProgress(acc.CurrentPeriodProgress),
+				VestingPeriodProgress:  newVestingProgress,
+				DebtAfterFailedVesting: acc.DebtAfterFailedVesting,
+			}
+			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&vva))
+
+		default:
+			panic(fmt.Sprintf("unrecognized account type: %T", acc))
+		}
+	}
+
+	// ---- add harvest module accounts -------
+	lpMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.LPAccount, v39_1supply.Minter, v39_1supply.Burner)
+	err = lpMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(80000000000000))))
+	if err != nil {
+		panic(err)
+	}
+	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(lpMacc))
+	delegatorMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.DelegatorAccount, v39_1supply.Minter, v39_1supply.Burner)
+	err = delegatorMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(40000000000000))))
+	if err != nil {
+		panic(err)
+	}
+	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(delegatorMacc))
+	hardBalance = sdk.NewCoin("hard", sdk.NewInt(200000000000000))
+
+	hardTeam := createHardTeamVestingAccount()
+	hardTreasury := createHardTreasuryVestingAccount()
+	hardIEO := createHardIEOAccount()
+	newAccounts = append(newAccounts, hardTeam, hardTreasury, &hardIEO)
+
+	return v39_1auth.NewGenesisState(v39_1auth.Params(oldGenState.Params), newAccounts)
+
+}
+
+// MigrateSupply reconciles supply from kava-3 to kava-4
+// deputy balance of bnb coins is removed (deputy now mints coins)
+// hard token supply is added
+func MigrateSupply(oldGenState v39_1supply.GenesisState, deputyBalance sdk.Coin, hardBalance sdk.Coin) v39_1supply.GenesisState {
+	oldGenState.Supply = oldGenState.Supply.Sub(sdk.Coins{deputyBalance}).Add(hardBalance)
+	return oldGenState
+}
+
+// MigrateGov migrates gov genesis state
+func MigrateGov(oldGenState v39_1gov.GenesisState) v39_1gov.GenesisState {
+	oldGenState.VotingParams.VotingPeriod = time.Hour * 24 * 7
+	return oldGenState
 }
 
 // MigrateHarvest initializes the harvest genesis state for kava-4
@@ -214,4 +394,86 @@ func MigratePricefeed(oldGenState v0_9pricefeed.GenesisState) v0_11pricefeed.Gen
 	newParams := v0_11pricefeed.NewParams(newMarkets)
 
 	return v0_11pricefeed.NewGenesisState(newParams, newPostedPrices)
+}
+
+func mustAccAddressFromBech32(bech32Addr string) sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(bech32Addr)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func createHardTeamVestingAccount() *v39_1vesting.PeriodicVestingAccount {
+	bacc := v39_1auth.NewBaseAccountWithAddress(mustAccAddressFromBech32("kava17a9m9zxs3r5zhxnultt5k5kyer0afd7kc8dq80"))
+	coins := sdk.NewCoin("hard", sdk.NewInt(20000000000000))
+	tokenSchedule := []sdk.Coin{
+		sdk.NewCoin("hard", sdk.NewInt(6666666720000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+		sdk.NewCoin("hard", sdk.NewInt(1666666660000)),
+	}
+	err := bacc.SetCoins(sdk.NewCoins(coins))
+	if err != nil {
+		panic(err)
+	}
+	bva, err := v39_1vesting.NewBaseVestingAccount(&bacc, sdk.NewCoins(coins), 1697378400)
+	if err != nil {
+		panic(err)
+	}
+	vestingPeriodLengths := []int64{31536000, 7948800, 7776000, 7862400, 7948800, 7948800, 7776000, 7862400, 7948800}
+
+	periods := v39_1vesting.Periods{}
+	for i, vestingCoin := range tokenSchedule {
+		period := v39_1vesting.Period{Length: vestingPeriodLengths[i], Amount: sdk.NewCoins(vestingCoin)}
+		periods = append(periods, period)
+	}
+	return vesting.NewPeriodicVestingAccountRaw(bva, 1602770400, periods)
+}
+
+func createHardTreasuryVestingAccount() *v39_1vesting.PeriodicVestingAccount {
+	bacc := v39_1auth.NewBaseAccountWithAddress(mustAccAddressFromBech32("kava1yqt02z2e4gpt4w0jnw9n0hnqyfu45afns669r2"))
+	coins := sdk.NewCoin("hard", sdk.NewInt(50000000000000))
+	originalVestingCoins := sdk.NewCoin("hard", sdk.NewInt(35000000000000))
+	tokenSchedule := []sdk.Coin{
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+		sdk.NewCoin("hard", sdk.NewInt(4375000000000)),
+	}
+	err := bacc.SetCoins(sdk.NewCoins(coins))
+	if err != nil {
+		panic(err)
+	}
+	bva, err := v39_1vesting.NewBaseVestingAccount(&bacc, sdk.NewCoins(originalVestingCoins), 1665842400)
+	if err != nil {
+		panic(err)
+	}
+	vestingPeriodLengths := []int64{7948800, 7776000, 7862400, 7948800, 7948800, 7776000, 7862400, 7948800}
+
+	periods := v39_1vesting.Periods{}
+	for i, vestingCoin := range tokenSchedule {
+		period := v39_1vesting.Period{Length: vestingPeriodLengths[i], Amount: sdk.NewCoins(vestingCoin)}
+		periods = append(periods, period)
+	}
+	return vesting.NewPeriodicVestingAccountRaw(bva, 1602770400, periods)
+}
+
+func createHardIEOAccount() v39_1auth.BaseAccount {
+	bacc := v39_1auth.NewBaseAccountWithAddress(mustAccAddressFromBech32("kava16yapwtdxm5hkjfpeatr39vhu5c336fgf4utlyf"))
+	coins := sdk.NewCoin("hard", sdk.NewInt(10000000000000))
+	err := bacc.SetCoins(sdk.NewCoins(coins))
+	if err != nil {
+		panic(err)
+	}
+	return bacc
 }
