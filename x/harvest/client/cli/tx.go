@@ -42,7 +42,7 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposit [amount] [deposit-type]",
 		Short: "deposit coins to harvest",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		Example: fmt.Sprintf(
 			`%s tx %s deposit 10000000bnb lp --from <key>`, version.ClientName, types.ModuleName,
 		),
@@ -67,7 +67,7 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "withdraw [amount] [deposit-type]",
 		Short: "withdraw coins from harvest",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		Example: fmt.Sprintf(
 			`%s tx %s withdraw 10000000bnb lp --from <key>`, version.ClientName, types.ModuleName,
 		),

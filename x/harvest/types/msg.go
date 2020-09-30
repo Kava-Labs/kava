@@ -116,8 +116,8 @@ type MsgWithdraw struct {
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin, depositType string) MsgDeposit {
-	return MsgDeposit{
+func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin, depositType string) MsgWithdraw {
+	return MsgWithdraw{
 		Depositor:   depositor,
 		Amount:      amount,
 		DepositType: depositType,

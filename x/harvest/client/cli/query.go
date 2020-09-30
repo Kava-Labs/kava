@@ -114,7 +114,7 @@ func queryModAccountsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "deposits",
 		Short: "query harvest module deposits with optional filters",
 		Long: strings.TrimSpace(`query for all harvest module deposits or a specific deposit using flags:
@@ -174,10 +174,16 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(deposits)
 		},
 	}
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
+	cmd.Flags().String(flagDepositDenom, "", "(optional) filter for deposits by denom")
+	cmd.Flags().String(flagDepositType, "", "(optional) filter for deposits by type (lp or staking)")
+	return cmd
 }
 
 func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "claims",
 		Short: "query harvest module claims with optional filters",
 		Long: strings.TrimSpace(`query for all harvest module claims or a specific claim using flags:
@@ -237,4 +243,10 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(claims)
 		},
 	}
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	cmd.Flags().String(flagOwner, "", "(optional) filter for claims by owner address")
+	cmd.Flags().String(flagDepositDenom, "", "(optional) filter for claims by denom")
+	cmd.Flags().String(flagDepositType, "", "(optional) filter for claims by type (lp or staking)")
+	return cmd
 }
