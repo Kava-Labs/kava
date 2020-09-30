@@ -15,7 +15,7 @@ import (
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_11"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
-	v0_11harvest "github.com/kava-labs/kava/x/hvt"
+	v0_11harvest "github.com/kava-labs/kava/x/harvest"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
