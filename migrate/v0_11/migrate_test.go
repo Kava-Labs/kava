@@ -12,6 +12,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
+	v0_9pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_9"
 )
 
 func TestMain(m *testing.M) {
@@ -32,6 +33,19 @@ func TestMigrateBep3(t *testing.T) {
 	})
 
 	newGenState := MigrateBep3(oldGenState)
+	err = newGenState.Validate()
+	require.NoError(t, err)
+}
+
+func TestMigratePricefeed(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "pricefeed-v09.json"))
+	require.NoError(t, err)
+	var oldGenState v0_9pricefeed.GenesisState
+	cdc := app.MakeCodec()
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldGenState)
+	})
+	newGenState := MigratePricefeed(oldGenState)
 	err = newGenState.Validate()
 	require.NoError(t, err)
 }
