@@ -1,4 +1,4 @@
-package types
+package v0_9
 
 import (
 	"errors"
@@ -9,7 +9,24 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Market an asset in the pricefeed
+// GenesisState - pricefeed state that must be provided at genesis
+type GenesisState struct {
+	Params       Params       `json:"params" yaml:"params"`
+	PostedPrices PostedPrices `json:"posted_prices" yaml:"posted_prices"`
+}
+
+// NewGenesisState creates a new genesis state for the pricefeed module
+func NewGenesisState(p Params, pp []PostedPrice) GenesisState {
+	return GenesisState{
+		Params:       p,
+		PostedPrices: pp,
+	}
+}
+
+type Params struct {
+	Markets Markets `json:"markets" yaml:"markets"` //  Array containing the markets supported by the pricefeed
+}
+
 type Market struct {
 	// TODO: rename to ID
 	MarketID   string           `json:"market_id" yaml:"market_id"`
@@ -17,17 +34,6 @@ type Market struct {
 	QuoteAsset string           `json:"quote_asset" yaml:"quote_asset"`
 	Oracles    []sdk.AccAddress `json:"oracles" yaml:"oracles"`
 	Active     bool             `json:"active" yaml:"active"`
-}
-
-// NewMarket returns a new Market
-func NewMarket(id, base, quote string, oracles []sdk.AccAddress, active bool) Market {
-	return Market{
-		MarketID:   id,
-		BaseAsset:  base,
-		QuoteAsset: quote,
-		Oracles:    oracles,
-		Active:     active,
-	}
 }
 
 // String implement fmt.Stringer
@@ -185,10 +191,3 @@ func (ps PostedPrices) String() string {
 	}
 	return strings.TrimSpace(out)
 }
-
-// SortDecs provides the interface needed to sort sdk.Dec slices
-type SortDecs []sdk.Dec
-
-func (a SortDecs) Len() int           { return len(a) }
-func (a SortDecs) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a SortDecs) Less(i, j int) bool { return a[i].LT(a[j]) }
