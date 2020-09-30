@@ -9,11 +9,13 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, gs GenesisState) {
 	// Set the markets and oracles from params
 	keeper.SetParams(ctx, gs.Params)
 
-	// Iterate through the posted prices and set them in the store
+	// Iterate through the posted prices and set them in the store if they are not expired
 	for _, pp := range gs.PostedPrices {
-		_, err := keeper.SetPrice(ctx, pp.OracleAddress, pp.MarketID, pp.Price, pp.Expiry)
-		if err != nil {
-			panic(err)
+		if pp.Expiry.After(ctx.BlockTime()) {
+			_, err := keeper.SetPrice(ctx, pp.OracleAddress, pp.MarketID, pp.Price, pp.Expiry)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 	params := keeper.GetParams(ctx)
