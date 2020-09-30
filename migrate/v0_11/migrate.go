@@ -94,7 +94,10 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 			// Remove deputy bnb
 			if a.GetAddress().Equals(deputyAddr) {
 				deputyBnbBalance = sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb"))
-				a.SetCoins(a.GetCoins().Sub(sdk.NewCoins(sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb")))))
+				err := a.SetCoins(a.GetCoins().Sub(sdk.NewCoins(sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb")))))
+				if err != nil {
+					panic(err)
+				}
 			}
 			newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(&a))
 
@@ -207,10 +210,16 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 
 	// ---- add harvest module accounts -------
 	lpMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.LPAccount, v39_1supply.Minter, v39_1supply.Burner)
-	lpMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(80000000000000))))
+	err = lpMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(80000000000000))))
+	if err != nil {
+		panic(err)
+	}
 	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(lpMacc))
 	delegatorMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.DelegatorAccount, v39_1supply.Minter, v39_1supply.Burner)
-	delegatorMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(40000000000000))))
+	err = delegatorMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(40000000000000))))
+	if err != nil {
+		panic(err)
+	}
 	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(delegatorMacc))
 	hardBalance = sdk.NewCoin("hard", sdk.NewInt(120000000000000))
 
