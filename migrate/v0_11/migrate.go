@@ -83,6 +83,8 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		time.Duration(0))
 	assetParams = append(assetParams, btcbAssetParam)
 	assetSupplies = append(assetSupplies, btcbAssetSupply)
+
+	// -------------- ADD XRPB To BEP3 params --------------------
 	xrpbAssetParam := v0_11bep3.NewAssetParam(
 		"xrpb", // NOTE: XRPB has 8 decimals on binance chain, whereas XRP has 6 decimals natively
 		144,
@@ -107,6 +109,8 @@ func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {
 		time.Duration(0))
 	assetParams = append(assetParams, xrpbAssetParam)
 	assetSupplies = append(assetSupplies, xrpbAssetSupply)
+
+	// -------------- ADD BUSD To BEP3 params --------------------
 	busdAssetParam := v0_11bep3.NewAssetParam(
 		"busd",
 		727, // note - no official SLIP 44 ID
