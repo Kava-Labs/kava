@@ -19,6 +19,17 @@ type Market struct {
 	Active     bool             `json:"active" yaml:"active"`
 }
 
+// NewMarket returns a new Market
+func NewMarket(id, base, quote string, oracles []sdk.AccAddress, active bool) Market {
+	return Market{
+		MarketID:   id,
+		BaseAsset:  base,
+		QuoteAsset: quote,
+		Oracles:    oracles,
+		Active:     active,
+	}
+}
+
 // String implement fmt.Stringer
 func (m Market) String() string {
 	return fmt.Sprintf(`Asset:
