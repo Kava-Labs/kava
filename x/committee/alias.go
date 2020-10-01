@@ -29,8 +29,10 @@ const (
 	QuerierRoute                    = types.QuerierRoute
 	QueryCommittee                  = types.QueryCommittee
 	QueryCommittees                 = types.QueryCommittees
+	QueryNextProposalID             = types.QueryNextProposalID
 	QueryProposal                   = types.QueryProposal
 	QueryProposals                  = types.QueryProposals
+	QueryRawParams                  = types.QueryRawParams
 	QueryTally                      = types.QueryTally
 	QueryVote                       = types.QueryVote
 	QueryVotes                      = types.QueryVotes
@@ -51,6 +53,7 @@ var (
 	DefaultGenesisState         = types.DefaultGenesisState
 	GetKeyFromID                = types.GetKeyFromID
 	GetVoteKey                  = types.GetVoteKey
+	NewAllowedCollateralParam   = types.NewAllowedCollateralParam
 	NewCommittee                = types.NewCommittee
 	NewCommitteeChangeProposal  = types.NewCommitteeChangeProposal
 	NewCommitteeDeleteProposal  = types.NewCommitteeDeleteProposal
@@ -60,6 +63,7 @@ var (
 	NewProposal                 = types.NewProposal
 	NewQueryCommitteeParams     = types.NewQueryCommitteeParams
 	NewQueryProposalParams      = types.NewQueryProposalParams
+	NewQueryRawParamsParams     = types.NewQueryRawParamsParams
 	NewQueryVoteParams          = types.NewQueryVoteParams
 	NewVote                     = types.NewVote
 	RegisterCodec               = types.RegisterCodec
@@ -77,6 +81,7 @@ var (
 	ErrProposalExpired         = types.ErrProposalExpired
 	ErrUnknownCommittee        = types.ErrUnknownCommittee
 	ErrUnknownProposal         = types.ErrUnknownProposal
+	ErrUnknownSubspace         = types.ErrUnknownSubspace
 	ErrUnknownVote             = types.ErrUnknownVote
 	ModuleCdc                  = types.ModuleCdc
 	NextProposalIDKey          = types.NextProposalIDKey
@@ -108,6 +113,7 @@ type (
 	PubProposal                 = types.PubProposal
 	QueryCommitteeParams        = types.QueryCommitteeParams
 	QueryProposalParams         = types.QueryProposalParams
+	QueryRawParamsParams        = types.QueryRawParamsParams
 	QueryVoteParams             = types.QueryVoteParams
 	SimpleParamChangePermission = types.SimpleParamChangePermission
 	SoftwareUpgradePermission   = types.SoftwareUpgradePermission

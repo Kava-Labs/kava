@@ -1,9 +1,15 @@
-package types
+package v0_9
 
 import (
+	"fmt"
+	"time"
+
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 
@@ -13,20 +19,160 @@ import (
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-func init() {
-	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
-	// But since these proposals contain Permissions, these types also need registering:
-	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
-	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
-	govtypes.RegisterProposalTypeCodec(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission")
-	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
-	govtypes.RegisterProposalTypeCodec(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission")
-	govtypes.RegisterProposalTypeCodec(SubParamChangePermission{}, "kava/SubParamChangePermission")
-}
+const (
+	MaxCommitteeDescriptionLength int = 512
+)
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
 type Permission interface {
 	Allows(sdk.Context, *codec.Codec, ParamKeeper, PubProposal) bool
+}
+
+type ParamKeeper interface {
+	GetSubspace(string) (params.Subspace, bool)
+}
+
+// A Committee is a collection of addresses that are allowed to vote and enact any governance proposal that passes their permissions.
+type Committee struct {
+	ID               uint64           `json:"id" yaml:"id"`
+	Description      string           `json:"description" yaml:"description"`
+	Members          []sdk.AccAddress `json:"members" yaml:"members"`
+	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
+	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage of members that must vote for a proposal to pass.
+	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
+}
+
+func NewCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission, threshold sdk.Dec, duration time.Duration) Committee {
+	return Committee{
+		ID:               id,
+		Description:      description,
+		Members:          members,
+		Permissions:      permissions,
+		VoteThreshold:    threshold,
+		ProposalDuration: duration,
+	}
+}
+
+func (c Committee) HasMember(addr sdk.AccAddress) bool {
+	for _, m := range c.Members {
+		if m.Equals(addr) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasPermissionsFor returns whether the committee is authorized to enact a proposal.
+// As long as one permission allows the proposal then it goes through. Its the OR of all permissions.
+func (c Committee) HasPermissionsFor(ctx sdk.Context, appCdc *codec.Codec, pk ParamKeeper, proposal PubProposal) bool {
+	for _, p := range c.Permissions {
+		if p.Allows(ctx, appCdc, pk, proposal) {
+			return true
+		}
+	}
+	return false
+}
+
+func (c Committee) Validate() error {
+
+	addressMap := make(map[string]bool, len(c.Members))
+	for _, m := range c.Members {
+		// check there are no duplicate members
+		if _, ok := addressMap[m.String()]; ok {
+			return fmt.Errorf("committe cannot have duplicate members, %s", m)
+		}
+		// check for valid addresses
+		if m.Empty() {
+			return fmt.Errorf("committee cannot have empty member address")
+		}
+		addressMap[m.String()] = true
+	}
+
+	if len(c.Members) == 0 {
+		return fmt.Errorf("committee cannot have zero members")
+	}
+
+	if len(c.Description) > MaxCommitteeDescriptionLength {
+		return fmt.Errorf("description length %d longer than max allowed %d", len(c.Description), MaxCommitteeDescriptionLength)
+	}
+
+	for _, p := range c.Permissions {
+		if p == nil {
+			return fmt.Errorf("committee cannot have a nil permission")
+		}
+	}
+
+	// threshold must be in the range (0,1]
+	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
+		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
+	}
+
+	if c.ProposalDuration < 0 {
+		return fmt.Errorf("invalid proposal duration: %s", c.ProposalDuration)
+	}
+
+	return nil
+}
+
+// ------------------------------------------
+//				Proposals
+// ------------------------------------------
+
+// PubProposal is the interface that all proposals must fulfill to be submitted to a committee.
+// Proposal types can be created external to this module. For example a ParamChangeProposal, or CommunityPoolSpendProposal.
+// It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
+type PubProposal govtypes.Content
+
+// Proposal is an internal record of a governance proposal submitted to a committee.
+type Proposal struct {
+	PubProposal `json:"pub_proposal" yaml:"pub_proposal"`
+	ID          uint64    `json:"id" yaml:"id"`
+	CommitteeID uint64    `json:"committee_id" yaml:"committee_id"`
+	Deadline    time.Time `json:"deadline" yaml:"deadline"`
+}
+
+func NewProposal(pubProposal PubProposal, id uint64, committeeID uint64, deadline time.Time) Proposal {
+	return Proposal{
+		PubProposal: pubProposal,
+		ID:          id,
+		CommitteeID: committeeID,
+		Deadline:    deadline,
+	}
+}
+
+// HasExpiredBy calculates if the proposal will have expired by a certain time.
+// All votes must be cast before deadline, those cast at time == deadline are not valid
+func (p Proposal) HasExpiredBy(time time.Time) bool {
+	return !time.Before(p.Deadline)
+}
+
+// String implements the fmt.Stringer interface, and importantly overrides the String methods inherited from the embedded PubProposal type.
+func (p Proposal) String() string {
+	bz, _ := yaml.Marshal(p)
+	return string(bz)
+}
+
+// ------------------------------------------
+//				Votes
+// ------------------------------------------
+
+type Vote struct {
+	ProposalID uint64         `json:"proposal_id" yaml:"proposal_id"`
+	Voter      sdk.AccAddress `json:"voter" yaml:"voter"`
+}
+
+func NewVote(proposalID uint64, voter sdk.AccAddress) Vote {
+	return Vote{
+		ProposalID: proposalID,
+		Voter:      voter,
+	}
+}
+
+func (v Vote) Validate() error {
+	if v.Voter.Empty() {
+		return fmt.Errorf("voter address cannot be empty")
+	}
+	return nil
 }
 
 // ------------------------------------------
@@ -338,7 +484,7 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 		var foundAllowedCP bool
 		var allowedCP AllowedCollateralParam
 		for _, p := range acps {
-			if p.Type != incomingCP.Type {
+			if p.Denom != incomingCP.Denom {
 				continue
 			}
 			foundAllowedCP = true
@@ -372,8 +518,7 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 }
 
 type AllowedCollateralParam struct {
-	Type                string `json:"type" yaml:"type"`
-	Denom               bool   `json:"denom" yaml:"denom"`
+	Denom               string `json:"denom" yaml:"denom"`
 	LiquidationRatio    bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
 	DebtLimit           bool   `json:"debt_limit" yaml:"debt_limit"`
 	StabilityFee        bool   `json:"stability_fee" yaml:"stability_fee"`
@@ -385,29 +530,8 @@ type AllowedCollateralParam struct {
 	ConversionFactor    bool   `json:"conversion_factor" yaml:"conversion_factor"`
 }
 
-// NewAllowedCollateralParam return a new AllowedCollateralParam
-func NewAllowedCollateralParam(
-	ctype string, denom, liqRatio, debtLimit,
-	stabilityFee, auctionSize, liquidationPenalty,
-	prefix, spotMarket, liquidationMarket, conversionFactor bool) AllowedCollateralParam {
-	return AllowedCollateralParam{
-		Type:                ctype,
-		Denom:               denom,
-		LiquidationRatio:    liqRatio,
-		DebtLimit:           debtLimit,
-		StabilityFee:        stabilityFee,
-		AuctionSize:         auctionSize,
-		LiquidationPenalty:  liquidationPenalty,
-		Prefix:              prefix,
-		SpotMarketID:        spotMarket,
-		LiquidationMarketID: liquidationMarket,
-		ConversionFactor:    conversionFactor,
-	}
-}
-
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
-	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collateral types to be all equal
-		(current.Denom == incoming.Denom || acp.Denom) &&
+	allowed := ((acp.Denom == current.Denom) && (acp.Denom == incoming.Denom)) && // require denoms to be all equal
 		(current.LiquidationRatio.Equal(incoming.LiquidationRatio) || acp.LiquidationRatio) &&
 		(current.DebtLimit.IsEqual(incoming.DebtLimit) || acp.DebtLimit) &&
 		(current.StabilityFee.Equal(incoming.StabilityFee) || acp.StabilityFee) &&
@@ -487,25 +611,19 @@ func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) b
 	return allAllowed
 }
 
-// AllowedAssetParam bep3 asset parameters that can be changed by committee
 type AllowedAssetParam struct {
-	Denom         string `json:"denom" yaml:"denom"`
-	CoinID        bool   `json:"coin_id" yaml:"coin_id"`
-	Limit         bool   `json:"limit" yaml:"limit"`
-	Active        bool   `json:"active" yaml:"active"`
-	MaxSwapAmount bool   `json:"max_swap_amount" yaml:"max_swap_amount"`
-	MinBlockLock  bool   `json:"min_block_lock" yaml:"min_block_lock"`
+	Denom  string `json:"denom" yaml:"denom"`
+	CoinID bool   `json:"coin_id" yaml:"coin_id"`
+	Limit  bool   `json:"limit" yaml:"limit"`
+	Active bool   `json:"active" yaml:"active"`
 }
 
-// Allows bep3 AssetParam parameters than can be changed by committee
 func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool {
 
 	allowed := ((aap.Denom == current.Denom) && (aap.Denom == incoming.Denom)) && // require denoms to be all equal
 		((current.CoinID == incoming.CoinID) || aap.CoinID) &&
 		(current.SupplyLimit.Equals(incoming.SupplyLimit) || aap.Limit) &&
-		((current.Active == incoming.Active) || aap.Active) &&
-		((current.MaxSwapAmount.Equal(incoming.MaxSwapAmount)) || aap.MaxSwapAmount) &&
-		((current.MinBlockLock == incoming.MinBlockLock) || aap.MinBlockLock)
+		((current.Active == incoming.Active) || aap.Active)
 	return allowed
 }
 
@@ -586,4 +704,107 @@ func addressesEqual(addrs1, addrs2 []sdk.AccAddress) bool {
 		areEqual = areEqual && addrs1[i].Equals(addrs2[i])
 	}
 	return areEqual
+}
+
+// DefaultNextProposalID is the starting poiint for proposal IDs.
+const DefaultNextProposalID uint64 = 1
+
+// GenesisState is state that must be provided at chain genesis.
+type GenesisState struct {
+	NextProposalID uint64      `json:"next_proposal_id" yaml:"next_proposal_id"`
+	Committees     []Committee `json:"committees" yaml:"committees"`
+	Proposals      []Proposal  `json:"proposals" yaml:"proposals"`
+	Votes          []Vote      `json:"votes" yaml:"votes"`
+}
+
+// NewGenesisState returns a new genesis state object for the module.
+func NewGenesisState(nextProposalID uint64, committees []Committee, proposals []Proposal, votes []Vote) GenesisState {
+	return GenesisState{
+		NextProposalID: nextProposalID,
+		Committees:     committees,
+		Proposals:      proposals,
+		Votes:          votes,
+	}
+}
+
+// DefaultGenesisState returns the default genesis state for the module.
+func DefaultGenesisState() GenesisState {
+	return NewGenesisState(
+		DefaultNextProposalID,
+		[]Committee{},
+		[]Proposal{},
+		[]Vote{},
+	)
+}
+
+// Validate performs basic validation of genesis data.
+func (gs GenesisState) Validate() error {
+	// validate committees
+	committeeMap := make(map[uint64]bool, len(gs.Committees))
+	for _, com := range gs.Committees {
+		// check there are no duplicate IDs
+		if _, ok := committeeMap[com.ID]; ok {
+			return fmt.Errorf("duplicate committee ID found in genesis state; id: %d", com.ID)
+		}
+		committeeMap[com.ID] = true
+
+		// validate committee
+		if err := com.Validate(); err != nil {
+			return err
+		}
+	}
+
+	// validate proposals
+	proposalMap := make(map[uint64]bool, len(gs.Proposals))
+	for _, p := range gs.Proposals {
+		// check there are no duplicate IDs
+		if _, ok := proposalMap[p.ID]; ok {
+			return fmt.Errorf("duplicate proposal ID found in genesis state; id: %d", p.ID)
+		}
+		proposalMap[p.ID] = true
+
+		// validate next proposal ID
+		if p.ID >= gs.NextProposalID {
+			return fmt.Errorf("NextProposalID is not greater than all proposal IDs; id: %d", p.ID)
+		}
+
+		// check committee exists
+		if !committeeMap[p.CommitteeID] {
+			return fmt.Errorf("proposal refers to non existent committee; proposal: %+v", p)
+		}
+
+		// validate pubProposal
+		if err := p.PubProposal.ValidateBasic(); err != nil {
+			return fmt.Errorf("proposal %d invalid: %w", p.ID, err)
+		}
+	}
+
+	// validate votes
+	for _, v := range gs.Votes {
+		// validate committee
+		if err := v.Validate(); err != nil {
+			return err
+		}
+
+		// check proposal exists
+		if !proposalMap[v.ProposalID] {
+			return fmt.Errorf("vote refers to non existent proposal; vote: %+v", v)
+		}
+	}
+	return nil
+}
+
+// RegisterCodec registers the necessary types for the module
+func RegisterCodec(cdc *codec.Codec) {
+
+	// Proposals
+	cdc.RegisterInterface((*PubProposal)(nil), nil)
+
+	// Permissions
+	cdc.RegisterInterface((*Permission)(nil), nil)
+	cdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
+	cdc.RegisterConcrete(SimpleParamChangePermission{}, "kava/SimpleParamChangePermission", nil)
+	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	cdc.RegisterConcrete(SubParamChangePermission{}, "kava/SubParamChangePermission", nil)
 }

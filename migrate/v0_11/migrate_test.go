@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
@@ -20,6 +20,7 @@ import (
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
+	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 	v0_9pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_9"
 	v0_11validator_vesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -48,6 +49,22 @@ func TestMigrateBep3(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestMigrateCommittee(t *testing.T) {
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "committee-v09.json"))
+	require.NoError(t, err)
+	var oldGenState v0_9committee.GenesisState
+	cdc := codec.New()
+	sdk.RegisterCodec(cdc)
+	v0_9committee.RegisterCodec(cdc)
+
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldGenState)
+	})
+
+	newGenState := MigrateCommittee(oldGenState)
+	err = newGenState.Validate()
+	require.NoError(t, err)
+}
 func TestMigrateAuth(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "auth-v09.json"))
 	require.NoError(t, err)
