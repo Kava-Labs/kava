@@ -21,6 +21,7 @@ import (
 
 const (
 	MaxCommitteeDescriptionLength int = 512
+	ModuleName                        = "committee"
 )
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.

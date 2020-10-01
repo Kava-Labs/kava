@@ -6,6 +6,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	ModuleName = "cdp"
+)
+
 // CDP is the state of a single collateralized debt position.
 type CDP struct {
 	ID              uint64         `json:"id" yaml:"id"`                 // unique id for cdp

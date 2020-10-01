@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
 	v39_1authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	v39_1vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	v39_genutil "github.com/cosmos/cosmos-sdk/x/genutil"
 	v39_1gov "github.com/cosmos/cosmos-sdk/x/gov"
 	v39_1supply "github.com/cosmos/cosmos-sdk/x/supply"
 
+	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/kava-labs/kava/app"
 	v38_5auth "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/auth"
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3"
@@ -23,6 +29,7 @@ import (
 	v0_11harvest "github.com/kava-labs/kava/x/harvest"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
+	v0_11issuance "github.com/kava-labs/kava/x/issuance"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	v0_9pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_9"
 	v0_11validator_vesting "github.com/kava-labs/kava/x/validator-vesting"
@@ -31,6 +38,101 @@ import (
 
 var deputyBnbBalance sdk.Coin
 var hardBalance sdk.Coin
+
+// Migrate translates a genesis file from kava v0.9 (or v0.10) format to kava v0.11.x format.
+func Migrate(genDoc tmtypes.GenesisDoc) tmtypes.GenesisDoc {
+	// migrate app state
+	var appStateMap v39_genutil.AppMap
+	cdc := codec.New()
+	cryptoAmino.RegisterAmino(cdc)
+	tmtypes.RegisterEvidences(cdc)
+
+	if err := cdc.UnmarshalJSON(genDoc.AppState, &appStateMap); err != nil {
+		panic(err)
+	}
+	newAppState := MigrateAppState(appStateMap)
+	v0_11Codec := app.MakeCodec()
+	marshaledNewAppState, err := v0_11Codec.MarshalJSON(newAppState)
+	if err != nil {
+		panic(err)
+	}
+	genDoc.AppState = marshaledNewAppState
+	genDoc.GenesisTime = time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC)
+	genDoc.ChainID = "kava-4"
+	return genDoc
+}
+
+// MigrateAppState migrates application state from v0.9 (or v0.10) format to a kava v0.11.x format
+func MigrateAppState(v0_9AppState v39_genutil.AppMap) v39_genutil.AppMap {
+	v0_11AppState := v0_9AppState
+	v0_11Codec := app.MakeCodec()
+	if v0_9AppState[v38_5auth.ModuleName] != nil {
+		v0_9cdc := codec.New()
+		codec.RegisterCrypto(v0_9cdc)
+		v38_5auth.RegisterCodec(v0_9cdc)
+		v38_5auth.RegisterCodecVesting(v0_9cdc)
+		v38_5supply.RegisterCodec(v0_9cdc)
+		v0_9validator_vesting.RegisterCodec(v0_9cdc)
+		var authGenState v38_5auth.GenesisState
+		v0_9cdc.MustUnmarshalJSON(v0_9AppState[v38_5auth.ModuleName], &authGenState)
+		delete(v0_9AppState, v38_5auth.ModuleName)
+		newAuthGS := MigrateAuth(authGenState)
+		v0_11AppState[v39_1auth.ModuleName] = v0_11Codec.MustMarshalJSON(newAuthGS)
+	}
+	if v0_9AppState[v39_1supply.ModuleName] != nil {
+		var supplyGenstate v39_1supply.GenesisState
+		v0_11Codec.MustUnmarshalJSON(v0_9AppState[v39_1supply.ModuleName], &supplyGenstate)
+		delete(v0_9AppState, v39_1supply.ModuleName)
+		v0_11AppState[v39_1supply.ModuleName] = v0_11Codec.MustMarshalJSON(
+			MigrateSupply(
+				supplyGenstate, deputyBnbBalance, sdk.NewCoin("hard", sdk.NewInt(200000000000000))))
+
+	}
+	if v0_9AppState[v39_1gov.ModuleName] != nil {
+		var govGenstate v39_1gov.GenesisState
+		v0_11Codec.MustUnmarshalJSON(v0_9AppState[v39_1gov.ModuleName], &govGenstate)
+		delete(v0_9AppState, v39_1gov.ModuleName)
+		v0_11AppState[v39_1gov.ModuleName] = v0_11Codec.MustMarshalJSON(
+			MigrateGov(govGenstate))
+
+	}
+	if v0_9AppState[v0_9bep3.ModuleName] != nil {
+		var bep3GenState v0_9bep3.GenesisState
+		v0_11Codec.MustUnmarshalJSON(v0_9AppState[v0_9bep3.ModuleName], &bep3GenState)
+		delete(v0_9AppState, v0_9bep3.ModuleName)
+		v0_11AppState[v0_9bep3.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateBep3(bep3GenState))
+	}
+	if v0_9AppState[v0_9cdp.ModuleName] != nil {
+		var cdpGenState v0_9cdp.GenesisState
+		v0_11Codec.MustUnmarshalJSON(v0_9AppState[v0_9cdp.ModuleName], &cdpGenState)
+		delete(v0_9AppState, v0_9cdp.ModuleName)
+		v0_11AppState[v0_9cdp.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateCDP(cdpGenState))
+	}
+	if v0_9AppState[v0_9committee.ModuleName] != nil {
+		var committeeGenState v0_9committee.GenesisState
+		cdc := codec.New()
+		sdk.RegisterCodec(cdc)
+		v0_9committee.RegisterCodec(cdc)
+		cdc.MustUnmarshalJSON(v0_9AppState[v0_9committee.ModuleName], &committeeGenState)
+		delete(v0_9AppState, v0_9committee.ModuleName)
+		v0_11AppState[v0_9committee.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateCommittee(committeeGenState))
+	}
+	if v0_9AppState[v0_9incentive.ModuleName] != nil {
+		var incentiveGenState v0_9incentive.GenesisState
+		v0_11Codec.MustUnmarshalJSON(v0_9AppState[v0_9incentive.ModuleName], &incentiveGenState)
+		delete(v0_9AppState, v0_9incentive.ModuleName)
+		v0_11AppState[v0_9incentive.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateIncentive(incentiveGenState))
+	}
+	if v0_9AppState[v0_9pricefeed.ModuleName] != nil {
+		var pricefeedGenState v0_9pricefeed.GenesisState
+		v0_11Codec.MustUnmarshalJSON(v0_9AppState[v0_9pricefeed.ModuleName], &pricefeedGenState)
+		delete(v0_9AppState, v0_9pricefeed.ModuleName)
+		v0_11AppState[v0_9pricefeed.ModuleName] = v0_11Codec.MustMarshalJSON(MigratePricefeed(pricefeedGenState))
+	}
+	v0_11AppState[v0_11harvest.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateHarvest())
+	v0_11AppState[v0_11issuance.ModuleName] = v0_11Codec.MustMarshalJSON(v0_11issuance.DefaultGenesisState())
+	return v0_11AppState
+}
 
 // MigrateBep3 migrates from a v0.9 (or v0.10) bep3 genesis state to a v0.11 bep3 genesis state
 func MigrateBep3(oldGenState v0_9bep3.GenesisState) v0_11bep3.GenesisState {

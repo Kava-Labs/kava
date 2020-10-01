@@ -9,6 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	ModuleName = "pricefeed"
+)
+
 // GenesisState - pricefeed state that must be provided at genesis
 type GenesisState struct {
 	Params       Params       `json:"params" yaml:"params"`
