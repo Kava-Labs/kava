@@ -176,8 +176,9 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 						if oldAllowedParam.Subspace == "bep3" && oldAllowedParam.Key == "SupportedAssets" {
 							newAllowedParam.Key = "AssetParams"
 						}
+						harvestParam := v0_11committee.AllowedParam{Subspace: "harvest", Key: "Active"}
 
-						newAllowedParams = append(newAllowedParams, newAllowedParam)
+						newAllowedParams = append(newAllowedParams, newAllowedParam, harvestParam)
 					}
 
 					// --------------- ADD BUSD, XRP-B, BTC-B BEP3 parameters to Stability Committee Permissions
