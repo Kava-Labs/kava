@@ -11,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/kava-labs/kava/migrate/v0_8"
-	v032tendermint "github.com/kava-labs/kava/migrate/v0_8/tendermint/v0_32"
+	"github.com/kava-labs/kava/migrate/v0_11"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -24,8 +24,8 @@ const (
 func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "migrate [genesis-file]",
-		Short:   "Migrate genesis from kava v0.3 to v0.8",
-		Long:    "Migrate the source genesis into the current version, sorts it, and print to STDOUT.",
+		Short:   "Migrate genesis file from kava v0.10 to v0.11",
+		Long:    "Migrate the source genesis into the current version, sorts it, and print to STDOUT. If not provided, chain-id is set to kava-4 and genesis time is set to 2020-10-15T:14:00:00Z",
 		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json --chain-id=new-chain-id --genesis-time=1998-01-01T00:00:00Z`, version.ServerName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -33,14 +33,14 @@ func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
 			// 1) Unmarshal existing genesis.json
 
 			importGenesis := args[0]
-			genDoc, err := v032tendermint.GenesisDocFromFile(importGenesis)
+			genDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
 			if err != nil {
 				return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
 			}
 
 			// 2) Migrate state from kava v0.3 to v0.8
 
-			newGenDoc := v0_8.Migrate(*genDoc)
+			newGenDoc := v0_11.Migrate(*genDoc)
 
 			// 3) Create and output a new genesis file
 
