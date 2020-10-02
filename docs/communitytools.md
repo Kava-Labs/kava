@@ -40,7 +40,6 @@ Listed in alphabetical order.
 - [OKEx Pool](https://www.okex.com/pool)
 - [P2P](https://p2p.org/)
 - [SNZ Pool](https://snzholding.com/pool.html)
-- [Sikka](https://www.sikka.tech/)
 - [StakeWith.Us](https://www.stakewith.us/)
 - [Staked](https://staked.us/)
 - [stake.fish](https://stake.fish/en/)
