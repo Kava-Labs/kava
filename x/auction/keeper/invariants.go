@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,15 +58,6 @@ func ValidAuctionInvariant(k Keeper) sdk.Invariant {
 			a, ok := auction.(types.GenesisAuction)
 			if !ok {
 				panic("stored auction type does not fulfill GenesisAuction interface")
-			}
-
-			currentTime := ctx.BlockTime()
-			if !currentTime.Equal(time.Time{}) { // this avoids a simulator bug where app.InitGenesis is called with blockTime=0 instead of the correct time
-				if a.GetEndTime().Before(currentTime) {
-					validationErr = fmt.Errorf("endTime before current block time (%s)", currentTime)
-					invalidAuction = a
-					return true
-				}
 			}
 
 			if err := a.Validate(); err != nil {
