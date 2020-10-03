@@ -8,6 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	ModuleName = "incentive"
+)
+
 // GenesisClaimPeriodID stores the next claim id and its corresponding denom
 type GenesisClaimPeriodID struct {
 	Denom string `json:"denom" yaml:"denom"`

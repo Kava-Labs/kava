@@ -85,7 +85,7 @@ func (tApp TestApp) GetPriceFeedKeeper() pricefeed.Keeper { return tApp.pricefee
 func (tApp TestApp) GetBep3Keeper() bep3.Keeper           { return tApp.bep3Keeper }
 func (tApp TestApp) GetKavadistKeeper() kavadist.Keeper   { return tApp.kavadistKeeper }
 func (tApp TestApp) GetIncentiveKeeper() incentive.Keeper { return tApp.incentiveKeeper }
-func (tApp TestApp) GetHarvestKeeper() harvest.Keeper         { return tApp.harvestKeeper }
+func (tApp TestApp) GetHarvestKeeper() harvest.Keeper     { return tApp.harvestKeeper }
 func (tApp TestApp) GetCommitteeKeeper() committee.Keeper { return tApp.committeeKeeper }
 func (tApp TestApp) GetIssuanceKeeper() issuance.Keeper   { return tApp.issuanceKeeper }
 
@@ -138,7 +138,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genes
 		},
 	)
 	tApp.Commit()
-	tApp.BeginBlock(abci.RequestBeginBlock{Header: abci.Header{Height: tApp.LastBlockHeight() + 1}})
+	tApp.BeginBlock(abci.RequestBeginBlock{Header: abci.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}})
 	return tApp
 }
 
