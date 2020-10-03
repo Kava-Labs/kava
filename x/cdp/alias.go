@@ -8,37 +8,38 @@ import (
 )
 
 const (
-	BaseDigitFactor                 = keeper.BaseDigitFactor
-	AttributeKeyCdpID               = types.AttributeKeyCdpID
-	AttributeKeyDeposit             = types.AttributeKeyDeposit
-	AttributeKeyError               = types.AttributeKeyError
-	AttributeValueCategory          = types.AttributeValueCategory
-	DefaultParamspace               = types.DefaultParamspace
-	EventTypeBeginBlockerFatal      = types.EventTypeBeginBlockerFatal
-	EventTypeCdpClose               = types.EventTypeCdpClose
-	EventTypeCdpDeposit             = types.EventTypeCdpDeposit
-	EventTypeCdpDraw                = types.EventTypeCdpDraw
-	EventTypeCdpLiquidation         = types.EventTypeCdpLiquidation
-	EventTypeCdpRepay               = types.EventTypeCdpRepay
-	EventTypeCdpWithdrawal          = types.EventTypeCdpWithdrawal
-	EventTypeCreateCdp              = types.EventTypeCreateCdp
-	LiquidatorMacc                  = types.LiquidatorMacc
-	ModuleName                      = types.ModuleName
-	QuerierRoute                    = types.QuerierRoute
-	QueryGetAccounts                = types.QueryGetAccounts
-	QueryGetCdp                     = types.QueryGetCdp
-	QueryGetCdpDeposits             = types.QueryGetCdpDeposits
-	QueryGetCdps                    = types.QueryGetCdps
-	QueryGetCdpsByCollateralType    = types.QueryGetCdpsByCollateralType
-	QueryGetCdpsByCollateralization = types.QueryGetCdpsByCollateralization
-	QueryGetParams                  = types.QueryGetParams
-	QueryGetSavingsRateDistributed  = types.QueryGetSavingsRateDistributed
-	RestCollateralType              = types.RestCollateralType
-	RestOwner                       = types.RestOwner
-	RestRatio                       = types.RestRatio
-	RouterKey                       = types.RouterKey
-	SavingsRateMacc                 = types.SavingsRateMacc
-	StoreKey                        = types.StoreKey
+	BaseDigitFactor                         = keeper.BaseDigitFactor
+	AttributeKeyCdpID                       = types.AttributeKeyCdpID
+	AttributeKeyDeposit                     = types.AttributeKeyDeposit
+	AttributeKeyError                       = types.AttributeKeyError
+	AttributeValueCategory                  = types.AttributeValueCategory
+	DefaultParamspace                       = types.DefaultParamspace
+	EventTypeBeginBlockerFatal              = types.EventTypeBeginBlockerFatal
+	EventTypeCdpClose                       = types.EventTypeCdpClose
+	EventTypeCdpDeposit                     = types.EventTypeCdpDeposit
+	EventTypeCdpDraw                        = types.EventTypeCdpDraw
+	EventTypeCdpLiquidation                 = types.EventTypeCdpLiquidation
+	EventTypeCdpRepay                       = types.EventTypeCdpRepay
+	EventTypeCdpWithdrawal                  = types.EventTypeCdpWithdrawal
+	EventTypeCreateCdp                      = types.EventTypeCreateCdp
+	LiquidatorMacc                          = types.LiquidatorMacc
+	ModuleName                              = types.ModuleName
+	QuerierRoute                            = types.QuerierRoute
+	QueryGetAccounts                        = types.QueryGetAccounts
+	QueryGetCdp                             = types.QueryGetCdp
+	QueryGetCdpDeposits                     = types.QueryGetCdpDeposits
+	QueryGetCdps                            = types.QueryGetCdps
+	QueryGetCdpsByCollateralType            = types.QueryGetCdpsByCollateralType
+	QueryGetCdpsByCollateralization         = types.QueryGetCdpsByCollateralization
+	QueryGetParams                          = types.QueryGetParams
+	QueryGetPreviousSavingsDistributionTime = types.QueryGetPreviousSavingsDistributionTime
+	QueryGetSavingsRateDistributed          = types.QueryGetSavingsRateDistributed
+	RestCollateralType                      = types.RestCollateralType
+	RestOwner                               = types.RestOwner
+	RestRatio                               = types.RestRatio
+	RouterKey                               = types.RouterKey
+	SavingsRateMacc                         = types.SavingsRateMacc
+	StoreKey                                = types.StoreKey
 )
 
 var (

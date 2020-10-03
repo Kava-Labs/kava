@@ -6,17 +6,18 @@ import (
 
 // Querier routes for the cdp module
 const (
-	QueryGetCdp                     = "cdp"
-	QueryGetCdps                    = "cdps"
-	QueryGetCdpDeposits             = "deposits"
-	QueryGetCdpsByCollateralization = "ratio"          // legacy query, maintained for REST API
-	QueryGetCdpsByCollateralType    = "collateralType" // legacy query, maintained for REST API
-	QueryGetParams                  = "params"
-	QueryGetAccounts                = "accounts"
-	QueryGetSavingsRateDistributed  = "savings-rate-dist"
-	RestOwner                       = "owner"
-	RestCollateralType              = "collateral-type"
-	RestRatio                       = "ratio"
+	QueryGetCdp                             = "cdp"
+	QueryGetCdps                            = "cdps"
+	QueryGetCdpDeposits                     = "deposits"
+	QueryGetCdpsByCollateralization         = "ratio"          // legacy query, maintained for REST API
+	QueryGetCdpsByCollateralType            = "collateralType" // legacy query, maintained for REST API
+	QueryGetParams                          = "params"
+	QueryGetAccounts                        = "accounts"
+	QueryGetSavingsRateDistributed          = "savings-rate-dist"
+	QueryGetPreviousSavingsDistributionTime = "savings-rate-dist-time"
+	RestOwner                               = "owner"
+	RestCollateralType                      = "collateral-type"
+	RestRatio                               = "ratio"
 )
 
 // QueryCdpParams params for query /cdp/cdp

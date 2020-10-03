@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,6 +42,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryParamsCmd(queryRoute, cdc),
 		QueryGetAccounts(queryRoute, cdc),
 		QueryGetSavingsRateDistributed(queryRoute, cdc),
+		QueryGetSavingsRateDistTime(queryRoute, cdc),
 	)...)
 
 	return cdpQueryCmd
@@ -304,6 +306,32 @@ func QueryGetSavingsRateDistributed(queryRoute string, cdc *codec.Codec) *cobra.
 			var out sdk.Int
 			if err := cdc.UnmarshalJSON(res, &out); err != nil {
 				return fmt.Errorf("failed to unmarshal sdk.Int: %w", err)
+			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+// QueryGetSavingsRateDistributed queries the total amount of savings rate distributed in USDX
+func QueryGetSavingsRateDistTime(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "savings-rate-dist-time",
+		Short: "get the previous savings rate distribution time",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetPreviousSavingsDistributionTime), nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out time.Time
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal time.Time: %w", err)
 			}
 			return cliCtx.PrintOutput(out)
 		},
