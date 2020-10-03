@@ -19,6 +19,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/accounts", getAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/savingsRateDist", getSavingsRateDistributedHandler(cliCtx)).Methods("GET")
+	r.HandleFunc("/cdp/savingsRateDistTime", getSavingsRateDistTimeHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps"), queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/collateralType/{%s}", types.RestCollateralType), queryCdpsByCollateralTypeHandlerFn(cliCtx)).Methods("GET")     // legacy
@@ -206,6 +207,24 @@ func getSavingsRateDistributedHandler(cliCtx context.CLIContext) http.HandlerFun
 		}
 
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetSavingsRateDistributed), nil)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getSavingsRateDistTimeHandler(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetPreviousSavingsDistributionTime), nil)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
