@@ -58,11 +58,11 @@ kvd export --for-zero-height > export-genesis.json
 
 
   # Migrate genesis state
-  kvd migrate export-genesis.json > migrated-genesis.json
+  kvd migrate export-genesis.json > genesis.json
 
   # Verify output of genesis migration
   kvd validate-genesis genesis.json # should say it's valid
-  shasum -a 256 genesis.json
+  jq -S -c -M '' genesis.json | shasum -a 256
   # [PLACEHOLDER]
 
   # Restart node with migrated genesis state
