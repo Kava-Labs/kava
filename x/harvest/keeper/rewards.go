@@ -125,11 +125,11 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 		if validator.GetTokens().IsZero() {
 			return false
 		}
-		// don't include a validator if it's unbonded - ie delegators don't accumulate rewards when delegated to an unbonded validator
-		if validator.GetStatus() == sdk.Unbonded {
+		// don't include a validator if it's unbonded or unbonding- ie delegators don't accumulate rewards when delegated to an unbonded/slashed validator
+		if validator.GetStatus() != sdk.Bonded {
 			return false
 		}
-		sharesToTokens[validator.GetOperator().String()] = (validator.GetDelegatorShares()).Quo(sdk.NewDecFromInt(validator.GetTokens()))
+		sharesToTokens[validator.GetOperator().String()] = sdk.NewDecFromInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
 		return false
 	})
 
