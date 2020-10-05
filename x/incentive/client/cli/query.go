@@ -35,13 +35,13 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claims [owner-addr] [denom]",
-		Short: "get claims by onwer and denom",
+		Use:   "claims [owner-addr] [collateral-type]",
+		Short: "get claims by owner and collateral-type",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Get all claims owned by the owner address for the particular collateral type.
 
 			Example:
-			$ %s query %s claims kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb`, version.ClientName, types.ModuleName)),
+			$ %s query %s claims kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb-a`, version.ClientName, types.ModuleName)),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -66,7 +66,7 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 			cliCtx = cliCtx.WithHeight(height)
 
-			var claims types.Claims
+			var claims types.AugmentedClaims
 			if err := cdc.UnmarshalJSON(res, &claims); err != nil {
 				return fmt.Errorf("failed to unmarshal claims: %w", err)
 			}
