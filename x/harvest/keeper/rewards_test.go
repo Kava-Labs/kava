@@ -1,15 +1,19 @@
 package keeper_test
 
 import (
+	"fmt"
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/harvest/keeper"
 	"github.com/kava-labs/kava/x/harvest/types"
 )
 
@@ -56,8 +60,6 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			config := sdk.GetConfig()
-			app.SetBech32AddressPrefixes(config)
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
@@ -94,101 +96,312 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestApplyDelegatorRewards() {
-	type args struct {
-		delegator                sdk.AccAddress
-		delegatorCoins           sdk.Coins
-		delegationAmount         sdk.Coin
-		totalBonded              sdk.Coin
-		rewardRate               sdk.Coin
-		depositType              types.DepositType
-		previousDistributionTime time.Time
-		blockTime                time.Time
-		expectedClaimBalance     sdk.Coin
+func TestApplyDelegatorRewardsTestSuite(t *testing.T) {
+	suite.Run(t, new(DelegatorRewardsTestSuite))
+}
+
+type DelegatorRewardsTestSuite struct {
+	suite.Suite
+
+	validatorAddrs []sdk.ValAddress
+	delegatorAddrs []sdk.AccAddress
+
+	keeper        keeper.Keeper
+	stakingKeeper staking.Keeper
+	app           app.TestApp
+	rewardRate    int64
+}
+
+// The default state used by each test
+func (suite *DelegatorRewardsTestSuite) SetupTest() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.delegatorAddrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
 	}
-	type errArgs struct {
-		expectPanic bool
-		contains    string
+
+	suite.app = app.NewTestApp()
+
+	suite.rewardRate = 500
+
+	suite.app.InitializeFromGenesisStates(
+		equalCoinsAuthGenState(allAddrs, cs(c("ukava", 5_000_000))),
+		stakingGenesisState(),
+		harvestGenesisState(c("hard", suite.rewardRate)),
+	)
+
+	suite.keeper = suite.app.GetHarvestKeeper()
+	suite.stakingKeeper = suite.app.GetStakingKeeper()
+}
+
+func (suite *DelegatorRewardsTestSuite) TestSlash() {
+
+	blockTime := time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC)
+	ctx := suite.app.NewContext(true, abci.Header{Height: 1, Time: blockTime})
+	const rewardDuration = 5
+	suite.keeper.SetPreviousDelegationDistribution(ctx, blockTime.Add(-1*rewardDuration*time.Second), "ukava")
+
+	suite.Require().NoError(
+		suite.deliverMsgCreateValidator(ctx, suite.validatorAddrs[0], c("ukava", 5_000_000)),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	suite.Require().NoError(
+		suite.slashValidatorBy5Percent(ctx, suite.validatorAddrs[0]),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	// Run function under test
+	suite.keeper.ApplyDelegationRewards(ctx, "ukava")
+
+	// Check claim amounts
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, sdk.AccAddress(suite.validatorAddrs[0]), c("hard", suite.rewardRate*rewardDuration)),
+	)
+}
+
+func (suite *DelegatorRewardsTestSuite) TestUndelegation() {
+
+	blockTime := time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC)
+	ctx := suite.app.NewContext(true, abci.Header{Height: 1, Time: blockTime})
+	const rewardDuration = 5
+	suite.keeper.SetPreviousDelegationDistribution(ctx, blockTime.Add(-1*rewardDuration*time.Second), "ukava")
+
+	suite.Require().NoError(
+		suite.deliverMsgCreateValidator(ctx, suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	suite.Require().NoError(
+		suite.deliverMsgUndelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 950_000)), // should be all
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	// Run function under test
+	suite.keeper.ApplyDelegationRewards(ctx, "ukava")
+
+	// Check claim amounts
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, sdk.AccAddress(suite.validatorAddrs[0]), c("hard", suite.rewardRate*rewardDuration)),
+	)
+	suite.Require().False(
+		suite.kavaClaimExists(ctx, suite.delegatorAddrs[0]),
+	)
+}
+
+func (suite *DelegatorRewardsTestSuite) TestUnevenNumberDelegations() {
+
+	// Setup a context
+	blockTime := time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC)
+	ctx := suite.app.NewContext(true, abci.Header{Height: 1, Time: blockTime})
+	const rewardDuration = 5
+	suite.keeper.SetPreviousDelegationDistribution(ctx, blockTime.Add(-1*rewardDuration*time.Second), "ukava")
+
+	suite.Require().NoError(
+		suite.deliverMsgCreateValidator(ctx, suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[1], suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	// Run function under test
+	suite.keeper.ApplyDelegationRewards(ctx, "ukava")
+
+	// Check claim amounts
+	expectedReward := suite.rewardRate * rewardDuration / 3 // floor division
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, sdk.AccAddress(suite.validatorAddrs[0]), c("hard", expectedReward)),
+	)
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, suite.delegatorAddrs[0], c("hard", expectedReward)),
+	)
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, suite.delegatorAddrs[1], c("hard", expectedReward)),
+	)
+}
+
+func (suite *DelegatorRewardsTestSuite) TestSlashAndUndelegated() {
+
+	// Setup a context
+	blockTime := time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC)
+	ctx := suite.app.NewContext(true, abci.Header{Height: 1, Time: blockTime})
+	const rewardDuration = 5
+	suite.keeper.SetPreviousDelegationDistribution(ctx, blockTime.Add(-1*rewardDuration*time.Second), "ukava")
+
+	suite.Require().NoError(
+		suite.deliverMsgCreateValidator(ctx, suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[1], suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	suite.Require().NoError(
+		suite.slashValidatorBy5Percent(ctx, suite.validatorAddrs[0]),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	suite.Require().NoError(
+		suite.deliverMsgUndelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 950_000)),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	// Run function under test
+	suite.keeper.ApplyDelegationRewards(ctx, "ukava")
+
+	// Check claim amounts
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, sdk.AccAddress(suite.validatorAddrs[0]), c("hard", suite.rewardRate*rewardDuration/2)),
+	)
+	suite.Require().False(
+		suite.kavaClaimExists(ctx, suite.delegatorAddrs[0]),
+	)
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, suite.delegatorAddrs[0], c("hard", suite.rewardRate*rewardDuration/2)),
+	)
+}
+
+func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
+	msg := staking.NewMsgCreateValidator(
+		address,
+		ed25519.GenPrivKey().PubKey(),
+		selfDelegation,
+		staking.Description{},
+		staking.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		sdk.NewInt(1_000_000),
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
+}
+func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
+	msg := staking.NewMsgDelegate(
+		delegator,
+		validator,
+		amount,
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
+}
+func (suite *DelegatorRewardsTestSuite) deliverMsgUndelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
+	msg := staking.NewMsgUndelegate(
+		delegator,
+		validator,
+		amount,
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
+}
+
+func (suite *DelegatorRewardsTestSuite) slashValidatorBy5Percent(ctx sdk.Context, validator sdk.ValAddress) error {
+	// Assume slashable offence occurred at block 1. Note this might cause problems if tests are running at a block height higher than the unbonding period (default 3 weeks)
+	const infractionHeight int64 = 1
+
+	val, found := suite.stakingKeeper.GetValidator(ctx, validator)
+	if !found {
+		return fmt.Errorf("can't find validator in state")
 	}
-	type testCase struct {
-		name    string
-		args    args
-		errArgs errArgs
+	suite.stakingKeeper.Slash(
+		ctx,
+		sdk.GetConsAddress(val.ConsPubKey),
+		infractionHeight,
+		val.GetConsensusPower(),
+		sdk.MustNewDecFromStr("0.05"),
+	)
+	return nil
+}
+
+func (suite *DelegatorRewardsTestSuite) verifyKavaClaimAmount(ctx sdk.Context, owner sdk.AccAddress, expectedAmount sdk.Coin) error {
+	claim, found := suite.keeper.GetClaim(ctx, owner, "ukava", types.Stake)
+	if !found {
+		return fmt.Errorf("could not find claim")
 	}
-	testCases := []testCase{
-		{
-			name: "distribute rewards",
-			args: args{
-				delegator:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				delegatorCoins:           cs(c("ukava", 1000)),
-				rewardRate:               c("hard", 500),
-				delegationAmount:         c("ukava", 100),
-				totalBonded:              c("ukava", 900),
-				depositType:              types.Stake,
-				previousDistributionTime: time.Date(2020, 11, 1, 13, 59, 50, 0, time.UTC),
-				blockTime:                time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
-				expectedClaimBalance:     c("hard", 500),
+	if !expectedAmount.IsEqual(claim.Amount) {
+		return fmt.Errorf("expected claim amount (%s) != actual claim amount (%s)", expectedAmount, claim.Amount)
+	}
+	return nil
+}
+
+func (suite *DelegatorRewardsTestSuite) kavaClaimExists(ctx sdk.Context, owner sdk.AccAddress) bool {
+	_, found := suite.keeper.GetClaim(ctx, owner, "ukava", types.Stake)
+	return found
+}
+
+func harvestGenesisState(rewardRate sdk.Coin) app.GenesisState {
+	genState := types.NewGenesisState(
+		types.NewParams(
+			true,
+			types.DistributionSchedules{
+				types.NewDistributionSchedule(
+					true,
+					"bnb",
+					time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC),
+					time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC),
+					rewardRate,
+					time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC),
+					types.Multipliers{
+						types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")),
+						types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")),
+						types.NewMultiplier(types.Large, 24, sdk.OneDec()),
+					},
+				),
 			},
-			errArgs: errArgs{
-				expectPanic: false,
-				contains:    "",
-			},
-		},
-	}
-	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			config := sdk.GetConfig()
-			app.SetBech32AddressPrefixes(config)
-			// Initialize test app and set context
-			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
-			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.delegator, sdk.AccAddress(crypto.AddressHash([]byte("other_delegator")))}, []sdk.Coins{tc.args.delegatorCoins, cs(tc.args.totalBonded)})
-			harvestGS := types.NewGenesisState(types.NewParams(
-				true,
-				types.DistributionSchedules{
-					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), tc.args.rewardRate, time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 24, sdk.OneDec())}),
-				},
-				types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
-					types.NewDistributionSchedule(true, "ukava", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), tc.args.rewardRate, time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 24, sdk.OneDec())}),
+			types.DelegatorDistributionSchedules{
+				types.NewDelegatorDistributionSchedule(
+					types.NewDistributionSchedule(
+						true,
+						"ukava",
+						time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC),
+						time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC),
+						rewardRate,
+						time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC),
+						types.Multipliers{
+							types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")),
+							types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")),
+							types.NewMultiplier(types.Large, 24, sdk.OneDec()),
+						},
+					),
 					time.Hour*24,
 				),
-				},
-			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
-			keeper := tApp.GetHarvestKeeper()
-			keeper.SetPreviousDelegationDistribution(ctx, tc.args.previousDistributionTime, "ukava")
-			stakingKeeper := tApp.GetStakingKeeper()
-			stakingParams := stakingKeeper.GetParams(ctx)
-			stakingParams.BondDenom = "ukava"
-			stakingKeeper.SetParams(ctx, stakingParams)
-			validatorPubKey := ed25519.GenPrivKey().PubKey()
-			validator := stakingtypes.NewValidator(sdk.ValAddress(validatorPubKey.Address()), validatorPubKey, stakingtypes.Description{})
-			validator.Status = sdk.Bonded
-			stakingKeeper.SetValidator(ctx, validator)
-			stakingKeeper.SetValidatorByConsAddr(ctx, validator)
-			stakingKeeper.SetNewValidatorByPowerIndex(ctx, validator)
-			// call the after-creation hook
-			stakingKeeper.AfterValidatorCreated(ctx, validator.OperatorAddress)
-			_, err := stakingKeeper.Delegate(ctx, tc.args.delegator, tc.args.delegationAmount.Amount, sdk.Unbonded, validator, true)
-			suite.Require().NoError(err)
-			stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-			validator, f := stakingKeeper.GetValidator(ctx, validator.OperatorAddress)
-			suite.Require().True(f)
-			_, err = stakingKeeper.Delegate(ctx, sdk.AccAddress(crypto.AddressHash([]byte("other_delegator"))), tc.args.totalBonded.Amount, sdk.Unbonded, validator, true)
-			suite.Require().NoError(err)
-			stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-			suite.app = tApp
-			suite.ctx = ctx
-			suite.keeper = keeper
-
-			if tc.errArgs.expectPanic {
-				suite.Require().Panics(func() { suite.keeper.ApplyDelegationRewards(suite.ctx, suite.keeper.BondDenom(suite.ctx)) })
-			} else {
-				suite.Require().NotPanics(func() { suite.keeper.ApplyDelegationRewards(suite.ctx, suite.keeper.BondDenom(suite.ctx)) })
-				claim, f := suite.keeper.GetClaim(suite.ctx, tc.args.delegator, tc.args.delegationAmount.Denom, tc.args.depositType)
-				suite.Require().True(f)
-				suite.Require().Equal(tc.args.expectedClaimBalance, claim.Amount)
-			}
-		})
+			},
+		),
+		types.DefaultPreviousBlockTime,
+		types.DefaultDistributionTimes,
+	)
+	return app.GenesisState{
+		types.ModuleName: types.ModuleCdc.MustMarshalJSON(genState),
 	}
+
+}
+
+func stakingGenesisState() app.GenesisState {
+	genState := staking.DefaultGenesisState()
+	genState.Params.BondDenom = "ukava"
+	return app.GenesisState{
+		staking.ModuleName: staking.ModuleCdc.MustMarshalJSON(genState),
+	}
+}
+
+// equalCoinsAuthGenState returns an auth genesis state with the same coins for each account
+func equalCoinsAuthGenState(addresses []sdk.AccAddress, coins sdk.Coins) app.GenesisState {
+	coinsList := []sdk.Coins{}
+	for range addresses {
+		coinsList = append(coinsList, coins)
+	}
+	return app.NewAuthGenState(addresses, coinsList)
 }
