@@ -150,7 +150,7 @@ func (suite *DelegatorRewardsTestSuite) TestSlash() {
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
 	suite.Require().NoError(
-		suite.slashValidatorBy5Percent(ctx, suite.validatorAddrs[0]),
+		suite.slashValidator(ctx, suite.validatorAddrs[0], "0.05"),
 	)
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
@@ -179,7 +179,7 @@ func (suite *DelegatorRewardsTestSuite) TestUndelegation() {
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
 	suite.Require().NoError(
-		suite.deliverMsgUndelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 950_000)), // should be all
+		suite.deliverMsgUndelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 1_000_000)),
 	)
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
@@ -230,7 +230,7 @@ func (suite *DelegatorRewardsTestSuite) TestUnevenNumberDelegations() {
 	)
 }
 
-func (suite *DelegatorRewardsTestSuite) TestSlashAndUndelegated() {
+func (suite *DelegatorRewardsTestSuite) TestSlashWithUndelegated() {
 
 	// Setup a context
 	blockTime := time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC)
@@ -250,12 +250,12 @@ func (suite *DelegatorRewardsTestSuite) TestSlashAndUndelegated() {
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
 	suite.Require().NoError(
-		suite.slashValidatorBy5Percent(ctx, suite.validatorAddrs[0]),
+		suite.deliverMsgUndelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 1_000_000)),
 	)
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
 	suite.Require().NoError(
-		suite.deliverMsgUndelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 950_000)),
+		suite.slashValidator(ctx, suite.validatorAddrs[0], "0.05"),
 	)
 	staking.EndBlocker(ctx, suite.stakingKeeper)
 
@@ -270,7 +270,54 @@ func (suite *DelegatorRewardsTestSuite) TestSlashAndUndelegated() {
 		suite.kavaClaimExists(ctx, suite.delegatorAddrs[0]),
 	)
 	suite.Require().NoError(
-		suite.verifyKavaClaimAmount(ctx, suite.delegatorAddrs[0], c("hard", suite.rewardRate*rewardDuration/2)),
+		suite.verifyKavaClaimAmount(ctx, suite.delegatorAddrs[1], c("hard", suite.rewardRate*rewardDuration/2)),
+	)
+}
+func (suite *DelegatorRewardsTestSuite) TestUnbondingValidator() {
+
+	// Setup a context
+	blockTime := time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC)
+	ctx := suite.app.NewContext(true, abci.Header{Height: 1, Time: blockTime})
+	const rewardDuration = 5
+	suite.keeper.SetPreviousDelegationDistribution(ctx, blockTime.Add(-1*rewardDuration*time.Second), "ukava")
+
+	suite.Require().NoError(
+		suite.deliverMsgCreateValidator(ctx, suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgCreateValidator(ctx, suite.validatorAddrs[1], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[0], suite.validatorAddrs[0], c("ukava", 1_000_000)),
+	)
+	suite.Require().NoError(
+		suite.deliverMsgDelegate(ctx, suite.delegatorAddrs[1], suite.validatorAddrs[1], c("ukava", 1_000_000)),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	suite.Require().NoError(
+		// jail the validator to put it into an unbonding state
+		suite.jailValidator(ctx, suite.validatorAddrs[0]),
+	)
+	staking.EndBlocker(ctx, suite.stakingKeeper)
+
+	// Run function under test
+	suite.keeper.ApplyDelegationRewards(ctx, "ukava")
+
+	// Check claim amounts
+	suite.Require().False(
+		// validator 0 will be unbonding and should not receive rewards
+		suite.kavaClaimExists(ctx, sdk.AccAddress(suite.validatorAddrs[0])),
+	)
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, sdk.AccAddress(suite.validatorAddrs[1]), c("hard", suite.rewardRate*rewardDuration/2)),
+	)
+	suite.Require().False(
+		// delegations to unbonding validators and should not receive rewards
+		suite.kavaClaimExists(ctx, suite.delegatorAddrs[0]),
+	)
+	suite.Require().NoError(
+		suite.verifyKavaClaimAmount(ctx, suite.delegatorAddrs[1], c("hard", suite.rewardRate*rewardDuration/2)),
 	)
 }
 
@@ -308,7 +355,7 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgUndelegate(ctx sdk.Context, de
 	return err
 }
 
-func (suite *DelegatorRewardsTestSuite) slashValidatorBy5Percent(ctx sdk.Context, validator sdk.ValAddress) error {
+func (suite *DelegatorRewardsTestSuite) slashValidator(ctx sdk.Context, validator sdk.ValAddress, slashPercent string) error {
 	// Assume slashable offence occurred at block 1. Note this might cause problems if tests are running at a block height higher than the unbonding period (default 3 weeks)
 	const infractionHeight int64 = 1
 
@@ -321,11 +368,20 @@ func (suite *DelegatorRewardsTestSuite) slashValidatorBy5Percent(ctx sdk.Context
 		sdk.GetConsAddress(val.ConsPubKey),
 		infractionHeight,
 		val.GetConsensusPower(),
-		sdk.MustNewDecFromStr("0.05"),
+		sdk.MustNewDecFromStr(slashPercent),
 	)
 	return nil
 }
+func (suite *DelegatorRewardsTestSuite) jailValidator(ctx sdk.Context, validator sdk.ValAddress) error {
+	val, found := suite.stakingKeeper.GetValidator(ctx, validator)
+	if !found {
+		return fmt.Errorf("can't find validator in state")
+	}
+	suite.stakingKeeper.Jail(ctx, sdk.GetConsAddress(val.ConsPubKey))
+	return nil
+}
 
+// verifyKavaClaimAmount looks up a ukava claim and checks the claim amount is equal to an expected value
 func (suite *DelegatorRewardsTestSuite) verifyKavaClaimAmount(ctx sdk.Context, owner sdk.AccAddress, expectedAmount sdk.Coin) error {
 	claim, found := suite.keeper.GetClaim(ctx, owner, "ukava", types.Stake)
 	if !found {
@@ -337,6 +393,7 @@ func (suite *DelegatorRewardsTestSuite) verifyKavaClaimAmount(ctx sdk.Context, o
 	return nil
 }
 
+// kavaClaimExists checks the store for a ukava claim
 func (suite *DelegatorRewardsTestSuite) kavaClaimExists(ctx sdk.Context, owner sdk.AccAddress) bool {
 	_, found := suite.keeper.GetClaim(ctx, owner, "ukava", types.Stake)
 	return found
