@@ -129,7 +129,7 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 		if validator.GetStatus() != sdk.Bonded {
 			return false
 		}
-		sharesToTokens[validator.GetOperator().String()] = (validator.GetDelegatorShares()).Quo(sdk.NewDecFromInt(validator.GetTokens()))
+		sharesToTokens[validator.GetOperator().String()] = sdk.NewDecFromInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
 		return false
 	})
 

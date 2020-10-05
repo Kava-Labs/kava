@@ -6,10 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/harvest/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/harvest/types"
 )
 
 func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
@@ -273,8 +274,7 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// create new app with one funded account
-			config := sdk.GetConfig()
-			app.SetBech32AddressPrefixes(config)
+
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
