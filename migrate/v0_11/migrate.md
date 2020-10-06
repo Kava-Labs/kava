@@ -24,11 +24,19 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ## Upgrade Procedure
 
+### Before the upgrade
+
 Set your node to produce the final block of kava-3 at __12:00__ UTC October 15th, 2020. To restart your node with that stop time,
 
 ```sh
 kvd start --halt-time 1602763200
 ```
+
+You can safely set the halt-time flag at any time.
+
+### On the day of the upgrade
+
+__The kava chain is expected to halt at 12:00 UTC, and restart with new software at 14:00 UTC October 15th. Do not stop your node and begin the upgrade before 12:00UTC on October 15th, or you may go offline and be unable to recover until after the upgrade!__
 
 Kava developers will update this PR with the final block number when it is reached. __Make sure the kvd process is stopped before proceeding and that you have backed up your validator__. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
