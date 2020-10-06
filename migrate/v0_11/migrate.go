@@ -465,7 +465,12 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 // MigrateAuth migrates from a v0.38.5 auth genesis state to a v0.39.1 auth genesis state
 func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 	var newAccounts v39_1authexported.GenesisAccounts
+	deputyBnbBalance = sdk.NewCoin("bnb", sdk.ZeroInt())
 	deputyAddr, err := sdk.AccAddressFromBech32("kava1r4v2zdhdalfj2ydazallqvrus9fkphmglhn6u6")
+	if err != nil {
+		panic(err)
+	}
+	deputyColdAddr, err := sdk.AccAddressFromBech32("kava1qm2u6nyv7kg6awdm46caccgzn5h7mdkde0sue6")
 	if err != nil {
 		panic(err)
 	}
@@ -474,8 +479,8 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 		case *v38_5auth.BaseAccount:
 			a := v39_1auth.BaseAccount(*acc)
 			// Remove deputy bnb
-			if a.GetAddress().Equals(deputyAddr) {
-				deputyBnbBalance = sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb"))
+			if a.GetAddress().Equals(deputyAddr) || a.GetAddress().Equals(deputyColdAddr) {
+				deputyBnbBalance = deputyBnbBalance.Add(sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb")))
 				err := a.SetCoins(a.GetCoins().Sub(sdk.NewCoins(sdk.NewCoin("bnb", a.GetCoins().AmountOf("bnb")))))
 				if err != nil {
 					panic(err)
