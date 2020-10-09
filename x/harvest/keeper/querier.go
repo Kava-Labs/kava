@@ -228,19 +228,15 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	} else if owner {
 		harvestParams := k.GetParams(ctx)
 		for _, lps := range harvestParams.LiquidityProviderSchedules {
-			for _, dt := range types.DepositTypesClaimQuery {
-				claim, found := k.GetClaim(ctx, params.Owner, lps.DepositDenom, dt)
-				if found {
-					claims = append(claims, claim)
-				}
+			claim, found := k.GetClaim(ctx, params.Owner, lps.DepositDenom, types.LP)
+			if found {
+				claims = append(claims, claim)
 			}
 		}
 		for _, dds := range harvestParams.DelegatorDistributionSchedules {
-			for _, dt := range types.DepositTypesClaimQuery {
-				claim, found := k.GetClaim(ctx, params.Owner, dds.DistributionSchedule.DepositDenom, dt)
-				if found {
-					claims = append(claims, claim)
-				}
+			claim, found := k.GetClaim(ctx, params.Owner, dds.DistributionSchedule.DepositDenom, types.Stake)
+			if found {
+				claims = append(claims, claim)
 			}
 		}
 	} else if depositType {
