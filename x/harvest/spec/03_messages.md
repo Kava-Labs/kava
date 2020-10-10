@@ -4,7 +4,7 @@ order: 3
 
 # Messages
 
-There are three messages in the harvest module. Deposit allows users to deposit assets to the harvest module. In version 2, depositors will be able to use their deposits as collateral to borrow froom harvest. Withdraw removes assets from the harvest module, returning them to the user. Claim allows users to claim earned HARD tokens.
+There are three messages in the harvest module. Deposit allows users to deposit assets to the harvest module. In version 2, depositors will be able to use their deposits as collateral to borrow from harvest. Withdraw removes assets from the harvest module, returning them to the user. Claim allows users to claim earned HARD tokens.
 
 ```go
 // MsgDeposit deposit asset to the harvest module.
