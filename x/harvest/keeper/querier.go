@@ -30,7 +30,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 	}
 }
 
-func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryGetParams(ctx sdk.Context, _ abci.RequestQuery, k Keeper) ([]byte, error) {
 	// Get params
 	params := k.GetParams(ctx)
 
