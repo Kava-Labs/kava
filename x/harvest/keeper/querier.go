@@ -78,19 +78,9 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	depositDenom := false
-	owner := false
-	depositType := false
-
-	if len(params.DepositDenom) > 0 {
-		depositDenom = true
-	}
-	if len(params.Owner) > 0 {
-		owner = true
-	}
-	if len(params.DepositType) > 0 {
-		depositType = true
-	}
+	depositDenom := len(params.DepositDenom) > 0
+	owner := len(params.Owner) > 0
+	depositType := len(params.DepositType) > 0
 
 	var deposits []types.Deposit
 	if depositDenom && owner && depositType {
