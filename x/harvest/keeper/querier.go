@@ -83,24 +83,25 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	depositType := len(params.DepositType) > 0
 
 	var deposits []types.Deposit
-	if depositDenom && owner && depositType {
+	switch {
+	case depositDenom && owner && depositType:
 		deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom, params.DepositType)
 		if found {
 			deposits = append(deposits, deposit)
 		}
-	} else if depositDenom && owner {
+	case depositDenom && owner:
 		for _, dt := range types.DepositTypesDepositQuery {
 			deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom, dt)
 			if found {
 				deposits = append(deposits, deposit)
 			}
 		}
-	} else if depositDenom && depositType {
+	case depositDenom && depositType:
 		k.IterateDepositsByTypeAndDenom(ctx, params.DepositType, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
 		})
-	} else if owner && depositType {
+	case owner && depositType:
 		schedules := k.GetParams(ctx).LiquidityProviderSchedules
 		for _, lps := range schedules {
 			deposit, found := k.GetDeposit(ctx, params.Owner, lps.DepositDenom, params.DepositType)
@@ -108,14 +109,14 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 				deposits = append(deposits, deposit)
 			}
 		}
-	} else if depositDenom {
+	case depositDenom:
 		for _, dt := range types.DepositTypesDepositQuery {
 			k.IterateDepositsByTypeAndDenom(ctx, dt, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
 				deposits = append(deposits, deposit)
 				return false
 			})
 		}
-	} else if owner {
+	case owner:
 		schedules := k.GetParams(ctx).LiquidityProviderSchedules
 		for _, lps := range schedules {
 			for _, dt := range types.DepositTypesDepositQuery {
@@ -125,7 +126,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 				}
 			}
 		}
-	} else if depositType {
+	case depositType:
 		schedules := k.GetParams(ctx).LiquidityProviderSchedules
 		for _, lps := range schedules {
 			k.IterateDepositsByTypeAndDenom(ctx, params.DepositType, lps.DepositDenom, func(deposit types.Deposit) (stop bool) {
@@ -133,7 +134,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 				return false
 			})
 		}
-	} else {
+	default:
 		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
