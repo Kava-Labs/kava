@@ -60,7 +60,7 @@ kvd export --for-zero-height > export-genesis.json
   # server_name: kvd
   # client_name: kvcli
   # version: 0.11.0
-  # commit: TODO Placeholder
+  # commit: a9c253c09f8ed4a2a7180f76ed4cd46017805590
   # build_tags: netgo,ledger
   # go: go version go1.15.2 linux/amd64
 
