@@ -29,7 +29,7 @@ Listed in alphabetical order.
 - [ATEAM](https://nodeateam.com/)
 - [B-Harvest](https://bharvest.io/)
 - [BNB48 Club](https://www.bnb48.club/)
-- [Binance Staking](https://www.binance.com/en/staking)
+- [Binance Staking](https://www.binance.com/en/earn)
 - [ChainLayer](https://www.chainlayer.io/)
 - [Chorus One](https://chorus.one/)
 - [Cosmostation](https://www.cosmostation.io/)
