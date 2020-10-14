@@ -446,7 +446,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
           - description: deposit cdp post parameters
             name: post_deposit_req
             in: body
@@ -494,7 +494,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
           - description: withdraw cdp post parameters
             name: post_withdraw_req
             in: body
@@ -542,7 +542,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
           - description: draw cdp post parameters
             name: post_draw_req
             in: body
@@ -588,7 +588,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
           - description: repay cdp post parameters
             name: post_repay_req
             in: body
@@ -715,7 +715,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
         responses:
           200:
             description: CDP associated with owner
@@ -723,7 +723,7 @@
               $ref: '#/definitions/CdpResponse'
           500:
             description: Server internal error
-    /cdp/cdps/denom/{collateral-type}:
+    /cdp/cdps/collateralType/{collateral-type}:
       get:
         summary: Get all cdps with collateral type equal to the input collateral type
         tags:
@@ -736,7 +736,7 @@
             description: Collateral Type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
         responses:
           200:
             description: All CDPs with the input collateral type
@@ -766,7 +766,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
           - in: path
             name: ratio
             description: Collateralization ratio
@@ -808,7 +808,7 @@
             description: Collateral type
             required: true
             type: string
-            x-example: xrp-a
+            x-example: xrpb-a
         responses:
           200:
             description: Deposits associated with the cdp
@@ -824,7 +824,7 @@
                     $ref: '#/definitions/CdpDepositResponse'
           500:
             description: Server internal error
-    /cdp/savings-rate-dist:
+    /cdp/savingsRateDist:
       get:
         summary: Get the total savings rate distributed by the cdp module
         tags:
@@ -842,6 +842,26 @@
                 savings_rate_distributed:
                   type: string
                   example: "5000000000000"
+          500:
+            description: Server internal error
+    /cdp/savingsRateDistTime:
+      get:
+        summary: Get the most recent savings rate distribution time
+        tags:
+          - CDP
+        produces:
+          - application/json
+        responses:
+          200:
+            description: The most recent savings rate distribution time
+            properties:
+              height:
+                type: string
+                example: "100"
+              result:
+                savings_rate_distributed:
+                  type: string
+                  example: "2020-10-14T14:00:06.955036063Z"
           500:
             description: Server internal error
     /cdp/cdps:
@@ -863,7 +883,7 @@
           description: Collateral type
           required: false
           type: string
-          x-example: xrp-a
+          x-example: xrpb-a
         - in: query
           name: id
           description: CDP ID
@@ -3971,7 +3991,7 @@
           example: '555555'
     CollateralType:
       type: string
-      example: xrp-a
+      example: xrpb-a
     CoinCollateral:
       type: object
       properties:
@@ -4421,7 +4441,7 @@
           $ref: '#/definitions/CoinCollateral'
         type:
           type: string
-          example: "xrp-a"
+          example: "xrpb-a"
         principal:
           $ref: '#/definitions/CoinPrincipal'
         accumulated_fees:
