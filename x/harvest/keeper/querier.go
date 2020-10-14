@@ -51,7 +51,7 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 	}
 	var accs []supplyexported.ModuleAccountI
 	if len(params.Name) > 0 {
-		acc := k.supplyKeeper.GetModuleAccount(ctx, types.LPAccount)
+		acc := k.supplyKeeper.GetModuleAccount(ctx, params.Name)
 		accs = append(accs, acc)
 	} else {
 		acc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
