@@ -24,6 +24,7 @@ type MsgWithdraw struct {
 // MsgClaimReward message type used to claim HARD tokens
 type MsgClaimReward struct {
   Sender           sdk.AccAddress `json:"sender" yaml:"sender"`
+  Receiver         sdk.AccAddress `json:"receiver" yaml:"receiver"`
   DepositDenom     string         `json:"deposit_denom" yaml:"deposit_denom"`
   RewardMultiplier string         `json:"reward_multiplier" yaml:"reward_multiplier"`
   DepositType      string         `json:"deposit_type" yaml:"deposit_type"`
