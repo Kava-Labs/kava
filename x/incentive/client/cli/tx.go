@@ -38,16 +38,16 @@ func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 		Use:   "claim [owner] [denom]",
 		Short: "claim rewards for owner and denom",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim any outstanding rewards owned by owner for the input denom,
+			fmt.Sprintf(`Claim any outstanding rewards owned by owner for the input collateral-type and multiplier,
 
 			Example:
-			$ %s tx %s claim kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb
+			$ %s tx %s claim kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb-a large
 		`, version.ClientName, types.ModuleName),
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			owner, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
