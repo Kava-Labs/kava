@@ -47,7 +47,7 @@
       description: Query app version
   schemes:
     - https
-  host: kava3.data.kava.io
+  host: kava4.data.kava.io
   securityDefinitions:
     kms:
       type: basic
@@ -1912,6 +1912,16 @@
             required: false
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+          - in: query
+            name: page
+            description: The page number.
+            type: integer
+            x-example: 1
+          - in: query
+            name: limit
+            description: The maximum number of items per page.
+            type: integer
+            x-example: 100
         responses:
           200:
             description: harvest deposits
@@ -1954,6 +1964,16 @@
             required: false
             type: string
             x-example: kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+          - in: query
+            name: page
+            description: The page number.
+            type: integer
+            x-example: 1
+          - in: query
+            name: limit
+            description: The maximum number of items per page.
+            type: integer
+            x-example: 100
         responses:
           200:
             description: harvest claims
