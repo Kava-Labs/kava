@@ -1065,7 +1065,7 @@
                     $ref: '#/definitions/AtomicSwapResponse'
           500:
             description: Server internal error
-    /bep3/suppy/{denom}:
+    /bep3/supply/{denom}:
       get:
         summary: Get the asset supply for the input denom
         tags:
