@@ -35,8 +35,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim [owner] [denom]",
-		Short: "claim rewards for owner and denom",
+		Use:   "claim [owner] [collateral-type] [multiplier]",
+		Short: "claim rewards for cdp owner and collateral-type",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Claim any outstanding rewards owned by owner for the input collateral-type and multiplier,
 
