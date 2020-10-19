@@ -20,6 +20,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/parameters", getParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/savingsRateDist", getSavingsRateDistributedHandler(cliCtx)).Methods("GET")
 	r.HandleFunc("/cdp/savingsRateDistTime", getSavingsRateDistTimeHandler(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/cdp/fees/{%s}", types.RestDenom), getFeesHandler(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/cdp/{%s}/{%s}", types.RestOwner, types.RestCollateralType), queryCdpHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps"), queryCdpsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/cdp/cdps/collateralType/{%s}", types.RestCollateralType), queryCdpsByCollateralTypeHandlerFn(cliCtx)).Methods("GET")     // legacy
@@ -231,6 +232,37 @@ func getSavingsRateDistTimeHandler(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getFeesHandler(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		// Parse params
+		vars := mux.Vars(r)
+		denom := vars[types.RestDenom]
+
+		// Build QueryFees and marshal
+		params := types.NewQueryFees(denom)
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+			return
+		}
+
+		// Execute query
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/cdp/%s", types.QueryGetFees), bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

@@ -62,6 +62,7 @@ var (
 	PreviousDistributionTimeKey = []byte{0x08}
 	PricefeedStatusKeyPrefix    = []byte{0x09}
 	SavingsRateDistributedKey   = []byte{0x10}
+	FeesCollectedKey            = []byte{0x11}
 )
 
 // GetCdpIDBytes returns the byte representation of the cdpID

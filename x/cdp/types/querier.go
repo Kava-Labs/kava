@@ -15,9 +15,11 @@ const (
 	QueryGetAccounts                        = "accounts"
 	QueryGetSavingsRateDistributed          = "savings-rate-dist"
 	QueryGetPreviousSavingsDistributionTime = "savings-rate-dist-time"
+	QueryGetFees                            = "fees"
 	RestOwner                               = "owner"
 	RestCollateralType                      = "collateral-type"
 	RestRatio                               = "ratio"
+	RestDenom                               = "denom"
 )
 
 // QueryCdpParams params for query /cdp/cdp
@@ -93,5 +95,17 @@ func NewQueryCdpsByRatioParams(collateralType string, ratio sdk.Dec) QueryCdpsBy
 	return QueryCdpsByRatioParams{
 		CollateralType: collateralType,
 		Ratio:          ratio,
+	}
+}
+
+// QueryFees params for query /cdp/fees
+type QueryFees struct {
+	Denom string
+}
+
+// NewQueryFees returns QueryFees
+func NewQueryFees(denom string) QueryFees {
+	return QueryFees{
+		Denom: denom,
 	}
 }

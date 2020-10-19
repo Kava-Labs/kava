@@ -95,26 +95,25 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	if err != nil {
 		return err
 	}
+
 	// send the payment from the sender to the cpd module
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
+	totalRepayment := principalPayment.Add(feePayment)
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(totalRepayment))
 	if err != nil {
 		return err
 	}
 
 	// burn the payment coins
-	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(feePayment.Add(principalPayment)))
+	err = k.supplyKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(totalRepayment))
 	if err != nil {
 		panic(err)
 	}
 
 	// burn the corresponding amount of debt coins
-	cdpDebt := k.getModAccountDebt(ctx, types.ModuleName)
-	paymentAmount := feePayment.Add(principalPayment).Amount
-
 	debtDenom := k.GetDebtDenom(ctx)
-	coinsToBurn := sdk.NewCoin(debtDenom, paymentAmount)
-
-	if paymentAmount.GT(cdpDebt) {
+	cdpDebt := k.getModAccountDebt(ctx, types.ModuleName)
+	coinsToBurn := sdk.NewCoin(debtDenom, totalRepayment.Amount)
+	if totalRepayment.Amount.GT(cdpDebt) {
 		coinsToBurn = sdk.NewCoin(debtDenom, cdpDebt)
 	}
 
@@ -128,7 +127,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpRepay,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, feePayment.Add(principalPayment).String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, totalRepayment.String()),
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
@@ -144,7 +143,10 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Sub(feePayment)
 
 	// decrement the total principal for the input collateral type
-	k.DecrementTotalPrincipal(ctx, cdp.Type, feePayment.Add(principalPayment))
+	k.DecrementTotalPrincipal(ctx, cdp.Type, totalRepayment)
+
+	// increment total fees collected
+	k.IncrementFeesCollected(ctx, cdp.Principal.Denom, feePayment.Amount)
 
 	// if the debt is fully paid, return collateral to depositors,
 	// and remove the cdp and indexes from the store

@@ -15,6 +15,7 @@ const (
 	RestCollateralType = "collateral-type"
 	RestID             = "id"
 	RestRatio          = "ratio"
+	RestDenom          = "denom"
 )
 
 // RegisterRoutes - Central function to define routes that get registered by the main application

@@ -36,6 +36,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetSavingsRateDistributed(ctx, req, keeper)
 		case types.QueryGetPreviousSavingsDistributionTime:
 			return queryGetPreviousSavingsDistributionTime(ctx, req, keeper)
+		case types.QueryGetFees:
+			return queryFees(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -212,6 +214,23 @@ func queryGetPreviousSavingsDistributionTime(ctx sdk.Context, req abci.RequestQu
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, savingsRateDistTime)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+// query collected fees by fee coin denom
+func queryFees(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var requestParams types.QueryFees
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	feesCollected := keeper.GetFeesCollected(ctx, requestParams.Denom)
+
+	// Encode results
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, feesCollected)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -43,6 +43,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		QueryGetAccounts(queryRoute, cdc),
 		QueryGetSavingsRateDistributed(queryRoute, cdc),
 		QueryGetSavingsRateDistTime(queryRoute, cdc),
+		QueryGetFees(queryRoute, cdc),
 	)...)
 
 	return cdpQueryCmd
@@ -312,7 +313,7 @@ func QueryGetSavingsRateDistributed(queryRoute string, cdc *codec.Codec) *cobra.
 	}
 }
 
-// QueryGetSavingsRateDistributed queries the total amount of savings rate distributed in USDX
+// QueryGetSavingsRateDistTime queries the total amount of savings rate distributed in USDX
 func QueryGetSavingsRateDistTime(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "savings-rate-dist-time",
@@ -332,6 +333,45 @@ func QueryGetSavingsRateDistTime(queryRoute string, cdc *codec.Codec) *cobra.Com
 			var out time.Time
 			if err := cdc.UnmarshalJSON(res, &out); err != nil {
 				return fmt.Errorf("failed to unmarshal time.Time: %w", err)
+			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+// QueryGetFees queries the total amount of fees collected of a fee coin's denom
+func QueryGetFees(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "fees",
+		Short: "get the total fees paid in the specified coin denom",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Get the total paid fees for a given coin denom
+
+Example:
+$ %s query %s fees usdx
+`, version.ClientName, types.ModuleName)),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Prepare params for querier
+			bz, err := cdc.MarshalJSON(types.NewQueryFees(args[0]))
+			if err != nil {
+				return err
+			}
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetFees)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out sdk.Int
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal sdk.Int: %w", err)
 			}
 			return cliCtx.PrintOutput(out)
 		},

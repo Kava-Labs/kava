@@ -34,9 +34,11 @@ const (
 	QueryGetParams                          = types.QueryGetParams
 	QueryGetPreviousSavingsDistributionTime = types.QueryGetPreviousSavingsDistributionTime
 	QueryGetSavingsRateDistributed          = types.QueryGetSavingsRateDistributed
+	QueryGetFees                            = types.QueryGetFees
 	RestCollateralType                      = types.RestCollateralType
 	RestOwner                               = types.RestOwner
 	RestRatio                               = types.RestRatio
+	RestDenom                               = types.RestDenom
 	RouterKey                               = types.RouterKey
 	SavingsRateMacc                         = types.SavingsRateMacc
 	StoreKey                                = types.StoreKey
@@ -148,6 +150,7 @@ var (
 	PricefeedStatusKeyPrefix            = types.PricefeedStatusKeyPrefix
 	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix
 	SavingsRateDistributedKey           = types.SavingsRateDistributedKey
+	FeesCollectedKey                    = types.FeesCollectedKey
 )
 
 type (

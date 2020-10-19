@@ -135,3 +135,35 @@ func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 	}
 	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
 }
+
+// SetFeesCollected sets the total amount of fees collected for the coin denom
+func (k Keeper) SetFeesCollected(ctx sdk.Context, coinDenom string, totalFees sdk.Int) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.FeesCollectedKey)
+	store.Set([]byte(coinDenom), k.cdc.MustMarshalBinaryLengthPrefixed(totalFees))
+}
+
+// GetFeesCollected returns the total amount of fees collected for a particular coin denom
+func (k Keeper) GetFeesCollected(ctx sdk.Context, coinDenom string) (total sdk.Int) {
+	feesCollected := sdk.ZeroInt()
+	store := prefix.NewStore(ctx.KVStore(k.key), types.FeesCollectedKey)
+	bz := store.Get([]byte(coinDenom))
+	if bz == nil {
+		k.SetFeesCollected(ctx, coinDenom, feesCollected)
+		return feesCollected
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &feesCollected)
+	return feesCollected
+}
+
+// IncrementFeesCollected increments the total fees collected from this coin denom
+func (k Keeper) IncrementFeesCollected(ctx sdk.Context, coinDenom string, fees sdk.Int) {
+	total := k.GetFeesCollected(ctx, coinDenom)
+	k.SetFeesCollected(ctx, coinDenom, total.Add(fees))
+}
+
+// DecrementFeesCollected decrements the total fees collected from this coin denom
+func (k Keeper) DecrementFeesCollected(ctx sdk.Context, coinDenom string, fees sdk.Int) {
+	total := k.GetFeesCollected(ctx, coinDenom)
+	total = sdk.MaxInt(total.Sub(fees), sdk.ZeroInt())
+	k.SetFeesCollected(ctx, coinDenom, total)
+}
