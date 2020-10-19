@@ -117,7 +117,7 @@ func GetCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 Example:
 $ %s tx %s withdraw kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw 10000000uatom atom-a --from myKeyName
 `, version.ClientName, types.ModuleName)),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
