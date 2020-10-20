@@ -67,6 +67,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			depositOwner, err = sdk.AccAddressFromBech32(depositOwnerStr)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from deposit owner %s", depositOwnerStr))
+				return
 			}
 		}
 
@@ -125,6 +126,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			claimOwner, err = sdk.AccAddressFromBech32(claimOwnerStr)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from claim owner %s", claimOwnerStr))
+				return
 			}
 		}
 
