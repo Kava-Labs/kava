@@ -46,10 +46,23 @@ func getModifiedKeysCmd() *cobra.Command {
 	for _, c := range keysCmd.Commands() {
 		if c.Name() == "add" {
 			monkeyPatchCmdKeysAdd(c)
-			break
+		}
+		if c.Name() == "parse" {
+			monkeyPatchCmdKeysParse(c)
 		}
 	}
 	return keysCmd
+}
+
+func monkeyPatchCmdKeysParse(keysParseCmd *cobra.Command) {
+
+	// replace the run function with a wrapped version that sets the old coin type in the global config
+	oldRun := keysParseCmd.RunE
+	keysParseCmd.RunE = func(cmd *cobra.Command, args []string) error {
+
+		sdk.GetConfig().Seal()
+		return oldRun(cmd, args)
+	}
 }
 
 // monkeyPatchCmdKeysAdd modifies the `keys add` command to use the old bip44 coin type when a flag is passed.
@@ -64,13 +77,13 @@ func monkeyPatchCmdKeysAdd(keysAddCmd *cobra.Command) {
 	and encrypted with the given password.
 
 	NOTE: This cli defaults to Kava's BIP44 coin type %d. Use the --%s flag to use the old one (%d).
-	
+
 	The flag --recover allows one to recover a key from a seed passphrase.
 	If run with --dry-run, a key would be generated (or recovered) but not stored to the
 	local keystore.
 	Use the --pubkey flag to add arbitrary public keys to the keystore for constructing
 	multisig transactions.
-	
+
 	You can add a multisig key by passing the list of key names you want the public
 	key to be composed of to the --multisig flag and the minimum number of signatures
 	required through --multisig-threshold. The keys are sorted by address, unless
