@@ -6,6 +6,8 @@ import (
 	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+
+	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // SupplyKeeper defines the expected supply keeper
@@ -32,4 +34,10 @@ type StakingKeeper interface {
 	IterateAllDelegations(ctx sdk.Context, cb func(delegation stakingtypes.Delegation) (stop bool))
 	GetBondedPool(ctx sdk.Context) (bondedPool exported.ModuleAccountI)
 	BondDenom(ctx sdk.Context) (res string)
+}
+
+// PricefeedKeeper defines the expected interface for the pricefeed
+type PricefeedKeeper interface {
+	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, error)
+	GetLiveMarketIDByDenom(sdk.Context, string) (string, bool)
 }

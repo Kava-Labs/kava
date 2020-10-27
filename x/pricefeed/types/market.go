@@ -11,7 +11,6 @@ import (
 
 // Market an asset in the pricefeed
 type Market struct {
-	// TODO: rename to ID
 	MarketID   string           `json:"market_id" yaml:"market_id"`
 	BaseAsset  string           `json:"base_asset" yaml:"base_asset"`
 	QuoteAsset string           `json:"quote_asset" yaml:"quote_asset"`
