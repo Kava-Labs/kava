@@ -2,25 +2,23 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/harvest/types"
 )
 
+// USDX is the USDX coin's denom
+const USDX = "usdx"
+
 // Borrow funds
 func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
 
-	// 1. Is this borrow valid for the user
-	//    - Check user collective LTV ratio
+	err := k.ValidateBorrow(ctx, borrower, amount)
+	if err != nil {
+		return err
+	}
 
-	// 2. Is this borrow valid for the protocol
-	//    - Check module account balances
-
-	// err := k.ValidateBorrow(ctx, coin)
-	// if err != nil {
-	// 	return err
-	// }
-
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, sdk.NewCoins(amount))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, sdk.NewCoins(amount))
 	if err != nil {
 		return err
 	}
@@ -43,5 +41,94 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin
 		),
 	)
 
+	return nil
+}
+
+// ValidateBorrow validates a borrow request against borrower and protocol requirements
+func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
+	if err := k.validateBorrowUser(ctx, borrower, amount); err != nil {
+		return err
+	}
+
+	if err := k.validateBorrowSystem(ctx, borrower, amount); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
+	// Get requested borrow amount's value
+	borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, amount.Denom)
+	if err != nil {
+		return err
+	}
+	borrowUSDValue := sdk.NewDecFromInt(amount.Amount).Mul(borrowAssetPrice.Price)
+
+	// Get the user's deposits
+	deposits := k.GetDepositsByUser(ctx, borrower)
+	if len(deposits) == 0 {
+		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
+	}
+
+	// Get the total value of the user's deposits
+	totalValueDeposits := sdk.ZeroDec()
+	for _, deposit := range deposits {
+		if deposit.Amount.Denom == USDX {
+			totalValueDeposits = totalValueDeposits.Add(sdk.NewDecFromInt(deposit.Amount.Amount))
+		} else {
+			marketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, deposit.Amount.Denom)
+			if !found {
+				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for %s", deposit.Amount.Denom)
+			}
+			depositAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+			if err != nil {
+				return err
+			}
+			depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Mul(depositAssetPrice.Price)
+			totalValueDeposits = totalValueDeposits.Add(depositUSDValue)
+		}
+	}
+
+	// Get the total value of the user's borrows
+	borrows := k.GetBorrowsByUser(ctx, borrower)
+	totalValueBorrows := sdk.ZeroDec()
+	for _, borrow := range borrows {
+		if borrow.Amount.Denom == USDX {
+			totalValueBorrows = totalValueBorrows.Add(sdk.NewDecFromInt(borrow.Amount.Amount))
+		} else {
+			marketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, borrow.Amount.Denom)
+			if !found {
+				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for %s", borrow.Amount.Denom)
+			}
+			borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+			if err != nil {
+				return err
+			}
+			borrowUSDValue := sdk.NewDecFromInt(borrow.Amount.Amount).Mul(borrowAssetPrice.Price)
+			totalValueBorrows = totalValueBorrows.Add(borrowUSDValue)
+		}
+	}
+
+	// Get the borrow asset's LTV param
+	borrowLimit, found := k.GetBorrowLimit(ctx, amount.Denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrBorrowLimitNotFound, "no borrow limit found for %s", amount.Denom)
+	}
+
+	// Value of borrow cannot be greater than:
+	// (total value of user's deposits * the borrow asset denom's LTV ratio) - funds already borrowed
+	borrowValueLimit := totalValueDeposits.Mul(borrowLimit.LoanToValue).Sub(totalValueBorrows)
+	if borrowUSDValue.GT(borrowValueLimit) {
+		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue,
+			"requested borrow %s is greater than maximum valid borrow %s",
+			amount, sdk.NewCoin(amount.Denom, borrowValueLimit.Quo(borrowAssetPrice.Price).TruncateInt()))
+	}
+
+	return nil
+}
+
+func (k Keeper) validateBorrowSystem(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
+	// TODO: validate borrow against system requirements
 	return nil
 }

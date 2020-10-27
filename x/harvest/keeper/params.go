@@ -18,6 +18,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
+// GetLPSchedule gets the LP's schedule
 func (k Keeper) GetLPSchedule(ctx sdk.Context, denom string) (types.DistributionSchedule, bool) {
 	params := k.GetParams(ctx)
 	for _, lps := range params.LiquidityProviderSchedules {
@@ -28,6 +29,7 @@ func (k Keeper) GetLPSchedule(ctx sdk.Context, denom string) (types.Distribution
 	return types.DistributionSchedule{}, false
 }
 
+// GetDelegatorSchedule gets the Delgator's schedule
 func (k Keeper) GetDelegatorSchedule(ctx sdk.Context, denom string) (types.DelegatorDistributionSchedule, bool) {
 	params := k.GetParams(ctx)
 	for _, dds := range params.DelegatorDistributionSchedules {
@@ -36,4 +38,15 @@ func (k Keeper) GetDelegatorSchedule(ctx sdk.Context, denom string) (types.Deleg
 		}
 	}
 	return types.DelegatorDistributionSchedule{}, false
+}
+
+// GetBorrowLimit returns the corresponding Borrow Limit param for a specific denom
+func (k Keeper) GetBorrowLimit(ctx sdk.Context, denom string) (types.BorrowLimit, bool) {
+	params := k.GetParams(ctx)
+	for _, bl := range params.BorrowLimits {
+		if bl.Denom == denom {
+			return bl, true
+		}
+	}
+	return types.BorrowLimit{}, false
 }

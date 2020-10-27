@@ -13,27 +13,31 @@ import (
 
 // Keeper keeper for the harvest module
 type Keeper struct {
-	key           sdk.StoreKey
-	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
-	accountKeeper types.AccountKeeper
-	supplyKeeper  types.SupplyKeeper
-	stakingKeeper types.StakingKeeper
+	key             sdk.StoreKey
+	cdc             *codec.Codec
+	paramSubspace   subspace.Subspace
+	accountKeeper   types.AccountKeeper
+	supplyKeeper    types.SupplyKeeper
+	stakingKeeper   types.StakingKeeper
+	pricefeedKeeper types.PricefeedKeeper
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, ak types.AccountKeeper, sk types.SupplyKeeper, stk types.StakingKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
+	ak types.AccountKeeper, sk types.SupplyKeeper, stk types.StakingKeeper,
+	pfk types.PricefeedKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		key:           key,
-		cdc:           cdc,
-		paramSubspace: paramstore,
-		accountKeeper: ak,
-		supplyKeeper:  sk,
-		stakingKeeper: stk,
+		key:             key,
+		cdc:             cdc,
+		paramSubspace:   paramstore,
+		accountKeeper:   ak,
+		supplyKeeper:    sk,
+		stakingKeeper:   stk,
+		pricefeedKeeper: pfk,
 	}
 }
 
@@ -178,6 +182,18 @@ func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, depositType types.D
 	}
 }
 
+// GetDepositsByUser gets all deposits for an individual user
+func (k Keeper) GetDepositsByUser(ctx sdk.Context, user sdk.AccAddress) []types.Deposit {
+	var deposits []types.Deposit
+	k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
+		if deposit.Depositor.Equals(user) {
+			deposits = append(deposits, deposit)
+		}
+		return false
+	})
+	return deposits
+}
+
 // BondDenom returns the bond denom from the staking keeper
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.stakingKeeper.BondDenom(ctx)
@@ -220,4 +236,16 @@ func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (st
 			break
 		}
 	}
+}
+
+// GetBorrowsByUser gets all borrows for an individual user
+func (k Keeper) GetBorrowsByUser(ctx sdk.Context, user sdk.AccAddress) []types.Borrow {
+	var borrows []types.Borrow
+	k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+		if borrow.Borrower.Equals(user) {
+			borrows = append(borrows, borrow)
+		}
+		return false
+	})
+	return borrows
 }
