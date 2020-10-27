@@ -53,6 +53,7 @@ var (
 	_ sdk.Msg = &MsgClaimReward{}
 	_ sdk.Msg = &MsgDeposit{}
 	_ sdk.Msg = &MsgWithdraw{}
+	_ sdk.Msg = &MsgBorrow{}
 )
 
 // MsgDeposit deposit collateral to the harvest module.
@@ -213,4 +214,56 @@ func (msg MsgClaimReward) GetSignBytes() []byte {
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgClaimReward) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
+}
+
+// ---------------------------------------
+
+// MsgBorrow borrows funds from the harvest module.
+type MsgBorrow struct {
+	Borrower sdk.AccAddress `json:"borrower" yaml:"borrower"`
+	Amount   sdk.Coin       `json:"amount" yaml:"amount"`
+}
+
+// NewMsgBorrow returns a new MsgBorrow
+func NewMsgBorrow(borrower sdk.AccAddress, amount sdk.Coin) MsgBorrow {
+	return MsgBorrow{
+		Borrower: borrower,
+		Amount:   amount,
+	}
+}
+
+// Route return the message type used for routing the message.
+func (msg MsgBorrow) Route() string { return RouterKey }
+
+// Type returns a human-readable string for the message, intended for utilization within tags.
+func (msg MsgBorrow) Type() string { return "harvest_borrow" } // TODO: or just 'borrow'
+
+// ValidateBasic does a simple validation check that doesn't require access to any other information.
+func (msg MsgBorrow) ValidateBasic() error {
+	if msg.Borrower.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "borrow amount %s", msg.Amount)
+	}
+	return nil
+}
+
+// GetSignBytes gets the canonical byte representation of the Msg.
+func (msg MsgBorrow) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the addresses of signers that must sign.
+func (msg MsgBorrow) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Borrower}
+}
+
+// String implements the Stringer interface
+func (msg MsgBorrow) String() string {
+	return fmt.Sprintf(`Borrow Message:
+	Borrower:         %s
+	Amount:   %s
+`, msg.Borrower, msg.Amount)
 }

@@ -35,6 +35,7 @@ var (
 	PreviousDelegationDistributionKey = []byte{0x02}
 	DepositsKeyPrefix                 = []byte{0x03}
 	ClaimsKeyPrefix                   = []byte{0x04}
+	BorrowsKeyPrefix                  = []byte{0x05}
 	sep                               = []byte(":")
 )
 
@@ -51,6 +52,11 @@ func DepositTypeIteratorKey(depositType DepositType, denom string) []byte {
 // ClaimKey key of a specific deposit in the store
 func ClaimKey(depositType DepositType, denom string, owner sdk.AccAddress) []byte {
 	return createKey([]byte(depositType), sep, []byte(denom), sep, owner)
+}
+
+// BorrowKey key of a specific borrow in the store
+func BorrowKey(borrower sdk.AccAddress, denom string) []byte {
+	return createKey(borrower, sep, []byte(denom))
 }
 
 func createKey(bytes ...[]byte) (r []byte) {
