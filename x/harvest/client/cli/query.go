@@ -21,6 +21,7 @@ import (
 const (
 	flagName         = "name"
 	flagDepositDenom = "deposit-denom"
+	flagBorrowDenom  = "borrow-denom"
 	flagOwner        = "owner"
 	flagDepositType  = "deposit-type"
 )
@@ -40,6 +41,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryModAccountsCmd(queryRoute, cdc),
 		queryDepositsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
+		queryBorrowsCmd(queryRoute, cdc),
 	)...)
 
 	return harvestQueryCmd
@@ -248,5 +250,63 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().String(flagOwner, "", "(optional) filter for claims by owner address")
 	cmd.Flags().String(flagDepositDenom, "", "(optional) filter for claims by denom")
 	cmd.Flags().String(flagDepositType, "", "(optional) filter for claims by type (lp or staking)")
+	return cmd
+}
+
+func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "borrows",
+		Short: "query harvest module borrows with optional filters",
+		Long: strings.TrimSpace(`query for all harvest module borrows or a specific borrow using flags:
+
+		Example:
+		$ kvcli q harvest borrows
+		$ kvcli q harvest borrows --borrower kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
+		$ kvcli q harvest borrows --borrow-denom bnb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			var owner sdk.AccAddress
+
+			ownerBech := viper.GetString(flagOwner)
+			depositDenom := viper.GetString(flagDepositDenom)
+
+			if len(ownerBech) != 0 {
+				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
+				if err != nil {
+					return err
+				}
+				owner = borrowOwner
+			}
+
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
+			params := types.NewQueryBorrowParams(page, limit, owner, depositDenom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrows)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var borrows []types.Borrow
+			if err := cdc.UnmarshalJSON(res, &borrows); err != nil {
+				return fmt.Errorf("failed to unmarshal borrows: %w", err)
+			}
+			return cliCtx.PrintOutput(borrows)
+		},
+	}
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
+	cmd.Flags().String(flagOwner, "", "(optional) filter for borrows by owner address")
+	cmd.Flags().String(flagBorrowDenom, "", "(optional) filter for borrows by denom")
 	return cmd
 }

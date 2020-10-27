@@ -10,6 +10,7 @@ const (
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
 	QueryGetClaims         = "claims"
+	QueryGetBorrows        = "borrows"
 )
 
 // QueryDepositParams is the params for a filtered deposit query
@@ -65,5 +66,23 @@ func NewQueryAccountParams(page, limit int, name string) QueryAccountParams {
 		Page:  page,
 		Limit: limit,
 		Name:  name,
+	}
+}
+
+// QueryBorrowParams is the params for a filtered borrow query
+type QueryBorrowParams struct {
+	Page        int            `json:"page" yaml:"page"`
+	Limit       int            `json:"limit" yaml:"limit"`
+	Owner       sdk.AccAddress `json:"owner" yaml:"owner"`
+	BorrowDenom string         `json:"borrow_denom" yaml:"borrow_denom"`
+}
+
+// NewQueryBorrowParams creates a new QueryBorrowParams
+func NewQueryBorrowParams(page, limit int, owner sdk.AccAddress, depositDenom string) QueryBorrowParams {
+	return QueryBorrowParams{
+		Page:        page,
+		Limit:       limit,
+		Owner:       owner,
+		BorrowDenom: depositDenom,
 	}
 }
