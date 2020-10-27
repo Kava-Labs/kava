@@ -50,7 +50,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // EnsureModuleAccountPermissions syncs the bep3 module account's permissions with those in the supply keeper.
 func (k Keeper) EnsureModuleAccountPermissions(ctx sdk.Context) error {
 	maccI := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
-	macc, ok := maccI.(supply.ModuleAccount)
+	macc, ok := maccI.(*supply.ModuleAccount)
 	if !ok {
 		return fmt.Errorf("expected %s account to be a module account type", types.ModuleName)
 	}
