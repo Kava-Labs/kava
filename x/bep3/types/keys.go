@@ -29,7 +29,7 @@ const (
 // Key prefixes
 var (
 	// ModulePermissionsUpgradeTime is the block time after which the bep3 module account's permissions are synced with the supply module.
-	ModulePermissionsUpgradeTime time.Time = time.Date(2020, 11, 3, 14, 0, 0, 0, time.UTC)
+	ModulePermissionsUpgradeTime time.Time = time.Date(2020, 11, 3, 10, 0, 0, 0, time.UTC)
 
 	AtomicSwapKeyPrefix             = []byte{0x00} // prefix for keys that store AtomicSwaps
 	AtomicSwapByBlockPrefix         = []byte{0x01} // prefix for keys of the AtomicSwapsByBlock index
