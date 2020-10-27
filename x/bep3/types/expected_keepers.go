@@ -10,6 +10,8 @@ import (
 type SupplyKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, moduleName string) supplyexported.ModuleAccountI
+	GetModuleAddressAndPermissions(moduleName string) (sdk.AccAddress, []string)
+	SetModuleAccount(ctx sdk.Context, macc supplyexported.ModuleAccountI)
 
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
