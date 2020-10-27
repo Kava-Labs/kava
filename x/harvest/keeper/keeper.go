@@ -182,3 +182,42 @@ func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, depositType types.D
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.stakingKeeper.BondDenom(ctx)
 }
+
+// GetBorrow returns a Borrow from the store for a particular borrower address and borrow denom
+func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress, denom string) (types.Borrow, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	bz := store.Get(types.BorrowKey(borrower, denom))
+	if bz == nil {
+		return types.Borrow{}, false
+	}
+	var borrow types.Borrow
+	k.cdc.MustUnmarshalBinaryBare(bz, &borrow)
+	return borrow, true
+}
+
+// SetBorrow sets the input borrow in the store, prefixed by the borrower address and borrow denom
+func (k Keeper) SetBorrow(ctx sdk.Context, borrow types.Borrow) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(borrow)
+	store.Set(types.BorrowKey(borrow.Borrower, borrow.Amount.Denom), bz)
+}
+
+// DeleteBorrow deletes a borrow from the store
+func (k Keeper) DeleteBorrow(ctx sdk.Context, borrow types.Borrow) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	store.Delete(types.BorrowKey(borrow.Borrower, borrow.Amount.Denom))
+}
+
+// IterateBorrows iterates over all borrow objects in the store and performs a callback function
+func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var borrow types.Borrow
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &borrow)
+		if cb(borrow) {
+			break
+		}
+	}
+}
