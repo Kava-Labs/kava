@@ -24,6 +24,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetDeposits(ctx, req, k)
 		case types.QueryGetClaims:
 			return queryGetClaims(ctx, req, k)
+		case types.QueryGetBorrows:
+			return queryGetBorrows(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -254,6 +256,39 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, claims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	var params types.QueryBorrowParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	// TODO: filter query results
+	// depositDenom := len(params.BorrowDenom) > 0
+	// owner := len(params.Owner) > 0
+
+	var borrows []types.Borrow
+	k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+		borrows = append(borrows, borrow)
+		return false
+	})
+
+	start, end := client.Paginate(len(borrows), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		borrows = []types.Borrow{}
+	} else {
+		borrows = borrows[start:end]
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrows)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

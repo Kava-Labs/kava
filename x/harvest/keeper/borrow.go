@@ -59,7 +59,11 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 
 func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
 	// Get requested borrow amount's value
-	borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, amount.Denom)
+	borrowMarketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, amount.Denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for %s", amount.Denom)
+	}
+	borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, borrowMarketID)
 	if err != nil {
 		return err
 	}
@@ -79,7 +83,7 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		} else {
 			marketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, deposit.Amount.Denom)
 			if !found {
-				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for %s", deposit.Amount.Denom)
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for %s", deposit.Amount.Denom)
 			}
 			depositAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 			if err != nil {
@@ -99,7 +103,7 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		} else {
 			marketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, borrow.Amount.Denom)
 			if !found {
-				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for %s", borrow.Amount.Denom)
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for %s", borrow.Amount.Denom)
 			}
 			borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 			if err != nil {

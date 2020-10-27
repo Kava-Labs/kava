@@ -235,7 +235,6 @@ func NewBorrowLimit(denom string, loanToValue sdk.Dec) BorrowLimit {
 	}
 }
 
-// TODO:
 // Validate BorrowLimit param
 func (bl BorrowLimit) Validate() error {
 	if err := sdk.ValidateDenom(bl.Denom); err != nil {
