@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -60,19 +58,4 @@ func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool)
 		}
 	}
 	return types.Market{}, false
-}
-
-// GetLiveMarketIDByDenom gets the live market ID by denom, selecting 'bnb:usd' over 'bnb:usd:30' for input 'bnb'
-func (k Keeper) GetLiveMarketIDByDenom(ctx sdk.Context, denom string) (string, bool) {
-	markets := k.GetMarkets(ctx)
-	for _, market := range markets {
-		splitMarketID := strings.Split(market.MarketID, ":")
-		// Here we accept 'bnb:usd' but not 'bnb:usd:30'
-		if len(splitMarketID) == 2 {
-			if splitMarketID[0] == denom {
-				return market.MarketID, true
-			}
-		}
-	}
-	return "", false
 }

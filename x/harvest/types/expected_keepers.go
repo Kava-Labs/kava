@@ -39,5 +39,4 @@ type StakingKeeper interface {
 // PricefeedKeeper defines the expected interface for the pricefeed
 type PricefeedKeeper interface {
 	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, error)
-	GetLiveMarketIDByDenom(sdk.Context, string) (string, bool)
 }

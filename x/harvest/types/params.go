@@ -251,15 +251,17 @@ func (bl BorrowLimit) Validate() error {
 
 // MoneyMarket is a money market for an individual asset
 type MoneyMarket struct {
-	Denom       string      `json:"denom" yaml:"denom"`
-	BorrowLimit BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
+	Denom        string      `json:"denom" yaml:"denom"`
+	BorrowLimit  BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID string      `json:"sport_market_id" yaml:"sport_market_id"`
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec) MoneyMarket {
+func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec, spotMarketID string) MoneyMarket {
 	return MoneyMarket{
-		Denom:       denom,
-		BorrowLimit: NewBorrowLimit(maximumLimit, loanToValue),
+		Denom:        denom,
+		BorrowLimit:  NewBorrowLimit(maximumLimit, loanToValue),
+		SpotMarketID: spotMarketID,
 	}
 }
 
@@ -375,10 +377,10 @@ func validateDelegatorParams(i interface{}) error {
 }
 
 func validateMoneyMarketParams(i interface{}) error {
-	bl, ok := i.(MoneyMarkets)
+	mm, ok := i.(MoneyMarkets)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	return bl.Validate()
+	return mm.Validate()
 }

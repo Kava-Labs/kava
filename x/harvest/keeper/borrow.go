@@ -58,14 +58,13 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 }
 
 func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	// Get requested borrow amount's value
-	borrowMarketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, amount.Denom)
+	borrowMoneyMarket, found := k.GetMoneyMarket(ctx, amount.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for %s", amount.Denom)
+		return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", amount.Denom)
 	}
-	borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, borrowMarketID)
+	borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, borrowMoneyMarket.SpotMarketID)
 	if err != nil {
-		return err
+		return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", borrowMoneyMarket.SpotMarketID)
 	}
 	borrowUSDValue := sdk.NewDecFromInt(amount.Amount).Mul(borrowAssetPrice.Price)
 
@@ -81,13 +80,13 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		if deposit.Amount.Denom == USDX {
 			totalValueDeposits = totalValueDeposits.Add(sdk.NewDecFromInt(deposit.Amount.Amount))
 		} else {
-			marketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, deposit.Amount.Denom)
+			depositMoneyMarket, found := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
 			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for %s", deposit.Amount.Denom)
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", deposit.Amount.Denom)
 			}
-			depositAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+			depositAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, depositMoneyMarket.SpotMarketID)
 			if err != nil {
-				return err
+				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", depositMoneyMarket.SpotMarketID)
 			}
 			depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Mul(depositAssetPrice.Price)
 			totalValueDeposits = totalValueDeposits.Add(depositUSDValue)
@@ -101,11 +100,7 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		if borrow.Amount.Denom == USDX {
 			totalValueBorrows = totalValueBorrows.Add(sdk.NewDecFromInt(borrow.Amount.Amount))
 		} else {
-			marketID, found := k.pricefeedKeeper.GetLiveMarketIDByDenom(ctx, borrow.Amount.Denom)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for %s", borrow.Amount.Denom)
-			}
-			borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
+			borrowAssetPrice, err := k.pricefeedKeeper.GetCurrentPrice(ctx, borrowMoneyMarket.SpotMarketID)
 			if err != nil {
 				return err
 			}
@@ -114,15 +109,9 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		}
 	}
 
-	// Get the borrow asset's LTV param
-	moneyMarket, found := k.GetMoneyMarket(ctx, amount.Denom)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrMoneyMarketNotFound, "no money market found for %s", amount.Denom)
-	}
-
 	// Value of borrow cannot be greater than:
 	// (total value of user's deposits * the borrow asset denom's LTV ratio) - funds already borrowed
-	borrowValueLimit := totalValueDeposits.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(totalValueBorrows)
+	borrowValueLimit := totalValueDeposits.Mul(borrowMoneyMarket.BorrowLimit.LoanToValue).Sub(totalValueBorrows)
 	if borrowUSDValue.GT(borrowValueLimit) {
 		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue,
 			"requested borrow %s is greater than maximum valid borrow %s",
