@@ -30,7 +30,7 @@ type Params struct {
 	Active                         bool                           `json:"active" yaml:"active"`
 	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
 	DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
-	MoneyMarkets                   MoneyMarkets                   `json:"borrow_limits" yaml:"borrow_limits"`
+	MoneyMarkets                   MoneyMarkets                   `json:"money_markets" yaml:"money_markets"`
 }
 
 // DistributionSchedule distribution schedule for liquidity providers
@@ -253,7 +253,7 @@ func (bl BorrowLimit) Validate() error {
 type MoneyMarket struct {
 	Denom        string      `json:"denom" yaml:"denom"`
 	BorrowLimit  BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
-	SpotMarketID string      `json:"sport_market_id" yaml:"sport_market_id"`
+	SpotMarketID string      `json:"spot_market_id" yaml:"spot_market_id"`
 }
 
 // NewMoneyMarket returns a new MoneyMarket
@@ -265,7 +265,7 @@ func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec, spo
 	}
 }
 
-// Validate BorrowLimit param
+// Validate MoneyMarket param
 func (mm MoneyMarket) Validate() error {
 	if err := sdk.ValidateDenom(mm.Denom); err != nil {
 		return err
