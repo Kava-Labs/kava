@@ -150,4 +150,4 @@ workflows:
       - docker-build-and-push:
           filters:
             branches:
-              only: ro-add-docker-image-auto-builds # TODO change to master
+              only: master
