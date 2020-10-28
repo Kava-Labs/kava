@@ -121,6 +121,7 @@ var (
 	DefaultMinBlockLock             = types.DefaultMinBlockLock
 	DefaultMaxBlockLock             = types.DefaultMaxBlockLock
 	DefaultPreviousBlockTime        = types.DefaultPreviousBlockTime
+	ModulePermissionsUpgradeTime    = types.ModulePermissionsUpgradeTime
 )
 
 type (
