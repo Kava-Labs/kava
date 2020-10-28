@@ -3,6 +3,11 @@ executors:
   golang:
     docker:
       - image: circleci/golang:1.13
+  docker-publisher:
+    environment:
+      IMAGE_NAME: kava/kava-cci-test
+    docker:
+      - image: circleci/buildpack-deps:stretch
 
 commands:
   make:
@@ -103,6 +108,29 @@ jobs:
           target: link-check
           description: "Check url links are not broken"
 
+  docker-build-and-push:
+    executor: docker-publisher # could inline executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          command: docker build -t $IMAGE_NAME:master .
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker push $IMAGE_NAME:master
+  # docker-push:
+  #   executor: docker-publisher
+  #   steps:
+  #     - setup_remote_docker
+  #     - run:
+  #         name: Publish Docker Image to Docker Hub
+  #         command: |
+  #           echo "$DOCKERHUB_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+  #           docker push $IMAGE_NAME:master
+
 
 workflows:
   version: 2
@@ -127,3 +155,9 @@ workflows:
       - broken-link-check:
           requires:
             - setup-dependencies
+  upload-docker-images:
+    jobs:
+      - docker-build-and-push:
+          filters:
+            branches:
+              only: to-add-docker-image-auto-builds # TODO change to master
