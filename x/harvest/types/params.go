@@ -16,12 +16,12 @@ var (
 	KeyActive                 = []byte("Active")
 	KeyLPSchedules            = []byte("LPSchedules")
 	KeyDelegatorSchedule      = []byte("DelegatorSchedule")
-	KeyBorrowLimits           = []byte("BorrowLimits")
+	KeyMoneyMarkets           = []byte("MoneyMarkets")
 	DefaultActive             = true
 	DefaultGovSchedules       = DistributionSchedules{}
 	DefaultLPSchedules        = DistributionSchedules{}
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
-	DefaultBorrowLimits       = BorrowLimits{}
+	DefaultMoneyMarkets       = MoneyMarkets{}
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
@@ -30,7 +30,7 @@ type Params struct {
 	Active                         bool                           `json:"active" yaml:"active"`
 	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
 	DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
-	BorrowLimits                   BorrowLimits                   `json:"borrow_limits" yaml:"borrow_limits"`
+	MoneyMarkets                   MoneyMarkets                   `json:"borrow_limits" yaml:"borrow_limits"`
 }
 
 // DistributionSchedule distribution schedule for liquidity providers
@@ -221,24 +221,24 @@ func (ds DistributionSchedule) GetMultiplier(name MultiplierName) (Multiplier, b
 // Multipliers slice of Multiplier
 type Multipliers []Multiplier
 
-// BorrowLimit enforces an asset's loan-to-value restrictions
+// BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
-	Denom       string  `json:"denom" yaml:"denom"`
-	LoanToValue sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
+	MaximumLimit sdk.Int `json:"maximum_limit" yaml:"maximum_limit"`
+	LoanToValue  sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
 }
 
 // NewBorrowLimit returns a new BorrowLimit
-func NewBorrowLimit(denom string, loanToValue sdk.Dec) BorrowLimit {
+func NewBorrowLimit(maximumLimit sdk.Int, loanToValue sdk.Dec) BorrowLimit {
 	return BorrowLimit{
-		Denom:       denom,
-		LoanToValue: loanToValue,
+		MaximumLimit: maximumLimit,
+		LoanToValue:  loanToValue,
 	}
 }
 
-// Validate BorrowLimit param
+// Validate BorrowLimit
 func (bl BorrowLimit) Validate() error {
-	if err := sdk.ValidateDenom(bl.Denom); err != nil {
-		return err
+	if bl.MaximumLimit.IsNegative() {
+		return fmt.Errorf("maximum limit cannot be negative: %s", bl.MaximumLimit)
 	}
 	if !bl.LoanToValue.IsPositive() {
 		return fmt.Errorf("loan-to-value must be a positive integer: %s", bl.LoanToValue)
@@ -249,13 +249,39 @@ func (bl BorrowLimit) Validate() error {
 	return nil
 }
 
-// BorrowLimits slice of BorrowLimit
-type BorrowLimits []BorrowLimit
+// MoneyMarket is a money market for an individual asset
+type MoneyMarket struct {
+	Denom       string      `json:"denom" yaml:"denom"`
+	BorrowLimit BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
+}
+
+// NewMoneyMarket returns a new MoneyMarket
+func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec) MoneyMarket {
+	return MoneyMarket{
+		Denom:       denom,
+		BorrowLimit: NewBorrowLimit(maximumLimit, loanToValue),
+	}
+}
+
+// Validate BorrowLimit param
+func (mm MoneyMarket) Validate() error {
+	if err := sdk.ValidateDenom(mm.Denom); err != nil {
+		return err
+	}
+
+	if err := mm.BorrowLimit.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MoneyMarkets slice of MoneyMarket
+type MoneyMarkets []MoneyMarket
 
 // Validate borrow limits
-func (bls BorrowLimits) Validate() error {
-	for _, borrowLimit := range bls {
-		if err := borrowLimit.Validate(); err != nil {
+func (mms MoneyMarkets) Validate() error {
+	for _, moneyMarket := range mms {
+		if err := moneyMarket.Validate(); err != nil {
 			return err
 		}
 	}
@@ -263,18 +289,18 @@ func (bls BorrowLimits) Validate() error {
 }
 
 // NewParams returns a new params object
-func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules, borrowLimits BorrowLimits) Params {
+func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules, moneyMarkets MoneyMarkets) Params {
 	return Params{
 		Active:                         active,
 		LiquidityProviderSchedules:     lps,
 		DelegatorDistributionSchedules: dds,
-		BorrowLimits:                   borrowLimits,
+		MoneyMarkets:                   moneyMarkets,
 	}
 }
 
 // DefaultParams returns default params for harvest module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultBorrowLimits)
+	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultMoneyMarkets)
 }
 
 // String implements fmt.Stringer
@@ -283,7 +309,7 @@ func (p Params) String() string {
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
 	Delegator Distribution Schedule %s
-	Borrow Limits %s`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.BorrowLimits)
+	Money Markets %s`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -297,7 +323,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
 		params.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
 		params.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
-		params.NewParamSetPair(KeyBorrowLimits, &p.BorrowLimits, validateBorrowLimitParams),
+		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
 	}
 }
 
@@ -348,8 +374,8 @@ func validateDelegatorParams(i interface{}) error {
 	return dds.Validate()
 }
 
-func validateBorrowLimitParams(i interface{}) error {
-	bl, ok := i.(BorrowLimits)
+func validateMoneyMarketParams(i interface{}) error {
+	bl, ok := i.(MoneyMarkets)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

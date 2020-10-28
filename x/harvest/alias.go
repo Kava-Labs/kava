@@ -111,8 +111,8 @@ type (
 	Keeper                         = keeper.Keeper
 	AccountKeeper                  = types.AccountKeeper
 	Borrow                         = types.Borrow
-	BorrowLimit                    = types.BorrowLimit
-	BorrowLimits                   = types.BorrowLimits
+	MoneyMarket                    = types.MoneyMarket
+	MoneyMarkets                   = types.MoneyMarkets
 	DelegatorDistributionSchedule  = types.DelegatorDistributionSchedule
 	DelegatorDistributionSchedules = types.DelegatorDistributionSchedules
 	Deposit                        = types.Deposit

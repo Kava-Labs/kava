@@ -40,13 +40,13 @@ func (k Keeper) GetDelegatorSchedule(ctx sdk.Context, denom string) (types.Deleg
 	return types.DelegatorDistributionSchedule{}, false
 }
 
-// GetBorrowLimit returns the corresponding Borrow Limit param for a specific denom
-func (k Keeper) GetBorrowLimit(ctx sdk.Context, denom string) (types.BorrowLimit, bool) {
+// GetMoneyMarket returns the corresponding Money Market param for a specific denom
+func (k Keeper) GetMoneyMarket(ctx sdk.Context, denom string) (types.MoneyMarket, bool) {
 	params := k.GetParams(ctx)
-	for _, bl := range params.BorrowLimits {
-		if bl.Denom == denom {
-			return bl, true
+	for _, mm := range params.MoneyMarkets {
+		if mm.Denom == denom {
+			return mm, true
 		}
 	}
-	return types.BorrowLimit{}, false
+	return types.MoneyMarket{}, false
 }

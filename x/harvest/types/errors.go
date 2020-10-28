@@ -35,8 +35,8 @@ var (
 	ErrClaimExpired = sdkerrors.Register(ModuleName, 14, "claim period expired")
 	// ErrInvalidReceiver error for when sending and receiving accounts don't match
 	ErrInvalidReceiver = sdkerrors.Register(ModuleName, 15, "receiver account must match sender account")
-	// ErrBorrowLimitNotFound error for borrow limit param not found
-	ErrBorrowLimitNotFound = sdkerrors.Register(ModuleName, 16, "no borrow limit found")
+	// ErrMoneyMarketNotFound error for money market param not found
+	ErrMoneyMarketNotFound = sdkerrors.Register(ModuleName, 16, "no money market found")
 	// ErrDepositsNotFound error for no deposits found
 	ErrDepositsNotFound = sdkerrors.Register(ModuleName, 17, "no deposits found")
 	// ErrInsufficientLoanToValue error for when an attempted borrow exceeds maximum loan-to-value

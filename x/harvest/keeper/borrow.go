@@ -115,14 +115,14 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 	}
 
 	// Get the borrow asset's LTV param
-	borrowLimit, found := k.GetBorrowLimit(ctx, amount.Denom)
+	moneyMarket, found := k.GetMoneyMarket(ctx, amount.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrBorrowLimitNotFound, "no borrow limit found for %s", amount.Denom)
+		return sdkerrors.Wrapf(types.ErrMoneyMarketNotFound, "no money market found for %s", amount.Denom)
 	}
 
 	// Value of borrow cannot be greater than:
 	// (total value of user's deposits * the borrow asset denom's LTV ratio) - funds already borrowed
-	borrowValueLimit := totalValueDeposits.Mul(borrowLimit.LoanToValue).Sub(totalValueBorrows)
+	borrowValueLimit := totalValueDeposits.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(totalValueBorrows)
 	if borrowUSDValue.GT(borrowValueLimit) {
 		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue,
 			"requested borrow %s is greater than maximum valid borrow %s",
