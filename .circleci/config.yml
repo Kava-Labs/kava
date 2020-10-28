@@ -3,11 +3,6 @@ executors:
   golang:
     docker:
       - image: circleci/golang:1.13
-  docker-publisher:
-    environment:
-      IMAGE_NAME: kava/kava-cci-test
-    docker:
-      - image: circleci/buildpack-deps:stretch
 
 commands:
   make:
@@ -109,27 +104,22 @@ jobs:
           description: "Check url links are not broken"
 
   docker-build-and-push:
-    executor: docker-publisher # could inline executor
+    # adapted from: https://circleci.com/blog/using-circleci-workflows-to-replicate-docker-hub-automated-builds/
+    environment:
+      IMAGE_NAME: kava/kava
+    docker:
+      - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
       - setup_remote_docker
       - run:
           name: Build Docker image
-          command: docker build -t $IMAGE_NAME:master .
+          command: docker build -t $IMAGE_NAME:$CIRCLE_BRANCH .
       - run:
           name: Publish Docker Image to Docker Hub
           command: |
             echo "$DOCKERHUB_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker push $IMAGE_NAME:master
-  # docker-push:
-  #   executor: docker-publisher
-  #   steps:
-  #     - setup_remote_docker
-  #     - run:
-  #         name: Publish Docker Image to Docker Hub
-  #         command: |
-  #           echo "$DOCKERHUB_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-  #           docker push $IMAGE_NAME:master
+            docker push $IMAGE_NAME:$CIRCLE_BRANCH
 
 
 workflows:
