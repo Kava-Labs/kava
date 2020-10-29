@@ -243,8 +243,8 @@ func (bl BorrowLimit) Validate() error {
 	if !bl.LoanToValue.IsPositive() {
 		return fmt.Errorf("loan-to-value must be a positive integer: %s", bl.LoanToValue)
 	}
-	if bl.LoanToValue.GT(sdk.NewDec(100)) {
-		return fmt.Errorf("loan-to-value cannot be greater than 100: %s", bl.LoanToValue)
+	if bl.LoanToValue.GT(sdk.OneDec()) {
+		return fmt.Errorf("loan-to-value cannot be greater than 1.0: %s", bl.LoanToValue)
 	}
 	return nil
 }

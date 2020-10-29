@@ -45,56 +45,55 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
 func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	var borrowUSDValue sdk.Dec
+	var proprosedBorrowUSDValue sdk.Dec
 	if amount.Denom == USDX {
 		moneyMarket, found := k.GetMoneyMarket(ctx, amount.Denom)
 		if !found {
 			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", amount.Denom)
 		}
-		borrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor))
+		proprosedBorrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor))
 	} else {
 		price, conversionFactor, err := k.getAssetPrice(ctx, amount.Denom)
 		if err != nil {
 			return err
 		}
-		borrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
-	}
-
-	// Get the user's deposits
-	deposits := k.GetDepositsByUser(ctx, borrower)
-	if len(deposits) == 0 {
-		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
+		proprosedBorrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
 	}
 
 	// Get the total value of the user's deposits
-	totalValueDeposits := sdk.ZeroDec()
+	deposits := k.GetDepositsByUser(ctx, borrower)
+	totalUSDValueDeposits := sdk.ZeroDec()
 	for _, deposit := range deposits {
 		if deposit.Amount.Denom == USDX {
-			totalValueDeposits = totalValueDeposits.Add(sdk.NewDecFromInt(deposit.Amount.Amount))
+			totalUSDValueDeposits = totalUSDValueDeposits.Add(sdk.NewDecFromInt(deposit.Amount.Amount))
 		} else {
 			price, conversionFactor, err := k.getAssetPrice(ctx, deposit.Amount.Denom)
 			if err != nil {
 				return err
 			}
 			depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
-			totalValueDeposits = totalValueDeposits.Add(depositUSDValue)
+			totalUSDValueDeposits = totalUSDValueDeposits.Add(depositUSDValue)
 		}
 	}
 
 	// Get the total value of the user's borrows
 	borrows := k.GetBorrowsByUser(ctx, borrower)
-	totalValueBorrows := sdk.ZeroDec()
+	totalUSDValuePreviousBorrows := sdk.ZeroDec()
 	for _, borrow := range borrows {
 		if borrow.Amount.Denom == USDX {
-			totalValueBorrows = totalValueBorrows.Add(sdk.NewDecFromInt(borrow.Amount.Amount))
+			totalUSDValuePreviousBorrows = totalUSDValuePreviousBorrows.Add(sdk.NewDecFromInt(borrow.Amount.Amount))
 		} else {
 			price, conversionFactor, err := k.getAssetPrice(ctx, borrow.Amount.Denom)
 			if err != nil {
 				return err
 			}
 			borrowUSDValue := sdk.NewDecFromInt(borrow.Amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
-			totalValueBorrows = totalValueBorrows.Add(borrowUSDValue)
+			totalUSDValuePreviousBorrows = totalUSDValuePreviousBorrows.Add(borrowUSDValue)
 		}
+	}
+
+	if len(deposits) == 0 {
+		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
 
 	// Value of borrow cannot be greater than:
@@ -103,8 +102,8 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if !found { // Sanity check
 		sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", amount.Denom)
 	}
-	borrowValueLimit := totalValueDeposits.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(totalValueBorrows)
-	if borrowUSDValue.GT(borrowValueLimit) {
+	borrowValueLimit := totalUSDValueDeposits.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(totalUSDValuePreviousBorrows)
+	if proprosedBorrowUSDValue.GT(borrowValueLimit) {
 		// Here we get the price so that we can return a helpful error to the user
 		price, _, err := k.getAssetPrice(ctx, amount.Denom)
 		if err != nil {
