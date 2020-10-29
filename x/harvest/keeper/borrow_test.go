@@ -34,9 +34,9 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			"valid",
 			args{
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100))),
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(900)), sdk.NewCoin("usdx", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100))),
+				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(150))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(950))),
 			},
 			errArgs{
 				expectPass: true,
@@ -51,7 +51,9 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
-			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.borrower}, []sdk.Coins{sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000)), sdk.NewCoin("ukava", sdk.NewInt(1000)))})
+			authGS := app.NewAuthGenState(
+				[]sdk.AccAddress{tc.args.borrower},
+				[]sdk.Coins{sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100)))})
 			loanToValue, _ := sdk.NewDecFromStr("0.6")
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
@@ -71,6 +73,8 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			keeper := tApp.GetHarvestKeeper()
+			supplyKeeper := tApp.GetSupplyKeeper()
+			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))))
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
