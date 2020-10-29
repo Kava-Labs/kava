@@ -200,9 +200,9 @@ func (k Keeper) BondDenom(ctx sdk.Context) string {
 }
 
 // GetBorrow returns a Borrow from the store for a particular borrower address and borrow denom
-func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress, denom string) (types.Borrow, bool) {
+func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (types.Borrow, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
-	bz := store.Get(types.BorrowKey(borrower, denom))
+	bz := store.Get(borrower)
 	if bz == nil {
 		return types.Borrow{}, false
 	}
@@ -215,13 +215,13 @@ func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress, denom string
 func (k Keeper) SetBorrow(ctx sdk.Context, borrow types.Borrow) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(borrow)
-	store.Set(types.BorrowKey(borrow.Borrower, borrow.Amount.Denom), bz)
+	store.Set(borrow.Borrower, bz)
 }
 
 // DeleteBorrow deletes a borrow from the store
 func (k Keeper) DeleteBorrow(ctx sdk.Context, borrow types.Borrow) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
-	store.Delete(types.BorrowKey(borrow.Borrower, borrow.Amount.Denom))
+	store.Delete(borrow.Borrower)
 }
 
 // IterateBorrows iterates over all borrow objects in the store and performs a callback function
@@ -238,14 +238,14 @@ func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (st
 	}
 }
 
-// GetBorrowsByUser gets all borrows for an individual user
-func (k Keeper) GetBorrowsByUser(ctx sdk.Context, user sdk.AccAddress) []types.Borrow {
-	var borrows []types.Borrow
-	k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
-		if borrow.Borrower.Equals(user) {
-			borrows = append(borrows, borrow)
-		}
-		return false
-	})
-	return borrows
-}
+// // GetBorrowsByUser gets all borrows for an individual user
+// func (k Keeper) GetBorrowsByUser(ctx sdk.Context, user sdk.AccAddress) []types.Borrow {
+// 	var borrows []types.Borrow
+// 	k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+// 		if borrow.Borrower.Equals(user) {
+// 			borrows = append(borrows, borrow)
+// 		}
+// 		return false
+// 	})
+// 	return borrows
+// }

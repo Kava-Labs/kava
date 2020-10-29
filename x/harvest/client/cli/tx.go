@@ -137,7 +137,7 @@ func getCmdBorrow(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgBorrow(cliCtx.GetFromAddress(), coins[0])
+			msg := types.NewMsgBorrow(cliCtx.GetFromAddress(), coins)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

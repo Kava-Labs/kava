@@ -16,7 +16,7 @@ import (
 func (suite *KeeperTestSuite) TestBorrow() {
 	type args struct {
 		borrower                  sdk.AccAddress
-		amount                    sdk.Coin
+		coins                     sdk.Coins
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
 	}
@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			"valid",
 			args{
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoin("ukava", sdk.NewInt(100)),
+				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100))),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(900)), sdk.NewCoin("usdx", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100))),
 			},
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 			// run the test
 			var err error
-			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.amount)
+			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.coins)
 
 			// verify results
 			if tc.errArgs.expectPass {
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
-				_, f := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower, tc.args.amount.Denom)
+				_, f := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
 				suite.Require().True(f)
 			} else {
 				suite.Require().Error(err)

@@ -221,11 +221,11 @@ func (msg MsgClaimReward) GetSigners() []sdk.AccAddress {
 // MsgBorrow borrows funds from the harvest module.
 type MsgBorrow struct {
 	Borrower sdk.AccAddress `json:"borrower" yaml:"borrower"`
-	Amount   sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount   sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
 // NewMsgBorrow returns a new MsgBorrow
-func NewMsgBorrow(borrower sdk.AccAddress, amount sdk.Coin) MsgBorrow {
+func NewMsgBorrow(borrower sdk.AccAddress, amount sdk.Coins) MsgBorrow {
 	return MsgBorrow{
 		Borrower: borrower,
 		Amount:   amount,

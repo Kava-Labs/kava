@@ -21,5 +21,5 @@ const (
 	AttributeKeyClaimMultiplier           = "claim_multiplier"
 	AttributeKeyBorrow                    = "borrow"
 	AttributeKeyBorrower                  = "borrower"
-	AttributeKeyBorrowDenom               = "borrow_denom"
+	AttributeKeyBorrowCoins               = "borrow_coins"
 )

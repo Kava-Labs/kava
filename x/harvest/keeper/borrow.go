@@ -6,21 +6,18 @@ import (
 	"github.com/kava-labs/kava/x/harvest/types"
 )
 
-// USDX is the USDX coin's denom
-const USDX = "usdx"
-
 // Borrow funds
-func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, borrower, types.ModuleAccountName, sdk.NewCoins(amount))
+func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) error {
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
 	if err != nil {
 		return err
 	}
 
-	borrow, found := k.GetBorrow(ctx, borrower, amount.Denom)
+	borrow, found := k.GetBorrow(ctx, borrower)
 	if !found {
-		borrow = types.NewBorrow(borrower, amount)
+		borrow = types.NewBorrow(borrower, coins)
 	} else {
-		borrow.Amount = borrow.Amount.Add(amount)
+		borrow.Amount = borrow.Amount.Add(coins...)
 	}
 
 	k.SetBorrow(ctx, borrow)
@@ -28,9 +25,8 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHarvestBorrow,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyBorrower, borrow.Borrower.String()),
-			sdk.NewAttribute(types.AttributeKeyBorrowDenom, borrow.Amount.Denom),
+			sdk.NewAttribute(types.AttributeKeyBorrowCoins, coins.String()),
 		),
 	)
 

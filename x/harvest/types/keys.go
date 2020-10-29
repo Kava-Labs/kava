@@ -54,10 +54,10 @@ func ClaimKey(depositType DepositType, denom string, owner sdk.AccAddress) []byt
 	return createKey([]byte(depositType), sep, []byte(denom), sep, owner)
 }
 
-// BorrowKey key of a specific borrow in the store
-func BorrowKey(borrower sdk.AccAddress, denom string) []byte {
-	return createKey(borrower, sep, []byte(denom))
-}
+// // BorrowKey key of a specific borrow in the store
+// func BorrowKey(borrower sdk.AccAddress, denom string) []byte {
+// 	return createKey(borrower, sep, []byte(denom))
+// }
 
 func createKey(bytes ...[]byte) (r []byte) {
 	for _, b := range bytes {
