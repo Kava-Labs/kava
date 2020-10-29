@@ -251,17 +251,20 @@ func (bl BorrowLimit) Validate() error {
 
 // MoneyMarket is a money market for an individual asset
 type MoneyMarket struct {
-	Denom        string      `json:"denom" yaml:"denom"`
-	BorrowLimit  BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
-	SpotMarketID string      `json:"spot_market_id" yaml:"spot_market_id"`
+	Denom            string      `json:"denom" yaml:"denom"`
+	BorrowLimit      BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID     string      `json:"spot_market_id" yaml:"spot_market_id"`
+	ConversionFactor sdk.Int     `json:"conversion_factor" yaml:"conversion_factor"`
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec, spotMarketID string) MoneyMarket {
+func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec,
+	spotMarketID string, conversionFactor sdk.Int) MoneyMarket {
 	return MoneyMarket{
-		Denom:        denom,
-		BorrowLimit:  NewBorrowLimit(maximumLimit, loanToValue),
-		SpotMarketID: spotMarketID,
+		Denom:            denom,
+		BorrowLimit:      NewBorrowLimit(maximumLimit, loanToValue),
+		SpotMarketID:     spotMarketID,
+		ConversionFactor: conversionFactor,
 	}
 }
 

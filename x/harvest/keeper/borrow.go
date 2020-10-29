@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -14,7 +12,6 @@ const USDX = "usdx"
 
 // Borrow funds
 func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-
 	err := k.ValidateBorrow(ctx, borrower, amount)
 	if err != nil {
 		return err
@@ -48,39 +45,19 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
 func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	if err := k.validateBorrowUser(ctx, borrower, amount); err != nil {
-		return err
-	}
-
-	if err := k.validateBorrowSystem(ctx, borrower, amount); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (k Keeper) getAssetPrice(ctx sdk.Context, denom string) (sdk.Dec, error) {
-	moneyMarket, found := k.GetMoneyMarket(ctx, denom)
-	if !found {
-		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
-	}
-	assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
-	if err != nil {
-		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
-	}
-	return assetPriceInfo.Price, nil
-}
-
-func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
 	var borrowUSDValue sdk.Dec
 	if amount.Denom == USDX {
-		borrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDec(int64(math.Pow(10, 6)))) // TODO: include conversion_factor in params
+		moneyMarket, found := k.GetMoneyMarket(ctx, amount.Denom)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", amount.Denom)
+		}
+		borrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor))
 	} else {
-		price, err := k.getAssetPrice(ctx, amount.Denom)
+		price, conversionFactor, err := k.getAssetPrice(ctx, amount.Denom)
 		if err != nil {
 			return err
 		}
-		borrowUSDValue = sdk.NewDecFromInt(amount.Amount).Mul(price)
+		borrowUSDValue = sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
 	}
 
 	// Get the user's deposits
@@ -95,11 +72,11 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		if deposit.Amount.Denom == USDX {
 			totalValueDeposits = totalValueDeposits.Add(sdk.NewDecFromInt(deposit.Amount.Amount))
 		} else {
-			price, err := k.getAssetPrice(ctx, deposit.Amount.Denom)
+			price, conversionFactor, err := k.getAssetPrice(ctx, deposit.Amount.Denom)
 			if err != nil {
 				return err
 			}
-			depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Mul(price)
+			depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
 			totalValueDeposits = totalValueDeposits.Add(depositUSDValue)
 		}
 	}
@@ -111,11 +88,11 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 		if borrow.Amount.Denom == USDX {
 			totalValueBorrows = totalValueBorrows.Add(sdk.NewDecFromInt(borrow.Amount.Amount))
 		} else {
-			price, err := k.getAssetPrice(ctx, borrow.Amount.Denom)
+			price, conversionFactor, err := k.getAssetPrice(ctx, borrow.Amount.Denom)
 			if err != nil {
 				return err
 			}
-			borrowUSDValue := sdk.NewDecFromInt(borrow.Amount.Amount).Mul(price)
+			borrowUSDValue := sdk.NewDecFromInt(borrow.Amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
 			totalValueBorrows = totalValueBorrows.Add(borrowUSDValue)
 		}
 	}
@@ -129,7 +106,7 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 	borrowValueLimit := totalValueDeposits.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(totalValueBorrows)
 	if borrowUSDValue.GT(borrowValueLimit) {
 		// Here we get the price so that we can return a helpful error to the user
-		price, err := k.getAssetPrice(ctx, amount.Denom)
+		price, _, err := k.getAssetPrice(ctx, amount.Denom)
 		if err != nil {
 			return err
 		}
@@ -141,7 +118,14 @@ func (k Keeper) validateBorrowUser(ctx sdk.Context, borrower sdk.AccAddress, amo
 	return nil
 }
 
-func (k Keeper) validateBorrowSystem(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	// TODO: validate borrow against system requirements
-	return nil
+func (k Keeper) getAssetPrice(ctx sdk.Context, denom string) (sdk.Dec, sdk.Int, error) {
+	moneyMarket, found := k.GetMoneyMarket(ctx, denom)
+	if !found {
+		return sdk.ZeroDec(), sdk.ZeroInt(), sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
+	}
+	assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
+	if err != nil {
+		return sdk.ZeroDec(), moneyMarket.ConversionFactor, sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
+	}
+	return assetPriceInfo.Price, moneyMarket.ConversionFactor, nil
 }
