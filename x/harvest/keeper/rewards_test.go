@@ -63,6 +63,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
+			loanToValue, _ := sdk.NewDecFromStr("0.6")
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{
@@ -72,6 +73,10 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), tc.args.rewardRate, time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 24, sdk.OneDec())}),
 					time.Hour*24,
 				),
+				},
+				types.MoneyMarkets{
+					types.NewMoneyMarket("usdx", sdk.NewInt(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("ukava", sdk.NewInt(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
 				},
 			), tc.args.previousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
@@ -400,6 +405,7 @@ func (suite *DelegatorRewardsTestSuite) kavaClaimExists(ctx sdk.Context, owner s
 }
 
 func harvestGenesisState(rewardRate sdk.Coin) app.GenesisState {
+	loanToValue, _ := sdk.NewDecFromStr("0.6")
 	genState := types.NewGenesisState(
 		types.NewParams(
 			true,
@@ -435,6 +441,10 @@ func harvestGenesisState(rewardRate sdk.Coin) app.GenesisState {
 					),
 					time.Hour*24,
 				),
+			},
+			types.MoneyMarkets{
+				types.NewMoneyMarket("usdx", sdk.NewInt(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
+				types.NewMoneyMarket("ukava", sdk.NewInt(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
 			},
 		),
 		types.DefaultPreviousBlockTime,
