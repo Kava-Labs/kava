@@ -237,15 +237,3 @@ func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (st
 		}
 	}
 }
-
-// // GetBorrowsByUser gets all borrows for an individual user
-// func (k Keeper) GetBorrowsByUser(ctx sdk.Context, user sdk.AccAddress) []types.Borrow {
-// 	var borrows []types.Borrow
-// 	k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
-// 		if borrow.Borrower.Equals(user) {
-// 			borrows = append(borrows, borrow)
-// 		}
-// 		return false
-// 	})
-// 	return borrows
-// }

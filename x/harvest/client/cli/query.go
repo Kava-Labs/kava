@@ -307,6 +307,5 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for borrows by owner address")
-	cmd.Flags().String(flagBorrowDenom, "", "(optional) filter for borrows by denom")
 	return cmd
 }

@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			authGS := app.NewAuthGenState(
 				[]sdk.AccAddress{tc.args.borrower},
 				[]sdk.Coins{sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100)))})
-			loanToValue, _ := sdk.NewDecFromStr("0.6")
+			loanToValue := sdk.MustNewDecFromStr("0.6")
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{

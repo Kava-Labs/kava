@@ -288,7 +288,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.depositor}, []sdk.Coins{sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000)))})
-			loanToValue, _ := sdk.NewDecFromStr("0.6")
+			loanToValue := sdk.MustNewDecFromStr("0.6")
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{

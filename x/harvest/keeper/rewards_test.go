@@ -405,7 +405,7 @@ func (suite *DelegatorRewardsTestSuite) kavaClaimExists(ctx sdk.Context, owner s
 }
 
 func harvestGenesisState(rewardRate sdk.Coin) app.GenesisState {
-	loanToValue, _ := sdk.NewDecFromStr("0.6")
+	loanToValue := sdk.MustNewDecFromStr("0.6")
 	genState := types.NewGenesisState(
 		types.NewParams(
 			true,

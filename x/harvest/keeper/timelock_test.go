@@ -279,7 +279,7 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
 			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.accArgs.addr}, []sdk.Coins{tc.args.accArgs.coins})
-			loanToValue, _ := sdk.NewDecFromStr("0.6")
+			loanToValue := sdk.MustNewDecFromStr("0.6")
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{
