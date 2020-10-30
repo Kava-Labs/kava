@@ -103,6 +103,24 @@ jobs:
           target: link-check
           description: "Check url links are not broken"
 
+  docker-build-and-push:
+    # adapted from: https://circleci.com/blog/using-circleci-workflows-to-replicate-docker-hub-automated-builds/
+    environment:
+      IMAGE_NAME: kava/kava
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          command: docker build -t $IMAGE_NAME:$CIRCLE_BRANCH .
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker push $IMAGE_NAME:$CIRCLE_BRANCH
+
 
 workflows:
   version: 2
@@ -127,3 +145,9 @@ workflows:
       - broken-link-check:
           requires:
             - setup-dependencies
+  upload-docker-images:
+    jobs:
+      - docker-build-and-push:
+          filters:
+            branches:
+              only: master
