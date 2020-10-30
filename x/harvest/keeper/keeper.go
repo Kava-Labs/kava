@@ -13,27 +13,31 @@ import (
 
 // Keeper keeper for the harvest module
 type Keeper struct {
-	key           sdk.StoreKey
-	cdc           *codec.Codec
-	paramSubspace subspace.Subspace
-	accountKeeper types.AccountKeeper
-	supplyKeeper  types.SupplyKeeper
-	stakingKeeper types.StakingKeeper
+	key             sdk.StoreKey
+	cdc             *codec.Codec
+	paramSubspace   subspace.Subspace
+	accountKeeper   types.AccountKeeper
+	supplyKeeper    types.SupplyKeeper
+	stakingKeeper   types.StakingKeeper
+	pricefeedKeeper types.PricefeedKeeper
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, ak types.AccountKeeper, sk types.SupplyKeeper, stk types.StakingKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
+	ak types.AccountKeeper, sk types.SupplyKeeper, stk types.StakingKeeper,
+	pfk types.PricefeedKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		key:           key,
-		cdc:           cdc,
-		paramSubspace: paramstore,
-		accountKeeper: ak,
-		supplyKeeper:  sk,
-		stakingKeeper: stk,
+		key:             key,
+		cdc:             cdc,
+		paramSubspace:   paramstore,
+		accountKeeper:   ak,
+		supplyKeeper:    sk,
+		stakingKeeper:   stk,
+		pricefeedKeeper: pfk,
 	}
 }
 
@@ -178,7 +182,58 @@ func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, depositType types.D
 	}
 }
 
+// GetDepositsByUser gets all deposits for an individual user
+func (k Keeper) GetDepositsByUser(ctx sdk.Context, user sdk.AccAddress) []types.Deposit {
+	var deposits []types.Deposit
+	k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
+		if deposit.Depositor.Equals(user) {
+			deposits = append(deposits, deposit)
+		}
+		return false
+	})
+	return deposits
+}
+
 // BondDenom returns the bond denom from the staking keeper
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.stakingKeeper.BondDenom(ctx)
+}
+
+// GetBorrow returns a Borrow from the store for a particular borrower address and borrow denom
+func (k Keeper) GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (types.Borrow, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	bz := store.Get(borrower)
+	if bz == nil {
+		return types.Borrow{}, false
+	}
+	var borrow types.Borrow
+	k.cdc.MustUnmarshalBinaryBare(bz, &borrow)
+	return borrow, true
+}
+
+// SetBorrow sets the input borrow in the store, prefixed by the borrower address and borrow denom
+func (k Keeper) SetBorrow(ctx sdk.Context, borrow types.Borrow) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(borrow)
+	store.Set(borrow.Borrower, bz)
+}
+
+// DeleteBorrow deletes a borrow from the store
+func (k Keeper) DeleteBorrow(ctx sdk.Context, borrow types.Borrow) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	store.Delete(borrow.Borrower)
+}
+
+// IterateBorrows iterates over all borrow objects in the store and performs a callback function
+func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var borrow types.Borrow
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &borrow)
+		if cb(borrow) {
+			break
+		}
+	}
 }

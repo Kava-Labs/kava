@@ -102,9 +102,9 @@ var (
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
-		harvest.LPAccount:               {supply.Minter, supply.Burner},
-		harvest.DelegatorAccount:        {supply.Minter, supply.Burner},
-		harvest.ModuleAccountName:       {supply.Minter, supply.Burner},
+		harvest.LPAccount:           {supply.Minter, supply.Burner},
+		harvest.DelegatorAccount:    {supply.Minter, supply.Burner},
+		harvest.ModuleAccountName:   {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -376,7 +376,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		harvestSubspace,
 		app.accountKeeper,
 		app.supplyKeeper,
-		&stakingKeeper)
+		&stakingKeeper,
+		app.pricefeedKeeper)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -407,7 +408,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
-		harvest.NewAppModule(app.harvestKeeper, app.supplyKeeper),
+		harvest.NewAppModule(app.harvestKeeper, app.supplyKeeper, app.pricefeedKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -460,7 +461,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
-		harvest.NewAppModule(app.harvestKeeper, app.supplyKeeper),
+		harvest.NewAppModule(app.harvestKeeper, app.supplyKeeper, app.pricefeedKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()

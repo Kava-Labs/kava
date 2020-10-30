@@ -21,6 +21,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgDeposit(ctx, k, msg)
 		case types.MsgWithdraw:
 			return handleMsgWithdraw(ctx, k, msg)
+		case types.MsgBorrow:
+			return handleMsgBorrow(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -74,6 +76,24 @@ func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) 
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
+		),
+	)
+	return &sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
+
+func handleMsgBorrow(ctx sdk.Context, k keeper.Keeper, msg types.MsgBorrow) (*sdk.Result, error) {
+	err := k.Borrow(ctx, msg.Borrower, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Borrower.String()),
 		),
 	)
 	return &sdk.Result{

@@ -33,6 +33,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		getCmdDeposit(cdc),
 		getCmdWithdraw(cdc),
 		getCmdClaimReward(cdc),
+		getCmdBorrow(cdc),
 	)...)
 
 	return harvestTxCmd
@@ -109,6 +110,34 @@ func getCmdClaimReward(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgClaimReward(cliCtx.GetFromAddress(), receiver, args[1], args[2], args[3])
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func getCmdBorrow(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "borrow [1000000000ukava]",
+		Short: "borrow tokens from the harvest protocol",
+		Long:  strings.TrimSpace(`borrows tokens from the harvest protocol`),
+		Args:  cobra.ExactArgs(1),
+		Example: fmt.Sprintf(
+			`%s tx %s borrow 1000000000ukava --from <key>`, version.ClientName, types.ModuleName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			coins, err := sdk.ParseCoins(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgBorrow(cliCtx.GetFromAddress(), coins)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

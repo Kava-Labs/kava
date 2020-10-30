@@ -58,5 +58,4 @@ func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool)
 		}
 	}
 	return types.Market{}, false
-
 }

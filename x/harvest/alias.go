@@ -74,6 +74,7 @@ var (
 	RegisterCodec                    = types.RegisterCodec
 
 	// variable aliases
+	BorrowsKeyPrefix                  = types.BorrowsKeyPrefix
 	ClaimsKeyPrefix                   = types.ClaimsKeyPrefix
 	DefaultActive                     = types.DefaultActive
 	DefaultDelegatorSchedules         = types.DefaultDelegatorSchedules
@@ -109,7 +110,9 @@ var (
 type (
 	Keeper                         = keeper.Keeper
 	AccountKeeper                  = types.AccountKeeper
-	Claim                          = types.Claim
+	Borrow                         = types.Borrow
+	MoneyMarket                    = types.MoneyMarket
+	MoneyMarkets                   = types.MoneyMarkets
 	DelegatorDistributionSchedule  = types.DelegatorDistributionSchedule
 	DelegatorDistributionSchedules = types.DelegatorDistributionSchedules
 	Deposit                        = types.Deposit

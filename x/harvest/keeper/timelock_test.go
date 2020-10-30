@@ -279,6 +279,7 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tc.args.blockTime})
 			authGS := app.NewAuthGenState([]sdk.AccAddress{tc.args.accArgs.addr}, []sdk.Coins{tc.args.accArgs.coins})
+			loanToValue := sdk.MustNewDecFromStr("0.6")
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{
@@ -288,6 +289,10 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Large, 24, sdk.OneDec())}),
 					time.Hour*24,
 				),
+				},
+				types.MoneyMarkets{
+					types.NewMoneyMarket("usdx", sdk.NewInt(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("ukava", sdk.NewInt(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
