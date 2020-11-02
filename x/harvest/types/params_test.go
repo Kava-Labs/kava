@@ -21,6 +21,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		lps    types.DistributionSchedules
 		gds    types.DistributionSchedules
 		dds    types.DelegatorDistributionSchedules
+		mms    types.MoneyMarkets
 		active bool
 	}
 	testCases := []struct {
@@ -50,6 +51,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					time.Hour*24,
 				),
 				},
+				mms:    types.DefaultMoneyMarkets,
 				active: true,
 			},
 			expectPass:  true,
@@ -66,6 +68,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					time.Hour*24,
 				),
 				},
+				mms:    types.DefaultMoneyMarkets,
 				active: true,
 			},
 			expectPass:  false,
@@ -74,7 +77,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds)
+			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds, tc.args.mms)
 			err := params.Validate()
 			if tc.expectPass {
 				suite.NoError(err)
