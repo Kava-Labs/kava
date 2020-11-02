@@ -21,7 +21,6 @@ import (
 const (
 	flagName         = "name"
 	flagDepositDenom = "deposit-denom"
-	flagBorrowDenom  = "borrow-denom"
 	flagOwner        = "owner"
 	flagDepositType  = "deposit-type"
 )
