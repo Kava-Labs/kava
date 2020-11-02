@@ -9,7 +9,7 @@ import (
 
 // Borrow funds
 func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) error {
-	// TODO: Here we assume borrower only has one coin. Multiple coin support is in future card.
+	// TODO: Here we assume borrower only has one coin. To be addressed in future card.
 	err := k.ValidateBorrow(ctx, borrower, coins[0])
 	if err != nil {
 		return err
@@ -41,40 +41,34 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
 func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	price, conversionFactor, err := k.getAssetPrice(ctx, amount.Denom)
+	proposedBorrowPrice, proposedBorrowConversionFactor, err := k.getAssetPrice(ctx, amount.Denom)
 	if err != nil {
 		return err
 	}
-	proprosedBorrowUSDValue := sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
+	proprosedBorrowUSDValue := sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(proposedBorrowConversionFactor).Mul(proposedBorrowPrice))
 
 	// Get the total value of the user's deposits
 	deposits := k.GetDepositsByUser(ctx, borrower)
 	if len(deposits) == 0 {
 		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
+	deposit := deposits[0] // TODO: Here we assume there's only one deposit. To be addressed in future cards.
+	depositPrice, depositConversionFactor, err := k.getAssetPrice(ctx, deposit.Amount.Denom)
+	if err != nil {
+		return err
+	}
+	depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(depositConversionFactor).Mul(depositPrice))
 
-	totalUSDValueDeposits := sdk.ZeroDec()
-	for _, deposit := range deposits {
-		price, conversionFactor, err := k.getAssetPrice(ctx, deposit.Amount.Denom)
+	previousBorrowUSDValue := sdk.ZeroDec()
+	previousBorrows, found := k.GetBorrow(ctx, borrower)
+	if found {
+		// TODO: here we're assuming that the user only has 1 previous borrow. To be addressed in future cards.
+		previousBorrow := previousBorrows.Amount[0]
+		previousBorrowPrice, previousBorrowConversionFactor, err := k.getAssetPrice(ctx, previousBorrow.Denom)
 		if err != nil {
 			return err
 		}
-		depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
-		totalUSDValueDeposits = totalUSDValueDeposits.Add(depositUSDValue)
-	}
-
-	// Get the total value of the user's borrows
-	totalUSDValuePreviousBorrows := sdk.ZeroDec()
-	borrow, found := k.GetBorrow(ctx, borrower)
-	if found {
-		for _, coin := range borrow.Amount {
-			price, conversionFactor, err := k.getAssetPrice(ctx, coin.Denom)
-			if err != nil {
-				return err
-			}
-			borrowUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(conversionFactor).Mul(price))
-			totalUSDValuePreviousBorrows = totalUSDValuePreviousBorrows.Add(borrowUSDValue)
-		}
+		previousBorrowUSDValue = sdk.NewDecFromInt(previousBorrow.Amount).Quo(sdk.NewDecFromInt(previousBorrowConversionFactor).Mul(previousBorrowPrice))
 	}
 
 	// Value of borrow cannot be greater than:
@@ -83,18 +77,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if !found { // Sanity check
 		sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", amount.Denom)
 	}
-	borrowValueLimit := totalUSDValueDeposits.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(totalUSDValuePreviousBorrows)
+	borrowValueLimit := depositUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(previousBorrowUSDValue)
 	if proprosedBorrowUSDValue.GT(borrowValueLimit) {
-		// Here we get the price so that we can return a helpful error to the user
-		price, _, err := k.getAssetPrice(ctx, amount.Denom)
-		if err != nil {
-			return err
-		}
-		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue,
-			"requested borrow %s is greater than maximum valid borrow %s",
-			amount, sdk.NewCoin(amount.Denom, borrowValueLimit.Quo(price).TruncateInt()))
+		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s is greater than maximum valid borrow", amount)
 	}
-
 	return nil
 }
 
