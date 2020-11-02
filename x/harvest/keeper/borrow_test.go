@@ -16,6 +16,7 @@ import (
 func (suite *KeeperTestSuite) TestBorrow() {
 	type args struct {
 		borrower                  sdk.AccAddress
+		depositCoin               sdk.Coin
 		coins                     sdk.Coins
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
@@ -34,6 +35,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			"valid",
 			args{
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoin:               sdk.NewCoin("ukava", sdk.NewInt(100)),
 				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50))),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(150))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(950))),
@@ -43,11 +45,23 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				contains:   "",
 			},
 		},
+		{
+			"loan-to-value limited",
+			args{
+				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoin:               sdk.NewCoin("ukava", sdk.NewInt(20)),
+				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(150))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(950))),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "total deposited value is insufficient for borrow request",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			// create new app with one funded account
-
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
@@ -71,7 +85,8 @@ func (suite *KeeperTestSuite) TestBorrow() {
 					types.NewMoneyMarket("ukava", sdk.NewInt(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
+			tApp.InitializeFromGenesisStates(authGS, NewPricefeedGenStateMulti(),
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			keeper := tApp.GetHarvestKeeper()
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))))
@@ -79,17 +94,22 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			suite.ctx = ctx
 			suite.keeper = keeper
 
-			// run the test
 			var err error
+
+			// deposit some coins
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoin, types.LP)
+			suite.Require().NoError(err)
+
+			// run the test
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.coins)
 
 			// verify results
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.borrower)
-				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance.Sub(sdk.NewCoins(tc.args.depositCoin)), acc.GetCoins())
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
+				suite.Require().Equal(tc.args.expectedModAccountBalance.Add(tc.args.depositCoin), mAcc.GetCoins())
 				_, f := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
 				suite.Require().True(f)
 			} else {
