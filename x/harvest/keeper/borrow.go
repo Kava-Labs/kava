@@ -41,15 +41,10 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
 func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coin) error {
-	moneyMarket, found := k.GetMoneyMarket(ctx, amount.Denom)
-	if !found {
-		sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", amount.Denom)
-	}
-	assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
+	proprosedBorrowUSDValue, err := k.calculateUSDValue(ctx, amount.Amount, amount.Denom)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
+		return err
 	}
-	proprosedBorrowUSDValue := sdk.NewDecFromInt(amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor).Mul(assetPriceInfo.Price))
 
 	// Get the total value of the user's deposits
 	deposits := k.GetDepositsByUser(ctx, borrower)
@@ -65,21 +60,20 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		depositsTotalUSDValue = depositsTotalUSDValue.Add(depositUSDValue)
 	}
 
-	previousBorrowUSDValue := sdk.ZeroDec()
+	previousBorrowsUSDValue := sdk.ZeroDec()
 	previousBorrows, found := k.GetBorrow(ctx, borrower)
 	if found {
 		// TODO: here we're assuming that the user only has 1 previous borrow. To be addressed in future cards.
 		previousBorrow := previousBorrows.Amount[0]
-		previousBorrowUSDValue, err = k.calculateUSDValue(ctx, previousBorrow.Amount, previousBorrow.Denom)
+		previousBorrowUSDValue, err := k.calculateUSDValue(ctx, previousBorrow.Amount, previousBorrow.Denom)
 		if err != nil {
 			return err
 		}
+		previousBorrowsUSDValue = previousBorrowsUSDValue.Add(previousBorrowUSDValue)
 	}
 
-	// Value of borrow cannot be greater than:
-	// (total value of user's deposits * the borrow asset denom's LTV ratio) - funds already borrowed
-	borrowValueLimit := depositsTotalUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue).Sub(previousBorrowUSDValue)
-	if proprosedBorrowUSDValue.GT(borrowValueLimit) {
+	// Validate that the proposed borrow's USD value is within user's borrowable limit
+	if proprosedBorrowUSDValue.GT(depositsTotalUSDValue.Sub(previousBorrowsUSDValue)) {
 		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s is greater than maximum valid borrow", amount)
 	}
 	return nil
@@ -94,7 +88,7 @@ func (k Keeper) calculateUSDValue(ctx sdk.Context, amount sdk.Int, denom string)
 	if err != nil {
 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 	}
-	return sdk.NewDecFromInt(amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor).Mul(assetPriceInfo.Price)), nil
+	return sdk.NewDecFromInt(amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price), nil
 }
 
 func (k Keeper) getBorrowableAmount(ctx sdk.Context, deposit types.Deposit) (sdk.Dec, error) {
@@ -106,6 +100,6 @@ func (k Keeper) getBorrowableAmount(ctx sdk.Context, deposit types.Deposit) (sdk
 	if err != nil {
 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 	}
-	usdValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor).Mul(assetPriceInfo.Price))
+	usdValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 	return usdValue.Mul(moneyMarket.BorrowLimit.LoanToValue), nil
 }
