@@ -51,6 +51,7 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 						time.Hour*24,
 					),
 					},
+					types.DefaultMoneyMarkets,
 				),
 				pbt: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
 				pdts: types.GenesisDistributionTimes{
@@ -73,6 +74,7 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 						time.Hour*24,
 					),
 					},
+					types.DefaultMoneyMarkets,
 				),
 				pbt: time.Time{},
 				pdts: types.GenesisDistributionTimes{
@@ -95,6 +97,7 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 						time.Hour*24,
 					),
 					},
+					types.DefaultMoneyMarkets,
 				),
 				pbt: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
 				pdts: types.GenesisDistributionTimes{
