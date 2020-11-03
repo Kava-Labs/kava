@@ -18,6 +18,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		borrower                  sdk.AccAddress
 		depositCoin               sdk.Coin
 		coins                     sdk.Coins
+		maxLoanToValue            string
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
 	}
@@ -37,6 +38,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositCoin:               sdk.NewCoin("ukava", sdk.NewInt(100)),
 				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50))),
+				maxLoanToValue:            "0.6",
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(150))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(950))),
 			},
@@ -49,8 +51,9 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			"loan-to-value limited",
 			args{
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoin:               sdk.NewCoin("ukava", sdk.NewInt(20)),
-				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50))),
+				depositCoin:               sdk.NewCoin("ukava", sdk.NewInt(20)),               // 20 KAVA x $5.00 price = $100
+				coins:                     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(61))), // 61 USDX x $1 price = $61
+				maxLoanToValue:            "0.6",
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(150))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(950))),
 			},
@@ -68,7 +71,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			authGS := app.NewAuthGenState(
 				[]sdk.AccAddress{tc.args.borrower},
 				[]sdk.Coins{sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100)))})
-			loanToValue := sdk.MustNewDecFromStr("0.6")
+			loanToValue := sdk.MustNewDecFromStr(tc.args.maxLoanToValue)
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{
