@@ -51,13 +51,13 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if len(deposits) == 0 {
 		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
-	depositsTotalUSDValue := sdk.ZeroDec()
+	totalBorrowableAmount := sdk.ZeroDec()
 	for _, deposit := range deposits {
-		depositUSDValue, err := k.getBorrowableAmountForDeposit(ctx, deposit)
+		borrowableAmountForDeposit, err := k.getBorrowableAmountForDeposit(ctx, deposit)
 		if err != nil {
 			return err
 		}
-		depositsTotalUSDValue = depositsTotalUSDValue.Add(depositUSDValue)
+		totalBorrowableAmount = totalBorrowableAmount.Add(borrowableAmountForDeposit)
 	}
 
 	previousBorrowsUSDValue := sdk.ZeroDec()
@@ -73,7 +73,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 
 	// Validate that the proposed borrow's USD value is within user's borrowable limit
-	if proprosedBorrowUSDValue.GT(depositsTotalUSDValue.Sub(previousBorrowsUSDValue)) {
+	if proprosedBorrowUSDValue.GT(totalBorrowableAmount.Sub(previousBorrowsUSDValue)) {
 		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s is greater than maximum valid borrow", amount)
 	}
 	return nil
