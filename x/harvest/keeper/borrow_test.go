@@ -97,6 +97,24 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				contains:   "",
 			},
 		},
+		{
+			"invalid: multiple deposits",
+			args{
+				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
+				loanToValueKAVA:           sdk.MustNewDecFromStr("0.80"),
+				priceBTCB:                 sdk.MustNewDecFromStr("10000.00"),
+				loanToValueBTCB:           sdk.MustNewDecFromStr("0.10"),
+				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF))},
+				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(181*USDX_CF))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(99.9*BTCB_CF)), sdk.NewCoin("usdx", sdk.NewInt(180*USDX_CF))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1050*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(20*USDX_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF))),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "total deposited value is insufficient for borrow request",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
