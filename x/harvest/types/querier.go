@@ -19,17 +19,15 @@ type QueryDepositParams struct {
 	Limit        int            `json:"limit" yaml:"limit"`
 	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
 	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
-	DepositType  DepositType    `json:"deposit_type" yaml:"deposit_type"`
 }
 
 // NewQueryDepositParams creates a new QueryDepositParams
-func NewQueryDepositParams(page, limit int, depositDenom string, owner sdk.AccAddress, depositType DepositType) QueryDepositParams {
+func NewQueryDepositParams(page, limit int, depositDenom string, owner sdk.AccAddress) QueryDepositParams {
 	return QueryDepositParams{
 		Page:         page,
 		Limit:        limit,
 		DepositDenom: depositDenom,
 		Owner:        owner,
-		DepositType:  depositType,
 	}
 }
 
@@ -39,17 +37,17 @@ type QueryClaimParams struct {
 	Limit        int            `json:"limit" yaml:"limit"`
 	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
 	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
-	DepositType  DepositType    `json:"deposit_type" yaml:"deposit_type"`
+	ClaimType    ClaimType      `json:"claim_type" yaml:"claim_type"`
 }
 
 // NewQueryClaimParams creates a new QueryClaimParams
-func NewQueryClaimParams(page, limit int, depositDenom string, owner sdk.AccAddress, depositType DepositType) QueryClaimParams {
+func NewQueryClaimParams(page, limit int, depositDenom string, owner sdk.AccAddress, claimType ClaimType) QueryClaimParams {
 	return QueryClaimParams{
 		Page:         page,
 		Limit:        limit,
 		DepositDenom: depositDenom,
 		Owner:        owner,
-		DepositType:  depositType,
+		ClaimType:    claimType,
 	}
 }
 

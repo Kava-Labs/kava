@@ -40,18 +40,23 @@ var (
 )
 
 // DepositKey key of a specific deposit in the store
-func DepositKey(depositType DepositType, denom string, depositor sdk.AccAddress) []byte {
-	return createKey([]byte(depositType), sep, []byte(denom), sep, depositor)
+func DepositKey(denom string, depositor sdk.AccAddress) []byte {
+	return createKey([]byte(denom), sep, depositor)
 }
 
-// DepositTypeIteratorKey returns an interator prefix for interating over deposits by deposit type and denom
-func DepositTypeIteratorKey(depositType DepositType, denom string) []byte {
-	return createKey([]byte(depositType), sep, []byte(denom))
+// DepositTypeIteratorKey returns an interator prefix for interating over deposits by deposit denom
+func DepositTypeIteratorKey(denom string) []byte {
+	return createKey([]byte(denom))
 }
 
 // ClaimKey key of a specific deposit in the store
-func ClaimKey(depositType DepositType, denom string, owner sdk.AccAddress) []byte {
+func ClaimKey(depositType ClaimType, denom string, owner sdk.AccAddress) []byte {
 	return createKey([]byte(depositType), sep, []byte(denom), sep, owner)
+}
+
+// ClaimTypeIteratorKey returns an interator prefix for interating over claims by deposit type and denom
+func ClaimTypeIteratorKey(depositType ClaimType, denom string) []byte {
+	return createKey([]byte(depositType), sep, []byte(denom))
 }
 
 func createKey(bytes ...[]byte) (r []byte) {

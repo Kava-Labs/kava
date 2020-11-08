@@ -20,11 +20,11 @@ const (
 )
 
 // ClaimReward sends the reward amount to the reward owner and deletes the claim from the store
-func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, receiver sdk.AccAddress, depositDenom string, depositType types.DepositType, multiplier types.MultiplierName) error {
+func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, receiver sdk.AccAddress, depositDenom string, claimType types.ClaimType, multiplier types.MultiplierName) error {
 
-	claim, found := k.GetClaim(ctx, claimHolder, depositDenom, depositType)
+	claim, found := k.GetClaim(ctx, claimHolder, depositDenom, claimType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "no %s %s claim found for %s", depositDenom, depositType, claimHolder)
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "no %s %s claim found for %s", depositDenom, claimType, claimHolder)
 	}
 
 	err := k.validateSenderReceiver(ctx, claimHolder, receiver)
@@ -32,13 +32,13 @@ func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, receive
 		return err
 	}
 
-	switch depositType {
+	switch claimType {
 	case types.LP:
 		err = k.claimLPReward(ctx, claim, receiver, multiplier)
 	case types.Stake:
 		err = k.claimDelegatorReward(ctx, claim, receiver, multiplier)
 	default:
-		return sdkerrors.Wrap(types.ErrInvalidDepositType, string(depositType))
+		return sdkerrors.Wrap(types.ErrInvalidClaimType, string(claimType))
 	}
 	if err != nil {
 		return err
@@ -49,7 +49,7 @@ func (k Keeper) ClaimReward(ctx sdk.Context, claimHolder sdk.AccAddress, receive
 			sdk.NewAttribute(sdk.AttributeKeyAmount, claim.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimHolder, claimHolder.String()),
 			sdk.NewAttribute(types.AttributeKeyDepositDenom, depositDenom),
-			sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
+			sdk.NewAttribute(types.AttributeKeyClaimType, string(claimType)),
 			sdk.NewAttribute(types.AttributeKeyClaimMultiplier, string(multiplier)),
 		),
 	)

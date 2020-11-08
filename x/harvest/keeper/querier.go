@@ -82,12 +82,11 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 	depositDenom := len(params.DepositDenom) > 0
 	owner := len(params.Owner) > 0
-	depositType := len(params.DepositType) > 0
 
 	var deposits []types.Deposit
 	switch {
-	case depositDenom && owner && depositType:
-		deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom, params.DepositType)
+	case depositDenom && owner:
+		deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom)
 		if found {
 			deposits = append(deposits, deposit)
 		}

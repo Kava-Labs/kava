@@ -75,10 +75,10 @@ func (k Keeper) SetPreviousDelegationDistribution(ctx sdk.Context, distTime time
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(distTime))
 }
 
-// GetDeposit returns a deposit from the store for a particular depositor address, deposit denom, and deposit type
-func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress, denom string, depositType types.DepositType) (types.Deposit, bool) {
+// GetDeposit returns a deposit from the store for a particular depositor address, deposit denom
+func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress, denom string) (types.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
-	bz := store.Get(types.DepositKey(depositType, denom, depositor))
+	bz := store.Get(types.DepositKey(denom, depositor))
 	if bz == nil {
 		return types.Deposit{}, false
 	}
@@ -91,13 +91,13 @@ func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress, denom stri
 func (k Keeper) SetDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(deposit)
-	store.Set(types.DepositKey(deposit.Type, deposit.Amount.Denom, deposit.Depositor), bz)
+	store.Set(types.DepositKey(deposit.Amount.Denom, deposit.Depositor), bz)
 }
 
 // DeleteDeposit deletes a deposit from the store
 func (k Keeper) DeleteDeposit(ctx sdk.Context, deposit types.Deposit) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
-	store.Delete(types.DepositKey(deposit.Type, deposit.Amount.Denom, deposit.Depositor))
+	store.Delete(types.DepositKey(deposit.Amount.Denom, deposit.Depositor))
 }
 
 // IterateDeposits iterates over all deposit objects in the store and performs a callback function
@@ -114,11 +114,11 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) 
 	}
 }
 
-// IterateDepositsByTypeAndDenom iterates over all deposit objects in the store with the matching deposit type and deposit denom and performs a callback function
-func (k Keeper) IterateDepositsByTypeAndDenom(ctx sdk.Context, depositType types.DepositType, depositDenom string, cb func(deposit types.Deposit) (stop bool)) {
+// IterateDepositsByTypeAndDenom iterates over all deposit objects in the store with the matching deposit denom and performs a callback function
+func (k Keeper) IterateDepositsByTypeAndDenom(ctx sdk.Context, depositDenom string, cb func(deposit types.Deposit) (stop bool)) {
 
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.DepositTypeIteratorKey(depositType, depositDenom))
+	iterator := sdk.KVStorePrefixIterator(store, types.DepositTypeIteratorKey(depositDenom))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
@@ -171,7 +171,7 @@ func (k Keeper) IterateClaims(ctx sdk.Context, cb func(claim types.Claim) (stop 
 // IterateClaimsByTypeAndDenom iterates over all claim objects in the store with the matching deposit type and deposit denom and performs a callback function
 func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, depositType types.DepositType, depositDenom string, cb func(claim types.Claim) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.DepositTypeIteratorKey(depositType, depositDenom))
+	iterator := sdk.KVStorePrefixIterator(store, types.ClaimTypeIteratorKey(depositType, depositDenom))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var claim types.Claim
