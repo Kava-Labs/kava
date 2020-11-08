@@ -121,28 +121,3 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 	return nil
 }
-
-// func (k Keeper) calculateUSDValue(ctx sdk.Context, amount sdk.Int, denom string) (sdk.Dec, error) {
-// 	moneyMarket, found := k.GetMoneyMarket(ctx, denom)
-// 	if !found {
-// 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
-// 	}
-// 	assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
-// 	if err != nil {
-// 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
-// 	}
-// 	return sdk.NewDecFromInt(amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price), nil
-// }
-
-// func (k Keeper) getBorrowableAmountForDeposit(ctx sdk.Context, deposit types.Deposit) (sdk.Dec, error) {
-// 	moneyMarket, found := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
-// 	if !found {
-// 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", deposit.Amount.Denom)
-// 	}
-// 	assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
-// 	if err != nil {
-// 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
-// 	}
-// 	usdValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
-// 	return usdValue.Mul(moneyMarket.BorrowLimit.LoanToValue), nil
-// }
