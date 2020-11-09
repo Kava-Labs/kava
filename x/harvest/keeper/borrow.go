@@ -44,17 +44,18 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	moneyMarketCache := map[string]types.MoneyMarket{}
 	proprosedBorrowUSDValue := sdk.ZeroDec()
 	for _, coin := range amount {
+		moneyMarket, ok := moneyMarketCache[coin.Denom]
 		// Fetch money market and store in local cache
-		if moneyMarketCache[coin.Denom] == (types.MoneyMarket{}) {
+		if !ok {
 			newMoneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
 			if !found {
 				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", coin.Denom)
 			}
 			moneyMarketCache[coin.Denom] = newMoneyMarket
+			moneyMarket = newMoneyMarket
 		}
 
 		// Calculate this coin's USD value and add it borrow's total USD value
-		moneyMarket := moneyMarketCache[coin.Denom]
 		assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 		if err != nil {
 			return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
@@ -70,17 +71,18 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 	totalBorrowableAmount := sdk.ZeroDec()
 	for _, deposit := range deposits {
+		moneyMarket, ok := moneyMarketCache[deposit.Amount.Denom]
 		// Fetch money market and store in local cache
-		if moneyMarketCache[deposit.Amount.Denom] == (types.MoneyMarket{}) {
+		if !ok {
 			newMoneyMarket, found := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
 			if !found {
 				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", deposit.Amount.Denom)
 			}
 			moneyMarketCache[deposit.Amount.Denom] = newMoneyMarket
+			moneyMarket = newMoneyMarket
 		}
 
 		// Calculate the borrowable amount and add it to the user's total borrowable amount
-		moneyMarket := moneyMarketCache[deposit.Amount.Denom]
 		assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 		if err != nil {
 			sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
@@ -95,17 +97,18 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	existingBorrow, found := k.GetBorrow(ctx, borrower)
 	if found {
 		for _, borrowedCoin := range existingBorrow.Amount {
+			moneyMarket, ok := moneyMarketCache[borrowedCoin.Denom]
 			// Fetch money market and store in local cache
-			if moneyMarketCache[borrowedCoin.Denom] == (types.MoneyMarket{}) {
+			if !ok {
 				newMoneyMarket, found := k.GetMoneyMarket(ctx, borrowedCoin.Denom)
 				if !found {
 					return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", borrowedCoin.Denom)
 				}
 				moneyMarketCache[borrowedCoin.Denom] = newMoneyMarket
+				moneyMarket = newMoneyMarket
 			}
 
 			// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
-			moneyMarket := moneyMarketCache[borrowedCoin.Denom]
 			assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 			if err != nil {
 				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
