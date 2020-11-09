@@ -45,4 +45,6 @@ var (
 	ErrMarketNotFound = sdkerrors.Register(ModuleName, 19, "no market found for denom")
 	// ErrPriceNotFound error for when a price for the input market is not found
 	ErrPriceNotFound = sdkerrors.Register(ModuleName, 20, "no price found for market")
+	// ErrBorrowExceedsAvailableBalance for when a requested borrow exceeds available module acc balances
+	ErrBorrowExceedsAvailableBalance = sdkerrors.Register(ModuleName, 21, "exceeds module account balance")
 )
