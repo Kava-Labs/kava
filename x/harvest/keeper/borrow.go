@@ -97,10 +97,9 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		newProposedAssetTotalBorrowedUSDValue := assetTotalBorrowedUSDValue.Add(coinUSDValue)
 		if newProposedAssetTotalBorrowedUSDValue.GT(moneyMarket.BorrowLimit.MaximumLimitUSD) {
 			return sdkerrors.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
-				"proposed borrow would result in %susdx borrowed for %s, but the maximum global asset borrow limit is %susdx",
+				"proposed borrow would result in %s USD value borrowed for %s, but the maximum global asset borrow limit is %s USD value",
 				newProposedAssetTotalBorrowedUSDValue, coin.Denom, moneyMarket.BorrowLimit.MaximumLimitUSD)
 		}
-
 		proprosedBorrowUSDValue = proprosedBorrowUSDValue.Add(coinUSDValue)
 	}
 
