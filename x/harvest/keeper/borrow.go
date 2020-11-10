@@ -11,11 +11,13 @@ import (
 
 // Borrow funds
 func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) error {
+	// Validate borrow amount within user and protocol limits
 	err := k.ValidateBorrow(ctx, borrower, coins)
 	if err != nil {
 		return err
 	}
 
+	// Sends coins from Harvest module account to user
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
 	if err != nil {
 		if strings.Contains(err.Error(), "insufficient account funds") {
@@ -32,6 +34,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
+	// Update user's borrow in store
 	borrow, found := k.GetBorrow(ctx, borrower)
 	if !found {
 		borrow = types.NewBorrow(borrower, coins)
@@ -39,6 +42,9 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		borrow.Amount = borrow.Amount.Add(coins...)
 	}
 	k.SetBorrow(ctx, borrow)
+
+	// Update total borrowed amount
+	k.IncrementBorrowedCoins(ctx, coins)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -76,6 +82,12 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 		proprosedBorrowUSDValue = proprosedBorrowUSDValue.Add(coinUSDValue)
 	}
+
+	// 1. Get the maximum borrow USD limit
+	// 2. Check the amount of the asset loaned out (we need the store for this?)
+	// 3. Convert amount of asset loaned out to USD
+	// 4. If amount already loaned in USD + proprosedBorrowUSDValue > maximum borrow USD limit
+	// 5. Reject the swap
 
 	// Get the total borrowable USD amount at user's existing deposits
 	deposits := k.GetDepositsByUser(ctx, borrower)
@@ -135,5 +147,31 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if proprosedBorrowUSDValue.GT(totalBorrowableAmount.Sub(existingBorrowUSDValue)) {
 		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s is greater than maximum valid borrow", amount)
 	}
+	return nil
+}
+
+// IncrementBorrowedCoins increments the amount of borrowed coins by the newCoins parameter
+func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
+	borrowedCoins, found := k.GetBorrowedCoins(ctx)
+	if !found {
+		k.SetBorrowedCoins(ctx, newCoins)
+	} else {
+		k.SetBorrowedCoins(ctx, borrowedCoins.Add(newCoins...))
+	}
+}
+
+// DecrementBorrowedCoins decrements the amount of borrowed coins by the coins parameter
+func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
+	borrowedCoins, found := k.GetBorrowedCoins(ctx)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrBorrowedCoinsNotFound, "cannot repay coins if no coins are currently borrowed")
+	}
+
+	updatedBorrowedCoins, isAnyNegative := borrowedCoins.SafeSub(coins)
+	if isAnyNegative {
+		return types.ErrNegativeBorrowedCoins
+	}
+
+	k.SetBorrowedCoins(ctx, updatedBorrowedCoins)
 	return nil
 }
