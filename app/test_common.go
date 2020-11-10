@@ -189,7 +189,6 @@ func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState
 }
 
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
-// TODO only generate secp256 keys?
 func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
 	keys = make([]crypto.PrivKey, n)

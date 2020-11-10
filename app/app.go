@@ -103,9 +103,9 @@ var (
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
-		harvest.LPAccount:               {supply.Minter, supply.Burner},
-		harvest.DelegatorAccount:        {supply.Minter, supply.Burner},
-		harvest.ModuleAccountName:       {supply.Minter, supply.Burner},
+		harvest.LPAccount:           {supply.Minter, supply.Burner},
+		harvest.DelegatorAccount:    {supply.Minter, supply.Burner},
+		harvest.ModuleAccountName:   {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
