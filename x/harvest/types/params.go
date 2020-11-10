@@ -223,12 +223,12 @@ type Multipliers []Multiplier
 
 // BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
-	MaximumLimitUSD sdk.Int `json:"maximum_limit_usd" yaml:"maximum_limit_usd"`
+	MaximumLimitUSD sdk.Dec `json:"maximum_limit_usd" yaml:"maximum_limit_usd"`
 	LoanToValue     sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
 }
 
 // NewBorrowLimit returns a new BorrowLimit
-func NewBorrowLimit(maximumLimitUSD sdk.Int, loanToValue sdk.Dec) BorrowLimit {
+func NewBorrowLimit(maximumLimitUSD, loanToValue sdk.Dec) BorrowLimit {
 	return BorrowLimit{
 		MaximumLimitUSD: maximumLimitUSD,
 		LoanToValue:     loanToValue,
@@ -258,7 +258,7 @@ type MoneyMarket struct {
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, maximumLimitUSD sdk.Int, loanToValue sdk.Dec,
+func NewMoneyMarket(denom string, maximumLimitUSD, loanToValue sdk.Dec,
 	spotMarketID string, conversionFactor sdk.Int) MoneyMarket {
 	return MoneyMarket{
 		Denom:            denom,

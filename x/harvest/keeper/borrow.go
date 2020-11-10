@@ -80,14 +80,25 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 			return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
 		coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+
+		// Validate the requested borrow value for the asset against the money market's global borrow limit
+		var assetTotalBorrowedAmount sdk.Int
+		totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
+		if !found {
+			assetTotalBorrowedAmount = sdk.ZeroInt()
+		} else {
+			assetTotalBorrowedAmount = totalBorrowedCoins.AmountOf(coin.Denom)
+		}
+		assetTotalBorrowedUSDValue := sdk.NewDecFromInt(assetTotalBorrowedAmount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+		newProposedAssetTotalBorrowedUSDValue := assetTotalBorrowedUSDValue.Add(coinUSDValue)
+		if newProposedAssetTotalBorrowedUSDValue.GT(moneyMarket.BorrowLimit.MaximumLimitUSD) {
+			return sdkerrors.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
+				"proposed borrow would result in %susdx borrowed for %s, but the maximum global asset borrow limit is %susdx",
+				newProposedAssetTotalBorrowedUSDValue, coin.Denom, moneyMarket.BorrowLimit.MaximumLimitUSD)
+		}
+
 		proprosedBorrowUSDValue = proprosedBorrowUSDValue.Add(coinUSDValue)
 	}
-
-	// 1. Get the maximum borrow USD limit
-	// 2. Check the amount of the asset loaned out (we need the store for this?)
-	// 3. Convert amount of asset loaned out to USD
-	// 4. If amount already loaned in USD + proprosedBorrowUSDValue > maximum borrow USD limit
-	// 5. Reject the swap
 
 	// Get the total borrowable USD amount at user's existing deposits
 	deposits := k.GetDepositsByUser(ctx, borrower)
