@@ -223,22 +223,22 @@ type Multipliers []Multiplier
 
 // BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
-	MaximumLimit sdk.Int `json:"maximum_limit" yaml:"maximum_limit"`
-	LoanToValue  sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
+	MaximumLimitUSD sdk.Int `json:"maximum_limit_usd" yaml:"maximum_limit_usd"`
+	LoanToValue     sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
 }
 
 // NewBorrowLimit returns a new BorrowLimit
-func NewBorrowLimit(maximumLimit sdk.Int, loanToValue sdk.Dec) BorrowLimit {
+func NewBorrowLimit(maximumLimitUSD sdk.Int, loanToValue sdk.Dec) BorrowLimit {
 	return BorrowLimit{
-		MaximumLimit: maximumLimit,
-		LoanToValue:  loanToValue,
+		MaximumLimitUSD: maximumLimitUSD,
+		LoanToValue:     loanToValue,
 	}
 }
 
 // Validate BorrowLimit
 func (bl BorrowLimit) Validate() error {
-	if bl.MaximumLimit.IsNegative() {
-		return fmt.Errorf("maximum limit cannot be negative: %s", bl.MaximumLimit)
+	if bl.MaximumLimitUSD.IsNegative() {
+		return fmt.Errorf("maximum limit USD cannot be negative: %s", bl.MaximumLimitUSD)
 	}
 	if !bl.LoanToValue.IsPositive() {
 		return fmt.Errorf("loan-to-value must be a positive integer: %s", bl.LoanToValue)
@@ -258,11 +258,11 @@ type MoneyMarket struct {
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec,
+func NewMoneyMarket(denom string, maximumLimitUSD sdk.Int, loanToValue sdk.Dec,
 	spotMarketID string, conversionFactor sdk.Int) MoneyMarket {
 	return MoneyMarket{
 		Denom:            denom,
-		BorrowLimit:      NewBorrowLimit(maximumLimit, loanToValue),
+		BorrowLimit:      NewBorrowLimit(maximumLimitUSD, loanToValue),
 		SpotMarketID:     spotMarketID,
 		ConversionFactor: conversionFactor,
 	}
