@@ -128,8 +128,8 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", sdk.NewInt(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
-					types.NewMoneyMarket("ukava", sdk.NewInt(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("usdx", sdk.NewDec(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("ukava", sdk.NewDec(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
@@ -300,8 +300,8 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", sdk.NewInt(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
-					types.NewMoneyMarket("ukava", sdk.NewInt(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("usdx", sdk.NewDec(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("ukava", sdk.NewDec(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})

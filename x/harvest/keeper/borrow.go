@@ -59,6 +59,10 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
 func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coins) error {
+	if amount.IsZero() {
+		return types.ErrBorrowEmptyCoins
+	}
+
 	// Get the proposed borrow USD value
 	moneyMarketCache := map[string]types.MoneyMarket{}
 	proprosedBorrowUSDValue := sdk.ZeroDec()

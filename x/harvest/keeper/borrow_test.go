@@ -244,12 +244,12 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", sdk.NewInt(100000000*USDX_CF), sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF)),
-					types.NewMoneyMarket("busd", sdk.NewInt(100000000*BUSD_CF), sdk.MustNewDecFromStr("1"), "busd:usd", sdk.NewInt(BUSD_CF)),
-					types.NewMoneyMarket("ukava", sdk.NewInt(100000000*KAVA_CF), tc.args.loanToValueKAVA, "kava:usd", sdk.NewInt(KAVA_CF)),
-					types.NewMoneyMarket("btcb", sdk.NewInt(100000000*BTCB_CF), tc.args.loanToValueBTCB, "btcb:usd", sdk.NewInt(BTCB_CF)),
-					types.NewMoneyMarket("bnb", sdk.NewInt(100000000*BNB_CF), tc.args.loanToValueBNB, "bnb:usd", sdk.NewInt(BNB_CF)),
-					types.NewMoneyMarket("xyz", sdk.NewInt(1), tc.args.loanToValueBNB, "xyz:usd", sdk.NewInt(1)),
+					types.NewMoneyMarket("usdx", sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF)),
+					types.NewMoneyMarket("busd", sdk.NewDec(100000000*BUSD_CF), sdk.MustNewDecFromStr("1"), "busd:usd", sdk.NewInt(BUSD_CF)),
+					types.NewMoneyMarket("ukava", sdk.NewDec(100000000*KAVA_CF), tc.args.loanToValueKAVA, "kava:usd", sdk.NewInt(KAVA_CF)),
+					types.NewMoneyMarket("btcb", sdk.NewDec(100000000*BTCB_CF), tc.args.loanToValueBTCB, "btcb:usd", sdk.NewInt(BTCB_CF)),
+					types.NewMoneyMarket("bnb", sdk.NewDec(100000000*BNB_CF), tc.args.loanToValueBNB, "bnb:usd", sdk.NewInt(BNB_CF)),
+					types.NewMoneyMarket("xyz", sdk.NewDec(1), tc.args.loanToValueBNB, "xyz:usd", sdk.NewInt(1)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
@@ -327,7 +327,11 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 			// Execute user's previous borrows
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.previousBorrowCoins)
-			suite.Require().NoError(err)
+			if tc.args.previousBorrowCoins.IsZero() {
+				suite.Require().True(strings.Contains(err.Error(), "cannot borrow zero coins"))
+			} else {
+				suite.Require().NoError(err)
+			}
 
 			// Now that our state is properly set up, execute the last borrow
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)

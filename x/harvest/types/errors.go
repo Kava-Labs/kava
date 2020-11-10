@@ -53,4 +53,6 @@ var (
 	ErrNegativeBorrowedCoins = sdkerrors.Register(ModuleName, 23, "subtraction results in negative borrow amount")
 	// ErrGreaterThanAssetBorrowLimit error for when a proposed borrow would increase borrowed amount over the asset's global borrow limit
 	ErrGreaterThanAssetBorrowLimit = sdkerrors.Register(ModuleName, 24, "fails global asset borrow limit validation")
+	// ErrBorrowEmptyCoins error for when you cannot borrow empty coins
+	ErrBorrowEmptyCoins = sdkerrors.Register(ModuleName, 25, "cannot borrow zero coins")
 )

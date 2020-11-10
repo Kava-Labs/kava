@@ -238,8 +238,6 @@ func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (st
 	}
 }
 
-// ---------------------------
-
 // SetBorrowedCoins sets the total amount of coins currently borrowed in the store
 func (k Keeper) SetBorrowedCoins(ctx sdk.Context, borrowedCoins sdk.Coins) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowedCoinsPrefix)
