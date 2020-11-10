@@ -26,6 +26,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
 			return queryGetBorrows(ctx, req, k)
+		case types.QueryGetBorrowed:
+			return queryGetBorrowed(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -289,6 +291,31 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrows)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryBorrowedParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	borrowedCoins, found := k.GetBorrowedCoins(ctx)
+	if !found {
+		return nil, types.ErrBorrowedCoinsNotFound
+	}
+
+	// If user specified a denom only return coins of that denom type
+	if len(params.Denom) > 0 {
+		borrowedCoins = sdk.NewCoins(sdk.NewCoin(params.Denom, borrowedCoins.AmountOf(params.Denom)))
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrowedCoins)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

@@ -308,3 +308,30 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().String(flagOwner, "", "(optional) filter for borrows by owner address")
 	return cmd
 }
+
+func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "borrowed",
+		Short: "get total current borrowed amount",
+		Long:  "get the total amount of coins currently borrowed for the Harvest protocol",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrowed)
+			res, height, err := cliCtx.QueryWithData(route, nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var borrowedCoins sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &borrowedCoins); err != nil {
+				return fmt.Errorf("failed to unmarshal borrowed coins: %w", err)
+			}
+			return cliCtx.PrintOutput(borrowedCoins)
+		},
+	}
+}
