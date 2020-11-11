@@ -22,7 +22,7 @@ const (
 	flagName         = "name"
 	flagDepositDenom = "deposit-denom"
 	flagOwner        = "owner"
-	flagDepositType  = "deposit-type"
+	flagClaimType    = "claim-type"
 )
 
 // GetQueryCmd returns the cli query commands for the harvest module
@@ -122,8 +122,8 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 		Example:
 		$ kvcli q harvest deposits
-		$ kvcli q harvest deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --deposit-type lp --deposit-denom bnb
-		$ kvcli q harvest deposits --deposit-type stake --deposit-denom ukava
+		$ kvcli q harvest deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --deposit-denom bnb
+		$ kvcli q harvest deposits --deposit-denom ukava
 		$ kvcli q harvest deposits --deposit-denom btcb`,
 		),
 		Args: cobra.NoArgs,
@@ -131,11 +131,9 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			var owner sdk.AccAddress
-			var depositType types.DepositType
 
 			ownerBech := viper.GetString(flagOwner)
 			depositDenom := viper.GetString(flagDepositDenom)
-			depositTypeStr := viper.GetString(flagDepositType)
 
 			if len(ownerBech) != 0 {
 				depositOwner, err := sdk.AccAddressFromBech32(ownerBech)
@@ -145,17 +143,10 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = depositOwner
 			}
 
-			if len(depositTypeStr) != 0 {
-				if err := types.DepositType(depositTypeStr).IsValid(); err != nil {
-					return err
-				}
-				depositType = types.DepositType(depositTypeStr)
-			}
-
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
-			params := types.NewQueryDepositParams(page, limit, depositDenom, owner, depositType)
+			params := types.NewQueryDepositParams(page, limit, depositDenom, owner)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -179,7 +170,6 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
 	cmd.Flags().String(flagDepositDenom, "", "(optional) filter for deposits by denom")
-	cmd.Flags().String(flagDepositType, "", "(optional) filter for deposits by type (lp or staking)")
 	return cmd
 }
 
@@ -191,8 +181,8 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 		Example:
 		$ kvcli q harvest claims
-		$ kvcli q harvest claims --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --deposit-type lp --deposit-denom bnb
-		$ kvcli q harvest claims --deposit-type stake --deposit-denom ukava
+		$ kvcli q harvest claims --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --claim-type lp --deposit-denom bnb
+		$ kvcli q harvest claims --claim-type stake --deposit-denom ukava
 		$ kvcli q harvest claims --deposit-denom btcb`,
 		),
 		Args: cobra.NoArgs,
@@ -200,11 +190,11 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			var owner sdk.AccAddress
-			var depositType types.DepositType
+			var claimType types.ClaimType
 
 			ownerBech := viper.GetString(flagOwner)
 			depositDenom := viper.GetString(flagDepositDenom)
-			depositTypeStr := viper.GetString(flagDepositType)
+			claimTypeStr := viper.GetString(flagClaimType)
 
 			if len(ownerBech) != 0 {
 				claimOwner, err := sdk.AccAddressFromBech32(ownerBech)
@@ -214,17 +204,17 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = claimOwner
 			}
 
-			if len(depositTypeStr) != 0 {
-				if err := types.DepositType(depositTypeStr).IsValid(); err != nil {
+			if len(claimTypeStr) != 0 {
+				if err := types.ClaimType(claimTypeStr).IsValid(); err != nil {
 					return err
 				}
-				depositType = types.DepositType(depositTypeStr)
+				claimType = types.ClaimType(claimTypeStr)
 			}
 
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
-			params := types.NewQueryDepositParams(page, limit, depositDenom, owner, depositType)
+			params := types.NewQueryClaimParams(page, limit, depositDenom, owner, claimType)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -248,7 +238,7 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for claims by owner address")
 	cmd.Flags().String(flagDepositDenom, "", "(optional) filter for claims by denom")
-	cmd.Flags().String(flagDepositType, "", "(optional) filter for claims by type (lp or staking)")
+	cmd.Flags().String(flagClaimType, "", "(optional) filter for claims by type (lp or staking)")
 	return cmd
 }
 

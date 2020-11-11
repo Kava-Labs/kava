@@ -65,11 +65,11 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 
 func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "withdraw [amount] [deposit-type]",
+		Use:   "withdraw [amount]",
 		Short: "withdraw coins from harvest",
 		Args:  cobra.ExactArgs(1),
 		Example: fmt.Sprintf(
-			`%s tx %s withdraw 10000000bnb lp --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s withdraw 10000000bnb --from <key>`, version.ClientName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -79,7 +79,7 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), amount, args[1])
+			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), amount)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

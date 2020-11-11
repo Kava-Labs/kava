@@ -33,7 +33,7 @@ func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgDeposit(req.From, req.Amount, strings.ToLower(req.DepositType))
+		msg := types.NewMsgDeposit(req.From, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -54,7 +54,7 @@ func postWithdrawHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdraw(req.From, req.Amount, strings.ToLower(req.DepositType))
+		msg := types.NewMsgWithdraw(req.From, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
