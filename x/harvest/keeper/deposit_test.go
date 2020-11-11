@@ -17,7 +17,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 	type args struct {
 		depositor                 sdk.AccAddress
 		amount                    sdk.Coin
-		depositType               types.DepositType
 		numberDeposits            int
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
@@ -37,7 +36,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				amount:                    sdk.NewCoin("bnb", sdk.NewInt(100)),
-				depositType:               types.LP,
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
@@ -52,7 +50,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				amount:                    sdk.NewCoin("bnb", sdk.NewInt(100)),
-				depositType:               types.LP,
 				numberDeposits:            2,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(800)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
@@ -67,7 +64,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				amount:                    sdk.NewCoin("bnb", sdk.NewInt(100)),
-				depositType:               types.Stake,
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -82,7 +78,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				amount:                    sdk.NewCoin("btcb", sdk.NewInt(100)),
-				depositType:               types.LP,
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -97,7 +92,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				amount:                    sdk.NewCoin("bnb", sdk.NewInt(10000)),
-				depositType:               types.LP,
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -141,7 +135,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			// run the test
 			var err error
 			for i := 0; i < tc.args.numberDeposits; i++ {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.amount, tc.args.depositType)
+				err = suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.amount)
 			}
 
 			// verify results
@@ -151,7 +145,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
-				_, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor, tc.args.amount.Denom, tc.args.depositType)
+				_, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor, tc.args.amount.Denom)
 				suite.Require().True(f)
 			} else {
 				suite.Require().Error(err)
@@ -166,8 +160,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 		depositor                 sdk.AccAddress
 		depositAmount             sdk.Coin
 		withdrawAmount            sdk.Coin
-		depositType               types.DepositType
-		withdrawType              types.DepositType
 		createDeposit             bool
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
@@ -190,8 +182,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
 				withdrawAmount:            sdk.NewCoin("bnb", sdk.NewInt(100)),
-				depositType:               types.LP,
-				withdrawType:              types.LP,
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
@@ -209,8 +199,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
 				withdrawAmount:            sdk.NewCoin("bnb", sdk.NewInt(200)),
-				depositType:               types.LP,
-				withdrawType:              types.LP,
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.Coins(nil),
@@ -228,8 +216,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
 				withdrawAmount:            sdk.NewCoin("btcb", sdk.NewInt(200)),
-				depositType:               types.LP,
-				withdrawType:              types.LP,
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -247,8 +233,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
 				withdrawAmount:            sdk.NewCoin("bnb", sdk.NewInt(200)),
-				depositType:               types.LP,
-				withdrawType:              types.Stake,
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -266,8 +250,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
 				withdrawAmount:            sdk.NewCoin("bnb", sdk.NewInt(300)),
-				depositType:               types.LP,
-				withdrawType:              types.LP,
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -311,11 +293,11 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			suite.keeper = keeper
 
 			if tc.args.createDeposit {
-				err := suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount, tc.args.depositType)
+				err := suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
 				suite.Require().NoError(err)
 			}
 
-			err := suite.keeper.Withdraw(suite.ctx, tc.args.depositor, tc.args.withdrawAmount, tc.args.withdrawType)
+			err := suite.keeper.Withdraw(suite.ctx, tc.args.depositor, tc.args.withdrawAmount)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
@@ -323,7 +305,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
-				testDeposit, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor, tc.args.depositAmount.Denom, tc.args.depositType)
+				testDeposit, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor, tc.args.depositAmount.Denom)
 				if tc.args.depositExists {
 					suite.Require().True(f)
 					suite.Require().Equal(tc.args.finalDepositAmount, testDeposit.Amount)

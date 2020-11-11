@@ -72,27 +72,27 @@ func (suite *KeeperTestSuite) TestGetSetPreviousDelegatorDistribution() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
-	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoin("bnb", sdk.NewInt(100)), "lp")
+	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoin("bnb", sdk.NewInt(100)))
 
-	_, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
+	_, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"), "bnb")
 	suite.Require().False(f)
 
 	suite.keeper.SetDeposit(suite.ctx, dep)
 
-	testDeposit, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
+	testDeposit, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"), "bnb")
 	suite.Require().True(f)
 	suite.Require().Equal(dep, testDeposit)
 
 	suite.Require().NotPanics(func() { suite.keeper.DeleteDeposit(suite.ctx, dep) })
 
-	_, f = suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
+	_, f = suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"), "bnb")
 	suite.Require().False(f)
 
 }
 
 func (suite *KeeperTestSuite) TestIterateDeposits() {
 	for i := 0; i < 5; i++ {
-		dep := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)), "lp")
+		dep := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, dep) })
 	}
 	var deposits []types.Deposit
@@ -105,27 +105,27 @@ func (suite *KeeperTestSuite) TestIterateDeposits() {
 
 func (suite *KeeperTestSuite) TestIterateDepositsByTypeAndDenom() {
 	for i := 0; i < 5; i++ {
-		depA := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)), "lp")
+		depA := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, depA) })
-		depB := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)), "gov")
+		depB := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, depB) })
-		depC := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("btcb", sdk.NewInt(100)), "lp")
+		depC := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("btcb", sdk.NewInt(100)))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, depC) })
 	}
 	var bnbLPDeposits []types.Deposit
-	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "lp", "bnb", func(d types.Deposit) bool {
+	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "bnb", func(d types.Deposit) bool {
 		bnbLPDeposits = append(bnbLPDeposits, d)
 		return false
 	})
 	suite.Require().Equal(5, len(bnbLPDeposits))
 	var bnbGovDeposits []types.Deposit
-	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "gov", "bnb", func(d types.Deposit) bool {
+	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "bnb", func(d types.Deposit) bool {
 		bnbGovDeposits = append(bnbGovDeposits, d)
 		return false
 	})
 	suite.Require().Equal(5, len(bnbGovDeposits))
 	var btcbLPDeposits []types.Deposit
-	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "lp", "btcb", func(d types.Deposit) bool {
+	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "btcb", func(d types.Deposit) bool {
 		btcbLPDeposits = append(btcbLPDeposits, d)
 		return false
 	})

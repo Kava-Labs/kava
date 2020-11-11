@@ -198,7 +198,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			// Deposit coins to harvest
 			depositedCoins := sdk.NewCoins()
 			for _, depositCoin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, depositCoin, types.LP)
+				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, depositCoin)
 				suite.Require().NoError(err)
 				depositedCoins.Add(depositCoin)
 			}

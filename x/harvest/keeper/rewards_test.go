@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 		depositAmount        sdk.Coin
 		totalDeposits        sdk.Coin
 		rewardRate           sdk.Coin
-		depositType          types.DepositType
+		claimType            types.ClaimType
 		previousBlockTime    time.Time
 		blockTime            time.Time
 		expectedClaimBalance sdk.Coin
@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 				rewardRate:           c("hard", 500),
 				depositAmount:        c("bnb", 100),
 				totalDeposits:        c("bnb", 1000),
-				depositType:          types.LP,
+				claimType:            types.LP,
 				previousBlockTime:    time.Date(2020, 11, 1, 13, 59, 50, 0, time.UTC),
 				blockTime:            time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				expectedClaimBalance: c("hard", 500),
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, cs(tc.args.totalDeposits))
 			keeper := tApp.GetHarvestKeeper()
-			deposit := types.NewDeposit(tc.args.depositor, tc.args.depositAmount, tc.args.depositType)
+			deposit := types.NewDeposit(tc.args.depositor, tc.args.depositAmount)
 			keeper.SetDeposit(ctx, deposit)
 			suite.app = tApp
 			suite.ctx = ctx
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 				suite.Require().Panics(func() { suite.keeper.ApplyDepositRewards(suite.ctx) })
 			} else {
 				suite.Require().NotPanics(func() { suite.keeper.ApplyDepositRewards(suite.ctx) })
-				claim, f := suite.keeper.GetClaim(suite.ctx, tc.args.depositor, tc.args.denom, tc.args.depositType)
+				claim, f := suite.keeper.GetClaim(suite.ctx, tc.args.depositor, tc.args.denom, tc.args.claimType)
 				suite.Require().True(f)
 				suite.Require().Equal(tc.args.expectedClaimBalance, claim.Amount)
 			}
