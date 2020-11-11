@@ -54,22 +54,16 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, amount sdk.Coin) error {
 }
 
 // Withdraw returns some or all of a deposit back to original depositor
-func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin, claimType types.ClaimType) error {
+func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
 	deposit, found := k.GetDeposit(ctx, depositor, amount.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s %s deposit found for %s", amount.Denom, claimType, depositor)
+		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s deposit found for %s", amount.Denom, depositor)
 	}
 	if !deposit.Amount.IsGTE(amount) {
-		return sdkerrors.Wrapf(types.ErrInvaliWithdrawAmount, "%s>%s", amount, deposit.Amount)
+		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", amount, deposit.Amount)
 	}
 
-	var err error
-	switch claimType {
-	case types.LP:
-		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
-	default:
-		return sdkerrors.Wrap(types.ErrInvalidClaimType, string(claimType))
-	}
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
 	if err != nil {
 		return err
 	}

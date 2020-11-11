@@ -109,15 +109,13 @@ func (msg MsgDeposit) String() string {
 type MsgWithdraw struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	Amount    sdk.Coin       `json:"amount" yaml:"amount"`
-	ClaimType string         `json:"claim_type" yaml:"claim_type"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin, claimType string) MsgWithdraw {
+func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin) MsgWithdraw {
 	return MsgWithdraw{
 		Depositor: depositor,
 		Amount:    amount,
-		ClaimType: claimType,
 	}
 }
 
@@ -135,7 +133,7 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
 	}
-	return ClaimType(strings.ToLower(msg.ClaimType)).IsValid()
+	return nil
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.
@@ -154,8 +152,7 @@ func (msg MsgWithdraw) String() string {
 	return fmt.Sprintf(`Withdraw Message:
 	Depositor:         %s
 	Amount: %s
-	Claim Type: %s
-`, msg.Depositor, msg.Amount, msg.ClaimType)
+`, msg.Depositor, msg.Amount)
 }
 
 // MsgClaimReward message type used to claim rewards
