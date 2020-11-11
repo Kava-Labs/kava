@@ -129,10 +129,10 @@ func (k Keeper) IterateDepositsByTypeAndDenom(ctx sdk.Context, depositDenom stri
 	}
 }
 
-// GetClaim returns a claim from the store for a particular claim owner, deposit denom, and deposit type
-func (k Keeper) GetClaim(ctx sdk.Context, owner sdk.AccAddress, depositDenom string, depositType types.DepositType) (types.Claim, bool) {
+// GetClaim returns a claim from the store for a particular claim owner, deposit denom, and claim type
+func (k Keeper) GetClaim(ctx sdk.Context, owner sdk.AccAddress, depositDenom string, claimType types.ClaimType) (types.Claim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	bz := store.Get(types.ClaimKey(depositType, depositDenom, owner))
+	bz := store.Get(types.ClaimKey(claimType, depositDenom, owner))
 	if bz == nil {
 		return types.Claim{}, false
 	}
@@ -168,10 +168,10 @@ func (k Keeper) IterateClaims(ctx sdk.Context, cb func(claim types.Claim) (stop 
 	}
 }
 
-// IterateClaimsByTypeAndDenom iterates over all claim objects in the store with the matching deposit type and deposit denom and performs a callback function
-func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, depositType types.DepositType, depositDenom string, cb func(claim types.Claim) (stop bool)) {
+// IterateClaimsByTypeAndDenom iterates over all claim objects in the store with the matching claim type and deposit denom and performs a callback function
+func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, claimType types.ClaimType, depositDenom string, cb func(claim types.Claim) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.ClaimTypeIteratorKey(depositType, depositDenom))
+	iterator := sdk.KVStorePrefixIterator(store, types.ClaimTypeIteratorKey(claimType, depositDenom))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var claim types.Claim

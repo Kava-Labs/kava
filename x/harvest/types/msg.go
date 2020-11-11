@@ -24,9 +24,9 @@ const (
 	Stake ClaimType = "stake"
 )
 
-// Queryable deposit types
+// Queryable claim types
 var (
-	DepositTypesClaimQuery = []ClaimType{LP, Stake}
+	ClaimTypesClaimQuery = []ClaimType{LP, Stake}
 )
 
 // IsValid checks if the input is one of the expected strings

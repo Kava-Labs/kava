@@ -54,21 +54,21 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, amount sdk.Coin) error {
 }
 
 // Withdraw returns some or all of a deposit back to original depositor
-func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin, depositType types.DepositType) error {
+func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin, claimType types.ClaimType) error {
 	deposit, found := k.GetDeposit(ctx, depositor, amount.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s %s deposit found for %s", amount.Denom, depositType, depositor)
+		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s %s deposit found for %s", amount.Denom, claimType, depositor)
 	}
 	if !deposit.Amount.IsGTE(amount) {
 		return sdkerrors.Wrapf(types.ErrInvaliWithdrawAmount, "%s>%s", amount, deposit.Amount)
 	}
 
 	var err error
-	switch depositType {
+	switch claimType {
 	case types.LP:
 		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
 	default:
-		return sdkerrors.Wrap(types.ErrInvalidDepositType, string(depositType))
+		return sdkerrors.Wrap(types.ErrInvalidClaimType, string(claimType))
 	}
 	if err != nil {
 		return err
@@ -80,7 +80,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
 			sdk.NewAttribute(types.AttributeKeyDepositDenom, amount.Denom),
-			sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
 		),
 	)
 
@@ -90,7 +89,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 				types.EventTypeDeleteHarvestDeposit,
 				sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
 				sdk.NewAttribute(types.AttributeKeyDepositDenom, amount.Denom),
-				sdk.NewAttribute(types.AttributeKeyDepositType, string(depositType)),
 			),
 		)
 		k.DeleteDeposit(ctx, deposit)
@@ -104,12 +102,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 }
 
 // GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
-func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositType types.DepositType, depositDenom string) (total sdk.Int) {
-
+func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	var macc supplyExported.ModuleAccountI
-	switch depositType {
-	case types.LP:
-		macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
-	}
+	macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return macc.GetCoins().AmountOf(depositDenom)
 }
