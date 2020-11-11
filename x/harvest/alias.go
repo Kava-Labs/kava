@@ -15,9 +15,9 @@ const (
 	AttributeKeyClaimAmount               = types.AttributeKeyClaimAmount
 	AttributeKeyClaimHolder               = types.AttributeKeyClaimHolder
 	AttributeKeyClaimMultiplier           = types.AttributeKeyClaimMultiplier
+	AttributeKeyClaimType                 = types.AttributeKeyClaimType
 	AttributeKeyDeposit                   = types.AttributeKeyDeposit
 	AttributeKeyDepositDenom              = types.AttributeKeyDepositDenom
-	AttributeKeyDepositType               = types.AttributeKeyDepositType
 	AttributeKeyDepositor                 = types.AttributeKeyDepositor
 	AttributeKeyRewardsDistribution       = types.AttributeKeyRewardsDistribution
 	AttributeValueCategory                = types.AttributeValueCategory
@@ -82,8 +82,7 @@ var (
 	DefaultGovSchedules               = types.DefaultGovSchedules
 	DefaultLPSchedules                = types.DefaultLPSchedules
 	DefaultPreviousBlockTime          = types.DefaultPreviousBlockTime
-	DepositTypesClaimQuery            = types.DepositTypesClaimQuery
-	DepositTypesDepositQuery          = types.DepositTypesDepositQuery
+	ClaimTypesClaimQuery              = types.ClaimTypesClaimQuery
 	DepositsKeyPrefix                 = types.DepositsKeyPrefix
 	ErrAccountNotFound                = types.ErrAccountNotFound
 	ErrClaimExpired                   = types.ErrClaimExpired
@@ -91,10 +90,10 @@ var (
 	ErrDepositNotFound                = types.ErrDepositNotFound
 	ErrGovScheduleNotFound            = types.ErrGovScheduleNotFound
 	ErrInsufficientModAccountBalance  = types.ErrInsufficientModAccountBalance
-	ErrInvaliWithdrawAmount           = types.ErrInvaliWithdrawAmount
+	ErrInvaliWithdrawAmount           = types.ErrInvalidWithdrawAmount
 	ErrInvalidAccountType             = types.ErrInvalidAccountType
 	ErrInvalidDepositDenom            = types.ErrInvalidDepositDenom
-	ErrInvalidDepositType             = types.ErrInvalidDepositType
+	ErrInvalidClaimType               = types.ErrInvalidClaimType
 	ErrInvalidMultiplier              = types.ErrInvalidMultiplier
 	ErrLPScheduleNotFound             = types.ErrLPScheduleNotFound
 	ErrZeroClaim                      = types.ErrZeroClaim
@@ -116,7 +115,7 @@ type (
 	DelegatorDistributionSchedule  = types.DelegatorDistributionSchedule
 	DelegatorDistributionSchedules = types.DelegatorDistributionSchedules
 	Deposit                        = types.Deposit
-	DepositType                    = types.DepositType
+	ClaimType                      = types.ClaimType
 	DistributionSchedule           = types.DistributionSchedule
 	DistributionSchedules          = types.DistributionSchedules
 	GenesisDistributionTime        = types.GenesisDistributionTime
