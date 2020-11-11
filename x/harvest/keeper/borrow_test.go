@@ -192,6 +192,27 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				contains:   "no price found for market",
 			},
 		},
+		{
+			"invalid: borrow exceed module account balance",
+			args{
+				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
+				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
+				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
+				loanToValueBTCB:           sdk.MustNewDecFromStr("0.01"),
+				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
+				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
+				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
+				previousBorrowCoins:       sdk.NewCoins(),
+				borrowCoins:               sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(101*BUSD_CF))),
+				expectedAccountBalance:    sdk.NewCoins(),
+				expectedModAccountBalance: sdk.NewCoins(),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "exceeds module account balance:",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {

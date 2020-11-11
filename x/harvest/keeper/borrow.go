@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -16,7 +18,18 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
 	if err != nil {
-		return err
+		if strings.Contains(err.Error(), "insufficient account funds") {
+			modAccCoins := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName).GetCoins()
+			for _, coin := range coins {
+				_, isNegative := modAccCoins.SafeSub(sdk.NewCoins(coin))
+				if isNegative {
+					return sdkerrors.Wrapf(types.ErrBorrowExceedsAvailableBalance,
+						"the requested borrow amount of %s exceeds the total amount of %s%s available to borrow",
+						coin, modAccCoins.AmountOf(coin.Denom), coin.Denom,
+					)
+				}
+			}
+		}
 	}
 
 	borrow, found := k.GetBorrow(ctx, borrower)
