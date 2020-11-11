@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestIterateDeposits() {
 	suite.Require().Equal(5, len(deposits))
 }
 
-func (suite *KeeperTestSuite) TestIterateDepositsByTypeAndDenom() {
+func (suite *KeeperTestSuite) TestIterateDepositsByDenom() {
 	for i := 0; i < 5; i++ {
 		depA := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("bnb", sdk.NewInt(100)))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, depA) })
@@ -112,30 +112,30 @@ func (suite *KeeperTestSuite) TestIterateDepositsByTypeAndDenom() {
 		depC := types.NewDeposit(sdk.AccAddress("test"+string(i)), sdk.NewCoin("btcb", sdk.NewInt(100)))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, depC) })
 	}
-	var bnbLPDeposits []types.Deposit
-	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "bnb", func(d types.Deposit) bool {
-		bnbLPDeposits = append(bnbLPDeposits, d)
+
+	// Check BNB deposits
+	var bnbDeposits []types.Deposit
+	suite.keeper.IterateDepositsByDenom(suite.ctx, "bnb", func(d types.Deposit) bool {
+		bnbDeposits = append(bnbDeposits, d)
 		return false
 	})
-	suite.Require().Equal(5, len(bnbLPDeposits))
-	var bnbGovDeposits []types.Deposit
-	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "bnb", func(d types.Deposit) bool {
-		bnbGovDeposits = append(bnbGovDeposits, d)
+	suite.Require().Equal(5, len(bnbDeposits))
+
+	// Check BTCB deposits
+	var btcbDeposits []types.Deposit
+	suite.keeper.IterateDepositsByDenom(suite.ctx, "btcb", func(d types.Deposit) bool {
+		btcbDeposits = append(btcbDeposits, d)
 		return false
 	})
-	suite.Require().Equal(5, len(bnbGovDeposits))
-	var btcbLPDeposits []types.Deposit
-	suite.keeper.IterateDepositsByTypeAndDenom(suite.ctx, "btcb", func(d types.Deposit) bool {
-		btcbLPDeposits = append(btcbLPDeposits, d)
-		return false
-	})
-	suite.Require().Equal(5, len(btcbLPDeposits))
+	suite.Require().Equal(5, len(btcbDeposits))
+
+	// Fetch all deposits
 	var deposits []types.Deposit
 	suite.keeper.IterateDeposits(suite.ctx, func(d types.Deposit) bool {
 		deposits = append(deposits, d)
 		return false
 	})
-	suite.Require().Equal(15, len(deposits))
+	suite.Require().Equal(len(bnbDeposits)+len(btcbDeposits), len(deposits))
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {

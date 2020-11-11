@@ -114,9 +114,8 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) 
 	}
 }
 
-// IterateDepositsByTypeAndDenom iterates over all deposit objects in the store with the matching deposit denom and performs a callback function
-func (k Keeper) IterateDepositsByTypeAndDenom(ctx sdk.Context, depositDenom string, cb func(deposit types.Deposit) (stop bool)) {
-
+// IterateDepositsByDenom iterates over all deposit objects in the store with the matching deposit denom and performs a callback function
+func (k Keeper) IterateDepositsByDenom(ctx sdk.Context, depositDenom string, cb func(deposit types.Deposit) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, types.DepositTypeIteratorKey(depositDenom))
 	defer iterator.Close()

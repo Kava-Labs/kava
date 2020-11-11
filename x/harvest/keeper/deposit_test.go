@@ -60,20 +60,6 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			},
 		},
 		{
-			"invalid deposit type",
-			args{
-				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoin("bnb", sdk.NewInt(100)),
-				numberDeposits:            1,
-				expectedAccountBalance:    sdk.Coins{},
-				expectedModAccountBalance: sdk.Coins{},
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "invalid deposit type",
-			},
-		},
-		{
 			"invalid deposit denom",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
@@ -216,23 +202,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
 				withdrawAmount:            sdk.NewCoin("btcb", sdk.NewInt(200)),
-				createDeposit:             true,
-				expectedAccountBalance:    sdk.Coins{},
-				expectedModAccountBalance: sdk.Coins{},
-				depositExists:             false,
-				finalDepositAmount:        sdk.Coin{},
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "deposit not found",
-			},
-		},
-		{
-			"deposit not found invalid deposit type",
-			args{
-				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositAmount:             sdk.NewCoin("bnb", sdk.NewInt(200)),
-				withdrawAmount:            sdk.NewCoin("bnb", sdk.NewInt(200)),
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},

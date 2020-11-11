@@ -91,7 +91,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 			deposits = append(deposits, deposit)
 		}
 	case depositDenom:
-		k.IterateDepositsByTypeAndDenom(ctx, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
+		k.IterateDepositsByDenom(ctx, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
 		})
