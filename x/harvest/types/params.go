@@ -17,13 +17,11 @@ var (
 	KeyLPSchedules            = []byte("LPSchedules")
 	KeyDelegatorSchedule      = []byte("DelegatorSchedule")
 	KeyMoneyMarkets           = []byte("MoneyMarkets")
-	KeyInterestRateModels     = []byte("KeyInterestRateModels")
 	DefaultActive             = true
 	DefaultGovSchedules       = DistributionSchedules{}
 	DefaultLPSchedules        = DistributionSchedules{}
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
 	DefaultMoneyMarkets       = MoneyMarkets{}
-	DefaultInterestRateModels = InterestRateModels{}
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
@@ -33,7 +31,6 @@ type Params struct {
 	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
 	DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
 	MoneyMarkets                   MoneyMarkets                   `json:"money_markets" yaml:"money_markets"`
-	InterestRateModels             InterestRateModels             `json:"interest_rate_models" yaml:"interest_rate_models"`
 }
 
 // DistributionSchedule distribution schedule for liquidity providers
@@ -256,20 +253,25 @@ func (bl BorrowLimit) Validate() error {
 
 // MoneyMarket is a money market for an individual asset
 type MoneyMarket struct {
-	Denom            string      `json:"denom" yaml:"denom"`
-	BorrowLimit      BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
-	SpotMarketID     string      `json:"spot_market_id" yaml:"spot_market_id"`
-	ConversionFactor sdk.Int     `json:"conversion_factor" yaml:"conversion_factor"`
+	Denom             string            `json:"denom" yaml:"denom"`
+	BorrowLimit       BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID      string            `json:"spot_market_id" yaml:"spot_market_id"`
+	ConversionFactor  sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
+	InterestRateModel InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
 }
+
+// TODO: refactor NewMoneyMarket to take BorrowLimit, InterestRateModel as params
 
 // NewMoneyMarket returns a new MoneyMarket
 func NewMoneyMarket(denom string, hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec,
-	spotMarketID string, conversionFactor sdk.Int) MoneyMarket {
+	spotMarketID string, conversionFactor sdk.Int, baseRateAPY, baseMultiplier, kink,
+	jumpMultiplier sdk.Dec) MoneyMarket {
 	return MoneyMarket{
-		Denom:            denom,
-		BorrowLimit:      NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
-		SpotMarketID:     spotMarketID,
-		ConversionFactor: conversionFactor,
+		Denom:             denom,
+		BorrowLimit:       NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
+		SpotMarketID:      spotMarketID,
+		ConversionFactor:  conversionFactor,
+		InterestRateModel: NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier),
 	}
 }
 
@@ -280,6 +282,10 @@ func (mm MoneyMarket) Validate() error {
 	}
 
 	if err := mm.BorrowLimit.Validate(); err != nil {
+		return err
+	}
+
+	if err := mm.InterestRateModel.Validate(); err != nil {
 		return err
 	}
 	return nil
@@ -342,31 +348,19 @@ func (irm InterestRateModel) Validate() error {
 // InterestRateModels slice of InterestRateModel
 type InterestRateModels []InterestRateModel
 
-// Validate borrow limits
-func (irs InterestRateModels) Validate() error {
-	for _, interestRateModel := range irs {
-		if err := interestRateModel.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // NewParams returns a new params object
-func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules,
-	moneyMarkets MoneyMarkets, interestRateModels InterestRateModels) Params {
+func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules, moneyMarkets MoneyMarkets) Params {
 	return Params{
 		Active:                         active,
 		LiquidityProviderSchedules:     lps,
 		DelegatorDistributionSchedules: dds,
 		MoneyMarkets:                   moneyMarkets,
-		InterestRateModels:             interestRateModels,
 	}
 }
 
 // DefaultParams returns default params for harvest module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultMoneyMarkets, DefaultInterestRateModels)
+	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultMoneyMarkets)
 }
 
 // String implements fmt.Stringer
@@ -375,9 +369,7 @@ func (p Params) String() string {
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
 	Delegator Distribution Schedule %s
-	Money Markets %v
-	Interest Rate Models %s
-	`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets, p.InterestRateModels)
+	Money Markets %v`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -392,7 +384,6 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
 		params.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
 		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
-		params.NewParamSetPair(KeyInterestRateModels, &p.InterestRateModels, validateInterestRateModels),
 	}
 }
 
@@ -450,13 +441,4 @@ func validateMoneyMarketParams(i interface{}) error {
 	}
 
 	return mm.Validate()
-}
-
-func validateInterestRateModels(i interface{}) error {
-	models, ok := i.(InterestRateModels)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	return models.Validate()
 }
