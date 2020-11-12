@@ -255,3 +255,36 @@ func (k Keeper) GetBorrowedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	k.cdc.MustUnmarshalBinaryBare(bz, &borrowedCoins)
 	return borrowedCoins, true
 }
+
+// GetInterestRateModel returns an interest rate model from the store for a denom
+func (k Keeper) GetInterestRateModel(ctx sdk.Context, denom string) (types.InterestRateModel, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestRateModelsPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return types.InterestRateModel{}, false
+	}
+	var interestRateModel types.InterestRateModel
+	k.cdc.MustUnmarshalBinaryBare(bz, &interestRateModel)
+	return interestRateModel, true
+}
+
+// SetInterestRateModel sets an interest rate model in the store for a denom
+func (k Keeper) SetInterestRateModel(ctx sdk.Context, denom string, interestRateModel types.InterestRateModel) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestRateModelsPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(interestRateModel)
+	store.Set([]byte(denom), bz)
+}
+
+// IterateInterestRateModels iterates over all interest rate model objects in the store and performs a callback function
+func (k Keeper) IterateInterestRateModels(ctx sdk.Context, cb func(interestRateModel types.InterestRateModel) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestRateModelsPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var interestRateModel types.InterestRateModel
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &interestRateModel)
+		if cb(interestRateModel) {
+			break
+		}
+	}
+}
