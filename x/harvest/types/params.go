@@ -17,11 +17,13 @@ var (
 	KeyLPSchedules            = []byte("LPSchedules")
 	KeyDelegatorSchedule      = []byte("DelegatorSchedule")
 	KeyMoneyMarkets           = []byte("MoneyMarkets")
+	KeyInterestRateModels     = []byte("KeyInterestRateModels")
 	DefaultActive             = true
 	DefaultGovSchedules       = DistributionSchedules{}
 	DefaultLPSchedules        = DistributionSchedules{}
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
 	DefaultMoneyMarkets       = MoneyMarkets{}
+	DefaultInterestRateModels = InterestRateModels{}
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
@@ -31,6 +33,7 @@ type Params struct {
 	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
 	DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
 	MoneyMarkets                   MoneyMarkets                   `json:"money_markets" yaml:"money_markets"`
+	InterestRateModels             InterestRateModels             `json:"interest_rate_models" yaml:"interest_rate_models"`
 }
 
 // DistributionSchedule distribution schedule for liquidity providers
@@ -295,19 +298,75 @@ func (mms MoneyMarkets) Validate() error {
 	return nil
 }
 
+// InterestRateModel contains information about an asset's interest rate
+type InterestRateModel struct {
+	BaseRateAPY    sdk.Dec `json:"base_rate_apy" yaml:"base_rate_apy"`
+	BaseMultiplier sdk.Dec `json:"base_multiplier" yaml:"base_multiplier"`
+	Kink           sdk.Dec `json:"kink" yaml:"kink"`
+	JumpMultiplier sdk.Dec `json:"jump_multiplier" yaml:"jump_multiplier"`
+}
+
+// NewInterestRateModel returns a new InterestRateModel
+func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.Dec) InterestRateModel {
+	return InterestRateModel{
+		BaseRateAPY:    baseRateAPY,
+		BaseMultiplier: baseMultiplier,
+		Kink:           kink,
+		JumpMultiplier: jumpMultiplier,
+	}
+}
+
+// Validate InterestRateModel param
+func (irm InterestRateModel) Validate() error {
+	if irm.BaseRateAPY.IsNegative() || irm.BaseRateAPY.GT(sdk.OneDec()) {
+		return fmt.Errorf("Base rate APY must be between 0.0-1.0")
+	}
+
+	if irm.BaseMultiplier.IsNegative() {
+		return fmt.Errorf("Base multiplier must be positive")
+	}
+
+	if irm.Kink.IsNegative() || irm.Kink.GT(sdk.OneDec()) {
+		return fmt.Errorf("Kink must be between 0.0-1.0")
+	}
+
+	if irm.JumpMultiplier.IsNegative() {
+		return fmt.Errorf("Jump multiplier must be positive")
+	}
+
+	// TODO: maximum value for BaseMultiplier and JumpMultiplier?
+
+	return nil
+}
+
+// InterestRateModels slice of InterestRateModel
+type InterestRateModels []InterestRateModel
+
+// Validate borrow limits
+func (irs InterestRateModels) Validate() error {
+	for _, interestRateModel := range irs {
+		if err := interestRateModel.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // NewParams returns a new params object
-func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules, moneyMarkets MoneyMarkets) Params {
+func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules,
+	moneyMarkets MoneyMarkets, interestRateModels InterestRateModels) Params {
 	return Params{
 		Active:                         active,
 		LiquidityProviderSchedules:     lps,
 		DelegatorDistributionSchedules: dds,
 		MoneyMarkets:                   moneyMarkets,
+		InterestRateModels:             interestRateModels,
 	}
 }
 
 // DefaultParams returns default params for harvest module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultMoneyMarkets)
+	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultMoneyMarkets, DefaultInterestRateModels)
 }
 
 // String implements fmt.Stringer
@@ -316,7 +375,9 @@ func (p Params) String() string {
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
 	Delegator Distribution Schedule %s
-	Money Markets %v`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
+	Money Markets %v
+	Interest Rate Models %s
+	`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets, p.InterestRateModels)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -331,6 +392,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
 		params.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
 		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
+		params.NewParamSetPair(KeyInterestRateModels, &p.InterestRateModels, validateInterestRateModels),
 	}
 }
 
@@ -388,4 +450,13 @@ func validateMoneyMarketParams(i interface{}) error {
 	}
 
 	return mm.Validate()
+}
+
+func validateInterestRateModels(i interface{}) error {
+	models, ok := i.(InterestRateModels)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return models.Validate()
 }
