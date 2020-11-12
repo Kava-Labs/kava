@@ -225,8 +225,6 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: over global asset borrow limit",
 			args{
-				// priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
-				// loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
 				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
@@ -235,43 +233,15 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
+				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))},
 				previousBorrowCoins:       sdk.NewCoins(),
-				borrowCoins:               sdk.NewCoins(sdk.NewCoin("xyz", sdk.NewInt(1))),
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(100*BTCB_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)), sdk.NewCoin("xyz", sdk.NewInt(1))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1080*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(200*USDX_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF))),
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "no price found for market",
-			},
-		},
-		{
-			// 	"invalid: borrow exceed module account balance",
-			// 	args{
-			"invalid: over global asset borrow limit",
-			args{
-				usdxBorrowLimit:     sdk.MustNewDecFromStr("20"), // $20 USD limit
-				priceKAVA:           sdk.MustNewDecFromStr("2.00"),
-				loanToValueKAVA:     sdk.MustNewDecFromStr("0.8"),
-				priceBTCB:           sdk.MustNewDecFromStr("0.00"),
-				loanToValueBTCB:     sdk.MustNewDecFromStr("0.01"),
-				priceBNB:            sdk.MustNewDecFromStr("0.00"),
-				loanToValueBNB:      sdk.MustNewDecFromStr("0.01"),
-				borrower:            sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:        []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
-				previousBorrowCoins: sdk.NewCoins(),
-				borrowCoins:         sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(101*BUSD_CF))),
-				// depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))},
-				// previousBorrowCoins:       sdk.NewCoins(),
-				// borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(25*USDX_CF))),
+				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(25*USDX_CF))),
 				expectedAccountBalance:    sdk.NewCoins(),
 				expectedModAccountBalance: sdk.NewCoins(),
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "exceeds module account balance:",
-				// contains:   "fails global asset borrow limit validation",
+				contains:   "fails global asset borrow limit validation",
 			},
 		},
 	}
