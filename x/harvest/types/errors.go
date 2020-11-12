@@ -11,10 +11,10 @@ var (
 	ErrInvalidDepositDenom = sdkerrors.Register(ModuleName, 2, "invalid deposit denom")
 	// ErrDepositNotFound error for deposit not found
 	ErrDepositNotFound = sdkerrors.Register(ModuleName, 3, "deposit not found")
-	// ErrInvaliWithdrawAmount error for invalid withdrawal amount
-	ErrInvaliWithdrawAmount = sdkerrors.Register(ModuleName, 4, "withdrawal amount exceeds deposit amount")
-	// ErrInvalidDepositType error for invalid deposit type
-	ErrInvalidDepositType = sdkerrors.Register(ModuleName, 5, "invalid deposit type")
+	// ErrInvalidWithdrawAmount error for invalid withdrawal amount
+	ErrInvalidWithdrawAmount = sdkerrors.Register(ModuleName, 4, "withdrawal amount exceeds deposit amount")
+	// ErrInvalidClaimType error for invalid claim type
+	ErrInvalidClaimType = sdkerrors.Register(ModuleName, 5, "invalid claim type")
 	// ErrClaimNotFound error for claim not found
 	ErrClaimNotFound = sdkerrors.Register(ModuleName, 6, "claim not found")
 	// ErrZeroClaim error for claim amount rounded to zero

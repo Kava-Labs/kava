@@ -11,14 +11,12 @@ There are three messages in the harvest module. Deposit allows users to deposit 
 type MsgDeposit struct {
   Depositor   sdk.AccAddress `json:"depositor" yaml:"depositor"`
   Amount      sdk.Coin       `json:"amount" yaml:"amount"`
-  DepositType string         `json:"deposit_type" yaml:"deposit_type"`
 }
 
 // MsgWithdraw withdraw from the harvest module.
 type MsgWithdraw struct {
   Depositor   sdk.AccAddress `json:"depositor" yaml:"depositor"`
   Amount      sdk.Coin       `json:"amount" yaml:"amount"`
-  DepositType string         `json:"deposit_type" yaml:"deposit_type"`
 }
 
 // MsgClaimReward message type used to claim HARD tokens

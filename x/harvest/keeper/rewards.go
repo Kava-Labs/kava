@@ -34,7 +34,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 		if lps.Start.After(ctx.BlockTime()) {
 			continue
 		}
-		totalDeposited := k.GetTotalDeposited(ctx, types.LP, lps.DepositDenom)
+		totalDeposited := k.GetTotalDeposited(ctx, lps.DepositDenom)
 		if totalDeposited.IsZero() {
 			continue
 		}
@@ -43,7 +43,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 			continue
 		}
 		rewardsDistributed := sdk.ZeroInt()
-		k.IterateDepositsByTypeAndDenom(ctx, types.LP, lps.DepositDenom, func(dep types.Deposit) (stop bool) {
+		k.IterateDepositsByDenom(ctx, lps.DepositDenom, func(dep types.Deposit) (stop bool) {
 			rewardsShare := sdk.NewDecFromInt(dep.Amount.Amount).Quo(sdk.NewDecFromInt(totalDeposited))
 			if rewardsShare.IsZero() {
 				return false
@@ -52,7 +52,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 			if rewardsEarned.IsZero() {
 				return false
 			}
-			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, dep.Type, sdk.NewCoin(lps.RewardsPerSecond.Denom, rewardsEarned))
+			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, types.LP, sdk.NewCoin(lps.RewardsPerSecond.Denom, rewardsEarned))
 			rewardsDistributed = rewardsDistributed.Add(rewardsEarned)
 			return false
 		})
@@ -164,10 +164,10 @@ func (k Keeper) ApplyDelegationRewards(ctx sdk.Context, denom string) {
 }
 
 // AddToClaim adds the input amount to an existing claim or creates a new one
-func (k Keeper) AddToClaim(ctx sdk.Context, owner sdk.AccAddress, depositDenom string, depositType types.DepositType, amountToAdd sdk.Coin) {
-	claim, found := k.GetClaim(ctx, owner, depositDenom, depositType)
+func (k Keeper) AddToClaim(ctx sdk.Context, owner sdk.AccAddress, depositDenom string, claimType types.ClaimType, amountToAdd sdk.Coin) {
+	claim, found := k.GetClaim(ctx, owner, depositDenom, claimType)
 	if !found {
-		claim = types.NewClaim(owner, depositDenom, amountToAdd, depositType)
+		claim = types.NewClaim(owner, depositDenom, amountToAdd, claimType)
 	} else {
 		claim.Amount = claim.Amount.Add(amountToAdd)
 	}

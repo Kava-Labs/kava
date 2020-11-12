@@ -30,7 +30,7 @@ func NewHandler(k Keeper) sdk.Handler {
 }
 
 func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
-	err := k.ClaimReward(ctx, msg.Sender, msg.Receiver, msg.DepositDenom, types.DepositType(strings.ToLower(msg.DepositType)), types.MultiplierName(strings.ToLower(msg.MultiplierName)))
+	err := k.ClaimReward(ctx, msg.Sender, msg.Receiver, msg.DepositDenom, types.ClaimType(strings.ToLower(msg.ClaimType)), types.MultiplierName(strings.ToLower(msg.MultiplierName)))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimRe
 }
 
 func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*sdk.Result, error) {
-	err := k.Deposit(ctx, msg.Depositor, msg.Amount, types.DepositType(strings.ToLower(msg.DepositType)))
+	err := k.Deposit(ctx, msg.Depositor, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
-	err := k.Withdraw(ctx, msg.Depositor, msg.Amount, types.DepositType(strings.ToLower(msg.DepositType)))
+	err := k.Withdraw(ctx, msg.Depositor, msg.Amount)
 	if err != nil {
 		return nil, err
 	}

@@ -17,9 +17,8 @@ type MsgTestSuite struct {
 
 func (suite *MsgTestSuite) TestMsgDeposit() {
 	type args struct {
-		depositor   sdk.AccAddress
-		amount      sdk.Coin
-		depositType string
+		depositor sdk.AccAddress
+		amount    sdk.Coin
 	}
 	addrs := []sdk.AccAddress{
 		sdk.AccAddress("test1"),
@@ -34,9 +33,8 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 		{
 			name: "valid",
 			args: args{
-				depositor:   addrs[0],
-				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "lp",
+				depositor: addrs[0],
+				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -44,27 +42,16 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 		{
 			name: "valid2",
 			args: args{
-				depositor:   addrs[0],
-				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "LP",
+				depositor: addrs[0],
+				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
 			},
 			expectPass:  true,
 			expectedErr: "",
 		},
-		{
-			name: "invalid",
-			args: args{
-				depositor:   addrs[0],
-				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "cat",
-			},
-			expectPass:  false,
-			expectedErr: "invalid deposit type",
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			msg := types.NewMsgDeposit(tc.args.depositor, tc.args.amount, tc.args.depositType)
+			msg := types.NewMsgDeposit(tc.args.depositor, tc.args.amount)
 			err := msg.ValidateBasic()
 			if tc.expectPass {
 				suite.NoError(err)
@@ -78,9 +65,8 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 
 func (suite *MsgTestSuite) TestMsgWithdraw() {
 	type args struct {
-		depositor   sdk.AccAddress
-		amount      sdk.Coin
-		depositType string
+		depositor sdk.AccAddress
+		amount    sdk.Coin
 	}
 	addrs := []sdk.AccAddress{
 		sdk.AccAddress("test1"),
@@ -95,9 +81,8 @@ func (suite *MsgTestSuite) TestMsgWithdraw() {
 		{
 			name: "valid",
 			args: args{
-				depositor:   addrs[0],
-				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "lp",
+				depositor: addrs[0],
+				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -105,27 +90,16 @@ func (suite *MsgTestSuite) TestMsgWithdraw() {
 		{
 			name: "valid2",
 			args: args{
-				depositor:   addrs[0],
-				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "LP",
+				depositor: addrs[0],
+				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
 			},
 			expectPass:  true,
 			expectedErr: "",
 		},
-		{
-			name: "invalid",
-			args: args{
-				depositor:   addrs[0],
-				amount:      sdk.NewCoin("bnb", sdk.NewInt(10000000)),
-				depositType: "cat",
-			},
-			expectPass:  false,
-			expectedErr: "invalid deposit type",
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			msg := types.NewMsgWithdraw(tc.args.depositor, tc.args.amount, tc.args.depositType)
+			msg := types.NewMsgWithdraw(tc.args.depositor, tc.args.amount)
 			err := msg.ValidateBasic()
 			if tc.expectPass {
 				suite.NoError(err)
@@ -139,11 +113,11 @@ func (suite *MsgTestSuite) TestMsgWithdraw() {
 
 func (suite *MsgTestSuite) TestMsgClaim() {
 	type args struct {
-		sender      sdk.AccAddress
-		receiver    sdk.AccAddress
-		denom       string
-		depositType string
-		multiplier  string
+		sender     sdk.AccAddress
+		receiver   sdk.AccAddress
+		denom      string
+		claimType  string
+		multiplier string
 	}
 	addrs := []sdk.AccAddress{
 		sdk.AccAddress("test1"),
@@ -158,11 +132,11 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 		{
 			name: "valid",
 			args: args{
-				sender:      addrs[0],
-				receiver:    addrs[0],
-				denom:       "bnb",
-				depositType: "lp",
-				multiplier:  "large",
+				sender:     addrs[0],
+				receiver:   addrs[0],
+				denom:      "bnb",
+				claimType:  "lp",
+				multiplier: "large",
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -170,11 +144,11 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 		{
 			name: "valid2",
 			args: args{
-				sender:      addrs[0],
-				receiver:    addrs[0],
-				denom:       "bnb",
-				depositType: "stake",
-				multiplier:  "small",
+				sender:     addrs[0],
+				receiver:   addrs[0],
+				denom:      "bnb",
+				claimType:  "stake",
+				multiplier: "small",
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -182,11 +156,11 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 		{
 			name: "valid3",
 			args: args{
-				sender:      addrs[0],
-				receiver:    addrs[1],
-				denom:       "bnb",
-				depositType: "lp",
-				multiplier:  "Medium",
+				sender:     addrs[0],
+				receiver:   addrs[1],
+				denom:      "bnb",
+				claimType:  "lp",
+				multiplier: "Medium",
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -194,11 +168,11 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 		{
 			name: "invalid",
 			args: args{
-				sender:      addrs[0],
-				receiver:    addrs[0],
-				denom:       "bnb",
-				depositType: "lp",
-				multiplier:  "huge",
+				sender:     addrs[0],
+				receiver:   addrs[0],
+				denom:      "bnb",
+				claimType:  "lp",
+				multiplier: "huge",
 			},
 			expectPass:  false,
 			expectedErr: "invalid multiplier name",
@@ -206,7 +180,7 @@ func (suite *MsgTestSuite) TestMsgClaim() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			msg := types.NewMsgClaimReward(tc.args.sender, tc.args.receiver, tc.args.denom, tc.args.depositType, tc.args.multiplier)
+			msg := types.NewMsgClaimReward(tc.args.sender, tc.args.receiver, tc.args.denom, tc.args.claimType, tc.args.multiplier)
 			err := msg.ValidateBasic()
 			if tc.expectPass {
 				suite.NoError(err)

@@ -11,8 +11,8 @@ import (
 // MultiplierName name for valid multiplier
 type MultiplierName string
 
-// DepositType type for valid deposit type strings
-type DepositType string
+// ClaimType type for valid claim type strings
+type ClaimType string
 
 // Valid reward multipliers and reward types
 const (
@@ -20,14 +20,13 @@ const (
 	Medium MultiplierName = "medium"
 	Large  MultiplierName = "large"
 
-	LP    DepositType = "lp"
-	Stake DepositType = "stake"
+	LP    ClaimType = "lp"
+	Stake ClaimType = "stake"
 )
 
-// Queryable deposit types
+// Queryable claim types
 var (
-	DepositTypesDepositQuery = []DepositType{LP}
-	DepositTypesClaimQuery   = []DepositType{LP, Stake}
+	ClaimTypesClaimQuery = []ClaimType{LP, Stake}
 )
 
 // IsValid checks if the input is one of the expected strings
@@ -40,12 +39,12 @@ func (mn MultiplierName) IsValid() error {
 }
 
 // IsValid checks if the input is one of the expected strings
-func (dt DepositType) IsValid() error {
+func (dt ClaimType) IsValid() error {
 	switch dt {
 	case LP, Stake:
 		return nil
 	}
-	return fmt.Errorf("invalid deposit type: %s", dt)
+	return fmt.Errorf("invalid claim type: %s", dt)
 }
 
 // ensure Msg interface compliance at compile time
@@ -58,17 +57,15 @@ var (
 
 // MsgDeposit deposit collateral to the harvest module.
 type MsgDeposit struct {
-	Depositor   sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	Amount      sdk.Coin       `json:"amount" yaml:"amount"`
-	DepositType string         `json:"deposit_type" yaml:"deposit_type"`
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Amount    sdk.Coin       `json:"amount" yaml:"amount"`
 }
 
 // NewMsgDeposit returns a new MsgDeposit
-func NewMsgDeposit(depositor sdk.AccAddress, amount sdk.Coin, depositType string) MsgDeposit {
+func NewMsgDeposit(depositor sdk.AccAddress, amount sdk.Coin) MsgDeposit {
 	return MsgDeposit{
-		Depositor:   depositor,
-		Amount:      amount,
-		DepositType: depositType,
+		Depositor: depositor,
+		Amount:    amount,
 	}
 }
 
@@ -86,7 +83,7 @@ func (msg MsgDeposit) ValidateBasic() error {
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
 	}
-	return DepositType(strings.ToLower(msg.DepositType)).IsValid()
+	return nil
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.
@@ -105,23 +102,20 @@ func (msg MsgDeposit) String() string {
 	return fmt.Sprintf(`Deposit Message:
 	Depositor:         %s
 	Amount: %s
-	Deposit Type: %s
-`, msg.Depositor, msg.Amount, msg.DepositType)
+`, msg.Depositor, msg.Amount)
 }
 
 // MsgWithdraw withdraw from the harvest module.
 type MsgWithdraw struct {
-	Depositor   sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	Amount      sdk.Coin       `json:"amount" yaml:"amount"`
-	DepositType string         `json:"deposit_type" yaml:"deposit_type"`
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
+	Amount    sdk.Coin       `json:"amount" yaml:"amount"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin, depositType string) MsgWithdraw {
+func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin) MsgWithdraw {
 	return MsgWithdraw{
-		Depositor:   depositor,
-		Amount:      amount,
-		DepositType: depositType,
+		Depositor: depositor,
+		Amount:    amount,
 	}
 }
 
@@ -139,7 +133,7 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
 	}
-	return DepositType(strings.ToLower(msg.DepositType)).IsValid()
+	return nil
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.
@@ -158,8 +152,7 @@ func (msg MsgWithdraw) String() string {
 	return fmt.Sprintf(`Withdraw Message:
 	Depositor:         %s
 	Amount: %s
-	Deposit Type: %s
-`, msg.Depositor, msg.Amount, msg.DepositType)
+`, msg.Depositor, msg.Amount)
 }
 
 // MsgClaimReward message type used to claim rewards
@@ -168,17 +161,17 @@ type MsgClaimReward struct {
 	Receiver       sdk.AccAddress `json:"receiver" yaml:"receiver"`
 	DepositDenom   string         `json:"deposit_denom" yaml:"deposit_denom"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
-	DepositType    string         `json:"deposit_type" yaml:"deposit_type"`
+	ClaimType      string         `json:"claim_type" yaml:"claim_type"`
 }
 
 // NewMsgClaimReward returns a new MsgClaimReward.
-func NewMsgClaimReward(sender, receiver sdk.AccAddress, depositDenom, depositType, multiplier string) MsgClaimReward {
+func NewMsgClaimReward(sender, receiver sdk.AccAddress, depositDenom, claimType, multiplier string) MsgClaimReward {
 	return MsgClaimReward{
 		Sender:         sender,
 		Receiver:       receiver,
 		DepositDenom:   depositDenom,
 		MultiplierName: multiplier,
-		DepositType:    depositType,
+		ClaimType:      claimType,
 	}
 }
 
@@ -199,7 +192,7 @@ func (msg MsgClaimReward) ValidateBasic() error {
 	if err := sdk.ValidateDenom(msg.DepositDenom); err != nil {
 		return fmt.Errorf("collateral type cannot be blank")
 	}
-	if err := DepositType(strings.ToLower(msg.DepositType)).IsValid(); err != nil {
+	if err := ClaimType(strings.ToLower(msg.ClaimType)).IsValid(); err != nil {
 		return err
 	}
 	return MultiplierName(strings.ToLower(msg.MultiplierName)).IsValid()

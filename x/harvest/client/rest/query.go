@@ -56,7 +56,6 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		var depositDenom string
 		var depositOwner sdk.AccAddress
-		var depositType types.DepositType
 
 		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
 			depositDenom = strings.TrimSpace(x)
@@ -71,17 +70,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		if x := r.URL.Query().Get(RestType); len(x) != 0 {
-			depositTypeStr := strings.ToLower(strings.TrimSpace(x))
-			err := types.DepositType(depositTypeStr).IsValid()
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			depositType = types.DepositType(depositTypeStr)
-		}
-
-		params := types.NewQueryDepositParams(page, limit, depositDenom, depositOwner, depositType)
+		params := types.NewQueryDepositParams(page, limit, depositDenom, depositOwner)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -115,7 +104,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		var depositDenom string
 		var claimOwner sdk.AccAddress
-		var depositType types.DepositType
+		var claimType types.ClaimType
 
 		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
 			depositDenom = strings.TrimSpace(x)
@@ -131,16 +120,16 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		if x := r.URL.Query().Get(RestType); len(x) != 0 {
-			depositTypeStr := strings.ToLower(strings.TrimSpace(x))
-			err := types.DepositType(depositTypeStr).IsValid()
+			claimTypeStr := strings.ToLower(strings.TrimSpace(x))
+			err := types.ClaimType(claimTypeStr).IsValid()
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
 			}
-			depositType = types.DepositType(depositTypeStr)
+			claimType = types.ClaimType(claimTypeStr)
 		}
 
-		params := types.NewQueryDepositParams(page, limit, depositDenom, claimOwner, depositType)
+		params := types.NewQueryClaimParams(page, limit, depositDenom, claimOwner, claimType)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {

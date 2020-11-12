@@ -84,59 +84,26 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 	depositDenom := len(params.DepositDenom) > 0
 	owner := len(params.Owner) > 0
-	depositType := len(params.DepositType) > 0
 
 	var deposits []types.Deposit
 	switch {
-	case depositDenom && owner && depositType:
-		deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom, params.DepositType)
+	case depositDenom && owner:
+		deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom)
 		if found {
 			deposits = append(deposits, deposit)
 		}
-	case depositDenom && owner:
-		for _, dt := range types.DepositTypesDepositQuery {
-			deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom, dt)
-			if found {
-				deposits = append(deposits, deposit)
-			}
-		}
-	case depositDenom && depositType:
-		k.IterateDepositsByTypeAndDenom(ctx, params.DepositType, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
+	case depositDenom:
+		k.IterateDepositsByDenom(ctx, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false
 		})
-	case owner && depositType:
-		schedules := k.GetParams(ctx).LiquidityProviderSchedules
-		for _, lps := range schedules {
-			deposit, found := k.GetDeposit(ctx, params.Owner, lps.DepositDenom, params.DepositType)
-			if found {
-				deposits = append(deposits, deposit)
-			}
-		}
-	case depositDenom:
-		for _, dt := range types.DepositTypesDepositQuery {
-			k.IterateDepositsByTypeAndDenom(ctx, dt, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
-				deposits = append(deposits, deposit)
-				return false
-			})
-		}
 	case owner:
 		schedules := k.GetParams(ctx).LiquidityProviderSchedules
 		for _, lps := range schedules {
-			for _, dt := range types.DepositTypesDepositQuery {
-				deposit, found := k.GetDeposit(ctx, params.Owner, lps.DepositDenom, dt)
-				if found {
-					deposits = append(deposits, deposit)
-				}
-			}
-		}
-	case depositType:
-		schedules := k.GetParams(ctx).LiquidityProviderSchedules
-		for _, lps := range schedules {
-			k.IterateDepositsByTypeAndDenom(ctx, params.DepositType, lps.DepositDenom, func(deposit types.Deposit) (stop bool) {
+			deposit, found := k.GetDeposit(ctx, params.Owner, lps.DepositDenom)
+			if found {
 				deposits = append(deposits, deposit)
-				return false
-			})
+			}
 		}
 	default:
 		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
@@ -169,47 +136,47 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	}
 	depositDenom := len(params.DepositDenom) > 0
 	owner := len(params.Owner) > 0
-	depositType := len(params.DepositType) > 0
+	claimType := len(params.ClaimType) > 0
 
 	var claims []types.Claim
 	switch {
-	case depositDenom && owner && depositType:
-		claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, params.DepositType)
+	case depositDenom && owner && claimType:
+		claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, params.ClaimType)
 		if found {
 			claims = append(claims, claim)
 		}
 	case depositDenom && owner:
-		for _, dt := range types.DepositTypesClaimQuery {
+		for _, dt := range types.ClaimTypesClaimQuery {
 			claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, dt)
 			if found {
 				claims = append(claims, claim)
 			}
 		}
-	case depositDenom && depositType:
-		k.IterateClaimsByTypeAndDenom(ctx, params.DepositType, params.DepositDenom, func(claim types.Claim) (stop bool) {
+	case depositDenom && claimType:
+		k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, params.DepositDenom, func(claim types.Claim) (stop bool) {
 			claims = append(claims, claim)
 			return false
 		})
-	case owner && depositType:
+	case owner && claimType:
 		harvestParams := k.GetParams(ctx)
 		switch {
-		case params.DepositType == types.LP:
+		case params.ClaimType == types.LP:
 			for _, lps := range harvestParams.LiquidityProviderSchedules {
-				claim, found := k.GetClaim(ctx, params.Owner, lps.DepositDenom, params.DepositType)
+				claim, found := k.GetClaim(ctx, params.Owner, lps.DepositDenom, params.ClaimType)
 				if found {
 					claims = append(claims, claim)
 				}
 			}
-		case params.DepositType == types.Stake:
+		case params.ClaimType == types.Stake:
 			for _, dss := range harvestParams.DelegatorDistributionSchedules {
-				claim, found := k.GetClaim(ctx, params.Owner, dss.DistributionSchedule.DepositDenom, params.DepositType)
+				claim, found := k.GetClaim(ctx, params.Owner, dss.DistributionSchedule.DepositDenom, params.ClaimType)
 				if found {
 					claims = append(claims, claim)
 				}
 			}
 		}
 	case depositDenom:
-		for _, dt := range types.DepositTypesClaimQuery {
+		for _, dt := range types.ClaimTypesClaimQuery {
 			k.IterateClaimsByTypeAndDenom(ctx, dt, params.DepositDenom, func(claim types.Claim) (stop bool) {
 				claims = append(claims, claim)
 				return false
@@ -229,16 +196,16 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 				claims = append(claims, claim)
 			}
 		}
-	case depositType:
+	case claimType:
 		harvestParams := k.GetParams(ctx)
 		for _, lps := range harvestParams.LiquidityProviderSchedules {
-			k.IterateClaimsByTypeAndDenom(ctx, params.DepositType, lps.DepositDenom, func(claim types.Claim) (stop bool) {
+			k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, lps.DepositDenom, func(claim types.Claim) (stop bool) {
 				claims = append(claims, claim)
 				return false
 			})
 		}
 		for _, dds := range harvestParams.DelegatorDistributionSchedules {
-			k.IterateClaimsByTypeAndDenom(ctx, params.DepositType, dds.DistributionSchedule.DepositDenom, func(claim types.Claim) (stop bool) {
+			k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, dds.DistributionSchedule.DepositDenom, func(claim types.Claim) (stop bool) {
 				claims = append(claims, claim)
 				return false
 			})

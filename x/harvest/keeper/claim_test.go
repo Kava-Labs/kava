@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 		claimOwner                sdk.AccAddress
 		receiver                  sdk.AccAddress
 		denom                     string
-		depositType               types.DepositType
+		claimType                 types.ClaimType
 		multiplier                types.MultiplierName
 		blockTime                 time.Time
 		createClaim               bool
@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.Stake,
+				claimType:                 types.Stake,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -135,7 +135,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test2"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -157,7 +157,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -179,7 +179,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               false,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -201,7 +201,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2022, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -223,7 +223,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				claimOwner:                sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("test2"))),
 				denom:                     "bnb",
-				depositType:               types.LP,
+				claimType:                 types.LP,
 				blockTime:                 time.Date(2020, 11, 1, 14, 0, 0, 0, time.UTC),
 				createClaim:               true,
 				claimAmount:               sdk.NewCoin("hard", sdk.NewInt(100)),
@@ -303,17 +303,17 @@ func (suite *KeeperTestSuite) TestClaim() {
 			suite.keeper = keeper
 
 			if tc.args.createClaim {
-				claim := types.NewClaim(tc.args.claimOwner, tc.args.denom, tc.args.claimAmount, tc.args.depositType)
+				claim := types.NewClaim(tc.args.claimOwner, tc.args.denom, tc.args.claimAmount, tc.args.claimType)
 				suite.Require().NotPanics(func() { suite.keeper.SetClaim(suite.ctx, claim) })
 			}
 
-			err := suite.keeper.ClaimReward(suite.ctx, tc.args.claimOwner, tc.args.receiver, tc.args.denom, tc.args.depositType, tc.args.multiplier)
+			err := suite.keeper.ClaimReward(suite.ctx, tc.args.claimOwner, tc.args.receiver, tc.args.denom, tc.args.claimType, tc.args.multiplier)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.receiver)
 				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
 				mAcc := suite.getModuleAccount(types.LPAccount)
-				if tc.args.depositType == types.Stake {
+				if tc.args.claimType == types.Stake {
 					mAcc = suite.getModuleAccount(types.DelegatorAccount)
 				}
 				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
@@ -324,7 +324,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 				} else {
 					suite.Require().False(ok)
 				}
-				_, f := suite.keeper.GetClaim(ctx, tc.args.claimOwner, tc.args.denom, tc.args.depositType)
+				_, f := suite.keeper.GetClaim(ctx, tc.args.claimOwner, tc.args.denom, tc.args.claimType)
 				suite.Require().False(f)
 			} else {
 				suite.Require().Error(err)
