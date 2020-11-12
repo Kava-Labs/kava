@@ -21,6 +21,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetTotalSupply(ctx, req, keeper)
 		case types.QueryCirculatingSupplyHARD:
 			return getCirculatingSupplyHARD(ctx, req, keeper)
+		case types.QueryCirculatingSupplyUSDX:
+			return getCirculatingSupplyUSDX(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
@@ -250,4 +252,14 @@ func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 	}
 	return bz, nil
 
+}
+
+func getCirculatingSupplyUSDX(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	totalSupply := keeper.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf("usdx")
+	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
+	bz, err := types.ModuleCdc.MarshalJSON(supplyInt)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	return bz, nil
 }

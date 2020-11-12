@@ -5,6 +5,7 @@ const (
 	QueryCirculatingSupply     = "circulating-supply"
 	QueryTotalSupply           = "total-supply"
 	QueryCirculatingSupplyHARD = "circulating-supply-hard"
+	QueryCirculatingSupplyUSDX = "circulating-supply-usdx"
 )
 
 // BaseQueryParams defines the parameters necessary for querying for all Evidence.
