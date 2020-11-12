@@ -36,6 +36,7 @@ var (
 	DepositsKeyPrefix                 = []byte{0x03}
 	ClaimsKeyPrefix                   = []byte{0x04}
 	BorrowsKeyPrefix                  = []byte{0x05}
+	BorrowedCoinsPrefix               = []byte{0x06}
 	sep                               = []byte(":")
 )
 

@@ -223,13 +223,15 @@ type Multipliers []Multiplier
 
 // BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
-	MaximumLimit sdk.Int `json:"maximum_limit" yaml:"maximum_limit"`
+	HasMaxLimit  bool    `json:"has_max_limit" yaml:"has_max_limit"`
+	MaximumLimit sdk.Dec `json:"maximum_limit" yaml:"maximum_limit"`
 	LoanToValue  sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
 }
 
 // NewBorrowLimit returns a new BorrowLimit
-func NewBorrowLimit(maximumLimit sdk.Int, loanToValue sdk.Dec) BorrowLimit {
+func NewBorrowLimit(hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec) BorrowLimit {
 	return BorrowLimit{
+		HasMaxLimit:  hasMaxLimit,
 		MaximumLimit: maximumLimit,
 		LoanToValue:  loanToValue,
 	}
@@ -238,7 +240,7 @@ func NewBorrowLimit(maximumLimit sdk.Int, loanToValue sdk.Dec) BorrowLimit {
 // Validate BorrowLimit
 func (bl BorrowLimit) Validate() error {
 	if bl.MaximumLimit.IsNegative() {
-		return fmt.Errorf("maximum limit cannot be negative: %s", bl.MaximumLimit)
+		return fmt.Errorf("maximum limit USD cannot be negative: %s", bl.MaximumLimit)
 	}
 	if !bl.LoanToValue.IsPositive() {
 		return fmt.Errorf("loan-to-value must be a positive integer: %s", bl.LoanToValue)
@@ -258,11 +260,11 @@ type MoneyMarket struct {
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, maximumLimit sdk.Int, loanToValue sdk.Dec,
+func NewMoneyMarket(denom string, hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec,
 	spotMarketID string, conversionFactor sdk.Int) MoneyMarket {
 	return MoneyMarket{
 		Denom:            denom,
-		BorrowLimit:      NewBorrowLimit(maximumLimit, loanToValue),
+		BorrowLimit:      NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
 		SpotMarketID:     spotMarketID,
 		ConversionFactor: conversionFactor,
 	}
@@ -314,7 +316,7 @@ func (p Params) String() string {
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
 	Delegator Distribution Schedule %s
-	Money Markets %s`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
+	Money Markets %v`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
 }
 
 // ParamKeyTable Key declaration for parameters

@@ -25,6 +25,7 @@ const (
 func (suite *KeeperTestSuite) TestBorrow() {
 
 	type args struct {
+		usdxBorrowLimit           sdk.Dec
 		priceKAVA                 sdk.Dec
 		loanToValueKAVA           sdk.Dec
 		priceBTCB                 sdk.Dec
@@ -51,6 +52,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"valid",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -72,6 +74,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: loan-to-value limited",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -92,6 +95,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"valid: multiple deposits",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.80"),
 				priceBTCB:                 sdk.MustNewDecFromStr("10000.00"),
@@ -112,6 +116,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: multiple deposits",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.80"),
 				priceBTCB:                 sdk.MustNewDecFromStr("10000.00"),
@@ -132,6 +137,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"valid: multiple previous borrows",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -153,6 +159,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: over loan-to-value with multiple previous borrows",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -174,6 +181,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: no price for asset",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -195,6 +203,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: borrow exceed module account balance",
 			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -211,6 +220,28 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			errArgs{
 				expectPass: false,
 				contains:   "exceeds module account balance:",
+			},
+		},
+		{
+			"invalid: over global asset borrow limit",
+			args{
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
+				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
+				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
+				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
+				loanToValueBTCB:           sdk.MustNewDecFromStr("0.01"),
+				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
+				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
+				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))},
+				previousBorrowCoins:       sdk.NewCoins(),
+				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(25*USDX_CF))),
+				expectedAccountBalance:    sdk.NewCoins(),
+				expectedModAccountBalance: sdk.NewCoins(),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "fails global asset borrow limit validation",
 			},
 		},
 	}
@@ -244,12 +275,12 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", sdk.NewInt(100000000*USDX_CF), sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF)),
-					types.NewMoneyMarket("busd", sdk.NewInt(100000000*BUSD_CF), sdk.MustNewDecFromStr("1"), "busd:usd", sdk.NewInt(BUSD_CF)),
-					types.NewMoneyMarket("ukava", sdk.NewInt(100000000*KAVA_CF), tc.args.loanToValueKAVA, "kava:usd", sdk.NewInt(KAVA_CF)),
-					types.NewMoneyMarket("btcb", sdk.NewInt(100000000*BTCB_CF), tc.args.loanToValueBTCB, "btcb:usd", sdk.NewInt(BTCB_CF)),
-					types.NewMoneyMarket("bnb", sdk.NewInt(100000000*BNB_CF), tc.args.loanToValueBNB, "bnb:usd", sdk.NewInt(BNB_CF)),
-					types.NewMoneyMarket("xyz", sdk.NewInt(1), tc.args.loanToValueBNB, "xyz:usd", sdk.NewInt(1)),
+					types.NewMoneyMarket("usdx", true, tc.args.usdxBorrowLimit, sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF)),
+					types.NewMoneyMarket("busd", false, sdk.NewDec(100000000*BUSD_CF), sdk.MustNewDecFromStr("1"), "busd:usd", sdk.NewInt(BUSD_CF)),
+					types.NewMoneyMarket("ukava", false, sdk.NewDec(100000000*KAVA_CF), tc.args.loanToValueKAVA, "kava:usd", sdk.NewInt(KAVA_CF)),
+					types.NewMoneyMarket("btcb", false, sdk.NewDec(100000000*BTCB_CF), tc.args.loanToValueBTCB, "btcb:usd", sdk.NewInt(BTCB_CF)),
+					types.NewMoneyMarket("bnb", false, sdk.NewDec(100000000*BNB_CF), tc.args.loanToValueBNB, "bnb:usd", sdk.NewInt(BNB_CF)),
+					types.NewMoneyMarket("xyz", false, sdk.NewDec(1), tc.args.loanToValueBNB, "xyz:usd", sdk.NewInt(1)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
@@ -327,7 +358,11 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 			// Execute user's previous borrows
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.previousBorrowCoins)
-			suite.Require().NoError(err)
+			if tc.args.previousBorrowCoins.IsZero() {
+				suite.Require().True(strings.Contains(err.Error(), "cannot borrow zero coins"))
+			} else {
+				suite.Require().NoError(err)
+			}
 
 			// Now that our state is properly set up, execute the last borrow
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
