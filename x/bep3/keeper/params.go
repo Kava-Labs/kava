@@ -139,3 +139,28 @@ func (k Keeper) GetSupplyLimit(ctx sdk.Context, denom string) (types.SupplyLimit
 	}
 	return asset.SupplyLimit, nil
 }
+
+// ------------------------------------------
+//				Cross Asset Getters
+// ------------------------------------------
+
+// GetAuthorizedAddresses returns a list of addresses that have special authorization within this module, eg all the deputies.
+func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
+	assetParams, found := k.GetAssets(ctx)
+	if !found {
+		// no assets params is a valid genesis state
+		return nil
+	}
+	addresses := []sdk.AccAddress{}
+	uniqueAddresses := map[string]bool{}
+
+	for _, ap := range assetParams {
+		a := ap.DeputyAddress
+		// de-dup addresses
+		if _, found := uniqueAddresses[a.String()]; !found {
+			addresses = append(addresses, a)
+		}
+		uniqueAddresses[a.String()] = true
+	}
+	return addresses
+}

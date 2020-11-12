@@ -60,3 +60,20 @@ func (k Keeper) GetMarket(ctx sdk.Context, marketID string) (types.Market, bool)
 	return types.Market{}, false
 
 }
+
+// GetAuthorizedAddresses returns a list of addresses that have special authorization within this module, eg the oracles of all markets.
+func (k Keeper) GetAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
+	oracles := []sdk.AccAddress{}
+	uniqueOracles := map[string]bool{}
+
+	for _, m := range k.GetMarkets(ctx) {
+		for _, o := range m.Oracles {
+			// de-dup list of oracles
+			if _, found := uniqueOracles[o.String()]; !found {
+				oracles = append(oracles, o)
+			}
+			uniqueOracles[o.String()] = true
+		}
+	}
+	return oracles
+}
