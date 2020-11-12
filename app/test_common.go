@@ -11,7 +11,6 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -188,7 +187,7 @@ func NewAuthGenState(addresses []sdk.AccAddress, coins []sdk.Coins) GenesisState
 	return GenesisState{auth.ModuleName: auth.ModuleCdc.MustMarshalJSON(authGenesis)}
 }
 
-// GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
+// GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n secp256k1 private keys and addresses.
 func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
 	keys = make([]crypto.PrivKey, n)
@@ -199,11 +198,7 @@ func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccA
 		if err != nil {
 			panic("Could not read randomness")
 		}
-		if r.Int63()%2 == 0 {
-			keys[i] = secp256k1.GenPrivKeySecp256k1(secret)
-		} else {
-			keys[i] = ed25519.GenPrivKeyFromSecret(secret)
-		}
+		keys[i] = secp256k1.GenPrivKeySecp256k1(secret)
 		addrs[i] = sdk.AccAddress(keys[i].PubKey().Address())
 	}
 	return
