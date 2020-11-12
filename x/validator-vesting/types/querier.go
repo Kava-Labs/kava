@@ -2,16 +2,21 @@ package types
 
 // Querier routes for the validator vesting module
 const (
-	QueryCirculatingSupply = "circulating-supply"
-	QueryTotalSupply       = "total-supply"
+	QueryCirculatingSupply     = "circulating-supply"
+	QueryTotalSupply           = "total-supply"
+	QueryCirculatingSupplyHARD = "circulating-supply-hard"
 )
 
-// QueryCirculatingSupplyParams defines the parameters necessary for querying for all Evidence.
+// BaseQueryParams defines the parameters necessary for querying for all Evidence.
 type BaseQueryParams struct {
 	Page  int `json:"page" yaml:"page"`
 	Limit int `json:"limit" yaml:"limit"`
 }
 
+// NewBaseQueryParams returns a new BaseQueryParams
 func NewBaseQueryParams(page, limit int) BaseQueryParams {
-	return BaseQueryParams{Page: page, Limit: limit}
+	return BaseQueryParams{
+		Page:  page,
+		Limit: limit,
+	}
 }

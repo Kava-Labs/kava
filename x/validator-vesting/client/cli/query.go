@@ -22,6 +22,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	valVestingQueryCmd.AddCommand(flags.GetCommands(
 		queryCirculatingSupply(queryRoute, cdc),
 		queryTotalSupply(queryRoute, cdc),
+		queryCirculatingSupplyHARD(queryRoute, cdc),
 	)...)
 
 	return valVestingQueryCmd
@@ -65,6 +66,32 @@ func queryTotalSupply(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			// Query
 			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryTotalSupply), nil)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var out int64
+			if err := cdc.UnmarshalJSON(res, &out); err != nil {
+				return fmt.Errorf("failed to unmarshal supply: %w", err)
+			}
+			return cliCtx.PrintOutput(out)
+		},
+	}
+}
+
+func queryCirculatingSupplyHARD(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "circulating-supply-hard",
+		Short: "Get HARD circulating supply",
+		Long:  "Get the current circulating supply of HARD tokens",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Query
+			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryCirculatingSupplyHARD), nil)
 			if err != nil {
 				return err
 			}
