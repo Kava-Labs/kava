@@ -75,8 +75,8 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", false, sdk.NewDec(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
-					types.NewMoneyMarket("ukava", false, sdk.NewDec(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
+					types.NewMoneyMarket("usdx", false, sdk.NewDec(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))),
+					types.NewMoneyMarket("ukava", false, sdk.NewDec(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))),
 				},
 			), tc.args.previousBlockTime, types.DefaultDistributionTimes)
 			tApp.InitializeFromGenesisStates(app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
@@ -443,8 +443,8 @@ func harvestGenesisState(rewardRate sdk.Coin) app.GenesisState {
 				),
 			},
 			types.MoneyMarkets{
-				types.NewMoneyMarket("usdx", false, sdk.NewDec(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000)),
-				types.NewMoneyMarket("ukava", false, sdk.NewDec(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000)),
+				types.NewMoneyMarket("usdx", false, sdk.NewDec(1000000000000000), loanToValue, "usdx:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))),
+				types.NewMoneyMarket("ukava", false, sdk.NewDec(1000000000000000), loanToValue, "kava:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))),
 			},
 		),
 		types.DefaultPreviousBlockTime,

@@ -260,18 +260,15 @@ type MoneyMarket struct {
 	InterestRateModel InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
 }
 
-// TODO: refactor NewMoneyMarket to take BorrowLimit, InterestRateModel as params
-
 // NewMoneyMarket returns a new MoneyMarket
 func NewMoneyMarket(denom string, hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec,
-	spotMarketID string, conversionFactor sdk.Int, baseRateAPY, baseMultiplier, kink,
-	jumpMultiplier sdk.Dec) MoneyMarket {
+	spotMarketID string, conversionFactor sdk.Int, interestRateModel InterestRateModel) MoneyMarket {
 	return MoneyMarket{
 		Denom:             denom,
 		BorrowLimit:       NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
 		SpotMarketID:      spotMarketID,
 		ConversionFactor:  conversionFactor,
-		InterestRateModel: NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier),
+		InterestRateModel: interestRateModel,
 	}
 }
 
@@ -339,8 +336,6 @@ func (irm InterestRateModel) Validate() error {
 	if irm.JumpMultiplier.IsNegative() {
 		return fmt.Errorf("Jump multiplier must be positive")
 	}
-
-	// TODO: maximum value for BaseMultiplier and JumpMultiplier?
 
 	return nil
 }
