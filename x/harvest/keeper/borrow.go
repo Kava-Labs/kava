@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -90,15 +89,12 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		if moneyMarket.BorrowLimit.HasMaxLimit {
 			var assetTotalBorrowedAmount sdk.Int
 			totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
-			fmt.Println("totalBorrowedCoins:", totalBorrowedCoins)
 			if !found {
 				assetTotalBorrowedAmount = sdk.ZeroInt()
 			} else {
 				assetTotalBorrowedAmount = totalBorrowedCoins.AmountOf(coin.Denom)
 			}
 			newProposedAssetTotalBorrowedAmount := sdk.NewDecFromInt(assetTotalBorrowedAmount.Add(coin.Amount))
-			fmt.Println("newProposedAssetTotalBorrowedAmount:", newProposedAssetTotalBorrowedAmount)
-			fmt.Println("MaximumLimit:", moneyMarket.BorrowLimit.MaximumLimit)
 			if newProposedAssetTotalBorrowedAmount.GT(moneyMarket.BorrowLimit.MaximumLimit) {
 				return sdkerrors.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
 					"proposed borrow would result in %s borrowed, but the maximum global asset borrow limit is %s",
