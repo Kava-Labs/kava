@@ -86,7 +86,6 @@ func getCirculatingSupply(blockTime time.Time) sdk.Int {
 	default:
 		return sdk.NewInt(100000000)
 	}
-
 }
 
 func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
@@ -251,7 +250,6 @@ func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
-
 }
 
 func getCirculatingSupplyUSDX(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
