@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -86,19 +87,23 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 
 		// Validate the requested borrow value for the asset against the money market's global borrow limit
-		var assetTotalBorrowedAmount sdk.Int
-		totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
-		if !found {
-			assetTotalBorrowedAmount = sdk.ZeroInt()
-		} else {
-			assetTotalBorrowedAmount = totalBorrowedCoins.AmountOf(coin.Denom)
-		}
-		assetTotalBorrowedUSDValue := sdk.NewDecFromInt(assetTotalBorrowedAmount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
-		newProposedAssetTotalBorrowedUSDValue := assetTotalBorrowedUSDValue.Add(coinUSDValue)
-		if newProposedAssetTotalBorrowedUSDValue.GT(moneyMarket.BorrowLimit.MaximumLimitUSD) {
-			return sdkerrors.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
-				"proposed borrow would result in %s USD value borrowed for %s, but the maximum global asset borrow limit is %s USD value",
-				newProposedAssetTotalBorrowedUSDValue, coin.Denom, moneyMarket.BorrowLimit.MaximumLimitUSD)
+		if moneyMarket.BorrowLimit.HasMaxLimit {
+			var assetTotalBorrowedAmount sdk.Int
+			totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
+			fmt.Println("totalBorrowedCoins:", totalBorrowedCoins)
+			if !found {
+				assetTotalBorrowedAmount = sdk.ZeroInt()
+			} else {
+				assetTotalBorrowedAmount = totalBorrowedCoins.AmountOf(coin.Denom)
+			}
+			newProposedAssetTotalBorrowedAmount := sdk.NewDecFromInt(assetTotalBorrowedAmount.Add(coin.Amount))
+			fmt.Println("newProposedAssetTotalBorrowedAmount:", newProposedAssetTotalBorrowedAmount)
+			fmt.Println("MaximumLimit:", moneyMarket.BorrowLimit.MaximumLimit)
+			if newProposedAssetTotalBorrowedAmount.GT(moneyMarket.BorrowLimit.MaximumLimit) {
+				return sdkerrors.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
+					"proposed borrow would result in %s borrowed, but the maximum global asset borrow limit is %s",
+					newProposedAssetTotalBorrowedAmount, moneyMarket.BorrowLimit.MaximumLimit)
+			}
 		}
 		proprosedBorrowUSDValue = proprosedBorrowUSDValue.Add(coinUSDValue)
 	}

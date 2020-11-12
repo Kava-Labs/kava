@@ -25,7 +25,7 @@ const (
 func (suite *KeeperTestSuite) TestBorrow() {
 
 	type args struct {
-		usdxBorrowLimitUSD        sdk.Dec
+		usdxBorrowLimit           sdk.Dec
 		priceKAVA                 sdk.Dec
 		loanToValueKAVA           sdk.Dec
 		priceBTCB                 sdk.Dec
@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"valid",
 			args{
-				usdxBorrowLimitUSD:        sdk.MustNewDecFromStr("10000"), // $10,000 USD limit
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: loan-to-value limited",
 			args{
-				usdxBorrowLimitUSD:        sdk.MustNewDecFromStr("10000"), // $10,000 USD limit
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"valid: multiple deposits",
 			args{
-				usdxBorrowLimitUSD:        sdk.MustNewDecFromStr("10000"), // $10,000 USD limit
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.80"),
 				priceBTCB:                 sdk.MustNewDecFromStr("10000.00"),
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: multiple deposits",
 			args{
-				usdxBorrowLimitUSD:        sdk.MustNewDecFromStr("10000"), // $10,000 USD limit
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.80"),
 				priceBTCB:                 sdk.MustNewDecFromStr("10000.00"),
@@ -137,7 +137,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"valid: multiple previous borrows",
 			args{
-				usdxBorrowLimitUSD:        sdk.MustNewDecFromStr("10000"), // $10,000 USD limit
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -159,7 +159,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: over loan-to-value with multiple previous borrows",
 			args{
-				usdxBorrowLimitUSD:        sdk.MustNewDecFromStr("10000"), // $10,000 USD limit
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
 				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
@@ -181,8 +181,11 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		{
 			"invalid: no price for asset",
 			args{
-				priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
-				loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
+				// priceKAVA:                 sdk.MustNewDecFromStr("5.00"),
+				// loanToValueKAVA:           sdk.MustNewDecFromStr("0.6"),
+				usdxBorrowLimit:           sdk.MustNewDecFromStr("20000000"),
+				priceKAVA:                 sdk.MustNewDecFromStr("2.00"),
+				loanToValueKAVA:           sdk.MustNewDecFromStr("0.8"),
 				priceBTCB:                 sdk.MustNewDecFromStr("0.00"),
 				loanToValueBTCB:           sdk.MustNewDecFromStr("0.01"),
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
@@ -258,12 +261,12 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", tc.args.usdxBorrowLimitUSD, sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF)),
-					types.NewMoneyMarket("busd", sdk.NewDec(100000000*BUSD_CF), sdk.MustNewDecFromStr("1"), "busd:usd", sdk.NewInt(BUSD_CF)),
-					types.NewMoneyMarket("ukava", sdk.NewDec(100000000*KAVA_CF), tc.args.loanToValueKAVA, "kava:usd", sdk.NewInt(KAVA_CF)),
-					types.NewMoneyMarket("btcb", sdk.NewDec(100000000*BTCB_CF), tc.args.loanToValueBTCB, "btcb:usd", sdk.NewInt(BTCB_CF)),
-					types.NewMoneyMarket("bnb", sdk.NewDec(100000000*BNB_CF), tc.args.loanToValueBNB, "bnb:usd", sdk.NewInt(BNB_CF)),
-					types.NewMoneyMarket("xyz", sdk.NewDec(1), tc.args.loanToValueBNB, "xyz:usd", sdk.NewInt(1)),
+					types.NewMoneyMarket("usdx", true, tc.args.usdxBorrowLimitUSD, sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF)),
+					types.NewMoneyMarket("busd", false, sdk.NewDec(100000000*BUSD_CF), sdk.MustNewDecFromStr("1"), "busd:usd", sdk.NewInt(BUSD_CF)),
+					types.NewMoneyMarket("ukava", false, sdk.NewDec(100000000*KAVA_CF), tc.args.loanToValueKAVA, "kava:usd", sdk.NewInt(KAVA_CF)),
+					types.NewMoneyMarket("btcb", false, sdk.NewDec(100000000*BTCB_CF), tc.args.loanToValueBTCB, "btcb:usd", sdk.NewInt(BTCB_CF)),
+					types.NewMoneyMarket("bnb", false, sdk.NewDec(100000000*BNB_CF), tc.args.loanToValueBNB, "bnb:usd", sdk.NewInt(BNB_CF)),
+					types.NewMoneyMarket("xyz", false, sdk.NewDec(1), tc.args.loanToValueBNB, "xyz:usd", sdk.NewInt(1)),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
