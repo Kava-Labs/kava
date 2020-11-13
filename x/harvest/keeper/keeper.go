@@ -275,15 +275,22 @@ func (k Keeper) SetInterestRateModel(ctx sdk.Context, denom string, interestRate
 	store.Set([]byte(denom), bz)
 }
 
+// DeleteInterestRateModel deletes an interest rate model from the store
+func (k Keeper) DeleteInterestRateModel(ctx sdk.Context, denom string) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestRateModelsPrefix)
+	store.Delete([]byte(denom))
+}
+
 // IterateInterestRateModels iterates over all interest rate model objects in the store and performs a callback function
-func (k Keeper) IterateInterestRateModels(ctx sdk.Context, cb func(interestRateModel types.InterestRateModel) (stop bool)) {
+// 		that returns both the interest rate model value and the key it's stored under
+func (k Keeper) IterateInterestRateModels(ctx sdk.Context, cb func(denom string, interestRateModel types.InterestRateModel) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestRateModelsPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var interestRateModel types.InterestRateModel
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &interestRateModel)
-		if cb(interestRateModel) {
+		if cb(string(iterator.Key()), interestRateModel) {
 			break
 		}
 	}

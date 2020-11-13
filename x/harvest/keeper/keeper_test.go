@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -151,6 +152,51 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
 	suite.Require().NotPanics(func() { suite.keeper.DeleteClaim(suite.ctx, claim) })
 	_, f = suite.keeper.GetClaim(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
 	suite.Require().False(f)
+}
+
+func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {
+	denom := "test"
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+
+	_, f := suite.keeper.GetInterestRateModel(suite.ctx, denom)
+	suite.Require().False(f)
+
+	suite.keeper.SetInterestRateModel(suite.ctx, denom, model)
+
+	testInterestRateModel, f := suite.keeper.GetInterestRateModel(suite.ctx, denom)
+	suite.Require().True(f)
+	suite.Require().Equal(model, testInterestRateModel)
+
+	suite.Require().NotPanics(func() { suite.keeper.DeleteInterestRateModel(suite.ctx, denom) })
+
+	_, f = suite.keeper.GetInterestRateModel(suite.ctx, denom)
+	suite.Require().False(f)
+
+}
+
+func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
+	testDenom := "test"
+	var setModels types.InterestRateModels
+	var setDenoms []string
+	for i := 0; i < 5; i++ {
+		denom := testDenom + strconv.Itoa(i)
+		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+		suite.Require().NotPanics(func() { suite.keeper.SetInterestRateModel(suite.ctx, denom, model) })
+		// Save the denom and model
+		setDenoms = append(setDenoms, denom)
+		setModels = append(setModels, model)
+	}
+
+	var seenModels types.InterestRateModels
+	var seenDenoms []string
+	suite.keeper.IterateInterestRateModels(suite.ctx, func(denom string, i types.InterestRateModel) bool {
+		seenDenoms = append(seenDenoms, denom)
+		seenModels = append(seenModels, i)
+		return false
+	})
+
+	suite.Require().Equal(setModels, seenModels)
+	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
