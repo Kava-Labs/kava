@@ -61,7 +61,7 @@ func NewTestApp() TestApp {
 	SetBip44CoinType(config)
 
 	db := tmdb.NewMemDB()
-	app := NewApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, 0)
+	app := NewApp(log.NewNopLogger(), db, nil, AppOptions{})
 	return TestApp{App: *app}
 }
 

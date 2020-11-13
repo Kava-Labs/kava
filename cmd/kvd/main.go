@@ -96,7 +96,12 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 	}
 
 	return app.NewApp(
-		logger, db, traceStore, true, skipUpgradeHeights, invCheckPeriod,
+		logger, db, traceStore,
+		app.AppOptions{
+			SkipLoadLatest:       false,
+			SkipUpgradeHeights:   skipUpgradeHeights,
+			InvariantCheckPeriod: invCheckPeriod,
+		},
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
@@ -110,13 +115,21 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		tempApp := app.NewApp(logger, db, traceStore, false, map[int64]bool{}, uint(1))
+		opts := app.AppOptions{
+			SkipLoadLatest:       true,
+			InvariantCheckPeriod: uint(1),
+		}
+		tempApp := app.NewApp(logger, db, traceStore, opts)
 		err := tempApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
+	opts := app.AppOptions{
+		SkipLoadLatest:       false,
+		InvariantCheckPeriod: uint(1),
+	}
+	tempApp := app.NewApp(logger, db, traceStore, opts)
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

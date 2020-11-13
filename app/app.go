@@ -117,6 +117,14 @@ var (
 // Verify app interface at compile time
 var _ simapp.App = (*App)(nil)
 
+// AppOptions bundles several configuration params for an App.
+// The zero value can be used as a sensible default.
+type AppOptions struct {
+	SkipLoadLatest       bool
+	SkipUpgradeHeights   map[int64]bool
+	InvariantCheckPeriod uint
+}
+
 // App represents an extended ABCI application
 type App struct {
 	*bam.BaseApp
@@ -160,9 +168,7 @@ type App struct {
 }
 
 // NewApp returns a reference to an initialized App.
-func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	skipUpgradeHeights map[int64]bool, invCheckPeriod uint,
-	baseAppOptions ...func(*bam.BaseApp)) *App {
+func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptions, baseAppOptions ...func(*bam.BaseApp)) *App {
 
 	cdc := MakeCodec()
 
@@ -183,7 +189,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	var app = &App{
 		BaseApp:        bApp,
 		cdc:            cdc,
-		invCheckPeriod: invCheckPeriod,
+		invCheckPeriod: appOpts.InvariantCheckPeriod,
 		keys:           keys,
 		tkeys:          tkeys,
 	}
@@ -258,12 +264,12 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	)
 	app.crisisKeeper = crisis.NewKeeper(
 		crisisSubspace,
-		invCheckPeriod,
+		app.invCheckPeriod,
 		app.supplyKeeper,
 		auth.FeeCollectorName,
 	)
 	app.upgradeKeeper = upgrade.NewKeeper(
-		skipUpgradeHeights,
+		appOpts.SkipUpgradeHeights,
 		keys[upgrade.StoreKey],
 		app.cdc,
 	)
@@ -473,11 +479,13 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	// initialize the app
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer, app.bep3Keeper, app.pricefeedKeeper))
+	var antehandler sdk.AnteHandler
+		antehandler = ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer)
+	app.SetAnteHandler(antehandler)
 	app.SetEndBlocker(app.EndBlocker)
 
 	// load store
-	if loadLatest {
+	if !appOpts.SkipLoadLatest {
 		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 		if err != nil {
 			tmos.Exit(err.Error())
