@@ -10,6 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/libs/log"
+	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3"
@@ -17,12 +20,26 @@ import (
 )
 
 func TestAppAnteHandler(t *testing.T) {
-	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(5)
-	unauthed := 0
-	deputy := 1
-	oracles := 2
+	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
+	unauthed := testAddresses[0:2]
+	unathedKeys := testPrivKeys[0:2]
+	deputy := testAddresses[2]
+	deputyKey := testPrivKeys[2]
+	oracles := testAddresses[3:6]
+	oraclesKeys := testPrivKeys[3:6]
+	manual := testAddresses[6:]
+	manualKeys := testPrivKeys[6:]
 
-	tApp := app.NewTestApp()
+	db := tmdb.NewMemDB()
+	tApp := app.TestApp{
+		App: *app.NewApp(log.NewNopLogger(), db, nil,
+			app.AppOptions{
+				MempoolEnableAuth:    true,
+				MempoolAuthAddresses: manual,
+			},
+		),
+	}
+
 	chainID := "internal-test-chain"
 	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -31,29 +48,39 @@ func TestAppAnteHandler(t *testing.T) {
 			sdk.NewCoins(sdk.NewInt64Coin("ukava", 1_000_000_000)),
 			testAddresses,
 		),
-		newBep3GenStateMulti(testAddresses[deputy]),
-		newPricefeedGenStateMulti(testAddresses[oracles:]),
+		newBep3GenStateMulti(deputy),
+		newPricefeedGenStateMulti(oracles),
 	)
 
 	testcases := []struct {
-		name         string
-		addressIndex int
-		expectPass   bool
+		name       string
+		address    sdk.AccAddress
+		privKey    crypto.PrivKey
+		expectPass bool
 	}{
 		{
-			name:         "unauthorized",
-			addressIndex: unauthed,
-			expectPass:   false,
+			name:       "unauthorized",
+			address:    unauthed[1],
+			privKey:    unathedKeys[1],
+			expectPass: false,
 		},
 		{
-			name:         "oracle",
-			addressIndex: oracles,
-			expectPass:   true,
+			name:       "oracle",
+			address:    oracles[1],
+			privKey:    oraclesKeys[1],
+			expectPass: true,
 		},
 		{
-			name:         "deputy",
-			addressIndex: deputy,
-			expectPass:   true,
+			name:       "deputy",
+			address:    deputy,
+			privKey:    deputyKey,
+			expectPass: true,
+		},
+		{
+			name:       "manual",
+			address:    manual[1],
+			privKey:    manualKeys[1],
+			expectPass: true,
 		},
 	}
 
@@ -62,7 +89,7 @@ func TestAppAnteHandler(t *testing.T) {
 			stdTx := helpers.GenTx(
 				[]sdk.Msg{
 					bank.NewMsgSend(
-						testAddresses[tc.addressIndex],
+						tc.address,
 						testAddresses[0],
 						sdk.NewCoins(sdk.NewInt64Coin("ukava", 1_000_000)),
 					),
@@ -70,9 +97,9 @@ func TestAppAnteHandler(t *testing.T) {
 				sdk.NewCoins(), // no fee
 				helpers.DefaultGenTxGas,
 				chainID,
-				[]uint64{0}, // fixing the sequence numbers may cause tests to fail sig verification if the same address is used twice
 				[]uint64{0},
-				testPrivKeys[tc.addressIndex],
+				[]uint64{0}, // fixed sequence numbers will cause tests to fail sig verification if the same address is used twice
+				tc.privKey,
 			)
 			txBytes, err := auth.DefaultTxEncoder(tApp.Codec())(stdTx)
 			require.NoError(t, err)

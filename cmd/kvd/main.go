@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -28,7 +29,11 @@ import (
 )
 
 // kvd custom flags
-const flagInvCheckPeriod = "inv-check-period"
+const (
+	flagInvCheckPeriod         = "inv-check-period"
+	configMempoolEnableAuth    = "mempool.enable_authentication"
+	configMempoolAuthAddresses = "mempool.authorized_addresses"
+)
 
 var invCheckPeriod uint
 
@@ -95,12 +100,20 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 		panic(err)
 	}
 
+	mempoolEnableAuth := viper.GetBool(configMempoolEnableAuth)
+	mempoolAuthAddresses, err := accAddressesFromBech32(viper.GetStringSlice(configMempoolAuthAddresses)...)
+	if err != nil {
+		panic(fmt.Sprintf("could not get authorized address from config: %v", err))
+	}
+
 	return app.NewApp(
 		logger, db, traceStore,
 		app.AppOptions{
 			SkipLoadLatest:       false,
 			SkipUpgradeHeights:   skipUpgradeHeights,
 			InvariantCheckPeriod: invCheckPeriod,
+			MempoolEnableAuth:    mempoolEnableAuth,
+			MempoolAuthAddresses: mempoolAuthAddresses,
 		},
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
@@ -132,4 +145,16 @@ func exportAppStateAndTMValidators(
 	}
 	tempApp := app.NewApp(logger, db, traceStore, opts)
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+}
+
+func accAddressesFromBech32(addresses ...string) ([]sdk.AccAddress, error) {
+	var decodedAddresses []sdk.AccAddress
+	for _, s := range addresses {
+		a, err := sdk.AccAddressFromBech32(s)
+		if err != nil {
+			return nil, err
+		}
+		decodedAddresses = append(decodedAddresses, a)
+	}
+	return decodedAddresses, nil
 }

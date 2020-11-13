@@ -123,6 +123,8 @@ type AppOptions struct {
 	SkipLoadLatest       bool
 	SkipUpgradeHeights   map[int64]bool
 	InvariantCheckPeriod uint
+	MempoolEnableAuth    bool
+	MempoolAuthAddresses []sdk.AccAddress
 }
 
 // App represents an extended ABCI application
@@ -480,7 +482,12 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	var antehandler sdk.AnteHandler
+	if appOpts.MempoolEnableAuth {
+		var getAuthorizedAddresses ante.AddressFetcher = func(sdk.Context) []sdk.AccAddress { return appOpts.MempoolAuthAddresses }
+		antehandler = ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer, app.bep3Keeper.GetAuthorizedAddresses, app.pricefeedKeeper.GetAuthorizedAddresses, getAuthorizedAddresses)
+	} else {
 		antehandler = ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer)
+	}
 	app.SetAnteHandler(antehandler)
 	app.SetEndBlocker(app.EndBlocker)
 
