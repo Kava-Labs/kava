@@ -11,5 +11,6 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		k.ApplyDelegationRewards(ctx, k.BondDenom(ctx))
 		k.SetPreviousDelegationDistribution(ctx, ctx.BlockTime(), k.BondDenom(ctx))
 	}
+	k.ApplyInterestRateUpdates(ctx)
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 }

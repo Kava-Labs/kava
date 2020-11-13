@@ -37,6 +37,7 @@ var (
 	ClaimsKeyPrefix                   = []byte{0x04}
 	BorrowsKeyPrefix                  = []byte{0x05}
 	BorrowedCoinsPrefix               = []byte{0x06}
+	InterestRateModelsPrefix          = []byte{0x07}
 	sep                               = []byte(":")
 )
 

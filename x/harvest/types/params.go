@@ -253,20 +253,22 @@ func (bl BorrowLimit) Validate() error {
 
 // MoneyMarket is a money market for an individual asset
 type MoneyMarket struct {
-	Denom            string      `json:"denom" yaml:"denom"`
-	BorrowLimit      BorrowLimit `json:"borrow_limit" yaml:"borrow_limit"`
-	SpotMarketID     string      `json:"spot_market_id" yaml:"spot_market_id"`
-	ConversionFactor sdk.Int     `json:"conversion_factor" yaml:"conversion_factor"`
+	Denom             string            `json:"denom" yaml:"denom"`
+	BorrowLimit       BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID      string            `json:"spot_market_id" yaml:"spot_market_id"`
+	ConversionFactor  sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
+	InterestRateModel InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
 }
 
 // NewMoneyMarket returns a new MoneyMarket
 func NewMoneyMarket(denom string, hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec,
-	spotMarketID string, conversionFactor sdk.Int) MoneyMarket {
+	spotMarketID string, conversionFactor sdk.Int, interestRateModel InterestRateModel) MoneyMarket {
 	return MoneyMarket{
-		Denom:            denom,
-		BorrowLimit:      NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
-		SpotMarketID:     spotMarketID,
-		ConversionFactor: conversionFactor,
+		Denom:             denom,
+		BorrowLimit:       NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
+		SpotMarketID:      spotMarketID,
+		ConversionFactor:  conversionFactor,
+		InterestRateModel: interestRateModel,
 	}
 }
 
@@ -277,6 +279,10 @@ func (mm MoneyMarket) Validate() error {
 	}
 
 	if err := mm.BorrowLimit.Validate(); err != nil {
+		return err
+	}
+
+	if err := mm.InterestRateModel.Validate(); err != nil {
 		return err
 	}
 	return nil
@@ -294,6 +300,65 @@ func (mms MoneyMarkets) Validate() error {
 	}
 	return nil
 }
+
+// InterestRateModel contains information about an asset's interest rate
+type InterestRateModel struct {
+	BaseRateAPY    sdk.Dec `json:"base_rate_apy" yaml:"base_rate_apy"`
+	BaseMultiplier sdk.Dec `json:"base_multiplier" yaml:"base_multiplier"`
+	Kink           sdk.Dec `json:"kink" yaml:"kink"`
+	JumpMultiplier sdk.Dec `json:"jump_multiplier" yaml:"jump_multiplier"`
+}
+
+// NewInterestRateModel returns a new InterestRateModel
+func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.Dec) InterestRateModel {
+	return InterestRateModel{
+		BaseRateAPY:    baseRateAPY,
+		BaseMultiplier: baseMultiplier,
+		Kink:           kink,
+		JumpMultiplier: jumpMultiplier,
+	}
+}
+
+// Validate InterestRateModel param
+func (irm InterestRateModel) Validate() error {
+	if irm.BaseRateAPY.IsNegative() || irm.BaseRateAPY.GT(sdk.OneDec()) {
+		return fmt.Errorf("Base rate APY must be between 0.0-1.0")
+	}
+
+	if irm.BaseMultiplier.IsNegative() {
+		return fmt.Errorf("Base multiplier must be positive")
+	}
+
+	if irm.Kink.IsNegative() || irm.Kink.GT(sdk.OneDec()) {
+		return fmt.Errorf("Kink must be between 0.0-1.0")
+	}
+
+	if irm.JumpMultiplier.IsNegative() {
+		return fmt.Errorf("Jump multiplier must be positive")
+	}
+
+	return nil
+}
+
+// Equal returns a boolean indicating if an InterestRateModel is equal to another InterestRateModel
+func (irm InterestRateModel) Equal(comparisonIRM InterestRateModel) bool {
+	if !irm.BaseRateAPY.Equal(comparisonIRM.BaseRateAPY) {
+		return false
+	}
+	if !irm.BaseMultiplier.Equal(comparisonIRM.BaseMultiplier) {
+		return false
+	}
+	if !irm.Kink.Equal(comparisonIRM.Kink) {
+		return false
+	}
+	if !irm.JumpMultiplier.Equal(comparisonIRM.JumpMultiplier) {
+		return false
+	}
+	return true
+}
+
+// InterestRateModels slice of InterestRateModel
+type InterestRateModels []InterestRateModel
 
 // NewParams returns a new params object
 func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules, moneyMarkets MoneyMarkets) Params {
