@@ -8,10 +8,15 @@ import (
 )
 
 // NewAnteHandler returns an 'AnteHandler' that will run actions before a tx is sent to a module's handler.
-func NewAnteHandler(ak keeper.AccountKeeper, supplyKeeper types.SupplyKeeper, sigGasConsumer ante.SignatureVerificationGasConsumer, addressFetchers ...authorizedAddressFetcher) sdk.AnteHandler {
-	return sdk.ChainAnteDecorators(
-		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
-		NewAuthenticatedMempoolDecorator(addressFetchers...),
+func NewAnteHandler(ak keeper.AccountKeeper, supplyKeeper types.SupplyKeeper, sigGasConsumer ante.SignatureVerificationGasConsumer, addressFetchers ...AddressFetcher) sdk.AnteHandler {
+	decorators := []sdk.AnteDecorator{}
+
+	decorators = append(decorators, ante.NewSetUpContextDecorator()) // outermost AnteDecorator. SetUpContext must be called first
+
+	if len(addressFetchers) > 0 {
+		decorators = append(decorators, NewAuthenticatedMempoolDecorator(addressFetchers...))
+	}
+	decorators = append(decorators,
 		ante.NewMempoolFeeDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewValidateMemoDecorator(ak),
@@ -23,4 +28,5 @@ func NewAnteHandler(ak keeper.AccountKeeper, supplyKeeper types.SupplyKeeper, si
 		ante.NewSigVerificationDecorator(ak),
 		ante.NewIncrementSequenceDecorator(ak), // innermost AnteDecorator
 	)
+	return sdk.ChainAnteDecorators(decorators...)
 }

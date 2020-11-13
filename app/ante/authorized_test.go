@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	_ sdk.AnteHandler          = (&MockAnteHandler{}).AnteHandle
-	_ authorizedAddressFetcher = mockAddressFetcher{}
+	_ sdk.AnteHandler = (&MockAnteHandler{}).AnteHandle
 )
 
 type MockAnteHandler struct {
@@ -29,17 +28,13 @@ func (mah *MockAnteHandler) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool
 	return ctx, nil
 }
 
-type mockAddressFetcher struct {
-	addresses []sdk.AccAddress
-}
-
-func (maf mockAddressFetcher) GetAuthorizedAddresses(sdk.Context) []sdk.AccAddress {
-	return maf.addresses
+func mockAddressFetcher(addresses ...sdk.AccAddress) AddressFetcher {
+	return func(sdk.Context) []sdk.AccAddress { return addresses }
 }
 
 func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
 	testPrivKeys, testAddresses := GeneratePrivKeyAddressPairs(5)
-	fetcher := mockAddressFetcher{addresses: testAddresses[1:]}
+	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
 	tx := helpers.GenTx(
@@ -68,7 +63,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
 
 func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
 	testPrivKeys, testAddresses := GeneratePrivKeyAddressPairs(5)
-	fetcher := mockAddressFetcher{addresses: testAddresses[1:]}
+	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
 
@@ -104,7 +99,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
 
 func TestAuthenticatedMempoolDecorator_AnteHandle_Reject(t *testing.T) {
 	testPrivKeys, testAddresses := GeneratePrivKeyAddressPairs(5)
-	fetcher := mockAddressFetcher{addresses: testAddresses[1:]}
+	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
 
