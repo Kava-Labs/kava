@@ -340,6 +340,23 @@ func (irm InterestRateModel) Validate() error {
 	return nil
 }
 
+// Equal returns a boolean indicating if an InterestRateModel is equal to another InterestRateModel
+func (irm InterestRateModel) Equal(comparisonIRM InterestRateModel) bool {
+	if !irm.BaseRateAPY.Equal(comparisonIRM.BaseRateAPY) {
+		return false
+	}
+	if !irm.BaseMultiplier.Equal(comparisonIRM.BaseMultiplier) {
+		return false
+	}
+	if !irm.Kink.Equal(comparisonIRM.Kink) {
+		return false
+	}
+	if !irm.JumpMultiplier.Equal(comparisonIRM.JumpMultiplier) {
+		return false
+	}
+	return true
+}
+
 // InterestRateModels slice of InterestRateModel
 type InterestRateModels []InterestRateModel
 

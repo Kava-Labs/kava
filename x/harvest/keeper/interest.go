@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"github.com/google/go-cmp/cmp"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -15,7 +13,7 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
 			continue
 		}
-		if !cmp.Equal(model, mm.InterestRateModel) {
+		if !model.Equal(mm.InterestRateModel) {
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
 		}
 	}
