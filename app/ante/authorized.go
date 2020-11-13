@@ -15,18 +15,16 @@ type sigVerifiableTx interface {
 	GetSigners() []sdk.AccAddress
 }
 
-// implemented by bep3 and pricefeed keepers
-type authorizedAddressFetcher interface {
-	GetAuthorizedAddresses(sdk.Context) []sdk.AccAddress
-}
+// AddressFetcher is a type signature for functions used by the AuthenticatedMempoolDecorator to get authorized addresses.
+type AddressFetcher func(sdk.Context) []sdk.AccAddress
 
 // AuthenticatedMempoolDecorator blocks all txs from reaching the mempool unless they're signed by on of the authorzed addresses.
 // It only runs before entry to mempool (CheckTx), and not in consensus (DeliverTx)
 type AuthenticatedMempoolDecorator struct {
-	addressFetchers []authorizedAddressFetcher
+	addressFetchers []AddressFetcher
 }
 
-func NewAuthenticatedMempoolDecorator(fetchers ...authorizedAddressFetcher) AuthenticatedMempoolDecorator {
+func NewAuthenticatedMempoolDecorator(fetchers ...AddressFetcher) AuthenticatedMempoolDecorator {
 	return AuthenticatedMempoolDecorator{
 		addressFetchers: fetchers,
 	}
@@ -47,19 +45,9 @@ func (amd AuthenticatedMempoolDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, 
 }
 
 func (amd AuthenticatedMempoolDecorator) fetchAuthorizedAddresses(ctx sdk.Context) []sdk.AccAddress {
-	// TODO read in addresses from keeper methods
-	// TODO read in addresses from app.config?
-	/*
-		fee gets it from context, which is set in baseapp, getting its value from a baseapp field set in cmd/kvd
-		Could pass in list into NewApp, and load from app.config with viper (should just work). Then pass down to antehandler construction.
-
-		need to do viper.BindFlag to be able to set new config from command line
-		Add a enable_authenticated_mempool flag to app.toml as well?
-		There might be more mempool options in the future.
-	*/
 	addrs := []sdk.AccAddress{}
-	for _, fetcher := range amd.addressFetchers {
-		addrs = append(addrs, fetcher.GetAuthorizedAddresses(ctx)...)
+	for _, fetch := range amd.addressFetchers {
+		addrs = append(addrs, fetch(ctx)...)
 	}
 	return addrs
 }
