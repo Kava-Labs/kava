@@ -17,6 +17,13 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
+	for _, coin := range coins {
+		err = k.AccrueInterest(ctx, coin.Denom)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Sends coins from Harvest module account to user
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
 	if err != nil {
@@ -45,6 +52,16 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 	// Update total borrowed amount
 	k.IncrementBorrowedCoins(ctx, coins)
+
+	// TODO: Refactor TotalBorrows store key and BorrowedCoins store key. The logic is currently duplicated.
+	for _, coin := range coins {
+		borrowsPrior, foundBorrowsPrior := k.GetTotalBorrows(ctx, coin.Denom)
+		if !foundBorrowsPrior {
+			k.SetTotalBorrows(ctx, coin.Denom, coin)
+		} else {
+			k.SetTotalBorrows(ctx, coin.Denom, borrowsPrior.Add(coin))
+		}
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
