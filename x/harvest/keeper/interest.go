@@ -6,6 +6,11 @@ import (
 	"github.com/kava-labs/kava/x/harvest/types"
 )
 
+var (
+	scalingFactor  = 1e18
+	secondsPerYear = 31536000
+)
+
 // ApplyInterestRateUpdates translates the current interest rate models from the params to the store
 func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 	denomSet := map[string]bool{}
@@ -14,13 +19,13 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 	for _, mm := range params.MoneyMarkets {
 		model, found := k.GetInterestRateModel(ctx, mm.Denom)
 		if !found {
+			k.AccrueInterest(ctx, mm.Denom)
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
-			// TODO: set AccrueInterest variables
 			continue
 		}
 		if !model.Equal(mm.InterestRateModel) {
+			k.AccrueInterest(ctx, mm.Denom)
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
-			// TODO: Set AccrueInterest variables
 		}
 		denomSet[mm.Denom] = true
 	}
@@ -33,27 +38,49 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 	})
 }
 
-// AccrueInterest applies accrued interest to total borrows and reserves
-// calculates interest from the last checkpoint time and writes the updated values to the store
+// AccrueInterest applies accrued interest to total borrows and reserves by calculating
+// interest from the last checkpoint time and writing the updated values to the store.
 func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrPreviousAccrualTimeNotFound, "")
+		// TODO: Is this the proper place to SetPreviousAccrualTime's initial value?
+		k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
+		// return sdkerrors.Wrap(types.ErrPreviousAccrualTimeNotFound, "")
 	}
+
 	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
-	// short-circuit if no time has passed
 	if timeElapsed == 0 {
 		return nil
 	}
 
+	// Get available harvest module account cash on hand
 	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
-	borrowsPrior, _ := k.GetTotalBorrows(ctx, denom)
-	reservesPrior, _ := k.GetTotalReserves(ctx, denom)
-	borrowIndexPrior, _ := k.GetBorrowIndex(ctx, denom)
 
-	// TODO: Reserve factor is protocol % fees (param set on each money market)
+	// Get prior borrows
+	borrowsPrior, foundBorrowsPrior := k.GetTotalBorrows(ctx, denom)
+	if !foundBorrowsPrior {
+		newBorrowsPrior := sdk.NewCoin(denom, sdk.ZeroInt())
+		k.SetTotalBorrows(ctx, denom, sdk.NewCoin(denom, sdk.ZeroInt()))
+		borrowsPrior = newBorrowsPrior
+	}
+
+	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx, denom)
+	if !foundReservesPrior {
+		newReservesPrior := sdk.NewCoin(denom, sdk.ZeroInt())
+		k.SetTotalReserves(ctx, denom, newReservesPrior)
+		reservesPrior = newReservesPrior
+	}
+
+	borrowIndexPrior, foundBorrowIndexPrior := k.GetBorrowIndex(ctx, denom)
+	if !foundBorrowIndexPrior {
+		newBorrowIndexPrior := sdk.MustNewDecFromStr("1.0")
+		k.SetBorrowIndex(ctx, denom, newBorrowIndexPrior)
+		borrowIndexPrior = newBorrowIndexPrior
+	}
+
+	// TODO: Add reserve_factor param to each MoneyMarket. Reserve factor is the % of protocol fees.
 	// reserveFactor := k.GetReserveFactor(ctx, denom)
-	reserveFactor := sdk.NewDec(5.0)
+	reserveFactor := sdk.MustNewDecFromStr("5.0")
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
 	borrowRateApy, err := k.CalculateBorrowRate(ctx, denom, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
@@ -70,6 +97,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	interestAccumulated := interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()
 	totalBorrowsNew := borrowsPrior.Add(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(reserveFactor).TruncateInt()))
+	// TODO: Confirm that the borrow index update formula is correct
 	borrowIndexNew := borrowIndexPrior.Mul(interestFactor).Add(borrowIndexPrior)
 
 	k.SetBorrowIndex(ctx, denom, borrowIndexNew)
@@ -107,34 +135,32 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 		return sdk.ZeroDec()
 	}
 
-	// TODO: consider decimals (compound uses 1e18)
+	// TODO: Consider using scaling factor here
 	totalSupply := cash.Add(borrows).Sub(reserves)
 	return borrows.Quo(totalSupply)
 }
 
-// CalculateInterestFactor calculates the 'simple interest scaling factor' for the input per-second interest rate and the number of seconds elapsed
-// notes: this doesn’t catch potential overflow panics
-// there’s a lot of conversions that could probably be done more efficiently
+// CalculateInterestFactor calculates the simple interest scaling factor,
+// which is equal to: (per-second interest rate * number of seconds elapsed)
 func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
-	// the input dec is converted to a uint scaled by 1e18 - this could be stored as a module-level private var
-	interestMantissa := sdk.NewUint(
-		perSecondInterestRate.MulInt(sdk.NewInt(1e18)).RoundInt().Uint64())
+	// TODO: Consider overflow panics and optimize calculations
+	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
+	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
-	// the input int is convert to uint (*not scaled*)
+	// Convert per-second interest rate to a uint scaled by 1e18
+	interestMantissa := sdk.NewUint(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().Uint64())
+	// Convert seconds elapsed to uint (*not scaled*)
 	secondsElapsedUint := sdk.NewUint(secondsElapsed.Uint64())
-	scalingFactor := sdk.NewUint(1e18)
+	// Calculate the interest factor as a uint scaled by 1e18
+	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 
-	// calculate the interest factor as a uint scaled by 1e18
-	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactor)
-
-	//convert interest factor to an unscaled, sdk.Dec
-	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(sdk.NewInt(1e18))
+	// Convert interest factor to an unscaled sdk.Dec
+	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
 }
 
-// APYToSPY converts the input annual interest rate (10% apy would be passed as 1.10) to the per-second interest rate.
+// APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
 func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
-	secondsPerYear := uint64(31536000) // AprroxRoot takes a uint64 for whatever reason, this can be moved to a module-level private var
-	root, err := apy.ApproxRoot(secondsPerYear)
+	root, err := apy.ApproxRoot(uint64(secondsPerYear))
 	if err != nil {
 		return sdk.ZeroDec(), err
 	}
