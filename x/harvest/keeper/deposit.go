@@ -11,7 +11,12 @@ import (
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
 
-	err := k.ValidateDeposit(ctx, amount)
+	err := k.AccrueInterest(ctx, amount.Denom)
+	if err != nil {
+		return err
+	}
+
+	err = k.ValidateDeposit(ctx, amount)
 	if err != nil {
 		return err
 	}
@@ -55,6 +60,12 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, amount sdk.Coin) error {
 
 // Withdraw returns some or all of a deposit back to original depositor
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
+
+	err := k.AccrueInterest(ctx, amount.Denom)
+	if err != nil {
+		return err
+	}
+
 	deposit, found := k.GetDeposit(ctx, depositor, amount.Denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s deposit found for %s", amount.Denom, depositor)
@@ -63,7 +74,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", amount, deposit.Amount)
 	}
 
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
 	if err != nil {
 		return err
 	}

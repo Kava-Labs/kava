@@ -17,6 +17,7 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 			continue
 		}
 		if !model.Equal(mm.InterestRateModel) {
+			// TODO: call AccrueInterest for the asset type here (for all addresses?)
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
 		}
 		denomSet[mm.Denom] = true
@@ -28,4 +29,9 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 		}
 		return false
 	})
+}
+
+// AccrueInterest
+func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
+	return nil
 }
