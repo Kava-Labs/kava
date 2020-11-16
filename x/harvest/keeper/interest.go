@@ -97,8 +97,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	interestAccumulated := interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()
 	totalBorrowsNew := borrowsPrior.Add(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(reserveFactor).TruncateInt()))
-	// TODO: Confirm that the borrow index update formula is correct
-	borrowIndexNew := borrowIndexPrior.Mul(interestFactor).Add(borrowIndexPrior)
+	borrowIndexNew := borrowIndexPrior.Mul(interestFactor)
 
 	k.SetBorrowIndex(ctx, denom, borrowIndexNew)
 	k.SetTotalBorrows(ctx, denom, totalBorrowsNew)
