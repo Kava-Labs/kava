@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
 	"github.com/kava-labs/kava/x/bep3"
@@ -33,7 +32,7 @@ func mockAddressFetcher(addresses ...sdk.AccAddress) AddressFetcher {
 }
 
 func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
-	testPrivKeys, testAddresses := GeneratePrivKeyAddressPairs(5)
+	testPrivKeys, testAddresses := generatePrivKeyAddressPairs(5)
 	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
@@ -62,7 +61,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
 }
 
 func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
-	testPrivKeys, testAddresses := GeneratePrivKeyAddressPairs(5)
+	testPrivKeys, testAddresses := generatePrivKeyAddressPairs(5)
 	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
@@ -98,7 +97,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
 }
 
 func TestAuthenticatedMempoolDecorator_AnteHandle_Reject(t *testing.T) {
-	testPrivKeys, testAddresses := GeneratePrivKeyAddressPairs(5)
+	testPrivKeys, testAddresses := generatePrivKeyAddressPairs(5)
 	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := NewAuthenticatedMempoolDecorator(fetcher)
@@ -127,8 +126,8 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Reject(t *testing.T) {
 	require.False(t, mmd.WasCalled)
 }
 
-// GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
-func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccAddress) {
+// generatePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
+func generatePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
 	keys = make([]crypto.PrivKey, n)
 	addrs = make([]sdk.AccAddress, n)
@@ -138,11 +137,7 @@ func GeneratePrivKeyAddressPairs(n int) (keys []crypto.PrivKey, addrs []sdk.AccA
 		if err != nil {
 			panic("Could not read randomness")
 		}
-		if r.Int63()%2 == 0 {
-			keys[i] = secp256k1.GenPrivKeySecp256k1(secret)
-		} else {
-			keys[i] = ed25519.GenPrivKeyFromSecret(secret)
-		}
+		keys[i] = secp256k1.GenPrivKeySecp256k1(secret)
 		addrs[i] = sdk.AccAddress(keys[i].PubKey().Address())
 	}
 	return

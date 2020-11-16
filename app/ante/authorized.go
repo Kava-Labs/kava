@@ -1,8 +1,6 @@
 package ante
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -18,7 +16,7 @@ type sigVerifiableTx interface {
 // AddressFetcher is a type signature for functions used by the AuthenticatedMempoolDecorator to get authorized addresses.
 type AddressFetcher func(sdk.Context) []sdk.AccAddress
 
-// AuthenticatedMempoolDecorator blocks all txs from reaching the mempool unless they're signed by on of the authorzed addresses.
+// AuthenticatedMempoolDecorator blocks all txs from reaching the mempool unless they're signed by one of the authorzed addresses.
 // It only runs before entry to mempool (CheckTx), and not in consensus (DeliverTx)
 type AuthenticatedMempoolDecorator struct {
 	addressFetchers []AddressFetcher
@@ -31,14 +29,14 @@ func NewAuthenticatedMempoolDecorator(fetchers ...AddressFetcher) AuthenticatedM
 }
 
 func (amd AuthenticatedMempoolDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	// This is only for local mempool purposes, and thus is only ran on check tx.
+	// This is only for local mempool purposes, and thus is only run on check tx.
 	if ctx.IsCheckTx() && !simulate {
 		sigTx, ok := tx.(sigVerifiableTx)
 		if !ok {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "tx must be sig verifiable tx")
 		}
 		if commonAddressesExist(sigTx.GetSigners(), amd.fetchAuthorizedAddresses(ctx)) {
-			return ctx, fmt.Errorf("address not authorized for this mempool") // TODO
+			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "tx contains no signers authorized for this mempool")
 		}
 	}
 	return next(ctx, tx, simulate)
