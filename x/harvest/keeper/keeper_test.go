@@ -156,7 +156,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
 
 func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {
 	denom := "test"
-	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"), sdk.MustNewDecFromStr("0.05"))
 
 	_, f := suite.keeper.GetInterestRateModel(suite.ctx, denom)
 	suite.Require().False(f)
@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	var setDenoms []string
 	for i := 0; i < 5; i++ {
 		denom := testDenom + strconv.Itoa(i)
-		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"), sdk.MustNewDecFromStr("0.05"))
 		suite.Require().NotPanics(func() { suite.keeper.SetInterestRateModel(suite.ctx, denom, model) })
 		// Save the denom and model
 		setDenoms = append(setDenoms, denom)

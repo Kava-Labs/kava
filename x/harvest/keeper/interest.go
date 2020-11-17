@@ -92,12 +92,14 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		borrowIndexPrior = newBorrowIndexPrior
 	}
 
-	// TODO: Add reserve_factor param to each MoneyMarket. Reserve factor is the % of protocol fees.
-	// reserveFactor := k.GetReserveFactor(ctx, denom)
-	reserveFactor := sdk.MustNewDecFromStr("1.01")
+	// Fetch interest rate model from the store
+	model, found := k.GetInterestRateModel(ctx, denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInterestRateModelNotFound, "%s", denom)
+	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
-	borrowRateApy, err := k.CalculateBorrowRate(ctx, denom, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
+	borrowRateApy, err := k.CalculateBorrowRate(ctx, model, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
 	if err != nil {
 		return err
 	}
@@ -110,7 +112,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	interestAccumulated := interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()
 	totalBorrowsNew := borrowsPrior.Add(sdk.NewCoin(denom, interestAccumulated))
-	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(reserveFactor).TruncateInt()))
+	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(model.ReserveFactor).TruncateInt()))
 	borrowIndexNew := borrowIndexPrior.Mul(interestFactor)
 
 	k.SetBorrowIndex(ctx, denom, borrowIndexNew)
@@ -121,14 +123,8 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 }
 
 // CalculateBorrowRate calculates the borrow rate
-func (k Keeper) CalculateBorrowRate(ctx sdk.Context, denom string, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
+func (k Keeper) CalculateBorrowRate(ctx sdk.Context, model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
-
-	model, found := k.GetInterestRateModel(ctx, denom)
-	if !found {
-
-		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrInterestRateModelNotFound, "%s", denom)
-	}
 
 	// Calculate normal borrow rate (under kink)
 	if utilRatio.LTE(model.Kink) {

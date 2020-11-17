@@ -307,15 +307,17 @@ type InterestRateModel struct {
 	BaseMultiplier sdk.Dec `json:"base_multiplier" yaml:"base_multiplier"`
 	Kink           sdk.Dec `json:"kink" yaml:"kink"`
 	JumpMultiplier sdk.Dec `json:"jump_multiplier" yaml:"jump_multiplier"`
+	ReserveFactor  sdk.Dec `json:"reserve_factor" yaml:"reserve_factor"`
 }
 
 // NewInterestRateModel returns a new InterestRateModel
-func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.Dec) InterestRateModel {
+func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier, reserveFactor sdk.Dec) InterestRateModel {
 	return InterestRateModel{
 		BaseRateAPY:    baseRateAPY,
 		BaseMultiplier: baseMultiplier,
 		Kink:           kink,
 		JumpMultiplier: jumpMultiplier,
+		ReserveFactor:  reserveFactor,
 	}
 }
 
@@ -335,6 +337,10 @@ func (irm InterestRateModel) Validate() error {
 
 	if irm.JumpMultiplier.IsNegative() {
 		return fmt.Errorf("Jump multiplier must be positive")
+	}
+
+	if irm.ReserveFactor.IsNegative() || irm.ReserveFactor.GT(sdk.OneDec()) {
+		return fmt.Errorf("Reserve factor must be between 0.0-1.0")
 	}
 
 	return nil
