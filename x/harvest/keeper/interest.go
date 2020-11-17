@@ -80,7 +80,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// TODO: Add reserve_factor param to each MoneyMarket. Reserve factor is the % of protocol fees.
 	// reserveFactor := k.GetReserveFactor(ctx, denom)
-	reserveFactor := sdk.MustNewDecFromStr("5.0")
+	reserveFactor := sdk.MustNewDecFromStr("1.01")
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
 	borrowRateApy, err := k.CalculateBorrowRate(ctx, denom, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
