@@ -107,20 +107,20 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 func (k Keeper) CalculateBorrowRate(ctx sdk.Context, denom string, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
 
-	moneyMarket, found := k.GetMoneyMarket(ctx, denom)
+	model, found := k.GetInterestRateModel(ctx, denom)
 	if !found {
-		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrMoneyMarketNotFound, "%s", denom)
+		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrInterestRateModelNotFound, "%s", denom)
 	}
 
 	// Calculate normal borrow rate (under kink)
-	if utilRatio.LTE(moneyMarket.InterestRateModel.Kink) {
-		return utilRatio.Mul(moneyMarket.InterestRateModel.BaseMultiplier).Add(moneyMarket.InterestRateModel.BaseRateAPY), nil
+	if utilRatio.LTE(model.Kink) {
+		return utilRatio.Mul(model.BaseMultiplier).Add(model.BaseRateAPY), nil
 	}
 
 	// Calculate jump borrow rate (over kink)
-	normalRate := moneyMarket.InterestRateModel.Kink.Mul(moneyMarket.InterestRateModel.BaseMultiplier).Add(moneyMarket.InterestRateModel.BaseRateAPY)
-	excessUtil := utilRatio.Sub(moneyMarket.InterestRateModel.Kink)
-	return excessUtil.Mul(moneyMarket.InterestRateModel.JumpMultiplier).Add(normalRate), nil
+	normalRate := model.Kink.Mul(model.BaseMultiplier).Add(model.BaseRateAPY)
+	excessUtil := utilRatio.Sub(model.Kink)
+	return excessUtil.Mul(model.JumpMultiplier).Add(normalRate), nil
 
 }
 

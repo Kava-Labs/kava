@@ -57,4 +57,6 @@ var (
 	ErrBorrowEmptyCoins = sdkerrors.Register(ModuleName, 25, "cannot borrow zero coins")
 	// ErrPreviousAccrualTimeNotFound error for no previous accrual time found in store
 	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 26, "no previous accrual time found")
+	// ErrInterestRateModelNotFound error for when no interest rate model found in store
+	ErrInterestRateModelNotFound = sdkerrors.Register(ModuleName, 27, "no interest rate model found")
 )
