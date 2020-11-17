@@ -15,12 +15,6 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 		return err
 	}
 
-	// TODO:
-	// err := k.AccrueInterest(ctx, amount.Denom)
-	// if err != nil {
-	// 	return err
-	// }
-
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, sdk.NewCoins(amount))
 	if err != nil {
 		return err
@@ -64,12 +58,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s deposit found for %s", amount.Denom, depositor)
 	}
-
-	// TODO:
-	// err := k.AccrueInterest(ctx, amount.Denom)
-	// if err != nil {
-	// 	return err
-	// }
 
 	if !deposit.Amount.IsGTE(amount) {
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", amount, deposit.Amount)

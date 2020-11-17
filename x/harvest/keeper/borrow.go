@@ -17,13 +17,6 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
-	for _, coin := range coins {
-		err = k.AccrueInterest(ctx, coin.Denom)
-		if err != nil {
-			return err
-		}
-	}
-
 	// Sends coins from Harvest module account to user
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, coins)
 	if err != nil {
