@@ -19,12 +19,10 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 	for _, mm := range params.MoneyMarkets {
 		model, found := k.GetInterestRateModel(ctx, mm.Denom)
 		if !found {
-			k.AccrueInterest(ctx, mm.Denom)
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
 			continue
 		}
 		if !model.Equal(mm.InterestRateModel) {
-			k.AccrueInterest(ctx, mm.Denom)
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
 		}
 		denomSet[mm.Denom] = true
@@ -43,9 +41,8 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, denom)
 	if !found {
-		// TODO: Is this the proper place to SetPreviousAccrualTime's initial value?
 		k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
-		// return sdkerrors.Wrap(types.ErrPreviousAccrualTimeNotFound, "")
+		return nil
 	}
 
 	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
@@ -134,7 +131,6 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 		return sdk.ZeroDec()
 	}
 
-	// TODO: Consider using scaling factor here
 	totalSupply := cash.Add(borrows).Sub(reserves)
 	return borrows.Quo(totalSupply)
 }
