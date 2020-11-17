@@ -17,19 +17,36 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 
 	params := k.GetParams(ctx)
 	for _, mm := range params.MoneyMarkets {
+		// Set any new interest rate models in the store
 		model, found := k.GetInterestRateModel(ctx, mm.Denom)
 		if !found {
-			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
-			continue
+			model = mm.InterestRateModel
+			k.SetInterestRateModel(ctx, mm.Denom, model)
 		}
+
+		// Accrue interest according to the current interest rate models in the store
+		err := k.AccrueInterest(ctx, mm.Denom)
+		if err != nil {
+			panic(err)
+		}
+
+		// Update the interest rate in the store if the params have changed
 		if !model.Equal(mm.InterestRateModel) {
 			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
 		}
 		denomSet[mm.Denom] = true
 	}
 
+	// Edge case: interest rate models removed from params that still exist in the store
 	k.IterateInterestRateModels(ctx, func(denom string, i types.InterestRateModel) bool {
 		if !denomSet[denom] {
+			// Accrue interest according to current store interest rate model
+			err := k.AccrueInterest(ctx, denom)
+			if err != nil {
+				panic(err)
+			}
+
+			// Delete the interest rate model from the store
 			k.DeleteInterestRateModel(ctx, denom)
 		}
 		return false
@@ -109,6 +126,7 @@ func (k Keeper) CalculateBorrowRate(ctx sdk.Context, denom string, cash, borrows
 
 	model, found := k.GetInterestRateModel(ctx, denom)
 	if !found {
+
 		return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrInterestRateModelNotFound, "%s", denom)
 	}
 
