@@ -11,7 +11,8 @@ var (
 	secondsPerYear = 31536000
 )
 
-// ApplyInterestRateUpdates translates the current interest rate models from the params to the store
+// ApplyInterestRateUpdates translates the current interest rate models from the params to the store,
+// with each money market accruing interest.
 func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 	denomSet := map[string]bool{}
 
