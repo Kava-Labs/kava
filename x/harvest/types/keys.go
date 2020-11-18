@@ -38,7 +38,7 @@ var (
 	ClaimsKeyPrefix                   = []byte{0x04}
 	BorrowsKeyPrefix                  = []byte{0x05}
 	BorrowedCoinsPrefix               = []byte{0x06}
-	InterestRateModelsPrefix          = []byte{0x07}
+	MoneyMarketsPrefix                = []byte{0x07}
 	PreviousAccrualTimePrefix         = []byte{0x08} // denom -> time
 	TotalBorrowsPrefix                = []byte{0x09} // denom -> sdk.Coin
 	TotalReservesPrefix               = []byte{0x10} // denom -> sdk.Coin

@@ -18,37 +18,37 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 
 	params := k.GetParams(ctx)
 	for _, mm := range params.MoneyMarkets {
-		// Set any new interest rate models in the store
-		model, found := k.GetInterestRateModel(ctx, mm.Denom)
+		// Set any new money markets in the store
+		moneyMarket, found := k.GetMoneyMarket(ctx, mm.Denom)
 		if !found {
-			model = mm.InterestRateModel
-			k.SetInterestRateModel(ctx, mm.Denom, model)
+			moneyMarket = mm
+			k.SetMoneyMarket(ctx, mm.Denom, moneyMarket)
 		}
 
-		// Accrue interest according to the current interest rate models in the store
+		// Accrue interest according to the current money markets in the store
 		err := k.AccrueInterest(ctx, mm.Denom)
 		if err != nil {
 			panic(err)
 		}
 
 		// Update the interest rate in the store if the params have changed
-		if !model.Equal(mm.InterestRateModel) {
-			k.SetInterestRateModel(ctx, mm.Denom, mm.InterestRateModel)
+		if !moneyMarket.Equal(mm) {
+			k.SetMoneyMarket(ctx, mm.Denom, mm)
 		}
 		denomSet[mm.Denom] = true
 	}
 
-	// Edge case: interest rate models removed from params that still exist in the store
-	k.IterateInterestRateModels(ctx, func(denom string, i types.InterestRateModel) bool {
+	// Edge case: money markets removed from params that still exist in the store
+	k.IterateMoneyMarkets(ctx, func(denom string, i types.MoneyMarket) bool {
 		if !denomSet[denom] {
-			// Accrue interest according to current store interest rate model
+			// Accrue interest according to current store money market
 			err := k.AccrueInterest(ctx, denom)
 			if err != nil {
 				panic(err)
 			}
 
-			// Delete the interest rate model from the store
-			k.DeleteInterestRateModel(ctx, denom)
+			// Delete the money market from the store
+			k.DeleteMoneyMarket(ctx, denom)
 		}
 		return false
 	})
@@ -93,14 +93,14 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		borrowIndexPrior = newBorrowIndexPrior
 	}
 
-	// Fetch interest rate model from the store
-	model, found := k.GetInterestRateModel(ctx, denom)
+	// Fetch money market from the store
+	mm, found := k.GetMoneyMarket(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInterestRateModelNotFound, "%s", denom)
+		return sdkerrors.Wrapf(types.ErrMoneyMarketNotFound, "%s", denom)
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
-	borrowRateApy, err := k.CalculateBorrowRate(ctx, model, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
+	borrowRateApy, err := k.CalculateBorrowRate(ctx, mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	interestAccumulated := interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()
 	totalBorrowsNew := borrowsPrior.Add(sdk.NewCoin(denom, interestAccumulated))
-	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(model.ReserveFactor).TruncateInt()))
+	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
 	borrowIndexNew := borrowIndexPrior.Mul(interestFactor)
 
 	k.SetBorrowIndex(ctx, denom, borrowIndexNew)
