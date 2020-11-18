@@ -80,7 +80,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		moneyMarket, ok := moneyMarketCache[coin.Denom]
 		// Fetch money market and store in local cache
 		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, coin.Denom)
 			if !found {
 				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", coin.Denom)
 			}
@@ -124,7 +124,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		moneyMarket, ok := moneyMarketCache[deposit.Amount.Denom]
 		// Fetch money market and store in local cache
 		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
+			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, deposit.Amount.Denom)
 			if !found {
 				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", deposit.Amount.Denom)
 			}
@@ -150,7 +150,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 			moneyMarket, ok := moneyMarketCache[borrowedCoin.Denom]
 			// Fetch money market and store in local cache
 			if !ok {
-				newMoneyMarket, found := k.GetMoneyMarket(ctx, borrowedCoin.Denom)
+				newMoneyMarket, found := k.GetMoneyMarketParam(ctx, borrowedCoin.Denom)
 				if !found {
 					return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", borrowedCoin.Denom)
 				}

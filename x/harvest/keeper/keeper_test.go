@@ -156,46 +156,53 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
 
 func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {
 	denom := "test"
-	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"), sdk.MustNewDecFromStr("0.05"))
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+	borrowLimit := types.NewBorrowLimit(false, sdk.MustNewDecFromStr("0.2"), sdk.MustNewDecFromStr("0.5"))
+	moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), model, sdk.MustNewDecFromStr("0.05"))
 
-	_, f := suite.keeper.GetInterestRateModel(suite.ctx, denom)
+	_, f := suite.keeper.GetMoneyMarket(suite.ctx, denom)
 	suite.Require().False(f)
 
-	suite.keeper.SetInterestRateModel(suite.ctx, denom, model)
+	suite.keeper.SetMoneyMarket(suite.ctx, denom, moneyMarket)
 
-	testInterestRateModel, f := suite.keeper.GetInterestRateModel(suite.ctx, denom)
+	testMoneyMarket, f := suite.keeper.GetMoneyMarket(suite.ctx, denom)
 	suite.Require().True(f)
-	suite.Require().Equal(model, testInterestRateModel)
+	suite.Require().Equal(moneyMarket, testMoneyMarket)
 
-	suite.Require().NotPanics(func() { suite.keeper.DeleteInterestRateModel(suite.ctx, denom) })
+	suite.Require().NotPanics(func() { suite.keeper.DeleteMoneyMarket(suite.ctx, denom) })
 
-	_, f = suite.keeper.GetInterestRateModel(suite.ctx, denom)
+	_, f = suite.keeper.GetMoneyMarket(suite.ctx, denom)
 	suite.Require().False(f)
-
 }
 
 func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	testDenom := "test"
-	var setModels types.InterestRateModels
+	var setMMs types.MoneyMarkets
 	var setDenoms []string
 	for i := 0; i < 5; i++ {
+		// Initialize a new money market
 		denom := testDenom + strconv.Itoa(i)
-		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"), sdk.MustNewDecFromStr("0.05"))
-		suite.Require().NotPanics(func() { suite.keeper.SetInterestRateModel(suite.ctx, denom, model) })
+		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+		borrowLimit := types.NewBorrowLimit(false, sdk.MustNewDecFromStr("0.2"), sdk.MustNewDecFromStr("0.5"))
+		moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), model, sdk.MustNewDecFromStr("0.05"))
+
+		// Store money market in the module's store
+		suite.Require().NotPanics(func() { suite.keeper.SetMoneyMarket(suite.ctx, denom, moneyMarket) })
+
 		// Save the denom and model
 		setDenoms = append(setDenoms, denom)
-		setModels = append(setModels, model)
+		setMMs = append(setMMs, moneyMarket)
 	}
 
-	var seenModels types.InterestRateModels
+	var seenMMs types.MoneyMarkets
 	var seenDenoms []string
-	suite.keeper.IterateInterestRateModels(suite.ctx, func(denom string, i types.InterestRateModel) bool {
+	suite.keeper.IterateMoneyMarkets(suite.ctx, func(denom string, i types.MoneyMarket) bool {
 		seenDenoms = append(seenDenoms, denom)
-		seenModels = append(seenModels, i)
+		seenMMs = append(seenMMs, i)
 		return false
 	})
 
-	suite.Require().Equal(setModels, seenModels)
+	suite.Require().Equal(setMMs, seenMMs)
 	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
