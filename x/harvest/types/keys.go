@@ -30,7 +30,6 @@ const (
 	DefaultParamspace = ModuleName
 )
 
-// TODO: Consider store optimizations
 var (
 	PreviousBlockTimeKey              = []byte{0x01}
 	PreviousDelegationDistributionKey = []byte{0x02}
@@ -40,10 +39,8 @@ var (
 	BorrowedCoinsPrefix               = []byte{0x06}
 	MoneyMarketsPrefix                = []byte{0x07}
 	PreviousAccrualTimePrefix         = []byte{0x08} // denom -> time
-	TotalBorrowsPrefix                = []byte{0x09} // denom -> sdk.Coin
-	TotalReservesPrefix               = []byte{0x10} // denom -> sdk.Coin
-	BorrowIndexPrefix                 = []byte{0x11} // denom -> sdk.Dec
-	ReserveFactorPrefix               = []byte{0x12}
+	TotalReservesPrefix               = []byte{0x09} // denom -> sdk.Coin
+	BorrowIndexPrefix                 = []byte{0x10} // denom -> sdk.Dec
 	sep                               = []byte(":")
 )
 

@@ -315,25 +315,6 @@ func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, denom string, previousAc
 	store.Set([]byte(denom), bz)
 }
 
-// GetTotalBorrows returns the total borrows for an individual market
-func (k Keeper) GetTotalBorrows(ctx sdk.Context, denom string) (sdk.Coin, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalBorrowsPrefix)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return sdk.Coin{}, false
-	}
-	var totalBorrows sdk.Coin
-	k.cdc.MustUnmarshalBinaryBare(bz, &totalBorrows)
-	return totalBorrows, true
-}
-
-// SetTotalBorrows sets the total borrows for an individual market
-func (k Keeper) SetTotalBorrows(ctx sdk.Context, denom string, coin sdk.Coin) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalBorrowsPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(coin)
-	store.Set([]byte(denom), bz)
-}
-
 // GetTotalReserves returns the total reserves for an individual market
 func (k Keeper) GetTotalReserves(ctx sdk.Context, denom string) (sdk.Coin, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)

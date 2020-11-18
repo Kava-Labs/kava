@@ -72,11 +72,10 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
 
 	// Get prior borrows
-	borrowsPrior, foundBorrowsPrior := k.GetTotalBorrows(ctx, denom)
-	if !foundBorrowsPrior {
-		newBorrowsPrior := sdk.NewCoin(denom, sdk.ZeroInt())
-		k.SetTotalBorrows(ctx, denom, sdk.NewCoin(denom, sdk.ZeroInt()))
-		borrowsPrior = newBorrowsPrior
+	borrowsPrior := sdk.NewCoin(denom, sdk.ZeroInt())
+	borrowCoinsPrior, foundBorrowCoinsPrior := k.GetBorrowedCoins(ctx)
+	if foundBorrowCoinsPrior {
+		borrowsPrior = sdk.NewCoin(denom, borrowCoinsPrior.AmountOf(denom))
 	}
 
 	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx, denom)
@@ -112,12 +111,12 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	interestAccumulated := interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()
-	totalBorrowsNew := borrowsPrior.Add(sdk.NewCoin(denom, interestAccumulated))
+	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
 	borrowIndexNew := borrowIndexPrior.Mul(interestFactor)
 
 	k.SetBorrowIndex(ctx, denom, borrowIndexNew)
-	k.SetTotalBorrows(ctx, denom, totalBorrowsNew)
+	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 	k.SetTotalReserves(ctx, denom, totalReservesNew)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
 	return nil
