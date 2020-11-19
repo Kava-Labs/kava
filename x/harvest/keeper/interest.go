@@ -99,7 +99,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
-	borrowRateApy, err := k.CalculateBorrowRate(ctx, mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
+	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 }
 
 // CalculateBorrowRate calculates the borrow rate
-func (k Keeper) CalculateBorrowRate(ctx sdk.Context, model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
+func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
 
 	// Calculate normal borrow rate (under kink)
@@ -135,7 +135,6 @@ func (k Keeper) CalculateBorrowRate(ctx sdk.Context, model types.InterestRateMod
 	normalRate := model.Kink.Mul(model.BaseMultiplier).Add(model.BaseRateAPY)
 	excessUtil := utilRatio.Sub(model.Kink)
 	return excessUtil.Mul(model.JumpMultiplier).Add(normalRate), nil
-
 }
 
 // CalculateUtilizationRatio calculates an asset's current utilization rate
@@ -151,6 +150,7 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 
 // CalculateInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate * number of seconds elapsed)
+// Will return 1.000x, multiply by principal to get new principal with added interest
 func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
 	// TODO: Consider overflow panics and optimize calculations
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
@@ -168,6 +168,7 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 }
 
 // APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
+// SPY = Per second compounded interest rate is how cosmos mathmatically represents APY
 func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
 	root, err := apy.ApproxRoot(uint64(secondsPerYear))
 	if err != nil {
