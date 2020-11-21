@@ -264,6 +264,15 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 				expectedValue:         sdk.MustNewDecFromStr("0.206635266092017207"),
 			},
 		},
+		// TODO: test panicked: overflow: bit length 261 greater than 256
+		// {
+		// 	"integer overflow",
+		// 	args{
+		// 		perSecondInterestRate: sdk.MustNewDecFromStr("1.1"),
+		// 		timeElapsed:           sdk.NewInt(oneYearInSeconds),
+		// 		expectedValue:         sdk.MustNewDecFromStr("0.1"),
+		// 	},
+		// },
 	}
 
 	for _, tc := range testCases {
