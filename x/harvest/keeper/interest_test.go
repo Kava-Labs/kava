@@ -307,6 +307,90 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 	}
 }
 
+func (suite *InterestTestSuite) TestAPYToSPY() {
+	type args struct {
+		apy           sdk.Dec
+		expectedValue sdk.Dec
+	}
+
+	type test struct {
+		name        string
+		args        args
+		expectError bool
+	}
+
+	testCases := []test{
+		{
+			"lowest apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("0.005"),
+				expectedValue: sdk.MustNewDecFromStr("0.999999831991472557"),
+			},
+			false,
+		},
+		{
+			"lower apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("0.05"),
+				expectedValue: sdk.MustNewDecFromStr("0.999999905005957279"),
+			},
+			false,
+		},
+		{
+			"medium-low apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("0.5"),
+				expectedValue: sdk.MustNewDecFromStr("0.999999978020447332"),
+			},
+			false,
+		},
+		{
+			"medium-high apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("5"),
+				expectedValue: sdk.MustNewDecFromStr("1.000000051034942717"),
+			},
+			false,
+		},
+		{
+			"high apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("50"),
+				expectedValue: sdk.MustNewDecFromStr("1.000000124049443433"),
+			},
+			false,
+		},
+		{
+			"highest apy",
+			args{
+				apy:           sdk.MustNewDecFromStr("170"),
+				expectedValue: sdk.MustNewDecFromStr("1.000000162855113371"),
+			},
+			false,
+		},
+		{
+			"out of bounds error at 178",
+			args{
+				apy:           sdk.MustNewDecFromStr("178"),
+				expectedValue: sdk.ZeroDec(),
+			},
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			spy, err := harvest.APYToSPY(tc.args.apy)
+			if tc.expectError {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().Equal(tc.args.expectedValue, spy)
+			}
+		})
+	}
+}
+
 type ExpectedInterest struct {
 	height    int64
 	coinsUser sdk.Coins
