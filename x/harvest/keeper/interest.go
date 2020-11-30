@@ -104,7 +104,8 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return err
 	}
 
-	borrowRateSpy, err := APYToSPY(borrowRateApy)
+	// Convert from APY to SPY, expressed as (1 + borrow rate)
+	borrowRateSpy, err := APYToSPY(sdk.OneDec().Add(borrowRateApy))
 	if err != nil {
 		return err
 	}
@@ -156,7 +157,6 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 // which is equal to: (per-second interest rate * number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
 func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
-	// TODO: Consider overflow panics and optimize calculations
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
@@ -164,6 +164,7 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 	interestMantissa := sdk.NewUint(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().Uint64())
 	// Convert seconds elapsed to uint (*not scaled*)
 	secondsElapsedUint := sdk.NewUint(secondsElapsed.Uint64())
+	// TODO: sdk.RelativePow should have an integer overflow check
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 

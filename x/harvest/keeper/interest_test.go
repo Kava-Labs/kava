@@ -220,68 +220,84 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 		{
 			"1 year",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.999999999"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("0.968956073391928722"),
+				expectedValue:         sdk.MustNewDecFromStr("1.191463614477847370"),
 			},
 		},
 		{
 			"10 year",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.999999999"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds * 10),
-				expectedValue:         sdk.MustNewDecFromStr("0.729526197443942502"),
+				expectedValue:         sdk.MustNewDecFromStr("5.765113233897391189"),
 			},
 		},
 		{
 			"1 month",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.999999999"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds / 12),
-				expectedValue:         sdk.MustNewDecFromStr("0.997375450167679744"),
+				expectedValue:         sdk.MustNewDecFromStr("1.014705619075717373"),
 			},
 		},
 		{
 			"1 day",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.999999999"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds / 365),
-				expectedValue:         sdk.MustNewDecFromStr("0.999913603732329314"),
+				expectedValue:         sdk.MustNewDecFromStr("1.000480067194057924"),
 			},
 		},
 		{
 			"1 year: low interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.999999998"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000555"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("0.938875872133496909"),
+				expectedValue:         sdk.MustNewDecFromStr("1.017656545925063632"),
 			},
 		},
 		{
 			"1 year, lower interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.999999995"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000055"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("0.854123057283825426"),
+				expectedValue:         sdk.MustNewDecFromStr("1.001735985079841390"),
 			},
 		},
 		{
 			"1 year, lowest interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("0.99999995"),
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000005"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("0.206635266092017207"),
+				expectedValue:         sdk.MustNewDecFromStr("1.000157692432076670"),
 			},
 		},
-		// TODO: test panicked: overflow: bit length 261 greater than 256
-		// {
-		// 	"integer overflow",
-		// 	args{
-		// 		perSecondInterestRate: sdk.MustNewDecFromStr("1.1"),
-		// 		timeElapsed:           sdk.NewInt(oneYearInSeconds),
-		// 		expectedValue:         sdk.MustNewDecFromStr("0.1"),
-		// 	},
-		// },
+		{
+			"1 year: high interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000055555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("5.766022095987868825"),
+			},
+		},
+		{
+			"1 year: higher interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000555555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("40628388.864535408465693310"),
+			},
+		},
+		// If we raise the per second interest rate too much we'll cause an integer overflow
+		{
+			"1 year: highest interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000001555555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("2017093013158200407564.613502861572552603"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
