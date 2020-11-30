@@ -141,7 +141,6 @@ func (suite *InterestTestSuite) TestCalculateBorrowRate() {
 				expectedValue: sdk.MustNewDecFromStr("0.179999999910000000"),
 			},
 		},
-		// TODO: high reserves results in a negative value
 		{
 			"high reserves",
 			args{
@@ -149,7 +148,7 @@ func (suite *InterestTestSuite) TestCalculateBorrowRate() {
 				borrows:       sdk.MustNewDecFromStr("5000"),
 				reserves:      sdk.MustNewDecFromStr("1000000000000"),
 				model:         normalModel,
-				expectedValue: sdk.MustNewDecFromStr("-0.000000000500000003"),
+				expectedValue: sdk.MustNewDecFromStr("0.180000000000000000"),
 			},
 		},
 		{

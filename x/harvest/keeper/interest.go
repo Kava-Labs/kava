@@ -122,7 +122,8 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	return nil
 }
 
-// CalculateBorrowRate calculates the borrow rate
+// CalculateBorrowRate calculates the borrow rate , which is the current APY (expresed as a decimal)
+// based on the current utilization.
 func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
 
@@ -145,6 +146,9 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	}
 
 	totalSupply := cash.Add(borrows).Sub(reserves)
+	if totalSupply.IsNegative() {
+		return sdk.OneDec()
+	}
 	return borrows.Quo(totalSupply)
 }
 
