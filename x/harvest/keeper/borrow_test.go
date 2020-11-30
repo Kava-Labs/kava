@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "requested borrow 1000000usdx is greater than maximum valid borrow",
+				contains:   "requested borrow 1000000usdx exceeds the allowable amount as determined by the collateralization ratio",
 			},
 		},
 		{
