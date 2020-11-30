@@ -289,7 +289,8 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 				expectedValue:         sdk.MustNewDecFromStr("40628388.864535408465693310"),
 			},
 		},
-		// If we raise the per second interest rate too much we'll cause an integer overflow
+		// If we raise the per second interest rate too much we'll cause an integer overflow.
+		// For example, perSecondInterestRate: '1.000005555555' will cause a panic.
 		{
 			"1 year: highest interest rate",
 			args{
