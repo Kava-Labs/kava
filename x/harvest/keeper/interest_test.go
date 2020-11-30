@@ -112,7 +112,17 @@ func (suite *InterestTestSuite) TestCalculateBorrowRate() {
 
 	testCases := []test{
 		{
-			"normal",
+			"normal no jump",
+			args{
+				cash:          sdk.MustNewDecFromStr("1000"),
+				borrows:       sdk.MustNewDecFromStr("5000"),
+				reserves:      sdk.MustNewDecFromStr("3000"),
+				model:         normalModel,
+				expectedValue: sdk.MustNewDecFromStr("0.513333333333333334"),
+			},
+		},
+		{
+			"normal with jump",
 			args{
 				cash:          sdk.MustNewDecFromStr("1000"),
 				borrows:       sdk.MustNewDecFromStr("5000"),
