@@ -420,14 +420,77 @@ func (suite *KeeperTestSuite) TestInterest() {
 
 	normalModel := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
 
-	// oneDayInSeconds := int64(86400)
-	// oneWeekInSeconds := int64(604800)
-	// oneMonthInSeconds := int64(2592000)
+	oneDayInSeconds := int64(86400)
+	oneWeekInSeconds := int64(604800)
+	oneMonthInSeconds := int64(2592000)
 	oneYearInSeconds := int64(31536000)
 
 	testCases := []interestTest{
 		{
-			"normal",
+			"one day",
+			args{
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedInterest{
+					ExpectedInterest{
+						elapsedTime:  oneDayInSeconds,
+						shouldBorrow: false,
+						borrowCoin:   sdk.Coin{},
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"one week",
+			args{
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedInterest{
+					ExpectedInterest{
+						elapsedTime:  oneWeekInSeconds,
+						shouldBorrow: false,
+						borrowCoin:   sdk.Coin{},
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"one month",
+			args{
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedInterest{
+					ExpectedInterest{
+						elapsedTime:  oneMonthInSeconds,
+						shouldBorrow: false,
+						borrowCoin:   sdk.Coin{},
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"one year",
 			args{
 				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				borrowCoinDenom:   "ukava",
@@ -478,10 +541,10 @@ func (suite *KeeperTestSuite) TestInterest() {
 		// 		reserveFactor:     sdk.MustNewDecFromStr("0.05"),
 		// 		expectedInterestSnaphots: []ExpectedInterest{
 		// 			ExpectedInterest{
-		// 				elapsedTime:       oneMonthInSeconds,
+		// 				elapsedTime: oneMonthInSeconds,
 		// 			},
 		// 			ExpectedInterest{
-		// 				elapsedTime:       oneYearInSeconds,
+		// 				elapsedTime: oneYearInSeconds,
 		// 			},
 		// 		},
 		// 	},
