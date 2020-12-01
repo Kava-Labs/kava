@@ -77,7 +77,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 				userLastBorrowIndex := borrow.Index[foundAtIndex].Value
 				interest := (storedAmount.Quo(userLastBorrowIndex).Mul(borrowIndexValue)).Sub(storedAmount)
 				// Update outstanding borrow amount to include the unpaid interest
-				borrow.Amount.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+				borrow.Amount = borrow.Amount.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
 				// We're synced up, so update user's borrow index value to match the current global borrow index value
 				borrow.Index[foundAtIndex].Value = borrowIndexValue
 			}

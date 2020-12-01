@@ -392,7 +392,9 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 }
 
 type ExpectedInterest struct {
-	elapsedTime int64
+	elapsedTime  int64
+	shouldBorrow bool
+	borrowCoin   sdk.Coin
 }
 
 func (suite *KeeperTestSuite) TestInterest() {
@@ -425,7 +427,7 @@ func (suite *KeeperTestSuite) TestInterest() {
 
 	testCases := []interestTest{
 		{
-			"valid",
+			"normal",
 			args{
 				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				borrowCoinDenom:   "ukava",
@@ -434,7 +436,30 @@ func (suite *KeeperTestSuite) TestInterest() {
 				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
 				expectedInterestSnaphots: []ExpectedInterest{
 					ExpectedInterest{
-						elapsedTime: oneYearInSeconds,
+						elapsedTime:  oneYearInSeconds,
+						shouldBorrow: false,
+						borrowCoin:   sdk.Coin{},
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"borrow during snapshot",
+			args{
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedInterest{
+					ExpectedInterest{
+						elapsedTime:  oneYearInSeconds,
+						shouldBorrow: true,
+						borrowCoin:   sdk.NewCoin("ukava", sdk.NewInt(1*KAVA_CF)),
 					},
 				},
 			},
@@ -601,8 +626,18 @@ func (suite *KeeperTestSuite) TestInterest() {
 				currIndexPrior, _ := suite.keeper.GetBorrowIndex(snapshotCtx, tc.args.borrowCoinDenom)
 				suite.Require().Equal(expectedBorrowIndex, currIndexPrior)
 
-				// TODO: Add a clause for successive borrows, then check that the user's
-				// 		 borrow balance has been correctly updated.
+				// After borrowing again user's borrow balance should have any outstanding interest applied
+				if snapshot.shouldBorrow {
+					borrowCoinsBefore, _ := suite.keeper.GetBorrow(snapshotCtx, tc.args.user)
+					expectedInterestCoins := sdk.NewCoin(tc.args.borrowCoinDenom, expectedInterest)
+					expectedBorrowCoinsAfter := borrowCoinsBefore.Amount.Add(snapshot.borrowCoin).Add(expectedInterestCoins)
+
+					err = suite.keeper.Borrow(snapshotCtx, tc.args.user, sdk.NewCoins(snapshot.borrowCoin))
+					suite.Require().NoError(err)
+
+					borrowCoinsAfter, _ := suite.keeper.GetBorrow(snapshotCtx, tc.args.user)
+					suite.Require().Equal(expectedBorrowCoinsAfter, borrowCoinsAfter.Amount)
+				}
 			}
 		})
 	}
