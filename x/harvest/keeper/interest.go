@@ -57,6 +57,7 @@ func (k Keeper) ApplyInterestRateUpdates(ctx sdk.Context) {
 // AccrueInterest applies accrued interest to total borrows and reserves by calculating
 // interest from the last checkpoint time and writing the updated values to the store.
 func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
+
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, denom)
 	if !found {
 		k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
@@ -111,7 +112,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
-	interestAccumulated := interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()
+	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
 	borrowIndexNew := borrowIndexPrior.Mul(interestFactor)

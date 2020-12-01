@@ -59,7 +59,6 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		// User has existing borrow
 	} else {
 		for _, coin := range coins {
-
 			// Locate the borrow index item by coin denom in the user's list of borrow indexes
 			foundAtIndex := -1
 			for i := range borrow.Index {
@@ -70,11 +69,9 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 			}
 
 			borrowIndexValue, _ := k.GetBorrowIndex(ctx, coin.Denom)
-			// First time user has borrowed this denom
-			if foundAtIndex == -1 {
+			if foundAtIndex == -1 { // First time user has borrowed this denom
 				borrow.Index = append(borrow.Index, types.NewBorrowIndexItem(coin.Denom, borrowIndexValue))
-				// User has an existing borrow index for this denom
-			} else {
+			} else { // User has an existing borrow index for this denom
 				// Calculate interest owed by user since asset's last borrow index update
 				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
 				userLastBorrowIndex := borrow.Index[foundAtIndex].Value

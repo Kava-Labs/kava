@@ -392,40 +392,49 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 }
 
 type ExpectedInterest struct {
-	height    int64
-	coinsUser sdk.Coins
+	elapsedTime int64
 }
 
 func (suite *KeeperTestSuite) TestInterest() {
-
 	type args struct {
 		user                     sdk.AccAddress
+		borrowCoinDenom          string
 		borrowCoins              sdk.Coins
+		interestRateModel        types.InterestRateModel
+		reserveFactor            sdk.Dec
 		expectedInterestSnaphots []ExpectedInterest
 	}
+
 	type errArgs struct {
 		expectPass bool
 		contains   string
 	}
+
 	type interestTest struct {
 		name    string
 		args    args
 		errArgs errArgs
 	}
+
+	normalModel := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
+
+	// oneDayInSeconds := int64(86400)
+	// oneWeekInSeconds := int64(604800)
+	// oneMonthInSeconds := int64(2592000)
+	oneYearInSeconds := int64(31536000)
+
 	testCases := []interestTest{
 		{
 			"valid",
 			args{
-				user:        sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				borrowCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
 				expectedInterestSnaphots: []ExpectedInterest{
 					ExpectedInterest{
-						height:    10,
-						coinsUser: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
-					},
-					ExpectedInterest{
-						height:    500,
-						coinsUser: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+						elapsedTime: oneYearInSeconds,
 					},
 				},
 			},
@@ -434,6 +443,28 @@ func (suite *KeeperTestSuite) TestInterest() {
 				contains:   "",
 			},
 		},
+		// {
+		// 	"multiple snapshots",
+		// 	args{
+		// 		user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+		// 		borrowCoinDenom:   "ukava",
+		// 		borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+		// 		interestRateModel: normalModel,
+		// 		reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+		// 		expectedInterestSnaphots: []ExpectedInterest{
+		// 			ExpectedInterest{
+		// 				elapsedTime:       oneMonthInSeconds,
+		// 			},
+		// 			ExpectedInterest{
+		// 				elapsedTime:       oneYearInSeconds,
+		// 			},
+		// 		},
+		// 	},
+		// 	errArgs{
+		// 		expectPass: true,
+		// 		contains:   "",
+		// 	},
+		// },
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -463,8 +494,8 @@ func (suite *KeeperTestSuite) TestInterest() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",          // Market ID
 						sdk.NewInt(KAVA_CF), // Conversion Factor
-						types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.1")),
-						sdk.MustNewDecFromStr("0.05")), // Reserve Factor
+						tc.args.interestRateModel,
+						tc.args.reserveFactor), // Reserve Factor
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
@@ -502,6 +533,9 @@ func (suite *KeeperTestSuite) TestInterest() {
 
 			var err error
 
+			// Run begin blocker and store initial block time
+			harvest.BeginBlocker(suite.ctx, suite.keeper)
+
 			// Deposit 2x as many coins for each coin we intend to borrow
 			for _, coin := range tc.args.borrowCoins {
 				err = suite.keeper.Deposit(suite.ctx, tc.args.user, sdk.NewCoin(coin.Denom, coin.Amount.Mul(sdk.NewInt(2))))
@@ -512,24 +546,63 @@ func (suite *KeeperTestSuite) TestInterest() {
 			err = suite.keeper.Borrow(suite.ctx, tc.args.user, tc.args.borrowCoins)
 			suite.Require().NoError(err)
 
+			// Check that the initial module-level borrow balance is correct and store it
+			initialBorrowedCoins, _ := suite.keeper.GetBorrowedCoins(suite.ctx)
+			suite.Require().Equal(tc.args.borrowCoins, initialBorrowedCoins)
+
 			// Check interest levels for each snapshot
 			for _, snapshot := range tc.args.expectedInterestSnaphots {
-				// Set up snapshot chain context
-				snapshotCtx := suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + snapshot.height)
+				// ---------------------------- Calculate expected interest ----------------------------
+				// 1. Get cash, borrows, reserves, and borrow index
+				cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, suite.ctx).GetCoins().AmountOf(tc.args.borrowCoinDenom)
+
+				borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(suite.ctx)
+				suite.Require().True(borrowCoinsPriorFound)
+				borrowCoinPriorAmount := borrowCoinsPrior.AmountOf(tc.args.borrowCoinDenom)
+
+				reservesPrior, foundReservesPrior := suite.keeper.GetTotalReserves(suite.ctx, tc.args.borrowCoinDenom)
+				if !foundReservesPrior {
+					reservesPrior = sdk.NewCoin(tc.args.borrowCoinDenom, sdk.ZeroInt())
+				}
+
+				borrowIndexPrior, foundBorrowIndexPrior := suite.keeper.GetBorrowIndex(suite.ctx, tc.args.borrowCoinDenom)
+				suite.Require().True(foundBorrowIndexPrior)
+
+				// 2. Calculate expected interest owed
+				borrowRateApy, err := harvest.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.Amount))
+				suite.Require().NoError(err)
+
+				// Convert from APY to SPY, expressed as (1 + borrow rate)
+				borrowRateSpy, err := harvest.APYToSPY(sdk.OneDec().Add(borrowRateApy))
+				suite.Require().NoError(err)
+
+				interestFactor := harvest.CalculateInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
+				expectedInterest := (interestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
+				expectedReserves := reservesPrior.Add(sdk.NewCoin(tc.args.borrowCoinDenom, sdk.NewDecFromInt(expectedInterest).Mul(tc.args.reserveFactor).TruncateInt()))
+				expectedBorrowIndex := borrowIndexPrior.Mul(interestFactor)
+				// -------------------------------------------------------------------------------------
+
+				// Set up snapshot chain context and run begin blocker
+				runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+snapshot.elapsedTime, 0)
+				snapshotCtx := suite.ctx.WithBlockTime(runAtTime)
 				harvest.BeginBlocker(snapshotCtx, suite.keeper)
 
-				// TODO: borrowedCoins in store
-				// borrowedCoins, _ := suite.keeper.GetBorrowedCoins(snapshotCtx)
+				// Check that the total amount of borrowed coins has increased by expected interest amount
+				expectedBorrowedCoins := initialBorrowedCoins.AmountOf(tc.args.borrowCoinDenom).Add(expectedInterest)
+				currBorrowedCoins, _ := suite.keeper.GetBorrowedCoins(snapshotCtx)
+				suite.Require().Equal(expectedBorrowedCoins, currBorrowedCoins.AmountOf(tc.args.borrowCoinDenom))
 
-				// TODO: borrow in store
-				// borrow, _ := suite.keeper.GetBorrow(snapshotCtx, tc.args.user)
-				// fmt.Println("borrow:", borrow)
+				// Check that the total reserves have changed as expected
+				currTotalReserves, _ := suite.keeper.GetTotalReserves(snapshotCtx, tc.args.borrowCoinDenom)
+				diffTotalReserves := currTotalReserves.Sub(reservesPrior)
+				suite.Require().Equal(expectedReserves, diffTotalReserves)
 
-				// TODO: check reserves
+				// Check that the borrow index has increased as expected
+				currIndexPrior, _ := suite.keeper.GetBorrowIndex(snapshotCtx, tc.args.borrowCoinDenom)
+				suite.Require().Equal(expectedBorrowIndex, currIndexPrior)
 
-				// TODO: should we check the module account balance?
-				// mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				// suite.Require().Equal(tc.args.expectedModAccountBalance.Add(depositedCoins...), mAcc.GetCoins())
+				// TODO: Add a clause for successive borrows, then check that the user's
+				// 		 borrow balance has been correctly updated.
 			}
 		})
 	}

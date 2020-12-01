@@ -21,7 +21,6 @@ import (
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
 	suite.Suite
-
 	keeper keeper.Keeper
 	app    app.TestApp
 	ctx    sdk.Context
@@ -211,9 +210,19 @@ func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Accou
 	return ak.GetAccount(suite.ctx, addr)
 }
 
+func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authexported.Account {
+	ak := suite.app.GetAccountKeeper()
+	return ak.GetAccount(ctx, addr)
+}
+
 func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.ModuleAccountI {
 	sk := suite.app.GetSupplyKeeper()
 	return sk.GetModuleAccount(suite.ctx, name)
+}
+
+func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) supplyexported.ModuleAccountI {
+	sk := suite.app.GetSupplyKeeper()
+	return sk.GetModuleAccount(ctx, name)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
