@@ -531,28 +531,56 @@ func (suite *KeeperTestSuite) TestInterest() {
 				contains:   "",
 			},
 		},
-		// {
-		// 	"multiple snapshots",
-		// 	args{
-		// 		user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-		// 		borrowCoinDenom:   "ukava",
-		// 		borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
-		// 		interestRateModel: normalModel,
-		// 		reserveFactor:     sdk.MustNewDecFromStr("0.05"),
-		// 		expectedInterestSnaphots: []ExpectedInterest{
-		// 			ExpectedInterest{
-		// 				elapsedTime: oneMonthInSeconds,
-		// 			},
-		// 			ExpectedInterest{
-		// 				elapsedTime: oneYearInSeconds,
-		// 			},
-		// 		},
-		// 	},
-		// 	errArgs{
-		// 		expectPass: true,
-		// 		contains:   "",
-		// 	},
-		// },
+		{
+			"multiple snapshots",
+			args{
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedInterest{
+					ExpectedInterest{
+						elapsedTime: oneMonthInSeconds,
+					},
+					ExpectedInterest{
+						elapsedTime: oneMonthInSeconds,
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"varied snapshots",
+			args{
+				user:              sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				borrowCoinDenom:   "ukava",
+				borrowCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel: normalModel,
+				reserveFactor:     sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedInterest{
+					ExpectedInterest{
+						elapsedTime: oneDayInSeconds,
+					},
+					ExpectedInterest{
+						elapsedTime: oneWeekInSeconds,
+					},
+					ExpectedInterest{
+						elapsedTime: oneMonthInSeconds,
+					},
+					ExpectedInterest{
+						elapsedTime: oneYearInSeconds,
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -639,21 +667,22 @@ func (suite *KeeperTestSuite) TestInterest() {
 			suite.Require().Equal(tc.args.borrowCoins, initialBorrowedCoins)
 
 			// Check interest levels for each snapshot
+			prevCtx := suite.ctx
 			for _, snapshot := range tc.args.expectedInterestSnaphots {
 				// ---------------------------- Calculate expected interest ----------------------------
 				// 1. Get cash, borrows, reserves, and borrow index
-				cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, suite.ctx).GetCoins().AmountOf(tc.args.borrowCoinDenom)
+				cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, prevCtx).GetCoins().AmountOf(tc.args.borrowCoinDenom)
 
-				borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(suite.ctx)
+				borrowCoinsPrior, borrowCoinsPriorFound := suite.keeper.GetBorrowedCoins(prevCtx)
 				suite.Require().True(borrowCoinsPriorFound)
 				borrowCoinPriorAmount := borrowCoinsPrior.AmountOf(tc.args.borrowCoinDenom)
 
-				reservesPrior, foundReservesPrior := suite.keeper.GetTotalReserves(suite.ctx, tc.args.borrowCoinDenom)
+				reservesPrior, foundReservesPrior := suite.keeper.GetTotalReserves(prevCtx, tc.args.borrowCoinDenom)
 				if !foundReservesPrior {
 					reservesPrior = sdk.NewCoin(tc.args.borrowCoinDenom, sdk.ZeroInt())
 				}
 
-				borrowIndexPrior, foundBorrowIndexPrior := suite.keeper.GetBorrowIndex(suite.ctx, tc.args.borrowCoinDenom)
+				borrowIndexPrior, foundBorrowIndexPrior := suite.keeper.GetBorrowIndex(prevCtx, tc.args.borrowCoinDenom)
 				suite.Require().True(foundBorrowIndexPrior)
 
 				// 2. Calculate expected interest owed
@@ -671,19 +700,18 @@ func (suite *KeeperTestSuite) TestInterest() {
 				// -------------------------------------------------------------------------------------
 
 				// Set up snapshot chain context and run begin blocker
-				runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+snapshot.elapsedTime, 0)
-				snapshotCtx := suite.ctx.WithBlockTime(runAtTime)
+				runAtTime := time.Unix(prevCtx.BlockTime().Unix()+(snapshot.elapsedTime), 0)
+				snapshotCtx := prevCtx.WithBlockTime(runAtTime)
 				harvest.BeginBlocker(snapshotCtx, suite.keeper)
 
 				// Check that the total amount of borrowed coins has increased by expected interest amount
-				expectedBorrowedCoins := initialBorrowedCoins.AmountOf(tc.args.borrowCoinDenom).Add(expectedInterest)
+				expectedBorrowedCoins := borrowCoinsPrior.AmountOf(tc.args.borrowCoinDenom).Add(expectedInterest)
 				currBorrowedCoins, _ := suite.keeper.GetBorrowedCoins(snapshotCtx)
 				suite.Require().Equal(expectedBorrowedCoins, currBorrowedCoins.AmountOf(tc.args.borrowCoinDenom))
 
 				// Check that the total reserves have changed as expected
 				currTotalReserves, _ := suite.keeper.GetTotalReserves(snapshotCtx, tc.args.borrowCoinDenom)
-				diffTotalReserves := currTotalReserves.Sub(reservesPrior)
-				suite.Require().Equal(expectedReserves, diffTotalReserves)
+				suite.Require().Equal(expectedReserves, currTotalReserves)
 
 				// Check that the borrow index has increased as expected
 				currIndexPrior, _ := suite.keeper.GetBorrowIndex(snapshotCtx, tc.args.borrowCoinDenom)
@@ -701,6 +729,8 @@ func (suite *KeeperTestSuite) TestInterest() {
 					borrowCoinsAfter, _ := suite.keeper.GetBorrow(snapshotCtx, tc.args.user)
 					suite.Require().Equal(expectedBorrowCoinsAfter, borrowCoinsAfter.Amount)
 				}
+				// Update previous context to this snapshot's context, segmenting time periods between snapshots
+				prevCtx = snapshotCtx
 			}
 		})
 	}
