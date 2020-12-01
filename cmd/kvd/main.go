@@ -30,9 +30,9 @@ import (
 
 // kvd custom flags
 const (
-	flagInvCheckPeriod         = "inv-check-period"
-	configMempoolEnableAuth    = "mempool.enable_authentication"
-	configMempoolAuthAddresses = "mempool.authorized_addresses"
+	flagInvCheckPeriod       = "inv-check-period"
+	flagMempoolEnableAuth    = "mempool.enable-authentication"
+	flagMempoolAuthAddresses = "mempool.authorized-addresses"
 )
 
 var invCheckPeriod uint
@@ -77,7 +77,23 @@ func main() {
 	executor := cli.PrepareBaseCmd(rootCmd, "KA", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
-	err := executor.Execute()
+	startCmd, _, err := rootCmd.Find([]string{"start"})
+	if err != nil {
+		panic(fmt.Sprintf("could not find 'start' command on root command: %s", err))
+	}
+	startCmd.Flags().Bool(flagMempoolEnableAuth, false, "Configure the mempool to only accept transactions from authorized addresses")
+	err = viper.BindPFlag(flagMempoolEnableAuth, startCmd.Flags().Lookup(flagMempoolEnableAuth))
+	if err != nil {
+		panic(fmt.Sprintf("failed to bind flag: %s", err))
+	}
+	startCmd.Flags().StringSlice(flagMempoolAuthAddresses, []string{}, "Additional addresses to accept transactions from when the mempool is running in authorized mode (comma separated kava addresses)")
+	err = viper.BindPFlag(flagMempoolAuthAddresses, startCmd.Flags().Lookup(flagMempoolAuthAddresses))
+	if err != nil {
+		panic(fmt.Sprintf("failed to bind flag: %s", err))
+	}
+
+	// run main command
+	err = executor.Execute()
 	if err != nil {
 		panic(err)
 	}
@@ -100,8 +116,8 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 		panic(err)
 	}
 
-	mempoolEnableAuth := viper.GetBool(configMempoolEnableAuth)
-	mempoolAuthAddresses, err := accAddressesFromBech32(viper.GetStringSlice(configMempoolAuthAddresses)...)
+	mempoolEnableAuth := viper.GetBool(flagMempoolEnableAuth)
+	mempoolAuthAddresses, err := accAddressesFromBech32(viper.GetStringSlice(flagMempoolAuthAddresses)...)
 	if err != nil {
 		panic(fmt.Sprintf("could not get authorized address from config: %v", err))
 	}
