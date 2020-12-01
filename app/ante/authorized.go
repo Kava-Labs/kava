@@ -35,7 +35,7 @@ func (amd AuthenticatedMempoolDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, 
 		if !ok {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "tx must be sig verifiable tx")
 		}
-		if commonAddressesExist(sigTx.GetSigners(), amd.fetchAuthorizedAddresses(ctx)) {
+		if !commonAddressesExist(sigTx.GetSigners(), amd.fetchAuthorizedAddresses(ctx)) {
 			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "tx contains no signers authorized for this mempool")
 		}
 	}
@@ -50,14 +50,14 @@ func (amd AuthenticatedMempoolDecorator) fetchAuthorizedAddresses(ctx sdk.Contex
 	return addrs
 }
 
-// commonAddressesExist checks if there is any interection between two lists of addresses
+// commonAddressesExist checks if there is any intersection between two lists of addresses
 func commonAddressesExist(addresses1, addresses2 []sdk.AccAddress) bool {
 	for _, a1 := range addresses1 {
 		for _, a2 := range addresses2 {
 			if a1.Equals(a2) {
-				return false
+				return true
 			}
 		}
 	}
-	return true
+	return false
 }
