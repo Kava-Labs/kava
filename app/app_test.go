@@ -16,11 +16,11 @@ import (
 
 func TestExport(t *testing.T) {
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 0)
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, AppOptions{})
 	setGenesis(app)
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newApp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 0)
+	newApp := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, AppOptions{})
 	_, _, err := newApp.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }
@@ -28,7 +28,7 @@ func TestExport(t *testing.T) {
 // ensure that black listed addresses are properly set in bank keeper
 func TestBlackListedAddrs(t *testing.T) {
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, map[int64]bool{}, 0)
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, AppOptions{})
 
 	for acc := range mAccPerms {
 		require.Equal(t, !allowedReceivingModAcc[acc], app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))

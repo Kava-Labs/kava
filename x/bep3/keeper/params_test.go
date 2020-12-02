@@ -116,6 +116,14 @@ func (suite *ParamsTestSuite) TestGetAssetByCoinID() {
 	suite.Equal(asset, res)
 }
 
+func (suite *ParamsTestSuite) TestGetAuthorizedAddresses() {
+	deputyAddresses := suite.keeper.GetAuthorizedAddresses(suite.ctx)
+	// the test params use the same deputy address for two assets
+	expectedAddresses := []sdk.AccAddress{suite.addrs[0]}
+
+	suite.Require().ElementsMatch(expectedAddresses, deputyAddresses)
+}
+
 func (suite *AssetTestSuite) TestValidateLiveAsset() {
 	type args struct {
 		coin sdk.Coin

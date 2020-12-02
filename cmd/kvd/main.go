@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -28,7 +29,11 @@ import (
 )
 
 // kvd custom flags
-const flagInvCheckPeriod = "inv-check-period"
+const (
+	flagInvCheckPeriod       = "inv-check-period"
+	flagMempoolEnableAuth    = "mempool.enable-authentication"
+	flagMempoolAuthAddresses = "mempool.authorized-addresses"
+)
 
 var invCheckPeriod uint
 
@@ -72,7 +77,23 @@ func main() {
 	executor := cli.PrepareBaseCmd(rootCmd, "KA", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
-	err := executor.Execute()
+	startCmd, _, err := rootCmd.Find([]string{"start"})
+	if err != nil {
+		panic(fmt.Sprintf("could not find 'start' command on root command: %s", err))
+	}
+	startCmd.Flags().Bool(flagMempoolEnableAuth, false, "Configure the mempool to only accept transactions from authorized addresses")
+	err = viper.BindPFlag(flagMempoolEnableAuth, startCmd.Flags().Lookup(flagMempoolEnableAuth))
+	if err != nil {
+		panic(fmt.Sprintf("failed to bind flag: %s", err))
+	}
+	startCmd.Flags().StringSlice(flagMempoolAuthAddresses, []string{}, "Additional addresses to accept transactions from when the mempool is running in authorized mode (comma separated kava addresses)")
+	err = viper.BindPFlag(flagMempoolAuthAddresses, startCmd.Flags().Lookup(flagMempoolAuthAddresses))
+	if err != nil {
+		panic(fmt.Sprintf("failed to bind flag: %s", err))
+	}
+
+	// run main command
+	err = executor.Execute()
 	if err != nil {
 		panic(err)
 	}
@@ -95,8 +116,21 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 		panic(err)
 	}
 
+	mempoolEnableAuth := viper.GetBool(flagMempoolEnableAuth)
+	mempoolAuthAddresses, err := accAddressesFromBech32(viper.GetStringSlice(flagMempoolAuthAddresses)...)
+	if err != nil {
+		panic(fmt.Sprintf("could not get authorized address from config: %v", err))
+	}
+
 	return app.NewApp(
-		logger, db, traceStore, true, skipUpgradeHeights, invCheckPeriod,
+		logger, db, traceStore,
+		app.AppOptions{
+			SkipLoadLatest:       false,
+			SkipUpgradeHeights:   skipUpgradeHeights,
+			InvariantCheckPeriod: invCheckPeriod,
+			MempoolEnableAuth:    mempoolEnableAuth,
+			MempoolAuthAddresses: mempoolAuthAddresses,
+		},
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
@@ -110,13 +144,33 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		tempApp := app.NewApp(logger, db, traceStore, false, map[int64]bool{}, uint(1))
+		opts := app.AppOptions{
+			SkipLoadLatest:       true,
+			InvariantCheckPeriod: uint(1),
+		}
+		tempApp := app.NewApp(logger, db, traceStore, opts)
 		err := tempApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	tempApp := app.NewApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
+	opts := app.AppOptions{
+		SkipLoadLatest:       false,
+		InvariantCheckPeriod: uint(1),
+	}
+	tempApp := app.NewApp(logger, db, traceStore, opts)
 	return tempApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
+}
+
+func accAddressesFromBech32(addresses ...string) ([]sdk.AccAddress, error) {
+	var decodedAddresses []sdk.AccAddress
+	for _, s := range addresses {
+		a, err := sdk.AccAddressFromBech32(s)
+		if err != nil {
+			return nil, err
+		}
+		decodedAddresses = append(decodedAddresses, a)
+	}
+	return decodedAddresses, nil
 }
