@@ -45,8 +45,10 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 func (k Keeper) ValidateRepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
 	senderCoins := senderAcc.GetCoins()
-	if coins.IsAnyGT(senderCoins) {
-		return sdkerrors.Wrapf(types.ErrInsufficientBalanceForRepay, "account can only repay up to %s", senderCoins)
+	for _, coin := range coins {
+		if senderCoins.AmountOf(coin.Denom).LT(coin.Amount) {
+			return sdkerrors.Wrapf(types.ErrInsufficientBalanceForRepay, "account can only repay up to %s%s", senderCoins.AmountOf(coin.Denom), coin.Denom)
+		}
 	}
 
 	borrow, found := k.GetBorrow(ctx, sender)
