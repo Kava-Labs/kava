@@ -55,4 +55,8 @@ var (
 	ErrGreaterThanAssetBorrowLimit = sdkerrors.Register(ModuleName, 24, "fails global asset borrow limit validation")
 	// ErrBorrowEmptyCoins error for when you cannot borrow empty coins
 	ErrBorrowEmptyCoins = sdkerrors.Register(ModuleName, 25, "cannot borrow zero coins")
+	// ErrBorrowNotFound error for when a user's borrow is not found in the store
+	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 26, "borrow not found")
+	// ErrDebtOverpaid error for when a user attempts to overpay their loan's amount
+	ErrDebtOverpaid = sdkerrors.Register(ModuleName, 27, "repayment exceeds loan debt")
 )

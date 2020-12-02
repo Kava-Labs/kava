@@ -230,6 +230,44 @@ func (suite *MsgTestSuite) TestMsgBorrow() {
 	}
 }
 
+func (suite *MsgTestSuite) TestMsgRepay() {
+	type args struct {
+		sender sdk.AccAddress
+		amount sdk.Coins
+	}
+	addrs := []sdk.AccAddress{
+		sdk.AccAddress("test1"),
+	}
+	testCases := []struct {
+		name        string
+		args        args
+		expectPass  bool
+		expectedErr string
+	}{
+		{
+			name: "valid",
+			args: args{
+				sender: addrs[0],
+				amount: sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(1000000))),
+			},
+			expectPass:  true,
+			expectedErr: "",
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			msg := types.NewMsgRepay(tc.args.sender, tc.args.amount)
+			err := msg.ValidateBasic()
+			if tc.expectPass {
+				suite.NoError(err)
+			} else {
+				suite.Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.expectedErr))
+			}
+		})
+	}
+}
+
 func TestMsgTestSuite(t *testing.T) {
 	suite.Run(t, new(MsgTestSuite))
 }
