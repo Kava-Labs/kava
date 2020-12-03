@@ -151,7 +151,8 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	if totalSupply.IsNegative() {
 		return sdk.OneDec()
 	}
-	return minDec(sdk.OneDec(), borrows.Quo(totalSupply))
+
+	return sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply))
 }
 
 // CalculateInterestFactor calculates the simple interest scaling factor,
