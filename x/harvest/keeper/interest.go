@@ -124,7 +124,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	return nil
 }
 
-// CalculateBorrowRate calculates the borrow rate , which is the current APY (expresed as a decimal)
+// CalculateBorrowRate calculates the borrow rate, which is the current APY expressed as a decimal
 // based on the current utilization.
 func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
@@ -151,7 +151,7 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	if totalSupply.IsNegative() {
 		return sdk.OneDec()
 	}
-	return borrows.Quo(totalSupply)
+	return minDec(sdk.OneDec(), borrows.Quo(totalSupply))
 }
 
 // CalculateInterestFactor calculates the simple interest scaling factor,
@@ -165,7 +165,6 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 	interestMantissa := sdk.NewUint(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().Uint64())
 	// Convert seconds elapsed to uint (*not scaled*)
 	secondsElapsedUint := sdk.NewUint(secondsElapsed.Uint64())
-	// TODO: sdk.RelativePow should have an integer overflow check
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdk.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 
@@ -174,11 +173,20 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 }
 
 // APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
-// SPY = Per second compounded interest rate is how cosmos mathmatically represents APY
+// SPY = Per second compounded interest rate is how cosmos mathematically represents APY.
 func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
+	// Note: any APY 179 or greater will cause an out-of-bounds error
 	root, err := apy.ApproxRoot(uint64(secondsPerYear))
 	if err != nil {
 		return sdk.ZeroDec(), err
 	}
 	return root, nil
+}
+
+// minInt64 returns the smaller of x or y
+func minDec(x, y sdk.Dec) sdk.Dec {
+	if x.GT(y) {
+		return y
+	}
+	return x
 }
