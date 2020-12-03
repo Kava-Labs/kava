@@ -118,7 +118,7 @@ func (suite *InterestTestSuite) TestCalculateBorrowRate() {
 				borrows:       sdk.MustNewDecFromStr("1000"),
 				reserves:      sdk.MustNewDecFromStr("1000"),
 				model:         normalModel,
-				expectedValue: sdk.MustNewDecFromStr("0.180000000000000000"),
+				expectedValue: sdk.MustNewDecFromStr("0.020000000000000000"),
 			},
 		},
 		{
