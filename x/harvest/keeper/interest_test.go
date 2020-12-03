@@ -363,8 +363,8 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 		{
 			"highest apy",
 			args{
-				apy:           sdk.MustNewDecFromStr("170"),
-				expectedValue: sdk.MustNewDecFromStr("1.000000162855113371"),
+				apy:           sdk.MustNewDecFromStr("177"),
+				expectedValue: sdk.MustNewDecFromStr("1.000002441641340532"),
 			},
 			false,
 		},
