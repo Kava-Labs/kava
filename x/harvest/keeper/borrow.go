@@ -11,6 +11,17 @@ import (
 
 // Borrow funds
 func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) error {
+	// Set any new denoms' global borrow index to 1.0
+	for _, coin := range coins {
+		_, foundBorrowIndex := k.GetBorrowIndex(ctx, coin.Denom)
+		if !foundBorrowIndex {
+			k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+		}
+	}
+
+	// Sync user's borrow balance (only for coins user is requesting to borrow)
+	k.SyncBorrowInterest(ctx, borrower, coins)
+
 	// Validate borrow amount within user and protocol limits
 	err := k.ValidateBorrow(ctx, borrower, coins)
 	if err != nil {
@@ -34,19 +45,38 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	// Set any new denoms' global borrow index to 1.0
-	for _, coin := range coins {
-		_, foundBorrowIndex := k.GetBorrowIndex(ctx, coin.Denom)
-		if !foundBorrowIndex {
-			k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
-		}
+	borrow, found := k.GetBorrow(ctx, borrower)
+	if !found {
+		return types.ErrBorrowNotFound // This should never happen
 	}
+	// Add the newly borrowed coins to the user's borrow object
+	borrow.Amount = borrow.Amount.Add(coins...)
+	k.SetBorrow(ctx, borrow)
+
+	// Update total borrowed amount by newly borrowed coins. Don't add user's pending interest as
+	// it has already been included in the total borrowed coins by the BeginBlocker.
+	k.IncrementBorrowedCoins(ctx, coins)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeHarvestBorrow,
+			sdk.NewAttribute(types.AttributeKeyBorrower, borrower.String()),
+			sdk.NewAttribute(types.AttributeKeyBorrowCoins, coins.String()),
+		),
+	)
+
+	return nil
+}
+
+// SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state,
+// returning an sdk.Coins object containing the amount of newly accumulated interest.
+func (k Keeper) SyncBorrowInterest(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) sdk.Coins {
+	totalNewInterest := sdk.Coins{}
 
 	// Update user's borrow index list for each asset in the 'coins' array.
 	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
 	borrow, found := k.GetBorrow(ctx, borrower)
-	// User's first borrow
-	if !found {
+	if !found { // User's first borrow
 		// Build borrow index list containing (denoms, borrow index value at borrow time)
 		var borrowIndexes types.BorrowIndexes
 		for _, coin := range coins {
@@ -54,10 +84,8 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 			borrowIndex := types.NewBorrowIndexItem(coin.Denom, borrowIndexValue)
 			borrowIndexes = append(borrowIndexes, borrowIndex)
 		}
-		// Set user's new borrow in the store
-		borrow = types.NewBorrow(borrower, coins, borrowIndexes)
-		// User has existing borrow
-	} else {
+		borrow = types.NewBorrow(borrower, sdk.Coins{}, borrowIndexes)
+	} else { // User has existing borrow
 		for _, coin := range coins {
 			// Locate the borrow index item by coin denom in the user's list of borrow indexes
 			foundAtIndex := -1
@@ -76,29 +104,19 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
 				userLastBorrowIndex := borrow.Index[foundAtIndex].Value
 				interest := (storedAmount.Quo(userLastBorrowIndex).Mul(borrowIndexValue)).Sub(storedAmount)
-				// Update outstanding borrow amount to include the unpaid interest
-				borrow.Amount = borrow.Amount.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
 				// We're synced up, so update user's borrow index value to match the current global borrow index value
 				borrow.Index[foundAtIndex].Value = borrowIndexValue
 			}
 		}
-		// Add the newly borrowed coins to the user's borrow object
-		borrow.Amount = borrow.Amount.Add(coins...)
+		// Add all pending interest to user's borrow
+		borrow.Amount = borrow.Amount.Add(totalNewInterest...)
 	}
+
+	// Update user's borrow in the store
 	k.SetBorrow(ctx, borrow)
 
-	// Update total borrowed amount
-	k.IncrementBorrowedCoins(ctx, coins)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeHarvestBorrow,
-			sdk.NewAttribute(types.AttributeKeyBorrower, borrow.Borrower.String()),
-			sdk.NewAttribute(types.AttributeKeyBorrowCoins, coins.String()),
-		),
-	)
-
-	return nil
+	return totalNewInterest
 }
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
