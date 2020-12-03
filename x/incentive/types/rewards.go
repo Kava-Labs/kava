@@ -154,7 +154,7 @@ func (cps ClaimPeriods) Validate() error {
 	seenPeriods := make(map[string]bool)
 	var key string
 	for _, cp := range cps {
-		key = cp.CollateralType + string(cp.ID)
+		key = cp.CollateralType + fmt.Sprint(cp.ID)
 		if seenPeriods[key] {
 			return fmt.Errorf("duplicated claim period with id %d and collateral type %s", cp.ID, cp.CollateralType)
 		}
@@ -251,7 +251,7 @@ func (cs Claims) Validate() error {
 	seemClaims := make(map[string]bool)
 	var key string
 	for _, c := range cs {
-		key = c.CollateralType + string(c.ClaimPeriodID) + c.Owner.String()
+		key = c.CollateralType + fmt.Sprint(c.ClaimPeriodID) + c.Owner.String()
 		if c.Owner != nil && seemClaims[key] {
 			return fmt.Errorf("duplicated claim from owner %s and collateral type %s", c.Owner, c.CollateralType)
 		}
