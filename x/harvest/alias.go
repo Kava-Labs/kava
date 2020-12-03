@@ -50,6 +50,10 @@ var (
 	// function aliases
 	NewKeeper                        = keeper.NewKeeper
 	NewQuerier                       = keeper.NewQuerier
+	CalculateUtilizationRatio        = keeper.CalculateUtilizationRatio
+	CalculateBorrowRate              = keeper.CalculateBorrowRate
+	CalculateInterestFactor          = keeper.CalculateInterestFactor
+	APYToSPY                         = keeper.APYToSPY
 	ClaimKey                         = types.ClaimKey
 	DefaultGenesisState              = types.DefaultGenesisState
 	DefaultParams                    = types.DefaultParams
