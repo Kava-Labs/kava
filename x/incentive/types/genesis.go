@@ -34,7 +34,7 @@ func (gcps GenesisClaimPeriodIDs) Validate() error {
 	seenIDS := make(map[string]bool)
 	var key string
 	for _, gcp := range gcps {
-		key = gcp.CollateralType + string(gcp.ID)
+		key = gcp.CollateralType + fmt.Sprint(gcp.ID)
 		if seenIDS[key] {
 			return fmt.Errorf("duplicated genesis claim period with id %d and collateral type %s", gcp.ID, gcp.CollateralType)
 		}
