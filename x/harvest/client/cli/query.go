@@ -41,6 +41,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryDepositsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
+		queryBorrowCmd(queryRoute, cdc),
 	)...)
 
 	return harvestQueryCmd
@@ -324,4 +325,51 @@ func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(borrowedCoins)
 		},
 	}
+}
+
+func queryBorrowCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "borrow",
+		Short: "query outstanding borrow balance for a user",
+		Long: strings.TrimSpace(`query outstanding borrow balance for a user:
+		Example:
+		$ kvcli q harvest borrow --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			var owner sdk.AccAddress
+
+			ownerBech := viper.GetString(flagOwner)
+			if len(ownerBech) != 0 {
+				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
+				if err != nil {
+					return err
+				}
+				owner = borrowOwner
+			}
+
+			params := types.NewQueryBorrow(owner)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrow)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var balance sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &balance); err != nil {
+				return fmt.Errorf("failed to unmarshal borrow balance: %w", err)
+			}
+			return cliCtx.PrintOutput(balance)
+		},
+	}
+	cmd.Flags().String(flagOwner, "", "filter for borrows by owner address")
+	return cmd
 }
