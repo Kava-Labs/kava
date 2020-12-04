@@ -231,7 +231,9 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {
-		k.SetBorrowedCoins(ctx, newCoins)
+		if !newCoins.Empty() {
+			k.SetBorrowedCoins(ctx, newCoins)
+		}
 	} else {
 		k.SetBorrowedCoins(ctx, borrowedCoins.Add(newCoins...))
 	}
