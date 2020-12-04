@@ -17,6 +17,9 @@ const (
 	// ModuleAccountName name of module account used to hold deposits
 	ModuleAccountName = "harvest"
 
+	// LiquidatorMacc module account for liquidator
+	LiquidatorMacc = "liquidator"
+
 	// StoreKey Top level store key where all module items will be stored
 	StoreKey = ModuleName
 
