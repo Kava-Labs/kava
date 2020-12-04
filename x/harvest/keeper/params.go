@@ -48,5 +48,6 @@ func (k Keeper) GetMoneyMarket(ctx sdk.Context, denom string) (types.MoneyMarket
 			return mm, true
 		}
 	}
+
 	return types.MoneyMarket{}, false
 }
