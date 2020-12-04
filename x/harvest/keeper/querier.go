@@ -26,6 +26,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
 			return queryGetBorrows(ctx, req, k)
+		case types.QueryGetBorrow:
+			return queryGetBorrow(ctx, req, k)
 		case types.QueryGetBorrowed:
 			return queryGetBorrowed(ctx, req, k)
 		default:
@@ -283,6 +285,26 @@ func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrowedCoins)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetBorrow(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryBorrowParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var borrowBalance sdk.Coins
+	if len(params.Owner) > 0 {
+		borrowBalance = k.GetBorrowBalance(ctx, params.Owner)
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrowBalance)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
