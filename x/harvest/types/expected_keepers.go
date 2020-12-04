@@ -40,3 +40,8 @@ type StakingKeeper interface {
 type PricefeedKeeper interface {
 	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, error)
 }
+
+// AuctionKeeper expected interface for the auction keeper (noalias)
+type AuctionKeeper interface {
+	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, error)
+}

@@ -9,11 +9,13 @@ const (
 	EventTypeHarvestWithdrawal            = "harvest_withdrawal"
 	EventTypeClaimHarvestReward           = "claim_harvest_reward"
 	EventTypeHarvestBorrow                = "harvest_borrow"
+	EventTypeDepositLiquidation           = "harvest_liquidation"
 	AttributeValueCategory                = ModuleName
 	AttributeKeyBlockHeight               = "block_height"
 	AttributeKeyRewardsDistribution       = "rewards_distributed"
 	AttributeKeyDeposit                   = "deposit"
 	AttributeKeyDepositDenom              = "deposit_denom"
+	AttributeKeyDepositCoins              = "deposit_coins"
 	AttributeKeyDepositor                 = "depositor"
 	AttributeKeyClaimType                 = "claim_type"
 	AttributeKeyClaimHolder               = "claim_holder"
