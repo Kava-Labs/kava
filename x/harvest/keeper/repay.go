@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/harvest/types"
 )
@@ -42,6 +43,14 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 
 // ValidateRepay validates a requested loan repay
 func (k Keeper) ValidateRepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
+	senderCoins := senderAcc.GetCoins()
+	for _, coin := range coins {
+		if senderCoins.AmountOf(coin.Denom).LT(coin.Amount) {
+			return sdkerrors.Wrapf(types.ErrInsufficientBalanceForRepay, "account can only repay up to %s%s", senderCoins.AmountOf(coin.Denom), coin.Denom)
+		}
+	}
+
 	borrow, found := k.GetBorrow(ctx, sender)
 	if !found {
 		return types.ErrBorrowNotFound

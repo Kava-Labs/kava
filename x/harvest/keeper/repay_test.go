@@ -69,14 +69,29 @@ func (suite *KeeperTestSuite) TestRepay() {
 			},
 		},
 		{
-			"invalid: overpaid debt",
+			"invalid: insufficent balance for repay",
 			args{
 				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
 				depositCoins:         []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
 				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
-				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(60*KAVA_CF))),
+				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(51*KAVA_CF))), // Exceeds user's KAVA balance
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "account can only repay up to",
+			},
+		},
+		{
+			"invalid: overpaid debt",
+			args{
+				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
+				depositCoins:         []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(80*KAVA_CF))}, // Deposit less so user still has some KAVA
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
+				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(60*KAVA_CF))), // Exceeds borrowed coins but not user's balance
 			},
 			errArgs{
 				expectPass: false,
