@@ -69,22 +69,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 			},
 		},
 		{
-			"invalid: insufficent balance for repay",
-			args{
-				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
-				depositCoins:         []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
-				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
-				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(51*KAVA_CF))), // Exceeds user's KAVA balance
-			},
-			errArgs{
-				expectPass: false,
-				contains:   "account can only repay up to",
-			},
-		},
-		{
-			"invalid: overpaid debt",
+			"valid: overpayment is adjusted",
 			args{
 				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
@@ -94,10 +79,25 @@ func (suite *KeeperTestSuite) TestRepay() {
 				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(60*KAVA_CF))), // Exceeds borrowed coins but not user's balance
 			},
 			errArgs{
-				expectPass: false,
-				contains:   "repayment exceeds loan debt",
+				expectPass: true,
+				contains:   "",
 			},
 		},
+		// {
+		// 	"invalid: insufficent balance for repay",
+		// 	args{
+		// 		borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+		// 		initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+		// 		initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
+		// 		depositCoins:         []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
+		// 		borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
+		// 		repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(51*KAVA_CF))), // Exceeds user's KAVA balance
+		// 	},
+		// 	errArgs{
+		// 		expectPass: false,
+		// 		contains:   "account can only repay up to",
+		// 	},
+		// },
 	}
 
 	for _, tc := range testCases {
@@ -124,8 +124,8 @@ func (suite *KeeperTestSuite) TestRepay() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", true, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("1"), "usdx:usd", sdk.NewInt(USDX_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))),
-					types.NewMoneyMarket("ukava", false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8"), "kava:usd", sdk.NewInt(KAVA_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))),
+					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1")), "usdx:usd", sdk.NewInt(USDX_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05")),
+					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("0.8")), "kava:usd", sdk.NewInt(KAVA_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05")),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
@@ -185,20 +185,22 @@ func (suite *KeeperTestSuite) TestRepay() {
 			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.repayCoins)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
+				// If we overpaid expect an adjustment
+				repaymentCoins := suite.keeper.CalculatePaymentAmount(tc.args.borrowCoins, tc.args.repayCoins)
 
 				// Check borrower balance
-				expectedBorrowerCoins := tc.args.initialBorrowerCoins.Sub(tc.args.depositCoins).Add(tc.args.borrowCoins...).Sub(tc.args.repayCoins)
+				expectedBorrowerCoins := tc.args.initialBorrowerCoins.Sub(tc.args.depositCoins).Add(tc.args.borrowCoins...).Sub(repaymentCoins)
 				acc := suite.getAccount(tc.args.borrower)
 				suite.Require().Equal(expectedBorrowerCoins, acc.GetCoins())
 
 				// Check module account balance
-				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins).Add(tc.args.repayCoins...)
+				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins).Add(repaymentCoins...)
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(expectedModuleCoins, mAcc.GetCoins())
 
 				// Check user's borrow object
 				borrow, _ := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
-				expectedBorrowCoins := tc.args.borrowCoins.Sub(tc.args.repayCoins)
+				expectedBorrowCoins := tc.args.borrowCoins.Sub(repaymentCoins)
 				suite.Require().Equal(expectedBorrowCoins, borrow.Amount)
 			} else {
 				suite.Require().Error(err)

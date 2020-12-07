@@ -68,9 +68,9 @@ func (k Keeper) CalculatePaymentAmount(owed sdk.Coins, payment sdk.Coins) sdk.Co
 	repayment := sdk.Coins{}
 	for _, coin := range payment {
 		if coin.Amount.GT(owed.AmountOf(coin.Denom)) {
-			repayment.Add(sdk.NewCoin(coin.Denom, owed.AmountOf(coin.Denom)))
+			repayment = append(repayment, sdk.NewCoin(coin.Denom, owed.AmountOf(coin.Denom)))
 		} else {
-			repayment.Add(coin)
+			repayment = append(repayment, coin)
 		}
 	}
 	return repayment
