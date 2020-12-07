@@ -670,7 +670,7 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 	newStartingID := oldGenState.StartingCdpID
 
 	for _, cdp := range oldGenState.CDPs {
-		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
+		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated, sdk.OneDec())
 		newCDPs = append(newCDPs, newCDP)
 	}
 
