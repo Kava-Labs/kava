@@ -59,4 +59,6 @@ var (
 	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 26, "no previous accrual time found")
 	// ErrBorrowNotFound error for when borrow not found in store
 	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 27, "no borrow found")
+	// ErrBorrowNotLiquidatable error for when a borrow is within valid LTV and cannot be liquidated
+	ErrBorrowNotLiquidatable = sdkerrors.Register(ModuleName, 28, "borrow not liquidatable")
 )

@@ -78,7 +78,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 
 	// Validate that the proposed borrow's USD value is within user's borrowable limit
 	if totalBorrowedUSDAmount.LTE(totalBorrowableUSDAmount) {
-		// return err this position is not over LTV
+		return sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "borrowed %s <= borrowable %s", totalBorrowedUSDAmount, totalBorrowableUSDAmount)
 	}
 
 	// Sending coins to auction module with keeper address getting 5% of the profits
