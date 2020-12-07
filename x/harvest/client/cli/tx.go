@@ -153,7 +153,7 @@ func getCmdRepay(cdc *codec.Codec) *cobra.Command {
 		Long:  strings.TrimSpace(`repay tokens to the harvest protocol`),
 		Args:  cobra.ExactArgs(1),
 		Example: fmt.Sprintf(
-			`%s tx %s repay 1000000000ukava --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s repay 1000000000ukava,25000000000bnb --from <key>`, version.ClientName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
