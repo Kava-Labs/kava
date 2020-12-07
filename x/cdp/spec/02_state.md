@@ -26,10 +26,12 @@ The CDP's collateral always equal to the total of the deposits.
 type CDP struct {
     ID              uint64
     Owner           sdk.AccAddress
+    Type            string
     Collateral      sdk.Coin
     Principal       sdk.Coin
     AccumulatedFees sdk.Coin
     FeesUpdated     time.Time
+    InterestFactor  sdk.Dec
 }
 ```
 

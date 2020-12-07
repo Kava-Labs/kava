@@ -233,10 +233,10 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 
 func cdps() (cdps cdp.CDPs) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoin("xrp", sdk.NewInt(10000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(8000000)), tmtime.Canonical(time.Now()))
-	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoin("xrp", sdk.NewInt(100000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()))
-	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoin("btc", sdk.NewInt(1000000000)), "btc-a", sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()))
-	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoin("xrp", sdk.NewInt(1000000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(500000000)), tmtime.Canonical(time.Now()))
+	c1 := cdp.NewCDP(uint64(1), addrs[0], sdk.NewCoin("xrp", sdk.NewInt(10000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(8000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c2 := cdp.NewCDP(uint64(2), addrs[1], sdk.NewCoin("xrp", sdk.NewInt(100000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c3 := cdp.NewCDP(uint64(3), addrs[1], sdk.NewCoin("btc", sdk.NewInt(1000000000)), "btc-a", sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c4 := cdp.NewCDP(uint64(4), addrs[2], sdk.NewCoin("xrp", sdk.NewInt(1000000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(500000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
 	cdps = append(cdps, c1, c2, c3, c4)
 	return
 }

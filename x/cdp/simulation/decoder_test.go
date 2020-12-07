@@ -32,7 +32,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 	deposit := types.Deposit{CdpID: 1, Amount: oneCoins}
 	principal := sdk.OneInt()
 	prevDistTime := time.Now().UTC()
-	cdp := types.CDP{ID: 1, FeesUpdated: prevDistTime, Collateral: oneCoins, Principal: oneCoins, AccumulatedFees: oneCoins}
+	cdp := types.CDP{ID: 1, FeesUpdated: prevDistTime, Collateral: oneCoins, Principal: oneCoins, AccumulatedFees: oneCoins, InterestFactor: sdk.OneDec()}
 
 	kvPairs := kv.Pairs{
 		kv.Pair{Key: types.CdpIDKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(cdpIds)},
