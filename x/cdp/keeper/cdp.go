@@ -41,7 +41,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 
 	// send coins from the owners account to the cdp module
 	id := k.GetNextCdpID(ctx)
-	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time)
+	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time, sdk.OneDec())
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
