@@ -254,3 +254,34 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	k.SetBorrowedCoins(ctx, updatedBorrowedCoins)
 	return nil
 }
+
+// GetBorrowBalance gets the user's total borrow balance (borrow balance + pending interest)
+func (k Keeper) GetBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) sdk.Coins {
+	borrowBalance := sdk.Coins{}
+	borrow, found := k.GetBorrow(ctx, borrower)
+	if found {
+		totalNewInterest := sdk.Coins{}
+		for _, coin := range borrow.Amount {
+			borrowIndexValue, foundBorrowIndexValue := k.GetBorrowIndex(ctx, coin.Denom)
+			if foundBorrowIndexValue {
+				// Locate the borrow index item by coin denom in the user's list of borrow indexes
+				foundAtIndex := -1
+				for i := range borrow.Index {
+					if borrow.Index[i].Denom == coin.Denom {
+						foundAtIndex = i
+						break
+					}
+				}
+				// Calculate interest owed by user for this asset
+				if foundAtIndex != -1 {
+					storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+					userLastBorrowIndex := borrow.Index[foundAtIndex].Value
+					coinInterest := (storedAmount.Quo(userLastBorrowIndex).Mul(borrowIndexValue)).Sub(storedAmount)
+					totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
+				}
+			}
+		}
+		borrowBalance = borrow.Amount.Add(totalNewInterest...)
+	}
+	return borrowBalance
+}
