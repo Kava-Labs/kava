@@ -26,18 +26,16 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
 func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) error {
-	// Calculate outstanding interest and add to borrow balances
-	borrowBalances := k.GetBorrowBalance(ctx, borrower)
-
-	// Load a list of user's deposit coin denoms, storing them in an sdk.Coins object
+	// Fetch deposits and parse coin denoms
 	deposits := k.GetDepositsByUser(ctx, borrower)
-	if len(deposits) == 0 {
-		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
-	}
-	depositDenoms := sdk.Coins{}
+	depositDenoms := []string{}
 	for _, deposit := range deposits {
-		depositDenoms = append(depositDenoms, sdk.NewCoin(deposit.Amount.Denom, sdk.OneInt()))
+		depositDenoms = append(depositDenoms, deposit.Amount.Denom)
 	}
+
+	// Fetch borrow balances and parse coin denoms
+	borrowBalances := k.GetBorrowBalance(ctx, borrower)
+	borrowDenoms := getDenoms(borrowBalances)
 
 	// Build map of {denom} -> {liquidation data}
 	type liqData struct {
@@ -48,10 +46,11 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 	liqMap := make(map[string]liqData)
 
 	// Load required liquidation data for every deposit/borrow denom
-	for _, coin := range borrowBalances.Add(depositDenoms...) {
-		mm, found := k.GetMoneyMarket(ctx, coin.Denom)
+	denoms := removeDuplicates(borrowDenoms, depositDenoms)
+	for _, denom := range denoms {
+		mm, found := k.GetMoneyMarket(ctx, denom)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", coin.Denom)
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
 		}
 
 		priceData, err := k.pricefeedKeeper.GetCurrentPrice(ctx, mm.SpotMarketID)
@@ -59,7 +58,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 			return err
 		}
 
-		liqMap[coin.Denom] = liqData{priceData.Price, mm.BorrowLimit.LoanToValue, mm.ConversionFactor}
+		liqMap[denom] = liqData{priceData.Price, mm.BorrowLimit.LoanToValue, mm.ConversionFactor}
 	}
 
 	totalBorrowableUSDAmount := sdk.ZeroDec()
@@ -155,4 +154,27 @@ func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit) error {
 	// }
 
 	return nil
+}
+
+func getDenoms(coins sdk.Coins) []string {
+	denoms := []string{}
+	for _, coin := range coins {
+		denoms = append(denoms, coin.Denom)
+	}
+	return denoms
+}
+
+func removeDuplicates(one []string, two []string) []string {
+	check := make(map[string]int)
+	fullList := append(one, two...)
+
+	res := []string{}
+	for _, val := range fullList {
+		check[val] = 1
+	}
+
+	for key := range check {
+		res = append(res, key)
+	}
+	return res
 }
