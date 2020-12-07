@@ -27,10 +27,7 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
 func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) error {
 	// Calculate outstanding interest and add to borrow balances
-	borrowBalances, err := k.GetPendingBorrowBalance(ctx, borrower)
-	if err != nil {
-		return err
-	}
+	borrowBalances := k.GetBorrowBalance(ctx, borrower)
 
 	// Load a list of user's deposit coin denoms, storing them in an sdk.Coins object
 	deposits := k.GetDepositsByUser(ctx, borrower)
@@ -86,7 +83,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 	}
 
 	// Sending coins to auction module with keeper address getting 5% of the profits
-	err = k.SeizeDeposits(ctx, deposits, keeper, k.GetKeeperRewardPercentage(ctx))
+	err := k.SeizeDeposits(ctx, deposits, keeper, k.GetKeeperRewardPercentage(ctx))
 	if err != nil {
 		return err
 	}
@@ -158,35 +155,4 @@ func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit) error {
 	// }
 
 	return nil
-}
-
-// GetPendingBorrowBalance gets the user's total borrow balance (borrow balance + pending interest)
-func (k Keeper) GetPendingBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) (sdk.Coins, error) {
-	borrow, found := k.GetBorrow(ctx, borrower)
-	if !found {
-		return sdk.Coins{}, types.ErrBorrowNotFound
-	}
-
-	totalNewInterest := sdk.Coins{}
-	for _, coin := range borrow.Amount {
-		borrowIndexValue, foundBorrowIndexValue := k.GetBorrowIndex(ctx, coin.Denom)
-		if foundBorrowIndexValue {
-			// Locate the borrow index item by coin denom in the user's list of borrow indexes
-			foundAtIndex := -1
-			for i := range borrow.Index {
-				if borrow.Index[i].Denom == coin.Denom {
-					foundAtIndex = i
-					break
-				}
-			}
-			// Calculate interest owed by user for this asset
-			if foundAtIndex != -1 {
-				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
-				userLastBorrowIndex := borrow.Index[foundAtIndex].Value
-				coinInterest := (storedAmount.Quo(userLastBorrowIndex).Mul(borrowIndexValue)).Sub(storedAmount)
-				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
-			}
-		}
-	}
-	return borrow.Amount.Add(totalNewInterest...), nil
 }
