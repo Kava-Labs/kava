@@ -251,6 +251,20 @@ func (bl BorrowLimit) Validate() error {
 	return nil
 }
 
+// Equal returns a boolean indicating if an BorrowLimit is equal to another BorrowLimit
+func (bl BorrowLimit) Equal(blCompareTo BorrowLimit) bool {
+	if bl.HasMaxLimit != blCompareTo.HasMaxLimit {
+		return false
+	}
+	if !bl.MaximumLimit.Equal(blCompareTo.MaximumLimit) {
+		return false
+	}
+	if !bl.LoanToValue.Equal(blCompareTo.LoanToValue) {
+		return false
+	}
+	return true
+}
+
 // MoneyMarket is a money market for an individual asset
 type MoneyMarket struct {
 	Denom             string            `json:"denom" yaml:"denom"`
@@ -258,17 +272,19 @@ type MoneyMarket struct {
 	SpotMarketID      string            `json:"spot_market_id" yaml:"spot_market_id"`
 	ConversionFactor  sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
 	InterestRateModel InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
+	ReserveFactor     sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"`
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec,
-	spotMarketID string, conversionFactor sdk.Int, interestRateModel InterestRateModel) MoneyMarket {
+func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string,
+	conversionFactor sdk.Int, interestRateModel InterestRateModel, reserveFactor sdk.Dec) MoneyMarket {
 	return MoneyMarket{
 		Denom:             denom,
-		BorrowLimit:       NewBorrowLimit(hasMaxLimit, maximumLimit, loanToValue),
+		BorrowLimit:       borrowLimit,
 		SpotMarketID:      spotMarketID,
 		ConversionFactor:  conversionFactor,
 		InterestRateModel: interestRateModel,
+		ReserveFactor:     reserveFactor,
 	}
 }
 
@@ -285,7 +301,34 @@ func (mm MoneyMarket) Validate() error {
 	if err := mm.InterestRateModel.Validate(); err != nil {
 		return err
 	}
+
+	if mm.ReserveFactor.IsNegative() || mm.ReserveFactor.GT(sdk.OneDec()) {
+		return fmt.Errorf("Reserve factor must be between 0.0-1.0")
+	}
 	return nil
+}
+
+// Equal returns a boolean indicating if a MoneyMarket is equal to another MoneyMarket
+func (mm MoneyMarket) Equal(mmCompareTo MoneyMarket) bool {
+	if mm.Denom != mmCompareTo.Denom {
+		return false
+	}
+	if !mm.BorrowLimit.Equal(mmCompareTo.BorrowLimit) {
+		return false
+	}
+	if mm.SpotMarketID != mmCompareTo.SpotMarketID {
+		return false
+	}
+	if !mm.ConversionFactor.Equal(mmCompareTo.ConversionFactor) {
+		return false
+	}
+	if !mm.InterestRateModel.Equal(mmCompareTo.InterestRateModel) {
+		return false
+	}
+	if !mm.ReserveFactor.Equal(mmCompareTo.ReserveFactor) {
+		return false
+	}
+	return true
 }
 
 // MoneyMarkets slice of MoneyMarket
@@ -341,17 +384,17 @@ func (irm InterestRateModel) Validate() error {
 }
 
 // Equal returns a boolean indicating if an InterestRateModel is equal to another InterestRateModel
-func (irm InterestRateModel) Equal(comparisonIRM InterestRateModel) bool {
-	if !irm.BaseRateAPY.Equal(comparisonIRM.BaseRateAPY) {
+func (irm InterestRateModel) Equal(irmCompareTo InterestRateModel) bool {
+	if !irm.BaseRateAPY.Equal(irmCompareTo.BaseRateAPY) {
 		return false
 	}
-	if !irm.BaseMultiplier.Equal(comparisonIRM.BaseMultiplier) {
+	if !irm.BaseMultiplier.Equal(irmCompareTo.BaseMultiplier) {
 		return false
 	}
-	if !irm.Kink.Equal(comparisonIRM.Kink) {
+	if !irm.Kink.Equal(irmCompareTo.Kink) {
 		return false
 	}
-	if !irm.JumpMultiplier.Equal(comparisonIRM.JumpMultiplier) {
+	if !irm.JumpMultiplier.Equal(irmCompareTo.JumpMultiplier) {
 		return false
 	}
 	return true

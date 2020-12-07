@@ -10,7 +10,6 @@ import (
 
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
-
 	err := k.ValidateDeposit(ctx, amount)
 	if err != nil {
 		return err
@@ -59,6 +58,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s deposit found for %s", amount.Denom, depositor)
 	}
+
 	if !deposit.Amount.IsGTE(amount) {
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", amount, deposit.Amount)
 	}

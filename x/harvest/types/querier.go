@@ -12,6 +12,7 @@ const (
 	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
 	QueryGetBorrowed       = "borrowed"
+	QueryGetBorrow         = "borrow"
 )
 
 // QueryDepositParams is the params for a filtered deposit query
@@ -95,5 +96,17 @@ type QueryBorrowedParams struct {
 func NewQueryBorrowedParams(denom string) QueryBorrowedParams {
 	return QueryBorrowedParams{
 		Denom: denom,
+	}
+}
+
+// QueryBorrow is the params for a current borrow balance query
+type QueryBorrow struct {
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+}
+
+// NewQueryBorrow creates a new QueryBorrow
+func NewQueryBorrow(owner sdk.AccAddress) QueryBorrow {
+	return QueryBorrow{
+		Owner: owner,
 	}
 }
