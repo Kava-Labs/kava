@@ -9,32 +9,42 @@ import (
 
 // Repay borrowed funds
 func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+	// Sync interest so loan is up-to-date
+	k.SyncBorrowInterest(ctx, sender, coins)
+
 	// Validate requested repay
 	err := k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
 		return err
 	}
 
+	// Check borrow exists here to avoid duplicating store read in ValidateRepay
+	borrow, found := k.GetBorrow(ctx, sender)
+	if !found {
+		return types.ErrBorrowNotFound
+	}
+
+	payment := k.CalculatePaymentAmount(borrow.Amount, coins)
+
 	// Sends coins from user to Harvest module account
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, coins)
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, payment)
 	if err != nil {
 		return err
 	}
 
 	// Update user's borrow in store
-	borrow, _ := k.GetBorrow(ctx, sender)
-	borrow.Amount = borrow.Amount.Sub(coins)
+	borrow.Amount = borrow.Amount.Sub(payment)
 	// TODO: Once interest functionality is merged update the user's borrow index here
 	k.SetBorrow(ctx, borrow)
 
 	// Update total borrowed amount
-	k.DecrementBorrowedCoins(ctx, coins)
+	k.DecrementBorrowedCoins(ctx, payment)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHarvestRepay,
 			sdk.NewAttribute(types.AttributeKeySender, sender.String()),
-			sdk.NewAttribute(types.AttributeKeyRepayCoins, coins.String()),
+			sdk.NewAttribute(types.AttributeKeyRepayCoins, payment.String()),
 		),
 	)
 
@@ -51,15 +61,18 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.
 		}
 	}
 
-	borrow, found := k.GetBorrow(ctx, sender)
-	if !found {
-		return types.ErrBorrowNotFound
-	}
-
-	// TODO: Since interest accumulates every block users will be slightly *underpaying* the outstanding balance
-	if coins.IsAnyGT(borrow.Amount) {
-		return types.ErrDebtOverpaid
-	}
-
 	return nil
+}
+
+// CalculatePaymentAmount prevents overpayment when repaying borrowed coins
+func (k Keeper) CalculatePaymentAmount(owed sdk.Coins, payment sdk.Coins) sdk.Coins {
+	repayment := sdk.Coins{}
+	for _, coin := range payment {
+		if coin.Amount.GT(owed.AmountOf(coin.Denom)) {
+			repayment.Add(sdk.NewCoin(coin.Denom, owed.AmountOf(coin.Denom)))
+		} else {
+			repayment.Add(coin)
+		}
+	}
+	return repayment
 }

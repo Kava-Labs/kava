@@ -59,8 +59,6 @@ var (
 	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 26, "borrow not found")
 	// ErrPreviousAccrualTimeNotFound error for no previous accrual time found in store
 	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 27, "no previous accrual time found")
-	// ErrDebtOverpaid error for when a user attempts to overpay their loan's amount
-	ErrDebtOverpaid = sdkerrors.Register(ModuleName, 28, "repayment exceeds loan debt")
 	// ErrInsufficientBalanceForRepay error for when requested repay exceeds user's balance
 	ErrInsufficientBalanceForRepay = sdkerrors.Register(ModuleName, 29, "insufficient balance")
 )
