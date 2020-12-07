@@ -94,7 +94,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper sdk.AccAddress, rewardPercentage sdk.Dec) error {
 	for _, deposit := range deposits {
 		keeperReward := rewardPercentage.MulInt(deposit.Amount.Amount).TruncateInt()
-		keeperCoin := sdk.NewCoin(deposit.Amount.Denom, keeperReward) // TODO: will this cause dust
+		keeperCoin := sdk.NewCoin(deposit.Amount.Denom, keeperReward)
 		auctionCoin := sdk.NewCoin(deposit.Amount.Denom, deposit.Amount.Amount.Sub(keeperReward))
 
 		// Send auction amount to liquidation module account
@@ -131,27 +131,29 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper 
 // AuctionDeposit starts auction(s) for an individual deposit
 func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit) error {
 	mm, _ := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
+
+	// Initialize auction variables to avoid reusing storage
+	lot := sdk.NewCoin(deposit.Amount.Denom, mm.AuctionSize)
+	returnAddrs := []sdk.AccAddress{deposit.Depositor}
+	weights := []sdk.Int{sdk.NewInt(100)}
+	debt := sdk.NewCoin("debt", sdk.ZeroInt())
+
 	remainingAmount := deposit.Amount.Amount
 	for remainingAmount.GT(mm.AuctionSize) {
-		// _, err := k.auctionKeeper.StartCollateralAuction(
-		// 	ctx, types.LiquidatorMacc, sdk.NewCoin(deposit.Amount.Denom, mm.AuctionSize),
-		// 	sdk.NewCoin(principalDenom, debtAmount.Add(penalty)), []sdk.AccAddress{deposit.Depositor},
-		// 	[]sdk.Int{mm.AuctionSize}, sdk.NewCoin(debtDenom, debtAmount),
-		// )
-		// if err != nil {
-		// 	return err
-		// }
+		_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, lot, lot, returnAddrs, weights, debt)
+		if err != nil {
+			return err
+		}
 		remainingAmount = remainingAmount.Sub(mm.AuctionSize)
 	}
 
-	// _, err := k.auctionKeeper.StartCollateralAuction(
-	// 	ctx, types.LiquidatorMacc, sdk.NewCoin(deposit.Amount.Denom, remainingAmount),
-	// 	sdk.NewCoin(principalDenom, debtAmount.Add(penalty)), []sdk.AccAddress{deposit.Depositor},
-	// 	[]sdk.Int{remainingAmount}, sdk.NewCoin(debtDenom, debtAmount),
-	// )
-	// if err != nil {
-	// 	return err
-	// }
+	// Update lot coin for the partial auction
+	lot = sdk.NewCoin(deposit.Amount.Denom, remainingAmount)
+
+	_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, lot, lot, returnAddrs, weights, debt)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
