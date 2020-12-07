@@ -55,8 +55,10 @@ var (
 	ErrGreaterThanAssetBorrowLimit = sdkerrors.Register(ModuleName, 24, "fails global asset borrow limit validation")
 	// ErrBorrowEmptyCoins error for when you cannot borrow empty coins
 	ErrBorrowEmptyCoins = sdkerrors.Register(ModuleName, 25, "cannot borrow zero coins")
+	// ErrBorrowNotFound error for when a user's borrow is not found in the store
+	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 26, "borrow not found")
 	// ErrPreviousAccrualTimeNotFound error for no previous accrual time found in store
-	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 26, "no previous accrual time found")
-	// ErrBorrowNotFound error for when borrow not found in store
-	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 27, "no borrow found")
+	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 27, "no previous accrual time found")
+	// ErrInsufficientBalanceForRepay error for when requested repay exceeds user's balance
+	ErrInsufficientBalanceForRepay = sdkerrors.Register(ModuleName, 29, "insufficient balance")
 )

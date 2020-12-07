@@ -9,6 +9,7 @@ const (
 	EventTypeHarvestWithdrawal            = "harvest_withdrawal"
 	EventTypeClaimHarvestReward           = "claim_harvest_reward"
 	EventTypeHarvestBorrow                = "harvest_borrow"
+	EventTypeHarvestRepay                 = "harvest_repay"
 	AttributeValueCategory                = ModuleName
 	AttributeKeyBlockHeight               = "block_height"
 	AttributeKeyRewardsDistribution       = "rewards_distributed"
@@ -22,4 +23,6 @@ const (
 	AttributeKeyBorrow                    = "borrow"
 	AttributeKeyBorrower                  = "borrower"
 	AttributeKeyBorrowCoins               = "borrow_coins"
+	AttributeKeySender                    = "sender"
+	AttributeKeyRepayCoins                = "repay_coins"
 )
