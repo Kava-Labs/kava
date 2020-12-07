@@ -287,9 +287,9 @@ func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, 
 		BorrowLimit:       borrowLimit,
 		SpotMarketID:      spotMarketID,
 		ConversionFactor:  conversionFactor,
+		AuctionSize:       auctionSize,
 		InterestRateModel: interestRateModel,
 		ReserveFactor:     reserveFactor,
-		AuctionSize:       auctionSize,
 	}
 }
 
