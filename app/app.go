@@ -386,7 +386,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 		&stakingKeeper,
-		app.pricefeedKeeper)
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
