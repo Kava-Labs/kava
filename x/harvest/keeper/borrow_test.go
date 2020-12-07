@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "total deposited value is insufficient for borrow request",
+				contains:   "exceeds the allowable amount as determined by the collateralization ratio",
 			},
 		},
 		{
@@ -131,7 +131,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "total deposited value is insufficient for borrow request",
+				contains:   "exceeds the allowable amount as determined by the collateralization ratio",
 			},
 		},
 		{
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "requested borrow 1000000usdx is greater than maximum valid borrow",
+				contains:   "exceeds the allowable amount as determined by the collateralization ratio",
 			},
 		},
 		{

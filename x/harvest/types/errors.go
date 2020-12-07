@@ -40,7 +40,7 @@ var (
 	// ErrDepositsNotFound error for no deposits found
 	ErrDepositsNotFound = sdkerrors.Register(ModuleName, 17, "no deposits found")
 	// ErrInsufficientLoanToValue error for when an attempted borrow exceeds maximum loan-to-value
-	ErrInsufficientLoanToValue = sdkerrors.Register(ModuleName, 18, "total deposited value is insufficient for borrow request")
+	ErrInsufficientLoanToValue = sdkerrors.Register(ModuleName, 18, "not enough collateral supplied by account")
 	// ErrMarketNotFound error for when a market for the input denom is not found
 	ErrMarketNotFound = sdkerrors.Register(ModuleName, 19, "no market found for denom")
 	// ErrPriceNotFound error for when a price for the input market is not found
