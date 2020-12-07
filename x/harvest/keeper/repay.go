@@ -34,7 +34,6 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 
 	// Update user's borrow in store
 	borrow.Amount = borrow.Amount.Sub(payment)
-	// TODO: Once interest functionality is merged update the user's borrow index here
 	k.SetBorrow(ctx, borrow)
 
 	// Update total borrowed amount
