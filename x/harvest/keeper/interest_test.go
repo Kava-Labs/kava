@@ -663,9 +663,9 @@ func (suite *KeeperTestSuite) TestInterest() {
 						sdk.NewInt(KAVA_CF),       // Conversion Factor
 						sdk.NewInt(USDX_CF*1000),  // Auction Size
 						tc.args.interestRateModel, // Interest Rate Model
-						tc.args.reserveFactor),    // Reserve Factor
+						tc.args.reserveFactor,     // Reserve Factor
+						sdk.ZeroDec()),            // Keeper Reward Percentage
 				},
-				types.DefaultKeeperRewardPercentage,
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
 			// Pricefeed module genesis state

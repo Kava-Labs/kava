@@ -101,13 +101,13 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				types.MoneyMarkets{
 					types.NewMoneyMarket("ukava",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
-						"kava:usd",          // Market ID
-						sdk.NewInt(KAVA_CF), // Conversion Factor
-						tc.args.auctionSize, // Auction Size
-						model,               // Interest Rate Model
-						reserveFactor),      // Reserve Factor
+						"kava:usd",                   // Market ID
+						sdk.NewInt(KAVA_CF),          // Conversion Factor
+						tc.args.auctionSize,          // Auction Size
+						model,                        // Interest Rate Model
+						reserveFactor,                // Reserve Factor
+						tc.args.keeperRewardPercent), // Keeper Reward Percent
 				},
-				tc.args.keeperRewardPercent,
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
 			// Pricefeed module genesis state
