@@ -102,7 +102,7 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper 
 		auctionCoin := sdk.NewCoin(deposit.Amount.Denom, deposit.Amount.Amount.Sub(keeperReward))
 
 		// Send auction amount to liquidation module account
-		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(auctionCoin))
+		err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorAccount, sdk.NewCoins(auctionCoin))
 		if err != nil {
 			return err
 		}
@@ -144,7 +144,7 @@ func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit, mm types.
 
 	remainingAmount := deposit.Amount.Amount
 	for remainingAmount.GT(mm.AuctionSize) {
-		_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, lot, lot, returnAddrs, weights, debt)
+		_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, lot, returnAddrs, weights, debt)
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit, mm types.
 	// Update lot coin for the partial auction
 	lot = sdk.NewCoin(deposit.Amount.Denom, remainingAmount)
 
-	_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, lot, lot, returnAddrs, weights, debt)
+	_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, lot, returnAddrs, weights, debt)
 	if err != nil {
 		return err
 	}

@@ -106,6 +106,7 @@ var (
 		harvest.LPAccount:           {supply.Minter, supply.Burner},
 		harvest.DelegatorAccount:    {supply.Minter, supply.Burner},
 		harvest.ModuleAccountName:   {supply.Minter, supply.Burner},
+		harvest.LiquidatorAccount:   {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
