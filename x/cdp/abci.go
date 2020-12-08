@@ -36,6 +36,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			panic(err)
 		}
 
+		// this will replace call to UpdateFeesForAllCdps
 		// err = k.AccumulateInterest(ctx, cp.Type)
 		// if err != nil {
 		// 	panic(err)
