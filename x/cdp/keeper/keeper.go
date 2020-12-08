@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -129,4 +130,42 @@ func (k Keeper) GetSavingsRateDistributed(ctx sdk.Context) sdk.Int {
 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &savingsRateDistributed)
 	return savingsRateDistributed
+}
+
+// GetPreviousAccrualTime returns the last time an individual market accrued interest
+func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (time.Time, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
+		return time.Time{}, false
+	}
+	var previousAccrualTime time.Time
+	k.cdc.MustUnmarshalBinaryBare(bz, &previousAccrualTime)
+	return previousAccrualTime, true
+}
+
+// SetPreviousAccrualTime sets the most recent accrual time for a particular market
+func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, ctype string, previousAccrualTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
+	bz := k.cdc.MustMarshalBinaryBare(previousAccrualTime)
+	store.Set([]byte(ctype), bz)
+}
+
+// GetInterestFactor returns the current interest factor for an individual collateral type
+func (k Keeper) GetInterestFactor(ctx sdk.Context, ctype string) (sdk.Dec, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	var iterestFactor sdk.Dec
+	k.cdc.MustUnmarshalBinaryBare(bz, &iterestFactor)
+	return iterestFactor, true
+}
+
+// SetInterestFactor sets the current interest factor for an individual collateral type
+func (k Keeper) SetInterestFactor(ctx sdk.Context, ctype string, interestFactor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(interestFactor)
+	store.Set([]byte(ctype), bz)
 }
