@@ -158,9 +158,9 @@ func (k Keeper) GetInterestFactor(ctx sdk.Context, ctype string) (sdk.Dec, bool)
 	if bz == nil {
 		return sdk.ZeroDec(), false
 	}
-	var iterestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &iterestFactor)
-	return iterestFactor, true
+	var interestFactor sdk.Dec
+	k.cdc.MustUnmarshalBinaryBare(bz, &interestFactor)
+	return interestFactor, true
 }
 
 // SetInterestFactor sets the current interest factor for an individual collateral type

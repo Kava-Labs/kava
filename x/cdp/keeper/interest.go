@@ -30,13 +30,13 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 
 	totalPrincipalPrior := k.GetTotalPrincipal(ctx, ctype, types.DefaultStableDenom)
 	if totalPrincipalPrior.IsZero() || totalPrincipalPrior.IsNegative() {
+		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
 	}
 
 	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, ctype)
 	if !foundInterestFactorPrior {
-		interestFactorPrior = sdk.OneDec()
-		k.SetInterestFactor(ctx, ctype, interestFactorPrior)
+		k.SetInterestFactor(ctx, ctype, sdk.OneDec())
 		// set previous accrual time exit early because interest accumulated will be zero
 		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
@@ -44,6 +44,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 
 	borrowRateSpy := k.getFeeRate(ctx, ctype)
 	if borrowRateSpy.Equal(sdk.OneDec()) {
+		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
 	}
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
@@ -165,10 +166,10 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 	// how fees are calculated:
 	// feesAccumulated = (outstandingDebt * (feeRate^periods)) - outstandingDebt
 	// Note that since we can't do x^y using sdk.Decimal, we are converting to int and using RelativePow
+	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 	feePerSecond := k.getFeeRate(ctx, collateralType)
-	scalar := sdk.NewInt(1000000000000000000)
-	feeRateInt := feePerSecond.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
-	accumulator := sdk.NewDecFromInt(types.RelativePow(feeRateInt, periods, scalar)).Mul(sdk.SmallestDec())
+	feeRateInt := feePerSecond.Mul(sdk.NewDecFromInt(scalingFactorInt)).TruncateInt()
+	accumulator := sdk.NewDecFromInt(types.RelativePow(feeRateInt, periods, scalingFactorInt)).Mul(sdk.SmallestDec())
 	feesAccumulated := (sdk.NewDecFromInt(principal.Amount).Mul(accumulator)).Sub(sdk.NewDecFromInt(principal.Amount))
 	newFees := sdk.NewCoin(principal.Denom, feesAccumulated.TruncateInt())
 	return newFees
