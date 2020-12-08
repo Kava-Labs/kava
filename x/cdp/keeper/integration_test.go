@@ -85,6 +85,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -106,6 +107,12 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 				Price:         sdk.MustNewDecFromStr("17.25"),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
+			{
+				MarketID:      "busd:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.OneDec(),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
 		},
 	}
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
@@ -113,7 +120,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1500000000000),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 2000000000000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
@@ -157,6 +164,19 @@ func NewCDPGenStateMulti() app.GenesisState {
 					Prefix:              0x22,
 					SpotMarketID:        "bnb:usd",
 					LiquidationMarketID: "bnb:usd",
+					ConversionFactor:    i(8),
+				},
+				{
+					Denom:               "busd",
+					Type:                "busd-a",
+					LiquidationRatio:    d("1.01"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:        sdk.OneDec(), // %0 apr
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(10000000000),
+					Prefix:              0x23,
+					SpotMarketID:        "busd:usd",
+					LiquidationMarketID: "busd:usd",
 					ConversionFactor:    i(8),
 				},
 			},

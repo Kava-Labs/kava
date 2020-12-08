@@ -207,10 +207,12 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 func (suite *InterestTestSuite) TestAccumulateInterest() {
 
 	type args struct {
-		ctype          string
-		totalPrincipal sdk.Int
-		timeElapsed    int
-		expectedValue  sdk.Int
+		ctype                   string
+		initialTime             time.Time
+		totalPrincipal          sdk.Int
+		timeElapsed             int
+		expectedTotalPrincipal  sdk.Int
+		expectedLastAccrualTime time.Time
 	}
 
 	type test struct {
@@ -223,24 +225,98 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 		{
 			"1 year",
 			args{
-				ctype:          "bnb-a",
-				totalPrincipal: sdk.NewInt(100000000000000),
-				timeElapsed:    oneYearInSeconds,
-				expectedValue:  sdk.NewInt(105000000000012),
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.NewInt(100000000000000),
+				timeElapsed:             oneYearInSeconds,
+				expectedTotalPrincipal:  sdk.NewInt(105000000000012),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * oneYearInSeconds)),
+			},
+		},
+		{
+			"1 year - zero principal",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.ZeroInt(),
+				timeElapsed:             oneYearInSeconds,
+				expectedTotalPrincipal:  sdk.ZeroInt(),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * oneYearInSeconds)),
+			},
+		},
+		{
+			"1 month",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.NewInt(100000000000000),
+				timeElapsed:             86400 * 30,
+				expectedTotalPrincipal:  sdk.NewInt(100401820189198),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 86400 * 30)),
+			},
+		},
+		{
+			"1 month - interest rounds to zero",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.NewInt(10),
+				timeElapsed:             86400 * 30,
+				expectedTotalPrincipal:  sdk.NewInt(10),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			"7 seconds",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.NewInt(100000000000000),
+				timeElapsed:             7,
+				expectedTotalPrincipal:  sdk.NewInt(100000001082988),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
+			},
+		},
+		{
+			"7 seconds - interest rounds to zero",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.NewInt(30000000),
+				timeElapsed:             7,
+				expectedTotalPrincipal:  sdk.NewInt(30000000),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			"7 seconds - zero interest",
+			args{
+				ctype:                   "busd-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:          sdk.NewInt(100000000000000),
+				timeElapsed:             7,
+				expectedTotalPrincipal:  sdk.NewInt(100000000000000),
+				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
 			},
 		},
 	}
 	for _, tc := range testCases {
-		suite.keeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom, tc.args.totalPrincipal)
-		suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-		suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+		suite.Run(tc.name, func() {
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			suite.keeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom, tc.args.totalPrincipal)
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
 
-		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed)))
-		err := suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
-		suite.Require().NoError(err)
+			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+			err := suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
+			suite.Require().NoError(err)
 
-		actualTotalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom)
-		suite.Require().Equal(tc.args.expectedValue, actualTotalPrincipal)
+			actualTotalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom)
+			suite.Require().Equal(tc.args.expectedTotalPrincipal, actualTotalPrincipal)
+			actualAccrualTime, _ := suite.keeper.GetPreviousAccrualTime(suite.ctx, tc.args.ctype)
+			suite.Require().Equal(tc.args.expectedLastAccrualTime, actualAccrualTime)
+		})
 	}
 
 }
