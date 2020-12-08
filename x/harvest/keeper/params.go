@@ -50,9 +50,3 @@ func (k Keeper) GetMoneyMarketParam(ctx sdk.Context, denom string) (types.MoneyM
 	}
 	return types.MoneyMarket{}, false
 }
-
-// GetKeeperRewardPercentage returns the keeper reward percentage
-func (k Keeper) GetKeeperRewardPercentage(ctx sdk.Context) sdk.Dec {
-	params := k.GetParams(ctx)
-	return params.KeeperRewardPercentage
-}

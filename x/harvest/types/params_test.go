@@ -80,7 +80,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds, tc.args.mms, tc.args.kpr)
+			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds, tc.args.mms)
 			err := params.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

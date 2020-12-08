@@ -81,8 +81,8 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "borrowed %s <= borrowable %s", totalBorrowedUSDAmount, totalBorrowableUSDAmount)
 	}
 
-	// Sending coins to auction module with keeper address getting 5% of the profits
-	err := k.SeizeDeposits(ctx, deposits, keeper, k.GetKeeperRewardPercentage(ctx))
+	// Sending coins to auction module with keeper address getting % of the profits
+	err := k.SeizeDeposits(ctx, deposits, keeper)
 	if err != nil {
 		return err
 	}
@@ -94,9 +94,10 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 }
 
 // SeizeDeposits seizes a list of deposits and sends them to auction
-func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper sdk.AccAddress, rewardPercentage sdk.Dec) error {
+func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper sdk.AccAddress) error {
 	for _, deposit := range deposits {
-		keeperReward := rewardPercentage.MulInt(deposit.Amount.Amount).TruncateInt()
+		mm, _ := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
+		keeperReward := mm.KeeperRewardPercentage.MulInt(deposit.Amount.Amount).TruncateInt()
 		keeperCoin := sdk.NewCoin(deposit.Amount.Denom, keeperReward)
 		auctionCoin := sdk.NewCoin(deposit.Amount.Denom, deposit.Amount.Amount.Sub(keeperReward))
 
@@ -112,7 +113,9 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper 
 			return err
 		}
 
-		err = k.AuctionDeposit(ctx, deposit, rewardPercentage)
+		// Decrement deposit amount by keeper's reward cut
+		deposit.Amount = deposit.Amount.Sub(keeperCoin)
+		err = k.AuctionDeposit(ctx, deposit, mm)
 		if err != nil {
 			return err
 		}
@@ -132,17 +135,14 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, deposits []types.Deposit, keeper 
 }
 
 // AuctionDeposit starts auction(s) for an individual deposit
-func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit, reductionPercentage sdk.Dec) error {
-	mm, _ := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
-	amount := reductionPercentage.MulInt(deposit.Amount.Amount).TruncateInt()
-
+func (k Keeper) AuctionDeposit(ctx sdk.Context, deposit types.Deposit, mm types.MoneyMarket) error {
 	// Initialize auction variables to avoid reusing storage
 	lot := sdk.NewCoin(deposit.Amount.Denom, mm.AuctionSize)
 	returnAddrs := []sdk.AccAddress{deposit.Depositor}
 	weights := []sdk.Int{sdk.NewInt(100)}
 	debt := sdk.NewCoin("debt", sdk.ZeroInt())
 
-	remainingAmount := amount
+	remainingAmount := deposit.Amount.Amount
 	for remainingAmount.GT(mm.AuctionSize) {
 		_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorMacc, lot, lot, returnAddrs, weights, debt)
 		if err != nil {
