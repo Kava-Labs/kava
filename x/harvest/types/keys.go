@@ -18,7 +18,7 @@ const (
 	ModuleAccountName = "harvest"
 
 	// LiquidatorMacc module account for liquidator
-	LiquidatorMacc = "liquidator"
+	LiquidatorMacc = "harvest_liquidator"
 
 	// StoreKey Top level store key where all module items will be stored
 	StoreKey = ModuleName
