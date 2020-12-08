@@ -18,5 +18,6 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgDeposit{}, "harvest/MsgDeposit", nil)
 	cdc.RegisterConcrete(MsgWithdraw{}, "harvest/MsgWithdraw", nil)
 	cdc.RegisterConcrete(MsgBorrow{}, "harvest/MsgBorrow", nil)
+	cdc.RegisterConcrete(MsgLiquidate{}, "harvest/MsgLiquidate", nil)
 	cdc.RegisterConcrete(DistributionSchedule{}, "harvest/DistributionSchedule", nil)
 }

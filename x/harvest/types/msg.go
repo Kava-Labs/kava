@@ -209,8 +209,6 @@ func (msg MsgClaimReward) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-// ---------------------------------------
-
 // MsgBorrow borrows funds from the harvest module.
 type MsgBorrow struct {
 	Borrower sdk.AccAddress `json:"borrower" yaml:"borrower"`
@@ -259,4 +257,54 @@ func (msg MsgBorrow) String() string {
 	Borrower:         %s
 	Amount:   %s
 `, msg.Borrower, msg.Amount)
+}
+
+// MsgLiquidate attempts to liquidate a borrower's borrow
+type MsgLiquidate struct {
+	Keeper   sdk.AccAddress `json:"keeper" yaml:"keeper"`
+	Borrower sdk.AccAddress `json:"borrower" yaml:"borrower"`
+}
+
+// NewMsgLiquidate returns a new MsgLiquidate
+func NewMsgLiquidate(keeper, borrower sdk.AccAddress) MsgLiquidate {
+	return MsgLiquidate{
+		Keeper:   keeper,
+		Borrower: borrower,
+	}
+}
+
+// Route return the message type used for routing the message.
+func (msg MsgLiquidate) Route() string { return RouterKey }
+
+// Type returns a human-readable string for the message, intended for utilization within tags.
+func (msg MsgLiquidate) Type() string { return "liquidate" }
+
+// ValidateBasic does a simple validation check that doesn't require access to any other information.
+func (msg MsgLiquidate) ValidateBasic() error {
+	if msg.Keeper.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "keeper address cannot be empty")
+	}
+	if msg.Borrower.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "borrower address cannot be empty")
+	}
+	return nil
+}
+
+// GetSignBytes gets the canonical byte representation of the Msg.
+func (msg MsgLiquidate) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the addresses of signers that must sign.
+func (msg MsgLiquidate) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Keeper}
+}
+
+// String implements the Stringer interface
+func (msg MsgLiquidate) String() string {
+	return fmt.Sprintf(`Liquidate Message:
+	Keeper:           %s
+	Borrower:         %s
+`, msg.Keeper, msg.Borrower)
 }
