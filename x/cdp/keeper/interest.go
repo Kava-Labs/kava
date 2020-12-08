@@ -37,6 +37,8 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 	if !foundInterestFactorPrior {
 		interestFactorPrior = sdk.OneDec()
 		k.SetInterestFactor(ctx, ctype, interestFactorPrior)
+		// set previous accrual time exit early because interest accumulated will be zero
+		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
 	}
 
@@ -46,7 +48,14 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 	}
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	interestAccumulated := (interestFactor.Mul(totalPrincipalPrior.ToDec())).RoundInt().Sub(totalPrincipalPrior)
-	k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), sdk.NewCoin(types.DefaultStableDenom, interestAccumulated))
+	if interestAccumulated.IsZero() {
+		// in the case accumulated interest rounds to zero, exit early without updating accrual time
+		return nil
+	}
+	err := k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), sdk.NewCoin(types.DefaultStableDenom, interestAccumulated))
+	if err != nil {
+		return err
+	}
 
 	interestFactorNew := interestFactorPrior.Mul(interestFactor)
 	totalPrincipalNew := totalPrincipalPrior.Add(interestAccumulated)

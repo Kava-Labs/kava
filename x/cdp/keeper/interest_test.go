@@ -13,9 +13,10 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp/keeper"
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-type FeeTestSuite struct {
+type InterestTestSuite struct {
 	suite.Suite
 
 	keeper keeper.Keeper
@@ -23,7 +24,7 @@ type FeeTestSuite struct {
 	ctx    sdk.Context
 }
 
-func (suite *FeeTestSuite) SetupTest() {
+func (suite *InterestTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
@@ -37,7 +38,7 @@ func (suite *FeeTestSuite) SetupTest() {
 }
 
 // createCdps is a helper function to create two CDPs each with zero fees
-func (suite *FeeTestSuite) createCdps() {
+func (suite *InterestTestSuite) createCdps() {
 	// create 2 accounts in the state and give them some coins
 	// create two private key pair addresses
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
@@ -67,7 +68,7 @@ func (suite *FeeTestSuite) createCdps() {
 }
 
 // TestUpdateFees tests the functionality for updating the fees for CDPs
-func (suite *FeeTestSuite) TestUpdateFees() {
+func (suite *InterestTestSuite) TestUpdateFees() {
 	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
 	suite.createCdps()
 
@@ -96,6 +97,154 @@ func (suite *FeeTestSuite) TestUpdateFees() {
 	suite.Equal(oldtime, cdp2.FeesUpdated)
 }
 
-func TestFeeTestSuite(t *testing.T) {
-	suite.Run(t, new(FeeTestSuite))
+func (suite *InterestTestSuite) TestCalculateInterestFactor() {
+	type args struct {
+		perSecondInterestRate sdk.Dec
+		timeElapsed           sdk.Int
+		expectedValue         sdk.Dec
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+
+	oneYearInSeconds := int64(31536000)
+
+	testCases := []test{
+		{
+			"1 year",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("1.191463614477847370"),
+			},
+		},
+		{
+			"10 year",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds * 10),
+				expectedValue:         sdk.MustNewDecFromStr("5.765113233897391189"),
+			},
+		},
+		{
+			"1 month",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds / 12),
+				expectedValue:         sdk.MustNewDecFromStr("1.014705619075717373"),
+			},
+		},
+		{
+			"1 day",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds / 365),
+				expectedValue:         sdk.MustNewDecFromStr("1.000480067194057924"),
+			},
+		},
+		{
+			"1 year: low interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("1.017656545925063632"),
+			},
+		},
+		{
+			"1 year, lower interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000055"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("1.001735985079841390"),
+			},
+		},
+		{
+			"1 year, lowest interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000005"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("1.000157692432076670"),
+			},
+		},
+		{
+			"1 year: high interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000055555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("5.766022095987868825"),
+			},
+		},
+		{
+			"1 year: higher interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000555555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("40628388.864535408465693310"),
+			},
+		},
+		// If we raise the per second interest rate too much we'll cause an integer overflow.
+		// For example, perSecondInterestRate: '1.000005555555' will cause a panic.
+		{
+			"1 year: highest interest rate",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("1.000001555555"),
+				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				expectedValue:         sdk.MustNewDecFromStr("2017093013158200407564.613502861572552603"),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			interestFactor := keeper.CalculateInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
+			suite.Require().Equal(tc.args.expectedValue, interestFactor)
+		})
+	}
+}
+
+func (suite *InterestTestSuite) TestAccumulateInterest() {
+
+	type args struct {
+		ctype          string
+		totalPrincipal sdk.Int
+		timeElapsed    int
+		expectedValue  sdk.Int
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+	oneYearInSeconds := 31536000
+
+	testCases := []test{
+		{
+			"1 year",
+			args{
+				ctype:          "bnb-a",
+				totalPrincipal: sdk.NewInt(100000000000000),
+				timeElapsed:    oneYearInSeconds,
+				expectedValue:  sdk.NewInt(105000000000012),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.keeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom, tc.args.totalPrincipal)
+		suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+		suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+
+		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed)))
+		err := suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
+		suite.Require().NoError(err)
+
+		actualTotalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom)
+		suite.Require().Equal(tc.args.expectedValue, actualTotalPrincipal)
+	}
+
+}
+
+func TestInterestTestSuite(t *testing.T) {
+	suite.Run(t, new(InterestTestSuite))
 }
