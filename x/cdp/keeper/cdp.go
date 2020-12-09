@@ -11,13 +11,14 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-// BaseDigitFactor is 10**18, used during coin calculations
-const BaseDigitFactor = 1000000000000000000
-
 // AddCdp adds a cdp for a specific owner and collateral type
 func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coin, principal sdk.Coin, collateralType string) error {
 	// validation
 	err := k.ValidateCollateral(ctx, collateral, collateralType)
+	if err != nil {
+		return err
+	}
+	err = k.ValidateBalance(ctx, collateral, owner)
 	if err != nil {
 		return err
 	}
@@ -41,7 +42,12 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 
 	// send coins from the owners account to the cdp module
 	id := k.GetNextCdpID(ctx)
-	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time, sdk.OneDec())
+	interestFactor, found := k.GetInterestFactor(ctx, collateralType)
+	if !found {
+		k.SetInterestFactor(ctx, collateralType, sdk.OneDec())
+		interestFactor = sdk.OneDec()
+	}
+	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time, interestFactor)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
@@ -120,7 +126,10 @@ func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 
 // BurnDebtCoins burns debt coins from the cdp module account
 func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
-	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, paymentCoins.Amount))
+	macc := k.supplyKeeper.GetModuleAccount(ctx, moduleAccount)
+	maxBurnableAmount := macc.GetCoins().AmountOf(denom)
+	// check that the requested burn is not greater than the mod account balance
+	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.MinInt(paymentCoins.Amount, maxBurnableAmount)))
 	return k.supplyKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
 }
 
@@ -416,6 +425,20 @@ func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.C
 	if collateralizationRatio.LT(liquidationRatio) {
 		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ratio %s", collateral.Denom, collateralizationRatio, liquidationRatio)
 	}
+	return nil
+}
+
+// ValidateBalance validates that the input account has sufficient spendable funds
+func (k Keeper) ValidateBalance(ctx sdk.Context, amount sdk.Coin, sender sdk.AccAddress) error {
+	acc := k.accountKeeper.GetAccount(ctx, sender)
+	if acc == nil {
+		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", sender)
+	}
+	spendableBalance := acc.SpendableCoins(ctx.BlockTime()).AmountOf(amount.Denom)
+	if spendableBalance.LT(amount.Amount) {
+		return sdkerrors.Wrapf(types.ErrInsufficientBalance, "%s < %s", sdk.NewCoin(amount.Denom, spendableBalance), amount)
+	}
+
 	return nil
 }
 

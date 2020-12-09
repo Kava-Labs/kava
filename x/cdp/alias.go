@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	BaseDigitFactor                         = keeper.BaseDigitFactor
 	AttributeKeyCdpID                       = types.AttributeKeyCdpID
 	AttributeKeyDeposit                     = types.AttributeKeyDeposit
 	AttributeKeyError                       = types.AttributeKeyError
@@ -44,6 +43,7 @@ const (
 
 var (
 	// function aliases
+	CalculateInterestFactor            = keeper.CalculateInterestFactor
 	FilterCDPs                         = keeper.FilterCDPs
 	FindIntersection                   = keeper.FindIntersection
 	NewKeeper                          = keeper.NewKeeper
@@ -112,6 +112,7 @@ var (
 	DefaultSurplusLot                   = types.DefaultSurplusLot
 	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
 	DepositKeyPrefix                    = types.DepositKeyPrefix
+	ErrAccountNotFound                  = types.ErrAccountNotFound
 	ErrBelowDebtFloor                   = types.ErrBelowDebtFloor
 	ErrCdpAlreadyExists                 = types.ErrCdpAlreadyExists
 	ErrCdpNotAvailable                  = types.ErrCdpNotAvailable
@@ -122,6 +123,7 @@ var (
 	ErrDepositNotAvailable              = types.ErrDepositNotAvailable
 	ErrDepositNotFound                  = types.ErrDepositNotFound
 	ErrExceedsDebtLimit                 = types.ErrExceedsDebtLimit
+	ErrInsufficientBalance              = types.ErrInsufficientBalance
 	ErrInvalidCollateral                = types.ErrInvalidCollateral
 	ErrInvalidCollateralLength          = types.ErrInvalidCollateralLength
 	ErrInvalidCollateralRatio           = types.ErrInvalidCollateralRatio
@@ -132,6 +134,7 @@ var (
 	ErrLoadingAugmentedCDP              = types.ErrLoadingAugmentedCDP
 	ErrPricefeedDown                    = types.ErrPricefeedDown
 	GovDenomKey                         = types.GovDenomKey
+	InterestFactorPrefix                = types.InterestFactorPrefix
 	KeyCircuitBreaker                   = types.KeyCircuitBreaker
 	KeyCollateralParams                 = types.KeyCollateralParams
 	KeyDebtLot                          = types.KeyDebtLot
@@ -144,6 +147,7 @@ var (
 	KeySurplusThreshold                 = types.KeySurplusThreshold
 	MaxSortableDec                      = types.MaxSortableDec
 	ModuleCdc                           = types.ModuleCdc
+	PreviousAccrualTimePrefix           = types.PreviousAccrualTimePrefix
 	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
 	PricefeedStatusKeyPrefix            = types.PricefeedStatusKeyPrefix
 	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix

@@ -67,36 +67,6 @@ func (suite *InterestTestSuite) createCdps() {
 
 }
 
-// TestUpdateFees tests the functionality for updating the fees for CDPs
-func (suite *InterestTestSuite) TestUpdateFees() {
-	// this helper function creates two CDPs with id 1 and 2 respectively, each with zero fees
-	suite.createCdps()
-
-	// move the context forward in time so that cdps will have fees accumulate if CalculateFees is called
-	// note - time must be moved forward by a sufficient amount in order for additional
-	// fees to accumulate, in this example 600 seconds
-	oldtime := suite.ctx.BlockTime()
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 600))
-	err := suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp-a")
-	suite.NoError(err) // check that we don't have any error
-
-	// cdp we expect fees to accumulate for
-	cdp1, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", 1)
-	suite.True(found)
-	// check fees are not zero
-	// check that the fees have been updated
-	suite.False(cdp1.AccumulatedFees.IsZero())
-	// now check that we have the correct amount of fees overall (22 USDX for this scenario)
-	suite.Equal(sdk.NewInt(22), cdp1.AccumulatedFees.Amount)
-	suite.Equal(suite.ctx.BlockTime(), cdp1.FeesUpdated)
-	// cdp we expect fees to not accumulate for because of rounding to zero
-	cdp2, found := suite.keeper.GetCDP(suite.ctx, "xrp-a", 2)
-	suite.True(found)
-	// check fees are zero
-	suite.True(cdp2.AccumulatedFees.IsZero())
-	suite.Equal(oldtime, cdp2.FeesUpdated)
-}
-
 func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 	type args struct {
 		perSecondInterestRate sdk.Dec
@@ -318,7 +288,81 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			suite.Require().Equal(tc.args.expectedLastAccrualTime, actualAccrualTime)
 		})
 	}
+}
 
+// TestSynchronizeInterest tests the functionality of synchronizing the accumulated interest for CDPs
+func (suite *InterestTestSuite) TestSynchronizeInterest() {
+	type args struct {
+		ctype                   string
+		initialTime             time.Time
+		initialCollateral       sdk.Coin
+		initialPrincipal        sdk.Coin
+		timeElapsed             int
+		expectedFees            sdk.Coin
+		expectedFeesUpdatedTime time.Time
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+
+	oneYearInSeconds := 31536000
+	testCases := []test{
+		{
+			"1 year",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:       c("bnb", 1000000000000),
+				initialPrincipal:        c("usdx", 100000000000),
+				timeElapsed:             oneYearInSeconds,
+				expectedFees:            c("usdx", 5000000000),
+				expectedFeesUpdatedTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * oneYearInSeconds)),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// setup account state
+			_, addrs := app.GeneratePrivKeyAddressPairs(1)
+			ak := suite.app.GetAccountKeeper()
+			// setup the first account
+			acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
+			ak.SetAccount(suite.ctx, acc)
+			sk := suite.app.GetSupplyKeeper()
+			err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
+			suite.Require().NoError(err)
+			err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[0], cs(tc.args.initialCollateral))
+			suite.Require().NoError(err)
+
+			// setup pricefeed
+			pk := suite.app.GetPriceFeedKeeper()
+			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
+
+			// setup cdp state
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			err = suite.keeper.AddCdp(suite.ctx, addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+
+			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+			err = suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			cdp, found := suite.keeper.GetCDP(suite.ctx, tc.args.ctype, 1)
+			suite.Require().True(found)
+
+			cdp = suite.keeper.SynchronizeInterest(suite.ctx, cdp)
+
+			suite.Require().Equal(tc.args.expectedFees, cdp.AccumulatedFees)
+			suite.Require().Equal(tc.args.expectedFeesUpdatedTime, cdp.FeesUpdated)
+
+		})
+	}
 }
 
 func TestInterestTestSuite(t *testing.T) {

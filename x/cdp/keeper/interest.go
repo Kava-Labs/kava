@@ -82,3 +82,41 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 	// Convert interest factor to an unscaled sdk.Dec
 	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
 }
+
+// SynchronizeInterest updates the input cdp object to reflect the current accumulated interest, updates the cdp state in the store,
+// and returns the updated cdp object
+func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
+	if !found {
+		k.SetInterestFactor(ctx, cdp.Type, sdk.OneDec())
+		cdp.InterestFactor = sdk.OneDec()
+		cdp.FeesUpdated = ctx.BlockTime()
+		k.SetCDP(ctx, cdp)
+	}
+	cdpInterestFactor := sdk.OneDec().Add((globalInterestFactor.Sub(cdp.InterestFactor)))
+	if cdpInterestFactor.Equal(sdk.OneDec()) {
+		return cdp
+	}
+	accumulatedInterest := cdp.GetTotalPrincipal().Amount.ToDec().Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest))
+	cdp.FeesUpdated = ctx.BlockTime()
+	cdp.InterestFactor = globalInterestFactor
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	return cdp
+}
+
+// CalculateNewInterest returns the amount of interest that has accrued to the cdp since its interest was last synchronized
+func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
+	if !found {
+		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
+	}
+	cdpInterestFactor := sdk.OneDec().Add((globalInterestFactor.Sub(cdp.InterestFactor)))
+	if cdpInterestFactor.Equal(sdk.OneDec()) {
+		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
+	}
+	accumulatedInterest := cdp.GetTotalPrincipal().Amount.ToDec().Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+	return sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest)
+}
