@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -55,6 +57,31 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		return err
 	}
 
+	dp, found := k.GetDebtParam(ctx, types.DefaultStableDenom)
+	if !found {
+		panic(fmt.Sprintf("Debt parameters for %s not found", types.DefaultStableDenom))
+	}
+
+	// divide the accumulated interest into savings (redistributed to USDX holders) and surplus (protocol profits)
+	newFeesSavings := interestAccumulated.ToDec().Mul(dp.SavingsRate).RoundInt()
+	newFeesSurplus := interestAccumulated.Sub(newFeesSavings)
+
+	// mint surplus coins to the liquidator module account.
+	if newFeesSurplus.IsPositive() {
+		err := k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+		if err != nil {
+			return err
+		}
+	}
+
+	// mint savings rate coins to the savings module account.
+	if newFeesSavings.IsPositive() {
+		err := k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		if err != nil {
+			return err
+		}
+	}
+
 	interestFactorNew := interestFactorPrior.Mul(interestFactor)
 	totalPrincipalNew := totalPrincipalPrior.Add(interestAccumulated)
 
@@ -97,6 +124,7 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 	if cdpInterestFactor.Equal(sdk.OneDec()) {
 		return cdp
 	}
+
 	accumulatedInterest := cdp.GetTotalPrincipal().Amount.ToDec().Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
 
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest))

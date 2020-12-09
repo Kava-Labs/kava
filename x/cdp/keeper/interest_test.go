@@ -321,10 +321,47 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 				expectedFeesUpdatedTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * oneYearInSeconds)),
 			},
 		},
+		{
+			"1 month",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:       c("bnb", 1000000000000),
+				initialPrincipal:        c("usdx", 100000000000),
+				timeElapsed:             86400 * 30,
+				expectedFees:            c("usdx", 401820189),
+				expectedFeesUpdatedTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 86400 * 30)),
+			},
+		},
+		{
+			"7 seconds",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:       c("bnb", 1000000000000),
+				initialPrincipal:        c("usdx", 100000000000),
+				timeElapsed:             7,
+				expectedFees:            c("usdx", 1083),
+				expectedFeesUpdatedTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
+			},
+		},
+		{
+			"7 seconds - fees round to zero",
+			args{
+				ctype:                   "bnb-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:       c("bnb", 1000000000),
+				initialPrincipal:        c("usdx", 10000000),
+				timeElapsed:             7,
+				expectedFees:            c("usdx", 0),
+				expectedFeesUpdatedTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			suite.SetupTest()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup account state
@@ -347,6 +384,7 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
 			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
 			err = suite.keeper.AddCdp(suite.ctx, addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			suite.Require().NoError(err)
 
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
@@ -360,6 +398,134 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 
 			suite.Require().Equal(tc.args.expectedFees, cdp.AccumulatedFees)
 			suite.Require().Equal(tc.args.expectedFeesUpdatedTime, cdp.FeesUpdated)
+
+		})
+	}
+}
+
+func (suite *InterestTestSuite) TestMultipleCDPInterest() {
+	type args struct {
+		ctype                         string
+		initialTime                   time.Time
+		blockInterval                 int
+		numberOfBlocks                int
+		initialCDPCollateral          sdk.Coin
+		initialCDPPrincipal           sdk.Coin
+		numberOfCdps                  int
+		expectedFeesPerCDP            sdk.Coin
+		exepectedTotalPrincipalPerCDP sdk.Coin
+		expectedFeesUpdatedTime       time.Time
+		expectedTotalPrincipal        sdk.Int
+		expectedDebtBalance           sdk.Int
+		expectedStableBalance         sdk.Int
+		expectedSumOfCDPPrincipal     sdk.Int
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+
+	testCases := []test{
+		{
+			"1 block",
+			args{
+				ctype:                         "bnb-a",
+				initialTime:                   time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockInterval:                 7,
+				numberOfBlocks:                1,
+				initialCDPCollateral:          c("bnb", 10000000000),
+				initialCDPPrincipal:           c("usdx", 500000000),
+				numberOfCdps:                  100,
+				expectedFeesPerCDP:            c("usdx", 5),
+				exepectedTotalPrincipalPerCDP: c("usdx", 500000005),
+				expectedFeesUpdatedTime:       time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
+				expectedTotalPrincipal:        i(50000000541),
+				expectedDebtBalance:           i(50000000541),
+				expectedStableBalance:         i(50000000541),
+				expectedSumOfCDPPrincipal:     i(50000000500),
+			},
+		},
+		{
+			"100 blocks",
+			args{
+				ctype:                         "bnb-a",
+				initialTime:                   time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockInterval:                 7,
+				numberOfBlocks:                100,
+				initialCDPCollateral:          c("bnb", 10000000000),
+				initialCDPPrincipal:           c("usdx", 500000000),
+				numberOfCdps:                  100,
+				expectedFeesPerCDP:            c("usdx", 541),
+				exepectedTotalPrincipalPerCDP: c("usdx", 500000541),
+				expectedFeesUpdatedTime:       time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7 * 100)),
+				expectedTotalPrincipal:        i(50000054100),
+				expectedDebtBalance:           i(50000054100),
+				expectedStableBalance:         i(50000054100),
+				expectedSumOfCDPPrincipal:     i(50000054100),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// setup pricefeed
+			pk := suite.app.GetPriceFeedKeeper()
+			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
+
+			// setup cdp state
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+
+			// setup account state
+			_, addrs := app.GeneratePrivKeyAddressPairs(tc.args.numberOfCdps)
+			for j := 0; j < tc.args.numberOfCdps; j++ {
+				ak := suite.app.GetAccountKeeper()
+				// setup the first account
+				acc := ak.NewAccountWithAddress(suite.ctx, addrs[j])
+				ak.SetAccount(suite.ctx, acc)
+				sk := suite.app.GetSupplyKeeper()
+				err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCDPCollateral))
+				suite.Require().NoError(err)
+				err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addrs[j], cs(tc.args.initialCDPCollateral))
+				suite.Require().NoError(err)
+				err = suite.keeper.AddCdp(suite.ctx, addrs[j], tc.args.initialCDPCollateral, tc.args.initialCDPPrincipal, tc.args.ctype)
+				suite.Require().NoError(err)
+			}
+
+			// run a number of blocks where CDPs are not synchronized
+			for j := 0; j < tc.args.numberOfBlocks; j++ {
+				updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.blockInterval))
+				suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+				err := suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
+				suite.Require().NoError(err)
+			}
+
+			sk := suite.app.GetSupplyKeeper()
+			supplyTotal := sk.GetSupply(suite.ctx).GetTotal()
+			debtSupply := supplyTotal.AmountOf(types.DefaultDebtDenom)
+			usdxSupply := supplyTotal.AmountOf(types.DefaultStableDenom)
+			totalPrincipal := suite.keeper.GetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom)
+
+			suite.Require().Equal(tc.args.expectedDebtBalance, debtSupply)
+			suite.Require().Equal(tc.args.expectedStableBalance, usdxSupply)
+			suite.Require().Equal(tc.args.expectedTotalPrincipal, totalPrincipal)
+
+			sumOfCDPPrincipal := sdk.ZeroInt()
+
+			for j := 0; j < tc.args.numberOfCdps; j++ {
+				cdp, found := suite.keeper.GetCDP(suite.ctx, tc.args.ctype, uint64(j+1))
+				suite.Require().True(found)
+				cdp = suite.keeper.SynchronizeInterest(suite.ctx, cdp)
+				suite.Require().Equal(tc.args.expectedFeesPerCDP, cdp.AccumulatedFees)
+				suite.Require().Equal(tc.args.exepectedTotalPrincipalPerCDP, cdp.GetTotalPrincipal())
+				suite.Require().Equal(tc.args.expectedFeesUpdatedTime, cdp.FeesUpdated)
+				sumOfCDPPrincipal = sumOfCDPPrincipal.Add(cdp.GetTotalPrincipal().Amount)
+			}
+
+			suite.Require().Equal(tc.args.expectedSumOfCDPPrincipal, sumOfCDPPrincipal)
 
 		})
 	}
