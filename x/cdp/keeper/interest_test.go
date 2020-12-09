@@ -465,6 +465,25 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 				expectedSumOfCDPPrincipal:     i(50000054100),
 			},
 		},
+		{
+			"10000 blocks",
+			args{
+				ctype:                         "bnb-a",
+				initialTime:                   time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockInterval:                 7,
+				numberOfBlocks:                10000,
+				initialCDPCollateral:          c("bnb", 10000000000),
+				initialCDPPrincipal:           c("usdx", 500000000),
+				numberOfCdps:                  100,
+				expectedFeesPerCDP:            c("usdx", 54152),
+				exepectedTotalPrincipalPerCDP: c("usdx", 500054152),
+				expectedFeesUpdatedTime:       time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7 * 10000)),
+				expectedTotalPrincipal:        i(50005418990),
+				expectedDebtBalance:           i(50005418990),
+				expectedStableBalance:         i(50005418990),
+				expectedSumOfCDPPrincipal:     i(50005415200),
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
