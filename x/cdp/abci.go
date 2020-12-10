@@ -36,6 +36,12 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k Keeper) {
 			panic(err)
 		}
 
+		// this will replace call to UpdateFeesForAllCdps
+		// err = k.AccumulateInterest(ctx, cp.Type)
+		// if err != nil {
+		// 	panic(err)
+		// }
+
 		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Type, cp.LiquidationRatio)
 		if err != nil && !errors.Is(err, pricefeedtypes.ErrNoValidPrice) {
 			panic(err)
