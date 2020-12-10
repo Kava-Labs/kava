@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				// Check that the user's borrow exists
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
-				// Check that the user's deposits exist before liquidation
+				// Check that the user's deposits exist
 				for _, coin := range tc.args.depositCoins {
 					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
 					suite.Require().True(foundDepositAfter)

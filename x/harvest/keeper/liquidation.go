@@ -268,6 +268,18 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 		}
 	}
 
+	// Send any remaining deposit back to the original borrower
+	for _, dDenom := range depositDenoms {
+		if deposits.AmountOf(dDenom).GT(sdk.ZeroInt()) {
+			returnCoin := sdk.NewCoins(sdk.NewCoin(dDenom, deposits.AmountOf(dDenom)))
+			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, borrower, returnCoin)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
