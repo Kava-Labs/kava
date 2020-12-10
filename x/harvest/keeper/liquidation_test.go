@@ -74,6 +74,25 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				contains:   "",
 			},
 		},
+		{
+			"valid: multiple deposits, multiple borrows",
+			args{
+				borrower:             borrower,
+				keeper:               keeper,
+				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
+				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
+				depositCoins:         []sdk.Coin{sdk.NewCoin("dai", sdk.NewInt(350*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(200*KAVA_CF))},
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("usdt", sdk.NewInt(250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(245*KAVA_CF))),
+				liquidateAfter:       oneMonthInSeconds,
+				auctionSize:          sdk.NewInt(KAVA_CF * 100000),
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -91,6 +110,10 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			harvestGS := types.NewGenesisState(types.NewParams(
 				true,
 				types.DistributionSchedules{
+					types.NewDistributionSchedule(true, "usdx", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "usdc", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "usdt", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "dai", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
 					types.NewDistributionSchedule(true, "ukava", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
 				},
 				types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
@@ -99,6 +122,38 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				),
 				},
 				types.MoneyMarkets{
+					types.NewMoneyMarket("usdx",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdx:usd",                   // Market ID
+						sdk.NewInt(KAVA_CF),          // Conversion Factor
+						tc.args.auctionSize,          // Auction Size
+						model,                        // Interest Rate Model
+						reserveFactor,                // Reserve Factor
+						tc.args.keeperRewardPercent), // Keeper Reward Percent
+					types.NewMoneyMarket("usdt",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdt:usd",                   // Market ID
+						sdk.NewInt(KAVA_CF),          // Conversion Factor
+						tc.args.auctionSize,          // Auction Size
+						model,                        // Interest Rate Model
+						reserveFactor,                // Reserve Factor
+						tc.args.keeperRewardPercent), // Keeper Reward Percent
+					types.NewMoneyMarket("usdc",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdc:usd",                   // Market ID
+						sdk.NewInt(KAVA_CF),          // Conversion Factor
+						tc.args.auctionSize,          // Auction Size
+						model,                        // Interest Rate Model
+						reserveFactor,                // Reserve Factor
+						tc.args.keeperRewardPercent), // Keeper Reward Percent
+					types.NewMoneyMarket("dai",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"dai:usd",                    // Market ID
+						sdk.NewInt(KAVA_CF),          // Conversion Factor
+						tc.args.auctionSize,          // Auction Size
+						model,                        // Interest Rate Model
+						reserveFactor,                // Reserve Factor
+						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("ukava",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                   // Market ID
@@ -114,10 +169,38 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			pricefeedGS := pricefeed.GenesisState{
 				Params: pricefeed.Params{
 					Markets: []pricefeed.Market{
+						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "usdt:usd", BaseAsset: "usdt", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "usdc:usd", BaseAsset: "usdc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "dai:usd", BaseAsset: "dai", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 					},
 				},
 				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "usdx:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "usdt:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "usdc:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "dai:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
 					{
 						MarketID:      "kava:usd",
 						OracleAddress: sdk.AccAddress{},
@@ -192,7 +275,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				}
 				accKeeper := suite.getAccountAtCtx(tc.args.keeper, liqCtx)
 				suite.Require().Equal(tc.args.initialKeeperCoins.Add(rewardCoins...), accKeeper.GetCoins())
-
 			} else {
 				suite.Require().Error(err)
 
