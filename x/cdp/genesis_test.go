@@ -30,6 +30,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		govDenom        string
 		prevDistTime    time.Time
 		savingsRateDist sdk.Int
+		genAccumTimes   cdp.GenesisAccumulationTimes
 	}
 	type errArgs struct {
 		expectPass bool
@@ -55,6 +56,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				govDenom:        cdp.DefaultGovDenom,
 				prevDistTime:    cdp.DefaultPreviousDistributionTime,
 				savingsRateDist: cdp.DefaultSavingsRateDistributed,
+				genAccumTimes:   cdp.DefaultGenesisState().PreviousAccumulationTimes,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -71,6 +73,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				govDenom:        "",
 				prevDistTime:    cdp.DefaultPreviousDistributionTime,
 				savingsRateDist: cdp.DefaultSavingsRateDistributed,
+				genAccumTimes:   cdp.DefaultGenesisState().PreviousAccumulationTimes,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -87,6 +90,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				govDenom:        cdp.DefaultGovDenom,
 				prevDistTime:    time.Time{},
 				savingsRateDist: cdp.DefaultSavingsRateDistributed,
+				genAccumTimes:   cdp.DefaultGenesisState().PreviousAccumulationTimes,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -103,17 +107,35 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				govDenom:        cdp.DefaultGovDenom,
 				prevDistTime:    cdp.DefaultPreviousDistributionTime,
 				savingsRateDist: sdk.NewInt(-100),
+				genAccumTimes:   cdp.DefaultGenesisState().PreviousAccumulationTimes,
 			},
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "savings rate distributed should not be negative",
 			},
 		},
+		{
+			name: "interest factor below one",
+			args: args{
+				params:          cdp.DefaultParams(),
+				cdps:            cdp.CDPs{},
+				deposits:        cdp.Deposits{},
+				debtDenom:       cdp.DefaultDebtDenom,
+				govDenom:        cdp.DefaultGovDenom,
+				prevDistTime:    cdp.DefaultPreviousDistributionTime,
+				savingsRateDist: sdk.NewInt(100),
+				genAccumTimes:   cdp.GenesisAccumulationTimes{cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec().Sub(sdk.SmallestDec()))},
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "interest factor should be ≥ 1.0",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			gs := cdp.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID,
-				tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime, tc.args.savingsRateDist)
+				tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime, tc.args.savingsRateDist, tc.args.genAccumTimes)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)

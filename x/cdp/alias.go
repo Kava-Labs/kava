@@ -65,6 +65,7 @@ var (
 	NewCollateralParam                 = types.NewCollateralParam
 	NewDebtParam                       = types.NewDebtParam
 	NewDeposit                         = types.NewDeposit
+	NewGenesisAccumulationTime         = types.NewGenesisAccumulationTime
 	NewGenesisState                    = types.NewGenesisState
 	NewMsgCreateCDP                    = types.NewMsgCreateCDP
 	NewMsgDeposit                      = types.NewMsgDeposit
@@ -168,6 +169,8 @@ type (
 	DebtParams                      = types.DebtParams
 	Deposit                         = types.Deposit
 	Deposits                        = types.Deposits
+	GenesisAccumulationTime         = types.GenesisAccumulationTime
+	GenesisAccumulationTimes        = types.GenesisAccumulationTimes
 	GenesisState                    = types.GenesisState
 	MsgCreateCDP                    = types.MsgCreateCDP
 	MsgDeposit                      = types.MsgDeposit

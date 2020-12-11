@@ -74,6 +74,9 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime(asset+"-a", time.Time{}, sdk.OneDec()),
+		},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -193,6 +196,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("busd-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
+		},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -247,6 +256,10 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
+		},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }

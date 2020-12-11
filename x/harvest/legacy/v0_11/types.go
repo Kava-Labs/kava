@@ -1,4 +1,4 @@
-package v0_12
+package v0_11
 
 import (
 	"errors"
@@ -10,6 +10,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+
+	tmtime "github.com/tendermint/tendermint/types/time"
+)
+
+const (
+	// ModuleName name that will be used throughout the module
+	ModuleName = "harvest"
+
+	// LPAccount LP distribution module account
+	LPAccount = "harvest_lp_distribution"
+
+	// DelegatorAccount delegator distribution module account
+	DelegatorAccount = "harvest_delegator_distribution"
+
+	// ModuleAccountName name of module account used to hold deposits
+	ModuleAccountName = "harvest"
 )
 
 // Parameter keys and default values
@@ -21,8 +37,56 @@ var (
 	DefaultGovSchedules       = DistributionSchedules{}
 	DefaultLPSchedules        = DistributionSchedules{}
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
+	DefaultPreviousBlockTime  = tmtime.Canonical(time.Unix(0, 0))
+	DefaultDistributionTimes  = GenesisDistributionTimes{}
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
+
+// GenesisState is the state that must be provided at genesis.
+type GenesisState struct {
+	Params                    Params                   `json:"params" yaml:"params"`
+	PreviousBlockTime         time.Time                `json:"previous_block_time" yaml:"previous_block_time"`
+	PreviousDistributionTimes GenesisDistributionTimes `json:"previous_distribution_times" yaml:"previous_distribution_times"`
+}
+
+// NewGenesisState returns a new genesis state
+func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes) GenesisState {
+	return GenesisState{
+		Params:                    params,
+		PreviousBlockTime:         previousBlockTime,
+		PreviousDistributionTimes: previousDistTimes,
+	}
+}
+
+// Validate performs basic validation of genesis data returning an
+// error for any failed validation criteria.
+func (gs GenesisState) Validate() error {
+
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+	if gs.PreviousBlockTime.Equal(time.Time{}) {
+		return fmt.Errorf("previous block time not set")
+	}
+	for _, gdt := range gs.PreviousDistributionTimes {
+		if gdt.PreviousDistributionTime.Equal(time.Time{}) {
+			return fmt.Errorf("previous distribution time not set for %s", gdt.Denom)
+		}
+		if err := sdk.ValidateDenom(gdt.Denom); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GenesisDistributionTime stores the previous distribution time and its corresponding denom
+type GenesisDistributionTime struct {
+	Denom                    string    `json:"denom" yaml:"denom"`
+	PreviousDistributionTime time.Time `json:"previous_distribution_time" yaml:"previous_distribution_time"`
+}
+
+// GenesisDistributionTimes slice of GenesisDistributionTime
+type GenesisDistributionTimes []GenesisDistributionTime
 
 // Params governance parameters for harvest module
 type Params struct {
