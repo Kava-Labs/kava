@@ -108,18 +108,24 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, liqMap map
 	// Seize % of every deposit and send to the keeper
 	aucDeposits := sdk.Coins{}
 	for _, deposit := range deposits {
-		mm, _ := k.GetMoneyMarket(ctx, deposit.Amount.Denom)
-		keeperReward := mm.KeeperRewardPercentage.MulInt(deposit.Amount.Amount).TruncateInt()
-		keeperCoin := sdk.NewCoin(deposit.Amount.Denom, keeperReward)
+		denom := deposit.Amount.Denom
+		amount := deposit.Amount.Amount
+		mm, _ := k.GetMoneyMarket(ctx, denom)
 
-		// Send keeper their reward
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, keeper, sdk.NewCoins(keeperCoin))
-		if err != nil {
-			return err
+		keeperReward := mm.KeeperRewardPercentage.MulInt(amount).TruncateInt()
+		if keeperReward.GT(sdk.ZeroInt()) {
+			// Send keeper their reward
+			keeperCoin := sdk.NewCoin(denom, keeperReward)
+			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, keeper, sdk.NewCoins(keeperCoin))
+			if err != nil {
+				return err
+			}
+
+			amount = amount.Sub(keeperReward)
 		}
 
 		// Add remaining deposit coin to aucDeposits
-		aucDeposits = aucDeposits.Add(sdk.NewCoin(deposit.Amount.Denom, deposit.Amount.Amount.Sub(keeperReward)))
+		aucDeposits = aucDeposits.Add(sdk.NewCoin(denom, amount))
 	}
 
 	// Build map to hold deposit coin USD valuations
