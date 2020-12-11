@@ -21,13 +21,28 @@ func (m ValuationMap) Get(denom string) sdk.Dec {
 	return m.Usd[denom]
 }
 
+// SetZero sets the USD value for a specific denom to 0
+func (m ValuationMap) SetZero(denom string) {
+	m.Usd[denom] = sdk.ZeroDec()
+}
+
 // Increment increments the USD value of a denom
 func (m ValuationMap) Increment(denom string, amount sdk.Dec) {
+	_, ok := m.Usd[denom]
+	if !ok {
+		m.Usd[denom] = amount
+		return
+	}
 	m.Usd[denom] = m.Usd[denom].Add(amount)
 }
 
 // Decrement decrements the USD value of a denom
 func (m ValuationMap) Decrement(denom string, amount sdk.Dec) {
+	_, ok := m.Usd[denom]
+	if !ok {
+		m.Usd[denom] = amount
+		return
+	}
 	m.Usd[denom] = m.Usd[denom].Sub(amount)
 }
 

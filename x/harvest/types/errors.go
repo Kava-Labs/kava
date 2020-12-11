@@ -61,4 +61,6 @@ var (
 	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 27, "no borrow found")
 	// ErrBorrowNotLiquidatable error for when a borrow is within valid LTV and cannot be liquidated
 	ErrBorrowNotLiquidatable = sdkerrors.Register(ModuleName, 28, "borrow not liquidatable")
+	// ErrInsufficientCoins error for when there are not enough coins for the operation
+	ErrInsufficientCoins = sdkerrors.Register(ModuleName, 29, "unrecoverable state - insufficient coins")
 )

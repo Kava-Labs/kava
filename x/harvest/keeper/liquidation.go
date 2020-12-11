@@ -119,39 +119,32 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, liqMap map
 			if err != nil {
 				return err
 			}
-
 			amount = amount.Sub(keeperReward)
 		}
-
 		// Add remaining deposit coin to aucDeposits
 		aucDeposits = aucDeposits.Add(sdk.NewCoin(denom, amount))
 	}
 
-	// Build map to hold deposit coin USD valuations
-	totalRemainingDepositedUSDAmount := sdk.ZeroDec()
+	// Build valuation map to hold deposit coin USD valuations
 	depositCoinValues := types.NewValuationMap()
 	for _, deposit := range aucDeposits {
 		dData := liqMap[deposit.Denom]
 		dCoinUsdValue := sdk.NewDecFromInt(deposit.Amount).Quo(sdk.NewDecFromInt(dData.conversionFactor)).Mul(dData.price)
-		totalRemainingDepositedUSDAmount = totalRemainingDepositedUSDAmount.Add(dCoinUsdValue)
 		depositCoinValues.Increment(deposit.Denom, dCoinUsdValue)
 	}
 
-	// Build map to hold borrow coin USD valuations
-	totalBorrowedUSDAmount := sdk.ZeroDec()
+	// Build valuation map to hold borrow coin USD valuations
 	borrowCoinValues := types.NewValuationMap()
 	for _, bCoin := range borrowBalances {
 		bData := liqMap[bCoin.Denom]
 		bCoinUsdValue := sdk.NewDecFromInt(bCoin.Amount).Quo(sdk.NewDecFromInt(bData.conversionFactor)).Mul(bData.price)
-		totalBorrowedUSDAmount = totalBorrowedUSDAmount.Add(bCoinUsdValue)
 		borrowCoinValues.Increment(bCoin.Denom, bCoinUsdValue)
 	}
 
-	// The % by which the lot must be larger than the borrow
-	ltv := totalBorrowedUSDAmount.Quo(totalRemainingDepositedUSDAmount)
+	// Loan-to-Value ratio after sending keeper their reward
+	ltv := borrowCoinValues.Sum().Quo(depositCoinValues.Sum())
 
-	err := k.StartAuctions(ctx, deposits[0].Depositor, bDenoms, dDenoms, borrowBalances,
-		aucDeposits, ltv, liqMap, depositCoinValues, borrowCoinValues)
+	err := k.StartAuctions(ctx, deposits[0].Depositor, borrowBalances, aucDeposits, depositCoinValues, borrowCoinValues, ltv, liqMap)
 	if err != nil {
 		return err
 	}
@@ -160,62 +153,32 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, liqMap map
 }
 
 // StartAuctions attempts to start auctions for seized assets
-func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDenoms, depositDenoms []string, borrows,
-	deposits sdk.Coins, ltv sdk.Dec, liqMap map[string]LiqData, depositCoinValues, borrowCoinValues types.ValuationMap) error {
+func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows, deposits sdk.Coins,
+	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData) error {
 	// Set up auction constants
 	returnAddrs := []sdk.AccAddress{borrower}
 	weights := []sdk.Int{sdk.NewInt(100)}
 	debt := sdk.NewCoin("debt", sdk.ZeroInt())
 
-	// 1. Attempt auctions where we can sell all of a borrowed asset type at once
-	for _, bDenom := range borrowDenoms {
-		bCoin := sdk.NewCoin(bDenom, borrows.AmountOf(bDenom))
+	for bKey, bValue := range borrowCoinValues.Usd {
+		maxLotSize := bValue.Quo(ltv)
 
-		for _, dDenom := range depositDenoms {
-			// Search for a deposit coin amount with USD valuation >= desired lot size USD valuation
-			lotSizeUSD := borrowCoinValues.Get(bDenom).Mul(ltv)
-			if depositCoinValues.Get(dDenom).GTE(lotSizeUSD) {
-
-				// Convert lot size USD to lot size native currency
-				lotSizeNative := lotSizeUSD.MulInt(liqMap[dDenom].conversionFactor).Quo(liqMap[dDenom].price)
-				lot := sdk.NewCoin(dDenom, lotSizeNative.TruncateInt())
-				bid := bCoin
-
-				// Start auction with this lot (deposit) and bid (borrow)
-				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorAccount, sdk.NewCoins(lot))
-				if err != nil {
-					return err
-				}
-				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
-				if err != nil {
-					return err
-				}
-
-				// Adjust remaining value of remaining USD to be auctioned
-				borrowCoinValues.Decrement(bid.Denom, sdk.NewDecFromInt(bid.Amount))
-				depositCoinValues.Decrement(lot.Denom, sdk.NewDecFromInt(lot.Amount))
-				// Adjust amount of remaining bids/lots in native currencies
-				borrows = borrows.Sub(sdk.NewCoins(bCoin))
-				deposits = deposits.Sub(sdk.NewCoins(lot))
-				break // No more borrow balance left for this denom, move to next borrow denom
+		for dKey, dValue := range depositCoinValues.Usd {
+			if maxLotSize.Equal(sdk.ZeroDec()) {
+				break // exit out of the loop if we have cleared the full amount
 			}
-		}
-	}
 
-	// 2. Attempt auctions where we can sell all of a deposited asset type at once
-	for _, dDenom := range depositDenoms {
-		dCoin := sdk.NewCoin(dDenom, deposits.AmountOf(dDenom))
+			if dValue.GTE(maxLotSize) { // We can start an auction for the whole borrow amount
+				bid := sdk.NewCoin(bKey, borrows.AmountOf(bKey))
 
-		// At this bid amount we'll sell all the collateral at a (1/ltv) ratio
-		bidSize := depositCoinValues.Get(dDenom).Mul(ltv)
-		for _, bDenom := range borrowDenoms {
-			if borrowCoinValues.Get(bDenom).GTE(bidSize) {
-				// Convert USD value of bCoin back to native currency
-				bidSizeNative := bidSize.Quo(liqMap[bDenom].price)
-				bid := sdk.NewCoin(bDenom, bidSizeNative.MulInt(liqMap[bDenom].conversionFactor).TruncateInt())
-				lot := dCoin
+				lotSize := maxLotSize.MulInt(liqMap[dKey].conversionFactor).Quo(liqMap[dKey].price)
+				lot := sdk.NewCoin(dKey, lotSize.TruncateInt())
+				// Sanity check that we can deliver coins to the liquidator account
+				if deposits.AmountOf(dKey).LT(lot.Amount) {
+					return types.ErrInsufficientCoins
+				}
 
-				// Start auction with this lot (deposit) and bid (borrow)
+				// Start auction: bid = full borrow amount, lot = maxLotSize
 				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
 					return err
@@ -225,35 +188,25 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 					return err
 				}
 
-				// Adjust remaining value of remaining USD to be auctioned
-				borrowCoinValues.Decrement(bid.Denom, sdk.NewDecFromInt(bid.Amount))
-				depositCoinValues.Decrement(lot.Denom, sdk.NewDecFromInt(lot.Amount))
-				// Adjust amount of remaining bids/lots in native currencies
+				// Update USD valuation maps
+				borrowCoinValues.SetZero(bKey)
+				depositCoinValues.Decrement(dKey, maxLotSize)
+				// Update deposits, borrows
 				borrows = borrows.Sub(sdk.NewCoins(bid))
 				deposits = deposits.Sub(sdk.NewCoins(lot))
-			}
-		}
-	}
+				// Update max lot size
+				maxLotSize = sdk.ZeroDec()
+			} else { // We can only start an auction for the partial borrow amount
+				maxBid := dValue.Mul(ltv)
+				bid := sdk.NewCoin(bKey, maxBid.MulInt(liqMap[bKey].conversionFactor).TruncateInt())
 
-	// 3. Attempt auctions where we can recover the remaining borrowed asset for some of the deposited asset
-	for _, bDenom := range borrowDenoms {
-		bCoin := sdk.NewCoin(bDenom, borrows.AmountOf(bDenom))
-		// Already recovered all of this borrow asset, move to next asset
-		if borrows.AmountOf(bDenom).Equal(sdk.ZeroInt()) {
-			continue
-		}
+				lot := sdk.NewCoin(dKey, deposits.AmountOf(dKey))
+				// Sanity check that we can deliver coins to the liquidator account
+				if deposits.AmountOf(dKey).LT(lot.Amount) {
+					return types.ErrInsufficientCoins
+				}
 
-		// We need to raise this $ amount of 'borrow denom' using seized 'deposit denom'
-		lotValueUSD := borrowCoinValues.Get(bDenom).Quo(ltv)
-
-		for _, dDenom := range depositDenoms {
-			if depositCoinValues.Get(dDenom).GTE(lotValueUSD) {
-				// Convert lot size USD to lot size native currency
-				lotSizeNative := lotValueUSD.MulInt(liqMap[dDenom].conversionFactor).Quo(liqMap[dDenom].price)
-				lot := sdk.NewCoin(dDenom, lotSizeNative.TruncateInt())
-				bid := bCoin
-
-				// Start auction with this lot (deposit) and bid (borrow)
+				// Start auction: bid = maxBid, lot = whole deposit amount
 				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
 					return err
@@ -263,27 +216,28 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 					return err
 				}
 
-				// Adjust remaining value of remaining USD to be auctioned
-				borrowCoinValues.Decrement(bid.Denom, sdk.NewDecFromInt(bid.Amount))
-				depositCoinValues.Decrement(lot.Denom, sdk.NewDecFromInt(lot.Amount))
-				// Adjust amount of remaining bids/lots in native currencies
-				borrows = borrows.Sub(sdk.NewCoins(bCoin))
+				// Update variables to account for partial auction
+				borrowCoinValues.Decrement(bKey, maxBid)
+				depositCoinValues.SetZero(dKey)
+				// Update deposits, borrows
+				borrows = borrows.Sub(sdk.NewCoins(bid))
 				deposits = deposits.Sub(sdk.NewCoins(lot))
-				break // No more borrow balance left for this denom, move to next borrow denom
+				// Update max lot size
+				maxLotSize = borrowCoinValues.Get(bKey).Quo(ltv)
 			}
 		}
 	}
 
 	// Send any remaining deposit back to the original borrower
-	for _, dDenom := range depositDenoms {
-		if deposits.AmountOf(dDenom).GT(sdk.ZeroInt()) {
-			returnCoin := sdk.NewCoins(sdk.NewCoin(dDenom, deposits.AmountOf(dDenom)))
+	for dKey := range depositCoinValues.Usd {
+		remaining := deposits.AmountOf(dKey)
+		if remaining.GT(sdk.ZeroInt()) {
+			returnCoin := sdk.NewCoins(sdk.NewCoin(dKey, remaining))
 			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, borrower, returnCoin)
 			if err != nil {
 				return err
 			}
 		}
-
 	}
 
 	return nil
