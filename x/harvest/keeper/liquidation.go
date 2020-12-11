@@ -192,8 +192,8 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 				}
 
 				// Adjust remaining value of remaining USD to be auctioned
-				borrowCoinValues.Decrement(bid.Denom, bid.Amount)
-				depositCoinValues.Decrement(lot.Denom, lot.Amount)
+				borrowCoinValues.Decrement(bid.Denom, sdk.NewDecFromInt(bid.Amount))
+				depositCoinValues.Decrement(lot.Denom, sdk.NewDecFromInt(lot.Amount))
 				// Adjust amount of remaining bids/lots in native currencies
 				borrows = borrows.Sub(sdk.NewCoins(bCoin))
 				deposits = deposits.Sub(sdk.NewCoins(lot))
@@ -226,8 +226,8 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 				}
 
 				// Adjust remaining value of remaining USD to be auctioned
-				borrowCoinValues.Decrement(bid.Denom, bid.Amount)
-				depositCoinValues.Decrement(lot.Denom, lot.Amount)
+				borrowCoinValues.Decrement(bid.Denom, sdk.NewDecFromInt(bid.Amount))
+				depositCoinValues.Decrement(lot.Denom, sdk.NewDecFromInt(lot.Amount))
 				// Adjust amount of remaining bids/lots in native currencies
 				borrows = borrows.Sub(sdk.NewCoins(bid))
 				deposits = deposits.Sub(sdk.NewCoins(lot))
@@ -244,10 +244,10 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 		}
 
 		// We need to raise this $ amount of 'borrow denom' using seized 'deposit denom'
-		lotValueUSD := bUsdMap[bDenom].Quo(ltv)
+		lotValueUSD := borrowCoinValues.Get(bDenom).Quo(ltv)
 
 		for _, dDenom := range depositDenoms {
-			if dUsdMap[dDenom].GTE(lotValueUSD) {
+			if depositCoinValues.Get(dDenom).GTE(lotValueUSD) {
 				// Convert lot size USD to lot size native currency
 				lotSizeNative := lotValueUSD.MulInt(liqMap[dDenom].conversionFactor).Quo(liqMap[dDenom].price)
 				lot := sdk.NewCoin(dDenom, lotSizeNative.TruncateInt())
@@ -264,8 +264,8 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrowDe
 				}
 
 				// Adjust remaining value of remaining USD to be auctioned
-				borrowCoinValues.Decrement(bid.Denom, bid.Amount)
-				depositCoinValues.Decrement(lot.Denom, lot.Amount)
+				borrowCoinValues.Decrement(bid.Denom, sdk.NewDecFromInt(bid.Amount))
+				depositCoinValues.Decrement(lot.Denom, sdk.NewDecFromInt(lot.Amount))
 				// Adjust amount of remaining bids/lots in native currencies
 				borrows = borrows.Sub(sdk.NewCoins(bCoin))
 				deposits = deposits.Sub(sdk.NewCoins(lot))
