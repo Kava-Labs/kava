@@ -16,6 +16,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryPrice:
 			return queryPrice(ctx, req, keeper)
+		case types.QueryPrices:
+			return queryPrices(ctx, req, keeper)
 		case types.QueryRawPrices:
 			return queryRawPrices(ctx, req, keeper)
 		case types.QueryOracles:
@@ -50,6 +52,15 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []by
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
+	return bz, nil
+}
+
+func queryPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (res []byte, sdkErr error) {
+	currentPrices := keeper.GetCurrentPrices(ctx)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, currentPrices)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
 	return bz, nil
 }
 
