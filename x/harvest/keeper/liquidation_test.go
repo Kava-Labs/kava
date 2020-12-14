@@ -9,27 +9,27 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	auctypes "github.com/kava-labs/kava/x/auction/types"
 	"github.com/kava-labs/kava/x/harvest"
 	"github.com/kava-labs/kava/x/harvest/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
-// type LiquidationTestSuite struct {
-// 	suite.Suite
-// }
-
 func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 	type args struct {
-		borrower             sdk.AccAddress
-		keeper               sdk.AccAddress
-		keeperRewardPercent  sdk.Dec
-		initialModuleCoins   sdk.Coins
-		initialBorrowerCoins sdk.Coins
-		initialKeeperCoins   sdk.Coins
-		depositCoins         []sdk.Coin
-		borrowCoins          sdk.Coins
-		liquidateAfter       int64
-		auctionSize          sdk.Int
+		borrower              sdk.AccAddress
+		keeper                sdk.AccAddress
+		keeperRewardPercent   sdk.Dec
+		initialModuleCoins    sdk.Coins
+		initialBorrowerCoins  sdk.Coins
+		initialKeeperCoins    sdk.Coins
+		depositCoins          []sdk.Coin
+		borrowCoins           sdk.Coins
+		liquidateAfter        int64
+		auctionSize           sdk.Int
+		expectedKeeperCoins   sdk.Coins         // coins keeper address should have after successfully liquidating position
+		expectedBorrowerCoins sdk.Coins         // additional coins (if any) the borrower address should have after successfully liquidating position
+		expectedAuctions      auctypes.Auctions // the auctions we should expect to find have been started
 	}
 
 	type errArgs struct {
@@ -54,20 +54,46 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 	borrower := sdk.AccAddress(crypto.AddressHash([]byte("testborrower")))
 	keeper := sdk.AccAddress(crypto.AddressHash([]byte("testkeeper")))
 
+	// Set up auction constants
+	layout := "2006-01-02T15:04:05.000Z"
+	endTimeStr := "9000-01-01T00:00:00.000Z"
+	endTime, _ := time.Parse(layout, endTimeStr)
+
+	lotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{borrower}, []sdk.Int{sdk.NewInt(100)})
+
 	testCases := []liqTest{
 		{
 			"valid: keeper liquidates borrow",
 			args{
-				borrower:             borrower,
-				keeper:               keeper,
-				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
-				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:         []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
-				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
-				liquidateAfter:       oneMonthInSeconds,
-				auctionSize:          sdk.NewInt(KAVA_CF * 1000),
+				borrower:              borrower,
+				keeper:                keeper,
+				keeperRewardPercent:   sdk.MustNewDecFromStr("0.05"),
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				liquidateAfter:        oneMonthInSeconds,
+				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
+				expectedKeeperCoins:   sdk.Coins{},
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98000001))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 9499999),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004766),
+						LotReturns:        lotReturns,
+					},
+				},
 			},
 			errArgs{
 				expectPass: true,
@@ -77,16 +103,65 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 		{
 			"valid: multiple deposits, multiple borrows",
 			args{
-				borrower:             borrower,
-				keeper:               keeper,
-				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
-				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
-				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
-				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
-				depositCoins:         []sdk.Coin{sdk.NewCoin("dai", sdk.NewInt(350*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(200*KAVA_CF))},
-				borrowCoins:          sdk.NewCoins(sdk.NewCoin("usdt", sdk.NewInt(250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(245*KAVA_CF))),
-				liquidateAfter:       oneMonthInSeconds,
-				auctionSize:          sdk.NewInt(KAVA_CF * 100000),
+				borrower:              borrower,
+				keeper:                keeper,
+				keeperRewardPercent:   sdk.MustNewDecFromStr("0.05"),
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
+				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("dai", sdk.NewInt(350*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(200*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("usdt", sdk.NewInt(250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(245*KAVA_CF))),
+				liquidateAfter:        oneMonthInSeconds,
+				auctionSize:           sdk.NewInt(KAVA_CF * 100000),
+				expectedKeeperCoins:   sdk.Coins{},
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(650*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(800000001)), sdk.NewCoin("usdt", sdk.NewInt(1250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1245*KAVA_CF))),
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("dai", 263894126),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("usdt", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("usdt", 250507897),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("dai", 68605874),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("usdx", 65125788),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              3,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("usdc", 189999999),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("usdx", 180362106),
+						LotReturns:        lotReturns,
+					},
+				},
 			},
 			errArgs{
 				expectPass: true,
@@ -94,6 +169,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			},
 		},
 	}
+
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
@@ -219,10 +295,13 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
 
+			auctionKeeper := tApp.GetAuctionKeeper()
+
 			keeper := tApp.GetHarvestKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
+			suite.auctionKeeper = auctionKeeper
 
 			var err error
 
@@ -275,6 +354,15 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				}
 				accKeeper := suite.getAccountAtCtx(tc.args.keeper, liqCtx)
 				suite.Require().Equal(tc.args.initialKeeperCoins.Add(rewardCoins...), accKeeper.GetCoins())
+
+				// Check that borrower's balance contains the expected coins
+				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
+				suite.Require().Equal(tc.args.expectedBorrowerCoins, accBorrower.GetCoins())
+
+				// Check that the expected auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+				suite.Require().True(len(auctions) > 0)
+				suite.Require().Equal(tc.args.expectedAuctions, auctions)
 			} else {
 				suite.Require().Error(err)
 
@@ -286,11 +374,11 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
 					suite.Require().True(foundDepositAfter)
 				}
+
+				// Check that no auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+				suite.Require().True(len(auctions) == 0)
 			}
 		})
 	}
 }
-
-// func TestLiquidationTestSuite(t *testing.T) {
-// 	suite.Run(t, new(LiquidationTestSuite))
-// }

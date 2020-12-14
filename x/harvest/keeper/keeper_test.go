@@ -15,6 +15,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	aucKeeper "github.com/kava-labs/kava/x/auction/keeper"
 	"github.com/kava-labs/kava/x/harvest/keeper"
 	"github.com/kava-labs/kava/x/harvest/types"
 )
@@ -22,10 +23,11 @@ import (
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
 	suite.Suite
-	keeper keeper.Keeper
-	app    app.TestApp
-	ctx    sdk.Context
-	addrs  []sdk.AccAddress
+	keeper        keeper.Keeper
+	auctionKeeper aucKeeper.Keeper
+	app           app.TestApp
+	ctx           sdk.Context
+	addrs         []sdk.AccAddress
 }
 
 // The default state used by each test
