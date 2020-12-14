@@ -115,7 +115,7 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, liqMap map
 		if keeperReward.GT(sdk.ZeroInt()) {
 			// Send keeper their reward
 			keeperCoin := sdk.NewCoin(denom, keeperReward)
-			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, keeper, sdk.NewCoins(keeperCoin))
+			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, sdk.NewCoins(keeperCoin))
 			if err != nil {
 				return err
 			}
@@ -179,7 +179,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				}
 
 				// Start auction: bid = full borrow amount, lot = maxLotSize
-				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorAccount, sdk.NewCoins(lot))
+				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
 					return err
 				}
@@ -207,7 +207,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				}
 
 				// Start auction: bid = maxBid, lot = whole deposit amount
-				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorAccount, sdk.NewCoins(lot))
+				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
 					return err
 				}
@@ -233,7 +233,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 		remaining := deposits.AmountOf(dKey)
 		if remaining.GT(sdk.ZeroInt()) {
 			returnCoin := sdk.NewCoins(sdk.NewCoin(dKey, remaining))
-			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, borrower, returnCoin)
+			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, returnCoin)
 			if err != nil {
 				return err
 			}
