@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
-				expectedKeeperCoins:   sdk.Coins{},
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100.5*KAVA_CF))),
 				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98000001))), // initial - deposit + borrow + liquidation leftovers
 				expectedAuctions: auctypes.Auctions{
 					auctypes.CollateralAuction{
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("usdt", sdk.NewInt(250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(245*KAVA_CF))),
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 100000),
-				expectedKeeperCoins:   sdk.Coins{},
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(1017.50*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1010*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF))),
 				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(650*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(800000001)), sdk.NewCoin("usdt", sdk.NewInt(1250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1245*KAVA_CF))),
 				expectedAuctions: auctypes.Auctions{
 					auctypes.CollateralAuction{
@@ -347,13 +347,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				}
 
 				// Check that the keeper's balance increased by reward % of all the borrowed coins
-				rewardCoins := sdk.Coins{}
-				for _, coin := range tc.args.depositCoins {
-					reward := tc.args.keeperRewardPercent.MulInt(coin.Amount).TruncateInt()
-					rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, reward))
-				}
 				accKeeper := suite.getAccountAtCtx(tc.args.keeper, liqCtx)
-				suite.Require().Equal(tc.args.initialKeeperCoins.Add(rewardCoins...), accKeeper.GetCoins())
+				suite.Require().Equal(tc.args.expectedKeeperCoins, accKeeper.GetCoins())
 
 				// Check that borrower's balance contains the expected coins
 				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
