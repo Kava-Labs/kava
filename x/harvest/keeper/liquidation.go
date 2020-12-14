@@ -235,7 +235,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 	}
 
 	// Send any remaining deposit back to the original borrower
-	for dKey := range depositCoinValues.Usd {
+	for _, dKey := range dKeys {
 		remaining := deposits.AmountOf(dKey)
 		if remaining.GT(sdk.ZeroInt()) {
 			returnCoin := sdk.NewCoins(sdk.NewCoin(dKey, remaining))
