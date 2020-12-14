@@ -1,6 +1,8 @@
 package types
 
 import (
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -53,4 +55,16 @@ func (m ValuationMap) Sum() sdk.Dec {
 		sum = sum.Add(v)
 	}
 	return sum
+}
+
+// GetSortedKeys returns an array of the map's keys in alphabetical order
+func (m ValuationMap) GetSortedKeys() []string {
+	keys := make([]string, len(m.Usd))
+	i := 0
+	for k := range m.Usd {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	return keys
 }

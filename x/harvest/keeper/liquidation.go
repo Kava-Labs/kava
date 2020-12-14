@@ -155,15 +155,21 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, liqMap map
 // StartAuctions attempts to start auctions for seized assets
 func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows, deposits sdk.Coins,
 	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData) error {
+	// Sort keys to ensure deterministic behavior
+	bKeys := borrowCoinValues.GetSortedKeys()
+	dKeys := depositCoinValues.GetSortedKeys()
+
 	// Set up auction constants
 	returnAddrs := []sdk.AccAddress{borrower}
 	weights := []sdk.Int{sdk.NewInt(100)}
 	debt := sdk.NewCoin("debt", sdk.ZeroInt())
 
-	for bKey, bValue := range borrowCoinValues.Usd {
+	for _, bKey := range bKeys {
+		bValue := borrowCoinValues.Get(bKey)
 		maxLotSize := bValue.Quo(ltv)
 
-		for dKey, dValue := range depositCoinValues.Usd {
+		for _, dKey := range dKeys {
+			dValue := depositCoinValues.Get(dKey)
 			if maxLotSize.Equal(sdk.ZeroDec()) {
 				break // exit out of the loop if we have cleared the full amount
 			}
