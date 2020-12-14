@@ -40,7 +40,7 @@ var (
 	// ErrDepositsNotFound error for no deposits found
 	ErrDepositsNotFound = sdkerrors.Register(ModuleName, 17, "no deposits found")
 	// ErrInsufficientLoanToValue error for when an attempted borrow exceeds maximum loan-to-value
-	ErrInsufficientLoanToValue = sdkerrors.Register(ModuleName, 18, "total deposited value is insufficient for borrow request")
+	ErrInsufficientLoanToValue = sdkerrors.Register(ModuleName, 18, "not enough collateral supplied by account")
 	// ErrMarketNotFound error for when a market for the input denom is not found
 	ErrMarketNotFound = sdkerrors.Register(ModuleName, 19, "no market found for denom")
 	// ErrPriceNotFound error for when a price for the input market is not found
@@ -55,12 +55,14 @@ var (
 	ErrGreaterThanAssetBorrowLimit = sdkerrors.Register(ModuleName, 24, "fails global asset borrow limit validation")
 	// ErrBorrowEmptyCoins error for when you cannot borrow empty coins
 	ErrBorrowEmptyCoins = sdkerrors.Register(ModuleName, 25, "cannot borrow zero coins")
+	// ErrBorrowNotFound error for when a user's borrow is not found in the store
+	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 26, "borrow not found")
 	// ErrPreviousAccrualTimeNotFound error for no previous accrual time found in store
-	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 26, "no previous accrual time found")
-	// ErrBorrowNotFound error for when borrow not found in store
-	ErrBorrowNotFound = sdkerrors.Register(ModuleName, 27, "no borrow found")
+	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 27, "no previous accrual time found")
+	// ErrInsufficientBalanceForRepay error for when requested repay exceeds user's balance
+	ErrInsufficientBalanceForRepay = sdkerrors.Register(ModuleName, 28, "insufficient balance")
 	// ErrBorrowNotLiquidatable error for when a borrow is within valid LTV and cannot be liquidated
-	ErrBorrowNotLiquidatable = sdkerrors.Register(ModuleName, 28, "borrow not liquidatable")
+	ErrBorrowNotLiquidatable = sdkerrors.Register(ModuleName, 29, "borrow not liquidatable")
 	// ErrInsufficientCoins error for when there are not enough coins for the operation
-	ErrInsufficientCoins = sdkerrors.Register(ModuleName, 29, "unrecoverable state - insufficient coins")
+	ErrInsufficientCoins = sdkerrors.Register(ModuleName, 30, "unrecoverable state - insufficient coins")
 )
