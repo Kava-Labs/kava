@@ -37,6 +37,8 @@ func (suite *KeeperTestSuite) TestRepay() {
 		errArgs errArgs
 	}
 
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
+
 	testCases := []borrowTest{
 		{
 			"valid: partial repay",
@@ -124,8 +126,22 @@ func (suite *KeeperTestSuite) TestRepay() {
 				),
 				},
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1")), "usdx:usd", sdk.NewInt(USDX_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05")),
-					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("0.8")), "kava:usd", sdk.NewInt(KAVA_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05")),
+					types.NewMoneyMarket("usdx",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1")), // Borrow Limit
+						"usdx:usd",                     // Market ID
+						sdk.NewInt(USDX_CF),            // Conversion Factor
+						sdk.NewInt(1000*USDX_CF),       // Auction Size
+						model,                          // Interest Rate Model
+						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("ukava",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"kava:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(1000*KAVA_CF),       // Auction Size
+						model,                          // Interest Rate Model
+						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
