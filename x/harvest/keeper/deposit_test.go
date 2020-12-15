@@ -10,7 +10,9 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/harvest"
 	"github.com/kava-labs/kava/x/harvest/types"
+	"github.com/kava-labs/kava/x/pricefeed"
 )
 
 func (suite *KeeperTestSuite) TestDeposit() {
@@ -110,13 +112,60 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdk.NewInt(1000000), sdk.NewInt(USDX_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdk.NewInt(1000000), sdk.NewInt(KAVA_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(1000000), sdk.NewInt(BNB_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("btcb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "btcb:usd", sdk.NewInt(1000000), sdk.NewInt(BTCB_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
+
+			// Pricefeed module genesis state
+			pricefeedGS := pricefeed.GenesisState{
+				Params: pricefeed.Params{
+					Markets: []pricefeed.Market{
+						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "btcb:usd", BaseAsset: "btcb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+					},
+				},
+				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "usdx:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+					{
+						MarketID:      "kava:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("2.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+					{
+						MarketID:      "btcb:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("100.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+					{
+						MarketID:      "bnb:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("10.00"),
+						Expiry:        time.Now().Add(1 * time.Hour),
+					},
+				},
+			}
+
+			tApp.InitializeFromGenesisStates(authGS,
+				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)},
+			)
 			keeper := tApp.GetHarvestKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
+
+			// Run BeginBlocker once to transition MoneyMarkets
+			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// run the test
 			var err error
