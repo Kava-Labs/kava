@@ -44,14 +44,10 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 		errArgs errArgs
 	}
 
+	// Set up test constants
 	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
 	reserveFactor := sdk.MustNewDecFromStr("0.05")
-
-	// oneDayInSeconds := int64(86400)
-	// oneWeekInSeconds := int64(604800)
 	oneMonthInSeconds := int64(2592000)
-	// oneYearInSeconds := int64(31536000)
-
 	borrower := sdk.AccAddress(crypto.AddressHash([]byte("testborrower")))
 	keeper := sdk.AccAddress(crypto.AddressHash([]byte("testkeeper")))
 
@@ -184,28 +180,173 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				contains:   "",
 			},
 		},
-		// {
-		// 	"valid: multiple deposits, single borrow",
-		// 	args{
-		// 		borrower:              borrower,
-		// 		keeper:                keeper,
-		// 		keeperRewardPercent:   sdk.MustNewDecFromStr("0.05"),
-		// 		initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF))),
-		// 		initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(100*BTCB_CF))),
-		// 		initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-		// 		depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))}, // $100 + $100 + $100 = $300 * 0.8 = $240 borrowable                                                                                                                                       // $100 * 0.8 = $80 borrowable
-		// 		borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120*KAVA_CF))),                                                                                    // $240 borrowed
-		// 		liquidateAfter:        oneMonthInSeconds,
-		// 		auctionSize:           sdk.NewInt(KAVA_CF * 1000),
-		// 		expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102.5*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
-		// 		expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(170.000001*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(90*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(99*BTCB_CF))),
-		// 		expectedAuctions:      auctypes.Auctions{},
-		// 	},
-		// 	errArgs{
-		// 		expectPass: true,
-		// 		contains:   "",
-		// 	},
-		// },
+		{
+			"valid: multiple deposits, single borrow",
+			args{
+				borrower:              borrower,
+				keeper:                keeper,
+				keeperRewardPercent:   sdk.MustNewDecFromStr("0.05"),
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(100*BTCB_CF))),
+				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))}, // $100 + $100 + $100 = $300 * 0.8 = $240 borrowable                                                                                                                                       // $100 * 0.8 = $80 borrowable
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120*KAVA_CF))),                                                                                    // $240 borrowed
+				liquidateAfter:        oneMonthInSeconds,
+				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102.5*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(170.000001*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(90*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(99*BTCB_CF))),
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("bnb", 950000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 40037377),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("btc", 95000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 40037377),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              3,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 47499999),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 40037379),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			"valid: mutliple stablecoin deposits, multiple variable coin borrows",
+			// Auctions: total lot value = $285 ($300 of deposits - $15 keeper reward), total max bid value = $270
+			args{
+				borrower:              borrower,
+				keeper:                keeper,
+				keeperRewardPercent:   sdk.MustNewDecFromStr("0.05"),
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(1000*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1000*BTCB_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF))),
+				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("usdc", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF))}, // $100 + $100 + $100 = $300 * 0.9 = $270 borrowable
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(35*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))),     // $270 borrowed
+				liquidateAfter:        oneMonthInSeconds,
+				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(5*KAVA_CF))), // 5% of each seized coin + initial balances
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(135*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF)), sdk.NewCoin("usdx", sdk.NewInt(0.000001*KAVA_CF))),
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("usdc", 95000000), // $95.00
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 900097134), // $90.00
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("usdt", 10552835), // $10.55
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 99985020), // $10.00
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              3,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("usdt", 84447165), // $84.45
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("btc", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("btc", 80011211), // $80.01
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              4,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("usdx", 21097866), // $21.10
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("btc", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("btc", 19989610), // $19.99
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              5,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("usdx", 73902133), //$73.90
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 35010052), // $70.02
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
 		{
 			"valid: multiple stablecoin deposits, multiple stablecoin borrows",
 			args{
