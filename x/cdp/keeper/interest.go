@@ -119,15 +119,12 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 		cdp.InterestFactor = sdk.OneDec()
 		cdp.FeesUpdated = ctx.BlockTime()
 		k.SetCDP(ctx, cdp)
-	}
-	cdpInterestFactor := sdk.OneDec().Add((globalInterestFactor.Sub(cdp.InterestFactor)))
-	if cdpInterestFactor.Equal(sdk.OneDec()) {
 		return cdp
 	}
 
-	accumulatedInterest := cdp.GetTotalPrincipal().Amount.ToDec().Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+	accumulatedInterest := k.CalculateNewInterest(ctx, cdp)
 
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest))
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
 	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.InterestFactor = globalInterestFactor
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
@@ -141,7 +138,7 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 	if !found {
 		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
 	}
-	cdpInterestFactor := sdk.OneDec().Add((globalInterestFactor.Sub(cdp.InterestFactor)))
+	cdpInterestFactor := globalInterestFactor.Quo(cdp.InterestFactor)
 	if cdpInterestFactor.Equal(sdk.OneDec()) {
 		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
 	}

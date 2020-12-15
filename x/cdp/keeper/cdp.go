@@ -44,8 +44,9 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	id := k.GetNextCdpID(ctx)
 	interestFactor, found := k.GetInterestFactor(ctx, collateralType)
 	if !found {
-		k.SetInterestFactor(ctx, collateralType, sdk.OneDec())
 		interestFactor = sdk.OneDec()
+		k.SetInterestFactor(ctx, collateralType, interestFactor)
+
 	}
 	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time, interestFactor)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
@@ -456,6 +457,9 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 
 // LoadAugmentedCDP creates a new augmented CDP from an existing CDP
 func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.AugmentedCDP {
+	// sync the latest interest of the cdp
+	interestAccumulated := k.CalculateNewInterest(ctx, cdp)
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(interestAccumulated)
 	// calculate collateralization ratio
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, liquidation)
 	if err != nil {
