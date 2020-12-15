@@ -60,5 +60,9 @@ var (
 	// ErrPreviousAccrualTimeNotFound error for no previous accrual time found in store
 	ErrPreviousAccrualTimeNotFound = sdkerrors.Register(ModuleName, 27, "no previous accrual time found")
 	// ErrInsufficientBalanceForRepay error for when requested repay exceeds user's balance
-	ErrInsufficientBalanceForRepay = sdkerrors.Register(ModuleName, 29, "insufficient balance")
+	ErrInsufficientBalanceForRepay = sdkerrors.Register(ModuleName, 28, "insufficient balance")
+	// ErrBorrowNotLiquidatable error for when a borrow is within valid LTV and cannot be liquidated
+	ErrBorrowNotLiquidatable = sdkerrors.Register(ModuleName, 29, "borrow not liquidatable")
+	// ErrInsufficientCoins error for when there are not enough coins for the operation
+	ErrInsufficientCoins = sdkerrors.Register(ModuleName, 30, "unrecoverable state - insufficient coins")
 )

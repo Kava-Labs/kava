@@ -14,6 +14,9 @@ const (
 	// DelegatorAccount delegator distribution module account
 	DelegatorAccount = "harvest_delegator_distribution"
 
+	// LiquidatorAccount module account for liquidator
+	LiquidatorAccount = "harvest_liquidator"
+
 	// ModuleAccountName name of module account used to hold deposits
 	ModuleAccountName = "harvest"
 

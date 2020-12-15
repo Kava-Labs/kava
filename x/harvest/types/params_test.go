@@ -22,6 +22,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		gds    types.DistributionSchedules
 		dds    types.DelegatorDistributionSchedules
 		mms    types.MoneyMarkets
+		kpr    sdk.Dec
 		active bool
 	}
 	testCases := []struct {
@@ -52,6 +53,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				),
 				},
 				mms:    types.DefaultMoneyMarkets,
+				kpr:    sdk.MustNewDecFromStr("0.05"),
 				active: true,
 			},
 			expectPass:  true,
@@ -69,6 +71,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				),
 				},
 				mms:    types.DefaultMoneyMarkets,
+				kpr:    sdk.MustNewDecFromStr("0.05"),
 				active: true,
 			},
 			expectPass:  false,

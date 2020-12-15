@@ -45,6 +45,12 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 		panic(fmt.Sprintf("%s module account has not been set", DepositModuleAccount))
 	}
 
+	// check if the module account exists
+	LiquidatorModuleAcc := supplyKeeper.GetModuleAccount(ctx, LiquidatorAccount)
+	if LiquidatorModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", LiquidatorAccount))
+	}
+
 }
 
 // ExportGenesis export genesis state for harvest module

@@ -20,12 +20,13 @@ type Keeper struct {
 	supplyKeeper    types.SupplyKeeper
 	stakingKeeper   types.StakingKeeper
 	pricefeedKeeper types.PricefeedKeeper
+	auctionKeeper   types.AuctionKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 	ak types.AccountKeeper, sk types.SupplyKeeper, stk types.StakingKeeper,
-	pfk types.PricefeedKeeper) Keeper {
+	pfk types.PricefeedKeeper, auk types.AuctionKeeper) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
@@ -38,6 +39,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		supplyKeeper:    sk,
 		stakingKeeper:   stk,
 		pricefeedKeeper: pfk,
+		auctionKeeper:   auk,
 	}
 }
 

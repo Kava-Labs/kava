@@ -34,6 +34,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		getCmdWithdraw(cdc),
 		getCmdClaimReward(cdc),
 		getCmdBorrow(cdc),
+		getCmdLiquidate(cdc),
 		getCmdRepay(cdc),
 	)...)
 
@@ -166,6 +167,34 @@ func getCmdRepay(cdc *codec.Codec) *cobra.Command {
 			}
 
 			msg := types.NewMsgRepay(cliCtx.GetFromAddress(), coins)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func getCmdLiquidate(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "liquidate [borrower-addr]",
+		Short: "liquidate a borrower that's over their loan-to-value ratio",
+		Long:  strings.TrimSpace(`liquidate a borrower that's over their loan-to-value ratio`),
+		Args:  cobra.ExactArgs(1),
+		Example: fmt.Sprintf(
+			`%s tx %s borrow kava1hgcfsuwc889wtdmt8pjy7qffua9dd2tralu64j --from <key>`, version.ClientName, types.ModuleName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			borrower, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgLiquidate(cliCtx.GetFromAddress(), borrower)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

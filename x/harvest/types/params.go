@@ -267,24 +267,28 @@ func (bl BorrowLimit) Equal(blCompareTo BorrowLimit) bool {
 
 // MoneyMarket is a money market for an individual asset
 type MoneyMarket struct {
-	Denom             string            `json:"denom" yaml:"denom"`
-	BorrowLimit       BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"`
-	SpotMarketID      string            `json:"spot_market_id" yaml:"spot_market_id"`
-	ConversionFactor  sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
-	InterestRateModel InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
-	ReserveFactor     sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"`
+	Denom                  string            `json:"denom" yaml:"denom"`
+	BorrowLimit            BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID           string            `json:"spot_market_id" yaml:"spot_market_id"`
+	ConversionFactor       sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
+	InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
+	ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"`
+	AuctionSize            sdk.Int           `json:"auction_size" yaml:"auction_size"`
+	KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"`
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string,
-	conversionFactor sdk.Int, interestRateModel InterestRateModel, reserveFactor sdk.Dec) MoneyMarket {
+func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, conversionFactor,
+	auctionSize sdk.Int, interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdk.Dec) MoneyMarket {
 	return MoneyMarket{
-		Denom:             denom,
-		BorrowLimit:       borrowLimit,
-		SpotMarketID:      spotMarketID,
-		ConversionFactor:  conversionFactor,
-		InterestRateModel: interestRateModel,
-		ReserveFactor:     reserveFactor,
+		Denom:                  denom,
+		BorrowLimit:            borrowLimit,
+		SpotMarketID:           spotMarketID,
+		ConversionFactor:       conversionFactor,
+		AuctionSize:            auctionSize,
+		InterestRateModel:      interestRateModel,
+		ReserveFactor:          reserveFactor,
+		KeeperRewardPercentage: keeperRewardPercentage,
 	}
 }
 
@@ -305,6 +309,15 @@ func (mm MoneyMarket) Validate() error {
 	if mm.ReserveFactor.IsNegative() || mm.ReserveFactor.GT(sdk.OneDec()) {
 		return fmt.Errorf("Reserve factor must be between 0.0-1.0")
 	}
+
+	if !mm.AuctionSize.IsPositive() {
+		return fmt.Errorf("Auction size must be a positive integer")
+	}
+
+	if mm.KeeperRewardPercentage.IsNegative() || mm.KeeperRewardPercentage.GT(sdk.OneDec()) {
+		return fmt.Errorf("Keeper reward percentage must be between 0.0-1.0")
+	}
+
 	return nil
 }
 
@@ -326,6 +339,12 @@ func (mm MoneyMarket) Equal(mmCompareTo MoneyMarket) bool {
 		return false
 	}
 	if !mm.ReserveFactor.Equal(mmCompareTo.ReserveFactor) {
+		return false
+	}
+	if !mm.AuctionSize.Equal(mmCompareTo.AuctionSize) {
+		return false
+	}
+	if !mm.KeeperRewardPercentage.Equal(mmCompareTo.KeeperRewardPercentage) {
 		return false
 	}
 	return true
@@ -424,7 +443,8 @@ func (p Params) String() string {
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
 	Delegator Distribution Schedule %s
-	Money Markets %v`, p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
+	Money Markets %v`,
+		p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
 }
 
 // ParamKeyTable Key declaration for parameters

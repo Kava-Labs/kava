@@ -659,10 +659,12 @@ func (suite *KeeperTestSuite) TestInterest() {
 				types.MoneyMarkets{
 					types.NewMoneyMarket("ukava",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
-						"kava:usd",          // Market ID
-						sdk.NewInt(KAVA_CF), // Conversion Factor
-						tc.args.interestRateModel,
-						tc.args.reserveFactor), // Reserve Factor
+						"kava:usd",                // Market ID
+						sdk.NewInt(KAVA_CF),       // Conversion Factor
+						sdk.NewInt(USDX_CF*1000),  // Auction Size
+						tc.args.interestRateModel, // Interest Rate Model
+						tc.args.reserveFactor,     // Reserve Factor
+						sdk.ZeroDec()),            // Keeper Reward Percentage
 				},
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 

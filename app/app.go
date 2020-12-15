@@ -106,6 +106,7 @@ var (
 		harvest.LPAccount:           {supply.Minter, supply.Burner},
 		harvest.DelegatorAccount:    {supply.Minter, supply.Burner},
 		harvest.ModuleAccountName:   {supply.Minter, supply.Burner},
+		harvest.LiquidatorAccount:   {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -386,7 +387,9 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 		&stakingKeeper,
-		app.pricefeedKeeper)
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks

@@ -31,6 +31,7 @@ const (
 	EventTypeHarvestWithdrawal            = types.EventTypeHarvestWithdrawal
 	LP                                    = types.LP
 	LPAccount                             = types.LPAccount
+	LiquidatorAccount                     = types.LiquidatorAccount
 	Large                                 = types.Large
 	Medium                                = types.Medium
 	ModuleAccountName                     = types.ModuleAccountName
