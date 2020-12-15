@@ -22,7 +22,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		return nil
 	}
 
-	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
+	timeElapsed := int64(ctx.BlockTime().Sub(previousAccrualTime).Seconds())
 	if timeElapsed == 0 {
 		return nil
 	}
