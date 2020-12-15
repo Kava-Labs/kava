@@ -22,7 +22,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		return nil
 	}
 
-	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
+	timeElapsed := int64(ctx.BlockTime().Sub(previousAccrualTime).Seconds())
 	if timeElapsed == 0 {
 		return nil
 	}
@@ -113,24 +113,38 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 // SynchronizeInterest updates the input cdp object to reflect the current accumulated interest, updates the cdp state in the store,
 // and returns the updated cdp object
 func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
+	previousCollateralRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
 		k.SetInterestFactor(ctx, cdp.Type, sdk.OneDec())
 		cdp.InterestFactor = sdk.OneDec()
 		cdp.FeesUpdated = ctx.BlockTime()
 		k.SetCDP(ctx, cdp)
-	}
-	cdpInterestFactor := sdk.OneDec().Add((globalInterestFactor.Sub(cdp.InterestFactor)))
-	if cdpInterestFactor.Equal(sdk.OneDec()) {
 		return cdp
 	}
 
-	accumulatedInterest := cdp.GetTotalPrincipal().Amount.ToDec().Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+	accumulatedInterest := k.CalculateNewInterest(ctx, cdp)
+	if accumulatedInterest.IsZero() {
+		// this could happen if apy is zero are if the total fees for all cdps round to zero
 
-	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest))
+		prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+		if !found {
+			return cdp
+		}
+		if cdp.FeesUpdated.Equal(prevAccrualTime) {
+			// if all fees are rounding to zero, don't update FeesUpdated
+			return cdp
+		}
+		// if apy is zero, we need to update FeesUpdated
+		cdp.FeesUpdated = ctx.BlockTime()
+		k.SetCDP(ctx, cdp)
+	}
+
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
 	cdp.FeesUpdated = ctx.BlockTime()
 	cdp.InterestFactor = globalInterestFactor
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, previousCollateralRatio)
 	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	return cdp
 }
@@ -141,7 +155,7 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 	if !found {
 		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
 	}
-	cdpInterestFactor := sdk.OneDec().Add((globalInterestFactor.Sub(cdp.InterestFactor)))
+	cdpInterestFactor := globalInterestFactor.Quo(cdp.InterestFactor)
 	if cdpInterestFactor.Equal(sdk.OneDec()) {
 		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
 	}
