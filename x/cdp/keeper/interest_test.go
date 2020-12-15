@@ -346,6 +346,18 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 			},
 		},
 		{
+			"7 seconds - zero apy",
+			args{
+				ctype:                   "busd-a",
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:       c("busd", 10000000000000),
+				initialPrincipal:        c("usdx", 10000000000),
+				timeElapsed:             7,
+				expectedFees:            c("usdx", 0),
+				expectedFeesUpdatedTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
+			},
+		},
+		{
 			"7 seconds - fees round to zero",
 			args{
 				ctype:                   "bnb-a",
@@ -379,6 +391,7 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
 			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("17.25"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
+			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "busd:usd", d("1"), tc.args.expectedFeesUpdatedTime.Add(time.Second))
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
