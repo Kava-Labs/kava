@@ -44,6 +44,7 @@ var (
 	PreviousAccrualTimePrefix         = []byte{0x08} // denom -> time
 	TotalReservesPrefix               = []byte{0x09} // denom -> sdk.Coin
 	BorrowIndexPrefix                 = []byte{0x10} // denom -> sdk.Dec
+	LtvIndexPrefix                    = []byte{0x11}
 	sep                               = []byte(":")
 )
 
@@ -65,6 +66,11 @@ func ClaimKey(depositType ClaimType, denom string, owner sdk.AccAddress) []byte 
 // ClaimTypeIteratorKey returns an interator prefix for interating over claims by deposit type and denom
 func ClaimTypeIteratorKey(depositType ClaimType, denom string) []byte {
 	return createKey([]byte(depositType), sep, []byte(denom))
+}
+
+// GetBorrowByLtvKey is used by the LTV index
+func GetBorrowByLtvKey(ltv sdk.Dec, borrower sdk.AccAddress) []byte {
+	return append(ltv.Bytes(), borrower...)
 }
 
 func createKey(bytes ...[]byte) (r []byte) {
