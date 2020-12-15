@@ -253,6 +253,78 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 	return nil
 }
 
+// GetCurrentLTV calculates the user's current LTV based on their deposits/borrows in the store
+func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, error) {
+	// Fetch deposits and parse coin denoms
+	deposits := k.GetDepositsByUser(ctx, addr)
+	depositDenoms := []string{}
+	for _, deposit := range deposits {
+		depositDenoms = append(depositDenoms, deposit.Amount.Denom)
+	}
+
+	// Fetch borrow balances and parse coin denoms
+	borrowBalances := k.GetBorrowBalance(ctx, addr)
+	borrowDenoms := getDenoms(borrowBalances)
+
+	liqMap := make(map[string]LiqData)
+
+	// Load required liquidation data for every deposit/borrow denom
+	denoms := removeDuplicates(borrowDenoms, depositDenoms)
+	for _, denom := range denoms {
+		mm, found := k.GetMoneyMarket(ctx, denom)
+		if !found {
+			return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
+		}
+
+		priceData, err := k.pricefeedKeeper.GetCurrentPrice(ctx, mm.SpotMarketID)
+		if err != nil {
+			return sdk.ZeroDec(), err
+		}
+
+		liqMap[denom] = LiqData{priceData.Price, mm.BorrowLimit.LoanToValue, mm.ConversionFactor}
+	}
+
+	// Build valuation map to hold deposit coin USD valuations
+	depositCoinValues := types.NewValuationMap()
+	for _, deposit := range deposits {
+		dData := liqMap[deposit.Amount.Denom]
+		dCoinUsdValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(dData.conversionFactor)).Mul(dData.price)
+		depositCoinValues.Increment(deposit.Amount.Denom, dCoinUsdValue)
+	}
+
+	// Build valuation map to hold borrow coin USD valuations
+	borrowCoinValues := types.NewValuationMap()
+	for _, bCoin := range borrowBalances {
+		bData := liqMap[bCoin.Denom]
+		bCoinUsdValue := sdk.NewDecFromInt(bCoin.Amount).Quo(sdk.NewDecFromInt(bData.conversionFactor)).Mul(bData.price)
+		borrowCoinValues.Increment(bCoin.Denom, bCoinUsdValue)
+	}
+
+	// User doesn't have any deposits, catch divide by 0 error
+	sumDeposits := depositCoinValues.Sum()
+	if sumDeposits.Equal(sdk.ZeroDec()) {
+		return sdk.ZeroDec(), nil
+	}
+
+	// Loan-to-Value ratio
+	return borrowCoinValues.Sum().Quo(sumDeposits), nil
+}
+
+// UpdateItemInLtvIndex updates the key a borrower's address is stored under in the LTV index
+func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec, borrower sdk.AccAddress) error {
+	currLtv, err := k.GetCurrentLTV(ctx, borrower)
+	if err != nil {
+		return err
+	}
+
+	k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
+	// If the user doesn't have any borrows their LTV is 0
+	if currLtv.GT(sdk.ZeroDec()) {
+		k.InsertIntoLtvIndex(ctx, currLtv, borrower)
+	}
+	return nil
+}
+
 func getDenoms(coins sdk.Coins) []string {
 	denoms := []string{}
 	for _, coin := range coins {

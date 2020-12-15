@@ -10,7 +10,15 @@ import (
 
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
-	err := k.ValidateDeposit(ctx, amount)
+	// Get current stored LTV based on stored borrows/deposits
+	prevLtv, err := k.GetCurrentLTV(ctx, depositor)
+	if err != nil {
+		return err
+	}
+
+	k.SyncOustandingInterest(ctx, depositor)
+
+	err = k.ValidateDeposit(ctx, amount)
 	if err != nil {
 		return err
 	}
@@ -28,6 +36,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 	}
 
 	k.SetDeposit(ctx, deposit)
+
+	k.UpdateItemInLtvIndex(ctx, prevLtv, depositor)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
