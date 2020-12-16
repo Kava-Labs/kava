@@ -65,4 +65,6 @@ var (
 	ErrBorrowNotLiquidatable = sdkerrors.Register(ModuleName, 29, "borrow not liquidatable")
 	// ErrInsufficientCoins error for when there are not enough coins for the operation
 	ErrInsufficientCoins = sdkerrors.Register(ModuleName, 30, "unrecoverable state - insufficient coins")
+	// ErrInsufficientBalanceForBorrow error for when the requested borrow exceeds user's balance
+	ErrInsufficientBalanceForBorrow = sdkerrors.Register(ModuleName, 31, "insufficient balance")
 )

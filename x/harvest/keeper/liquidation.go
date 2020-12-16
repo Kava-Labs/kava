@@ -264,6 +264,9 @@ func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, er
 
 	// Fetch borrow balances and parse coin denoms
 	borrowBalances := k.GetBorrowBalance(ctx, addr)
+	if borrowBalances.IsZero() {
+		return sdk.ZeroDec(), nil
+	}
 	borrowDenoms := getDenoms(borrowBalances)
 
 	liqMap := make(map[string]LiqData)
