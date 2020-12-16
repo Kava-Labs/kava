@@ -28,7 +28,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	// If the user has an existing borrow, sync its outstanding interest
 	_, found := k.GetBorrow(ctx, borrower)
 	if found {
-		k.SyncOustandingInterest(ctx, borrower)
+		k.SyncOutstandingInterest(ctx, borrower)
 	}
 
 	// Validate borrow amount within user and protocol limits
@@ -89,8 +89,8 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	return nil
 }
 
-// SyncOustandingInterest updates the user's owed interest on newly borrowed coins to the latest global state
-func (k Keeper) SyncOustandingInterest(ctx sdk.Context, addr sdk.AccAddress) {
+// SyncOutstandingInterest updates the user's owed interest on newly borrowed coins to the latest global state
+func (k Keeper) SyncOutstandingInterest(ctx sdk.Context, addr sdk.AccAddress) {
 	totalNewInterest := sdk.Coins{}
 
 	// Update user's borrow index list for each asset in the 'coins' array.

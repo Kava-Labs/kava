@@ -16,7 +16,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	}
 
 	// Sync interest so loan is up-to-date
-	k.SyncOustandingInterest(ctx, sender)
+	k.SyncOutstandingInterest(ctx, sender)
 
 	// Validate requested repay
 	err = k.ValidateRepay(ctx, sender, coins)

@@ -16,7 +16,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 		return err
 	}
 
-	k.SyncOustandingInterest(ctx, depositor)
+	k.SyncOutstandingInterest(ctx, depositor)
 
 	err = k.ValidateDeposit(ctx, amount)
 	if err != nil {

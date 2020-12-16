@@ -16,23 +16,31 @@ type LiqData struct {
 
 // AttemptIndexLiquidations attempts to liquidate the lowest LTV borrows
 func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
-	// use moneyMarketCache := map[string]types.MoneyMarket{}
+	params := k.GetParams(ctx)
+	borrowers := k.GetLtvIndexSlice(ctx, params.CheckLtvIndexCount)
+	for _, borrower := range borrowers {
+		prevLtv, err := k.GetCurrentLTV(ctx, borrower)
+		if err != nil {
+			panic(err)
+		}
 
-	// Iterate over index
-	//		Get borrower's address
-	//		Use borrower's address to fetch borrow object
-	//		Calculate outstanding interest and add to borrow balances
-	//		Use current asset prices from pricefeed to calculate current LTV for each asset
-	//		If LTV of any asset is over the max, liquidate it by
-	//			Sending coins to auction module
-	//			(?) Removing borrow from the store
-	//			(?) Removing borrow LTV from LTV index
+		k.SyncOutstandingInterest(ctx, borrower)
 
+		liquidated, _ := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
+		if !liquidated {
+			k.UpdateItemInLtvIndex(ctx, prevLtv, borrower)
+		}
+	}
 	return nil
 }
 
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
-func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) error {
+func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) (bool, error) {
+	prevLtv, err := k.GetCurrentLTV(ctx, borrower)
+	if err != nil {
+		return false, err
+	}
+
 	// Fetch deposits and parse coin denoms
 	deposits := k.GetDepositsByUser(ctx, borrower)
 	depositDenoms := []string{}
@@ -51,12 +59,12 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 	for _, denom := range denoms {
 		mm, found := k.GetMoneyMarket(ctx, denom)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
+			return false, sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
 		}
 
 		priceData, err := k.pricefeedKeeper.GetCurrentPrice(ctx, mm.SpotMarketID)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		liqMap[denom] = LiqData{priceData.Price, mm.BorrowLimit.LoanToValue, mm.ConversionFactor}
@@ -81,23 +89,24 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 
 	// Validate that the proposed borrow's USD value is within user's borrowable limit
 	if totalBorrowedUSDAmount.LTE(totalBorrowableUSDAmount) {
-		return sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "borrowed %s <= borrowable %s", totalBorrowedUSDAmount, totalBorrowableUSDAmount)
+		return false, sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "borrowed %s <= borrowable %s", totalBorrowedUSDAmount, totalBorrowableUSDAmount)
 	}
 
-	// Sending coins to auction module with keeper address getting % of the profits
-	borrow, _ := k.GetBorrow(ctx, borrower)
-	err := k.SeizeDeposits(ctx, keeper, liqMap, deposits, borrowBalances, depositDenoms, borrowDenoms)
+	// Seize deposits and auciton them off
+	err = k.SeizeDeposits(ctx, keeper, liqMap, deposits, borrowBalances, depositDenoms, borrowDenoms)
 	if err != nil {
-		return err
+		return false, err
 	}
 
+	borrow, _ := k.GetBorrow(ctx, borrower)
 	k.DeleteBorrow(ctx, borrow)
+	k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
 
 	for _, oldDeposit := range deposits {
 		k.DeleteDeposit(ctx, oldDeposit)
 	}
 
-	return nil
+	return true, err
 }
 
 // SeizeDeposits seizes a list of deposits and sends them to auction
@@ -111,16 +120,20 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, liqMap map
 		amount := deposit.Amount.Amount
 		mm, _ := k.GetMoneyMarket(ctx, denom)
 
-		keeperReward := mm.KeeperRewardPercentage.MulInt(amount).TruncateInt()
-		if keeperReward.GT(sdk.ZeroInt()) {
-			// Send keeper their reward
-			keeperCoin := sdk.NewCoin(denom, keeperReward)
-			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, sdk.NewCoins(keeperCoin))
-			if err != nil {
-				return err
+		// No rewards for anyone if liquidated by LTV index
+		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
+			keeperReward := mm.KeeperRewardPercentage.MulInt(amount).TruncateInt()
+			if keeperReward.GT(sdk.ZeroInt()) {
+				// Send keeper their reward
+				keeperCoin := sdk.NewCoin(denom, keeperReward)
+				err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, sdk.NewCoins(keeperCoin))
+				if err != nil {
+					return err
+				}
+				amount = amount.Sub(keeperReward)
 			}
-			amount = amount.Sub(keeperReward)
 		}
+
 		// Add remaining deposit coin to aucDeposits
 		aucDeposits = aucDeposits.Add(sdk.NewCoin(denom, amount))
 	}

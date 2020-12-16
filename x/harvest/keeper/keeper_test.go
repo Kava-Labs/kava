@@ -210,7 +210,7 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 
 func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
 	// LTV index should have 0 items
-	firstAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+	firstAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(0, len(firstAddrs))
 
 	// Add an item to the LTV index
@@ -219,7 +219,7 @@ func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
 	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
 
 	// LTV index should have 1 item
-	secondAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+	secondAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(1, len(secondAddrs))
 
 	// Attempt to remove invalid item from LTV index
@@ -227,14 +227,14 @@ func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
 	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, fakeLtv, addr) })
 
 	// LTV index should still have 1 item
-	thirdAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+	thirdAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(1, len(thirdAddrs))
 
 	// Attempt to remove valid item from LTV index
 	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, ltv, addr) })
 
 	// LTV index should still have 0 items
-	fourthAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+	fourthAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(0, len(fourthAddrs))
 }
 
@@ -252,7 +252,7 @@ func (suite *KeeperTestSuite) TestIterateLtvIndex() {
 	}
 
 	// Only the first 10 addresses should be returned
-	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(setAddrs[:10], sliceAddrs)
 }
 

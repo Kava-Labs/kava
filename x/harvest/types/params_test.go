@@ -18,12 +18,12 @@ type ParamTestSuite struct {
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
-		lps    types.DistributionSchedules
-		gds    types.DistributionSchedules
-		dds    types.DelegatorDistributionSchedules
-		mms    types.MoneyMarkets
-		kpr    sdk.Dec
-		active bool
+		lps        types.DistributionSchedules
+		gds        types.DistributionSchedules
+		dds        types.DelegatorDistributionSchedules
+		mms        types.MoneyMarkets
+		ltvCounter int
+		active     bool
 	}
 	testCases := []struct {
 		name        string
@@ -52,9 +52,9 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					time.Hour*24,
 				),
 				},
-				mms:    types.DefaultMoneyMarkets,
-				kpr:    sdk.MustNewDecFromStr("0.05"),
-				active: true,
+				mms:        types.DefaultMoneyMarkets,
+				ltvCounter: 10,
+				active:     true,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -70,9 +70,9 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					time.Hour*24,
 				),
 				},
-				mms:    types.DefaultMoneyMarkets,
-				kpr:    sdk.MustNewDecFromStr("0.05"),
-				active: true,
+				mms:        types.DefaultMoneyMarkets,
+				ltvCounter: 10,
+				active:     true,
 			},
 			expectPass:  false,
 			expectedErr: "reward denom should be hard",
@@ -80,7 +80,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds, tc.args.mms)
+			params := types.NewParams(tc.args.active, tc.args.lps, tc.args.dds, tc.args.mms, tc.args.ltvCounter)
 			err := params.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

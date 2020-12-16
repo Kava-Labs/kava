@@ -526,6 +526,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 				},
+				0, // LTV counter
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
 			// Pricefeed module genesis state
@@ -634,8 +635,9 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			}
 
 			// Attempt to liquidate
-			err = suite.keeper.AttemptKeeperLiquidation(liqCtx, tc.args.keeper, tc.args.borrower)
+			liquidated, err := suite.keeper.AttemptKeeperLiquidation(liqCtx, tc.args.keeper, tc.args.borrower)
 			if tc.errArgs.expectPass {
+				suite.Require().True(liquidated)
 				suite.Require().NoError(err)
 
 				// Check borrow does not exist after liquidation
@@ -660,6 +662,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				suite.Require().True(len(auctions) > 0)
 				suite.Require().Equal(tc.args.expectedAuctions, auctions)
 			} else {
+				suite.Require().False(liquidated)
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 
