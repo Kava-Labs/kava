@@ -10,6 +10,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/harvest"
 	"github.com/kava-labs/kava/x/harvest/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
@@ -347,6 +348,9 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			suite.keeper = keeper
 
 			var err error
+
+			// Run BeginBlocker once to transition MoneyMarkets
+			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins to harvest
 			depositedCoins := sdk.NewCoins()

@@ -15,15 +15,27 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	for _, coin := range coins {
 		_, foundBorrowIndex := k.GetBorrowIndex(ctx, coin.Denom)
 		if !foundBorrowIndex {
-			k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+			_, foundMM := k.GetMoneyMarket(ctx, coin.Denom)
+			if foundMM {
+				k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+			}
 		}
 	}
 
-	// Sync user's borrow balance (only for coins user is requesting to borrow)
-	k.SyncBorrowInterest(ctx, borrower, coins)
+	// Get current stored LTV based on stored borrows/deposits
+	prevLtv, shouldRemoveIndex, err := k.GetCurrentLTV(ctx, borrower)
+	if err != nil {
+		return err
+	}
+
+	// If the user has an existing borrow, sync its outstanding interest
+	_, found := k.GetBorrow(ctx, borrower)
+	if found {
+		k.SyncOustandingInterest(ctx, borrower)
+	}
 
 	// Validate borrow amount within user and protocol limits
-	err := k.ValidateBorrow(ctx, borrower, coins)
+	err = k.ValidateBorrow(ctx, borrower, coins)
 	if err != nil {
 		return err
 	}
@@ -45,13 +57,25 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	borrow, found := k.GetBorrow(ctx, borrower)
+	// On user's first borrow, build borrow index list containing denoms and current global borrow index value
+	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
 	if !found {
-		return types.ErrBorrowNotFound // This should never happen
+		var borrowIndexes types.BorrowIndexes
+		for _, coin := range coins {
+			borrowIndexValue, _ := k.GetBorrowIndex(ctx, coin.Denom)
+			borrowIndex := types.NewBorrowIndexItem(coin.Denom, borrowIndexValue)
+			borrowIndexes = append(borrowIndexes, borrowIndex)
+		}
+		borrow := types.NewBorrow(borrower, sdk.Coins{}, borrowIndexes)
+		k.SetBorrow(ctx, borrow)
 	}
+
 	// Add the newly borrowed coins to the user's borrow object
+	borrow, _ := k.GetBorrow(ctx, borrower)
 	borrow.Amount = borrow.Amount.Add(coins...)
 	k.SetBorrow(ctx, borrow)
+
+	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, borrower)
 
 	// Update total borrowed amount by newly borrowed coins. Don't add user's pending interest as
 	// it has already been included in the total borrowed coins by the BeginBlocker.
@@ -68,55 +92,44 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	return nil
 }
 
-// SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state,
-// returning an sdk.Coins object containing the amount of newly accumulated interest.
-func (k Keeper) SyncBorrowInterest(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) sdk.Coins {
+// SyncOustandingInterest updates the user's owed interest on newly borrowed coins to the latest global state
+func (k Keeper) SyncOustandingInterest(ctx sdk.Context, addr sdk.AccAddress) {
 	totalNewInterest := sdk.Coins{}
 
 	// Update user's borrow index list for each asset in the 'coins' array.
 	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
-	borrow, found := k.GetBorrow(ctx, borrower)
-	if !found { // User's first borrow
-		// Build borrow index list containing (denoms, borrow index value at borrow time)
-		var borrowIndexes types.BorrowIndexes
-		for _, coin := range coins {
-			borrowIndexValue, _ := k.GetBorrowIndex(ctx, coin.Denom)
-			borrowIndex := types.NewBorrowIndexItem(coin.Denom, borrowIndexValue)
-			borrowIndexes = append(borrowIndexes, borrowIndex)
-		}
-		borrow = types.NewBorrow(borrower, sdk.Coins{}, borrowIndexes)
-	} else { // User has existing borrow
-		for _, coin := range coins {
-			// Locate the borrow index item by coin denom in the user's list of borrow indexes
-			foundAtIndex := -1
-			for i := range borrow.Index {
-				if borrow.Index[i].Denom == coin.Denom {
-					foundAtIndex = i
-					break
-				}
-			}
-
-			borrowIndexValue, _ := k.GetBorrowIndex(ctx, coin.Denom)
-			if foundAtIndex == -1 { // First time user has borrowed this denom
-				borrow.Index = append(borrow.Index, types.NewBorrowIndexItem(coin.Denom, borrowIndexValue))
-			} else { // User has an existing borrow index for this denom
-				// Calculate interest owed by user since asset's last borrow index update
-				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
-				userLastBorrowIndex := borrow.Index[foundAtIndex].Value
-				interest := (storedAmount.Quo(userLastBorrowIndex).Mul(borrowIndexValue)).Sub(storedAmount)
-				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
-				// We're synced up, so update user's borrow index value to match the current global borrow index value
-				borrow.Index[foundAtIndex].Value = borrowIndexValue
-			}
-		}
-		// Add all pending interest to user's borrow
-		borrow.Amount = borrow.Amount.Add(totalNewInterest...)
+	borrow, found := k.GetBorrow(ctx, addr)
+	if !found {
+		return
 	}
+	for _, coin := range borrow.Amount {
+		// Locate the borrow index item by coin denom in the user's list of borrow indexes
+		foundAtIndex := -1
+		for i := range borrow.Index {
+			if borrow.Index[i].Denom == coin.Denom {
+				foundAtIndex = i
+				break
+			}
+		}
+
+		borrowIndexValue, _ := k.GetBorrowIndex(ctx, coin.Denom)
+		if foundAtIndex == -1 { // First time user has borrowed this denom
+			borrow.Index = append(borrow.Index, types.NewBorrowIndexItem(coin.Denom, borrowIndexValue))
+		} else { // User has an existing borrow index for this denom
+			// Calculate interest owed by user since asset's last borrow index update
+			storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+			userLastBorrowIndex := borrow.Index[foundAtIndex].Value
+			interest := (storedAmount.Quo(userLastBorrowIndex).Mul(borrowIndexValue)).Sub(storedAmount)
+			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+			// We're synced up, so update user's borrow index value to match the current global borrow index value
+			borrow.Index[foundAtIndex].Value = borrowIndexValue
+		}
+	}
+	// Add all pending interest to user's borrow
+	borrow.Amount = borrow.Amount.Add(totalNewInterest...)
 
 	// Update user's borrow in the store
 	k.SetBorrow(ctx, borrow)
-
-	return totalNewInterest
 }
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements

@@ -358,3 +358,46 @@ func (k Keeper) SetBorrowIndex(ctx sdk.Context, denom string, borrowIndex sdk.De
 	bz := k.cdc.MustMarshalBinaryBare(borrowIndex)
 	store.Set([]byte(denom), bz)
 }
+
+// InsertIntoLtvIndex indexes a user's borrow object by its current LTV
+func (k Keeper) InsertIntoLtvIndex(ctx sdk.Context, ltv sdk.Dec, borrower sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
+	store.Set(types.GetBorrowByLtvKey(ltv, borrower), borrower)
+}
+
+// RemoveFromLtvIndex removes a user's borrow object from the LTV index
+func (k Keeper) RemoveFromLtvIndex(ctx sdk.Context, ltv sdk.Dec, borrower sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
+	store.Delete(types.GetBorrowByLtvKey(ltv, borrower))
+}
+
+// IterateLtvIndex provides an iterator over the borrowers ordered by LTV.
+// For results found before the cutoff count, the cb will be called and the item returned.
+func (k Keeper) IterateLtvIndex(ctx sdk.Context, cutoffCount int,
+	cb func(addr sdk.AccAddress) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
+	iterator := store.Iterator(nil, nil)
+	count := 0
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+
+		// Stop iteration after first 10 items
+		count = count + 1
+		if count > cutoffCount {
+			break
+		}
+
+		id := iterator.Value()
+		cb(id)
+	}
+}
+
+// GetLtvIndexSlice returns the first 10 items in the LTV index from the store
+func (k Keeper) GetLtvIndexSlice(ctx sdk.Context) (addrs []sdk.AccAddress) {
+	k.IterateLtvIndex(ctx, 10, func(addr sdk.AccAddress) bool {
+		addrs = append(addrs, addr)
+		return false
+	})
+	return
+}

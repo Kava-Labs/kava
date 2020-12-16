@@ -9,11 +9,17 @@ import (
 
 // Repay borrowed funds
 func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+	// Get current stored LTV based on stored borrows/deposits
+	prevLtv, shouldRemoveIndex, err := k.GetCurrentLTV(ctx, sender)
+	if err != nil {
+		return err
+	}
+
 	// Sync interest so loan is up-to-date
-	k.SyncBorrowInterest(ctx, sender, coins)
+	k.SyncOustandingInterest(ctx, sender)
 
 	// Validate requested repay
-	err := k.ValidateRepay(ctx, sender, coins)
+	err = k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
 		return err
 	}
@@ -35,6 +41,8 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	// Update user's borrow in store
 	borrow.Amount = borrow.Amount.Sub(payment)
 	k.SetBorrow(ctx, borrow)
+
+	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, sender)
 
 	// Update total borrowed amount
 	k.DecrementBorrowedCoins(ctx, payment)
