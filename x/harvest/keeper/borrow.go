@@ -15,7 +15,10 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	for _, coin := range coins {
 		_, foundBorrowIndex := k.GetBorrowIndex(ctx, coin.Denom)
 		if !foundBorrowIndex {
-			k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+			_, foundMM := k.GetMoneyMarket(ctx, coin.Denom)
+			if foundMM {
+				k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+			}
 		}
 	}
 
