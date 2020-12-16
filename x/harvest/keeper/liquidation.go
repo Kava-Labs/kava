@@ -254,7 +254,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 }
 
 // GetCurrentLTV calculates the user's current LTV based on their deposits/borrows in the store
-func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, error) {
+func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, bool, error) {
 	// Fetch deposits and parse coin denoms
 	deposits := k.GetDepositsByUser(ctx, addr)
 	depositDenoms := []string{}
@@ -265,7 +265,7 @@ func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, er
 	// Fetch borrow balances and parse coin denoms
 	borrowBalances := k.GetBorrowBalance(ctx, addr)
 	if borrowBalances.IsZero() {
-		return sdk.ZeroDec(), nil
+		return sdk.ZeroDec(), false, nil
 	}
 	borrowDenoms := getDenoms(borrowBalances)
 
@@ -276,12 +276,12 @@ func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, er
 	for _, denom := range denoms {
 		mm, found := k.GetMoneyMarket(ctx, denom)
 		if !found {
-			return sdk.ZeroDec(), sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
+			return sdk.ZeroDec(), false, sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
 		}
 
 		priceData, err := k.pricefeedKeeper.GetCurrentPrice(ctx, mm.SpotMarketID)
 		if err != nil {
-			return sdk.ZeroDec(), err
+			return sdk.ZeroDec(), false, err
 		}
 
 		liqMap[denom] = LiqData{priceData.Price, mm.BorrowLimit.LoanToValue, mm.ConversionFactor}
@@ -306,23 +306,25 @@ func (k Keeper) GetCurrentLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, er
 	// User doesn't have any deposits, catch divide by 0 error
 	sumDeposits := depositCoinValues.Sum()
 	if sumDeposits.Equal(sdk.ZeroDec()) {
-		return sdk.ZeroDec(), nil
+		return sdk.ZeroDec(), false, nil
 	}
 
 	// Loan-to-Value ratio
-	return borrowCoinValues.Sum().Quo(sumDeposits), nil
+	return borrowCoinValues.Sum().Quo(sumDeposits), true, nil
 }
 
 // UpdateItemInLtvIndex updates the key a borrower's address is stored under in the LTV index
-func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec, borrower sdk.AccAddress) error {
-	currLtv, err := k.GetCurrentLTV(ctx, borrower)
+func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec,
+	shouldRemoveIndex bool, borrower sdk.AccAddress) error {
+	currLtv, shouldInsertIndex, err := k.GetCurrentLTV(ctx, borrower)
 	if err != nil {
 		return err
 	}
 
-	k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
-	// If the user doesn't have any borrows their LTV is 0
-	if currLtv.GT(sdk.ZeroDec()) {
+	if shouldRemoveIndex {
+		k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
+	}
+	if shouldInsertIndex {
 		k.InsertIntoLtvIndex(ctx, currLtv, borrower)
 	}
 	return nil
