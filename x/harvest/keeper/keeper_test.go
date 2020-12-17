@@ -254,6 +254,26 @@ func (suite *KeeperTestSuite) TestIterateLtvIndex() {
 	// Only the first 10 addresses should be returned
 	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(setAddrs[:10], sliceAddrs)
+
+	for i, sliceAddr := range sliceAddrs {
+		expectedAddr := setAddrs[i]
+		suite.Require().Equal(expectedAddr, sliceAddr)
+	}
+
+	// Insert an additional item into the LTV index that should be returned in the first 10 elements
+	addr := sdk.AccAddress("test" + fmt.Sprint(21))
+	ltv := sdk.OneDec().Add(sdk.MustNewDecFromStr("5").Quo(sdk.NewDec(10)))
+	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
+
+	// Fetch the updated LTV index
+	updatedSliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
+	sawAddr := false
+	for _, updatedSliceAddr := range updatedSliceAddrs {
+		if updatedSliceAddr.Equals(addr) {
+			sawAddr = true
+		}
+	}
+	suite.Require().Equal(true, sawAddr)
 }
 
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
