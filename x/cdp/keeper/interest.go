@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -22,7 +23,9 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		return nil
 	}
 
-	timeElapsed := int64(ctx.BlockTime().Sub(previousAccrualTime).Seconds())
+	timeElapsed := int64(math.RoundToEven(
+		ctx.BlockTime().Sub(previousAccrualTime).Seconds(),
+	))
 	if timeElapsed == 0 {
 		return nil
 	}
