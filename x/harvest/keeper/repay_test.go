@@ -191,12 +191,8 @@ func (suite *KeeperTestSuite) TestRepay() {
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins to harvest
-			depositedCoins := sdk.NewCoins()
-			for _, depositCoin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, depositCoin)
-				suite.Require().NoError(err)
-				depositedCoins.Add(depositCoin)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Borrow coins from harvest
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)

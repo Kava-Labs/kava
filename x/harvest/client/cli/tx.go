@@ -52,7 +52,7 @@ func getCmdDeposit(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			amount, err := sdk.ParseCoin(args[0])
+			amount, err := sdk.ParseCoins(args[0])
 			if err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			amount, err := sdk.ParseCoin(args[0])
+			amount, err := sdk.ParseCoins(args[0])
 			if err != nil {
 				return err
 			}

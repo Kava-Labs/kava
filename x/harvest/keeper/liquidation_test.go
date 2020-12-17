@@ -610,10 +610,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins
-			for _, coin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
-				suite.Require().NoError(err)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Borrow coins
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
@@ -627,11 +625,9 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			// Check borrow exists before liquidation
 			_, foundBorrowBefore := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 			suite.Require().True(foundBorrowBefore)
-			// Check that the user's deposits exist before liquidation
-			for _, coin := range tc.args.depositCoins {
-				_, foundDepositBefore := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-				suite.Require().True(foundDepositBefore)
-			}
+			// Check that the user's deposit exists before liquidation
+			_, foundDepositBefore := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+			suite.Require().True(foundDepositBefore)
 
 			// Attempt to liquidate
 			err = suite.keeper.AttemptKeeperLiquidation(liqCtx, tc.args.keeper, tc.args.borrower)
@@ -642,10 +638,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().False(foundBorrowAfter)
 				// Check deposits do not exist after liquidation
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().False(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().False(foundDepositAfter)
 
 				// Check that the keeper's balance increased by reward % of all the borrowed coins
 				accKeeper := suite.getAccountAtCtx(tc.args.keeper, liqCtx)
@@ -667,10 +661,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
 				// Check that the user's deposits exist
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().True(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().True(foundDepositAfter)
 
 				// Check that no auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)

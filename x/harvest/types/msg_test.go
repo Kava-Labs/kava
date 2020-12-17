@@ -18,7 +18,7 @@ type MsgTestSuite struct {
 func (suite *MsgTestSuite) TestMsgDeposit() {
 	type args struct {
 		depositor sdk.AccAddress
-		amount    sdk.Coin
+		amount    sdk.Coins
 	}
 	addrs := []sdk.AccAddress{
 		sdk.AccAddress("test1"),
@@ -34,7 +34,7 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 			name: "valid",
 			args: args{
 				depositor: addrs[0],
-				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
+				amount:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000000))),
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -43,7 +43,7 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 			name: "valid2",
 			args: args{
 				depositor: addrs[0],
-				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
+				amount:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000000))),
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -66,7 +66,7 @@ func (suite *MsgTestSuite) TestMsgDeposit() {
 func (suite *MsgTestSuite) TestMsgWithdraw() {
 	type args struct {
 		depositor sdk.AccAddress
-		amount    sdk.Coin
+		amount    sdk.Coins
 	}
 	addrs := []sdk.AccAddress{
 		sdk.AccAddress("test1"),
@@ -82,7 +82,7 @@ func (suite *MsgTestSuite) TestMsgWithdraw() {
 			name: "valid",
 			args: args{
 				depositor: addrs[0],
-				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
+				amount:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000000))),
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -91,7 +91,7 @@ func (suite *MsgTestSuite) TestMsgWithdraw() {
 			name: "valid2",
 			args: args{
 				depositor: addrs[0],
-				amount:    sdk.NewCoin("bnb", sdk.NewInt(10000000)),
+				amount:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000000))),
 			},
 			expectPass:  true,
 			expectedErr: "",

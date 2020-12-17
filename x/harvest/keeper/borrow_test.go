@@ -352,13 +352,8 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			// Run BeginBlocker once to transition MoneyMarkets
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
-			// Deposit coins to harvest
-			depositedCoins := sdk.NewCoins()
-			for _, depositCoin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, depositCoin)
-				suite.Require().NoError(err)
-				depositedCoins.Add(depositCoin)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Execute user's previous borrows
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.previousBorrowCoins)
@@ -376,11 +371,11 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 				// Check borrower balance
 				acc := suite.getAccount(tc.args.borrower)
-				suite.Require().Equal(tc.args.expectedAccountBalance.Sub(depositedCoins), acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance.Sub(tc.args.depositCoins), acc.GetCoins())
 
 				// Check module account balance
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance.Add(depositedCoins...), mAcc.GetCoins())
+				suite.Require().Equal(tc.args.expectedModAccountBalance.Add(tc.args.depositCoins...), mAcc.GetCoins())
 
 				// Check that borrow struct is in store
 				_, f := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)

@@ -58,11 +58,11 @@ var (
 // MsgDeposit deposit collateral to the harvest module.
 type MsgDeposit struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	Amount    sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount    sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
 // NewMsgDeposit returns a new MsgDeposit
-func NewMsgDeposit(depositor sdk.AccAddress, amount sdk.Coin) MsgDeposit {
+func NewMsgDeposit(depositor sdk.AccAddress, amount sdk.Coins) MsgDeposit {
 	return MsgDeposit{
 		Depositor: depositor,
 		Amount:    amount,
@@ -108,11 +108,11 @@ func (msg MsgDeposit) String() string {
 // MsgWithdraw withdraw from the harvest module.
 type MsgWithdraw struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
-	Amount    sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount    sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coin) MsgWithdraw {
+func NewMsgWithdraw(depositor sdk.AccAddress, amount sdk.Coins) MsgWithdraw {
 	return MsgWithdraw{
 		Depositor: depositor,
 		Amount:    amount,

@@ -705,10 +705,12 @@ func (suite *KeeperTestSuite) TestInterest() {
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit 2x as many coins for each coin we intend to borrow
-			for _, coin := range tc.args.borrowCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.user, sdk.NewCoin(coin.Denom, coin.Amount.Mul(sdk.NewInt(2))))
-				suite.Require().NoError(err)
+			depositCoins := sdk.NewCoins()
+			for _, borrowCoin := range tc.args.borrowCoins {
+				depositCoins = depositCoins.Add(sdk.NewCoin(borrowCoin.Denom, borrowCoin.Amount.Mul(sdk.NewInt(2))))
 			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.user, depositCoins)
+			suite.Require().NoError(err)
 
 			// Borrow coins
 			err = suite.keeper.Borrow(suite.ctx, tc.args.user, tc.args.borrowCoins)

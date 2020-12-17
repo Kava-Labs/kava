@@ -180,20 +180,20 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 
 	// Get the total borrowable USD amount at user's existing deposits
-	deposits := k.GetDepositsByUser(ctx, borrower)
-	if len(deposits) == 0 {
+	deposit, found := k.GetDeposit(ctx, borrower)
+	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
 	totalBorrowableAmount := sdk.ZeroDec()
-	for _, deposit := range deposits {
-		moneyMarket, ok := moneyMarketCache[deposit.Amount.Denom]
+	for _, depCoin := range deposit.Amount {
+		moneyMarket, ok := moneyMarketCache[depCoin.Denom]
 		// Fetch money market and store in local cache
 		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, deposit.Amount.Denom)
+			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, depCoin.Denom)
 			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", deposit.Amount.Denom)
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", depCoin.Denom)
 			}
-			moneyMarketCache[deposit.Amount.Denom] = newMoneyMarket
+			moneyMarketCache[depCoin.Denom] = newMoneyMarket
 			moneyMarket = newMoneyMarket
 		}
 
@@ -202,7 +202,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		if err != nil {
 			sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
-		depositUSDValue := sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+		depositUSDValue := sdk.NewDecFromInt(depCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 		borrowableAmountForDeposit := depositUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue)
 		totalBorrowableAmount = totalBorrowableAmount.Add(borrowableAmountForDeposit)
 	}

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	supplyExported "github.com/cosmos/cosmos-sdk/x/supply/exported"
@@ -9,7 +11,7 @@ import (
 )
 
 // Deposit deposit
-func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
+func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
 	// Get current stored LTV based on stored borrows/deposits
 	prevLtv, shouldRemoveIndex, err := k.GetCurrentLTV(ctx, depositor)
 	if err != nil {
@@ -18,21 +20,35 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 
 	k.SyncOustandingInterest(ctx, depositor)
 
-	err = k.ValidateDeposit(ctx, amount)
+	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
 		return err
 	}
 
-	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, sdk.NewCoins(amount))
+	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, depositor, types.ModuleAccountName, coins)
+	if err != nil {
+		if strings.Contains(err.Error(), "insufficient account funds") {
+			accCoins := k.accountKeeper.GetAccount(ctx, depositor).SpendableCoins(ctx.BlockTime())
+			for _, coin := range coins {
+				_, isNegative := accCoins.SafeSub(sdk.NewCoins(coin))
+				if isNegative {
+					return sdkerrors.Wrapf(types.ErrBorrowExceedsAvailableBalance,
+						"the requested deposit amount of %s exceeds the total available account funds of %s%s",
+						coin, accCoins.AmountOf(coin.Denom), coin.Denom,
+					)
+				}
+			}
+		}
+	}
 	if err != nil {
 		return err
 	}
 
-	deposit, found := k.GetDeposit(ctx, depositor, amount.Denom)
+	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
-		deposit = types.NewDeposit(depositor, amount)
+		deposit = types.NewDeposit(depositor, coins)
 	} else {
-		deposit.Amount = deposit.Amount.Add(amount)
+		deposit.Amount = deposit.Amount.Add(coins...)
 	}
 
 	k.SetDeposit(ctx, deposit)
@@ -42,9 +58,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHarvestDeposit,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
 			sdk.NewAttribute(types.AttributeKeyDepositor, deposit.Depositor.String()),
-			sdk.NewAttribute(types.AttributeKeyDepositDenom, deposit.Amount.Denom),
 		),
 	)
 
@@ -52,28 +67,35 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Co
 }
 
 // ValidateDeposit validates a deposit
-func (k Keeper) ValidateDeposit(ctx sdk.Context, amount sdk.Coin) error {
+func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	params := k.GetParams(ctx)
-	for _, lps := range params.LiquidityProviderSchedules {
-		if lps.DepositDenom == amount.Denom {
-			return nil
+	for _, depCoin := range coins {
+		found := false
+		for _, lps := range params.LiquidityProviderSchedules {
+			if lps.DepositDenom == depCoin.Denom {
+				found = true
+			}
+		}
+		if !found {
+			sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", depCoin.Denom)
 		}
 	}
-	return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", amount.Denom)
+
+	return nil
 }
 
 // Withdraw returns some or all of a deposit back to original depositor
-func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
-	deposit, found := k.GetDeposit(ctx, depositor, amount.Denom)
+func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
+	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no %s deposit found for %s", amount.Denom, depositor)
+		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
 
-	if !deposit.Amount.IsGTE(amount) {
-		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", amount, deposit.Amount)
+	if !deposit.Amount.IsAllGTE(coins) { // TODO test that this works how I think it does
+		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", coins, deposit.Amount)
 	}
 
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, sdk.NewCoins(amount))
+	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, coins)
 	if err != nil {
 		return err
 	}
@@ -81,25 +103,23 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.C
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHarvestWithdrawal,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-			sdk.NewAttribute(types.AttributeKeyDepositDenom, amount.Denom),
 		),
 	)
 
-	if deposit.Amount.IsEqual(amount) {
+	if deposit.Amount.IsEqual(coins) {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeDeleteHarvestDeposit,
 				sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-				sdk.NewAttribute(types.AttributeKeyDepositDenom, amount.Denom),
 			),
 		)
 		k.DeleteDeposit(ctx, deposit)
 		return nil
 	}
 
-	deposit.Amount = deposit.Amount.Sub(amount)
+	deposit.Amount = deposit.Amount.Sub(coins)
 	k.SetDeposit(ctx, deposit)
 
 	return nil

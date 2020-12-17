@@ -27,7 +27,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 type PostCreateDepositReq struct {
 	BaseReq     rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	From        sdk.AccAddress `json:"from" yaml:"from"`
-	Amount      sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount      sdk.Coins      `json:"amount" yaml:"amount"`
 	DepositType string         `json:"deposit_type" yaml:"deposit_type"`
 }
 
@@ -35,7 +35,7 @@ type PostCreateDepositReq struct {
 type PostCreateWithdrawReq struct {
 	BaseReq     rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	From        sdk.AccAddress `json:"from" yaml:"from"`
-	Amount      sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount      sdk.Coins      `json:"amount" yaml:"amount"`
 	DepositType string         `json:"deposit_type" yaml:"deposit_type"`
 }
 
