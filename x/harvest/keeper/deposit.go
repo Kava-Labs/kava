@@ -33,7 +33,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 				_, isNegative := accCoins.SafeSub(sdk.NewCoins(coin))
 				if isNegative {
 					return sdkerrors.Wrapf(types.ErrBorrowExceedsAvailableBalance,
-						"the requested deposit amount of %s exceeds the total available account funds of %s%s",
+						"insufficient funds: the requested deposit amount of %s exceeds the total available account funds of %s%s",
 						coin, accCoins.AmountOf(coin.Denom), coin.Denom,
 					)
 				}
@@ -77,7 +77,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 			}
 		}
 		if !found {
-			sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", depCoin.Denom)
+			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", depCoin.Denom)
 		}
 	}
 

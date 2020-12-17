@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -252,7 +253,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			},
 		},
 		{
-			"deposit not found invalid denom",
+			"withdraw invalid, denom not found",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
@@ -265,7 +266,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "deposit not found",
+				contains:   "invalid withdrawal amount",
 			},
 		},
 		{
@@ -282,7 +283,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "withdrawal amount exceeds deposit amount",
+				contains:   "invalid withdrawal amount",
 			},
 		},
 	}
@@ -338,6 +339,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				}
 			} else {
 				suite.Require().Error(err)
+				fmt.Printf("%s\n", err.Error())
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
