@@ -169,3 +169,41 @@ func (k Keeper) SetInterestFactor(ctx sdk.Context, ctype string, interestFactor 
 	bz := k.cdc.MustMarshalBinaryBare(interestFactor)
 	store.Set([]byte(ctype), bz)
 }
+
+// IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
+func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralType string, principal sdk.Coin) {
+	total := k.GetTotalPrincipal(ctx, collateralType, principal.Denom)
+	total = total.Add(principal.Amount)
+	k.SetTotalPrincipal(ctx, collateralType, principal.Denom, total)
+}
+
+// DecrementTotalPrincipal decrements the total amount of debt that has been drawn for a particular collateral type
+func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralType string, principal sdk.Coin) {
+	total := k.GetTotalPrincipal(ctx, collateralType, principal.Denom)
+	// NOTE: negative total principal can happen in tests due to rounding errors
+	// in fee calculation
+	total = sdk.MaxInt(total.Sub(principal.Amount), sdk.ZeroInt())
+	k.SetTotalPrincipal(ctx, collateralType, principal.Denom, total)
+}
+
+// GetTotalPrincipal returns the total amount of principal that has been drawn for a particular collateral
+func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string) (total sdk.Int) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
+	bz := store.Get([]byte(collateralType + principalDenom))
+	if bz == nil {
+		k.SetTotalPrincipal(ctx, collateralType, principalDenom, sdk.ZeroInt())
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &total)
+	return total
+}
+
+// SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
+func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
+	_, found := k.GetCollateralTypePrefix(ctx, collateralType)
+	if !found {
+		panic(fmt.Sprintf("collateral not found: %s", collateralType))
+	}
+	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
+}

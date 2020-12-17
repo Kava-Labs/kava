@@ -165,7 +165,7 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	}
 
 	cdpMacc = sk.GetModuleAccount(suite.ctx, cdp.ModuleName)
-	suite.Equal(i(1000000900), (cdpMacc.GetCoins().AmountOf("debt")))
+	suite.Equal(i(1000000891), (cdpMacc.GetCoins().AmountOf("debt")))
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp-a", 1)
 
 	err = suite.keeper.SeizeCollateral(suite.ctx, cdp)

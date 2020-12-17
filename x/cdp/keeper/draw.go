@@ -26,6 +26,9 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 		return err
 	}
 
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	cdp = k.SynchronizeInterest(ctx, cdp)
+
 	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal.Add(principal), cdp.AccumulatedFees)
 	if err != nil {
 		return err
@@ -57,7 +60,6 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 	)
 
 	// remove old collateral:debt index
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 
 	// update cdp state
@@ -84,6 +86,15 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	if err != nil {
 		return err
 	}
+
+	err = k.ValidateBalance(ctx, payment, owner)
+	if err != nil {
+		return err
+	}
+
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+
+	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	// Note: assumes cdp.Principal and cdp.AccumulatedFees don't change during calculations
 	totalPrincipal := cdp.GetTotalPrincipal()
@@ -134,7 +145,6 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	)
 
 	// remove the old collateral:debt ratio index
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, totalPrincipal)
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 
 	// update cdp state

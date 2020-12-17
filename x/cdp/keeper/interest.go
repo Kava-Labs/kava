@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"fmt"
+	"math"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -23,7 +23,9 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		return nil
 	}
 
-	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
+	timeElapsed := int64(math.RoundToEven(
+		ctx.BlockTime().Sub(previousAccrualTime).Seconds(),
+	))
 	if timeElapsed == 0 {
 		return nil
 	}
@@ -58,6 +60,31 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		return err
 	}
 
+	dp, found := k.GetDebtParam(ctx, types.DefaultStableDenom)
+	if !found {
+		panic(fmt.Sprintf("Debt parameters for %s not found", types.DefaultStableDenom))
+	}
+
+	// divide the accumulated interest into savings (redistributed to USDX holders) and surplus (protocol profits)
+	newFeesSavings := interestAccumulated.ToDec().Mul(dp.SavingsRate).RoundInt()
+	newFeesSurplus := interestAccumulated.Sub(newFeesSavings)
+
+	// mint surplus coins to the liquidator module account.
+	if newFeesSurplus.IsPositive() {
+		err := k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
+		if err != nil {
+			return err
+		}
+	}
+
+	// mint savings rate coins to the savings module account.
+	if newFeesSavings.IsPositive() {
+		err := k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		if err != nil {
+			return err
+		}
+	}
+
 	interestFactorNew := interestFactorPrior.Mul(interestFactor)
 	totalPrincipalNew := totalPrincipalPrior.Add(interestAccumulated)
 
@@ -86,129 +113,55 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
 }
 
-// UpdateFeesForAllCdps updates the fees for each of the CDPs
-func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralType string) error {
-	var iterationErr error
-	k.IterateCdpsByCollateralType(ctx, collateralType, func(cdp types.CDP) bool {
-		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-		// periods = bblock timestamp - fees updated
-		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
-
-		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralType)
-
-		// exit without updating fees if amount has rounded down to zero
-		// cdp will get updated next block when newFees, newFeesSavings, newFeesSurplus >0
-		if newFees.IsZero() {
-			return false
-		}
-
-		dp, found := k.GetDebtParam(ctx, cdp.Principal.Denom)
-		if !found {
-			return false
-		}
-		savingsRate := dp.SavingsRate
-
-		newFeesSavings := sdk.NewDecFromInt(newFees.Amount).Mul(savingsRate).RoundInt()
-		newFeesSurplus := newFees.Amount.Sub(newFeesSavings)
-
-		// similar to checking for rounding to zero of all fees, but in this case we
-		// need to handle cases where we expect surplus or savings fees to be zero, namely
-		// if newFeesSavings = 0, check if savings rate is not zero
-		// if newFeesSurplus = 0, check if savings rate is not one
-		if (newFeesSavings.IsZero() && !savingsRate.IsZero()) || (newFeesSurplus.IsZero() && !savingsRate.Equal(sdk.OneDec())) {
-			return false
-		}
-
-		// mint debt coins to the cdp account
-		err := k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), newFees)
-		if err != nil {
-			iterationErr = err
-			return true
-		}
-
-		previousDebt := k.GetTotalPrincipal(ctx, cdp.Type, dp.Denom)
-		newDebt := previousDebt.Add(newFees.Amount)
-		k.SetTotalPrincipal(ctx, cdp.Type, dp.Denom, newDebt)
-
-		// mint surplus coins divided between the liquidator and savings module accounts.
-		err = k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
-		if err != nil {
-			iterationErr = err
-			return true
-		}
-
-		err = k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
-		if err != nil {
-			iterationErr = err
-			return true
-		}
-
-		// now add the new fees to the accumulated fees for the cdp
-		cdp.AccumulatedFees = cdp.AccumulatedFees.Add(newFees)
-
-		// and set the fees updated time to the current block time since we just updated it
-		cdp.FeesUpdated = ctx.BlockTime()
-		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
-		err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
-		if err != nil {
-			iterationErr = err
-			return true
-		}
-		return false // this returns true when you want to stop iterating. Since we want to iterate through all we return false
-	})
-	return iterationErr
-}
-
-// CalculateFees returns the fees accumulated since fees were last calculated based on
-// the input amount of outstanding debt (principal) and the number of periods (seconds) that have passed
-func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.Int, collateralType string) sdk.Coin {
-	// how fees are calculated:
-	// feesAccumulated = (outstandingDebt * (feeRate^periods)) - outstandingDebt
-	// Note that since we can't do x^y using sdk.Decimal, we are converting to int and using RelativePow
-	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
-	feePerSecond := k.getFeeRate(ctx, collateralType)
-	feeRateInt := feePerSecond.Mul(sdk.NewDecFromInt(scalingFactorInt)).TruncateInt()
-	accumulator := sdk.NewDecFromInt(types.RelativePow(feeRateInt, periods, scalingFactorInt)).Mul(sdk.SmallestDec())
-	feesAccumulated := (sdk.NewDecFromInt(principal.Amount).Mul(accumulator)).Sub(sdk.NewDecFromInt(principal.Amount))
-	newFees := sdk.NewCoin(principal.Denom, feesAccumulated.TruncateInt())
-	return newFees
-}
-
-// IncrementTotalPrincipal increments the total amount of debt that has been drawn with that collateral type
-func (k Keeper) IncrementTotalPrincipal(ctx sdk.Context, collateralType string, principal sdk.Coin) {
-	total := k.GetTotalPrincipal(ctx, collateralType, principal.Denom)
-	total = total.Add(principal.Amount)
-	k.SetTotalPrincipal(ctx, collateralType, principal.Denom, total)
-}
-
-// DecrementTotalPrincipal decrements the total amount of debt that has been drawn for a particular collateral type
-func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralType string, principal sdk.Coin) {
-	total := k.GetTotalPrincipal(ctx, collateralType, principal.Denom)
-	// NOTE: negative total principal can happen in tests due to rounding errors
-	// in fee calculation
-	total = sdk.MaxInt(total.Sub(principal.Amount), sdk.ZeroInt())
-	k.SetTotalPrincipal(ctx, collateralType, principal.Denom, total)
-}
-
-// GetTotalPrincipal returns the total amount of principal that has been drawn for a particular collateral
-func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string) (total sdk.Int) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	bz := store.Get([]byte(collateralType + principalDenom))
-	if bz == nil {
-		k.SetTotalPrincipal(ctx, collateralType, principalDenom, sdk.ZeroInt())
-		return sdk.ZeroInt()
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &total)
-	return total
-}
-
-// SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
-func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
-	_, found := k.GetCollateralTypePrefix(ctx, collateralType)
+// SynchronizeInterest updates the input cdp object to reflect the current accumulated interest, updates the cdp state in the store,
+// and returns the updated cdp object
+func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
+	previousCollateralRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
-		panic(fmt.Sprintf("collateral not found: %s", collateralType))
+		k.SetInterestFactor(ctx, cdp.Type, sdk.OneDec())
+		cdp.InterestFactor = sdk.OneDec()
+		cdp.FeesUpdated = ctx.BlockTime()
+		k.SetCDP(ctx, cdp)
+		return cdp
 	}
-	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
+
+	accumulatedInterest := k.CalculateNewInterest(ctx, cdp)
+	if accumulatedInterest.IsZero() {
+		// this could happen if apy is zero are if the total fees for all cdps round to zero
+
+		prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cdp.Type)
+		if !found {
+			return cdp
+		}
+		if cdp.FeesUpdated.Equal(prevAccrualTime) {
+			// if all fees are rounding to zero, don't update FeesUpdated
+			return cdp
+		}
+		// if apy is zero, we need to update FeesUpdated
+		cdp.FeesUpdated = ctx.BlockTime()
+		k.SetCDP(ctx, cdp)
+	}
+
+	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
+	cdp.FeesUpdated = ctx.BlockTime()
+	cdp.InterestFactor = globalInterestFactor
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, previousCollateralRatio)
+	k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	return cdp
+}
+
+// CalculateNewInterest returns the amount of interest that has accrued to the cdp since its interest was last synchronized
+func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
+	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
+	if !found {
+		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
+	}
+	cdpInterestFactor := globalInterestFactor.Quo(cdp.InterestFactor)
+	if cdpInterestFactor.Equal(sdk.OneDec()) {
+		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
+	}
+	accumulatedInterest := cdp.GetTotalPrincipal().Amount.ToDec().Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+	return sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest)
 }

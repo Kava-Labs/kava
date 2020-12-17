@@ -21,6 +21,14 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	if !found {
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateralType)
 	}
+	err = k.ValidateBalance(ctx, collateral, depositor)
+	if err != nil {
+		return err
+	}
+
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+
+	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if found {
@@ -32,6 +40,14 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	if err != nil {
 		return err
 	}
+
+	k.SetDeposit(ctx, deposit)
+
+	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
+
+	cdp.Collateral = cdp.Collateral.Add(collateral)
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpDeposit,
@@ -40,13 +56,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 		),
 	)
 
-	k.SetDeposit(ctx, deposit)
-
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
-
-	cdp.Collateral = cdp.Collateral.Add(collateral)
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	return k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 }
 
@@ -68,6 +77,10 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+
+	cdp = k.SynchronizeInterest(ctx, cdp)
+
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Type, cdp.Principal, cdp.AccumulatedFees, spot)
 	if err != nil {
 		return err
@@ -76,19 +89,12 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	if collateralizationRatio.LT(liquidationRatio) {
 		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ration %s", collateral.Denom, collateralizationRatio, liquidationRatio)
 	}
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeCdpWithdrawal,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, collateral.String()),
-			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
-		),
-	)
 
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoins(collateral))
 	if err != nil {
 		panic(err)
 	}
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
@@ -105,6 +111,15 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	} else {
 		k.SetDeposit(ctx, deposit)
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCdpWithdrawal,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, collateral.String()),
+			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
+		),
+	)
+
 	return nil
 }
 
