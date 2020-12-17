@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"testing"
 
@@ -160,7 +161,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {
 	denom := "test"
 	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
 	borrowLimit := types.NewBorrowLimit(false, sdk.MustNewDecFromStr("0.2"), sdk.MustNewDecFromStr("0.5"))
-	moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), sdk.NewInt(KAVA_CF*1000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
+	moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), sdk.NewInt(1000000000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
 
 	_, f := suite.keeper.GetMoneyMarket(suite.ctx, denom)
 	suite.Require().False(f)
@@ -186,7 +187,7 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 		denom := testDenom + strconv.Itoa(i)
 		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
 		borrowLimit := types.NewBorrowLimit(false, sdk.MustNewDecFromStr("0.2"), sdk.MustNewDecFromStr("0.5"))
-		moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), sdk.NewInt(KAVA_CF*1000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
+		moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), sdk.NewInt(1000000000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
 
 		// Store money market in the module's store
 		suite.Require().NotPanics(func() { suite.keeper.SetMoneyMarket(suite.ctx, denom, moneyMarket) })
@@ -253,16 +254,11 @@ func (suite *KeeperTestSuite) TestIterateLtvIndex() {
 
 	// Only the first 10 addresses should be returned
 	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(setAddrs[:10], sliceAddrs)
-
-	for i, sliceAddr := range sliceAddrs {
-		expectedAddr := setAddrs[i]
-		suite.Require().Equal(expectedAddr, sliceAddr)
-	}
+	suite.Require().Equal(addressSort(setAddrs[10:20]), addressSort(sliceAddrs))
 
 	// Insert an additional item into the LTV index that should be returned in the first 10 elements
 	addr := sdk.AccAddress("test" + fmt.Sprint(21))
-	ltv := sdk.OneDec().Add(sdk.MustNewDecFromStr("5").Quo(sdk.NewDec(10)))
+	ltv := sdk.OneDec().Add(sdk.MustNewDecFromStr("15").Quo(sdk.NewDec(10)))
 	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
 
 	// Fetch the updated LTV index
@@ -294,6 +290,21 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) supplyexported.ModuleAccountI {
 	sk := suite.app.GetSupplyKeeper()
 	return sk.GetModuleAccount(ctx, name)
+}
+
+func addressSort(addrs []sdk.AccAddress) (sortedAddrs []sdk.AccAddress) {
+	addrStrs := []string{}
+	for _, addr := range addrs {
+		addrStrs = append(addrStrs, addr.String())
+	}
+
+	sort.Strings(addrStrs)
+
+	for _, addrStr := range addrStrs {
+		addr, _ := sdk.AccAddressFromBech32(addrStr)
+		sortedAddrs = append(sortedAddrs, addr)
+	}
+	return sortedAddrs
 }
 
 func TestKeeperTestSuite(t *testing.T) {

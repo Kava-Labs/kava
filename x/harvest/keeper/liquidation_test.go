@@ -16,6 +16,755 @@ import (
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
+func (suite *KeeperTestSuite) TestIndexLiquidation() {
+	type args struct {
+		borrower              sdk.AccAddress
+		initialModuleCoins    sdk.Coins
+		initialBorrowerCoins  sdk.Coins
+		depositCoins          []sdk.Coin
+		borrowCoins           sdk.Coins
+		beginBlockerTime      int64
+		ltvIndexCount         int
+		expectedBorrowerCoins sdk.Coins         // additional coins (if any) the borrower address should have after successfully liquidating position
+		expectedAuctions      auctypes.Auctions // the auctions we should expect to find have been started
+	}
+
+	type errArgs struct {
+		expectLiquidate bool
+		contains        string
+	}
+
+	type liqTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	// Set up test constants
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
+	reserveFactor := sdk.MustNewDecFromStr("0.05")
+	oneMonthInSeconds := int64(2592000)
+	borrower := sdk.AccAddress(crypto.AddressHash([]byte("randomaddr")))
+
+	// Set up auction constants
+	layout := "2006-01-02T15:04:05.000Z"
+	endTimeStr := "9000-01-01T00:00:00.000Z"
+	endTime, _ := time.Parse(layout, endTimeStr)
+
+	lotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{borrower}, []sdk.Int{sdk.NewInt(100)})
+
+	testCases := []liqTest{
+		{
+			"valid: LTV index liquidates borrow",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004766),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+		{
+			"invalid: borrow not over limit, LTV index does not liquidate",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(7*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(97*KAVA_CF))), // initial - deposit + borrow
+				expectedAuctions:      auctypes.Auctions{},
+			},
+			errArgs{
+				expectLiquidate: false,
+				contains:        "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// Initialize test app and set context
+			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
+			// Auth module genesis state
+			authGS := app.NewAuthGenState(
+				[]sdk.AccAddress{tc.args.borrower},
+				[]sdk.Coins{tc.args.initialBorrowerCoins},
+			)
+
+			// Harvest module genesis state
+			harvestGS := types.NewGenesisState(types.NewParams(
+				true,
+				types.DistributionSchedules{
+					types.NewDistributionSchedule(true, "usdx", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "usdc", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "usdt", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "dai", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "ukava", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "btc", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+				},
+				types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
+					types.NewDistributionSchedule(true, "usdx", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					time.Hour*24,
+				),
+				},
+				types.MoneyMarkets{
+					types.NewMoneyMarket("usdx",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdx:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("usdt",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdt:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("usdc",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdc:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("dai",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"dai:usd",                      // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("ukava",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"kava:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("bnb",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"bnb:usd",                      // Market ID
+						sdk.NewInt(BNB_CF),             // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("btc",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*BTCB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"btc:usd",                      // Market ID
+						sdk.NewInt(BTCB_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+				},
+				tc.args.ltvIndexCount, // LTV counter
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
+
+			// Pricefeed module genesis state
+			pricefeedGS := pricefeed.GenesisState{
+				Params: pricefeed.Params{
+					Markets: []pricefeed.Market{
+						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "usdt:usd", BaseAsset: "usdt", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "usdc:usd", BaseAsset: "usdc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "dai:usd", BaseAsset: "dai", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+					},
+				},
+				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "usdx:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "usdt:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "usdc:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "dai:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "kava:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("2.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "bnb:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("10.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "btc:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("100.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+				},
+			}
+
+			// Initialize test application
+			tApp.InitializeFromGenesisStates(authGS,
+				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
+
+			// Mint coins to Harvest module account
+			supplyKeeper := tApp.GetSupplyKeeper()
+			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+
+			auctionKeeper := tApp.GetAuctionKeeper()
+
+			keeper := tApp.GetHarvestKeeper()
+			suite.app = tApp
+			suite.ctx = ctx
+			suite.keeper = keeper
+			suite.auctionKeeper = auctionKeeper
+
+			var err error
+
+			// Run begin blocker to set up state
+			harvest.BeginBlocker(suite.ctx, suite.keeper)
+
+			// Deposit coins
+			for _, coin := range tc.args.depositCoins {
+				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
+				suite.Require().NoError(err)
+			}
+
+			// Borrow coins
+			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
+			suite.Require().NoError(err)
+
+			// Check borrow exists before liquidation
+			_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
+			suite.Require().True(foundBorrowBefore)
+
+			// Check that the user's deposits exist before liquidation
+			for _, coin := range tc.args.depositCoins {
+				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower, coin.Denom)
+				suite.Require().True(foundDepositBefore)
+			}
+
+			// Liquidate the borrow by running begin blocker
+			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.beginBlockerTime), 0)
+			liqCtx := suite.ctx.WithBlockTime(runAtTime)
+			harvest.BeginBlocker(liqCtx, suite.keeper)
+
+			if tc.errArgs.expectLiquidate {
+				// Check borrow does not exist after liquidation
+				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
+				suite.Require().False(foundBorrowAfter)
+				// Check deposits do not exist after liquidation
+				for _, coin := range tc.args.depositCoins {
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
+					suite.Require().False(foundDepositAfter)
+				}
+
+				// Check that borrower's balance contains the expected coins
+				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
+				suite.Require().Equal(tc.args.expectedBorrowerCoins, accBorrower.GetCoins())
+
+				// Check that the expected auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+				suite.Require().True(len(auctions) > 0)
+				suite.Require().Equal(tc.args.expectedAuctions, auctions)
+			} else {
+				// Check that the user's borrow exists
+				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
+				suite.Require().True(foundBorrowAfter)
+				// Check that the user's deposits exist
+				for _, coin := range tc.args.depositCoins {
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
+					suite.Require().True(foundDepositAfter)
+				}
+
+				// Check that no auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+				suite.Require().True(len(auctions) == 0)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
+	type args struct {
+		borrower              sdk.AccAddress
+		otherBorrowers        []sdk.AccAddress
+		initialModuleCoins    sdk.Coins
+		initialBorrowerCoins  sdk.Coins
+		depositCoins          []sdk.Coin
+		borrowCoins           sdk.Coins
+		otherBorrowCoins      sdk.Coins
+		beginBlockerTime      int64
+		ltvIndexCount         int
+		expectedBorrowerCoins sdk.Coins         // additional coins (if any) the borrower address should have after successfully liquidating position
+		expectedAuctions      auctypes.Auctions // the auctions we should expect to find have been started
+	}
+
+	type errArgs struct {
+		expectLiquidate               bool
+		expectLiquidateOtherBorrowers bool
+		contains                      string
+	}
+
+	type liqTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	// Set up test constants
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
+	reserveFactor := sdk.MustNewDecFromStr("0.05")
+	oneMonthInSeconds := int64(2592000)
+	borrower := sdk.AccAddress(crypto.AddressHash([]byte("randomaddr")))
+	otherBorrower1 := sdk.AccAddress(crypto.AddressHash([]byte("AotherBorrower1")))
+	otherBorrower2 := sdk.AccAddress(crypto.AddressHash([]byte("BotherBorrower2")))
+	otherBorrower3 := sdk.AccAddress(crypto.AddressHash([]byte("CotherBorrower3")))
+	otherBorrower4 := sdk.AccAddress(crypto.AddressHash([]byte("DotherBorrower4")))
+	otherBorrower5 := sdk.AccAddress(crypto.AddressHash([]byte("EotherBorrower5")))
+	otherBorrower6 := sdk.AccAddress(crypto.AddressHash([]byte("FotherBorrower6")))
+	otherBorrower7 := sdk.AccAddress(crypto.AddressHash([]byte("GotherBorrower7")))
+	otherBorrower8 := sdk.AccAddress(crypto.AddressHash([]byte("HotherBorrower8")))
+	otherBorrower9 := sdk.AccAddress(crypto.AddressHash([]byte("IotherBorrower9")))
+	otherBorrower10 := sdk.AccAddress(crypto.AddressHash([]byte("JotherBorrower10")))
+
+	// Set up auction constants
+	layout := "2006-01-02T15:04:05.000Z"
+	endTimeStr := "9000-01-01T00:00:00.000Z"
+	endTime, _ := time.Parse(layout, endTimeStr)
+
+	lotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{borrower}, []sdk.Int{sdk.NewInt(100)})
+	otherBorrower1LotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{otherBorrower1}, []sdk.Int{sdk.NewInt(100)})
+	otherBorrower2LotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{otherBorrower2}, []sdk.Int{sdk.NewInt(100)})
+	otherBorrower3LotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{otherBorrower3}, []sdk.Int{sdk.NewInt(100)})
+
+	testCases := []liqTest{
+		{
+			"valid: LTV index only liquidates positions over LTV",
+			args{
+				borrower:              borrower,
+				otherBorrowers:        []sdk.AccAddress{otherBorrower1, otherBorrower2, otherBorrower3},
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				otherBorrowCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(7*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8013492), // TODO: why isn't this 8004766
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate:               true,
+				expectLiquidateOtherBorrowers: false,
+				contains:                      "",
+			},
+		},
+		{
+			"valid: LTV liquidates multiple positions over LTV",
+			args{
+				borrower:              borrower,
+				otherBorrowers:        []sdk.AccAddress{otherBorrower1, otherBorrower2, otherBorrower3},
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				otherBorrowCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014873), // TODO: Why isn't this 8013492
+						LotReturns:        otherBorrower3LotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						LotReturns:        otherBorrower2LotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              3,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              4,
+							Initiator:       "harvest_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						LotReturns:        otherBorrower1LotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate:               true,
+				expectLiquidateOtherBorrowers: true,
+				contains:                      "",
+			},
+		},
+		{
+			"valid: LTV index doesn't liquidate over limit positions outside of top 10",
+			args{
+				borrower:              borrower,
+				otherBorrowers:        []sdk.AccAddress{otherBorrower1, otherBorrower2, otherBorrower3, otherBorrower4, otherBorrower5, otherBorrower6, otherBorrower7, otherBorrower8, otherBorrower9, otherBorrower10},
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(7.99*KAVA_CF))),
+				otherBorrowCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions:      auctypes.Auctions{},                                        // Ignoring other borrower auctions for this test
+			},
+			errArgs{
+				expectLiquidate:               false,
+				expectLiquidateOtherBorrowers: true,
+				contains:                      "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// Initialize test app and set context
+			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
+			otherBorrowersCoins := make([]sdk.Coins, len(tc.args.otherBorrowers))
+			i := 0
+			for i < len(tc.args.otherBorrowers) {
+				otherBorrowersCoins[i] = tc.args.initialBorrowerCoins
+				i++
+			}
+			appCoins := append([]sdk.Coins{tc.args.initialBorrowerCoins}, otherBorrowersCoins...)
+			appAddrs := append([]sdk.AccAddress{tc.args.borrower}, tc.args.otherBorrowers...)
+
+			// Auth module genesis state
+			authGS := app.NewAuthGenState(appAddrs, appCoins)
+
+			// Harvest module genesis state
+			harvestGS := types.NewGenesisState(types.NewParams(
+				true,
+				types.DistributionSchedules{
+					types.NewDistributionSchedule(true, "usdx", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					types.NewDistributionSchedule(true, "ukava", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+				},
+				types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
+					types.NewDistributionSchedule(true, "usdx", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
+					time.Hour*24,
+				),
+				},
+				types.MoneyMarkets{
+					types.NewMoneyMarket("usdx",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						"usdx:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("ukava",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"kava:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+				},
+				tc.args.ltvIndexCount, // LTV counter
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
+
+			// Pricefeed module genesis state
+			pricefeedGS := pricefeed.GenesisState{
+				Params: pricefeed.Params{
+					Markets: []pricefeed.Market{
+						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+					},
+				},
+				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "usdx:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "kava:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("2.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+				},
+			}
+
+			// Initialize test application
+			tApp.InitializeFromGenesisStates(authGS,
+				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
+
+			// Mint coins to Harvest module account
+			supplyKeeper := tApp.GetSupplyKeeper()
+			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, tc.args.initialModuleCoins)
+
+			auctionKeeper := tApp.GetAuctionKeeper()
+
+			keeper := tApp.GetHarvestKeeper()
+			suite.app = tApp
+			suite.ctx = ctx
+			suite.keeper = keeper
+			suite.auctionKeeper = auctionKeeper
+
+			var err error
+
+			// Run begin blocker to set up state
+			harvest.BeginBlocker(suite.ctx, suite.keeper)
+
+			// ----------- Users get inserted into the LTV index -----------
+
+			// Other borrowers take out positions by depositing and borrowing coins
+			for _, otherBorrower := range tc.args.otherBorrowers {
+				for _, coin := range tc.args.depositCoins {
+					err = suite.keeper.Deposit(suite.ctx, otherBorrower, coin)
+					suite.Require().NoError(err)
+				}
+
+				err = suite.keeper.Borrow(suite.ctx, otherBorrower, tc.args.otherBorrowCoins)
+				suite.Require().NoError(err)
+			}
+
+			// Primary borrower deposits and borrows
+			for _, coin := range tc.args.depositCoins {
+				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
+				suite.Require().NoError(err)
+			}
+
+			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
+			suite.Require().NoError(err)
+
+			// ----------- Check state before liquidation -----------
+			// Other borrowers
+			for _, otherBorrower := range tc.args.otherBorrowers {
+				_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, otherBorrower)
+				suite.Require().True(foundBorrowBefore)
+
+				for _, coin := range tc.args.depositCoins {
+					_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, otherBorrower, coin.Denom)
+					suite.Require().True(foundDepositBefore)
+				}
+			}
+
+			// Primary borrower
+			_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
+			suite.Require().True(foundBorrowBefore)
+
+			for _, coin := range tc.args.depositCoins {
+				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower, coin.Denom)
+				suite.Require().True(foundDepositBefore)
+			}
+
+			// ----------- Liquidate and check state -----------
+			// Liquidate the borrow by running begin blocker
+			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.beginBlockerTime), 0)
+			liqCtx := suite.ctx.WithBlockTime(runAtTime)
+			harvest.BeginBlocker(liqCtx, suite.keeper)
+
+			if tc.errArgs.expectLiquidate {
+				// Check borrow does not exist after liquidation
+				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
+				suite.Require().False(foundBorrowAfter)
+				// Check deposits do not exist after liquidation
+				for _, coin := range tc.args.depositCoins {
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
+					suite.Require().False(foundDepositAfter)
+				}
+
+				// Check that borrower's balance contains the expected coins
+				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
+				suite.Require().Equal(tc.args.expectedBorrowerCoins, accBorrower.GetCoins())
+
+				// Check that the expected auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+				suite.Require().True(len(auctions) > 0)
+				suite.Require().Equal(tc.args.expectedAuctions, auctions)
+			} else {
+				// Check that the user's borrow exists
+				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
+				suite.Require().True(foundBorrowAfter)
+				// Check that the user's deposits exist
+				for _, coin := range tc.args.depositCoins {
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
+					suite.Require().True(foundDepositAfter)
+				}
+
+				if !tc.errArgs.expectLiquidateOtherBorrowers {
+					// Check that no auctions have been created
+					auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+					suite.Require().True(len(auctions) == 0)
+				}
+			}
+
+			// Check other borrowers
+			if tc.errArgs.expectLiquidateOtherBorrowers {
+				for _, otherBorrower := range tc.args.otherBorrowers {
+					// Check borrow does not exist after liquidation
+					_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, otherBorrower)
+					suite.Require().False(foundBorrowAfter)
+
+					// Check deposits do not exist after liquidation
+					for _, coin := range tc.args.depositCoins {
+						_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower, coin.Denom)
+						suite.Require().False(foundDepositAfter)
+					}
+				}
+
+				var expectedLtvIndexItemCount int
+				if tc.errArgs.expectLiquidate {
+					expectedLtvIndexItemCount = 0
+				} else {
+					expectedLtvIndexItemCount = 1
+				}
+				indexAddrs := suite.keeper.GetLtvIndexSlice(liqCtx, 1000) // Get all items in the index...
+				suite.Require().Equal(expectedLtvIndexItemCount, len(indexAddrs))
+			} else {
+				for _, otherBorrower := range tc.args.otherBorrowers {
+					// Check borrow does not exist after liquidation
+					_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, otherBorrower)
+					suite.Require().True(foundBorrowAfter)
+
+					// Check deposits do not exist after liquidation
+					for _, coin := range tc.args.depositCoins {
+						_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower, coin.Denom)
+						suite.Require().True(foundDepositAfter)
+					}
+				}
+
+				var expectedLtvIndexItemCount int
+				if tc.errArgs.expectLiquidate {
+					expectedLtvIndexItemCount = len(tc.args.otherBorrowers)
+				} else {
+					expectedLtvIndexItemCount = len(tc.args.otherBorrowers) + 1
+				}
+				indexAddrs := suite.keeper.GetLtvIndexSlice(liqCtx, tc.args.ltvIndexCount)
+				suite.Require().Equal(expectedLtvIndexItemCount, len(indexAddrs))
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 	type args struct {
 		borrower              sdk.AccAddress

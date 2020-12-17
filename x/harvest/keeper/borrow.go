@@ -20,7 +20,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	}
 
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetCurrentLTV(ctx, borrower)
+	prevLtv, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
 		return err
 	}

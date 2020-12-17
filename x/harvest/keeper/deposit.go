@@ -11,7 +11,7 @@ import (
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, amount sdk.Coin) error {
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetCurrentLTV(ctx, depositor)
+	prevLtv, err := k.GetStoreLTV(ctx, depositor)
 	if err != nil {
 		return err
 	}
