@@ -15,12 +15,15 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	for _, coin := range coins {
 		_, foundBorrowIndex := k.GetBorrowIndex(ctx, coin.Denom)
 		if !foundBorrowIndex {
-			k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+			_, foundMM := k.GetMoneyMarket(ctx, coin.Denom)
+			if foundMM {
+				k.SetBorrowIndex(ctx, coin.Denom, sdk.OneDec())
+			}
 		}
 	}
 
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, borrower)
+	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
 		return err
 	}
@@ -72,7 +75,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	borrow.Amount = borrow.Amount.Add(coins...)
 	k.SetBorrow(ctx, borrow)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, borrower)
+	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, borrower)
 
 	// Update total borrowed amount by newly borrowed coins. Don't add user's pending interest as
 	// it has already been included in the total borrowed coins by the BeginBlocker.

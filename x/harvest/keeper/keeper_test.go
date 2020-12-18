@@ -211,7 +211,11 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 
 func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
 	// LTV index should have 0 items
+<<<<<<< HEAD
 	firstAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
+=======
+	firstAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+>>>>>>> master
 	suite.Require().Equal(0, len(firstAddrs))
 
 	// Add an item to the LTV index
@@ -220,7 +224,11 @@ func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
 	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
 
 	// LTV index should have 1 item
+<<<<<<< HEAD
 	secondAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
+=======
+	secondAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+>>>>>>> master
 	suite.Require().Equal(1, len(secondAddrs))
 
 	// Attempt to remove invalid item from LTV index
@@ -228,14 +236,22 @@ func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
 	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, fakeLtv, addr) })
 
 	// LTV index should still have 1 item
+<<<<<<< HEAD
 	thirdAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
+=======
+	thirdAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+>>>>>>> master
 	suite.Require().Equal(1, len(thirdAddrs))
 
 	// Attempt to remove valid item from LTV index
 	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, ltv, addr) })
 
 	// LTV index should still have 0 items
+<<<<<<< HEAD
 	fourthAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
+=======
+	fourthAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+>>>>>>> master
 	suite.Require().Equal(0, len(fourthAddrs))
 }
 
@@ -253,6 +269,7 @@ func (suite *KeeperTestSuite) TestIterateLtvIndex() {
 	}
 
 	// Only the first 10 addresses should be returned
+<<<<<<< HEAD
 	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
 	suite.Require().Equal(addressSort(setAddrs[10:20]), addressSort(sliceAddrs))
 
@@ -270,6 +287,10 @@ func (suite *KeeperTestSuite) TestIterateLtvIndex() {
 		}
 	}
 	suite.Require().Equal(true, sawAddr)
+=======
+	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx)
+	suite.Require().Equal(setAddrs[:10], sliceAddrs)
+>>>>>>> master
 }
 
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
