@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,11 +22,13 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 	params := k.GetParams(ctx)
 	borrowers := k.GetLtvIndexSlice(ctx, params.CheckLtvIndexCount)
 
-	// Sort items in slice to ensure deterministic auction order
-	sortedBorrowers := addressSort(borrowers)
-
-	for _, borrower := range sortedBorrowers {
-		k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
+	for _, borrower := range borrowers {
+		_, err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
+		if err != nil {
+			if !errors.Is(err, types.ErrBorrowNotLiquidatable) {
+				panic(err)
+			}
+		}
 	}
 	return nil
 }
