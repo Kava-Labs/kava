@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -376,19 +375,4 @@ func removeDuplicates(one []string, two []string) []string {
 		res = append(res, key)
 	}
 	return res
-}
-
-func addressSort(addrs []sdk.AccAddress) (sortedAddrs []sdk.AccAddress) {
-	addrStrs := []string{}
-	for _, addr := range addrs {
-		addrStrs = append(addrStrs, addr.String())
-	}
-
-	sort.Strings(addrStrs)
-
-	for _, addrStr := range addrStrs {
-		addr, _ := sdk.AccAddressFromBech32(addrStr)
-		sortedAddrs = append(sortedAddrs, addr)
-	}
-	return sortedAddrs
 }
