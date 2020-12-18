@@ -43,7 +43,7 @@ var (
 	MoneyMarketsPrefix                = []byte{0x07}
 	PreviousAccrualTimePrefix         = []byte{0x08} // denom -> time
 	TotalReservesPrefix               = []byte{0x09} // denom -> sdk.Coin
-	BorrowIndexPrefix                 = []byte{0x10} // denom -> sdk.Dec
+	InterestFactorPrefix              = []byte{0x10} // denom -> sdk.Dec
 	LtvIndexPrefix                    = []byte{0x11}
 	sep                               = []byte(":")
 )
