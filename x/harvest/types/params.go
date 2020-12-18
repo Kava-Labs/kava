@@ -17,11 +17,13 @@ var (
 	KeyLPSchedules            = []byte("LPSchedules")
 	KeyDelegatorSchedule      = []byte("DelegatorSchedule")
 	KeyMoneyMarkets           = []byte("MoneyMarkets")
+	KeyCheckLtvIndexCount     = []byte("CheckLtvIndexCount")
 	DefaultActive             = true
 	DefaultGovSchedules       = DistributionSchedules{}
 	DefaultLPSchedules        = DistributionSchedules{}
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
 	DefaultMoneyMarkets       = MoneyMarkets{}
+	DefaultCheckLtvIndexCount = 10
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
@@ -31,6 +33,7 @@ type Params struct {
 	LiquidityProviderSchedules     DistributionSchedules          `json:"liquidity_provider_schedules" yaml:"liquidity_provider_schedules"`
 	DelegatorDistributionSchedules DelegatorDistributionSchedules `json:"delegator_distribution_schedules" yaml:"delegator_distribution_schedules"`
 	MoneyMarkets                   MoneyMarkets                   `json:"money_markets" yaml:"money_markets"`
+	CheckLtvIndexCount             int                            `json:"check_ltv_index_count" yaml:"check_ltv_index_count"`
 }
 
 // DistributionSchedule distribution schedule for liquidity providers
@@ -423,18 +426,21 @@ func (irm InterestRateModel) Equal(irmCompareTo InterestRateModel) bool {
 type InterestRateModels []InterestRateModel
 
 // NewParams returns a new params object
-func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules, moneyMarkets MoneyMarkets) Params {
+func NewParams(active bool, lps DistributionSchedules, dds DelegatorDistributionSchedules,
+	moneyMarkets MoneyMarkets, checkLtvIndexCount int) Params {
 	return Params{
 		Active:                         active,
 		LiquidityProviderSchedules:     lps,
 		DelegatorDistributionSchedules: dds,
 		MoneyMarkets:                   moneyMarkets,
+		CheckLtvIndexCount:             checkLtvIndexCount,
 	}
 }
 
 // DefaultParams returns default params for harvest module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules, DefaultMoneyMarkets)
+	return NewParams(DefaultActive, DefaultLPSchedules, DefaultDelegatorSchedules,
+		DefaultMoneyMarkets, DefaultCheckLtvIndexCount)
 }
 
 // String implements fmt.Stringer
@@ -443,8 +449,10 @@ func (p Params) String() string {
 	Active: %t
 	Liquidity Provider Distribution Schedules %s
 	Delegator Distribution Schedule %s
-	Money Markets %v`,
-		p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules, p.MoneyMarkets)
+	Money Markets %v
+	Check LTV Index Count: %v`,
+		p.Active, p.LiquidityProviderSchedules, p.DelegatorDistributionSchedules,
+		p.MoneyMarkets, p.CheckLtvIndexCount)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -459,6 +467,7 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 		params.NewParamSetPair(KeyLPSchedules, &p.LiquidityProviderSchedules, validateLPParams),
 		params.NewParamSetPair(KeyDelegatorSchedule, &p.DelegatorDistributionSchedules, validateDelegatorParams),
 		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
+		params.NewParamSetPair(KeyCheckLtvIndexCount, &p.CheckLtvIndexCount, validateCheckLtvIndexCount),
 	}
 }
 
@@ -472,7 +481,15 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return validateLPParams(p.LiquidityProviderSchedules)
+	if err := validateLPParams(p.LiquidityProviderSchedules); err != nil {
+		return err
+	}
+
+	if err := validateMoneyMarketParams(p.MoneyMarkets); err != nil {
+		return err
+	}
+
+	return validateCheckLtvIndexCount(p.CheckLtvIndexCount)
 }
 
 func validateActiveParam(i interface{}) error {
@@ -516,4 +533,17 @@ func validateMoneyMarketParams(i interface{}) error {
 	}
 
 	return mm.Validate()
+}
+
+func validateCheckLtvIndexCount(i interface{}) error {
+	ltvCheckCount, ok := i.(int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if ltvCheckCount < 0 {
+		return fmt.Errorf("CheckLtvIndexCount param must be positive, got: %d", ltvCheckCount)
+	}
+
+	return nil
 }

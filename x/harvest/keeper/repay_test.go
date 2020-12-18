@@ -144,6 +144,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
+				0, // LTV counter
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
 			// Pricefeed module genesis state

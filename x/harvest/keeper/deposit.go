@@ -13,12 +13,12 @@ import (
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, shouldRemoveIndex, err := k.GetCurrentLTV(ctx, depositor)
+	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, depositor)
 	if err != nil {
 		return err
 	}
 
-	k.SyncOustandingInterest(ctx, depositor)
+	k.SyncOutstandingInterest(ctx, depositor)
 
 	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
