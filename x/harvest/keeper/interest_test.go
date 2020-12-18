@@ -666,6 +666,7 @@ func (suite *KeeperTestSuite) TestInterest() {
 						tc.args.reserveFactor,     // Reserve Factor
 						sdk.ZeroDec()),            // Keeper Reward Percentage
 				},
+				0, // LTV counter
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
 
 			// Pricefeed module genesis state

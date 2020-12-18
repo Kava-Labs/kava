@@ -376,7 +376,7 @@ func (k Keeper) RemoveFromLtvIndex(ctx sdk.Context, ltv sdk.Dec, borrower sdk.Ac
 func (k Keeper) IterateLtvIndex(ctx sdk.Context, cutoffCount int,
 	cb func(addr sdk.AccAddress) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
-	iterator := store.Iterator(nil, nil)
+	iterator := store.ReverseIterator(nil, nil)
 	count := 0
 
 	defer iterator.Close()
@@ -394,8 +394,8 @@ func (k Keeper) IterateLtvIndex(ctx sdk.Context, cutoffCount int,
 }
 
 // GetLtvIndexSlice returns the first 10 items in the LTV index from the store
-func (k Keeper) GetLtvIndexSlice(ctx sdk.Context) (addrs []sdk.AccAddress) {
-	k.IterateLtvIndex(ctx, 10, func(addr sdk.AccAddress) bool {
+func (k Keeper) GetLtvIndexSlice(ctx sdk.Context, count int) (addrs []sdk.AccAddress) {
+	k.IterateLtvIndex(ctx, count, func(addr sdk.AccAddress) bool {
 		addrs = append(addrs, addr)
 		return false
 	})

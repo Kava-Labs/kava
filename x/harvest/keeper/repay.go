@@ -10,13 +10,13 @@ import (
 // Repay borrowed funds
 func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, shouldRemoveIndex, err := k.GetCurrentLTV(ctx, sender)
+	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, sender)
 	if err != nil {
 		return err
 	}
 
 	// Sync interest so loan is up-to-date
-	k.SyncOustandingInterest(ctx, sender)
+	k.SyncOutstandingInterest(ctx, sender)
 
 	// Validate requested repay
 	err = k.ValidateRepay(ctx, sender, coins)
@@ -61,7 +61,8 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 // ValidateRepay validates a requested loan repay
 func (k Keeper) ValidateRepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	senderAcc := k.accountKeeper.GetAccount(ctx, sender)
-	senderCoins := senderAcc.GetCoins()
+	senderCoins := senderAcc.SpendableCoins(ctx.BlockTime())
+
 	for _, coin := range coins {
 		if senderCoins.AmountOf(coin.Denom).LT(coin.Amount) {
 			return sdkerrors.Wrapf(types.ErrInsufficientBalanceForRepay, "account can only repay up to %s%s", senderCoins.AmountOf(coin.Denom), coin.Denom)
