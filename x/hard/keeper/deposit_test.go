@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -267,7 +266,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "invalid withdrawal amount",
+				contains:   "subtraction results in negative borrow amount",
 			},
 		},
 		{
@@ -284,7 +283,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "invalid withdrawal amount",
+				contains:   "subtraction results in negative borrow amount",
 			},
 		},
 	}
@@ -310,10 +309,45 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdk.NewInt(1000000), sdk.NewInt(USDX_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdk.NewInt(1000000), sdk.NewInt(KAVA_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(100000000), sdk.NewInt(BNB_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
 				0, // LTV counter
 			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
-			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+
+			// Pricefeed module genesis state
+			pricefeedGS := pricefeed.GenesisState{
+				Params: pricefeed.Params{
+					Markets: []pricefeed.Market{
+						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+						{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+					},
+				},
+				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "usdx:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "kava:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("2.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "bnb:usd",
+						OracleAddress: sdk.AccAddress{},
+						Price:         sdk.MustNewDecFromStr("10.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+				},
+			}
+
+			tApp.InitializeFromGenesisStates(authGS,
+				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
@@ -341,7 +375,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				}
 			} else {
 				suite.Require().Error(err)
-				fmt.Printf("%s\n", err.Error())
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})

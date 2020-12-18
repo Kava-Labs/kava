@@ -91,11 +91,39 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
 
-	if !deposit.Amount.IsAllGTE(coins) { // TODO test that this works how I think it does
+	// Get current stored LTV based on stored borrows/deposits
+	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, depositor)
+	if err != nil {
+		return err
+	}
+
+	k.SyncOutstandingInterest(ctx, depositor)
+
+	borrow, found := k.GetBorrow(ctx, depositor)
+	if !found {
+		borrow = types.Borrow{}
+	}
+
+	proposedDepositAmount, isNegative := deposit.Amount.SafeSub(coins)
+	if isNegative {
+		return types.ErrNegativeBorrowedCoins
+	}
+	proposedDeposit := types.NewDeposit(deposit.Depositor, proposedDepositAmount)
+
+	valid, err := k.IsWithinValidLtvRange(ctx, proposedDeposit, borrow)
+	if err != nil {
+		return err
+	}
+
+	if !valid {
+		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
+	}
+
+	if !deposit.Amount.IsAllGTE(coins) {
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", coins, deposit.Amount)
 	}
 
-	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, coins)
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, coins)
 	if err != nil {
 		return err
 	}
@@ -121,6 +149,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 
 	deposit.Amount = deposit.Amount.Sub(coins)
 	k.SetDeposit(ctx, deposit)
+
+	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
 
 	return nil
 }
