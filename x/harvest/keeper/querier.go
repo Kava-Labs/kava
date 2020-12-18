@@ -90,22 +90,26 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	var deposits []types.Deposit
 	switch {
 	case depositDenom && owner:
-		deposit, found := k.GetDeposit(ctx, params.Owner, params.DepositDenom)
+		deposit, found := k.GetDeposit(ctx, params.Owner)
 		if found {
-			deposits = append(deposits, deposit)
+			for _, depCoin := range deposit.Amount {
+				if depCoin.Denom == params.DepositDenom {
+					deposits = append(deposits, deposit)
+				}
+			}
+
 		}
 	case depositDenom:
-		k.IterateDepositsByDenom(ctx, params.DepositDenom, func(deposit types.Deposit) (stop bool) {
-			deposits = append(deposits, deposit)
+		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
+			if deposit.Amount.AmountOf(params.DepositDenom).IsPositive() {
+				deposits = append(deposits, deposit)
+			}
 			return false
 		})
 	case owner:
-		schedules := k.GetParams(ctx).LiquidityProviderSchedules
-		for _, lps := range schedules {
-			deposit, found := k.GetDeposit(ctx, params.Owner, lps.DepositDenom)
-			if found {
-				deposits = append(deposits, deposit)
-			}
+		deposit, found := k.GetDeposit(ctx, params.Owner)
+		if found {
+			deposits = append(deposits, deposit)
 		}
 	default:
 		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {

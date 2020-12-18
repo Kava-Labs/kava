@@ -280,10 +280,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins
-			for _, coin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
-				suite.Require().NoError(err)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Borrow coins
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
@@ -294,10 +292,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 			suite.Require().True(foundBorrowBefore)
 
 			// Check that the user's deposits exist before liquidation
-			for _, coin := range tc.args.depositCoins {
-				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower, coin.Denom)
-				suite.Require().True(foundDepositBefore)
-			}
+			_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower)
+			suite.Require().True(foundDepositBefore)
 
 			// Liquidate the borrow by running begin blocker
 			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.beginBlockerTime), 0)
@@ -309,10 +305,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().False(foundBorrowAfter)
 				// Check deposits do not exist after liquidation
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().False(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().False(foundDepositAfter)
 
 				// Check that borrower's balance contains the expected coins
 				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
@@ -327,10 +321,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
 				// Check that the user's deposits exist
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().True(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().True(foundDepositAfter)
 
 				// Check that no auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
@@ -637,20 +629,16 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 
 			// Other borrowers take out positions by depositing and borrowing coins
 			for _, otherBorrower := range tc.args.otherBorrowers {
-				for _, coin := range tc.args.depositCoins {
-					err = suite.keeper.Deposit(suite.ctx, otherBorrower, coin)
-					suite.Require().NoError(err)
-				}
+				err = suite.keeper.Deposit(suite.ctx, otherBorrower, tc.args.depositCoins)
+				suite.Require().NoError(err)
 
 				err = suite.keeper.Borrow(suite.ctx, otherBorrower, tc.args.otherBorrowCoins)
 				suite.Require().NoError(err)
 			}
 
 			// Primary borrower deposits and borrows
-			for _, coin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
-				suite.Require().NoError(err)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
@@ -661,20 +649,16 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, otherBorrower)
 				suite.Require().True(foundBorrowBefore)
 
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, otherBorrower, coin.Denom)
-					suite.Require().True(foundDepositBefore)
-				}
+				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, otherBorrower)
+				suite.Require().True(foundDepositBefore)
 			}
 
 			// Primary borrower
 			_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
 			suite.Require().True(foundBorrowBefore)
 
-			for _, coin := range tc.args.depositCoins {
-				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower, coin.Denom)
-				suite.Require().True(foundDepositBefore)
-			}
+			_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower)
+			suite.Require().True(foundDepositBefore)
 
 			// ----------- Liquidate and check state -----------
 			// Liquidate the borrow by running begin blocker
@@ -687,10 +671,8 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().False(foundBorrowAfter)
 				// Check deposits do not exist after liquidation
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().False(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().False(foundDepositAfter)
 
 				// Check that borrower's balance contains the expected coins
 				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
@@ -705,10 +687,8 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
 				// Check that the user's deposits exist
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().True(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().True(foundDepositAfter)
 
 				if !tc.errArgs.expectLiquidateOtherBorrowers {
 					// Check that no auctions have been created
@@ -725,10 +705,9 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 					suite.Require().False(foundBorrowAfter)
 
 					// Check deposits do not exist after liquidation
-					for _, coin := range tc.args.depositCoins {
-						_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower, coin.Denom)
-						suite.Require().False(foundDepositAfter)
-					}
+
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower)
+					suite.Require().False(foundDepositAfter)
 				}
 
 				var expectedLtvIndexItemCount int
@@ -746,10 +725,9 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 					suite.Require().True(foundBorrowAfter)
 
 					// Check deposits do not exist after liquidation
-					for _, coin := range tc.args.depositCoins {
-						_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower, coin.Denom)
-						suite.Require().True(foundDepositAfter)
-					}
+
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower)
+					suite.Require().True(foundDepositAfter)
 				}
 
 				var expectedLtvIndexItemCount int
@@ -817,7 +795,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
@@ -855,7 +833,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(1000*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1000*BTCB_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))},                                                                                                                                       // $100 * 0.8 = $80 borrowable
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),                                                                                                                                     // $100 * 0.8 = $80 borrowable
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(2*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.2*BTCB_CF))), // $20+$20+$20 = $80 borrowed
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
@@ -938,8 +916,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(100*BTCB_CF))),
 				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))}, // $100 + $100 + $100 = $300 * 0.8 = $240 borrowable                                                                                                                                       // $100 * 0.8 = $80 borrowable
-				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120*KAVA_CF))),                                                                                    // $240 borrowed
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))), // $100 + $100 + $100 = $300 * 0.8 = $240 borrowable                                                                                                                                       // $100 * 0.8 = $80 borrowable
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120*KAVA_CF))),                                                                                      // $240 borrowed
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102.5*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
@@ -1007,8 +985,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(1000*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1000*BTCB_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("usdc", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF))}, // $100 + $100 + $100 = $300 * 0.9 = $270 borrowable
-				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(35*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))),     // $270 borrowed
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF))), // $100 + $100 + $100 = $300 * 0.9 = $270 borrowable
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(35*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF))),       // $270 borrowed
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(5*KAVA_CF))), // 5% of each seized coin + initial balances
@@ -1105,7 +1083,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
 				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1000*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("dai", sdk.NewInt(350*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(200*KAVA_CF))},
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(350*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(200*KAVA_CF))),
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("usdt", sdk.NewInt(250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(245*KAVA_CF))),
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 100000),
@@ -1173,8 +1151,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))},  // Deposit 20 KAVA
-				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(5*KAVA_CF))), // Borrow 5 KAVA
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))), // Deposit 20 KAVA
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(5*KAVA_CF))),  // Borrow 5 KAVA
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100.5*KAVA_CF))),
@@ -1360,10 +1338,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins
-			for _, coin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
-				suite.Require().NoError(err)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Borrow coins
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
@@ -1377,11 +1353,9 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			// Check borrow exists before liquidation
 			_, foundBorrowBefore := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 			suite.Require().True(foundBorrowBefore)
-			// Check that the user's deposits exist before liquidation
-			for _, coin := range tc.args.depositCoins {
-				_, foundDepositBefore := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-				suite.Require().True(foundDepositBefore)
-			}
+			// Check that the user's deposit exists before liquidation
+			_, foundDepositBefore := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+			suite.Require().True(foundDepositBefore)
 
 			// Attempt to liquidate
 			liquidated, err := suite.keeper.AttemptKeeperLiquidation(liqCtx, tc.args.keeper, tc.args.borrower)
@@ -1393,10 +1367,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().False(foundBorrowAfter)
 				// Check deposits do not exist after liquidation
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().False(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().False(foundDepositAfter)
 
 				// Check that the keeper's balance increased by reward % of all the borrowed coins
 				accKeeper := suite.getAccountAtCtx(tc.args.keeper, liqCtx)
@@ -1419,10 +1391,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
 				// Check that the user's deposits exist
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().True(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().True(foundDepositAfter)
 
 				// Check that no auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)

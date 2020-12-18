@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 	type args struct {
 		depositor            sdk.AccAddress
 		denom                string
-		depositAmount        sdk.Coin
+		depositAmount        sdk.Coins
 		totalDeposits        sdk.Coin
 		rewardRate           sdk.Coin
 		claimType            types.ClaimType
@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 				depositor:            sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				denom:                "bnb",
 				rewardRate:           c("hard", 500),
-				depositAmount:        c("bnb", 100),
+				depositAmount:        cs(c("bnb", 100)),
 				totalDeposits:        c("bnb", 1000),
 				claimType:            types.LP,
 				previousBlockTime:    time.Date(2020, 11, 1, 13, 59, 50, 0, time.UTC),

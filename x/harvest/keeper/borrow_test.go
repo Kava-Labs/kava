@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF))},
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF))),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(180*USDX_CF))),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(99.9*BTCB_CF)), sdk.NewCoin("usdx", sdk.NewInt(180*USDX_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)), sdk.NewCoin("xyz", sdk.NewInt(1))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1050*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(20*USDX_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF))),
@@ -125,7 +125,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF))},
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(0.1*BTCB_CF))),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(181*USDX_CF))),
 				expectedAccountBalance:    sdk.NewCoins(),
 				expectedModAccountBalance: sdk.NewCoins(),
@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("5.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.8"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("bnb", sdk.NewInt(30*BNB_CF)), sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))}, // (50 KAVA x $2.00 price = $100) + (30 BNB x $5.00 price = $150) = $250
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(30*BNB_CF)), sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))), // (50 KAVA x $2.00 price = $100) + (30 BNB x $5.00 price = $150) = $250
 				previousBorrowCoins:       sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(99*USDX_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF))),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1*USDX_CF))),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(100*BTCB_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF)), sdk.NewCoin("bnb", sdk.NewInt(70*BNB_CF)), sdk.NewCoin("xyz", sdk.NewInt(1))),
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("5.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.8"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("bnb", sdk.NewInt(30*BNB_CF)), sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))}, // (50 KAVA x $2.00 price = $100) + (30 BNB x $5.00 price = $150) = $250
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(30*BNB_CF)), sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))), // (50 KAVA x $2.00 price = $100) + (30 BNB x $5.00 price = $150) = $250
 				previousBorrowCoins:       sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF)), sdk.NewCoin("busd", sdk.NewInt(100*BUSD_CF))),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(1*USDX_CF))),
 				expectedAccountBalance:    sdk.NewCoins(),
@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				previousBorrowCoins:       sdk.NewCoins(),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("xyz", sdk.NewInt(1))),
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("btcb", sdk.NewInt(100*BTCB_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF)), sdk.NewCoin("xyz", sdk.NewInt(1))),
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				previousBorrowCoins:       sdk.NewCoins(),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(101*BUSD_CF))),
 				expectedAccountBalance:    sdk.NewCoins(),
@@ -234,7 +234,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				priceBNB:                  sdk.MustNewDecFromStr("0.00"),
 				loanToValueBNB:            sdk.MustNewDecFromStr("0.01"),
 				borrower:                  sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:              []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))},
+				depositCoins:              sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
 				previousBorrowCoins:       sdk.NewCoins(),
 				borrowCoins:               sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(25*USDX_CF))),
 				expectedAccountBalance:    sdk.NewCoins(),
@@ -353,13 +353,8 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			// Run BeginBlocker once to transition MoneyMarkets
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
-			// Deposit coins to harvest
-			depositedCoins := sdk.NewCoins()
-			for _, depositCoin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, depositCoin)
-				suite.Require().NoError(err)
-				depositedCoins.Add(depositCoin)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Execute user's previous borrows
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.previousBorrowCoins)
@@ -377,11 +372,11 @@ func (suite *KeeperTestSuite) TestBorrow() {
 
 				// Check borrower balance
 				acc := suite.getAccount(tc.args.borrower)
-				suite.Require().Equal(tc.args.expectedAccountBalance.Sub(depositedCoins), acc.GetCoins())
+				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
 
 				// Check module account balance
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(tc.args.expectedModAccountBalance.Add(depositedCoins...), mAcc.GetCoins())
+				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
 
 				// Check that borrow struct is in store
 				_, f := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)

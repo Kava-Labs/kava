@@ -58,7 +58,6 @@ var (
 	ClaimKey                         = types.ClaimKey
 	DefaultGenesisState              = types.DefaultGenesisState
 	DefaultParams                    = types.DefaultParams
-	DepositKey                       = types.DepositKey
 	DepositTypeIteratorKey           = types.DepositTypeIteratorKey
 	GetTotalVestingPeriodLength      = types.GetTotalVestingPeriodLength
 	NewClaim                         = types.NewClaim

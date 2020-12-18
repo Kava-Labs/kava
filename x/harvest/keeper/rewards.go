@@ -43,8 +43,8 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 			continue
 		}
 		rewardsDistributed := sdk.ZeroInt()
-		k.IterateDepositsByDenom(ctx, lps.DepositDenom, func(dep types.Deposit) (stop bool) {
-			rewardsShare := sdk.NewDecFromInt(dep.Amount.Amount).Quo(sdk.NewDecFromInt(totalDeposited))
+		k.IterateDeposits(ctx, func(dep types.Deposit) (stop bool) {
+			rewardsShare := sdk.NewDecFromInt(dep.Amount.AmountOf(lps.DepositDenom)).Quo(sdk.NewDecFromInt(totalDeposited))
 			if rewardsShare.IsZero() {
 				return false
 			}
@@ -52,7 +52,7 @@ func (k Keeper) ApplyDepositRewards(ctx sdk.Context) {
 			if rewardsEarned.IsZero() {
 				return false
 			}
-			k.AddToClaim(ctx, dep.Depositor, dep.Amount.Denom, types.LP, sdk.NewCoin(lps.RewardsPerSecond.Denom, rewardsEarned))
+			k.AddToClaim(ctx, dep.Depositor, lps.DepositDenom, types.LP, sdk.NewCoin(lps.RewardsPerSecond.Denom, rewardsEarned))
 			rewardsDistributed = rewardsDistributed.Add(rewardsEarned)
 			return false
 		})

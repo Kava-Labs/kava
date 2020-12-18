@@ -48,11 +48,6 @@ var (
 	sep                               = []byte(":")
 )
 
-// DepositKey key of a specific deposit in the store
-func DepositKey(denom string, depositor sdk.AccAddress) []byte {
-	return createKey([]byte(denom), sep, depositor)
-}
-
 // DepositTypeIteratorKey returns an interator prefix for interating over deposits by deposit denom
 func DepositTypeIteratorKey(denom string) []byte {
 	return createKey([]byte(denom))
