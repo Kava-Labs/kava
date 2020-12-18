@@ -280,10 +280,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 			harvest.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins
-			for _, coin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
-				suite.Require().NoError(err)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			// Borrow coins
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
@@ -294,10 +292,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 			suite.Require().True(foundBorrowBefore)
 
 			// Check that the user's deposits exist before liquidation
-			for _, coin := range tc.args.depositCoins {
-				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower, coin.Denom)
-				suite.Require().True(foundDepositBefore)
-			}
+			_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower)
+			suite.Require().True(foundDepositBefore)
 
 			// Liquidate the borrow by running begin blocker
 			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.beginBlockerTime), 0)
@@ -309,10 +305,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().False(foundBorrowAfter)
 				// Check deposits do not exist after liquidation
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().False(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().False(foundDepositAfter)
 
 				// Check that borrower's balance contains the expected coins
 				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
@@ -327,10 +321,8 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
 				// Check that the user's deposits exist
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().True(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().True(foundDepositAfter)
 
 				// Check that no auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
@@ -637,20 +629,16 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 
 			// Other borrowers take out positions by depositing and borrowing coins
 			for _, otherBorrower := range tc.args.otherBorrowers {
-				for _, coin := range tc.args.depositCoins {
-					err = suite.keeper.Deposit(suite.ctx, otherBorrower, coin)
-					suite.Require().NoError(err)
-				}
+				err = suite.keeper.Deposit(suite.ctx, otherBorrower, tc.args.depositCoins)
+				suite.Require().NoError(err)
 
 				err = suite.keeper.Borrow(suite.ctx, otherBorrower, tc.args.otherBorrowCoins)
 				suite.Require().NoError(err)
 			}
 
 			// Primary borrower deposits and borrows
-			for _, coin := range tc.args.depositCoins {
-				err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, coin)
-				suite.Require().NoError(err)
-			}
+			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
+			suite.Require().NoError(err)
 
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
@@ -661,20 +649,16 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, otherBorrower)
 				suite.Require().True(foundBorrowBefore)
 
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, otherBorrower, coin.Denom)
-					suite.Require().True(foundDepositBefore)
-				}
+				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, otherBorrower)
+				suite.Require().True(foundDepositBefore)
 			}
 
 			// Primary borrower
 			_, foundBorrowBefore := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
 			suite.Require().True(foundBorrowBefore)
 
-			for _, coin := range tc.args.depositCoins {
-				_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower, coin.Denom)
-				suite.Require().True(foundDepositBefore)
-			}
+			_, foundDepositBefore := suite.keeper.GetDeposit(suite.ctx, tc.args.borrower)
+			suite.Require().True(foundDepositBefore)
 
 			// ----------- Liquidate and check state -----------
 			// Liquidate the borrow by running begin blocker
@@ -687,10 +671,8 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().False(foundBorrowAfter)
 				// Check deposits do not exist after liquidation
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().False(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().False(foundDepositAfter)
 
 				// Check that borrower's balance contains the expected coins
 				accBorrower := suite.getAccountAtCtx(tc.args.borrower, liqCtx)
@@ -705,10 +687,8 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				_, foundBorrowAfter := suite.keeper.GetBorrow(liqCtx, tc.args.borrower)
 				suite.Require().True(foundBorrowAfter)
 				// Check that the user's deposits exist
-				for _, coin := range tc.args.depositCoins {
-					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower, coin.Denom)
-					suite.Require().True(foundDepositAfter)
-				}
+				_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, tc.args.borrower)
+				suite.Require().True(foundDepositAfter)
 
 				if !tc.errArgs.expectLiquidateOtherBorrowers {
 					// Check that no auctions have been created
@@ -725,10 +705,9 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 					suite.Require().False(foundBorrowAfter)
 
 					// Check deposits do not exist after liquidation
-					for _, coin := range tc.args.depositCoins {
-						_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower, coin.Denom)
-						suite.Require().False(foundDepositAfter)
-					}
+
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower)
+					suite.Require().False(foundDepositAfter)
 				}
 
 				var expectedLtvIndexItemCount int
@@ -746,10 +725,9 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 					suite.Require().True(foundBorrowAfter)
 
 					// Check deposits do not exist after liquidation
-					for _, coin := range tc.args.depositCoins {
-						_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower, coin.Denom)
-						suite.Require().True(foundDepositAfter)
-					}
+
+					_, foundDepositAfter := suite.keeper.GetDeposit(liqCtx, otherBorrower)
+					suite.Require().True(foundDepositAfter)
 				}
 
 				var expectedLtvIndexItemCount int
