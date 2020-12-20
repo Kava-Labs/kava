@@ -27,6 +27,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 		}
 	}
 
+	for _, mm := range gs.Params.MoneyMarkets {
+		k.SetMoneyMarket(ctx, mm.Denom, mm)
+	}
+
 	// check if the module account exists
 	LPModuleAcc := supplyKeeper.GetModuleAccount(ctx, LPAccount)
 	if LPModuleAcc == nil {
