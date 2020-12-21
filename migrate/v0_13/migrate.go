@@ -16,13 +16,24 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 	var newCollateralParams v0_13cdp.CollateralParams
 	var newGenesisAccumulationTimes v0_13cdp.GenesisAccumulationTimes
 	var previousAccumulationTime time.Time
+	var totalPrincipals v0_13cdp.GenesisTotalPrincipals
 	newStartingID := oldGenState.StartingCdpID
+
+	totalPrincipalMap := make(map[string]sdk.Int)
+	for _, cp := range oldGenState.Params.CollateralParams {
+		newCollateralParam := v0_13cdp.NewCollateralParam(cp.Denom, cp.Type, cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
+		newCollateralParams = append(newCollateralParams, newCollateralParam)
+		newGenesisAccumulationTime := v0_13cdp.NewGenesisAccumulationTime(cp.Type, previousAccumulationTime, sdk.OneDec())
+		newGenesisAccumulationTimes = append(newGenesisAccumulationTimes, newGenesisAccumulationTime)
+		totalPrincipalMap[cp.Type] = sdk.ZeroInt()
+	}
 
 	for _, cdp := range oldGenState.CDPs {
 		newCDP := v0_13cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated, sdk.OneDec())
 		if previousAccumulationTime.Before(cdp.FeesUpdated) {
 			previousAccumulationTime = cdp.FeesUpdated
 		}
+		totalPrincipalMap[cdp.Type] = totalPrincipalMap[cdp.Type].Add(newCDP.GetTotalPrincipal().Amount)
 
 		newCDPs = append(newCDPs, newCDP)
 	}
@@ -32,11 +43,9 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 		newDeposits = append(newDeposits, newDep)
 	}
 
-	for _, cp := range oldGenState.Params.CollateralParams {
-		newCollateralParam := v0_13cdp.NewCollateralParam(cp.Denom, cp.Type, cp.LiquidationRatio, cp.DebtLimit, cp.StabilityFee, cp.AuctionSize, cp.LiquidationPenalty, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
-		newCollateralParams = append(newCollateralParams, newCollateralParam)
-		newGenesisAccumulationTime := v0_13cdp.NewGenesisAccumulationTime(cp.Type, previousAccumulationTime, sdk.OneDec())
-		newGenesisAccumulationTimes = append(newGenesisAccumulationTimes, newGenesisAccumulationTime)
+	for ctype, tp := range totalPrincipalMap {
+		totalPrincipal := v0_13cdp.NewGenesisTotalPrincipal(ctype, tp)
+		totalPrincipals = append(totalPrincipals, totalPrincipal)
 	}
 
 	oldDebtParam := oldGenState.Params.DebtParam
@@ -57,5 +66,6 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 		oldGenState.PreviousDistributionTime,
 		sdk.ZeroInt(),
 		newGenesisAccumulationTimes,
+		totalPrincipals,
 	)
 }
