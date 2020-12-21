@@ -737,8 +737,8 @@ func (suite *KeeperTestSuite) TestInterest() {
 					reservesPrior = sdk.NewCoin(tc.args.borrowCoinDenom, sdk.ZeroInt())
 				}
 
-				borrowIndexPrior, foundBorrowIndexPrior := suite.keeper.GetBorrowIndex(prevCtx, tc.args.borrowCoinDenom)
-				suite.Require().True(foundBorrowIndexPrior)
+				interestFactorPrior, foundInterestFactorPrior := suite.keeper.GetInterestFactor(prevCtx, tc.args.borrowCoinDenom)
+				suite.Require().True(foundInterestFactorPrior)
 
 				// 2. Calculate expected interest owed
 				borrowRateApy, err := harvest.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.Amount))
@@ -751,7 +751,7 @@ func (suite *KeeperTestSuite) TestInterest() {
 				interestFactor := harvest.CalculateInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
 				expectedInterest := (interestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
 				expectedReserves := reservesPrior.Add(sdk.NewCoin(tc.args.borrowCoinDenom, sdk.NewDecFromInt(expectedInterest).Mul(tc.args.reserveFactor).TruncateInt()))
-				expectedBorrowIndex := borrowIndexPrior.Mul(interestFactor)
+				expectedInterestFactor := interestFactorPrior.Mul(interestFactor)
 				// -------------------------------------------------------------------------------------
 
 				// Set up snapshot chain context and run begin blocker
@@ -769,8 +769,8 @@ func (suite *KeeperTestSuite) TestInterest() {
 				suite.Require().Equal(expectedReserves, currTotalReserves)
 
 				// Check that the borrow index has increased as expected
-				currIndexPrior, _ := suite.keeper.GetBorrowIndex(snapshotCtx, tc.args.borrowCoinDenom)
-				suite.Require().Equal(expectedBorrowIndex, currIndexPrior)
+				currIndexPrior, _ := suite.keeper.GetInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
+				suite.Require().Equal(expectedInterestFactor, currIndexPrior)
 
 				// After borrowing again user's borrow balance should have any outstanding interest applied
 				if snapshot.shouldBorrow {

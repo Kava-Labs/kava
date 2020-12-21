@@ -86,11 +86,11 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		reservesPrior = newReservesPrior
 	}
 
-	borrowIndexPrior, foundBorrowIndexPrior := k.GetBorrowIndex(ctx, denom)
-	if !foundBorrowIndexPrior {
-		newBorrowIndexPrior := sdk.MustNewDecFromStr("1.0")
-		k.SetBorrowIndex(ctx, denom, newBorrowIndexPrior)
-		borrowIndexPrior = newBorrowIndexPrior
+	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, denom)
+	if !foundInterestFactorPrior {
+		newInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
+		k.SetInterestFactor(ctx, denom, newInterestFactorPrior)
+		interestFactorPrior = newInterestFactorPrior
 	}
 
 	// Fetch money market from the store
@@ -115,9 +115,9 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
-	borrowIndexNew := borrowIndexPrior.Mul(interestFactor)
+	interestFactorNew := interestFactorPrior.Mul(interestFactor)
 
-	k.SetBorrowIndex(ctx, denom, borrowIndexNew)
+	k.SetInterestFactor(ctx, denom, interestFactorNew)
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 	k.SetTotalReserves(ctx, denom, totalReservesNew)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
