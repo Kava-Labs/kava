@@ -64,11 +64,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 		}
 	}
 
-	// set the per second fee rate for each collateral type
-	for _, cp := range gs.Params.CollateralParams {
-		k.SetTotalPrincipal(ctx, cp.Type, gs.Params.DebtParam.Denom, sdk.ZeroInt())
+	for _, gtp := range gs.TotalPrincipals {
+		k.SetTotalPrincipal(ctx, gtp.CollateralType, types.DefaultStableDenom, gtp.TotalPrincipal)
 	}
-
 	// add cdps
 	for _, cdp := range gs.CDPs {
 		if cdp.ID == gs.StartingCdpID {
@@ -81,7 +79,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 		k.IndexCdpByOwner(ctx, cdp)
 		ratio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 		k.IndexCdpByCollateralRatio(ctx, cdp.Type, cdp.ID, ratio)
-		k.IncrementTotalPrincipal(ctx, cdp.Type, cdp.GetTotalPrincipal())
 	}
 
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
@@ -125,6 +122,7 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	}
 
 	var previousAccumTimes types.GenesisAccumulationTimes
+	var totalPrincipals types.GenesisTotalPrincipals
 
 	for _, cp := range params.CollateralParams {
 		interestFactor, found := k.GetInterestFactor(ctx, cp.Type)
@@ -133,7 +131,11 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		}
 		previousAccumTime, _ := k.GetPreviousAccrualTime(ctx, cp.Type)
 		previousAccumTimes = append(previousAccumTimes, types.NewGenesisAccumulationTime(cp.Type, previousAccumTime, interestFactor))
+
+		tp := k.GetTotalPrincipal(ctx, cp.Type, types.DefaultStableDenom)
+		genTotalPrincipal := types.NewGenesisTotalPrincipal(cp.Type, tp)
+		totalPrincipals = append(totalPrincipals, genTotalPrincipal)
 	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime, savingsRateDist, previousAccumTimes)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime, savingsRateDist, previousAccumTimes, totalPrincipals)
 }

@@ -67,6 +67,7 @@ var (
 	NewDeposit                         = types.NewDeposit
 	NewGenesisAccumulationTime         = types.NewGenesisAccumulationTime
 	NewGenesisState                    = types.NewGenesisState
+	NewGenesisTotalPrincipal           = types.NewGenesisTotalPrincipal
 	NewMsgCreateCDP                    = types.NewMsgCreateCDP
 	NewMsgDeposit                      = types.NewMsgDeposit
 	NewMsgDrawDebt                     = types.NewMsgDrawDebt
@@ -172,6 +173,8 @@ type (
 	GenesisAccumulationTime         = types.GenesisAccumulationTime
 	GenesisAccumulationTimes        = types.GenesisAccumulationTimes
 	GenesisState                    = types.GenesisState
+	GenesisTotalPrincipal           = types.GenesisTotalPrincipal
+	GenesisTotalPrincipals          = types.GenesisTotalPrincipals
 	MsgCreateCDP                    = types.MsgCreateCDP
 	MsgDeposit                      = types.MsgDeposit
 	MsgDrawDebt                     = types.MsgDrawDebt

@@ -61,11 +61,13 @@ type GenesisState struct {
 	PreviousDistributionTime  time.Time                `json:"previous_distribution_time" yaml:"previous_distribution_time"`
 	SavingsRateDistributed    sdk.Int                  `json:"savings_rate_distributed" yaml:"savings_rate_distributed"`
 	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
+	TotalPrincipals           GenesisTotalPrincipals   `json:"total_principals" yaml:"total_principals"`
 }
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
-	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int, prevAccumTimes GenesisAccumulationTimes) GenesisState {
+	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int,
+	prevAccumTimes GenesisAccumulationTimes, totalPrincipals GenesisTotalPrincipals) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		CDPs:                      cdps,
@@ -76,6 +78,7 @@ func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID 
 		PreviousDistributionTime:  previousDistTime,
 		SavingsRateDistributed:    savingsRateDist,
 		PreviousAccumulationTimes: prevAccumTimes,
+		TotalPrincipals:           totalPrincipals,
 	}
 }
 
@@ -96,6 +99,10 @@ func (gs GenesisState) Validate() error {
 	}
 
 	if err := gs.PreviousAccumulationTimes.Validate(); err != nil {
+		return err
+	}
+
+	if err := gs.TotalPrincipals.Validate(); err != nil {
 		return err
 	}
 
@@ -164,6 +171,41 @@ func (gats GenesisAccumulationTimes) Validate() error {
 func (gat GenesisAccumulationTime) Validate() error {
 	if gat.InterestFactor.LT(sdk.OneDec()) {
 		return fmt.Errorf("interest factor should be ≥ 1.0, is %s for %s", gat.InterestFactor, gat.CollateralType)
+	}
+	return nil
+}
+
+// GenesisTotalPrincipal stores the total principal and its corresponding collateral type
+type GenesisTotalPrincipal struct {
+	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
+	TotalPrincipal sdk.Int `json:"total_principal" yaml:"total_principal"`
+}
+
+// NewGenesisTotalPrincipal returns a new GenesisTotalPrincipal
+func NewGenesisTotalPrincipal(ctype string, principal sdk.Int) GenesisTotalPrincipal {
+	return GenesisTotalPrincipal{
+		CollateralType: ctype,
+		TotalPrincipal: principal,
+	}
+}
+
+// GenesisTotalPrincipals slice of GenesisTotalPrincipal
+type GenesisTotalPrincipals []GenesisTotalPrincipal
+
+// Validate performs validation of GenesisTotalPrincipal
+func (gtp GenesisTotalPrincipal) Validate() error {
+	if gtp.TotalPrincipal.IsNegative() {
+		return fmt.Errorf("total principal should be positive, is %s for %s", gtp.TotalPrincipal, gtp.CollateralType)
+	}
+	return nil
+}
+
+// Validate performs validation of GenesisTotalPrincipals
+func (gtps GenesisTotalPrincipals) Validate() error {
+	for _, gtp := range gtps {
+		if err := gtp.Validate(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
