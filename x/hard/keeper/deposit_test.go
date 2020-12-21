@@ -503,7 +503,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 
 			auctionKeeper := tApp.GetAuctionKeeper()
 
-			keeper := tApp.GetHarvestKeeper()
+			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
@@ -512,7 +512,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			var err error
 
 			// Run begin blocker to set up state
-			harvest.BeginBlocker(suite.ctx, suite.keeper)
+			hard.BeginBlocker(suite.ctx, suite.keeper)
 
 			// Deposit coins
 			err = suite.keeper.Deposit(suite.ctx, tc.args.borrower, tc.args.depositCoins)
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			// Set up future chain context and run begin blocker, increasing user's owed borrow balance
 			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.futureTime), 0)
 			liqCtx := suite.ctx.WithBlockTime(runAtTime)
-			harvest.BeginBlocker(liqCtx, suite.keeper)
+			hard.BeginBlocker(liqCtx, suite.keeper)
 
 			// Attempted withdraw of 1 coin still fails
 			err = suite.keeper.Withdraw(suite.ctx, tc.args.borrower, sdk.NewCoins(sdk.NewCoin("ukava", sdk.OneInt())))
