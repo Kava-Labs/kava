@@ -109,6 +109,31 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	return nil
 }
 
+// UpdateCdpAndCollateralRatioIndex updates the state of an existing cdp in the store by replacing the old index values and updating the store to the latest cdp object values
+func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) error {
+	err := k.removeOldCollateralRatioIndex(ctx, cdp.Type, cdp.ID)
+	if err != nil {
+		return err
+	}
+
+	err = k.SetCDP(ctx, cdp)
+	if err != nil {
+		return err
+	}
+	k.IndexCdpByCollateralRatio(ctx, cdp.Type, cdp.ID, ratio)
+	return nil
+}
+
+// DeleteCdpAndCollateralRatioIndex deletes an existing cdp in the store by removing the old index value and deleting the cdp object from the store
+func (k Keeper) DeleteCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP) error {
+	err := k.removeOldCollateralRatioIndex(ctx, cdp.Type, cdp.ID)
+	if err != nil {
+		return err
+	}
+
+	return k.DeleteCDP(ctx, cdp)
+}
+
 // SetCdpAndCollateralRatioIndex sets the cdp and collateral ratio index in the store
 func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) error {
 	err := k.SetCDP(ctx, cdp)
@@ -116,6 +141,16 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 		return err
 	}
 	k.IndexCdpByCollateralRatio(ctx, cdp.Type, cdp.ID, ratio)
+	return nil
+}
+
+func (k Keeper) removeOldCollateralRatioIndex(ctx sdk.Context, ctype string, id uint64) error {
+	storedCDP, found := k.GetCDP(ctx, ctype, id)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrCdpNotFound, "%d", storedCDP.ID)
+	}
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, storedCDP.Collateral, storedCDP.Type, storedCDP.GetTotalPrincipal())
+	k.RemoveCdpCollateralRatioIndex(ctx, storedCDP.Type, storedCDP.ID, oldCollateralToDebtRatio)
 	return nil
 }
 
