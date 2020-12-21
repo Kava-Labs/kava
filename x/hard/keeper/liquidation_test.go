@@ -412,7 +412,7 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8013492), // TODO: why isn't this 8004766
+						MaxBid:            sdk.NewInt64Coin("ukava", 8013492),
 						LotReturns:        lotReturns,
 					},
 				},
@@ -449,7 +449,7 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8014873), // TODO: Why isn't this 8013492
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
 						LotReturns:        otherBorrower3LotReturns,
 					},
 					auctypes.CollateralAuction{
