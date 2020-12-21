@@ -311,7 +311,8 @@ func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, bool
 	return k.CalculateLtv(ctx, deposit, borrow)
 }
 
-// CalculateLtv calculates the potential LTV given a user's deposits and borrows
+// CalculateLtv calculates the potential LTV given a user's deposits and borrows.
+// The boolean returned indicates if the LTV should be added to the store's LTV index.
 func (k Keeper) CalculateLtv(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow) (sdk.Dec, bool, error) {
 	// Load required liquidation data for every deposit/borrow denom
 	liqMap, err := k.LoadLiquidationData(ctx, deposit, borrow)

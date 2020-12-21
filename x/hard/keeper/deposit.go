@@ -119,10 +119,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
 	}
 
-	if !deposit.Amount.IsAllGTE(coins) {
-		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "%s>%s", coins, deposit.Amount)
-	}
-
 	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, coins)
 	if err != nil {
 		return err
