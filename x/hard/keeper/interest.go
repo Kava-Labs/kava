@@ -132,7 +132,6 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
-	// TODO: Increment Owed Coins ?
 
 	// Set accumulation keys in store
 	k.SetTotalReserves(ctx, denom, totalReservesNew)

@@ -28,11 +28,8 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
-	// If the user has an existing borrow, sync its outstanding interest
-	_, found := k.GetBorrow(ctx, borrower)
-	if found {
-		k.SyncOutstandingInterest(ctx, borrower)
-	}
+	// Sync any outstanding interest
+	k.SyncBorrowInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
 	err = k.ValidateBorrow(ctx, borrower, coins)
@@ -57,22 +54,39 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
+	// The first time a user borrows a denom we add it the user's borrow interest factor index
+	var borrowInterestFactors types.BorrowInterestFactors
+	currBorrow, foundBorrow := k.GetBorrow(ctx, borrower)
 	// On user's first borrow, build borrow index list containing denoms and current global borrow index value
-	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
-	if !found {
-		var borrowInterestFactors types.BorrowInterestFactors
+	if foundBorrow {
+		// If the coin denom to be borrowed is not in the user's existing borrow, we add it borrow index
+		for _, coin := range coins {
+			if !sdk.NewCoins(coin).DenomsSubsetOf(currBorrow.Amount) {
+				borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
+				borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
+				borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
+			}
+		}
+		// Concatenate new borrow interest factors to existing borrow interest factors
+		borrowInterestFactors = append(borrowInterestFactors, currBorrow.Index...)
+	} else {
 		for _, coin := range coins {
 			borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
 			borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
 			borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
 		}
-		borrow := types.NewBorrow(borrower, sdk.Coins{}, borrowInterestFactors)
-		k.SetBorrow(ctx, borrow)
 	}
 
-	// Add the newly borrowed coins to the user's borrow object
-	borrow, _ := k.GetBorrow(ctx, borrower)
-	borrow.Amount = borrow.Amount.Add(coins...)
+	// Calculate new borrow amount
+	var amount sdk.Coins
+	if foundBorrow {
+		amount = currBorrow.Amount.Add(coins...)
+	} else {
+		amount = coins
+	}
+
+	// Update the borrower's amount and borrow interest factors in the store
+	borrow := types.NewBorrow(borrower, amount, borrowInterestFactors)
 	k.SetBorrow(ctx, borrow)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, borrower)
@@ -92,18 +106,18 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	return nil
 }
 
-// SyncOutstandingInterest updates the user's owed interest on newly borrowed coins to the latest global state
-func (k Keeper) SyncOutstandingInterest(ctx sdk.Context, addr sdk.AccAddress) {
+// SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state
+func (k Keeper) SyncBorrowInterest(ctx sdk.Context, addr sdk.AccAddress) {
 	totalNewInterest := sdk.Coins{}
 
-	// Update user's borrow index list for each asset in the 'coins' array.
-	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
+	// Update user's borrow interest factor list for each asset in the 'coins' array.
+	// We use a list of BorrowInterestFactors here because Amino doesn't support marshaling maps.
 	borrow, found := k.GetBorrow(ctx, addr)
 	if !found {
 		return
 	}
 	for _, coin := range borrow.Amount {
-		// Locate the borrow index item by coin denom in the user's list of borrow indexes
+		// Locate the borrow interest factor item by coin denom in the user's list of borrow indexes
 		foundAtIndex := -1
 		for i := range borrow.Index {
 			if borrow.Index[i].Denom == coin.Denom {

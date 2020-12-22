@@ -302,7 +302,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 	}
 
 	for _, tc := range testCases {
-		interestFactor := hard.CalculateInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
+		interestFactor := hard.CalculateBorrowInterestFactor(tc.args.perSecondInterestRate, tc.args.timeElapsed)
 		suite.Require().Equal(tc.args.expectedValue, interestFactor)
 	}
 }
@@ -737,7 +737,7 @@ func (suite *KeeperTestSuite) TestInterest() {
 					reservesPrior = sdk.NewCoin(tc.args.borrowCoinDenom, sdk.ZeroInt())
 				}
 
-				interestFactorPrior, foundInterestFactorPrior := suite.keeper.GetInterestFactor(prevCtx, tc.args.borrowCoinDenom)
+				interestFactorPrior, foundInterestFactorPrior := suite.keeper.GetBorrowInterestFactor(prevCtx, tc.args.borrowCoinDenom)
 				suite.Require().True(foundInterestFactorPrior)
 
 				// 2. Calculate expected interest owed
@@ -748,7 +748,7 @@ func (suite *KeeperTestSuite) TestInterest() {
 				borrowRateSpy, err := hard.APYToSPY(sdk.OneDec().Add(borrowRateApy))
 				suite.Require().NoError(err)
 
-				interestFactor := hard.CalculateInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
+				interestFactor := hard.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
 				expectedInterest := (interestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
 				expectedReserves := reservesPrior.Add(sdk.NewCoin(tc.args.borrowCoinDenom, sdk.NewDecFromInt(expectedInterest).Mul(tc.args.reserveFactor).TruncateInt()))
 				expectedInterestFactor := interestFactorPrior.Mul(interestFactor)
@@ -769,7 +769,7 @@ func (suite *KeeperTestSuite) TestInterest() {
 				suite.Require().Equal(expectedReserves, currTotalReserves)
 
 				// Check that the borrow index has increased as expected
-				currIndexPrior, _ := suite.keeper.GetInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
+				currIndexPrior, _ := suite.keeper.GetBorrowInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
 				suite.Require().Equal(expectedInterestFactor, currIndexPrior)
 
 				// After borrowing again user's borrow balance should have any outstanding interest applied

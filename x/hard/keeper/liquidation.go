@@ -39,7 +39,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return false, err
 	}
 
-	k.SyncOutstandingInterest(ctx, borrower)
+	k.SyncBorrowInterest(ctx, borrower)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldInsertIndex, borrower)
 
