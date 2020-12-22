@@ -86,10 +86,10 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		reservesPrior = newReservesPrior
 	}
 
-	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, denom)
+	interestFactorPrior, foundInterestFactorPrior := k.GetBorrowInterestFactor(ctx, denom)
 	if !foundInterestFactorPrior {
 		newInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
-		k.SetInterestFactor(ctx, denom, newInterestFactorPrior)
+		k.SetBorrowInterestFactor(ctx, denom, newInterestFactorPrior)
 		interestFactorPrior = newInterestFactorPrior
 	}
 
@@ -111,13 +111,20 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return err
 	}
 
+	// Calculate borrow interest factor
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
 	interestFactorNew := interestFactorPrior.Mul(interestFactor)
 
-	k.SetInterestFactor(ctx, denom, interestFactorNew)
+	// Calculate supply interest factor
+	// borrowIndexDiff := borrowIndexNew.Sub(borrowIndexPrior)
+	// supplyInterestFactor := CalculateSupplyInterestFactor(borrowIndexDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
+	// supplyIndexNew := supplyIndexPrior.Mul(supplyInterestFactor)
+	// k.SetSupplyIndex(ctx, denom, borrowIndexNew)
+
+	k.SetBorrowInterestFactor(ctx, denom, interestFactorNew)
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 	k.SetTotalReserves(ctx, denom, totalReservesNew)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())

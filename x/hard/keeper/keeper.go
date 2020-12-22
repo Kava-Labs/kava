@@ -326,22 +326,22 @@ func (k Keeper) SetTotalReserves(ctx sdk.Context, denom string, coin sdk.Coin) {
 	store.Set([]byte(denom), bz)
 }
 
-// GetInterestFactor returns the current interest factor for an individual market
-func (k Keeper) GetInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
+// GetBorrowInterestFactor returns the current borrow interest factor for an individual market
+func (k Keeper) GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
 		return sdk.ZeroDec(), false
 	}
-	var interestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &interestFactor)
-	return interestFactor, true
+	var borrowInterestFactor sdk.Dec
+	k.cdc.MustUnmarshalBinaryBare(bz, &borrowInterestFactor)
+	return borrowInterestFactor, true
 }
 
-// SetInterestFactor sets the current interest factor for an individual market
-func (k Keeper) SetInterestFactor(ctx sdk.Context, denom string, borrowIndex sdk.Dec) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(borrowIndex)
+// SetBorrowInterestFactor sets the current borrow interest factor for an individual market
+func (k Keeper) SetBorrowInterestFactor(ctx sdk.Context, denom string, borrowInterestFactor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(borrowInterestFactor)
 	store.Set([]byte(denom), bz)
 }
 
