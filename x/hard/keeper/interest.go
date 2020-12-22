@@ -86,11 +86,18 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		reservesPrior = newReservesPrior
 	}
 
-	interestFactorPrior, foundInterestFactorPrior := k.GetBorrowInterestFactor(ctx, denom)
-	if !foundInterestFactorPrior {
-		newInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
-		k.SetBorrowInterestFactor(ctx, denom, newInterestFactorPrior)
-		interestFactorPrior = newInterestFactorPrior
+	borrowInterestFactorPrior, foundBorrowInterestFactorPrior := k.GetBorrowInterestFactor(ctx, denom)
+	if !foundBorrowInterestFactorPrior {
+		newBorrowInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
+		k.SetBorrowInterestFactor(ctx, denom, newBorrowInterestFactorPrior)
+		borrowInterestFactorPrior = newBorrowInterestFactorPrior
+	}
+
+	supplyInterestFactorPrior, foundSupplyInterestFactorPrior := k.GetSupplyInterestFactor(ctx, denom)
+	if !foundSupplyInterestFactorPrior {
+		newSupplyInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
+		k.SetSupplyInterestFactor(ctx, denom, newSupplyInterestFactorPrior)
+		supplyInterestFactorPrior = newSupplyInterestFactorPrior
 	}
 
 	// Fetch money market from the store
@@ -111,23 +118,26 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return err
 	}
 
-	// Calculate borrow interest factor
-	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
-	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
+	// Calculate borrow interest factor and update
+	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
+	interestAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
-	interestFactorNew := interestFactorPrior.Mul(interestFactor)
-
-	// Calculate supply interest factor
-	// borrowIndexDiff := borrowIndexNew.Sub(borrowIndexPrior)
-	// supplyInterestFactor := CalculateSupplyInterestFactor(borrowIndexDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
-	// supplyIndexNew := supplyIndexPrior.Mul(supplyInterestFactor)
-	// k.SetSupplyIndex(ctx, denom, borrowIndexNew)
-
-	k.SetBorrowInterestFactor(ctx, denom, interestFactorNew)
+	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
+	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
+
+	// Calculate supply interest factor and update
+	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactor)
+	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
+	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
+	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
+	// TODO: Increment Owed Coins ?
+
+	// Set accumulation keys in store
 	k.SetTotalReserves(ctx, denom, totalReservesNew)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
+
 	return nil
 }
 
@@ -162,10 +172,10 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	return sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply))
 }
 
-// CalculateInterestFactor calculates the simple interest scaling factor,
+// CalculateBorrowInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate * number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
-func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
+func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
@@ -178,6 +188,15 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 
 	// Convert interest factor to an unscaled sdk.Dec
 	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
+}
+
+// CalculateSupplyInterestFactor calculates the supply interest factor, which is the percentage of borrow interest
+// that flows to each unit of supply, i.e. at 50% utilization and 0% reserve factor, a 5% borrow interest will
+// correspond to a 2.5% supply interest.
+func CalculateSupplyInterestFactor(borrowInterestFactorIncrement, cash, borrows, reserves, reserveFactor sdk.Dec) sdk.Dec {
+	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
+	supplyInterestFactorIncrement := borrowInterestFactorIncrement.Mul(utilRatio).Mul((sdk.OneDec().Sub(reserveFactor)))
+	return sdk.OneDec().Add(supplyInterestFactorIncrement)
 }
 
 // APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.

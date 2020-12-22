@@ -44,7 +44,8 @@ var (
 	PreviousAccrualTimePrefix         = []byte{0x08} // denom -> time
 	TotalReservesPrefix               = []byte{0x09} // denom -> sdk.Coin
 	BorrowInterestFactorPrefix        = []byte{0x10} // denom -> sdk.Dec
-	LtvIndexPrefix                    = []byte{0x11}
+	SupplyInterestFactorPrefix        = []byte{0x11} // denom -> sdk.Dec
+	LtvIndexPrefix                    = []byte{0x12}
 	sep                               = []byte(":")
 )
 
