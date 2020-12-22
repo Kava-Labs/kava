@@ -123,47 +123,6 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	return nil
 }
 
-// SyncSupplyInterest updates the user's earned interest on newly deposited coins to the latest global state
-func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
-	totalNewInterest := sdk.Coins{}
-
-	// Update user's supply index list for each asset in the 'coins' array.
-	// We use a list of SupplyInterestFactors here because Amino doesn't support marshaling maps.
-	deposit, found := k.GetDeposit(ctx, addr)
-	if !found {
-		return
-	}
-
-	for _, coin := range deposit.Amount {
-		// Locate the deposit index item by coin denom in the user's list of deposit indexes
-		foundAtIndex := -1
-		for i := range deposit.Index {
-			if deposit.Index[i].Denom == coin.Denom {
-				foundAtIndex = i
-				break
-			}
-		}
-
-		interestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
-		if foundAtIndex == -1 { // First time user has supplied this denom
-			deposit.Index = append(deposit.Index, types.NewSupplyInterestFactor(coin.Denom, interestFactorValue))
-		} else { // User has an existing supply index for this denom
-			// Calculate interest earned by user since asset's last deposit index update
-			storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
-			userLastInterestFactor := deposit.Index[foundAtIndex].Value
-			interest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
-			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
-			// We're synced up, so update user's deposit index value to match the current global deposit index value
-			deposit.Index[foundAtIndex].Value = interestFactorValue
-		}
-	}
-	// Add all pending interest to user's deposit
-	deposit.Amount = deposit.Amount.Add(totalNewInterest...)
-
-	// Update user's deposit in the store
-	k.SetDeposit(ctx, deposit)
-}
-
 // GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	var macc supplyExported.ModuleAccountI

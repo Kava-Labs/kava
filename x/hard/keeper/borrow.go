@@ -106,46 +106,6 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	return nil
 }
 
-// SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state
-func (k Keeper) SyncBorrowInterest(ctx sdk.Context, addr sdk.AccAddress) {
-	totalNewInterest := sdk.Coins{}
-
-	// Update user's borrow interest factor list for each asset in the 'coins' array.
-	// We use a list of BorrowInterestFactors here because Amino doesn't support marshaling maps.
-	borrow, found := k.GetBorrow(ctx, addr)
-	if !found {
-		return
-	}
-	for _, coin := range borrow.Amount {
-		// Locate the borrow interest factor item by coin denom in the user's list of borrow indexes
-		foundAtIndex := -1
-		for i := range borrow.Index {
-			if borrow.Index[i].Denom == coin.Denom {
-				foundAtIndex = i
-				break
-			}
-		}
-
-		interestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
-		if foundAtIndex == -1 { // First time user has borrowed this denom
-			borrow.Index = append(borrow.Index, types.NewBorrowInterestFactor(coin.Denom, interestFactorValue))
-		} else { // User has an existing borrow index for this denom
-			// Calculate interest owed by user since asset's last borrow index update
-			storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
-			userLastInterestFactor := borrow.Index[foundAtIndex].Value
-			interest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
-			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
-			// We're synced up, so update user's borrow index value to match the current global borrow index value
-			borrow.Index[foundAtIndex].Value = interestFactorValue
-		}
-	}
-	// Add all pending interest to user's borrow
-	borrow.Amount = borrow.Amount.Add(totalNewInterest...)
-
-	// Update user's borrow in the store
-	k.SetBorrow(ctx, borrow)
-}
-
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
 func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount sdk.Coins) error {
 	if amount.IsZero() {

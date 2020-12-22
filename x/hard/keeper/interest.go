@@ -198,6 +198,87 @@ func CalculateSupplyInterestFactor(borrowInterestFactorIncrement, cash, borrows,
 	return sdk.OneDec().Add(supplyInterestFactorIncrement)
 }
 
+// SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state
+func (k Keeper) SyncBorrowInterest(ctx sdk.Context, addr sdk.AccAddress) {
+	totalNewInterest := sdk.Coins{}
+
+	// Update user's borrow interest factor list for each asset in the 'coins' array.
+	// We use a list of BorrowInterestFactors here because Amino doesn't support marshaling maps.
+	borrow, found := k.GetBorrow(ctx, addr)
+	if !found {
+		return
+	}
+	for _, coin := range borrow.Amount {
+		// Locate the borrow interest factor item by coin denom in the user's list of borrow indexes
+		foundAtIndex := -1
+		for i := range borrow.Index {
+			if borrow.Index[i].Denom == coin.Denom {
+				foundAtIndex = i
+				break
+			}
+		}
+
+		interestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
+		if foundAtIndex == -1 { // First time user has borrowed this denom
+			borrow.Index = append(borrow.Index, types.NewBorrowInterestFactor(coin.Denom, interestFactorValue))
+		} else { // User has an existing borrow index for this denom
+			// Calculate interest owed by user since asset's last borrow index update
+			storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+			userLastInterestFactor := borrow.Index[foundAtIndex].Value
+			interest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
+			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+			// We're synced up, so update user's borrow index value to match the current global borrow index value
+			borrow.Index[foundAtIndex].Value = interestFactorValue
+		}
+	}
+	// Add all pending interest to user's borrow
+	borrow.Amount = borrow.Amount.Add(totalNewInterest...)
+
+	// Update user's borrow in the store
+	k.SetBorrow(ctx, borrow)
+}
+
+// SyncSupplyInterest updates the user's earned interest on newly deposited coins to the latest global state
+func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
+	totalNewInterest := sdk.Coins{}
+
+	// Update user's supply index list for each asset in the 'coins' array.
+	// We use a list of SupplyInterestFactors here because Amino doesn't support marshaling maps.
+	deposit, found := k.GetDeposit(ctx, addr)
+	if !found {
+		return
+	}
+
+	for _, coin := range deposit.Amount {
+		// Locate the deposit index item by coin denom in the user's list of deposit indexes
+		foundAtIndex := -1
+		for i := range deposit.Index {
+			if deposit.Index[i].Denom == coin.Denom {
+				foundAtIndex = i
+				break
+			}
+		}
+
+		interestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
+		if foundAtIndex == -1 { // First time user has supplied this denom
+			deposit.Index = append(deposit.Index, types.NewSupplyInterestFactor(coin.Denom, interestFactorValue))
+		} else { // User has an existing supply index for this denom
+			// Calculate interest earned by user since asset's last deposit index update
+			storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
+			userLastInterestFactor := deposit.Index[foundAtIndex].Value
+			interest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
+			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+			// We're synced up, so update user's deposit index value to match the current global deposit index value
+			deposit.Index[foundAtIndex].Value = interestFactorValue
+		}
+	}
+	// Add all pending interest to user's deposit
+	deposit.Amount = deposit.Amount.Add(totalNewInterest...)
+
+	// Update user's deposit in the store
+	k.SetDeposit(ctx, deposit)
+}
+
 // APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
 // SPY = Per second compounded interest rate is how cosmos mathematically represents APY.
 func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
