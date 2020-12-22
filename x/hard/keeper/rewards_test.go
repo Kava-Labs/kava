@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, cs(tc.args.totalDeposits))
 			keeper := tApp.GetHardKeeper()
-			deposit := types.NewDeposit(tc.args.depositor, tc.args.depositAmount)
+			deposit := types.NewDeposit(tc.args.depositor, tc.args.depositAmount, types.SupplyInterestFactors{})
 			keeper.SetDeposit(ctx, deposit)
 			suite.app = tApp
 			suite.ctx = ctx
