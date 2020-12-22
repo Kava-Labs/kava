@@ -19,6 +19,9 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/deposits", types.ModuleName), queryDepositsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claims", types.ModuleName), queryClaimsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/accounts", types.ModuleName), queryModAccountsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/borrows", types.ModuleName), queryBorrowsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/borrow", types.ModuleName), queryBorrowHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/borrowed", types.ModuleName), queryBorrowedHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -138,6 +141,135 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetClaims)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		var borrowDenom string
+		var borrowOwner sdk.AccAddress
+
+		if x := r.URL.Query().Get(RestBorrowDenom); len(x) != 0 {
+			borrowDenom = strings.TrimSpace(x)
+		}
+
+		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
+			borrowOwnerStr := strings.ToLower(strings.TrimSpace(x))
+			borrowOwner, err = sdk.AccAddressFromBech32(borrowOwnerStr)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from borrow owner %s", borrowOwnerStr))
+				return
+			}
+		}
+
+		params := types.NewQueryBorrowsParams(page, limit, borrowOwner, borrowDenom)
+
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetBorrows)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryBorrowHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		var borrowOwner sdk.AccAddress
+
+		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
+			borrowOwnerStr := strings.ToLower(strings.TrimSpace(x))
+			borrowOwner, err = sdk.AccAddressFromBech32(borrowOwnerStr)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from borrow owner %s", borrowOwnerStr))
+				return
+			}
+		}
+
+		params := types.NewQueryBorrowParams(borrowOwner)
+
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetBorrow)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		var borrowDenom string
+
+		if x := r.URL.Query().Get(RestBorrowDenom); len(x) != 0 {
+			borrowDenom = strings.TrimSpace(x)
+		}
+
+		params := types.NewQueryBorrowedParams(borrowDenom)
+
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetBorrowed)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
