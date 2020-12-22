@@ -25,6 +25,8 @@ func NewHandler(k Keeper) sdk.Handler {
 			return handleMsgBorrow(ctx, k, msg)
 		case types.MsgRepay:
 			return handleMsgRepay(ctx, k, msg)
+		case types.MsgLiquidate:
+			return handleMsgLiquidate(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -114,6 +116,24 @@ func handleMsgRepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgRepay) (*sdk.
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+		),
+	)
+	return &sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
+
+func handleMsgLiquidate(ctx sdk.Context, k keeper.Keeper, msg types.MsgLiquidate) (*sdk.Result, error) {
+	_, err := k.AttemptKeeperLiquidation(ctx, msg.Keeper, msg.Borrower)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Keeper.String()),
 		),
 	)
 	return &sdk.Result{

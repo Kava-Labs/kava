@@ -53,6 +53,8 @@ var (
 	_ sdk.Msg = &MsgDeposit{}
 	_ sdk.Msg = &MsgWithdraw{}
 	_ sdk.Msg = &MsgBorrow{}
+	_ sdk.Msg = &MsgRepay{}
+	_ sdk.Msg = &MsgLiquidate{}
 )
 
 // MsgDeposit deposit collateral to the hard module.
