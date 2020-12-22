@@ -345,6 +345,25 @@ func (k Keeper) SetBorrowInterestFactor(ctx sdk.Context, denom string, borrowInt
 	store.Set([]byte(denom), bz)
 }
 
+// GetSupplyInterestFactor returns the current supply interest factor for an individual market
+func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	var supplyInterestFactor sdk.Dec
+	k.cdc.MustUnmarshalBinaryBare(bz, &supplyInterestFactor)
+	return supplyInterestFactor, true
+}
+
+// SetSupplyInterestFactor sets the current supply interest factor for an individual market
+func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInterestFactor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(supplyInterestFactor)
+	store.Set([]byte(denom), bz)
+}
+
 // InsertIntoLtvIndex indexes a user's borrow object by its current LTV
 func (k Keeper) InsertIntoLtvIndex(ctx sdk.Context, ltv sdk.Dec, borrower sdk.AccAddress) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
