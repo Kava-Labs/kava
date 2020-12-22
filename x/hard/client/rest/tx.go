@@ -75,7 +75,7 @@ func postClaimHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgClaimReward(req.From, req.Receiver, req.DepositDenom, strings.ToLower(req.DepositType), req.Multiplier)
+		msg := types.NewMsgClaimReward(req.From, req.Receiver, req.DepositDenom, strings.ToLower(req.ClaimType), req.MultiplierName)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
