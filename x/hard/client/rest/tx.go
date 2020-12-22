@@ -19,6 +19,9 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/deposit", types.ModuleName), postDepositHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/withdraw", types.ModuleName), postWithdrawHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc(fmt.Sprintf("/%s/claim", types.ModuleName), postClaimHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/borrow", types.ModuleName), postBorrowHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/repay", types.ModuleName), postRepayHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/liquidate", types.ModuleName), postLiquidateHandlerFn(cliCtx)).Methods("POST")
 }
 
 func postDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -76,6 +79,69 @@ func postClaimHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgClaimReward(req.From, req.Receiver, req.DepositDenom, strings.ToLower(req.ClaimType), req.MultiplierName)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postBorrowHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode POST request body
+		var req PostBorrowReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		msg := types.NewMsgBorrow(req.From, req.Amount)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode POST request body
+		var req PostRepayReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		msg := types.NewMsgRepay(req.From, req.Amount)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postLiquidateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Decode POST request body
+		var req PostLiquidateReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		msg := types.NewMsgLiquidate(req.From, req.Borrower)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

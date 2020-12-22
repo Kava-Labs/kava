@@ -47,3 +47,24 @@ type PostClaimReq struct {
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 	ClaimType      string         `json:"claim_type" yaml:"claim_type"`
 }
+
+// PostBorrowReq defines the properties of a borrow request's body
+type PostBorrowReq struct {
+	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	From    sdk.AccAddress `json:"from" yaml:"from"`
+	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
+}
+
+// PostRepayReq defines the properties of a repay request's body
+type PostRepayReq struct {
+	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	From    sdk.AccAddress `json:"from" yaml:"from"`
+	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
+}
+
+// PostLiquidateReq defines the properties of a liquidate request's body
+type PostLiquidateReq struct {
+	BaseReq  rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	From     sdk.AccAddress `json:"from" yaml:"from"`
+	Borrower sdk.AccAddress `json:"borrower" yaml:"borrower"`
+}
