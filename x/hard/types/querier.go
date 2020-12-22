@@ -69,21 +69,21 @@ func NewQueryAccountParams(page, limit int, name string) QueryAccountParams {
 	}
 }
 
-// QueryBorrowParams is the params for a filtered borrow query
-type QueryBorrowParams struct {
+// QueryBorrowsParams is the params for a filtered borrows query
+type QueryBorrowsParams struct {
 	Page        int            `json:"page" yaml:"page"`
 	Limit       int            `json:"limit" yaml:"limit"`
 	Owner       sdk.AccAddress `json:"owner" yaml:"owner"`
 	BorrowDenom string         `json:"borrow_denom" yaml:"borrow_denom"`
 }
 
-// NewQueryBorrowParams creates a new QueryBorrowParams
-func NewQueryBorrowParams(page, limit int, owner sdk.AccAddress, depositDenom string) QueryBorrowParams {
-	return QueryBorrowParams{
+// NewQueryBorrowsParams creates a new QueryBorrowsParams
+func NewQueryBorrowsParams(page, limit int, owner sdk.AccAddress, borrowDenom string) QueryBorrowsParams {
+	return QueryBorrowsParams{
 		Page:        page,
 		Limit:       limit,
 		Owner:       owner,
-		BorrowDenom: depositDenom,
+		BorrowDenom: borrowDenom,
 	}
 }
 
@@ -99,14 +99,14 @@ func NewQueryBorrowedParams(denom string) QueryBorrowedParams {
 	}
 }
 
-// QueryBorrow is the params for a current borrow balance query
-type QueryBorrow struct {
+// QueryBorrowParams is the params for a current borrow balance query
+type QueryBorrowParams struct {
 	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
 }
 
-// NewQueryBorrow creates a new QueryBorrow
-func NewQueryBorrow(owner sdk.AccAddress) QueryBorrow {
-	return QueryBorrow{
+// NewQueryBorrowParams creates a new QueryBorrowParams
+func NewQueryBorrowParams(owner sdk.AccAddress) QueryBorrowParams {
+	return QueryBorrowParams{
 		Owner: owner,
 	}
 }

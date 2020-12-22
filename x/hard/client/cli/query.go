@@ -274,7 +274,7 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
-			params := types.NewQueryBorrowParams(page, limit, owner, depositDenom)
+			params := types.NewQueryBorrowsParams(page, limit, owner, depositDenom)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -350,7 +350,7 @@ func queryBorrowCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = borrowOwner
 			}
 
-			params := types.NewQueryBorrow(owner)
+			params := types.NewQueryBorrowParams(owner)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
