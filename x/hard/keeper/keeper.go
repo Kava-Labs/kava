@@ -248,6 +248,29 @@ func (k Keeper) GetBorrowedCoins(ctx sdk.Context) (sdk.Coins, bool) {
 	return borrowedCoins, true
 }
 
+// SetSuppliedCoins sets the total amount of coins currently supplied in the store
+func (k Keeper) SetSuppliedCoins(ctx sdk.Context, suppliedCoins sdk.Coins) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SuppliedCoinsPrefix)
+	if suppliedCoins.Empty() {
+		store.Set([]byte{}, []byte{})
+	} else {
+		bz := k.cdc.MustMarshalBinaryBare(suppliedCoins)
+		store.Set([]byte{}, bz)
+	}
+}
+
+// GetSuppliedCoins returns an sdk.Coins object from the store representing all currently supplied coins
+func (k Keeper) GetSuppliedCoins(ctx sdk.Context) (sdk.Coins, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SuppliedCoinsPrefix)
+	bz := store.Get([]byte{})
+	if bz == nil {
+		return sdk.Coins{}, false
+	}
+	var suppliedCoins sdk.Coins
+	k.cdc.MustUnmarshalBinaryBare(bz, &suppliedCoins)
+	return suppliedCoins, true
+}
+
 // GetMoneyMarket returns a money market from the store for a denom
 func (k Keeper) GetMoneyMarket(ctx sdk.Context, denom string) (types.MoneyMarket, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)

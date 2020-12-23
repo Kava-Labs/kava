@@ -69,14 +69,13 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return nil
 	}
 
-	// Get available hard module account cash on hand
+	// Get current protocol state and hold in memory as 'prior'
 	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
 
-	// Get prior borrows
-	borrowsPrior := sdk.NewCoin(denom, sdk.ZeroInt())
-	borrowCoinsPrior, foundBorrowCoinsPrior := k.GetBorrowedCoins(ctx)
-	if foundBorrowCoinsPrior {
-		borrowsPrior = sdk.NewCoin(denom, borrowCoinsPrior.AmountOf(denom))
+	borrowedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
+	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)
+	if foundBorrowedCoinsPrior {
+		borrowedPrior = sdk.NewCoin(denom, borrowedCoinsPrior.AmountOf(denom))
 	}
 
 	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx, denom)
@@ -93,6 +92,12 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		borrowInterestFactorPrior = newBorrowInterestFactorPrior
 	}
 
+	suppliedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
+	suppliedCoinsPrior, foundSuppliedCoinsPrior := k.GetSuppliedCoins(ctx)
+	if foundSuppliedCoinsPrior {
+		suppliedPrior = sdk.NewCoin(denom, suppliedCoinsPrior.AmountOf(denom))
+	}
+
 	supplyInterestFactorPrior, foundSupplyInterestFactorPrior := k.GetSupplyInterestFactor(ctx, denom)
 	if !foundSupplyInterestFactorPrior {
 		newSupplyInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
@@ -107,7 +112,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
-	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
+	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
 	if err != nil {
 		return err
 	}
@@ -120,18 +125,21 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// Calculate borrow interest factor and update
 	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
-	interestAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
-	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
-	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
+	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
+	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
+	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
 	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 
 	// Calculate supply interest factor and update
 	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactor)
-	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
+	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
+	interestSupplyAccumulated := (supplyInterestFactor.Mul(sdk.NewDecFromInt(suppliedPrior.Amount)).TruncateInt()).Sub(suppliedPrior.Amount)
+	totalSupplyInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestSupplyAccumulated))
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
+	k.IncrementSuppliedCoins(ctx, totalSupplyInterestAccumulated)
 
 	// Set accumulation keys in store
 	k.SetTotalReserves(ctx, denom, totalReservesNew)
