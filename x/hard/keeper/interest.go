@@ -267,8 +267,9 @@ func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
 			storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
 			userLastInterestFactor := deposit.Index[foundAtIndex].Value
 			interest := storedAmount.Mul(interestFactorValue).Quo(userLastInterestFactor)
-			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
-
+			if interest.TruncateInt().GT(sdk.ZeroInt()) {
+				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+			}
 			// We're synced up, so update user's deposit index value to match the current global deposit index value
 			deposit.Index[foundAtIndex].Value = interestFactorValue
 		}
