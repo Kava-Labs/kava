@@ -266,7 +266,7 @@ func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
 			// Calculate interest earned by user since asset's last deposit index update
 			storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
 			userLastInterestFactor := deposit.Index[foundAtIndex].Value
-			interest := storedAmount.Mul(interestFactorValue).Quo(userLastInterestFactor)
+			interest := (storedAmount.Mul(interestFactorValue).Quo(userLastInterestFactor)).Sub(storedAmount)
 			if interest.TruncateInt().GT(sdk.ZeroInt()) {
 				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
 			}
