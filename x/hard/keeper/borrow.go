@@ -214,7 +214,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	return nil
 }
 
-// IncrementBorrowedCoins increments the amount of borrowed coins by the newCoins parameter
+// IncrementBorrowedCoins increments the total amount of borrowed coins by the newCoins parameter
 func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {
@@ -226,7 +226,7 @@ func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 	}
 }
 
-// DecrementBorrowedCoins decrements the amount of borrowed coins by the coins parameter
+// DecrementBorrowedCoins decrements the total amount of borrowed coins by the coins parameter
 func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {

@@ -94,6 +94,10 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
 
+	// Update total supplied amount by newly supplied coins. Don't add user's pending interest as
+	// it has already been included in the total supplied coins by the BeginBlocker.
+	k.IncrementSuppliedCoins(ctx, coins)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHardDeposit,
@@ -128,4 +132,32 @@ func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total s
 	var macc supplyExported.ModuleAccountI
 	macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return macc.GetCoins().AmountOf(depositDenom)
+}
+
+// IncrementSuppliedCoins increments the total amount of supplied coins by the newCoins parameter
+func (k Keeper) IncrementSuppliedCoins(ctx sdk.Context, newCoins sdk.Coins) {
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		if !newCoins.Empty() {
+			k.SetSuppliedCoins(ctx, newCoins)
+		}
+	} else {
+		k.SetSuppliedCoins(ctx, suppliedCoins.Add(newCoins...))
+	}
+}
+
+// DecrementSuppliedCoins decrements the total amount of supplied coins by the coins parameter
+func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrSuppliedCoinsNotFound, "cannot withdraw if no coins are deposited")
+	}
+
+	updatedSuppliedCoins, isAnyNegative := suppliedCoins.SafeSub(coins)
+	if isAnyNegative {
+		return types.ErrNegativeSuppliedCoins
+	}
+
+	k.SetSuppliedCoins(ctx, updatedSuppliedCoins)
+	return nil
 }
