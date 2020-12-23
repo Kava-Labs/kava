@@ -238,7 +238,7 @@ func (k Keeper) SyncBorrowInterest(ctx sdk.Context, addr sdk.AccAddress) {
 	k.SetBorrow(ctx, borrow)
 }
 
-// SyncSupplyInterest updates the user's earned interest on newly deposited coins to the latest global state
+// SyncSupplyInterest updates the user's earned interest on supplied coins based on the latest global state
 func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
 	totalNewInterest := sdk.Coins{}
 
