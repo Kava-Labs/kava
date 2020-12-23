@@ -30,7 +30,10 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 		return types.ErrBorrowNotFound
 	}
 
-	payment := k.CalculatePaymentAmount(borrow.Amount, coins)
+	payment, err := k.CalculatePaymentAmount(borrow.Amount, coins)
+	if err != nil {
+		return err
+	}
 
 	// Sends coins from user to Hard module account
 	err = k.supplyKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, payment)
@@ -73,8 +76,13 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.
 }
 
 // CalculatePaymentAmount prevents overpayment when repaying borrowed coins
-func (k Keeper) CalculatePaymentAmount(owed sdk.Coins, payment sdk.Coins) sdk.Coins {
+func (k Keeper) CalculatePaymentAmount(owed sdk.Coins, payment sdk.Coins) (sdk.Coins, error) {
 	repayment := sdk.Coins{}
+
+	if !payment.DenomsSubsetOf(owed) {
+		return repayment, types.ErrInvalidRepaymentDenom
+	}
+
 	for _, coin := range payment {
 		if coin.Amount.GT(owed.AmountOf(coin.Denom)) {
 			repayment = append(repayment, sdk.NewCoin(coin.Denom, owed.AmountOf(coin.Denom)))
@@ -82,5 +90,5 @@ func (k Keeper) CalculatePaymentAmount(owed sdk.Coins, payment sdk.Coins) sdk.Co
 			repayment = append(repayment, coin)
 		}
 	}
-	return repayment
+	return repayment, nil
 }
