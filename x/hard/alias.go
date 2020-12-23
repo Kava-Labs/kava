@@ -54,6 +54,7 @@ var (
 	CalculateUtilizationRatio        = keeper.CalculateUtilizationRatio
 	CalculateBorrowRate              = keeper.CalculateBorrowRate
 	CalculateBorrowInterestFactor    = keeper.CalculateBorrowInterestFactor
+	CalculateSupplyInterestFactor    = keeper.CalculateSupplyInterestFactor
 	APYToSPY                         = keeper.APYToSPY
 	ClaimKey                         = types.ClaimKey
 	DefaultGenesisState              = types.DefaultGenesisState
