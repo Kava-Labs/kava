@@ -23,16 +23,16 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
 
+	amount, err := k.CalculateWithdrawAmount(deposit.Amount, coins)
+	if err != nil {
+		return err
+	}
+	proposedDeposit := types.NewDeposit(deposit.Depositor, deposit.Amount.Sub(amount), types.SupplyInterestFactors{})
+
 	borrow, found := k.GetBorrow(ctx, depositor)
 	if !found {
 		borrow = types.Borrow{}
 	}
-
-	proposedDepositAmount, isNegative := deposit.Amount.SafeSub(coins)
-	if isNegative {
-		return types.ErrNegativeBorrowedCoins
-	}
-	proposedDeposit := types.NewDeposit(deposit.Depositor, proposedDepositAmount, types.SupplyInterestFactors{})
 
 	valid, err := k.IsWithinValidLtvRange(ctx, proposedDeposit, borrow)
 	if err != nil {
@@ -43,20 +43,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
 	}
 
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, coins)
+	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, amount)
 	if err != nil {
 		return err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeHardWithdrawal,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
-			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-		),
-	)
-
-	if deposit.Amount.IsEqual(coins) {
+	if deposit.Amount.IsEqual(amount) {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeDeleteHardDeposit,
@@ -67,10 +59,40 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return nil
 	}
 
-	deposit.Amount = deposit.Amount.Sub(coins)
+	deposit.Amount = deposit.Amount.Sub(amount)
 	k.SetDeposit(ctx, deposit)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
 
+	// Update total supplied amount
+	k.DecrementBorrowedCoins(ctx, amount)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeHardWithdrawal,
+			sdk.NewAttribute(sdk.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
+		),
+	)
+
 	return nil
+}
+
+// CalculateWithdrawAmount enables full withdraw of deposited coins by adjusting withdraw amount
+// to equal total deposit amount if the requested withdraw amount > current deposit amount
+func (k Keeper) CalculateWithdrawAmount(available sdk.Coins, request sdk.Coins) (sdk.Coins, error) {
+	result := sdk.Coins{}
+
+	if !request.DenomsSubsetOf(available) {
+		return result, types.ErrInvalidWithdrawDenom
+	}
+
+	for _, coin := range request {
+		if coin.Amount.GT(available.AmountOf(coin.Denom)) {
+			result = append(result, sdk.NewCoin(coin.Denom, available.AmountOf(coin.Denom)))
+		} else {
+			result = append(result, coin)
+		}
+	}
+	return result, nil
 }

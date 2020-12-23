@@ -71,4 +71,8 @@ var (
 	ErrSuppliedCoinsNotFound = sdkerrors.Register(ModuleName, 32, "no supplied coins found")
 	// ErrNegativeSuppliedCoins error for when substracting coins from the total supplied balance results in a negative amount
 	ErrNegativeSuppliedCoins = sdkerrors.Register(ModuleName, 33, "subtraction results in negative supplied amount")
+	// ErrInvalidWithdrawDenom error for when user attempts to withdraw a non-supplied coin type
+	ErrInvalidWithdrawDenom = sdkerrors.Register(ModuleName, 34, "no coins of this type deposited")
+	// ErrInvalidRepaymentDenom error for when user attempts to repay a non-borrowed coin type
+	ErrInvalidRepaymentDenom = sdkerrors.Register(ModuleName, 35, "no coins of this type borrowed")
 )
