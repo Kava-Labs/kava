@@ -22,11 +22,11 @@ import (
 	v38_5supply "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/supply"
 	v0_11bep3 "github.com/kava-labs/kava/x/bep3"
 	v0_9bep3 "github.com/kava-labs/kava/x/bep3/legacy/v0_9"
-	v0_11cdp "github.com/kava-labs/kava/x/cdp"
+	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
 	v0_11committee "github.com/kava-labs/kava/x/committee"
 	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
-	v0_11harvest "github.com/kava-labs/kava/x/harvest"
+	v0_11harvest "github.com/kava-labs/kava/x/harvest/legacy/v0_11"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 	v0_11issuance "github.com/kava-labs/kava/x/issuance"
@@ -129,7 +129,7 @@ func MigrateAppState(v0_9AppState v39_genutil.AppMap) v39_genutil.AppMap {
 		delete(v0_9AppState, v0_9pricefeed.ModuleName)
 		v0_11AppState[v0_9pricefeed.ModuleName] = v0_11Codec.MustMarshalJSON(MigratePricefeed(pricefeedGenState))
 	}
-	// v0_11AppState[v0_11harvest.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateHarvest())
+	v0_11AppState[v0_11harvest.ModuleName] = v0_11Codec.MustMarshalJSON(MigrateHarvest())
 	v0_11AppState[v0_11issuance.ModuleName] = v0_11Codec.MustMarshalJSON(v0_11issuance.DefaultGenesisState())
 	return v0_11AppState
 }
@@ -633,34 +633,29 @@ func MigrateGov(oldGenState v39_1gov.GenesisState) v39_1gov.GenesisState {
 	return oldGenState
 }
 
-// // MigrateHarvest initializes the harvest genesis state for kava-4
-// func MigrateHarvest() v0_11harvest.GenesisState {
-// 	// total HARD per second for lps (week one): 633761
-// 	// HARD per second for delegators (week one): 1267522
-// 	incentiveGoLiveDate := time.Date(2020, 10, 16, 14, 0, 0, 0, time.UTC)
-// 	incentiveEndDate := time.Date(2024, 10, 16, 14, 0, 0, 0, time.UTC)
-// 	claimEndDate := time.Date(2025, 10, 16, 14, 0, 0, 0, time.UTC)
-// 	harvestGS := v0_11harvest.NewGenesisState(v0_11harvest.NewParams(
-// 		true,
-// 		v0_11harvest.DistributionSchedules{
-// 			v0_11harvest.NewDistributionSchedule(true, "usdx", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(310543)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-// 			v0_11harvest.NewDistributionSchedule(true, "hard", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(285193)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-// 			v0_11harvest.NewDistributionSchedule(true, "bnb", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(12675)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-// 			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(25350)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-// 		},
-// 		v0_11harvest.DelegatorDistributionSchedules{v0_11harvest.NewDelegatorDistributionSchedule(
-// 			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(1267522)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-// 			time.Hour*24,
-// 		),
-// 		},
-// 		v0_11harvest.BlockLimits{
-// 			v0_11harvest.NewBlockLimit("usdx", sdk.Dec(0.9)),
-// 			v0_11harvest.NewBlockLimit("ukava", sdk.Dec(0.6)),
-// 			v0_11harvest.NewBlockLimit("bnb", sdk.Dec(0.9)),
-// 		},
-// 	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes)
-// 	return harvestGS
-// }
+// MigrateHarvest initializes the harvest genesis state for kava-4
+func MigrateHarvest() v0_11harvest.GenesisState {
+	// total HARD per second for lps (week one): 633761
+	// HARD per second for delegators (week one): 1267522
+	incentiveGoLiveDate := time.Date(2020, 10, 16, 14, 0, 0, 0, time.UTC)
+	incentiveEndDate := time.Date(2024, 10, 16, 14, 0, 0, 0, time.UTC)
+	claimEndDate := time.Date(2025, 10, 16, 14, 0, 0, 0, time.UTC)
+	harvestGS := v0_11harvest.NewGenesisState(v0_11harvest.NewParams(
+		true,
+		v0_11harvest.DistributionSchedules{
+			v0_11harvest.NewDistributionSchedule(true, "usdx", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(310543)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			v0_11harvest.NewDistributionSchedule(true, "hard", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(285193)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			v0_11harvest.NewDistributionSchedule(true, "bnb", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(12675)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(25350)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+		},
+		v0_11harvest.DelegatorDistributionSchedules{v0_11harvest.NewDelegatorDistributionSchedule(
+			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(1267522)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
+			time.Hour*24,
+		),
+		},
+	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes)
+	return harvestGS
+}
 
 // MigrateCDP migrates from a v0.9 (or v0.10) cdp genesis state to a v0.11 cdp genesis state
 func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
@@ -670,7 +665,7 @@ func MigrateCDP(oldGenState v0_9cdp.GenesisState) v0_11cdp.GenesisState {
 	newStartingID := oldGenState.StartingCdpID
 
 	for _, cdp := range oldGenState.CDPs {
-		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated, sdk.OneDec())
+		newCDP := v0_11cdp.NewCDPWithFees(cdp.ID, cdp.Owner, cdp.Collateral, "bnb-a", cdp.Principal, cdp.AccumulatedFees, cdp.FeesUpdated)
 		newCDPs = append(newCDPs, newCDP)
 	}
 

@@ -26,7 +26,6 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 		return err
 	}
 
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal.Add(principal), cdp.AccumulatedFees)
@@ -59,9 +58,6 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 		),
 	)
 
-	// remove old collateral:debt index
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
-
 	// update cdp state
 	cdp.Principal = cdp.Principal.Add(principal)
 
@@ -70,7 +66,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 
 	// set cdp state and indexes in the store
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-	return k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	return k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 }
 
 // RepayPrincipal removes debt from the cdp
@@ -91,8 +87,6 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	if err != nil {
 		return err
 	}
-
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
@@ -145,7 +139,6 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	)
 
 	// remove the old collateral:debt ratio index
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 
 	// update cdp state
 	if !principalPayment.IsZero() {
@@ -160,11 +153,11 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	// and remove the cdp and indexes from the store
 	if cdp.Principal.IsZero() && cdp.AccumulatedFees.IsZero() {
 		k.ReturnCollateral(ctx, cdp)
-		if err := k.DeleteCDP(ctx, cdp); err != nil {
+		k.RemoveCdpOwnerIndex(ctx, cdp)
+		err := k.DeleteCdpAndCollateralRatioIndex(ctx, cdp)
+		if err != nil {
 			return err
 		}
-
-		k.RemoveCdpOwnerIndex(ctx, cdp)
 
 		// emit cdp close event
 		ctx.EventManager().EmitEvent(
@@ -178,7 +171,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 
 	// set cdp state and update indexes
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-	return k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	return k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 }
 
 // ValidatePaymentCoins validates that the input coins are valid for repaying debt

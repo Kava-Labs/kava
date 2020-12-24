@@ -9,6 +9,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
@@ -74,6 +75,12 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime(asset+"-a", time.Time{}, sdk.OneDec()),
+		},
+		TotalPrincipals: cdp.GenesisTotalPrincipals{
+			cdp.NewGenesisTotalPrincipal(asset+"-a", sdk.ZeroInt()),
+		},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -153,6 +160,14 @@ func NewCDPGenStateMulti() app.GenesisState {
 		GovDenom:                 cdp.DefaultGovDenom,
 		CDPs:                     cdp.CDPs{},
 		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
+		},
+		TotalPrincipals: types.GenesisTotalPrincipals{
+			cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
+			cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
+		},
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }

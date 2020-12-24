@@ -26,8 +26,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 		return err
 	}
 
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
@@ -43,8 +41,6 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 
 	k.SetDeposit(ctx, deposit)
 
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
-
 	cdp.Collateral = cdp.Collateral.Add(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 
@@ -56,7 +52,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 		),
 	)
 
-	return k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	return k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 }
 
 // WithdrawCollateral removes collateral from a cdp if it does not put the cdp below the liquidation ratio
@@ -77,8 +73,6 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Type, cdp.Principal, cdp.AccumulatedFees, spot)
@@ -95,11 +89,9 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 		panic(err)
 	}
 
-	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
-
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
+	err = k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	if err != nil {
 		return err
 	}
