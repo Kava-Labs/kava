@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -246,8 +247,13 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	suite.Equal(1, len(xrpCdps))
 	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
 	suite.Equal(2, len(xrpCdps))
+	fmt.Println(xrpCdps[0])
+	fmt.Println(xrpCdps[1])
 	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdk.SmallestDec()))
 	suite.Equal(3, len(xrpCdps))
+	fmt.Println(xrpCdps[0])
+	fmt.Println(xrpCdps[1])
+	fmt.Println(xrpCdps[2])
 	suite.keeper.DeleteCDP(suite.ctx, cdps[0])
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdps[0].Collateral, cdps[0].Type, cdps[0].Principal)

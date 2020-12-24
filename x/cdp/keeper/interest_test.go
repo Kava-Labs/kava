@@ -670,6 +670,94 @@ func (suite *InterestTestSuite) TestCalculateCDPInterest() {
 	}
 }
 
+func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
+	type args struct {
+		ctype              string
+		numberCdps         int
+		slice              int
+		initialCollateral  sdk.Coin
+		minPrincipal       sdk.Coin
+		principalIncrement sdk.Coin
+		initialTime        time.Time
+		timeElapsed        int
+		expectedCDPs       int
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+
+	oneYearInSeconds := 31536000
+	testCases := []test{
+
+		{
+			"1 year",
+			args{
+				ctype:              "bnb-a",
+				numberCdps:         20,
+				slice:              10,
+				initialCollateral:  c("bnb", 100000000000),
+				minPrincipal:       c("usdx", 100000000),
+				principalIncrement: c("usdx", 10000000),
+				initialTime:        time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:        oneYearInSeconds,
+				expectedCDPs:       10,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			// setup account state
+			_, addrs := app.GeneratePrivKeyAddressPairs(tc.args.numberCdps)
+			ak := suite.app.GetAccountKeeper()
+			sk := suite.app.GetSupplyKeeper()
+			for _, addr := range addrs {
+				acc := ak.NewAccountWithAddress(suite.ctx, addr)
+				ak.SetAccount(suite.ctx, acc)
+				err := sk.MintCoins(suite.ctx, types.ModuleName, cs(tc.args.initialCollateral))
+				suite.Require().NoError(err)
+				err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, addr, cs(tc.args.initialCollateral))
+				suite.Require().NoError(err)
+			}
+			// setup pricefeed
+			pk := suite.app.GetPriceFeedKeeper()
+			pk.SetPrice(suite.ctx, sdk.AccAddress{}, "bnb:usd", d("20.0"), tc.args.initialTime.Add(time.Duration(int(time.Second)*tc.args.timeElapsed)))
+
+			// setup cdp state
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			for j, addr := range addrs {
+				initialPrincipal := tc.args.minPrincipal.Add(c("usdx", int64(j)*tc.args.principalIncrement.Amount.Int64()))
+				err := suite.keeper.AddCdp(suite.ctx, addr, tc.args.initialCollateral, initialPrincipal, tc.args.ctype)
+				suite.Require().NoError(err)
+			}
+
+			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+			err := suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, i(int64(tc.args.slice)), sdk.MaxSortableDec, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			cdpsUpdatedCount := 0
+
+			for _, addr := range addrs {
+				cdp, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, addr, tc.args.ctype)
+				suite.Require().True(found)
+				if cdp.FeesUpdated.Equal(suite.ctx.BlockTime()) {
+					cdpsUpdatedCount += 1
+				}
+			}
+			suite.Require().Equal(tc.args.expectedCDPs, cdpsUpdatedCount)
+		})
+	}
+}
+
 func TestInterestTestSuite(t *testing.T) {
 	suite.Run(t, new(InterestTestSuite))
 }

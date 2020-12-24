@@ -112,6 +112,21 @@ func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, collateralType str
 	}
 }
 
+// GetSliceOfCDPsByRatioAndType returns a slice of cdps of size equal to the input cutoffCount
+// sorted by target ratio in ascending order (ie, the lowest collateral:debt ratio cdps are returned first)
+func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdk.Int, targetRatio sdk.Dec, collateralType string) (cdps types.CDPs) {
+	count := sdk.ZeroInt()
+	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
+		cdps = append(cdps, cdp)
+		count = count.Add(sdk.OneInt())
+		if count.GTE(cutoffCount) {
+			return true
+		}
+		return false
+	})
+	return cdps
+}
+
 // SetSavingsRateDistributed sets the SavingsRateDistributed in the store
 func (k Keeper) SetSavingsRateDistributed(ctx sdk.Context, totalDistributed sdk.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRateDistributedKey)

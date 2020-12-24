@@ -71,6 +71,7 @@ var (
 	NewMsgCreateCDP                    = types.NewMsgCreateCDP
 	NewMsgDeposit                      = types.NewMsgDeposit
 	NewMsgDrawDebt                     = types.NewMsgDrawDebt
+	NewMsgLiquidate                    = types.NewMsgLiquidate
 	NewMsgRepayDebt                    = types.NewMsgRepayDebt
 	NewMsgWithdraw                     = types.NewMsgWithdraw
 	NewParams                          = types.NewParams
@@ -134,6 +135,7 @@ var (
 	ErrInvalidPayment                   = types.ErrInvalidPayment
 	ErrInvalidWithdrawAmount            = types.ErrInvalidWithdrawAmount
 	ErrLoadingAugmentedCDP              = types.ErrLoadingAugmentedCDP
+	ErrNotLiquidatable                  = types.ErrNotLiquidatable
 	ErrPricefeedDown                    = types.ErrPricefeedDown
 	GovDenomKey                         = types.GovDenomKey
 	InterestFactorPrefix                = types.InterestFactorPrefix
@@ -178,6 +180,7 @@ type (
 	MsgCreateCDP                    = types.MsgCreateCDP
 	MsgDeposit                      = types.MsgDeposit
 	MsgDrawDebt                     = types.MsgDrawDebt
+	MsgLiquidate                    = types.MsgLiquidate
 	MsgRepayDebt                    = types.MsgRepayDebt
 	MsgWithdraw                     = types.MsgWithdraw
 	Params                          = types.Params

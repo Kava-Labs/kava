@@ -109,33 +109,39 @@ func DefaultParams() Params {
 
 // CollateralParam governance parameters for each collateral type within the cdp module
 type CollateralParam struct {
-	Denom               string   `json:"denom" yaml:"denom"` // Coin name of collateral type
-	Type                string   `json:"type" yaml:"type"`
-	LiquidationRatio    sdk.Dec  `json:"liquidation_ratio" yaml:"liquidation_ratio"`     // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
-	DebtLimit           sdk.Coin `json:"debt_limit" yaml:"debt_limit"`                   // Maximum amount of debt allowed to be drawn from this collateral type
-	StabilityFee        sdk.Dec  `json:"stability_fee" yaml:"stability_fee"`             // per second stability fee for loans opened using this collateral
-	AuctionSize         sdk.Int  `json:"auction_size" yaml:"auction_size"`               // Max amount of collateral to sell off in any one auction.
-	LiquidationPenalty  sdk.Dec  `json:"liquidation_penalty" yaml:"liquidation_penalty"` // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
-	Prefix              byte     `json:"prefix" yaml:"prefix"`
-	SpotMarketID        string   `json:"spot_market_id" yaml:"spot_market_id"`               // marketID of the spot price of the asset from the pricefeed - used for opening CDPs, depositing, withdrawing
-	LiquidationMarketID string   `json:"liquidation_market_id" yaml:"liquidation_market_id"` // marketID of the pricefeed used for liquidation
-	ConversionFactor    sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`         // factor for converting internal units to one base unit of collateral
+	Denom                            string   `json:"denom" yaml:"denom"` // Coin name of collateral type
+	Type                             string   `json:"type" yaml:"type"`
+	LiquidationRatio                 sdk.Dec  `json:"liquidation_ratio" yaml:"liquidation_ratio"`     // The ratio (Collateral (priced in stable coin) / Debt) under which a CDP will be liquidated
+	DebtLimit                        sdk.Coin `json:"debt_limit" yaml:"debt_limit"`                   // Maximum amount of debt allowed to be drawn from this collateral type
+	StabilityFee                     sdk.Dec  `json:"stability_fee" yaml:"stability_fee"`             // per second stability fee for loans opened using this collateral
+	AuctionSize                      sdk.Int  `json:"auction_size" yaml:"auction_size"`               // Max amount of collateral to sell off in any one auction.
+	LiquidationPenalty               sdk.Dec  `json:"liquidation_penalty" yaml:"liquidation_penalty"` // percentage penalty (between [0, 1]) applied to a cdp if it is liquidated
+	Prefix                           byte     `json:"prefix" yaml:"prefix"`
+	SpotMarketID                     string   `json:"spot_market_id" yaml:"spot_market_id"`                                           // marketID of the spot price of the asset from the pricefeed - used for opening CDPs, depositing, withdrawing
+	LiquidationMarketID              string   `json:"liquidation_market_id" yaml:"liquidation_market_id"`                             // marketID of the pricefeed used for liquidation
+	KeeperRewardPercentage           sdk.Dec  `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`                       // the percentage of a CDPs collateral that gets rewarded to a keeper that liquidates the position
+	CheckCollateralizationIndexCount sdk.Int  `json:"check_collateralization_index_count" yaml:"check_collateralization_index_count"` // the number of cdps that will be checked for liquidation in the begin blocker
+	ConversionFactor                 sdk.Int  `json:"conversion_factor" yaml:"conversion_factor"`                                     // factor for converting internal units to one base unit of collateral
 }
 
 // NewCollateralParam returns a new CollateralParam
-func NewCollateralParam(denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int, liqPenalty sdk.Dec, prefix byte, spotMarketID, liquidationMarketID string, conversionFactor sdk.Int) CollateralParam {
+func NewCollateralParam(
+	denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int,
+	liqPenalty sdk.Dec, prefix byte, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdk.Int, conversionFactor sdk.Int) CollateralParam {
 	return CollateralParam{
-		Denom:               denom,
-		Type:                ctype,
-		LiquidationRatio:    liqRatio,
-		DebtLimit:           debtLimit,
-		StabilityFee:        stabilityFee,
-		AuctionSize:         auctionSize,
-		LiquidationPenalty:  liqPenalty,
-		Prefix:              prefix,
-		SpotMarketID:        spotMarketID,
-		LiquidationMarketID: liquidationMarketID,
-		ConversionFactor:    conversionFactor,
+		Denom:                            denom,
+		Type:                             ctype,
+		LiquidationRatio:                 liqRatio,
+		DebtLimit:                        debtLimit,
+		StabilityFee:                     stabilityFee,
+		AuctionSize:                      auctionSize,
+		LiquidationPenalty:               liqPenalty,
+		Prefix:                           prefix,
+		SpotMarketID:                     spotMarketID,
+		LiquidationMarketID:              liquidationMarketID,
+		KeeperRewardPercentage:           keeperReward,
+		CheckCollateralizationIndexCount: checkIndexCount,
+		ConversionFactor:                 conversionFactor,
 	}
 }
 
@@ -152,8 +158,12 @@ func (cp CollateralParam) String() string {
 	Prefix: %b
 	Spot Market ID: %s
 	Liquidation Market ID: %s
+	Keeper Reward Percentage: %s
+	Check Collateralization Count: %s
 	Conversion Factor: %s`,
-		cp.Denom, cp.Type, cp.LiquidationRatio, cp.StabilityFee, cp.LiquidationPenalty, cp.DebtLimit, cp.AuctionSize, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID, cp.ConversionFactor)
+		cp.Denom, cp.Type, cp.LiquidationRatio, cp.StabilityFee, cp.LiquidationPenalty,
+		cp.DebtLimit, cp.AuctionSize, cp.Prefix, cp.SpotMarketID, cp.LiquidationMarketID,
+		cp.KeeperRewardPercentage, cp.CheckCollateralizationIndexCount, cp.ConversionFactor)
 }
 
 // CollateralParams array of CollateralParam
@@ -380,6 +390,12 @@ func validateCollateralParams(i interface{}) error {
 		}
 		if cp.StabilityFee.LT(sdk.OneDec()) || cp.StabilityFee.GT(stabilityFeeMax) {
 			return fmt.Errorf("stability fee must be ≥ 1.0, ≤ %s, is %s for %s", stabilityFeeMax, cp.StabilityFee, cp.Denom)
+		}
+		if cp.KeeperRewardPercentage.IsNegative() || cp.KeeperRewardPercentage.GT(sdk.OneDec()) {
+			return fmt.Errorf("keeper reward percentage should be between 0 and 1, is %s for %s", cp.KeeperRewardPercentage, cp.Denom)
+		}
+		if cp.CheckCollateralizationIndexCount.IsNegative() {
+			return fmt.Errorf("keeper reward percentage should be positive, is %s for %s", cp.CheckCollateralizationIndexCount, cp.Denom)
 		}
 	}
 

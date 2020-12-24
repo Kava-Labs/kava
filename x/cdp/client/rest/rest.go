@@ -65,3 +65,10 @@ type PostRepayReq struct {
 	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
 	Payment        sdk.Coin       `json:"payment" yaml:"payment"`
 }
+
+// PostLiquidateReq defines the properties of cdp liquidation request's body.
+type PostLiquidateReq struct {
+	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
+	Owner          sdk.AccAddress `json:"owner" yaml:"owner"`
+	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
+}

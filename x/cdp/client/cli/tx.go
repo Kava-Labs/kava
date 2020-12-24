@@ -31,6 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		GetCmdWithdraw(cdc),
 		GetCmdDraw(cdc),
 		GetCmdRepay(cdc),
+		GetCmdLiquidate(cdc),
 	)...)
 
 	return cdpTxCmd
@@ -194,6 +195,37 @@ $ %s tx %s repay atom-a 1000usdx --from myKeyName
 				return err
 			}
 			msg := types.NewMsgRepayDebt(cliCtx.GetFromAddress(), args[0], payment)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+// GetCmdLiquidate cli command for liquidating a cdp.
+func GetCmdLiquidate(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "liquidate [cdp-owner-address] [collateral-type]",
+		Short: "liquidate a cdp",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Liquidate a cdp if it is below the required liquidation ratio
+
+Example:
+$ %s tx %s liquidate kava1y70y90wzmnf00e63efk2lycgqwepthdmyzsfzm  btcb-a --from myKeyName
+`, version.ClientName, types.ModuleName)),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			addr, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgLiquidate(cliCtx.GetFromAddress(), addr, args[1])
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
