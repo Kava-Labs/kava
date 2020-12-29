@@ -2,7 +2,6 @@ package incentive_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -13,7 +12,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive"
-	"github.com/kava-labs/kava/x/kavadist"
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
@@ -51,15 +50,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 }
 
 func (suite *HandlerTestSuite) addClaim() {
-	supplyKeeper := suite.app.GetSupplyKeeper()
-	macc := supplyKeeper.GetModuleAccount(suite.ctx, kavadist.ModuleName)
-	err := supplyKeeper.MintCoins(suite.ctx, macc.GetName(), cs(c("ukava", 1000000)))
-	suite.Require().NoError(err)
-	cp := incentive.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), incentive.Multipliers{incentive.NewMultiplier(incentive.Small, 1, sdk.MustNewDecFromStr("0.33"))})
-	suite.NotPanics(func() {
-		suite.keeper.SetClaimPeriod(suite.ctx, cp)
-	})
-	c1 := incentive.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", 1)
+	c1 := incentive.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", types.NewRewardIndex("ukava", sdk.ZeroDec()))
 	suite.NotPanics(func() {
 		suite.keeper.SetClaim(suite.ctx, c1)
 	})

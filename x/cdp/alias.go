@@ -74,6 +74,7 @@ var (
 	NewMsgLiquidate                    = types.NewMsgLiquidate
 	NewMsgRepayDebt                    = types.NewMsgRepayDebt
 	NewMsgWithdraw                     = types.NewMsgWithdraw
+	NewMultiCDPHooks                   = types.NewMultiCDPHooks
 	NewParams                          = types.NewParams
 	NewQueryCdpDeposits                = types.NewQueryCdpDeposits
 	NewQueryCdpParams                  = types.NewQueryCdpParams
@@ -165,6 +166,7 @@ type (
 	AugmentedCDP                    = types.AugmentedCDP
 	AugmentedCDPs                   = types.AugmentedCDPs
 	CDP                             = types.CDP
+	CDPHooks                        = types.CDPHooks
 	CDPs                            = types.CDPs
 	CollateralParam                 = types.CollateralParam
 	CollateralParams                = types.CollateralParams
@@ -183,6 +185,7 @@ type (
 	MsgLiquidate                    = types.MsgLiquidate
 	MsgRepayDebt                    = types.MsgRepayDebt
 	MsgWithdraw                     = types.MsgWithdraw
+	MultiCDPHooks                   = types.MultiCDPHooks
 	Params                          = types.Params
 	PricefeedKeeper                 = types.PricefeedKeeper
 	QueryCdpDeposits                = types.QueryCdpDeposits

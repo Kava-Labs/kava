@@ -24,18 +24,11 @@ func makeTestCodec() (cdc *codec.Codec) {
 
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
-
-	// Set up RewardPeriod, ClaimPeriod, Claim, and previous block time
-	rewardPeriod := types.NewRewardPeriod("btc", time.Now().UTC(), time.Now().Add(time.Hour*1).UTC(),
-		sdk.NewCoin("ukava", sdk.NewInt(10000000000)), time.Now().Add(time.Hour*2).UTC(), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
-	claimPeriod := types.NewClaimPeriod("btc", 1, time.Now().Add(time.Hour*24).UTC(), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
 	addr, _ := sdk.AccAddressFromBech32("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
-	claim := types.NewClaim(addr, sdk.NewCoin("ukava", sdk.NewInt(1000000)), "bnb", 1)
+	claim := types.NewClaim(addr, sdk.NewCoin("ukava", sdk.NewInt(1000000)), "bnb", types.NewRewardIndex("ukava", sdk.ZeroDec()))
 	prevBlockTime := time.Now().Add(time.Hour * -1).UTC()
 
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: types.RewardPeriodKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&rewardPeriod)},
-		kv.Pair{Key: types.ClaimPeriodKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&claimPeriod)},
 		kv.Pair{Key: types.ClaimKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&claim)},
 		kv.Pair{Key: types.NextClaimPeriodIDPrefix, Value: sdk.Uint64ToBigEndian(10)},
 		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
@@ -46,10 +39,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"RewardPeriod", fmt.Sprintf("%v\n%v", rewardPeriod, rewardPeriod)},
-		{"ClaimPeriod", fmt.Sprintf("%v\n%v", claimPeriod, claimPeriod)},
 		{"Claim", fmt.Sprintf("%v\n%v", claim, claim)},
-		{"NextClaimPeriodID", "10\n10"},
 		{"PreviousBlockTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
 		{"other", ""},
 	}

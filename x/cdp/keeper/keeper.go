@@ -21,6 +21,7 @@ type Keeper struct {
 	supplyKeeper    types.SupplyKeeper
 	auctionKeeper   types.AuctionKeeper
 	accountKeeper   types.AccountKeeper
+	hooks           types.CDPHooks
 	maccPerms       map[string][]string
 }
 
@@ -39,8 +40,18 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		auctionKeeper:   ak,
 		supplyKeeper:    sk,
 		accountKeeper:   ack,
+		hooks:           nil,
 		maccPerms:       maccs,
 	}
+}
+
+// SetHooks sets the cdp keeper hooks
+func (k *Keeper) SetHooks(hooks types.CDPHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set validator hooks twice")
+	}
+	k.hooks = hooks
+	return k
 }
 
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom

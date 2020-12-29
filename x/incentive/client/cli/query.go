@@ -26,7 +26,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryParamsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
 		queryRewardPeriodsCmd(queryRoute, cdc),
-		queryClaimPeriodsCmd(queryRoute, cdc),
 	)...)
 
 	return incentiveQueryCmd
@@ -126,33 +125,6 @@ func queryRewardPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("failed to unmarshal reward periods: %w", err)
 			}
 			return cliCtx.PrintOutput(rewardPeriods)
-		},
-	}
-}
-
-func queryClaimPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim-periods",
-		Short: "get active claim periods",
-		Long:  "Get the current set of active incentive claim periods.",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetClaimPeriods)
-			res, height, err := cliCtx.QueryWithData(route, nil)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var claimPeriods types.ClaimPeriods
-			if err := cdc.UnmarshalJSON(res, &claimPeriods); err != nil {
-				return fmt.Errorf("failed to unmarshal claim periods: %w", err)
-			}
-			return cliCtx.PrintOutput(claimPeriods)
 		},
 	}
 }

@@ -30,6 +30,7 @@ var (
 	ClaimKeyPrefix          = []byte{0x03} // prefix for keys that store claims
 	NextClaimPeriodIDPrefix = []byte{0x04} // prefix for keys that store the next ID for claims periods
 	PreviousBlockTimeKey    = []byte{0x05} // prefix for key that stores the previous blocktime
+	RewardFactorKey         = []byte{0x06}
 )
 
 // Keys
@@ -49,8 +50,8 @@ func GetClaimPeriodPrefix(collateralType string, id uint64) []byte {
 }
 
 // GetClaimPrefix returns the key (collateral type + id + address) for a claim
-func GetClaimPrefix(addr sdk.AccAddress, collateralType string, id uint64) []byte {
-	return createKey([]byte(collateralType), sdk.Uint64ToBigEndian(id), addr)
+func GetClaimPrefix(addr sdk.AccAddress, collateralType string) []byte {
+	return createKey([]byte(collateralType), addr)
 }
 
 func createKey(bytes ...[]byte) (r []byte) {
