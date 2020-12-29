@@ -28,7 +28,7 @@ var (
 	KeyRewards                      = []byte("RewardPeriods")
 	DefaultActive                   = false
 	DefaultRewardPeriods            = RewardPeriods{}
-	DefaultClaims                   = Claims{}
+	DefaultClaims                   = USDXMintingClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
 	DefaultPreviousBlockTime        = tmtime.Canonical(time.Unix(0, 0))
 	GovDenom                        = cdptypes.DefaultGovDenom

@@ -87,9 +87,33 @@ func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
 	return cs
 }
 
+// IterateClaimsByOwner iterates over all claim  objects owned by the input address and preforms a callback function
+func (k Keeper) IterateClaimsByOwner(ctx sdk.Context, owner sdk.AccAddress, cb func(c types.Claim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, owner.Bytes())
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.Claim
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
+		if cb(c) {
+			break
+		}
+	}
+}
+
+// GetAllClaimsByOwner returns all claim objects owned by the input address
+func (k Keeper) GetAllClaimsByOwner(ctx sdk.Context, owner sdk.AccAddress) types.Claims {
+	cs := types.Claims{}
+	k.IterateClaimsByOwner(ctx, owner, func(c types.Claim) bool {
+		cs = append(cs, c)
+		return false
+	})
+	return cs
+}
+
 // GetPreviousAccrualTime returns the last time a collateral type accrued rewards
 func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BlockTimeKey)
 	bz := store.Get([]byte(ctype))
 	if bz == nil {
 		return time.Time{}, false
@@ -100,13 +124,13 @@ func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (blockTime
 
 // SetPreviousAccrualTime sets the last time a collateral type accrued rewards
 func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, ctype string, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BlockTimeKey)
 	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(blockTime))
 }
 
 // IterateAccrualTimes iterates over all previous accrual times and preforms a callback function
 func (k Keeper) IterateAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BlockTimeKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

@@ -24,8 +24,7 @@ type QueryClaimsParams struct {
 // NewQueryClaimsParams returns QueryClaimsParams
 func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClaimsParams {
 	return QueryClaimsParams{
-		Owner:          owner,
-		CollateralType: collateralType,
+		Owner: owner,
 	}
 }
 
@@ -33,6 +32,5 @@ func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClai
 type PostClaimReq struct {
 	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 }

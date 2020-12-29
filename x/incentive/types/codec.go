@@ -18,5 +18,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(GenesisAccumulationTime{}, "incentive/GenesisAccumulationTime", nil)
 	cdc.RegisterConcrete(GenesisAccumulationTimes{}, "incentive/GenesisAccumulationTimes", nil)
 	cdc.RegisterConcrete(RewardPeriod{}, "incentive/RewardPeriod", nil)
-	cdc.RegisterConcrete(Claim{}, "incentive/Claim", nil)
+	cdc.RegisterConcrete(USDXMintingClaim{}, "incentive/USDXMintingClaim", nil)
+	cdc.RegisterConcrete(USDXMintingClaims{}, "incentive/USDXMintingClaims", nil)
+
 }

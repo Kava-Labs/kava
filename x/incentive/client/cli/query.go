@@ -65,7 +65,7 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 			cliCtx = cliCtx.WithHeight(height)
 
-			var claims types.AugmentedClaims
+			var claims types.USDXMintingClaims
 			if err := cdc.UnmarshalJSON(res, &claims); err != nil {
 				return fmt.Errorf("failed to unmarshal claims: %w", err)
 			}

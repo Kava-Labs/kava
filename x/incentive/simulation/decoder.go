@@ -22,7 +22,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &claimB)
 		return fmt.Sprintf("%v\n%v", claimA, claimB)
 
-	case bytes.Equal(kvA.Key[:1], types.PreviousBlockTimeKey):
+	case bytes.Equal(kvA.Key[:1], types.BlockTimeKey):
 		var timeA, timeB time.Time
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &timeA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &timeB)

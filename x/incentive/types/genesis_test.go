@@ -16,7 +16,7 @@ func TestGenesisStateValidate(t *testing.T) {
 	type args struct {
 		params      Params
 		genAccTimes GenesisAccumulationTimes
-		claims      Claims
+		claims      USDXMintingClaims
 	}
 
 	type errArgs struct {
@@ -50,14 +50,16 @@ func TestGenesisStateValidate(t *testing.T) {
 					PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 					RewardFactor:             sdk.ZeroDec(),
 				}},
-				claims: Claims{
+				claims: USDXMintingClaims{
 					{
-						Owner:          sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
-						Reward:         sdk.NewCoin("ukava", sdk.NewInt(100000000)),
-						CollateralType: "bnb-a",
-						RewardIndex: RewardIndex{
-							Denom: "ukava",
-							Value: sdk.ZeroDec(),
+						Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+						Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+
+						RewardIndexes: []RewardIndex{
+							{
+								CollateralType: "bnb-a",
+								RewardFactor:   sdk.ZeroDec(),
+							},
 						},
 					},
 				},
@@ -89,9 +91,17 @@ func TestGenesisStateValidate(t *testing.T) {
 			args: args{
 				params:      DefaultParams(),
 				genAccTimes: DefaultGenesisAccumulationTimes,
-				claims: Claims{
+				claims: USDXMintingClaims{
 					{
-						Owner: sdk.AccAddress{},
+						Owner:  sdk.AccAddress{},
+						Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+
+						RewardIndexes: []RewardIndex{
+							{
+								CollateralType: "bnb-a",
+								RewardFactor:   sdk.ZeroDec(),
+							},
+						},
 					},
 				},
 			},

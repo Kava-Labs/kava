@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/binary"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -25,12 +23,9 @@ const (
 
 // Key Prefixes
 var (
-	RewardPeriodKeyPrefix   = []byte{0x01} // prefix for keys that store reward periods
-	ClaimPeriodKeyPrefix    = []byte{0x02} // prefix for keys that store claim periods
-	ClaimKeyPrefix          = []byte{0x03} // prefix for keys that store claims
-	NextClaimPeriodIDPrefix = []byte{0x04} // prefix for keys that store the next ID for claims periods
-	PreviousBlockTimeKey    = []byte{0x05} // prefix for key that stores the previous blocktime
-	RewardFactorKey         = []byte{0x06}
+	ClaimKeyPrefix  = []byte{0x01} // prefix for keys that store claims
+	BlockTimeKey    = []byte{0x02} // prefix for key that stores the blocktime
+	RewardFactorKey = []byte{0x03} // prefix for key that stores reward factors
 )
 
 // Keys
@@ -39,19 +34,9 @@ var (
 // 0x02:CollateralType:ID:Owner <> Claim object, indexed by collateral type, ID and owner
 // 0x03:CollateralType <> NextClaimPeriodIDPrefix the ID of the next claim period, indexed by collateral type
 
-// BytesToUint64 returns uint64 format from a byte array
-func BytesToUint64(bz []byte) uint64 {
-	return binary.BigEndian.Uint64(bz)
-}
-
-// GetClaimPeriodPrefix returns the key (collateral type + id) for a claim prefix
-func GetClaimPeriodPrefix(collateralType string, id uint64) []byte {
-	return createKey([]byte(collateralType), sdk.Uint64ToBigEndian(id))
-}
-
-// GetClaimPrefix returns the key (collateral type + id + address) for a claim
+// GetClaimPrefix returns the key (addr + collateralType) for a claim
 func GetClaimPrefix(addr sdk.AccAddress, collateralType string) []byte {
-	return createKey([]byte(collateralType), addr)
+	return createKey(addr, []byte(collateralType))
 }
 
 func createKey(bytes ...[]byte) (r []byte) {

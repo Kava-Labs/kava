@@ -30,8 +30,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 
 	kvPairs := kv.Pairs{
 		kv.Pair{Key: types.ClaimKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&claim)},
-		kv.Pair{Key: types.NextClaimPeriodIDPrefix, Value: sdk.Uint64ToBigEndian(10)},
-		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
+		kv.Pair{Key: []byte(types.BlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 

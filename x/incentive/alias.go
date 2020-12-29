@@ -37,10 +37,8 @@ var (
 	// function aliases
 	NewKeeper                   = keeper.NewKeeper
 	NewQuerier                  = keeper.NewQuerier
-	BytesToUint64               = types.BytesToUint64
 	DefaultGenesisState         = types.DefaultGenesisState
 	DefaultParams               = types.DefaultParams
-	GetClaimPeriodPrefix        = types.GetClaimPeriodPrefix
 	GetClaimPrefix              = types.GetClaimPrefix
 	GetTotalVestingPeriodLength = types.GetTotalVestingPeriodLength
 	NewAugmentedClaim           = types.NewAugmentedClaim
@@ -58,8 +56,8 @@ var (
 	RegisterCodec               = types.RegisterCodec
 
 	// variable aliases
+	BlockTimeKey                     = types.BlockTimeKey
 	ClaimKeyPrefix                   = types.ClaimKeyPrefix
-	ClaimPeriodKeyPrefix             = types.ClaimPeriodKeyPrefix
 	DefaultActive                    = types.DefaultActive
 	DefaultClaims                    = types.DefaultClaims
 	DefaultGenesisAccumulationTimes  = types.DefaultGenesisAccumulationTimes
@@ -79,11 +77,8 @@ var (
 	KeyActive                        = types.KeyActive
 	KeyRewards                       = types.KeyRewards
 	ModuleCdc                        = types.ModuleCdc
-	NextClaimPeriodIDPrefix          = types.NextClaimPeriodIDPrefix
-	PreviousBlockTimeKey             = types.PreviousBlockTimeKey
 	PrincipalDenom                   = types.PrincipalDenom
 	RewardFactorKey                  = types.RewardFactorKey
-	RewardPeriodKeyPrefix            = types.RewardPeriodKeyPrefix
 )
 
 type (

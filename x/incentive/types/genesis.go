@@ -12,11 +12,11 @@ import (
 type GenesisState struct {
 	Params                    Params                   `json:"params" yaml:"params"`
 	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
-	Claims                    Claims                   `json:"claims" yaml:"claims"`
+	USDXMintingClaims         USDXMintingClaims        `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, prevAccumTimes GenesisAccumulationTimes, c Claims) GenesisState {
+func NewGenesisState(params Params, prevAccumTimes GenesisAccumulationTimes, c USDXMintingClaims) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		PreviousAccumulationTimes: prevAccumTimes,
@@ -29,7 +29,7 @@ func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Params:                    DefaultParams(),
 		PreviousAccumulationTimes: GenesisAccumulationTimes{},
-		Claims:                    Claims{},
+		USDXMintingClaims:         DefaultClaims,
 	}
 }
 
@@ -43,7 +43,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	return gs.Claims.Validate()
+	return gs.USDXMintingClaims.Validate()
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent

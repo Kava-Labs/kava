@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates()
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	keeper := tApp.GetIncentiveKeeper()
 	suite.app = tApp
 	suite.ctx = ctx
@@ -53,18 +53,57 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
 	c := types.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", types.NewRewardIndex("ukava", sdk.ZeroDec()))
 	_, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb")
-	suite.False(found)
-	suite.NotPanics(func() {
+	suite.Require().False(found)
+	suite.Require().NotPanics(func() {
 		suite.keeper.SetClaim(suite.ctx, c)
 	})
 	testC, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb")
-	suite.True(found)
-	suite.Equal(c, testC)
-	suite.NotPanics(func() {
+	suite.Require().True(found)
+	suite.Require().Equal(c, testC)
+	suite.Require().NotPanics(func() {
 		suite.keeper.DeleteClaim(suite.ctx, suite.addrs[0], "bnb")
 	})
 	_, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb")
-	suite.False(found)
+	suite.Require().False(found)
+}
+
+func (suite *KeeperTestSuite) TestIterateClaims() {
+	for i := 0; i < len(suite.addrs); i++ {
+		c := types.NewClaim(suite.addrs[i], c("ukava", 100000), "bnb-a", types.NewRewardIndex("ukava", sdk.ZeroDec()))
+		suite.Require().NotPanics(func() {
+			suite.keeper.SetClaim(suite.ctx, c)
+		})
+	}
+	claims := types.Claims{}
+	suite.keeper.IterateClaims(suite.ctx, func(c types.Claim) bool {
+		claims = append(claims, c)
+		return false
+	})
+	suite.Require().Equal(len(suite.addrs), len(claims))
+
+	claims = suite.keeper.GetAllClaims(suite.ctx)
+	suite.Require().Equal(len(suite.addrs), len(claims))
+}
+
+func (suite *KeeperTestSuite) TestOwnerIterateClaims() {
+	testCollaterals := []string{"bnb-a", "xrp-a"}
+	for i := 0; i < len(suite.addrs); i++ {
+		for _, collateral := range testCollaterals {
+			c := types.NewClaim(suite.addrs[i], c("ukava", 100000), collateral, types.NewRewardIndex("ukava", sdk.ZeroDec()))
+			suite.Require().NotPanics(func() {
+				suite.keeper.SetClaim(suite.ctx, c)
+			})
+		}
+	}
+	claims := types.Claims{}
+	suite.keeper.IterateClaimsByOwner(suite.ctx, suite.addrs[0], func(c types.Claim) bool {
+		claims = append(claims, c)
+		return false
+	})
+	suite.Require().Equal(len(testCollaterals), len(claims))
+
+	claims = suite.keeper.GetAllClaimsByOwner(suite.ctx, suite.addrs[0])
+	suite.Require().Equal(len(testCollaterals), len(claims))
 }
 
 func TestKeeperTestSuite(t *testing.T) {

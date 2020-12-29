@@ -35,13 +35,13 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim [owner] [collateral-type] [multiplier]",
+		Use:   "claim [owner] [multiplier]",
 		Short: "claim rewards for cdp owner and collateral-type",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Claim any outstanding rewards owned by owner for the input collateral-type and multiplier,
 
 			Example:
-			$ %s tx %s claim kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb-a large
+			$ %s tx %s claim kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw large
 		`, version.ClientName, types.ModuleName),
 		),
 		Args: cobra.ExactArgs(3),
@@ -54,7 +54,7 @@ func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgClaimReward(owner, args[1], args[2])
+			msg := types.NewMsgClaimUSDXMintingReward(owner, args[1])
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
