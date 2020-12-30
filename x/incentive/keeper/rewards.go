@@ -44,6 +44,11 @@ func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeri
 // accrue rewards during the period the cdp was closed. By setting the reward factor to the current global reward factor,
 // any unclaimed rewards are preserved, but no new rewards are added.
 func (k Keeper) InitializeClaim(ctx sdk.Context, cdp cdptypes.CDP) {
+	_, found := k.GetRewardPeriod(ctx, cdp.Type)
+	if !found {
+		// this collateral type is not incentivized, do nothing
+		return
+	}
 	rewardFactor, found := k.GetRewardFactor(ctx, cdp.Type)
 	if !found {
 		rewardFactor = sdk.ZeroDec()
@@ -67,6 +72,11 @@ func (k Keeper) InitializeClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 // SynchronizeReward updates the claim object by adding any accumulated rewards and updating the reward index value.
 // this should be called before a cdp is modified, immediately after the 'SynchronizeInterest' method is called in the cdp module
 func (k Keeper) SynchronizeReward(ctx sdk.Context, cdp cdptypes.CDP) {
+	_, found := k.GetRewardPeriod(ctx, cdp.Type)
+	if !found {
+		// this collateral type is not incentivized, do nothing
+		return
+	}
 	// User creates CDP, claims reward, which then deletes reward object
 	// user modifies cdp or goes to claim rewards again, no existing claim. NOT SAFE!
 	// ---> Claims CANNOT be deleted unless they are expired --> requires modification to Claim function
