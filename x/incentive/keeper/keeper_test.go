@@ -6,7 +6,9 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -51,31 +53,31 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
-	c := types.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", types.NewRewardIndex("ukava", sdk.ZeroDec()))
-	_, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb")
+	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
+	_, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 	suite.Require().NotPanics(func() {
 		suite.keeper.SetClaim(suite.ctx, c)
 	})
-	testC, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb")
+	testC, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(c, testC)
 	suite.Require().NotPanics(func() {
-		suite.keeper.DeleteClaim(suite.ctx, suite.addrs[0], "bnb")
+		suite.keeper.DeleteClaim(suite.ctx, suite.addrs[0])
 	})
-	_, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0], "bnb")
+	_, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 }
 
 func (suite *KeeperTestSuite) TestIterateClaims() {
 	for i := 0; i < len(suite.addrs); i++ {
-		c := types.NewClaim(suite.addrs[i], c("ukava", 100000), "bnb-a", types.NewRewardIndex("ukava", sdk.ZeroDec()))
+		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 		suite.Require().NotPanics(func() {
 			suite.keeper.SetClaim(suite.ctx, c)
 		})
 	}
-	claims := types.Claims{}
-	suite.keeper.IterateClaims(suite.ctx, func(c types.Claim) bool {
+	claims := types.USDXMintingClaims{}
+	suite.keeper.IterateClaims(suite.ctx, func(c types.USDXMintingClaim) bool {
 		claims = append(claims, c)
 		return false
 	})
@@ -85,29 +87,24 @@ func (suite *KeeperTestSuite) TestIterateClaims() {
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 
-func (suite *KeeperTestSuite) TestOwnerIterateClaims() {
-	testCollaterals := []string{"bnb-a", "xrp-a"}
-	for i := 0; i < len(suite.addrs); i++ {
-		for _, collateral := range testCollaterals {
-			c := types.NewClaim(suite.addrs[i], c("ukava", 100000), collateral, types.NewRewardIndex("ukava", sdk.ZeroDec()))
-			suite.Require().NotPanics(func() {
-				suite.keeper.SetClaim(suite.ctx, c)
-			})
-		}
-	}
-	claims := types.Claims{}
-	suite.keeper.IterateClaimsByOwner(suite.ctx, suite.addrs[0], func(c types.Claim) bool {
-		claims = append(claims, c)
-		return false
-	})
-	suite.Require().Equal(len(testCollaterals), len(claims))
-
-	claims = suite.keeper.GetAllClaimsByOwner(suite.ctx, suite.addrs[0])
-	suite.Require().Equal(len(testCollaterals), len(claims))
-}
-
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
+}
+
+func createPeriodicVestingAccount(origVesting sdk.Coins, periods vesting.Periods, startTime, endTime int64) (*vesting.PeriodicVestingAccount, error) {
+	_, addr := app.GeneratePrivKeyAddressPairs(1)
+	bacc := auth.NewBaseAccountWithAddress(addr[0])
+	bacc.Coins = origVesting
+	bva, err := vesting.NewBaseVestingAccount(&bacc, origVesting, endTime)
+	if err != nil {
+		return &vesting.PeriodicVestingAccount{}, err
+	}
+	pva := vesting.NewPeriodicVestingAccountRaw(bva, startTime, periods)
+	err = pva.Validate()
+	if err != nil {
+		return &vesting.PeriodicVestingAccount{}, err
+	}
+	return pva, nil
 }
 
 // Avoid cluttering test cases with long function names

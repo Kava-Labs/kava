@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Claim stores the rewards that can be claimed by owner
+// USDXMintingClaim stores the usdx mintng rewards that can be claimed by owner
 type USDXMintingClaim struct {
 	Owner         sdk.AccAddress `json:"owner" yaml:"owner"`
 	Reward        sdk.Coin       `json:"reward" yaml:"reward"`
@@ -44,7 +44,17 @@ func (c USDXMintingClaim) String() string {
 	`, c.Owner, c.Reward, c.RewardIndexes)
 }
 
-// Claims array of Claim
+// HasRewardIndex check if a claim has a reward index for the input collateral type
+func (c USDXMintingClaim) HasRewardIndex(collateralType string) (int64, bool) {
+	for index, ri := range c.RewardIndexes {
+		if ri.CollateralType == collateralType {
+			return int64(index), true
+		}
+	}
+	return 0, false
+}
+
+// USDXMintingClaims array of USDXMintingClaim
 type USDXMintingClaims []USDXMintingClaim
 
 // Validate checks if all the claims are valid and there are no duplicated
@@ -65,11 +75,16 @@ type RewardIndex struct {
 	RewardFactor   sdk.Dec `json:"reward_factor" yaml:"reward_factor"`
 }
 
+// NewRewardIndex returns a new RewardIndex
 func NewRewardIndex(collateralType string, factor sdk.Dec) RewardIndex {
 	return RewardIndex{
 		CollateralType: collateralType,
 		RewardFactor:   factor,
 	}
+}
+
+func (ri RewardIndex) String() string {
+	return fmt.Sprintf(`Collateral Type: %s, RewardFactor: %s`, ri.CollateralType, ri.RewardFactor)
 }
 
 // Validate validates reward index

@@ -208,26 +208,26 @@ func TestClaimsValidate(t *testing.T) {
 
 	testCases := []struct {
 		msg     string
-		claims  Claims
+		claims  USDXMintingClaims
 		expPass bool
 	}{
 		{
 			"valid",
-			Claims{
-				NewClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), "bnb-a", RewardIndex{"ukava", sdk.ZeroDec()}),
+			USDXMintingClaims{
+				NewUSDXMintingClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), RewardIndexes{NewRewardIndex("bnb-a", sdk.ZeroDec())}),
 			},
 			true,
 		},
 		{
 			"invalid owner",
-			Claims{
+			USDXMintingClaims{
 				{Owner: nil},
 			},
 			false,
 		},
 		{
 			"invalid reward",
-			Claims{
+			USDXMintingClaims{
 				{
 					Owner:  owner,
 					Reward: sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
@@ -237,12 +237,11 @@ func TestClaimsValidate(t *testing.T) {
 		},
 		{
 			"invalid collateral type",
-			Claims{
+			USDXMintingClaims{
 				{
-					Owner:          owner,
-					Reward:         sdk.NewCoin("bnb", sdk.OneInt()),
-					RewardIndex:    RewardIndex{"ukava", sdk.ZeroDec()},
-					CollateralType: "",
+					Owner:         owner,
+					Reward:        sdk.NewCoin("bnb", sdk.OneInt()),
+					RewardIndexes: []RewardIndex{{"", sdk.ZeroDec()}},
 				},
 			},
 			false,

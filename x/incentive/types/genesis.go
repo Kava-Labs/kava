@@ -20,7 +20,7 @@ func NewGenesisState(params Params, prevAccumTimes GenesisAccumulationTimes, c U
 	return GenesisState{
 		Params:                    params,
 		PreviousAccumulationTimes: prevAccumTimes,
-		Claims:                    c,
+		USDXMintingClaims:         c,
 	}
 }
 

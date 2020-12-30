@@ -35,33 +35,32 @@ const (
 
 var (
 	// function aliases
-	NewKeeper                   = keeper.NewKeeper
-	NewQuerier                  = keeper.NewQuerier
-	DefaultGenesisState         = types.DefaultGenesisState
-	DefaultParams               = types.DefaultParams
-	GetClaimPrefix              = types.GetClaimPrefix
-	GetTotalVestingPeriodLength = types.GetTotalVestingPeriodLength
-	NewAugmentedClaim           = types.NewAugmentedClaim
-	NewClaim                    = types.NewClaim
-	NewGenesisAccumulationTime  = types.NewGenesisAccumulationTime
-	NewGenesisState             = types.NewGenesisState
-	NewMsgClaimReward           = types.NewMsgClaimReward
-	NewMultiplier               = types.NewMultiplier
-	NewParams                   = types.NewParams
-	NewPeriod                   = types.NewPeriod
-	NewQueryClaimsParams        = types.NewQueryClaimsParams
-	NewRewardIndex              = types.NewRewardIndex
-	NewRewardPeriod             = types.NewRewardPeriod
-	ParamKeyTable               = types.ParamKeyTable
-	RegisterCodec               = types.RegisterCodec
+	NewKeeper                    = keeper.NewKeeper
+	NewQuerier                   = keeper.NewQuerier
+	DefaultGenesisState          = types.DefaultGenesisState
+	DefaultParams                = types.DefaultParams
+	GetTotalVestingPeriodLength  = types.GetTotalVestingPeriodLength
+	NewGenesisAccumulationTime   = types.NewGenesisAccumulationTime
+	NewGenesisState              = types.NewGenesisState
+	NewMsgClaimUSDXMintingReward = types.NewMsgClaimUSDXMintingReward
+	NewMultiplier                = types.NewMultiplier
+	NewParams                    = types.NewParams
+	NewPeriod                    = types.NewPeriod
+	NewQueryClaimsParams         = types.NewQueryClaimsParams
+	NewRewardIndex               = types.NewRewardIndex
+	NewRewardPeriod              = types.NewRewardPeriod
+	NewUSDXMintingClaim          = types.NewUSDXMintingClaim
+	ParamKeyTable                = types.ParamKeyTable
+	RegisterCodec                = types.RegisterCodec
 
 	// variable aliases
 	BlockTimeKey                     = types.BlockTimeKey
 	ClaimKeyPrefix                   = types.ClaimKeyPrefix
 	DefaultActive                    = types.DefaultActive
+	DefaultClaimEnd                  = types.DefaultClaimEnd
 	DefaultClaims                    = types.DefaultClaims
 	DefaultGenesisAccumulationTimes  = types.DefaultGenesisAccumulationTimes
-	DefaultPreviousBlockTime         = types.DefaultPreviousBlockTime
+	DefaultMultipliers               = types.DefaultMultipliers
 	DefaultRewardPeriods             = types.DefaultRewardPeriods
 	ErrAccountNotFound               = types.ErrAccountNotFound
 	ErrClaimExpired                  = types.ErrClaimExpired
@@ -75,34 +74,36 @@ var (
 	GovDenom                         = types.GovDenom
 	IncentiveMacc                    = types.IncentiveMacc
 	KeyActive                        = types.KeyActive
+	KeyClaimEnd                      = types.KeyClaimEnd
+	KeyMultipliers                   = types.KeyMultipliers
 	KeyRewards                       = types.KeyRewards
 	ModuleCdc                        = types.ModuleCdc
 	PrincipalDenom                   = types.PrincipalDenom
 	RewardFactorKey                  = types.RewardFactorKey
+	USDXMintingRewardDenom           = types.USDXMintingRewardDenom
 )
 
 type (
-	Hooks                    = keeper.Hooks
-	Keeper                   = keeper.Keeper
-	AccountKeeper            = types.AccountKeeper
-	AugmentedClaim           = types.AugmentedClaim
-	AugmentedClaims          = types.AugmentedClaims
-	CDPHooks                 = types.CDPHooks
-	CdpKeeper                = types.CdpKeeper
-	Claim                    = types.Claim
-	Claims                   = types.Claims
-	GenesisAccumulationTime  = types.GenesisAccumulationTime
-	GenesisAccumulationTimes = types.GenesisAccumulationTimes
-	GenesisState             = types.GenesisState
-	MsgClaimReward           = types.MsgClaimReward
-	Multiplier               = types.Multiplier
-	MultiplierName           = types.MultiplierName
-	Multipliers              = types.Multipliers
-	Params                   = types.Params
-	PostClaimReq             = types.PostClaimReq
-	QueryClaimsParams        = types.QueryClaimsParams
-	RewardIndex              = types.RewardIndex
-	RewardPeriod             = types.RewardPeriod
-	RewardPeriods            = types.RewardPeriods
-	SupplyKeeper             = types.SupplyKeeper
+	Hooks                     = keeper.Hooks
+	Keeper                    = keeper.Keeper
+	AccountKeeper             = types.AccountKeeper
+	CDPHooks                  = types.CDPHooks
+	CdpKeeper                 = types.CdpKeeper
+	GenesisAccumulationTime   = types.GenesisAccumulationTime
+	GenesisAccumulationTimes  = types.GenesisAccumulationTimes
+	GenesisState              = types.GenesisState
+	MsgClaimUSDXMintingReward = types.MsgClaimUSDXMintingReward
+	Multiplier                = types.Multiplier
+	MultiplierName            = types.MultiplierName
+	Multipliers               = types.Multipliers
+	Params                    = types.Params
+	PostClaimReq              = types.PostClaimReq
+	QueryClaimsParams         = types.QueryClaimsParams
+	RewardIndex               = types.RewardIndex
+	RewardIndexes             = types.RewardIndexes
+	RewardPeriod              = types.RewardPeriod
+	RewardPeriods             = types.RewardPeriods
+	SupplyKeeper              = types.SupplyKeeper
+	USDXMintingClaim          = types.USDXMintingClaim
+	USDXMintingClaims         = types.USDXMintingClaims
 )

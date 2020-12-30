@@ -26,11 +26,14 @@ const (
 var (
 	KeyActive                       = []byte("Active")
 	KeyRewards                      = []byte("RewardPeriods")
+	KeyClaimEnd                     = []byte("ClaimEnd")
+	KeyMultipliers                  = []byte("ClaimMultipliers")
 	DefaultActive                   = false
 	DefaultRewardPeriods            = RewardPeriods{}
+	DefaultMultipliers              = Multipliers{}
 	DefaultClaims                   = USDXMintingClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
-	DefaultPreviousBlockTime        = tmtime.Canonical(time.Unix(0, 0))
+	DefaultClaimEnd                 = tmtime.Canonical(time.Unix(0, 0))
 	GovDenom                        = cdptypes.DefaultGovDenom
 	PrincipalDenom                  = "usdx"
 	IncentiveMacc                   = kavadistTypes.ModuleName
@@ -38,28 +41,35 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	Active        bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
-	RewardPeriods RewardPeriods `json:"reward_periods" yaml:"reward_periods"`
+	Active           bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
+	RewardPeriods    RewardPeriods `json:"reward_periods" yaml:"reward_periods"`
+	ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"`
+	ClaimEnd         time.Time     `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
-func NewParams(active bool, rewards RewardPeriods) Params {
+func NewParams(active bool, rewards RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
 	return Params{
-		Active:        active,
-		RewardPeriods: rewards,
+		Active:           active,
+		RewardPeriods:    rewards,
+		ClaimMultipliers: multipliers,
+		ClaimEnd:         claimEnd,
 	}
 }
 
 // DefaultParams returns default params for incentive module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultRewardPeriods)
+	return NewParams(DefaultActive, DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Active: %t
-	Rewards: %s`, p.Active, p.RewardPeriods)
+	Rewards: %s
+	Claim Multipliers :%s
+	Claim End Time: %s
+	`, p.Active, p.RewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -72,12 +82,18 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
 		params.NewParamSetPair(KeyRewards, &p.RewardPeriods, validateRewardsParam),
+		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
+		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
 	if err := validateActiveParam(p.Active); err != nil {
+		return err
+	}
+
+	if err := validateMultipliersParam(p.ClaimMultipliers); err != nil {
 		return err
 	}
 
@@ -101,15 +117,32 @@ func validateRewardsParam(i interface{}) error {
 	return rewards.Validate()
 }
 
+func validateMultipliersParam(i interface{}) error {
+	multipliers, ok := i.(Multipliers)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	return multipliers.Validate()
+}
+
+func validateClaimEndParam(i interface{}) error {
+	endTime, ok := i.(time.Time)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if endTime.IsZero() {
+		return fmt.Errorf("end time should not be zero")
+	}
+	return nil
+}
+
 // RewardPeriod stores the state of an ongoing reward
 type RewardPeriod struct {
-	Active           bool        `json:"active" yaml:"active"`
-	CollateralType   string      `json:"collateral_type" yaml:"collateral_type"`
-	Start            time.Time   `json:"start" yaml:"start"`
-	End              time.Time   `json:"end" yaml:"end"`
-	RewardsPerSecond sdk.Coin    `json:"rewards_per_second" yaml:"rewards_per_second"` // per second reward payouts
-	ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
-	ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"` // the reward multiplier and timelock schedule - applied at the time users claim rewards
+	Active           bool      `json:"active" yaml:"active"`
+	CollateralType   string    `json:"collateral_type" yaml:"collateral_type"`
+	Start            time.Time `json:"start" yaml:"start"`
+	End              time.Time `json:"end" yaml:"end"`
+	RewardsPerSecond sdk.Coin  `json:"rewards_per_second" yaml:"rewards_per_second"` // per second reward payouts
 }
 
 // String implements fmt.Stringer
@@ -119,33 +152,19 @@ func (rp RewardPeriod) String() string {
 	Start: %s,
 	End: %s,
 	Rewards Per Second: %s,
-	Claim End: %s,
 	Active %t,
-	%s
-	`, rp.CollateralType, rp.Start, rp.End, rp.RewardsPerSecond, rp.ClaimEnd, rp.Active, rp.ClaimMultipliers)
+	`, rp.CollateralType, rp.Start, rp.End, rp.RewardsPerSecond, rp.Active)
 }
 
 // NewRewardPeriod returns a new RewardPeriod
-func NewRewardPeriod(active bool, collateralType string, start time.Time, end time.Time, reward sdk.Coin, claimEnd time.Time, claimMultipliers Multipliers) RewardPeriod {
+func NewRewardPeriod(active bool, collateralType string, start time.Time, end time.Time, reward sdk.Coin) RewardPeriod {
 	return RewardPeriod{
 		Active:           active,
 		CollateralType:   collateralType,
 		Start:            start,
 		End:              end,
 		RewardsPerSecond: reward,
-		ClaimEnd:         claimEnd,
-		ClaimMultipliers: claimMultipliers,
 	}
-}
-
-// GetMultiplier returns the named multiplier from the input reward period
-func (rp RewardPeriod) GetMultiplier(name MultiplierName) (Multiplier, bool) {
-	for _, multiplier := range rp.ClaimMultipliers {
-		if multiplier.Name == name {
-			return multiplier, true
-		}
-	}
-	return Multiplier{}, false
 }
 
 // Validate performs a basic check of a RewardPeriod fields.
@@ -161,12 +180,6 @@ func (rp RewardPeriod) Validate() error {
 	}
 	if !rp.RewardsPerSecond.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", rp.RewardsPerSecond)
-	}
-	if rp.ClaimEnd.IsZero() {
-		return errors.New("reward period claim end time cannot be 0")
-	}
-	if err := rp.ClaimMultipliers.Validate(); err != nil {
-		return err
 	}
 	if strings.TrimSpace(rp.CollateralType) == "" {
 		return fmt.Errorf("reward period collateral type cannot be blank: %s", rp)

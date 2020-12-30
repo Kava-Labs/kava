@@ -13,24 +13,21 @@ import (
 )
 
 // ClaimReward sends the reward amount to the input address and zero's out the claim in the store
-func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, collateralType string, multiplierName types.MultiplierName) error {
-	claim, found := k.GetClaim(ctx, addr, collateralType)
+func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName types.MultiplierName) error {
+	claim, found := k.GetClaim(ctx, addr)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "collateral type %s, address: %s", collateralType, addr)
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
 	}
 
-	rewardPeriod, found := k.GetRewardPeriod(ctx, collateralType)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrRewardPeriodNotFound, "collateral type %s", collateralType)
-	}
-
-	multiplier, found := rewardPeriod.GetMultiplier(multiplierName)
+	multiplier, found := k.GetMultiplier(ctx, multiplierName)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
 	}
 
-	if ctx.BlockTime().After(rewardPeriod.ClaimEnd) {
-		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), rewardPeriod.ClaimEnd)
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
 	}
 
 	claim, err := k.SynchronizeClaim(ctx, claim)

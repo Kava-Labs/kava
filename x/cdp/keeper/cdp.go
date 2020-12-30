@@ -84,6 +84,8 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	k.SetDeposit(ctx, deposit)
 	k.SetNextCdpID(ctx, id+1)
 
+	k.hooks.AfterCDPCreated(ctx, cdp)
+
 	// emit events for cdp creation, deposit, and draw
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

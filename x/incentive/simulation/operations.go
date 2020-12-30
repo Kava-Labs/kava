@@ -49,16 +49,3 @@ func SimulateMsgClaimReward(ak auth.AccountKeeper, sk types.SupplyKeeper, k keep
 			"no-operation (no accounts currently have fulfillable claims)", "", false, nil), nil, nil
 	}
 }
-
-// findValidAccountClaimPair finds an account and reward claim for which the callback func returns true
-func findValidAccountClaimPair(accounts []simulation.Account, claims types.Claims,
-	cb func(simulation.Account, types.Claim) bool) (simulation.Account, types.Claim, bool) {
-	for _, claim := range claims {
-		for _, acc := range accounts {
-			if isValid := cb(acc, claim); isValid {
-				return acc, claim, true
-			}
-		}
-	}
-	return simulation.Account{}, types.Claim{}, false
-}

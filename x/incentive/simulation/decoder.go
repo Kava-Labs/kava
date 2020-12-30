@@ -17,7 +17,7 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 
 	case bytes.Equal(kvA.Key[:1], types.ClaimKeyPrefix):
-		var claimA, claimB types.Claim
+		var claimA, claimB types.USDXMintingClaim
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &claimA)
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &claimB)
 		return fmt.Sprintf("%v\n%v", claimA, claimB)

@@ -22,6 +22,10 @@ func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeri
 	if timeElapsed.IsZero() {
 		return nil
 	}
+	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
 	rewardFactor := newRewards.ToDec().Quo(k.cdpKeeper.GetTotalPrincipal(ctx, rewardPeriod.CollateralType, types.PrincipalDenom).ToDec())
 
@@ -31,6 +35,7 @@ func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeri
 	}
 	newRewardFactor := previousRewardFactor.Add(rewardFactor)
 	k.SetRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+	k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	return nil
 }
 
@@ -43,12 +48,18 @@ func (k Keeper) InitializeClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 	if !found {
 		rewardFactor = sdk.ZeroDec()
 	}
-	rewardIndex := types.NewRewardIndex("ukava", rewardFactor)
-	claim, found := k.GetClaim(ctx, cdp.Owner, cdp.Type)
-	if !found {
-		claim = types.NewClaim(cdp.Owner, sdk.NewCoin("ukava", sdk.ZeroInt()), cdp.Type, rewardIndex)
-	} else {
-		claim.RewardIndex = rewardIndex
+	claim, found := k.GetClaim(ctx, cdp.Owner)
+	if !found { // this is the owner's first usdx minting reward claim
+		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{types.NewRewardIndex(cdp.Type, rewardFactor)})
+		k.SetClaim(ctx, claim)
+		return
+	}
+	// the owner has an existing usdx minting reward claim
+	index, hasRewardIndex := claim.HasRewardIndex(cdp.Type)
+	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
+		claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(cdp.Type, rewardFactor))
+	} else { // the owner has a previous usdx minting reward for this collateral type
+		claim.RewardIndexes[index] = types.NewRewardIndex(cdp.Type, rewardFactor)
 	}
 	k.SetClaim(ctx, claim)
 }
@@ -63,50 +74,61 @@ func (k Keeper) SynchronizeReward(ctx sdk.Context, cdp cdptypes.CDP) {
 	if !found {
 		globalRewardFactor = sdk.ZeroDec()
 	}
-	rewardIndex := types.NewRewardIndex("ukava", globalRewardFactor)
-	claim, found := k.GetClaim(ctx, cdp.Owner, cdp.Type)
+	claim, found := k.GetClaim(ctx, cdp.Owner)
 	if !found {
-		claim = types.NewClaim(cdp.Owner, sdk.NewCoin("ukava", sdk.ZeroInt()), cdp.Type, rewardIndex)
+		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{types.NewRewardIndex(cdp.Type, globalRewardFactor)})
 		k.SetClaim(ctx, claim)
 		return
 	}
-	rewardsAccumulatedFactor := globalRewardFactor.Sub(claim.RewardIndex.Value)
+
+	// the owner has an existing usdx minting reward claim
+	index, hasRewardIndex := claim.HasRewardIndex(cdp.Type)
+	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
+		claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(cdp.Type, globalRewardFactor))
+		k.SetClaim(ctx, claim)
+		return
+	}
+	userRewardFactor := claim.RewardIndexes[index].RewardFactor
+	rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
 	if rewardsAccumulatedFactor.IsZero() {
 		return
 	}
-	claim.RewardIndex = rewardIndex
+	claim.RewardIndexes[index].RewardFactor = globalRewardFactor
 	newRewardsAmount := rewardsAccumulatedFactor.Mul(cdp.GetTotalPrincipal().Amount.ToDec()).RoundInt()
 	if newRewardsAmount.IsZero() {
 		k.SetClaim(ctx, claim)
 		return
 	}
-	newRewardsCoin := sdk.NewCoin("ukava", newRewardsAmount)
+	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetClaim(ctx, claim)
 	return
 }
 
-// SynchronizeClaim updates the claim object by adding any rewards that have accumulated.
-// Returns the updated claim object
-func (k Keeper) SynchronizeClaim(ctx sdk.Context, claim types.Claim) (types.Claim, error) {
-	cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.Owner, claim.CollateralType)
-	if !found {
-		// if the cdp has been closed, no updates are needed
-		return claim, nil
-	}
-	claim = k.synchronizeRewardAndReturnClaim(ctx, cdp)
-	return claim, nil
-}
-
 // ZeroClaim zeroes out the claim object's rewards and returns the updated claim object
-func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.Claim) types.Claim {
+func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
 	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
 	k.SetClaim(ctx, claim)
 	return claim
 }
 
-func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CDP) types.Claim {
+// SynchronizeClaim updates the claim object by adding any rewards that have accumulated.
+// Returns the updated claim object
+func (k Keeper) SynchronizeClaim(ctx sdk.Context, claim types.USDXMintingClaim) (types.USDXMintingClaim, error) {
+	for _, ri := range claim.RewardIndexes {
+		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.Owner, ri.CollateralType)
+		if !found {
+			// if the cdp for this collateral type has been closed, no updates are needed
+			continue
+		}
+		claim = k.synchronizeRewardAndReturnClaim(ctx, cdp)
+	}
+	return claim, nil
+}
+
+// this function assumes a claim already exists, so don't call it if that's not the case
+func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CDP) types.USDXMintingClaim {
 	k.SynchronizeReward(ctx, cdp)
-	claim, _ := k.GetClaim(ctx, cdp.Owner, cdp.Type)
+	claim, _ := k.GetClaim(ctx, cdp.Owner)
 	return claim
 }

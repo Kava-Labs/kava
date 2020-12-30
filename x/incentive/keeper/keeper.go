@@ -38,38 +38,38 @@ func NewKeeper(
 }
 
 // GetClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
-func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (types.Claim, bool) {
+func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress) (types.USDXMintingClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	bz := store.Get(types.GetClaimPrefix(addr, collateralType))
+	bz := store.Get(addr)
 	if bz == nil {
-		return types.Claim{}, false
+		return types.USDXMintingClaim{}, false
 	}
-	var c types.Claim
+	var c types.USDXMintingClaim
 	k.cdc.MustUnmarshalBinaryBare(bz, &c)
 	return c, true
 }
 
 // SetClaim sets the claim in the store corresponding to the input address, collateral type, and id
-func (k Keeper) SetClaim(ctx sdk.Context, c types.Claim) {
+func (k Keeper) SetClaim(ctx sdk.Context, c types.USDXMintingClaim) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(c)
-	store.Set(types.GetClaimPrefix(c.Owner, c.CollateralType), bz)
+	store.Set(c.Owner, bz)
 
 }
 
 // DeleteClaim deletes the claim in the store corresponding to the input address, collateral type, and id
-func (k Keeper) DeleteClaim(ctx sdk.Context, owner sdk.AccAddress, collateralType string) {
+func (k Keeper) DeleteClaim(ctx sdk.Context, owner sdk.AccAddress) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	store.Delete(types.GetClaimPrefix(owner, collateralType))
+	store.Delete(owner)
 }
 
 // IterateClaims iterates over all claim  objects in the store and preforms a callback function
-func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.Claim) (stop bool)) {
+func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.USDXMintingClaim) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var c types.Claim
+		var c types.USDXMintingClaim
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
 		if cb(c) {
 			break
@@ -78,33 +78,9 @@ func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.Claim) (stop bool
 }
 
 // GetAllClaims returns all Claim objects in the store
-func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
-	cs := types.Claims{}
-	k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-		cs = append(cs, c)
-		return false
-	})
-	return cs
-}
-
-// IterateClaimsByOwner iterates over all claim  objects owned by the input address and preforms a callback function
-func (k Keeper) IterateClaimsByOwner(ctx sdk.Context, owner sdk.AccAddress, cb func(c types.Claim) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, owner.Bytes())
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var c types.Claim
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
-		if cb(c) {
-			break
-		}
-	}
-}
-
-// GetAllClaimsByOwner returns all claim objects owned by the input address
-func (k Keeper) GetAllClaimsByOwner(ctx sdk.Context, owner sdk.AccAddress) types.Claims {
-	cs := types.Claims{}
-	k.IterateClaimsByOwner(ctx, owner, func(c types.Claim) bool {
+func (k Keeper) GetAllClaims(ctx sdk.Context) types.USDXMintingClaims {
+	cs := types.USDXMintingClaims{}
+	k.IterateClaims(ctx, func(c types.USDXMintingClaim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})

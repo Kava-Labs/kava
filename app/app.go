@@ -369,7 +369,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[incentive.StoreKey],
 		incentiveSubspace,
 		app.supplyKeeper,
-		app.cdpKeeper,
+		&cdpKeeper,
 		app.accountKeeper,
 	)
 	app.issuanceKeeper = issuance.NewKeeper(
