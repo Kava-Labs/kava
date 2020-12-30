@@ -26,12 +26,35 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 
 	for _, gat := range gs.PreviousAccumulationTimes {
 		k.SetPreviousAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+		k.SetRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
+	}
+
+	for _, claim := range gs.USDXMintingClaims {
+		k.SetClaim(ctx, claim)
 	}
 
 }
 
 // ExportGenesis export genesis state for incentive module
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
+	params := k.GetParams(ctx)
 
-	return types.DefaultGenesisState()
+	claims := k.GetAllClaims(ctx)
+
+	var gats GenesisAccumulationTimes
+
+	for _, rp := range params.RewardPeriods {
+		pat, found := k.GetPreviousAccrualTime(ctx, rp.CollateralType)
+		if !found {
+			pat = ctx.BlockTime()
+		}
+		factor, found := k.GetRewardFactor(ctx, rp.CollateralType)
+		if !found {
+			factor = sdk.ZeroDec()
+		}
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, factor)
+		gats = append(gats, gat)
+	}
+
+	return types.NewGenesisState(params, gats, claims)
 }

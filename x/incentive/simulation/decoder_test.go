@@ -27,10 +27,12 @@ func TestDecodeDistributionStore(t *testing.T) {
 	addr, _ := sdk.AccAddressFromBech32("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
 	claim := types.NewUSDXMintingClaim(addr, sdk.NewCoin("ukava", sdk.NewInt(1000000)), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 	prevBlockTime := time.Now().Add(time.Hour * -1).UTC()
+	factor := sdk.ZeroDec()
 
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: types.ClaimKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&claim)},
-		kv.Pair{Key: []byte(types.BlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
+		kv.Pair{Key: types.ClaimKeyPrefix, Value: cdc.MustMarshalBinaryBare(claim)},
+		kv.Pair{Key: []byte(types.BlockTimeKey), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
+		kv.Pair{Key: []byte(types.RewardFactorKey), Value: cdc.MustMarshalBinaryBare(factor)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -40,6 +42,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 	}{
 		{"Claim", fmt.Sprintf("%v\n%v", claim, claim)},
 		{"PreviousBlockTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
+		{"RewardFactor", fmt.Sprintf("%v\n%v", factor, factor)},
 		{"other", ""},
 	}
 	for i, tt := range tests {

@@ -15,9 +15,4 @@ func init() {
 // RegisterCodec registers the necessary types for incentive module
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgClaimUSDXMintingReward{}, "incentive/MsgClaimUSDXMintingReward", nil)
-	cdc.RegisterConcrete(GenesisAccumulationTime{}, "incentive/GenesisAccumulationTime", nil)
-	cdc.RegisterConcrete(GenesisAccumulationTimes{}, "incentive/GenesisAccumulationTimes", nil)
-	cdc.RegisterConcrete(RewardPeriod{}, "incentive/RewardPeriod", nil)
-	cdc.RegisterConcrete(USDXMintingClaim{}, "incentive/USDXMintingClaim", nil)
-	cdc.RegisterConcrete(USDXMintingClaims{}, "incentive/USDXMintingClaims", nil)
 }
