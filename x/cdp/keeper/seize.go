@@ -9,7 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-// AttemptKeeperLiquidation liquidates the cdp with the input colalteral type and owner if it is below the required collateralization ratio
+// AttemptKeeperLiquidation liquidates the cdp with the input collateral type and owner if it is below the required collateralization ratio
 // if the cdp is liquidated, the keeper that sent the transaction is rewarded a percentage of the collateral according to that collateral types'
 // keeper reward percentage.
 func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper, owner sdk.AccAddress, collateralType string) error {
@@ -142,6 +142,19 @@ func (k Keeper) payoutKeeperLiquidationReward(ctx sdk.Context, keeper sdk.AccAdd
 	}
 	reward := cdp.Collateral.Amount.ToDec().Mul(collateralParam.KeeperRewardPercentage).RoundInt()
 	rewardCoin := sdk.NewCoin(cdp.Collateral.Denom, reward)
+	paidReward := false
+	deposits := k.GetDeposits(ctx, cdp.ID)
+	for _, dep := range deposits {
+		if dep.Amount.IsGTE(rewardCoin) {
+			dep.Amount = dep.Amount.Sub(rewardCoin)
+			k.SetDeposit(ctx, dep)
+			paidReward = true
+			break
+		}
+	}
+	if !paidReward {
+		return cdp, nil
+	}
 	err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, keeper, sdk.NewCoins(rewardCoin))
 	if err != nil {
 		return types.CDP{}, err
@@ -151,15 +164,6 @@ func (k Keeper) payoutKeeperLiquidationReward(ctx sdk.Context, keeper sdk.AccAdd
 	err = k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, ratio)
 	if err != nil {
 		return types.CDP{}, err
-	}
-
-	deposits := k.GetDeposits(ctx, cdp.ID)
-	for _, dep := range deposits {
-		if dep.Amount.IsGTE(rewardCoin) {
-			dep.Amount = dep.Amount.Sub(rewardCoin)
-			k.SetDeposit(ctx, dep)
-			break
-		}
 	}
 	return cdp, nil
 }
