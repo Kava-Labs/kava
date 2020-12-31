@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,9 +44,24 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	claims := k.GetAllClaims(ctx) // TODO fixme
+	var claims types.USDXMintingClaims
+	if len(requestParams.Owner) > 0 {
+		claim, _ := k.GetClaim(ctx, requestParams.Owner)
+		claims = append(claims, claim)
+	} else {
+		claims = k.GetAllClaims(ctx)
+	}
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, claims)
+	var paginatedClaims types.USDXMintingClaims
+
+	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
+	if start < 0 || end < 0 {
+		paginatedClaims = types.USDXMintingClaims{}
+	} else {
+		paginatedClaims = claims[start:end]
+	}
+
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
