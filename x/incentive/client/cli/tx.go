@@ -44,7 +44,7 @@ func getCmdClaim(cdc *codec.Codec) *cobra.Command {
 			$ %s tx %s claim kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw large
 		`, version.ClientName, types.ModuleName),
 		),
-		Args: cobra.ExactArgs(3),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)

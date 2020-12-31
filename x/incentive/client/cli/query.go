@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -25,34 +26,42 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	incentiveQueryCmd.AddCommand(flags.GetCommands(
 		queryParamsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
-		queryRewardPeriodsCmd(queryRoute, cdc),
 	)...)
 
 	return incentiveQueryCmd
-
 }
 
+const (
+	flagOwner = "owner"
+)
+
 func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claims [owner-addr] [collateral-type]",
-		Short: "get claims by owner and collateral-type",
+	cmd := &cobra.Command{
+		Use:   "claims ",
+		Short: "query USDX minting claims",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Get all claims owned by the owner address for the particular collateral type.
+			fmt.Sprintf(`Query USDX minting claims with optional flag for finding claims for a specifc owner
 
 			Example:
-			$ %s query %s claims kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw bnb-a`, version.ClientName, types.ModuleName)),
-		Args: cobra.ExactArgs(2),
+			$ %s query %s claims
+			$ %s query %s claims --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			`,
+				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName)),
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			strOwner := viper.GetString(flagOwner)
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
 			// Prepare params for querier
-			ownerAddress, err := sdk.AccAddressFromBech32(args[0])
+			owner, err := sdk.AccAddressFromBech32(strOwner)
 			if err != nil {
 				return err
 			}
-			bz, err := cdc.MarshalJSON(types.QueryClaimsParams{
-				Owner:          ownerAddress,
-				CollateralType: args[1],
-			})
+			params := types.NewQueryClaimsParams(page, limit, owner)
+			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
@@ -73,6 +82,10 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 		},
 	}
+	cmd.Flags().String(flagOwner, "", "(optional) filter by claim owner address")
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of CDPs to to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of CDPs to query for")
+	return cmd
 }
 
 func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
@@ -98,33 +111,6 @@ func queryParamsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("failed to unmarshal params: %w", err)
 			}
 			return cliCtx.PrintOutput(params)
-		},
-	}
-}
-
-func queryRewardPeriodsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "reward-periods",
-		Short: "get active reward periods",
-		Long:  "Get the current set of active incentive reward periods.",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetRewardPeriods)
-			res, height, err := cliCtx.QueryWithData(route, nil)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var rewardPeriods types.RewardPeriods
-			if err := cdc.UnmarshalJSON(res, &rewardPeriods); err != nil {
-				return fmt.Errorf("failed to unmarshal reward periods: %w", err)
-			}
-			return cliCtx.PrintOutput(rewardPeriods)
 		},
 	}
 }
