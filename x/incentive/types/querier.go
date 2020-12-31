@@ -17,13 +17,16 @@ const (
 
 // QueryClaimsParams params for query /incentive/claims
 type QueryClaimsParams struct {
-	Owner          sdk.AccAddress
-	CollateralType string
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
 }
 
 // NewQueryClaimsParams returns QueryClaimsParams
-func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClaimsParams {
+func NewQueryClaimsParams(page, limit int, owner sdk.AccAddress) QueryClaimsParams {
 	return QueryClaimsParams{
+		Page:  page,
+		Limit: limit,
 		Owner: owner,
 	}
 }

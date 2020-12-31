@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"math"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,9 +17,7 @@ func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeri
 		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	timeElapsed := sdk.NewInt(int64(math.RoundToEven(
-		ctx.BlockTime().Sub(previousAccrualTime).Seconds(),
-	)))
+	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
 	if timeElapsed.IsZero() {
 		return nil
 	}
@@ -77,9 +76,7 @@ func (k Keeper) SynchronizeReward(ctx sdk.Context, cdp cdptypes.CDP) {
 		// this collateral type is not incentivized, do nothing
 		return
 	}
-	// User creates CDP, claims reward, which then deletes reward object
-	// user modifies cdp or goes to claim rewards again, no existing claim. NOT SAFE!
-	// ---> Claims CANNOT be deleted unless they are expired --> requires modification to Claim function
+
 	globalRewardFactor, found := k.GetRewardFactor(ctx, cdp.Type)
 	if !found {
 		globalRewardFactor = sdk.ZeroDec()
@@ -141,4 +138,21 @@ func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CD
 	k.SynchronizeReward(ctx, cdp)
 	claim, _ := k.GetClaim(ctx, cdp.Owner)
 	return claim
+}
+
+// CalculateTimeElapsed calculates the number of reward-eligible seconds that have passed since the previous
+// time rewards were accrued, taking into account the end time of the reward period
+func CalculateTimeElapsed(rewardPeriod types.RewardPeriod, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
+	if rewardPeriod.End.Before(blockTime) &&
+		(rewardPeriod.End.Before(previousAccrualTime) || rewardPeriod.End.Equal(previousAccrualTime)) {
+		return sdk.ZeroInt()
+	}
+	if rewardPeriod.End.Before(blockTime) {
+		return sdk.NewInt(int64(math.RoundToEven(
+			rewardPeriod.End.Sub(previousAccrualTime).Seconds(),
+		)))
+	}
+	return sdk.NewInt(int64(math.RoundToEven(
+		blockTime.Sub(previousAccrualTime).Seconds(),
+	)))
 }
