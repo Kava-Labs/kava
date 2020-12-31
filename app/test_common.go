@@ -18,7 +18,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -30,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	"github.com/kava-labs/kava/x/auction"
+	"github.com/kava-labs/kava/x/bank"
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"

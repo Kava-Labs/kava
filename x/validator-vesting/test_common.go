@@ -13,12 +13,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
+	"github.com/kava-labs/kava/x/bank"
 	"github.com/kava-labs/kava/x/validator-vesting/keeper"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )

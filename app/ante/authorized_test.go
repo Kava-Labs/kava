@@ -6,11 +6,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
+	"github.com/kava-labs/kava/x/bank"
 	"github.com/kava-labs/kava/x/bep3"
 )
 

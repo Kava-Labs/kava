@@ -17,7 +17,6 @@ import (
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -25,6 +24,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/bank"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
