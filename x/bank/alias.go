@@ -33,6 +33,7 @@ var (
 	NewInput                    = types.NewInput
 	NewMsgMultiSend             = types.NewMsgMultiSend
 	NewMsgSend                  = types.NewMsgSend
+	NewMultiBankHooks           = types.NewMultiBankHooks
 	NewOutput                   = types.NewOutput
 	NewQueryBalanceParams       = types.NewQueryBalanceParams
 	ParamKeyTable               = types.ParamKeyTable
@@ -41,6 +42,10 @@ var (
 	ValidateInputsOutputs       = types.ValidateInputsOutputs
 
 	// variable aliases
+	ErrInputOutputMismatch   = types.ErrInputOutputMismatch
+	ErrNoInputs              = types.ErrNoInputs
+	ErrNoOutputs             = types.ErrNoOutputs
+	ErrSendDisabled          = types.ErrSendDisabled
 	ModuleCdc                = types.ModuleCdc
 	ParamStoreKeySendEnabled = types.ParamStoreKeySendEnabled
 )
@@ -53,10 +58,12 @@ type (
 	SendKeeper         = keeper.SendKeeper
 	ViewKeeper         = keeper.ViewKeeper
 	AccountKeeper      = types.AccountKeeper
+	BankHooks          = types.BankHooks
 	GenesisState       = types.GenesisState
 	Input              = types.Input
 	MsgMultiSend       = types.MsgMultiSend
 	MsgSend            = types.MsgSend
+	MultiBankHooks     = types.MultiBankHooks
 	Output             = types.Output
 	QueryBalanceParams = types.QueryBalanceParams
 )
