@@ -9,8 +9,19 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
+	banktypes "github.com/kava-labs/kava/x/bank"
 	"github.com/kava-labs/kava/x/cdp/types"
 )
+
+// SyncUSDXSavingsRateSend syncs the usdx savings rate for the sender and receiver accounts
+func (k Keeper) SyncUSDXSavingsRateSend(ctx sdk.Context, sender, receiver sdk.AccAddress, amount sdk.Coins) error {
+	return nil
+}
+
+// SyncUSDXSavingsRateMultiSend syncs the usdx savings rate for the input (sending) and output (receiving) accounts
+func (k Keeper) SyncUSDXSavingsRateMultiSend(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output) error {
+	return nil
+}
 
 // DistributeSavingsRate distributes surplus that has accumulated in the liquidator account to address holding stable coins according the the savings rate
 func (k Keeper) DistributeSavingsRate(ctx sdk.Context, debtDenom string) error {

@@ -7,6 +7,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
+	banktypes "github.com/kava-labs/kava/x/bank"
 	pftypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
@@ -53,4 +54,10 @@ type AccountKeeper interface {
 type CDPHooks interface {
 	AfterCDPCreated(ctx sdk.Context, cdp CDP)
 	BeforeCDPModified(ctx sdk.Context, cdp CDP)
+}
+
+// BankHooks event hooks for the bank keeper
+type BankHooks interface {
+	BeforeSend(ctx sdk.Context, sender, receiver sdk.AccAddress, amount sdk.Coins) error
+	BeforeMultiSend(ctx sdk.Context, inputs []banktypes.Input, outputs []banktypes.Output) error
 }

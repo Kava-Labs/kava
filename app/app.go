@@ -223,7 +223,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		authSubspace,
 		auth.ProtoBaseAccount,
 	)
-	app.bankKeeper = bank.NewBaseKeeper(
+	bankKeeper := bank.NewBaseKeeper(
 		app.accountKeeper,
 		bankSubspace,
 		app.BlacklistedAccAddrs(),
@@ -232,7 +232,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.cdc,
 		keys[supply.StoreKey],
 		app.accountKeeper,
-		app.bankKeeper,
+		&bankKeeper,
 		mAccPerms,
 	)
 	stakingKeeper := staking.NewKeeper(
@@ -325,7 +325,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.cdc,
 		keys[validatorvesting.StoreKey],
 		app.accountKeeper,
-		app.bankKeeper,
+		&bankKeeper,
 		app.supplyKeeper,
 		&stakingKeeper,
 	)
@@ -388,12 +388,18 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		&stakingKeeper,
 		app.pricefeedKeeper)
 
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	// NOTE: all keepers with hooks (bank, staking, cdp) are passed by reference,
+	// so that the keepers in the app will contain the registered hooks
+
+	// register staking hooks
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
+	// register cdp hooks
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdp.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
+
+	// register bank hooks
+	app.bankKeeper = *bankKeeper.SetHooks(bank.NewMultiBankHooks(app.cdpKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
