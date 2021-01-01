@@ -32,6 +32,7 @@ type BaseKeeper struct {
 
 	ak         types.AccountKeeper
 	paramSpace params.Subspace
+	hooks      types.BankHooks
 }
 
 // NewBaseKeeper returns a new BaseKeeper
@@ -44,7 +45,17 @@ func NewBaseKeeper(
 		BaseSendKeeper: NewBaseSendKeeper(ak, ps, blacklistedAddrs),
 		ak:             ak,
 		paramSpace:     ps,
+		hooks:          nil,
 	}
+}
+
+// SetHooks sets the bank hooks on the keeper, panicing if they have already been set
+func (keeper *BaseKeeper) SetHooks(bh types.BankHooks) *BaseKeeper {
+	if keeper.hooks != nil {
+		panic("cannot set bank hooks twice")
+	}
+	keeper.hooks = bh
+	return keeper
 }
 
 // DelegateCoins performs delegation by deducting amt coins from an account with
@@ -130,6 +141,24 @@ func (keeper BaseKeeper) UndelegateCoins(ctx sdk.Context, moduleAccAddr, delegat
 
 	keeper.ak.SetAccount(ctx, delegatorAcc)
 	return nil
+}
+
+// SendCoins moves coins from one account to another with optional hook before sending
+func (keeper BaseKeeper) SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error {
+	err := keeper.BeforeSend(ctx, fromAddr, toAddr, amt)
+	if err != nil {
+		return err
+	}
+	return keeper.BaseSendKeeper.SendCoins(ctx, fromAddr, toAddr, amt)
+}
+
+// InputOutputCoins handles transfers between aa list of inputs and outputs with optional hook
+func (keeper BaseKeeper) InputOutputCoins(ctx sdk.Context, inputs []types.Input, outputs []types.Output) error {
+	err := keeper.BeforeMultiSend(ctx, inputs, outputs)
+	if err != nil {
+		return err
+	}
+	return keeper.BaseSendKeeper.InputOutputCoins(ctx, inputs, outputs)
 }
 
 // SendKeeper defines a module interface that facilitates the transfer of coins

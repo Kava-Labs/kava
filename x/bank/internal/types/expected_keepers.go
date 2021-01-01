@@ -16,3 +16,9 @@ type AccountKeeper interface {
 
 	IterateAccounts(ctx sdk.Context, process func(exported.Account) bool)
 }
+
+// BankHooks event hooks for bank keeper
+type BankHooks interface {
+	BeforeSend(ctx sdk.Context, sender, receiver sdk.AccAddress, amount sdk.Coins) error
+	BeforeMultiSend(ctx sdk.Context, inputs []Input, outputs []Output) error
+}
