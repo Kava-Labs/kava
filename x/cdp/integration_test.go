@@ -106,7 +106,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 1000000000000),
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 10_000_000_000_000),
 			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
 			SurplusAuctionLot:            cdp.DefaultSurplusLot,
 			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
@@ -117,7 +117,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					Denom:               "xrp",
 					Type:                "xrp-a",
 					LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
-					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 5_000_000_000_000),
 					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:  d("0.05"),
 					AuctionSize:         i(7000000000),
@@ -130,7 +130,7 @@ func NewCDPGenStateMulti() app.GenesisState {
 					Denom:               "btc",
 					Type:                "btc-a",
 					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 5_000_000_000_000),
 					StabilityFee:        sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty:  d("0.025"),
 					AuctionSize:         i(10000000),

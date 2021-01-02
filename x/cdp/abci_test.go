@@ -56,10 +56,10 @@ func (suite *ModuleTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func createCDPs(ctx sdk.Context, keeper cdp.Keeper, addrs []sdk.AccAddress) (liquidationTracker, error) {
+func createCDPs(ctx sdk.Context, keeper cdp.Keeper, addrs []sdk.AccAddress, numCDPs int) (liquidationTracker, error) {
 	tracker := liquidationTracker{}
 
-	for j := 0; j < 100; j++ {
+	for j := 0; j < numCDPs; j++ {
 		var collateral string
 		var amount, debt int
 
@@ -104,7 +104,7 @@ func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	suite.Equal(price, pp.Price)
 }
 func (suite *ModuleTestSuite) TestBeginBlock() {
-	liquidations, err := createCDPs(suite.ctx, suite.keeper, suite.addrs)
+	liquidations, err := createCDPs(suite.ctx, suite.keeper, suite.addrs, 100)
 	suite.Require().NoError(err)
 
 	sk := suite.app.GetSupplyKeeper()
@@ -159,4 +159,38 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 
 func TestModuleTestSuite(t *testing.T) {
 	suite.Run(t, new(ModuleTestSuite))
+}
+
+func BenchmarkBeginBlocker(b *testing.B) {
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
+	const numAddrs = 10_000
+	coins := []sdk.Coins{}
+	for j := 0; j < numAddrs; j++ {
+		coins = append(coins, cs(c("btc", 100_000_000), c("xrp", 10_000_000_000)))
+	}
+	_, addrs := app.GeneratePrivKeyAddressPairs(numAddrs)
+
+	tApp.InitializeFromGenesisStates(
+		app.NewAuthGenState(addrs, coins),
+		NewPricefeedGenStateMulti(),
+		NewCDPGenStateMulti(),
+	)
+	_, err := createCDPs(ctx, tApp.GetCDPKeeper(), addrs, 2000)
+	if err != nil {
+		b.Fatal(err)
+	}
+	// note: price has not been lowered, so there will be no liquidations in the begin blocker
+
+	b.ResetTimer() // don't count the expensive cdp creation in the benchmark
+	for n := 0; n < b.N; n++ {
+		// Use a copy of the store in the begin blocker to discard any writes and avoid sequential runs interfering.
+		// Exclude this operation from the benchmark time
+		b.StopTimer()
+		cacheCtx, _ := ctx.CacheContext()
+		b.StartTimer()
+
+		cdp.BeginBlocker(cacheCtx, abci.RequestBeginBlock{Header: cacheCtx.BlockHeader()}, tApp.GetCDPKeeper())
+	}
 }
