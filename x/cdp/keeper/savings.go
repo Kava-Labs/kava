@@ -13,9 +13,125 @@ import (
 	"github.com/kava-labs/kava/x/cdp/types"
 )
 
-// SyncUSDXSavingsRateSend syncs the usdx savings rate for the sender and receiver accounts
-func (k Keeper) SyncUSDXSavingsRateSend(ctx sdk.Context, sender, receiver sdk.AccAddress, amount sdk.Coins) error {
+// AccumulateUSDXSavings updates the global savings rate factor based on the amount of USDX savings accumulated
+func (k Keeper) AccumulateUSDXSavings(ctx sdk.Context, amount sdk.Int) error {
+
+	previousSavingsFactor, found := k.GetSavingsRateFactor(ctx)
+	if !found {
+		k.SetSavingsRateFactor(ctx, sdk.ZeroDec())
+		return nil
+	}
+	if amount.IsZero() {
+		return nil
+	}
+	usdxSupplyAmount := k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(types.DefaultStableDenom)
+	savingsMaccBalance := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc).GetCoins().AmountOf(types.DefaultStableDenom)
+	usdxSupplyAmount = usdxSupplyAmount.Sub(savingsMaccBalance)
+	if usdxSupplyAmount.IsZero() {
+		return nil
+	}
+
+	currentFactor := amount.ToDec().Quo(usdxSupplyAmount.ToDec())
+	newFactor := previousSavingsFactor.Add(currentFactor)
+	k.SetSavingsRateFactor(ctx, newFactor)
 	return nil
+
+}
+
+// SyncUSDXSavingsRateBeforeTransfer syncs the usdx savings rate for the sender and receiver accounts
+func (k Keeper) SyncUSDXSavingsRateBeforeTransfer(ctx sdk.Context, sender, receiver sdk.AccAddress, amount sdk.Coins) error {
+	shouldSync, shouldExit := k.validateSavingsRateSender(ctx, sender, amount)
+	if shouldExit {
+		return nil
+	}
+	if shouldSync {
+		err := k.SyncSavingsRate(ctx, sender, amount)
+		if err != nil {
+			return err
+		}
+	}
+	shouldSync = k.validateSavingsRateReceiver(ctx, receiver, amount)
+	if shouldSync {
+		err := k.SyncSavingsRate(ctx, receiver, amount)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SyncSavingsRate syncs the input address with the global savings rate, transfering any usdx that has accumulated
+func (k Keeper) SyncSavingsRate(ctx sdk.Context, addr sdk.AccAddress, amount sdk.Coins) error {
+	globalSavingsFactor, found := k.GetSavingsRateFactor(ctx)
+	if !found {
+		globalSavingsFactor = sdk.ZeroDec()
+	}
+	claim, found := k.GetSavingsRateClaim(ctx, addr)
+	if !found {
+		claim = types.NewUSDXSavingsRateClaim(addr, globalSavingsFactor)
+		k.SetSavingRateClaim(ctx, claim)
+		return nil
+	}
+	userFactor := globalSavingsFactor.Sub(claim.Factor)
+	if userFactor.IsZero() {
+		return nil
+	}
+	acc := k.accountKeeper.GetAccount(ctx, addr)
+	if acc == nil {
+		return nil
+	}
+	savingsAccumulated := acc.GetCoins().AmountOf(types.DefaultStableDenom).ToDec().Mul(userFactor)
+	if savingsAccumulated.IsPositive() {
+		savingsAccumulatedCoin := sdk.NewCoin(types.DefaultStableDenom, savingsAccumulated.RoundInt())
+		savingsMacc := k.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
+		err := k.ValidateBalance(ctx, savingsAccumulatedCoin, savingsMacc.GetAddress())
+		if err != nil {
+			return err
+		}
+		err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.SavingsRateMacc, addr, sdk.NewCoins(savingsAccumulatedCoin))
+		if err != nil {
+			return err
+		}
+	}
+	claim.Factor = globalSavingsFactor
+	k.SetSavingRateClaim(ctx, claim)
+	return nil
+}
+
+func (k Keeper) validateSavingsRateSender(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) (bool, bool) {
+	acc := k.accountKeeper.GetAccount(ctx, sender)
+	if acc == nil {
+		return false, false
+	}
+	// don't accumulate USDX savings to module accounts
+	mAcc, ok := acc.(supplyexported.ModuleAccountI)
+	if ok {
+		// exit if the sender is the savings rate account
+		if mAcc.GetName() == types.SavingsRateMacc {
+			return false, true
+		}
+		return false, false
+	}
+	// only sync savings rate if transaction involves usdx
+	if amount.AmountOf(types.DefaultStableDenom).GT(sdk.ZeroInt()) {
+		return true, false
+	}
+	return false, false
+}
+
+func (k Keeper) validateSavingsRateReceiver(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) bool {
+	acc := k.accountKeeper.GetAccount(ctx, receiver)
+	if acc == nil {
+		return false
+	}
+	_, ok := acc.(supplyexported.ModuleAccountI)
+	if ok {
+		return false
+	}
+	if amount.AmountOf(types.DefaultStableDenom).GT(sdk.ZeroInt()) {
+		return true
+	}
+	return false
 }
 
 // SyncUSDXSavingsRateMultiSend syncs the usdx savings rate for the input (sending) and output (receiving) accounts

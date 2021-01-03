@@ -20,12 +20,15 @@ type GenesisState struct {
 	SavingsRateDistributed    sdk.Int                  `json:"savings_rate_distributed" yaml:"savings_rate_distributed"`
 	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
 	TotalPrincipals           GenesisTotalPrincipals   `json:"total_principals" yaml:"total_principals"`
+	SavingsRateFactor         sdk.Dec                  `json:"savings_rate_factor" yaml:"savings_rate_factor"`
+	SavingsRateClaims         USDXSavingsRateClaims    `json:"savings_rate_claims" yaml:"savings_rate_claims"`
 }
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
 	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int,
-	prevAccumTimes GenesisAccumulationTimes, totalPrincipals GenesisTotalPrincipals) GenesisState {
+	prevAccumTimes GenesisAccumulationTimes, totalPrincipals GenesisTotalPrincipals,
+	savingsRateFactor sdk.Dec, savingsRateClaims USDXSavingsRateClaims) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		CDPs:                      cdps,
@@ -37,6 +40,8 @@ func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID 
 		SavingsRateDistributed:    savingsRateDist,
 		PreviousAccumulationTimes: prevAccumTimes,
 		TotalPrincipals:           totalPrincipals,
+		SavingsRateFactor:         savingsRateFactor,
+		SavingsRateClaims:         savingsRateClaims,
 	}
 }
 
@@ -53,6 +58,8 @@ func DefaultGenesisState() GenesisState {
 		DefaultSavingsRateDistributed,
 		GenesisAccumulationTimes{},
 		GenesisTotalPrincipals{},
+		DefaultSavingsRateFactor,
+		DefaultSavingsRateClaims,
 	)
 }
 
@@ -94,6 +101,14 @@ func (gs GenesisState) Validate() error {
 
 	if err := sdk.ValidateDenom(gs.GovDenom); err != nil {
 		return fmt.Errorf(fmt.Sprintf("gov denom invalid: %v", err))
+	}
+
+	if gs.SavingsRateFactor.IsNegative() {
+		return fmt.Errorf("savings rate factor should be positive, is %s", gs.SavingsRateFactor)
+	}
+
+	if err := gs.SavingsRateClaims.Validate(); err != nil {
+		return fmt.Errorf("invalid usdx savings claim: %s", err)
 	}
 
 	return nil

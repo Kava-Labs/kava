@@ -81,6 +81,7 @@ var (
 	NewQueryCdpsByCollateralTypeParams = types.NewQueryCdpsByCollateralTypeParams
 	NewQueryCdpsByRatioParams          = types.NewQueryCdpsByRatioParams
 	NewQueryCdpsParams                 = types.NewQueryCdpsParams
+	NewUSDXSavingsRateClaim            = types.NewUSDXSavingsRateClaim
 	ParamKeyTable                      = types.ParamKeyTable
 	ParseDecBytes                      = types.ParseDecBytes
 	RegisterCodec                      = types.RegisterCodec
@@ -111,7 +112,9 @@ var (
 	DefaultGovDenom                     = types.DefaultGovDenom
 	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
 	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
+	DefaultSavingsRateClaims            = types.DefaultSavingsRateClaims
 	DefaultSavingsRateDistributed       = types.DefaultSavingsRateDistributed
+	DefaultSavingsRateFactor            = types.DefaultSavingsRateFactor
 	DefaultStableDenom                  = types.DefaultStableDenom
 	DefaultSurplusLot                   = types.DefaultSurplusLot
 	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
@@ -156,15 +159,19 @@ var (
 	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
 	PricefeedStatusKeyPrefix            = types.PricefeedStatusKeyPrefix
 	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix
+	SavingsClaimsPrefix                 = types.SavingsClaimsPrefix
+	SavingsFactorPrefix                 = types.SavingsFactorPrefix
 	SavingsRateDistributedKey           = types.SavingsRateDistributedKey
 )
 
 type (
+	Hooks                           = keeper.Hooks
 	Keeper                          = keeper.Keeper
 	AccountKeeper                   = types.AccountKeeper
 	AuctionKeeper                   = types.AuctionKeeper
 	AugmentedCDP                    = types.AugmentedCDP
 	AugmentedCDPs                   = types.AugmentedCDPs
+	BankHooks                       = types.BankHooks
 	CDP                             = types.CDP
 	CDPHooks                        = types.CDPHooks
 	CDPs                            = types.CDPs
@@ -194,4 +201,6 @@ type (
 	QueryCdpsByRatioParams          = types.QueryCdpsByRatioParams
 	QueryCdpsParams                 = types.QueryCdpsParams
 	SupplyKeeper                    = types.SupplyKeeper
+	USDXSavingsRateClaim            = types.USDXSavingsRateClaim
+	USDXSavingsRateClaims           = types.USDXSavingsRateClaims
 )

@@ -82,6 +82,8 @@ func NewCDPGenState(asset string, liquidationRatio sdk.Dec) app.GenesisState {
 		TotalPrincipals: cdp.GenesisTotalPrincipals{
 			cdp.NewGenesisTotalPrincipal(asset+"-a", sdk.ZeroInt()),
 		},
+		SavingsRateFactor: sdk.ZeroDec(),
+		SavingsRateClaims: cdp.DefaultSavingsRateClaims,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -221,6 +223,8 @@ func NewCDPGenStateMulti() app.GenesisState {
 			cdp.NewGenesisTotalPrincipal("busd-a", sdk.ZeroInt()),
 			cdp.NewGenesisTotalPrincipal("bnb-a", sdk.ZeroInt()),
 		},
+		SavingsRateFactor: sdk.ZeroDec(),
+		SavingsRateClaims: cdp.DefaultSavingsRateClaims,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
@@ -287,6 +291,8 @@ func NewCDPGenStateHighDebtLimit() app.GenesisState {
 			cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
 			cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
 		},
+		SavingsRateFactor: sdk.ZeroDec(),
+		SavingsRateClaims: cdp.DefaultSavingsRateClaims,
 	}
 	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }

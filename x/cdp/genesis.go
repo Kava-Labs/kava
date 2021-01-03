@@ -94,6 +94,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 	}
 
 	k.SetSavingsRateDistributed(ctx, gs.SavingsRateDistributed)
+	k.SetSavingsRateFactor(ctx, gs.SavingsRateFactor)
+	for _, savingsRateClaim := range gs.SavingsRateClaims {
+		k.SetSavingRateClaim(ctx, savingsRateClaim)
+	}
 }
 
 // ExportGenesis export genesis state for cdp module
@@ -111,6 +115,16 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		return false
 	})
 
+	savingsRateClaims := types.USDXSavingsRateClaims{}
+	k.IterateSavingsRateClaims(ctx, func(claim types.USDXSavingsRateClaim) (stop bool) {
+		savingsRateClaims = append(savingsRateClaims, claim)
+		return false
+	})
+
+	savingsRateFactor, found := k.GetSavingsRateFactor(ctx)
+	if !found {
+		savingsRateFactor = sdk.ZeroDec()
+	}
 	cdpID := k.GetNextCdpID(ctx)
 	debtDenom := k.GetDebtDenom(ctx)
 	govDenom := k.GetGovDenom(ctx)
@@ -137,5 +151,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		totalPrincipals = append(totalPrincipals, genTotalPrincipal)
 	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime, savingsRateDist, previousAccumTimes, totalPrincipals)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime, savingsRateDist, previousAccumTimes, totalPrincipals, savingsRateFactor, savingsRateClaims)
 }

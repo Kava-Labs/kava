@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -755,6 +756,231 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 			}
 			suite.Require().Equal(tc.args.expectedCDPs, cdpsUpdatedCount)
 		})
+	}
+}
+
+func (suite *InterestTestSuite) TestAccumulateSavingsRate() {
+
+	type args struct {
+		ctype                     string
+		initialTime               time.Time
+		totalPrincipal            sdk.Int
+		timeElapsed               int
+		expectedSavingsRateFactor sdk.Dec
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+	oneYearInSeconds := 31536000
+
+	testCases := []test{
+		{
+			"1 year",
+			args{
+				ctype:                     "bnb-a",
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:            sdk.NewInt(100000000000000),
+				timeElapsed:               oneYearInSeconds,
+				expectedSavingsRateFactor: d("0.047381546134772595"),
+			},
+		},
+		{
+			"1 year - zero principal",
+			args{
+				ctype:                     "bnb-a",
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:            sdk.ZeroInt(),
+				timeElapsed:               oneYearInSeconds,
+				expectedSavingsRateFactor: sdk.ZeroDec(),
+			},
+		},
+		{
+			"1 month",
+			args{
+				ctype:                     "bnb-a",
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:            sdk.NewInt(100000000000000),
+				timeElapsed:               86400 * 30,
+				expectedSavingsRateFactor: d("0.003816525018977394"),
+			},
+		},
+		{
+			"7 seconds",
+			args{
+				ctype:                     "bnb-a",
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:            sdk.NewInt(100000000000000),
+				timeElapsed:               7,
+				expectedSavingsRateFactor: d("0.000000010288389994"),
+			},
+		},
+		{
+			"7 seconds - interest rounds to zero",
+			args{
+				ctype:                     "bnb-a",
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				totalPrincipal:            sdk.NewInt(30000000),
+				timeElapsed:               7,
+				expectedSavingsRateFactor: sdk.ZeroDec(),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+			suite.keeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom, tc.args.totalPrincipal)
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+
+			// setup usdx supply
+			sk := suite.app.GetSupplyKeeper()
+			sk.MintCoins(suite.ctx, types.ModuleName, cs(c("usdx", tc.args.totalPrincipal.Int64())))
+
+			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+			err := suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			factor, found := suite.keeper.GetSavingsRateFactor(suite.ctx)
+			suite.Require().True(found)
+			suite.Require().Equal(tc.args.expectedSavingsRateFactor, factor)
+		})
+	}
+}
+
+func (suite *InterestTestSuite) TestSyncSavingsRate() {
+
+	type args struct {
+		initialFactor             sdk.Dec
+		sender                    sdk.AccAddress
+		receiver                  sdk.AccAddress
+		initialBalanceSender      sdk.Coins
+		initialBalanceReceiver    sdk.Coins
+		initialBalanceModAccount  sdk.Coins
+		initializeClaimSender     bool
+		initializeClaimReceiver   bool
+		sendAmount                sdk.Coins
+		expectedSenderBalance     sdk.Coins
+		expectedReceiverBalance   sdk.Coins
+		expectedModAccountBalance sdk.Coins
+		hasClaimSender            bool
+		hasClaimReceiver          bool
+		claimFactorSender         sdk.Dec
+		claimFactorReceiver       sdk.Dec
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+
+	testCases := []test{
+		{
+			"valid - send usdx",
+			args{
+				initialFactor:             d("0.01"),
+				sender:                    sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2"))),
+				initialBalanceSender:      cs(c("usdx", 100000000)),
+				initialBalanceReceiver:    cs(c("usdx", 100000000)),
+				initialBalanceModAccount:  cs(c("usdx", 100000000)),
+				initializeClaimSender:     true,
+				initializeClaimReceiver:   true,
+				sendAmount:                cs(c("usdx", 10000000)),
+				expectedSenderBalance:     cs(c("usdx", 91000000)),
+				expectedReceiverBalance:   cs(c("usdx", 111000000)),
+				expectedModAccountBalance: cs(c("usdx", 98000000)),
+				hasClaimSender:            true,
+				hasClaimReceiver:          true,
+				claimFactorSender:         d("0.01"),
+				claimFactorReceiver:       d("0.01"),
+			},
+		},
+		{
+			"valid - non-usdx send",
+			args{
+				initialFactor:             d("0.01"),
+				sender:                    sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+				receiver:                  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser2"))),
+				initialBalanceSender:      cs(c("ukava", 100000000)),
+				initialBalanceReceiver:    cs(c("ukava", 100000000)),
+				initialBalanceModAccount:  cs(c("ukava", 100000000)),
+				initializeClaimSender:     false,
+				initializeClaimReceiver:   false,
+				sendAmount:                cs(c("ukava", 10000000)),
+				expectedSenderBalance:     cs(c("ukava", 90000000)),
+				expectedReceiverBalance:   cs(c("ukava", 110000000)),
+				expectedModAccountBalance: cs(c("ukava", 100000000)),
+				hasClaimSender:            false,
+				hasClaimReceiver:          false,
+				claimFactorSender:         sdk.ZeroDec(),
+				claimFactorReceiver:       sdk.ZeroDec(),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			// setup usdx supply
+			sk := suite.app.GetSupplyKeeper()
+			err := sk.MintCoins(suite.ctx, types.ModuleName, tc.args.initialBalanceReceiver.Add(tc.args.initialBalanceSender...).Add(tc.args.initialBalanceModAccount...))
+			suite.Require().NoError(err)
+			err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, tc.args.sender, tc.args.initialBalanceSender)
+			suite.Require().NoError(err)
+			err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, tc.args.receiver, tc.args.initialBalanceReceiver)
+			suite.Require().NoError(err)
+			err = sk.SendCoinsFromModuleToModule(suite.ctx, types.ModuleName, types.SavingsRateMacc, tc.args.initialBalanceModAccount)
+			suite.Require().NoError(err)
+
+			if tc.args.initializeClaimSender {
+				claim := types.NewUSDXSavingsRateClaim(tc.args.sender, sdk.ZeroDec())
+				suite.keeper.SetSavingRateClaim(suite.ctx, claim)
+			}
+			if tc.args.initializeClaimSender {
+				claim := types.NewUSDXSavingsRateClaim(tc.args.receiver, sdk.ZeroDec())
+				suite.keeper.SetSavingRateClaim(suite.ctx, claim)
+			}
+
+			suite.keeper.SetSavingsRateFactor(suite.ctx, tc.args.initialFactor)
+
+			bk := suite.app.GetBankKeeper()
+			err = bk.SendCoins(suite.ctx, tc.args.sender, tc.args.receiver, tc.args.sendAmount)
+			suite.Require().NoError(err)
+
+			ak := suite.app.GetAccountKeeper()
+			sender := ak.GetAccount(suite.ctx, tc.args.sender)
+			suite.Require().Equal(tc.args.expectedSenderBalance, sender.GetCoins())
+
+			receiver := ak.GetAccount(suite.ctx, tc.args.receiver)
+			suite.Require().Equal(tc.args.expectedReceiverBalance, receiver.GetCoins())
+
+			macc := sk.GetModuleAccount(suite.ctx, types.SavingsRateMacc)
+			suite.Require().Equal(tc.args.expectedModAccountBalance, macc.GetCoins())
+
+			claim, found := suite.keeper.GetSavingsRateClaim(suite.ctx, tc.args.sender)
+			if tc.args.hasClaimSender {
+				suite.Require().True(found)
+				suite.Require().Equal(tc.args.claimFactorSender, claim.Factor)
+			} else {
+				suite.Require().False(found)
+			}
+
+			claim, found = suite.keeper.GetSavingsRateClaim(suite.ctx, tc.args.receiver)
+			if tc.args.hasClaimReceiver {
+				suite.Require().True(found)
+				suite.Require().Equal(tc.args.claimFactorReceiver, claim.Factor)
+			} else {
+				suite.Require().False(found)
+			}
+
+			_, found = suite.keeper.GetSavingsRateClaim(suite.ctx, macc.GetAddress())
+			suite.Require().False(found)
+		})
+
 	}
 }
 

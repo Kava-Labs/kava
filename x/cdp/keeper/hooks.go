@@ -34,7 +34,7 @@ func (k Keeper) Hooks() Hooks { return Hooks{k} }
 
 // BeforeSend hook registered on bank keeper, runs before each transfer operation
 func (h Hooks) BeforeSend(ctx sdk.Context, sender, receiver sdk.AccAddress, amount sdk.Coins) error {
-	return h.k.SyncUSDXSavingsRateSend(ctx, sender, receiver, amount)
+	return h.k.SyncUSDXSavingsRateBeforeTransfer(ctx, sender, receiver, amount)
 }
 
 // BeforeMultiSend hook registered on bank keeper, runs before each multi-send operation

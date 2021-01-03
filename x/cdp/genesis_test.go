@@ -32,6 +32,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		savingsRateDist    sdk.Int
 		genAccumTimes      cdp.GenesisAccumulationTimes
 		genTotalPrincipals cdp.GenesisTotalPrincipals
+		savingsFactor      sdk.Dec
+		savingsClaims      cdp.USDXSavingsRateClaims
 	}
 	type errArgs struct {
 		expectPass bool
@@ -59,6 +61,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				savingsRateDist:    cdp.DefaultSavingsRateDistributed,
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				savingsFactor:      sdk.ZeroDec(),
+				savingsClaims:      cdp.DefaultSavingsRateClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -77,6 +81,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				savingsRateDist:    cdp.DefaultSavingsRateDistributed,
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				savingsFactor:      sdk.ZeroDec(),
+				savingsClaims:      cdp.DefaultSavingsRateClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -95,6 +101,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				savingsRateDist:    cdp.DefaultSavingsRateDistributed,
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				savingsFactor:      sdk.ZeroDec(),
+				savingsClaims:      cdp.DefaultSavingsRateClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -113,6 +121,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				savingsRateDist:    sdk.NewInt(-100),
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				savingsFactor:      sdk.ZeroDec(),
+				savingsClaims:      cdp.DefaultSavingsRateClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -131,6 +141,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				savingsRateDist:    sdk.NewInt(100),
 				genAccumTimes:      cdp.GenesisAccumulationTimes{cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec().Sub(sdk.SmallestDec()))},
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
+				savingsFactor:      sdk.ZeroDec(),
+				savingsClaims:      cdp.DefaultSavingsRateClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -149,6 +161,8 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				savingsRateDist:    sdk.NewInt(100),
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.GenesisTotalPrincipals{cdp.NewGenesisTotalPrincipal("bnb-a", sdk.NewInt(-1))},
+				savingsFactor:      sdk.ZeroDec(),
+				savingsClaims:      cdp.DefaultSavingsRateClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -159,7 +173,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			gs := cdp.NewGenesisState(tc.args.params, tc.args.cdps, tc.args.deposits, tc.args.startingID,
-				tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime, tc.args.savingsRateDist, tc.args.genAccumTimes, tc.args.genTotalPrincipals)
+				tc.args.debtDenom, tc.args.govDenom, tc.args.prevDistTime, tc.args.savingsRateDist, tc.args.genAccumTimes, tc.args.genTotalPrincipals, tc.args.savingsFactor, tc.args.savingsClaims)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)

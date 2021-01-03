@@ -64,6 +64,8 @@ var (
 	SavingsRateDistributedKey   = []byte{0x11}
 	PreviousAccrualTimePrefix   = []byte{0x12}
 	InterestFactorPrefix        = []byte{0x13}
+	SavingsFactorPrefix         = []byte{0x14}
+	SavingsClaimsPrefix         = []byte{0x15}
 )
 
 // GetCdpIDBytes returns the byte representation of the cdpID

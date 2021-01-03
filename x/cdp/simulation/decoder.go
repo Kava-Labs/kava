@@ -60,6 +60,17 @@ func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &timeB)
 		return fmt.Sprintf("%s\n%s", timeA, timeB)
 
+	case bytes.Equal(kvA.Key[:1], types.InterestFactorPrefix),
+		bytes.Equal(kvA.Key[:1], types.SavingsFactorPrefix):
+		var decA, decB sdk.Dec
+		cdc.MustUnmarshalBinaryBare(kvA.Value, &decA)
+		cdc.MustUnmarshalBinaryBare(kvB.Value, &decB)
+		return fmt.Sprintf("%s\n%s", decA, decB)
+	case bytes.Equal(kvA.Key[:1], types.SavingsClaimsPrefix):
+		var claimA, claimB types.USDXSavingsRateClaim
+		cdc.MustUnmarshalBinaryBare(kvA.Value, &claimA)
+		cdc.MustUnmarshalBinaryBare(kvB.Value, &claimB)
+		return fmt.Sprintf("%s\n%s", claimA, claimB)
 	default:
 		panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
 	}

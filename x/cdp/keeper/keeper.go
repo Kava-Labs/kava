@@ -233,3 +233,54 @@ func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 	}
 	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
 }
+
+// GetSavingsRateFactor gets the global savings rate factor
+func (k Keeper) GetSavingsRateFactor(ctx sdk.Context) (sdk.Dec, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsFactorPrefix)
+	bz := store.Get([]byte{})
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	var factor sdk.Dec
+	k.cdc.MustUnmarshalBinaryBare(bz, &factor)
+	return factor, true
+}
+
+// SetSavingsRateFactor sets the global usdx savings rate factor
+func (k Keeper) SetSavingsRateFactor(ctx sdk.Context, factor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsFactorPrefix)
+	store.Set([]byte{}, k.cdc.MustMarshalBinaryBare(factor))
+}
+
+// SetSavingRateClaim sets the USDX savings rate claim in the store
+func (k Keeper) SetSavingRateClaim(ctx sdk.Context, claim types.USDXSavingsRateClaim) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimsPrefix)
+	store.Set(claim.Owner, k.cdc.MustMarshalBinaryBare(claim))
+}
+
+// GetSavingsRateClaim returns the USDX savings rate claim in the store if it is found
+func (k Keeper) GetSavingsRateClaim(ctx sdk.Context, owner sdk.AccAddress) (types.USDXSavingsRateClaim, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimsPrefix)
+	var claim types.USDXSavingsRateClaim
+	bz := store.Get(owner)
+	if bz == nil {
+		return types.USDXSavingsRateClaim{}, false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &claim)
+	return claim, true
+}
+
+// IterateSavingsRateClaims iterates over all usdx savings rate claims and performs a callback function
+func (k Keeper) IterateSavingsRateClaims(ctx sdk.Context, cb func(claim types.USDXSavingsRateClaim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimsPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var claim types.USDXSavingsRateClaim
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &claim)
+
+		if cb(claim) {
+			break
+		}
+	}
+}

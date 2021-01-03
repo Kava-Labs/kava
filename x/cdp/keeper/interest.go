@@ -79,7 +79,11 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 
 	// mint savings rate coins to the savings module account.
 	if newFeesSavings.IsPositive() {
-		err := k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
+		err := k.AccumulateUSDXSavings(ctx, newFeesSavings)
+		if err != nil {
+			return err
+		}
+		err = k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
 		if err != nil {
 			return err
 		}

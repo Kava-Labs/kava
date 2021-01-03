@@ -45,6 +45,8 @@ var (
 	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
 	DefaultSavingsDistributionFrequency = time.Hour * 12
 	DefaultSavingsRateDistributed       = sdk.NewInt(0)
+	DefaultSavingsRateFactor            = sdk.ZeroDec()
+	DefaultSavingsRateClaims            = USDXSavingsRateClaims{}
 	minCollateralPrefix                 = 0
 	maxCollateralPrefix                 = 255
 	stabilityFeeMax                     = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
