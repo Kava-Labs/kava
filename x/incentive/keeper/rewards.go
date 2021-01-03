@@ -25,8 +25,13 @@ func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeri
 		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
+	totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, rewardPeriod.CollateralType, types.PrincipalDenom).ToDec()
+	if totalPrincipal.IsZero() {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-	rewardFactor := newRewards.ToDec().Quo(k.cdpKeeper.GetTotalPrincipal(ctx, rewardPeriod.CollateralType, types.PrincipalDenom).ToDec())
+	rewardFactor := newRewards.ToDec().Quo(totalPrincipal)
 
 	previousRewardFactor, found := k.GetRewardFactor(ctx, rewardPeriod.CollateralType)
 	if !found {
