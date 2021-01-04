@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -12,10 +13,14 @@ import (
 // CalculateFees returns the fees accumulated since fees were last calculated based on
 // the input amount of outstanding debt (principal) and the number of periods (seconds) that have passed
 func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.Int, collateralType string) sdk.Coin {
+	feePerSecond := k.getFeeRate(ctx, collateralType)
+	return calculateFees(principal, periods, feePerSecond)
+}
+
+func calculateFees(principal sdk.Coin, periods sdk.Int, feePerSecond sdk.Dec) sdk.Coin {
 	// how fees are calculated:
 	// feesAccumulated = (outstandingDebt * (feeRate^periods)) - outstandingDebt
 	// Note that since we can't do x^y using sdk.Decimal, we are converting to int and using RelativePow
-	feePerSecond := k.getFeeRate(ctx, collateralType)
 	scalar := sdk.NewInt(1000000000000000000)
 	feeRateInt := feePerSecond.Mul(sdk.NewDecFromInt(scalar)).TruncateInt()
 	accumulator := sdk.NewDecFromInt(types.RelativePow(feeRateInt, periods, scalar)).Mul(sdk.SmallestDec())
@@ -27,12 +32,22 @@ func (k Keeper) CalculateFees(ctx sdk.Context, principal sdk.Coin, periods sdk.I
 // UpdateFeesForAllCdps updates the fees for each of the CDPs
 func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralType string) error {
 	var iterationErr error
+
+	// Load params outside the loop to speed up iterations.
+	// This is safe as long as params are not updated during the loop.
+	collateralParam, found := k.GetCollateral(ctx, collateralType)
+	if !found {
+		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateralType)
+	}
+	debtParam := k.GetParams(ctx).DebtParam
+	feePerSecond := k.getFeeRate(ctx, collateralType)
+
 	k.IterateCdpsByCollateralType(ctx, collateralType, func(cdp types.CDP) bool {
-		oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
-		// periods = bblock timestamp - fees updated
+		oldCollateralToDebtRatio := calculateCollateralToDebtRatio(cdp.Collateral, collateralParam, cdp.GetTotalPrincipal(), debtParam)
+		// periods = block timestamp - fees updated
 		periods := sdk.NewInt(ctx.BlockTime().Unix()).Sub(sdk.NewInt(cdp.FeesUpdated.Unix()))
 
-		newFees := k.CalculateFees(ctx, cdp.Principal, periods, collateralType)
+		newFees := calculateFees(cdp.Principal, periods, feePerSecond)
 
 		// exit without updating fees if amount has rounded down to zero
 		// cdp will get updated next block when newFees, newFeesSavings, newFeesSurplus >0
@@ -86,7 +101,7 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralType string) err
 
 		// and set the fees updated time to the current block time since we just updated it
 		cdp.FeesUpdated = ctx.BlockTime()
-		collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+		collateralToDebtRatio := calculateCollateralToDebtRatio(cdp.Collateral, collateralParam, cdp.GetTotalPrincipal(), debtParam)
 		k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
 		err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 		if err != nil {

@@ -421,13 +421,19 @@ func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.C
 
 // CalculateCollateralToDebtRatio returns the collateral to debt ratio of the input collateral and debt amounts
 func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.Coin, collateralType string, debt sdk.Coin) sdk.Dec {
-	debtTotal := k.convertDebtToBaseUnits(ctx, debt)
+	cp, _ := k.GetCollateral(ctx, collateralType)
+	dp, _ := k.GetDebtParam(ctx, debt.Denom)
+	return calculateCollateralToDebtRatio(collateral, cp, debt, dp)
+}
+
+func calculateCollateralToDebtRatio(collateral sdk.Coin, collateralParam types.CollateralParam, debt sdk.Coin, debtParam types.DebtParam) sdk.Dec {
+	debtTotal := convertDebtToBaseUnits(debt, debtParam)
 
 	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
 		return types.MaxSortableDec.Sub(sdk.SmallestDec())
 	}
 
-	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral, collateralType)
+	collateralBaseUnits := convertCollateralToBaseUnits(collateral, collateralParam)
 	return collateralBaseUnits.Quo(debtTotal)
 }
 
@@ -529,13 +535,27 @@ func (k Keeper) UpdatePricefeedStatus(ctx sdk.Context, marketID string) (ok bool
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin, collateralType string) (baseUnits sdk.Dec) {
 	cp, _ := k.GetCollateral(ctx, collateralType)
-	return sdk.NewDecFromInt(collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), cp.ConversionFactor.Int64()))
+	return convertCollateralToBaseUnits(collateral, cp)
+}
+
+func convertCollateralToBaseUnits(collateral sdk.Coin, collateralParam types.CollateralParam) (baseUnits sdk.Dec) {
+	if collateral.Denom != collateralParam.Denom {
+		panic(fmt.Sprintf("mismatched collateral denom (%s) and param denom (%s)", collateral.Denom, collateralParam.Denom))
+	}
+	return sdk.NewDecFromInt(collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), collateralParam.ConversionFactor.Int64()))
 }
 
 // converts the input debt to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdk.Dec) {
 	dp, _ := k.GetDebtParam(ctx, debt.Denom)
-	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
+	return convertDebtToBaseUnits(debt, dp)
+}
+
+func convertDebtToBaseUnits(debt sdk.Coin, debtParam types.DebtParam) (baseUnits sdk.Dec) {
+	if debt.Denom != debtParam.Denom {
+		panic(fmt.Sprintf("mismatched debt denom (%s) and param denom (%s)", debt.Denom, debtParam.Denom))
+	}
+	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), debtParam.ConversionFactor.Int64()))
 }
 
 type pricefeedType string
