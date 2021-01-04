@@ -30,13 +30,13 @@ Note, the current recommended version of the software for mainnet is v0.11.0. Th
 ### Installation
 
 ```bash
-git checkout v0.11.0
+git checkout v0.12.1
 make install
 ```
 
 ### Upgrade
 
-The scheduled mainnet upgrade to `kava-4` took place on October 15th, 2020 at 14:00 UTC. The current version of Kava for `kava-4` is [__v0.11.0__](https://github.com/Kava-Labs/kava/releases/tag/v0.11.0).
+The scheduled mainnet upgrade to `kava-4` took place on October 15th, 2020 at 14:00 UTC. The current version of Kava for `kava-4` is [__v0.12.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.12.1).
 
 The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-4)
 

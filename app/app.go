@@ -38,7 +38,7 @@ import (
 	"github.com/kava-labs/kava/x/bep3"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/committee"
-	"github.com/kava-labs/kava/x/harvest"
+	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/issuance"
 	"github.com/kava-labs/kava/x/kavadist"
@@ -84,7 +84,7 @@ var (
 		kavadist.AppModuleBasic{},
 		incentive.AppModuleBasic{},
 		issuance.AppModuleBasic{},
-		harvest.AppModuleBasic{},
+		hard.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -103,9 +103,10 @@ var (
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
-		harvest.LPAccount:           {supply.Minter, supply.Burner},
-		harvest.DelegatorAccount:    {supply.Minter, supply.Burner},
-		harvest.ModuleAccountName:   {supply.Minter, supply.Burner},
+		hard.LPAccount:              {supply.Minter, supply.Burner},
+		hard.DelegatorAccount:       {supply.Minter, supply.Burner},
+		hard.ModuleAccountName:      {supply.Minter, supply.Burner},
+		hard.LiquidatorAccount:      {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -160,7 +161,7 @@ type App struct {
 	kavadistKeeper  kavadist.Keeper
 	incentiveKeeper incentive.Keeper
 	issuanceKeeper  issuance.Keeper
-	harvestKeeper   harvest.Keeper
+	hardKeeper      hard.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -184,7 +185,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		gov.StoreKey, params.StoreKey, upgrade.StoreKey, evidence.StoreKey,
 		validatorvesting.StoreKey, auction.StoreKey, cdp.StoreKey, pricefeed.StoreKey,
 		bep3.StoreKey, kavadist.StoreKey, incentive.StoreKey, issuance.StoreKey, committee.StoreKey,
-		harvest.StoreKey,
+		hard.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -214,7 +215,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadist.DefaultParamspace)
 	incentiveSubspace := app.paramsKeeper.Subspace(incentive.DefaultParamspace)
 	issuanceSubspace := app.paramsKeeper.Subspace(issuance.DefaultParamspace)
-	harvestSubspace := app.paramsKeeper.Subspace(harvest.DefaultParamspace)
+	hardSubspace := app.paramsKeeper.Subspace(hard.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -379,14 +380,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
-	app.harvestKeeper = harvest.NewKeeper(
+	app.hardKeeper = hard.NewKeeper(
 		app.cdc,
-		keys[harvest.StoreKey],
-		harvestSubspace,
+		keys[hard.StoreKey],
+		hardSubspace,
 		app.accountKeeper,
 		app.supplyKeeper,
 		&stakingKeeper,
-		app.pricefeedKeeper)
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -419,7 +422,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
-		harvest.NewAppModule(app.harvestKeeper, app.supplyKeeper, app.pricefeedKeeper),
+		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -430,7 +433,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	app.mm.SetOrderBeginBlockers(
 		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		validatorvesting.ModuleName, kavadist.ModuleName, auction.ModuleName, cdp.ModuleName,
-		bep3.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName, harvest.ModuleName,
+		bep3.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName, hard.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, pricefeed.ModuleName)
@@ -441,7 +444,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.ModuleName, bank.ModuleName, slashing.ModuleName,
 		gov.ModuleName, mint.ModuleName, evidence.ModuleName,
 		pricefeed.ModuleName, cdp.ModuleName, auction.ModuleName,
-		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName, harvest.ModuleName,
+		bep3.ModuleName, kavadist.ModuleName, incentive.ModuleName, committee.ModuleName, issuance.ModuleName, hard.ModuleName,
 		supply.ModuleName,  // calculates the total supply from account - should run after modules that modify accounts in genesis
 		crisis.ModuleName,  // runs the invariants at genesis - should run after other modules
 		genutil.ModuleName, // genutils must occur after staking so that pools are properly initialized with tokens from genesis accounts.
@@ -472,7 +475,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
-		harvest.NewAppModule(app.harvestKeeper, app.supplyKeeper, app.pricefeedKeeper),
+		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
