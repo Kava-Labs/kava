@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -33,10 +34,10 @@ func (k Keeper) UpdateFeesForAllCdps(ctx sdk.Context, collateralType string) err
 	var iterationErr error
 
 	// Load params outside the loop to speed up iterations.
-	// This is safe to do as params should be constant throughout the cdp begin blocker.
+	// This is safe as long as params are not updated during the loop.
 	collateralParam, found := k.GetCollateral(ctx, collateralType)
 	if !found {
-		panic("no collateral params")
+		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateralType)
 	}
 	debtParam := k.GetParams(ctx).DebtParam
 	feePerSecond := k.getFeeRate(ctx, collateralType)

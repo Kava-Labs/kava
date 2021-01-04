@@ -185,7 +185,7 @@ func BenchmarkBeginBlocker(b *testing.B) {
 
 	b.ResetTimer() // don't count the expensive cdp creation in the benchmark
 	for n := 0; n < b.N; n++ {
-		// Use a copy of the store in the begin blocker to discard any writes and avoid sequential runs interfering.
+		// Use a copy of the store in the begin blocker to discard any writes and avoid loop iterations interfering.
 		// Exclude this operation from the benchmark time
 		b.StopTimer()
 		cacheCtx, _ := ctx.CacheContext()
