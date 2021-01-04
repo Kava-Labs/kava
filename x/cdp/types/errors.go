@@ -49,4 +49,6 @@ var (
 	ErrAccountNotFound = sdkerrors.Register(ModuleName, 21, "account not found")
 	// ErrInsufficientBalance error for when an account does not have enough funds
 	ErrInsufficientBalance = sdkerrors.Register(ModuleName, 22, "insufficient balance")
+	// ErrNotLiquidatable error for when an cdp is not liquidatable
+	ErrNotLiquidatable = sdkerrors.Register(ModuleName, 23, "cdp collateral ratio not below liquidation ratio")
 )
