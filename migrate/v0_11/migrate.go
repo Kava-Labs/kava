@@ -26,6 +26,7 @@ import (
 	v0_9cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_9"
 	v0_11committee "github.com/kava-labs/kava/x/committee"
 	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
+	"github.com/kava-labs/kava/x/hard"
 	v0_11harvest "github.com/kava-labs/kava/x/hard"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
@@ -653,6 +654,8 @@ func MigrateHarvest() v0_11harvest.GenesisState {
 			time.Hour*24,
 		),
 		},
+		hard.MoneyMarkets{}, //TODO UPDATE
+		10,
 	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes)
 	return harvestGS
 }
