@@ -73,6 +73,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// Get current protocol state and hold in memory as 'prior'
 	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
+	fmt.Printf("cash prior: %s\n", cashPrior)
 
 	borrowedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
 	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)
@@ -134,15 +135,16 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
 	fmt.Printf("Interest Accumulated: %s\n", interestBorrowAccumulated)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
-	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
-	fmt.Printf("New Reserves: %s\n", totalReservesNew)
+	fmt.Printf("- Brand New Reserves: %s\n", sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
+	newTotalReserves := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
+	fmt.Printf("- Reserves Prior: %s\n", reservesPrior)
+	fmt.Printf("- Total Reserves (prior + new): %s\n", newTotalReserves)
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
 	fmt.Printf("New Borrow Interest Factor: %s\n", borrowInterestFactorNew)
 	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
-	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated) // TODO: by incrementing borrowed coins, are we changing the utilization ratio? If so, this should be done after supply interest factor calculation, I believe.
 
 	// Calculate supply interest factor and update
-	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactorPrior) // TODO: I think this is a source of error - we want to calculate the difference between the new value and the old value
+	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactorPrior)
 	fmt.Printf("Borrow Interest Factor Difference from previous: %s\n", borrowInterestFactorDiff)
 	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
 	fmt.Printf("Supply Interest Factor: %s\n", supplyInterestFactor)
@@ -152,10 +154,12 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
 	fmt.Printf("New Supply Interest Factor: %s\n", supplyInterestFactorNew)
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
-	k.IncrementSuppliedCoins(ctx, totalSupplyInterestAccumulated) // this means that interest is compounded by default, correct?
+
+	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
+	k.IncrementSuppliedCoins(ctx, totalSupplyInterestAccumulated) // Interest is compounded by default
 
 	// Set accumulation keys in store
-	k.SetTotalReserves(ctx, denom, totalReservesNew)
+	k.SetTotalReserves(ctx, denom, newTotalReserves)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
 
 	return nil
@@ -165,6 +169,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 // based on the current utilization.
 func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
+	fmt.Printf("Utilization ratio when calculating borrow rate: %s\n", utilRatio)
 
 	// Calculate normal borrow rate (under kink)
 	if utilRatio.LTE(model.Kink) {
