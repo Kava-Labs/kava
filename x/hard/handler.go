@@ -1,8 +1,6 @@
 package hard
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -15,8 +13,6 @@ func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types.MsgClaimReward:
-			return handleMsgClaimReward(ctx, k, msg)
 		case types.MsgDeposit:
 			return handleMsgDeposit(ctx, k, msg)
 		case types.MsgWithdraw:
@@ -31,24 +27,6 @@ func NewHandler(k Keeper) sdk.Handler {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
 	}
-}
-
-func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
-	err := k.ClaimReward(ctx, msg.Sender, msg.Receiver, msg.DepositDenom, types.ClaimType(strings.ToLower(msg.ClaimType)), types.MultiplierName(strings.ToLower(msg.MultiplierName)))
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		),
-	)
-	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}, nil
 }
 
 func handleMsgDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgDeposit) (*sdk.Result, error) {
