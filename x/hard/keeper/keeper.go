@@ -21,6 +21,7 @@ type Keeper struct {
 	stakingKeeper   types.StakingKeeper
 	pricefeedKeeper types.PricefeedKeeper
 	auctionKeeper   types.AuctionKeeper
+	hooks           types.HARDHooks
 }
 
 // NewKeeper creates a new keeper
@@ -40,7 +41,17 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		stakingKeeper:   stk,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   auk,
+		hooks:           nil,
 	}
+}
+
+// SetHooks sets the cdp keeper hooks
+func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set validator hooks twice")
+	}
+	k.hooks = hooks
+	return k
 }
 
 // GetPreviousBlockTime get the blocktime for the previous block
