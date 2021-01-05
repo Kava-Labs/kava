@@ -214,6 +214,9 @@ func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed
 // correspond to a 2.5% supply interest.
 func CalculateSupplyInterestFactor(newInterest, cash, borrows, reserves sdk.Dec) sdk.Dec {
 	totalSupply := cash.Add(borrows).Sub(reserves)
+	if totalSupply.IsZero() {
+		return sdk.OneDec()
+	}
 	return (newInterest.Quo(totalSupply)).Add(sdk.OneDec())
 }
 
