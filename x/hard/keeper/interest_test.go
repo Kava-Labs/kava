@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -990,6 +991,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
+			suite.keeper.SetSuppliedCoins(ctx, tc.args.initialModuleCoins)
 
 			var err error
 
@@ -1028,16 +1030,20 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 
 				borrowInterestFactorPrior, foundBorrowInterestFactorPrior := suite.keeper.GetBorrowInterestFactor(prevCtx, tc.args.borrowCoinDenom)
 				suite.Require().True(foundBorrowInterestFactorPrior)
+				fmt.Printf("[TEST] Borrow Interest Factor Prior: %s\n", borrowInterestFactorPrior)
 
 				supplyInterestFactorPrior, foundSupplyInterestFactorPrior := suite.keeper.GetSupplyInterestFactor(prevCtx, tc.args.borrowCoinDenom)
 				suite.Require().True(foundSupplyInterestFactorPrior)
+				fmt.Printf("[TEST] Supply Interest Factor Prior: %s\n", supplyInterestFactorPrior)
 
 				// 2. Calculate expected borrow interest owed
 				borrowRateApy, err := hard.CalculateBorrowRate(tc.args.interestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.Amount))
 				suite.Require().NoError(err)
+				fmt.Printf("[TEST] Borrow Rate APY: %s\n", borrowRateApy)
 
 				// Convert from APY to SPY, expressed as (1 + borrow rate)
 				borrowRateSpy, err := hard.APYToSPY(sdk.OneDec().Add(borrowRateApy))
+				fmt.Printf("[TEST] Borrow Rate SPY: %s\n", borrowRateSpy)
 				suite.Require().NoError(err)
 
 				borrowInterestFactor := hard.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
@@ -1046,7 +1052,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				expectedBorrowInterestFactor := borrowInterestFactorPrior.Mul(borrowInterestFactor)
 
 				// 3. Calculate expected supply interest owed
-				borrowInterestFactorDiff := expectedBorrowInterestFactor.Sub(borrowInterestFactor)
+				borrowInterestFactorDiff := expectedBorrowInterestFactor.Sub(borrowInterestFactorPrior)
 				supplyInterestFactor := hard.CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.Amount), tc.args.reserveFactor)
 				expectedSupplyInterest := (supplyInterestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
 				expectedSupplyInterestFactor := supplyInterestFactorPrior.Mul(supplyInterestFactor)
