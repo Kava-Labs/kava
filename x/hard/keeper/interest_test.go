@@ -1008,7 +1008,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 
 			// Check interest levels for each snapshot
 			prevCtx := suite.ctx
-			for i, snapshot := range tc.args.expectedInterestSnaphots {
+			for _, snapshot := range tc.args.expectedInterestSnaphots {
 				// ---------------------------- Calculate expected supply interest ----------------------------
 				// 1. Get cash, borrows, reserves, and borrow index
 				cashPrior := suite.getModuleAccountAtCtx(types.ModuleName, prevCtx).GetCoins().AmountOf(tc.args.borrowCoinDenom)
@@ -1047,16 +1047,22 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				suite.Require().NoError(err)
 
 				borrowInterestFactor := hard.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
-				expectedBorrowInterest := (borrowInterestFactor.Mul(sdk.NewDecFromInt(supplyCoinPriorAmount)).TruncateInt()).Sub(supplyCoinPriorAmount)
+				fmt.Printf("[TEST] Borrow Interest Factor: %s\n", borrowInterestFactor)
+				expectedBorrowInterest := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
+				fmt.Printf("[TEST] Expected Borrow Interest: %s\n", expectedBorrowInterest)
 				expectedReserves := reservesPrior.Add(sdk.NewCoin(tc.args.borrowCoinDenom, sdk.NewDecFromInt(expectedBorrowInterest).Mul(tc.args.reserveFactor).TruncateInt()))
+				fmt.Printf("[TEST] Expected Reserves: %s\n", expectedReserves)
 				expectedBorrowInterestFactor := borrowInterestFactorPrior.Mul(borrowInterestFactor)
 
 				// 3. Calculate expected supply interest owed
 				borrowInterestFactorDiff := expectedBorrowInterestFactor.Sub(borrowInterestFactorPrior)
+				fmt.Printf("[TEST] Borrow Interest Factor Diff: %s\n", borrowInterestFactorDiff)
 				supplyInterestFactor := hard.CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.Amount), tc.args.reserveFactor)
-				expectedSupplyInterest := (supplyInterestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
-				expectedSupplyInterestFactor := supplyInterestFactorPrior.Mul(supplyInterestFactor)
-
+				fmt.Printf("[TEST] Supply Interest Factor: %s\n", supplyInterestFactor)
+				expectedSupplyInterest := (supplyInterestFactor.Mul(sdk.NewDecFromInt(supplyCoinPriorAmount)).TruncateInt()).Sub(supplyCoinPriorAmount)
+				fmt.Printf("[TEST] Expected Supply Interest: %s\n", expectedSupplyInterest)
+				expectedSupplyInterestFactor := hard.CalculateSupplyInterestFactor(borrowInterestFactorDiff, cashPrior.ToDec(), borrowCoinPriorAmount.ToDec(), reservesPrior.Amount.ToDec(), tc.args.reserveFactor)
+				fmt.Printf("[TEST] Expected Supply Interest Factor: %s\n", expectedSupplyInterestFactor)
 				// -------------------------------------------------------------------------------------
 
 				// Set up snapshot chain context and run begin blocker
@@ -1064,20 +1070,15 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				snapshotCtx := prevCtx.WithBlockTime(runAtTime)
 				hard.BeginBlocker(snapshotCtx, suite.keeper)
 
-				reserveFactorAmount := tc.args.reserveFactor.MulInt(expectedSupplyInterest).TruncateInt()
-				if i > 0 {
-					// TODO: Incorrect: 59610 vs. 3134
-					suite.Require().Equal(expectedBorrowInterest, expectedSupplyInterest.Sub(reserveFactorAmount))
-				}
+				reserveFactorAmount := tc.args.reserveFactor.MulInt(expectedBorrowInterest).TruncateInt()
+				suite.Require().Equal(expectedBorrowInterest, expectedSupplyInterest.Add(reserveFactorAmount))
 
 				// Check that the total amount of supplied coins has increased by expected supply interest amount
-				// TODO: Incorrect: 100004120 vs. 100003298
 				supplyCoinsPost, _ := suite.keeper.GetSuppliedCoins(prevCtx)
 				supplyCoinPostAmount := supplyCoinsPost.AmountOf(tc.args.borrowCoinDenom)
 				suite.Require().Equal(supplyCoinPostAmount, supplyCoinPriorAmount.Add(expectedSupplyInterest))
 
 				// Check current total reserves
-				// TODO: Incorrect: 2978 vs. 2383
 				currTotalReserves, _ := suite.keeper.GetTotalReserves(snapshotCtx, tc.args.borrowCoinDenom)
 				suite.Require().Equal(expectedReserves, currTotalReserves)
 
