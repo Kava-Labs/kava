@@ -904,18 +904,18 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
-					{
-						elapsedTime:  oneMonthInSeconds,
-						shouldBorrow: false,
-						borrowCoin:   sdk.Coin{},
-						supplyCoin:   sdk.Coin{},
-					},
-					{
-						elapsedTime:  oneMonthInSeconds,
-						shouldBorrow: false,
-						borrowCoin:   sdk.Coin{},
-						supplyCoin:   sdk.Coin{},
-					},
+					// {
+					// 	elapsedTime:  oneMonthInSeconds,
+					// 	shouldBorrow: false,
+					// 	borrowCoin:   sdk.Coin{},
+					// 	supplyCoin:   sdk.Coin{},
+					// },
+					// {
+					// 	elapsedTime:  oneMonthInSeconds,
+					// 	shouldBorrow: false,
+					// 	borrowCoin:   sdk.Coin{},
+					// 	supplyCoin:   sdk.Coin{},
+					// },
 				},
 			},
 			errArgs{

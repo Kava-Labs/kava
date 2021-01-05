@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/hard/types"
@@ -97,6 +99,9 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	if foundSuppliedCoinsPrior {
 		suppliedPrior = sdk.NewCoin(denom, suppliedCoinsPrior.AmountOf(denom))
 	}
+	fmt.Printf("supplied prior: %s\n", suppliedPrior) // TODO: This value is 100 KAVA, whereas the module account holds 1100 KAVA, which is used to calculate utilization ratio.
+	// In general, I wouldn't have the module account start with any coins in the test.
+	// If you want to adjust the utilization ratio, just have the depositor deposit more coins (or use a separate account that only deposits).
 
 	supplyInterestFactorPrior, foundSupplyInterestFactorPrior := k.GetSupplyInterestFactor(ctx, denom)
 	if !foundSupplyInterestFactorPrior {
@@ -125,21 +130,29 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// Calculate borrow interest factor and update
 	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
+	fmt.Printf("Borrow Interest Factor: %s\n", borrowInterestFactor)
 	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
+	fmt.Printf("Interest Accumulated: %s\n", interestBorrowAccumulated)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
 	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
+	fmt.Printf("New Reserves: %s\n", totalReservesNew)
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
+	fmt.Printf("New Borrow Interest Factor: %s\n", borrowInterestFactorNew)
 	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
-	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
+	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated) // TODO: by incrementing borrowed coins, are we changing the utilization ratio? If so, this should be done after supply interest factor calculation, I believe.
 
 	// Calculate supply interest factor and update
-	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactor)
+	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactorPrior) // TODO: I think this is a source of error - we want to calculate the difference between the new value and the old value
+	fmt.Printf("Borrow Interest Factor Difference from previous: %s\n", borrowInterestFactorDiff)
 	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
+	fmt.Printf("Supply Interest Factor: %s\n", supplyInterestFactor)
 	interestSupplyAccumulated := (supplyInterestFactor.Mul(sdk.NewDecFromInt(suppliedPrior.Amount)).TruncateInt()).Sub(suppliedPrior.Amount)
+	fmt.Printf("Supply Interest Accumulated: %s\n", interestSupplyAccumulated)
 	totalSupplyInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestSupplyAccumulated))
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
+	fmt.Printf("New Supply Interest Factor: %s\n", supplyInterestFactorNew)
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
-	k.IncrementSuppliedCoins(ctx, totalSupplyInterestAccumulated)
+	k.IncrementSuppliedCoins(ctx, totalSupplyInterestAccumulated) // this means that interest is compounded by default, correct?
 
 	// Set accumulation keys in store
 	k.SetTotalReserves(ctx, denom, totalReservesNew)
@@ -172,9 +185,12 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	}
 
 	totalSupply := cash.Add(borrows).Sub(reserves)
+	fmt.Printf("total supply: %s\n", totalSupply)
 	if totalSupply.IsNegative() {
 		return sdk.OneDec()
 	}
+
+	fmt.Printf("utilization ratio: %s\n", sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply)))
 
 	return sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply))
 }
@@ -202,6 +218,7 @@ func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed
 // correspond to a 2.5% supply interest.
 func CalculateSupplyInterestFactor(borrowInterestFactorIncrement, cash, borrows, reserves, reserveFactor sdk.Dec) sdk.Dec {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
+	fmt.Printf("Utilization ratio when calculating supply interest factor: %s\n", utilRatio)
 	supplyInterestFactorIncrement := borrowInterestFactorIncrement.Mul(utilRatio).Mul((sdk.OneDec().Sub(reserveFactor)))
 	return sdk.OneDec().Add(supplyInterestFactorIncrement)
 }
