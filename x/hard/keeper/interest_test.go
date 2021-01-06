@@ -1021,10 +1021,10 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				suite.Require().True(borrowCoinsPriorFound)
 				borrowCoinPriorAmount = borrowCoinsPrior.AmountOf(tc.args.borrowCoinDenom)
 
-				// var supplyCoinPriorAmount sdk.Int
-				// supplyCoinsPrior, supplyCoinsPriorFound := suite.keeper.GetSuppliedCoins(prevCtx)
-				// suite.Require().True(supplyCoinsPriorFound)
-				// supplyCoinPriorAmount = supplyCoinsPrior.AmountOf(tc.args.borrowCoinDenom)
+				var supplyCoinPriorAmount sdk.Int
+				supplyCoinsPrior, supplyCoinsPriorFound := suite.keeper.GetSuppliedCoins(prevCtx)
+				suite.Require().True(supplyCoinsPriorFound)
+				supplyCoinPriorAmount = supplyCoinsPrior.AmountOf(tc.args.borrowCoinDenom)
 
 				reservesPrior, foundReservesPrior := suite.keeper.GetTotalReserves(prevCtx, tc.args.borrowCoinDenom)
 				if !foundReservesPrior {
@@ -1083,23 +1083,21 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				suite.Require().Equal(borrowCoinPostAmount, borrowCoinPriorAmount.Add(expectedBorrowInterest))
 
 				// Check that the total amount of supplied coins has increased by expected supply interest amount
-				// supplyCoinsPost, _ := suite.keeper.GetSuppliedCoins(prevCtx)
-				// supplyCoinPostAmount := supplyCoinsPost.AmountOf(tc.args.borrowCoinDenom)
-				// suite.Require().Equal(supplyCoinPostAmount, supplyCoinPriorAmount.Add(expectedSupplyInterest))
+				supplyCoinsPost, _ := suite.keeper.GetSuppliedCoins(prevCtx)
+				supplyCoinPostAmount := supplyCoinsPost.AmountOf(tc.args.borrowCoinDenom)
+				suite.Require().Equal(supplyCoinPostAmount, supplyCoinPriorAmount.Add(expectedSupplyInterest))
 
 				// Check current total reserves
 				totalReserves, _ := suite.keeper.GetTotalReserves(snapshotCtx, tc.args.borrowCoinDenom)
 				suite.Require().Equal(expectedTotalReserves, totalReserves)
 
 				// Check that the supply index has increased as expected
-				// currSupplyIndexPrior, _ := suite.keeper.GetSupplyInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
-				// suite.Require().Equal(expectedSupplyInterestFactor, currSupplyIndexPrior)
+				currSupplyIndexPrior, _ := suite.keeper.GetSupplyInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
+				suite.Require().Equal(expectedSupplyInterestFactor, currSupplyIndexPrior)
 
 				// // Check that the borrow index has increased as expected
-				// currBorrowIndexPrior, _ := suite.keeper.GetBorrowInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
-				// suite.Require().Equal(expectedBorrowInterestFactor, currBorrowIndexPrior)
-				supplyInterestFactor, _ := suite.keeper.GetSupplyInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
-				suite.Require().Equal(expectedSupplyInterestFactor, supplyInterestFactor)
+				currBorrowIndexPrior, _ := suite.keeper.GetBorrowInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
+				suite.Require().Equal(expectedBorrowInterestFactor, currBorrowIndexPrior)
 
 				prevCtx = snapshotCtx
 			}
