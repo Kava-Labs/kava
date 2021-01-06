@@ -14,7 +14,7 @@ import (
 
 // ClaimReward sends the reward amount to the input address and zero's out the claim in the store
 func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName types.MultiplierName) error {
-	claim, found := k.GetClaim(ctx, addr)
+	claim, found := k.GetUSDXMintingClaim(ctx, addr)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
 	}

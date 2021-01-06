@@ -17,19 +17,19 @@ import (
 func DecodeStore(cdc *codec.Codec, kvA, kvB kv.Pair) string {
 	switch {
 
-	case bytes.Equal(kvA.Key[:1], types.ClaimKeyPrefix):
+	case bytes.Equal(kvA.Key[:1], types.USDXMintingClaimKeyPrefix):
 		var claimA, claimB types.USDXMintingClaim
 		cdc.MustUnmarshalBinaryBare(kvA.Value, &claimA)
 		cdc.MustUnmarshalBinaryBare(kvB.Value, &claimB)
 		return fmt.Sprintf("%v\n%v", claimA, claimB)
 
-	case bytes.Equal(kvA.Key[:1], types.BlockTimeKey):
+	case bytes.Equal(kvA.Key[:1], types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix):
 		var timeA, timeB time.Time
 		cdc.MustUnmarshalBinaryBare(kvA.Value, &timeA)
 		cdc.MustUnmarshalBinaryBare(kvB.Value, &timeB)
 		return fmt.Sprintf("%s\n%s", timeA, timeB)
 
-	case bytes.Equal(kvA.Key[:1], types.RewardFactorKey):
+	case bytes.Equal(kvA.Key[:1], types.USDXMintingRewardFactorKeyPrefix):
 		var factorA, factorB sdk.Dec
 		cdc.MustUnmarshalBinaryBare(kvA.Value, &factorA)
 		cdc.MustUnmarshalBinaryBare(kvB.Value, &factorB)
