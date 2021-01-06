@@ -75,21 +75,23 @@ func (suite *KeeperTestSuite) TestAccumulateRewards() {
 			params := types.NewParams(
 				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
-			suite.keeper.SetRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
+			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
+			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
 
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 			rewardPeriod, found := suite.keeper.GetRewardPeriod(suite.ctx, tc.args.ctype)
 			suite.Require().True(found)
-			err := suite.keeper.AccumulateRewards(suite.ctx, rewardPeriod)
+			err := suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			rewardFactor, found := suite.keeper.GetRewardFactor(suite.ctx, tc.args.ctype)
+			rewardFactor, found := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
@@ -148,12 +150,14 @@ func (suite *KeeperTestSuite) TestSyncRewards() {
 			params := types.NewParams(
 				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
-			suite.keeper.SetRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
+			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
+			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
 
 			// setup account state
 			sk := suite.app.GetSupplyKeeper()
@@ -165,7 +169,7 @@ func (suite *KeeperTestSuite) TestSyncRewards() {
 			err := cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
-			claim, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
 			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
 
@@ -178,7 +182,7 @@ func (suite *KeeperTestSuite) TestSyncRewards() {
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 				rewardPeriod, found := suite.keeper.GetRewardPeriod(blockCtx, tc.args.ctype)
 				suite.Require().True(found)
-				err := suite.keeper.AccumulateRewards(blockCtx, rewardPeriod)
+				err := suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
 				suite.Require().NoError(err)
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
@@ -186,13 +190,13 @@ func (suite *KeeperTestSuite) TestSyncRewards() {
 			cdp, found := cdpKeeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeReward(suite.ctx, cdp)
+				suite.keeper.SynchronizeUSDXMintingReward(suite.ctx, cdp)
 			})
 
-			rewardFactor, found := suite.keeper.GetRewardFactor(suite.ctx, tc.args.ctype)
+			rewardFactor, found := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
-			claim, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+			claim, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 			fmt.Println(claim)
 			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, claim.RewardIndexes[0].RewardFactor)
