@@ -110,6 +110,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		k.SetSupplyInterestFactor(ctx, denom, newSupplyInterestFactorPrior)
 		supplyInterestFactorPrior = newSupplyInterestFactorPrior
 	}
+	fmt.Printf("supply interest factor prior: %s\n", supplyInterestFactorPrior)
 
 	// Fetch money market from the store
 	mm, found := k.GetMoneyMarket(ctx, denom)
@@ -133,33 +134,25 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	fmt.Printf("Borrow Interest Factor: %s\n", borrowInterestFactor)
 	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
-	fmt.Printf("Interest Accumulated: %s\n", interestBorrowAccumulated)
+	fmt.Printf("Borrow Interest Accumulated: %s\n", interestBorrowAccumulated)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
-	fmt.Printf("- Brand New Reserves: %s\n", sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
-	newTotalReserves := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
-	fmt.Printf("- Reserves Prior: %s\n", reservesPrior)
-	fmt.Printf("- Total Reserves (prior + new): %s\n", newTotalReserves)
+	reservesNew := interestBorrowAccumulated.ToDec().Mul(mm.ReserveFactor).TruncateInt()
+	fmt.Printf("New Reserves: %s\n", reservesNew)
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
 	fmt.Printf("New Borrow Interest Factor: %s\n", borrowInterestFactorNew)
 	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
-
-	// Calculate supply interest factor and update
-	borrowInterestFactorDiff := borrowInterestFactorNew.Sub(borrowInterestFactorPrior)
-	fmt.Printf("Borrow Interest Factor Difference from previous: %s\n", borrowInterestFactorDiff)
-	supplyInterestFactor := CalculateSupplyInterestFactor(borrowInterestFactorDiff, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount), mm.ReserveFactor)
-	fmt.Printf("Supply Interest Factor: %s\n", supplyInterestFactor)
-	interestSupplyAccumulated := (supplyInterestFactor.Mul(sdk.NewDecFromInt(suppliedPrior.Amount)).TruncateInt()).Sub(suppliedPrior.Amount)
-	fmt.Printf("Supply Interest Accumulated: %s\n", interestSupplyAccumulated)
-	totalSupplyInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestSupplyAccumulated))
+	supplyInterestNew := interestBorrowAccumulated.Sub(reservesNew)
+	fmt.Printf("Supply Interest Accumulated: %s\n", supplyInterestNew)
+	supplyInterestFactor := CalculateSupplyInterestFactor(supplyInterestNew.ToDec(), cashPrior.ToDec(), borrowedPrior.Amount.ToDec(), reservesPrior.Amount.ToDec())
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
 	fmt.Printf("New Supply Interest Factor: %s\n", supplyInterestFactorNew)
+	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
+	k.IncrementSuppliedCoins(ctx, sdk.NewCoins(sdk.NewCoin(denom, supplyInterestNew)))
+	k.SetTotalReserves(ctx, denom, reservesPrior.Add(sdk.NewCoin(mm.Denom, reservesNew)))
+	fmt.Printf("Exiting loop: \n\n\n")
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
 
-	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
-	k.IncrementSuppliedCoins(ctx, totalSupplyInterestAccumulated) // Interest is compounded by default
-
 	// Set accumulation keys in store
-	k.SetTotalReserves(ctx, denom, newTotalReserves)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
 
 	return nil
@@ -221,11 +214,12 @@ func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed
 // CalculateSupplyInterestFactor calculates the supply interest factor, which is the percentage of borrow interest
 // that flows to each unit of supply, i.e. at 50% utilization and 0% reserve factor, a 5% borrow interest will
 // correspond to a 2.5% supply interest.
-func CalculateSupplyInterestFactor(borrowInterestFactorIncrement, cash, borrows, reserves, reserveFactor sdk.Dec) sdk.Dec {
-	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
-	fmt.Printf("Utilization ratio when calculating supply interest factor: %s\n", utilRatio)
-	supplyInterestFactorIncrement := borrowInterestFactorIncrement.Mul(utilRatio).Mul((sdk.OneDec().Sub(reserveFactor)))
-	return sdk.OneDec().Add(supplyInterestFactorIncrement)
+func CalculateSupplyInterestFactor(newInterest, cash, borrows, reserves sdk.Dec) sdk.Dec {
+	totalSupply := cash.Add(borrows).Sub(reserves)
+	if totalSupply.IsZero() {
+		return sdk.OneDec()
+	}
+	return (newInterest.Quo(totalSupply)).Add(sdk.OneDec())
 }
 
 // SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state
