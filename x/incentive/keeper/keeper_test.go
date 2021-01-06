@@ -52,38 +52,38 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 	return sk.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
+func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
-	_, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 	suite.Require().NotPanics(func() {
-		suite.keeper.SetClaim(suite.ctx, c)
+		suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
 	})
-	testC, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+	testC, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(c, testC)
 	suite.Require().NotPanics(func() {
-		suite.keeper.DeleteClaim(suite.ctx, suite.addrs[0])
+		suite.keeper.DeleteUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	})
-	_, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+	_, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 }
 
-func (suite *KeeperTestSuite) TestIterateClaims() {
+func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	for i := 0; i < len(suite.addrs); i++ {
 		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 		suite.Require().NotPanics(func() {
-			suite.keeper.SetClaim(suite.ctx, c)
+			suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
 		})
 	}
 	claims := types.USDXMintingClaims{}
-	suite.keeper.IterateClaims(suite.ctx, func(c types.USDXMintingClaim) bool {
+	suite.keeper.IterateUSDXMintingClaims(suite.ctx, func(c types.USDXMintingClaim) bool {
 		claims = append(claims, c)
 		return false
 	})
 	suite.Require().Equal(len(suite.addrs), len(claims))
 
-	claims = suite.keeper.GetAllClaims(suite.ctx)
+	claims = suite.keeper.GetAllUSDXMintingClaims(suite.ctx)
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 
