@@ -43,7 +43,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 
 	var gats GenesisAccumulationTimes
 
-	for _, rp := range params.RewardPeriods {
+	for _, rp := range params.USDXMintingRewardPeriods {
 		pat, found := k.GetPreviousAccrualTime(ctx, rp.CollateralType)
 		if !found {
 			pat = ctx.BlockTime()
