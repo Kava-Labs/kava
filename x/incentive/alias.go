@@ -55,33 +55,33 @@ var (
 	RegisterCodec                = types.RegisterCodec
 
 	// variable aliases
-	BlockTimeKey                     = types.BlockTimeKey
-	ClaimKeyPrefix                   = types.ClaimKeyPrefix
-	DefaultActive                    = types.DefaultActive
-	DefaultClaimEnd                  = types.DefaultClaimEnd
-	DefaultClaims                    = types.DefaultClaims
-	DefaultGenesisAccumulationTimes  = types.DefaultGenesisAccumulationTimes
-	DefaultMultipliers               = types.DefaultMultipliers
-	DefaultUSDXMintingRewardPeriods  = types.DefaultUSDXMintingRewardPeriods
-	ErrAccountNotFound               = types.ErrAccountNotFound
-	ErrClaimExpired                  = types.ErrClaimExpired
-	ErrClaimNotFound                 = types.ErrClaimNotFound
-	ErrInsufficientModAccountBalance = types.ErrInsufficientModAccountBalance
-	ErrInvalidAccountType            = types.ErrInvalidAccountType
-	ErrInvalidMultiplier             = types.ErrInvalidMultiplier
-	ErrNoClaimsFound                 = types.ErrNoClaimsFound
-	ErrRewardPeriodNotFound          = types.ErrRewardPeriodNotFound
-	ErrZeroClaim                     = types.ErrZeroClaim
-	GovDenom                         = types.GovDenom
-	IncentiveMacc                    = types.IncentiveMacc
-	KeyActive                        = types.KeyActive
-	KeyClaimEnd                      = types.KeyClaimEnd
-	KeyMultipliers                   = types.KeyMultipliers
-	KeyUSDXMintingRewardPeriods      = types.KeyUSDXMintingRewardPeriods
-	ModuleCdc                        = types.ModuleCdc
-	PrincipalDenom                   = types.PrincipalDenom
-	RewardFactorKey                  = types.RewardFactorKey
-	USDXMintingRewardDenom           = types.USDXMintingRewardDenom
+	PreviousUSDXMintingRewardAccrualTimeKeyPrefix = types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix
+	USDXMintingClaimKeyPrefix                     = types.USDXMintingClaimKeyPrefix
+	DefaultActive                                 = types.DefaultActive
+	DefaultClaimEnd                               = types.DefaultClaimEnd
+	DefaultClaims                                 = types.DefaultClaims
+	DefaultGenesisAccumulationTimes               = types.DefaultGenesisAccumulationTimes
+	DefaultMultipliers                            = types.DefaultMultipliers
+	DefaultRewardPeriods                          = types.DefaultRewardPeriods
+	ErrAccountNotFound                            = types.ErrAccountNotFound
+	ErrClaimExpired                               = types.ErrClaimExpired
+	ErrClaimNotFound                              = types.ErrClaimNotFound
+	ErrInsufficientModAccountBalance              = types.ErrInsufficientModAccountBalance
+	ErrInvalidAccountType                         = types.ErrInvalidAccountType
+	ErrInvalidMultiplier                          = types.ErrInvalidMultiplier
+	ErrNoClaimsFound                              = types.ErrNoClaimsFound
+	ErrRewardPeriodNotFound                       = types.ErrRewardPeriodNotFound
+	ErrZeroClaim                                  = types.ErrZeroClaim
+	GovDenom                                      = types.GovDenom
+	IncentiveMacc                                 = types.IncentiveMacc
+	KeyActive                                     = types.KeyActive
+	KeyClaimEnd                                   = types.KeyClaimEnd
+	KeyMultipliers                                = types.KeyMultipliers
+	KeyUSDXMintingRewardPeriods                   = types.KeyUSDXMintingRewardPeriods
+	ModuleCdc                                     = types.ModuleCdc
+	PrincipalDenom                                = types.PrincipalDenom
+	USDXMintingRewardFactorKeyPrefix              = types.USDXMintingRewardFactorKeyPrefix
+	USDXMintingRewardDenom                        = types.USDXMintingRewardDenom
 )
 
 type (

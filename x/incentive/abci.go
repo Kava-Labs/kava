@@ -9,7 +9,7 @@ import (
 // BeginBlocker runs at the start of every block
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	for _, rp := range k.GetParams(ctx).USDXMintingRewardPeriods {
-		err := k.AccumulateRewards(ctx, rp)
+		err := k.AccumulateUSDXMintingRewards(ctx, rp)
 		if err != nil {
 			panic(err)
 		}
