@@ -136,3 +136,104 @@ func (k Keeper) SetUSDXMintingRewardFactor(ctx sdk.Context, ctype string, factor
 	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
 	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
 }
+
+// GetHardLiquidityProviderClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
+func (k Keeper) GetHardLiquidityProviderClaim(ctx sdk.Context, addr sdk.AccAddress) (types.HardLiquidityProviderClaim, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
+	bz := store.Get(addr)
+	if bz == nil {
+		return types.HardLiquidityProviderClaim{}, false
+	}
+	var c types.HardLiquidityProviderClaim
+	k.cdc.MustUnmarshalBinaryBare(bz, &c)
+	return c, true
+}
+
+// SetHardLiquidityProviderClaim sets the claim in the store corresponding to the input address, collateral type, and id
+func (k Keeper) SetHardLiquidityProviderClaim(ctx sdk.Context, c types.HardLiquidityProviderClaim) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(c)
+	store.Set(c.Owner, bz)
+
+}
+
+// DeleteHardLiquidityProviderClaim deletes the claim in the store corresponding to the input address, collateral type, and id
+func (k Keeper) DeleteHardLiquidityProviderClaim(ctx sdk.Context, owner sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
+	store.Delete(owner)
+}
+
+// IterateHardLiquidityProviderClaims iterates over all claim  objects in the store and preforms a callback function
+func (k Keeper) IterateHardLiquidityProviderClaims(ctx sdk.Context, cb func(c types.HardLiquidityProviderClaim) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.HardLiquidityProviderClaim
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
+		if cb(c) {
+			break
+		}
+	}
+}
+
+// GetAllHardLiquidityProviderClaims returns all Claim objects in the store
+func (k Keeper) GetAllHardLiquidityProviderClaims(ctx sdk.Context) types.HardLiquidityProviderClaims {
+	cs := types.HardLiquidityProviderClaims{}
+	k.IterateHardLiquidityProviderClaims(ctx, func(c types.HardLiquidityProviderClaim) (stop bool) {
+		cs = append(cs, c)
+		return false
+	})
+	return cs
+}
+
+// GetHardSupplyRewardFactor returns the current reward factor for an individual collateral type
+func (k Keeper) GetHardSupplyRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardFactorKeyPrefix)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &factor)
+	return factor, true
+}
+
+// SetHardSupplyRewardFactor sets the current reward factor for an individual collateral type
+func (k Keeper) SetHardSupplyRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardFactorKeyPrefix)
+	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
+}
+
+// GetHardBorrowRewardFactor returns the current reward factor for an individual collateral type
+func (k Keeper) GetHardBorrowRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardFactorKeyPrefix)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &factor)
+	return factor, true
+}
+
+// SetHardBorrowRewardFactor sets the current reward factor for an individual collateral type
+func (k Keeper) SetHardBorrowRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardFactorKeyPrefix)
+	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
+}
+
+// GetHardDelegatorRewardFactor returns the current reward factor for an individual collateral type
+func (k Keeper) GetHardDelegatorRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &factor)
+	return factor, true
+}
+
+// SetHardDelegatorRewardFactor sets the current reward factor for an individual collateral type
+func (k Keeper) SetHardDelegatorRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
+	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
+}
