@@ -20,10 +20,12 @@ func (suite *ParamTestSuite) SetupTest() {}
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
-		active                   bool
-		usdxMintingRewardPeriods types.RewardPeriods
-		multipliers              types.Multipliers
-		end                      time.Time
+		active                     bool
+		usdxMintingRewardPeriods   types.RewardPeriods
+		hardLiquidityRewardPeriods types.RewardPeriods
+		hardDelegatorRewardPeriods types.RewardPeriods
+		multipliers                types.Multipliers
+		end                        time.Time
 	}
 
 	type errArgs struct {
@@ -40,10 +42,12 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			"default",
 			args{
-				active:                   types.DefaultActive,
-				usdxMintingRewardPeriods: types.DefaultUSDXMintingRewardPeriods,
-				multipliers:              types.DefaultMultipliers,
-				end:                      types.DefaultClaimEnd,
+				active:                     types.DefaultActive,
+				usdxMintingRewardPeriods:   types.DefaultRewardPeriods,
+				hardLiquidityRewardPeriods: types.DefaultRewardPeriods,
+				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				multipliers:                types.DefaultMultipliers,
+				end:                        types.DefaultClaimEnd,
 			},
 			errArgs{
 				expectPass: true,
@@ -65,7 +69,9 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						types.Large, 1, sdk.MustNewDecFromStr("1.0"),
 					),
 				},
-				end: time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+				hardLiquidityRewardPeriods: types.DefaultRewardPeriods,
+				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
+				end:                        time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
 			errArgs{
 				expectPass: true,
@@ -77,7 +83,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			params := types.NewParams(
-				tc.args.active, tc.args.usdxMintingRewardPeriods, tc.args.multipliers, tc.args.end,
+				tc.args.active, tc.args.usdxMintingRewardPeriods, tc.args.hardLiquidityRewardPeriods,
+				tc.args.hardDelegatorRewardPeriods, tc.args.multipliers, tc.args.end,
 			)
 			err := params.Validate()
 			if tc.errArgs.expectPass {
