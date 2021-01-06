@@ -60,19 +60,6 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			expectPass:  false,
 			expectedErr: "previous block time not set",
 		},
-		{
-			name: "invalid previous distribution time",
-			args: args{
-				params: types.NewParams(
-					true,
-					types.DefaultMoneyMarkets,
-					types.DefaultCheckLtvIndexCount,
-				),
-				pbt: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
-			},
-			expectPass:  false,
-			expectedErr: "previous distribution time not set",
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
