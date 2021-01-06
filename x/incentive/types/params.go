@@ -26,10 +26,12 @@ const (
 var (
 	KeyActive                       = []byte("Active")
 	KeyUSDXMintingRewardPeriods     = []byte("USDXMintingRewardPeriods")
+	KeyHardLiquidityRewardPeriods   = []byte("HardLiquidityRewardPeriods")
+	KeyHardDelegatorRewardPeriods   = []byte("HardDelegatorRewardPeriods")
 	KeyClaimEnd                     = []byte("ClaimEnd")
 	KeyMultipliers                  = []byte("ClaimMultipliers")
 	DefaultActive                   = false
-	DefaultUSDXMintingRewardPeriods = RewardPeriods{}
+	DefaultRewardPeriods            = RewardPeriods{}
 	DefaultMultipliers              = Multipliers{}
 	DefaultClaims                   = USDXMintingClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
@@ -41,27 +43,31 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	Active                   bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
-	USDXMintingRewardPeriods RewardPeriods `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
-	// HardLiquidityRewardPeriods RewardPeriods `json:"hard_liquidity_reward_periods" yaml:"hard_liquidity_reward_periods"`
-	// HardDelegatorRewardPeriods RewardPeriods `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"`
-	ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"`
-	ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
+	Active                     bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
+	USDXMintingRewardPeriods   RewardPeriods `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
+	HardLiquidityRewardPeriods RewardPeriods `json:"hard_liquidity_reward_periods" yaml:"hard_liquidity_reward_periods"`
+	HardDelegatorRewardPeriods RewardPeriods `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"`
+	ClaimMultipliers           Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"`
+	ClaimEnd                   time.Time     `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
-func NewParams(active bool, usdxMinting RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
+func NewParams(active bool, usdxMinting, hardLiquidity, hardDelegator RewardPeriods,
+	multipliers Multipliers, claimEnd time.Time) Params {
 	return Params{
-		Active:                   active,
-		USDXMintingRewardPeriods: usdxMinting,
-		ClaimMultipliers:         multipliers,
-		ClaimEnd:                 claimEnd,
+		Active:                     active,
+		USDXMintingRewardPeriods:   usdxMinting,
+		HardLiquidityRewardPeriods: hardLiquidity,
+		HardDelegatorRewardPeriods: hardDelegator,
+		ClaimMultipliers:           multipliers,
+		ClaimEnd:                   claimEnd,
 	}
 }
 
 // DefaultParams returns default params for incentive module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultUSDXMintingRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
+	return NewParams(DefaultActive, DefaultRewardPeriods, DefaultRewardPeriods,
+		DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
 }
 
 // String implements fmt.Stringer
@@ -69,9 +75,12 @@ func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Active: %t
 	USDX Minting Reward Periods: %s
+	Hard Liquidity Reward Periods: %s
+	Hard Delegator Reward Periods: %s
 	Claim Multipliers :%s
 	Claim End Time: %s
-	`, p.Active, p.USDXMintingRewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
+	`, p.Active, p.USDXMintingRewardPeriods, p.HardLiquidityRewardPeriods,
+		p.HardDelegatorRewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -83,7 +92,9 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
-		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateUSDXMintingRewardPeriodsParam),
+		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardLiquidityRewardPeriods, &p.HardLiquidityRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardDelegatorRewardPeriods, &p.HardDelegatorRewardPeriods, validateRewardPeriodsParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
 	}
@@ -99,7 +110,15 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return validateUSDXMintingRewardPeriodsParam(p.USDXMintingRewardPeriods)
+	if err := validateRewardPeriodsParam(p.USDXMintingRewardPeriods); err != nil {
+		return err
+	}
+
+	if err := validateRewardPeriodsParam(p.HardLiquidityRewardPeriods); err != nil {
+		return err
+	}
+
+	return validateRewardPeriodsParam(p.HardDelegatorRewardPeriods)
 }
 
 func validateActiveParam(i interface{}) error {
@@ -110,7 +129,7 @@ func validateActiveParam(i interface{}) error {
 	return nil
 }
 
-func validateUSDXMintingRewardPeriodsParam(i interface{}) error {
+func validateRewardPeriodsParam(i interface{}) error {
 	rewards, ok := i.(RewardPeriods)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
