@@ -71,7 +71,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	for _, depCoin := range coins {
 		_, foundMm := k.GetMoneyMarket(ctx, depCoin.Denom)
 		if !foundMm {
-			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", depCoin.Denom)
+			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "money market denom %s not found", depCoin.Denom)
 		}
 	}
 
