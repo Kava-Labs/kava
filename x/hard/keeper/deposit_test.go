@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			"invalid deposit denom",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("btcb", sdk.NewInt(100))),
+				amount:                    sdk.NewCoins(sdk.NewCoin("fake", sdk.NewInt(100))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
