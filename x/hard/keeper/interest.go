@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/hard/types"
@@ -73,7 +71,6 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// Get current protocol state and hold in memory as 'prior'
 	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
-	fmt.Printf("cash prior: %s\n", cashPrior)
 
 	borrowedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
 	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)
@@ -95,22 +92,12 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		borrowInterestFactorPrior = newBorrowInterestFactorPrior
 	}
 
-	suppliedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
-	suppliedCoinsPrior, foundSuppliedCoinsPrior := k.GetSuppliedCoins(ctx)
-	if foundSuppliedCoinsPrior {
-		suppliedPrior = sdk.NewCoin(denom, suppliedCoinsPrior.AmountOf(denom))
-	}
-	fmt.Printf("supplied prior: %s\n", suppliedPrior) // TODO: This value is 100 KAVA, whereas the module account holds 1100 KAVA, which is used to calculate utilization ratio.
-	// In general, I wouldn't have the module account start with any coins in the test.
-	// If you want to adjust the utilization ratio, just have the depositor deposit more coins (or use a separate account that only deposits).
-
 	supplyInterestFactorPrior, foundSupplyInterestFactorPrior := k.GetSupplyInterestFactor(ctx, denom)
 	if !foundSupplyInterestFactorPrior {
 		newSupplyInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
 		k.SetSupplyInterestFactor(ctx, denom, newSupplyInterestFactorPrior)
 		supplyInterestFactorPrior = newSupplyInterestFactorPrior
 	}
-	fmt.Printf("supply interest factor prior: %s\n", supplyInterestFactorPrior)
 
 	// Fetch money market from the store
 	mm, found := k.GetMoneyMarket(ctx, denom)
@@ -132,27 +119,23 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// Calculate borrow interest factor and update
 	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
-	fmt.Printf("Borrow Interest Factor: %s\n", borrowInterestFactor)
 	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
-	fmt.Printf("Borrow Interest Accumulated: %s\n", interestBorrowAccumulated)
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
 	reservesNew := interestBorrowAccumulated.ToDec().Mul(mm.ReserveFactor).TruncateInt()
-	fmt.Printf("New Reserves: %s\n", reservesNew)
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
-	fmt.Printf("New Borrow Interest Factor: %s\n", borrowInterestFactorNew)
 	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
+
+	// Calculate supply interest factor and update
 	supplyInterestNew := interestBorrowAccumulated.Sub(reservesNew)
-	fmt.Printf("Supply Interest Accumulated: %s\n", supplyInterestNew)
 	supplyInterestFactor := CalculateSupplyInterestFactor(supplyInterestNew.ToDec(), cashPrior.ToDec(), borrowedPrior.Amount.ToDec(), reservesPrior.Amount.ToDec())
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
-	fmt.Printf("New Supply Interest Factor: %s\n", supplyInterestFactorNew)
+	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
+
+	// Update accural keys in store
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 	k.IncrementSuppliedCoins(ctx, sdk.NewCoins(sdk.NewCoin(denom, supplyInterestNew)))
 	k.SetTotalReserves(ctx, denom, reservesPrior.Add(sdk.NewCoin(mm.Denom, reservesNew)))
-	fmt.Printf("Exiting loop: \n\n\n")
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
-
-	// Set accumulation keys in store
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
 
 	return nil
@@ -162,7 +145,6 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 // based on the current utilization.
 func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
-	fmt.Printf("Utilization ratio when calculating borrow rate: %s\n", utilRatio)
 
 	// Calculate normal borrow rate (under kink)
 	if utilRatio.LTE(model.Kink) {
@@ -183,12 +165,9 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	}
 
 	totalSupply := cash.Add(borrows).Sub(reserves)
-	fmt.Printf("total supply: %s\n", totalSupply)
 	if totalSupply.IsNegative() {
 		return sdk.OneDec()
 	}
-
-	fmt.Printf("utilization ratio: %s\n", sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply)))
 
 	return sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply))
 }
