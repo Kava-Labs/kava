@@ -43,6 +43,16 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			expectPass:  true,
 			expectedErr: "",
 		},
+		{
+			name: "invalid rewards",
+			args: args{
+				mms:        types.DefaultMoneyMarkets,
+				ltvCounter: 10,
+				active:     true,
+			},
+			expectPass:  false,
+			expectedErr: "reward denom should be hard",
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
