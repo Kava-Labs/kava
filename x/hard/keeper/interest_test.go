@@ -853,6 +853,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 type ExpectedSupplyInterest struct {
 	elapsedTime  int64
 	shouldBorrow bool
+	shouldSupply bool
 	borrowCoin   sdk.Coin
 	supplyCoin   sdk.Coin
 }
@@ -905,7 +906,9 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					{
 						elapsedTime:  oneDayInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
+						supplyCoin:   sdk.Coin{},
 					},
 				},
 			},
@@ -929,7 +932,9 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					{
 						elapsedTime:  oneWeekInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
+						supplyCoin:   sdk.Coin{},
 					},
 				},
 			},
@@ -953,7 +958,9 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					{
 						elapsedTime:  oneMonthInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
+						supplyCoin:   sdk.Coin{},
 					},
 				},
 			},
@@ -977,7 +984,61 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					{
 						elapsedTime:  oneYearInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
+						supplyCoin:   sdk.Coin{},
+					},
+				},
+			},
+			errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		// {
+		// 	"borrow during snapshot",
+		// 	args{
+		// 		user:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+		// 		initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+		// 		initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF))),
+		// 		depositCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+		// 		borrowCoinDenom:      "ukava",
+		// 		borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+		// 		interestRateModel:    normalModel,
+		// 		reserveFactor:        sdk.MustNewDecFromStr("0.05"),
+		// 		expectedInterestSnaphots: []ExpectedSupplyInterest{
+		// 			{
+		// 				elapsedTime:  oneMonthInSeconds,
+		// 				shouldBorrow: false,
+		// 				shouldSupply: false,
+		// 				borrowCoin:   sdk.Coin{},
+		// 				supplyCoin:   sdk.Coin{},
+		// 			},
+		// 		},
+		// 	},
+		// 	errArgs{
+		// 		expectPass: true,
+		// 		contains:   "",
+		// 	},
+		// },
+		{
+			"supply during snapshot",
+			args{
+				user:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF))),
+				depositCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				borrowCoinDenom:      "ukava",
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF))),
+				interestRateModel:    normalModel,
+				reserveFactor:        sdk.MustNewDecFromStr("0.05"),
+				expectedInterestSnaphots: []ExpectedSupplyInterest{
+					{
+						elapsedTime:  oneMonthInSeconds,
+						shouldBorrow: false,
+						shouldSupply: true,
+						borrowCoin:   sdk.Coin{},
+						supplyCoin:   sdk.NewCoin("ukava", sdk.NewInt(20*KAVA_CF)),
 					},
 				},
 			},
@@ -1001,18 +1062,21 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					{
 						elapsedTime:  oneMonthInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
 					{
 						elapsedTime:  oneMonthInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
 					{
 						elapsedTime:  oneMonthInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
@@ -1038,24 +1102,28 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					{
 						elapsedTime:  oneMonthInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
 					{
 						elapsedTime:  oneDayInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
 					{
 						elapsedTime:  oneYearInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
 					{
 						elapsedTime:  oneWeekInSeconds,
 						shouldBorrow: false,
+						shouldSupply: false,
 						borrowCoin:   sdk.Coin{},
 						supplyCoin:   sdk.Coin{},
 					},
@@ -1240,6 +1308,33 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 				// // Check that the borrow index has increased as expected
 				currBorrowIndexPrior, _ := suite.keeper.GetBorrowInterestFactor(snapshotCtx, tc.args.borrowCoinDenom)
 				suite.Require().Equal(expectedBorrowInterestFactor, currBorrowIndexPrior)
+
+				// After supplying again user's supplied balance should have owed supply interest applied
+				if snapshot.shouldSupply {
+					// Calculate percentage of supply interest profits owed to user
+					userSupplyBefore, _ := suite.keeper.GetDeposit(snapshotCtx, tc.args.user)
+					userSupplyCoinAmount := userSupplyBefore.Amount.AmountOf(tc.args.borrowCoinDenom)
+					userPercentOfTotalSupplied := userSupplyCoinAmount.ToDec().Quo(supplyCoinPriorAmount.ToDec())
+					userExpectedSupplyInterestCoin := sdk.NewCoin(tc.args.borrowCoinDenom, userPercentOfTotalSupplied.MulInt(expectedSupplyInterest).TruncateInt())
+
+					// Supply additional coins then fetch the user's updated deposit coins object
+					err = suite.keeper.Deposit(snapshotCtx, tc.args.user, sdk.NewCoins(snapshot.supplyCoin))
+					suite.Require().NoError(err)
+					userSupplyAfter, _ := suite.keeper.GetDeposit(snapshotCtx, tc.args.user)
+
+					// Confirm that user's supply index for the denom has increased as expected
+					var userSupplyAfterIndexFactor sdk.Dec
+					for _, indexFactor := range userSupplyAfter.Index {
+						if indexFactor.Denom == tc.args.borrowCoinDenom {
+							userSupplyAfterIndexFactor = indexFactor.Value
+						}
+					}
+					suite.Require().Equal(userSupplyAfterIndexFactor, currSupplyIndexPrior)
+
+					// Check user's supplied amount increased by interest owed + the newly supplied coins
+					expectedSupplyCoinsAfter := userSupplyBefore.Amount.Add(snapshot.supplyCoin).Add(userExpectedSupplyInterestCoin)
+					suite.Require().Equal(expectedSupplyCoinsAfter, userSupplyAfter.Amount)
+				}
 
 				prevCtx = snapshotCtx
 			}
