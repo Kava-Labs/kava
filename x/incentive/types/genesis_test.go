@@ -67,9 +67,10 @@ func TestGenesisStateValidate(t *testing.T) {
 				}},
 				claims: USDXMintingClaims{
 					{
-						Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
-						Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
-
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
 						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
@@ -108,9 +109,10 @@ func TestGenesisStateValidate(t *testing.T) {
 				genAccTimes: DefaultGenesisAccumulationTimes,
 				claims: USDXMintingClaims{
 					{
-						Owner:  sdk.AccAddress{},
-						Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
-
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress{},
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
 						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
