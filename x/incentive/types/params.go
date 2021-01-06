@@ -25,11 +25,11 @@ const (
 // Parameter keys and default values
 var (
 	KeyActive                       = []byte("Active")
-	KeyRewards                      = []byte("RewardPeriods")
+	KeyUSDXMintingRewardPeriods     = []byte("USDXMintingRewardPeriods")
 	KeyClaimEnd                     = []byte("ClaimEnd")
 	KeyMultipliers                  = []byte("ClaimMultipliers")
 	DefaultActive                   = false
-	DefaultRewardPeriods            = RewardPeriods{}
+	DefaultUSDXMintingRewardPeriods = RewardPeriods{}
 	DefaultMultipliers              = Multipliers{}
 	DefaultClaims                   = USDXMintingClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
@@ -41,35 +41,37 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	Active           bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
-	RewardPeriods    RewardPeriods `json:"reward_periods" yaml:"reward_periods"`
-	ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"`
-	ClaimEnd         time.Time     `json:"claim_end" yaml:"claim_end"`
+	Active                   bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
+	USDXMintingRewardPeriods RewardPeriods `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
+	// HardLiquidityRewardPeriods RewardPeriods `json:"hard_liquidity_reward_periods" yaml:"hard_liquidity_reward_periods"`
+	// HardDelegatorRewardPeriods RewardPeriods `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"`
+	ClaimMultipliers Multipliers `json:"claim_multipliers" yaml:"claim_multipliers"`
+	ClaimEnd         time.Time   `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
-func NewParams(active bool, rewards RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
+func NewParams(active bool, usdxMinting RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
 	return Params{
-		Active:           active,
-		RewardPeriods:    rewards,
-		ClaimMultipliers: multipliers,
-		ClaimEnd:         claimEnd,
+		Active:                   active,
+		USDXMintingRewardPeriods: usdxMinting,
+		ClaimMultipliers:         multipliers,
+		ClaimEnd:                 claimEnd,
 	}
 }
 
 // DefaultParams returns default params for incentive module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
+	return NewParams(DefaultActive, DefaultUSDXMintingRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	Active: %t
-	Rewards: %s
+	USDX Minting Reward Periods: %s
 	Claim Multipliers :%s
 	Claim End Time: %s
-	`, p.Active, p.RewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
+	`, p.Active, p.USDXMintingRewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -81,7 +83,7 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
-		params.NewParamSetPair(KeyRewards, &p.RewardPeriods, validateRewardsParam),
+		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateUSDXMintingRewardPeriodsParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
 	}
@@ -97,7 +99,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return validateRewardsParam(p.RewardPeriods)
+	return validateUSDXMintingRewardPeriodsParam(p.USDXMintingRewardPeriods)
 }
 
 func validateActiveParam(i interface{}) error {
@@ -108,7 +110,7 @@ func validateActiveParam(i interface{}) error {
 	return nil
 }
 
-func validateRewardsParam(i interface{}) error {
+func validateUSDXMintingRewardPeriodsParam(i interface{}) error {
 	rewards, ok := i.(RewardPeriods)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

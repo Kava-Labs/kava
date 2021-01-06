@@ -62,7 +62,7 @@ var (
 	DefaultClaims                    = types.DefaultClaims
 	DefaultGenesisAccumulationTimes  = types.DefaultGenesisAccumulationTimes
 	DefaultMultipliers               = types.DefaultMultipliers
-	DefaultRewardPeriods             = types.DefaultRewardPeriods
+	DefaultUSDXMintingRewardPeriods  = types.DefaultUSDXMintingRewardPeriods
 	ErrAccountNotFound               = types.ErrAccountNotFound
 	ErrClaimExpired                  = types.ErrClaimExpired
 	ErrClaimNotFound                 = types.ErrClaimNotFound
@@ -77,7 +77,7 @@ var (
 	KeyActive                        = types.KeyActive
 	KeyClaimEnd                      = types.KeyClaimEnd
 	KeyMultipliers                   = types.KeyMultipliers
-	KeyRewards                       = types.KeyRewards
+	KeyUSDXMintingRewardPeriods      = types.KeyUSDXMintingRewardPeriods
 	ModuleCdc                        = types.ModuleCdc
 	PrincipalDenom                   = types.PrincipalDenom
 	RewardFactorKey                  = types.RewardFactorKey
