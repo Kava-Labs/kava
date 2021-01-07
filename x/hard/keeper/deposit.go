@@ -12,13 +12,26 @@ import (
 
 // Deposit deposit
 func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
+	// Set any new denoms' global supply index to 1.0
+	for _, coin := range coins {
+		_, foundInterestFactor := k.GetSupplyInterestFactor(ctx, coin.Denom)
+		if !foundInterestFactor {
+			_, foundMm := k.GetMoneyMarket(ctx, coin.Denom)
+			if foundMm {
+				k.SetSupplyInterestFactor(ctx, coin.Denom, sdk.OneDec())
+			}
+		}
+	}
+
 	// Get current stored LTV based on stored borrows/deposits
 	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, depositor)
 	if err != nil {
 		return err
 	}
 
-	k.SyncOutstandingInterest(ctx, depositor)
+	// Sync any outstanding interest
+	k.SyncBorrowInterest(ctx, depositor)
+	k.SyncSupplyInterest(ctx, depositor)
 
 	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
@@ -44,16 +57,46 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	deposit, found := k.GetDeposit(ctx, depositor)
-	if !found {
-		deposit = types.NewDeposit(depositor, coins)
+	// The first time a user deposits a denom we add it the user's supply interest factor index
+	var supplyInterestFactors types.SupplyInterestFactors
+	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
+	// On user's first deposit, build deposit index list containing denoms and current global deposit index value
+	if foundDeposit {
+		// If the coin denom to be deposited is not in the user's existing deposit, we add it deposit index
+		for _, coin := range coins {
+			if !sdk.NewCoins(coin).DenomsSubsetOf(currDeposit.Amount) {
+				supplyInterestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
+				supplyInterestFactor := types.NewSupplyInterestFactor(coin.Denom, supplyInterestFactorValue)
+				supplyInterestFactors = append(supplyInterestFactors, supplyInterestFactor)
+			}
+		}
+		// Concatenate new deposit interest factors to existing deposit interest factors
+		supplyInterestFactors = append(supplyInterestFactors, currDeposit.Index...)
 	} else {
-		deposit.Amount = deposit.Amount.Add(coins...)
+		for _, coin := range coins {
+			supplyInterestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
+			supplyInterestFactor := types.NewSupplyInterestFactor(coin.Denom, supplyInterestFactorValue)
+			supplyInterestFactors = append(supplyInterestFactors, supplyInterestFactor)
+		}
 	}
 
+	// Calculate new deposit amount
+	var amount sdk.Coins
+	if foundDeposit {
+		amount = currDeposit.Amount.Add(coins...)
+	} else {
+		amount = coins
+	}
+
+	// Update the depositer's amount and supply interest factors in the store
+	deposit := types.NewDeposit(depositor, amount, supplyInterestFactors)
 	k.SetDeposit(ctx, deposit)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
+
+	// Update total supplied amount by newly supplied coins. Don't add user's pending interest as
+	// it has already been included in the total supplied coins by the BeginBlocker.
+	k.IncrementSuppliedCoins(ctx, coins)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -84,76 +127,37 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	return nil
 }
 
-// Withdraw returns some or all of a deposit back to original depositor
-func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
-	deposit, found := k.GetDeposit(ctx, depositor)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
-	}
-
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, depositor)
-	if err != nil {
-		return err
-	}
-
-	k.SyncOutstandingInterest(ctx, depositor)
-
-	borrow, found := k.GetBorrow(ctx, depositor)
-	if !found {
-		borrow = types.Borrow{}
-	}
-
-	proposedDepositAmount, isNegative := deposit.Amount.SafeSub(coins)
-	if isNegative {
-		return types.ErrNegativeBorrowedCoins
-	}
-	proposedDeposit := types.NewDeposit(deposit.Depositor, proposedDepositAmount)
-
-	valid, err := k.IsWithinValidLtvRange(ctx, proposedDeposit, borrow)
-	if err != nil {
-		return err
-	}
-
-	if !valid {
-		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
-	}
-
-	err = k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, coins)
-	if err != nil {
-		return err
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeHardWithdrawal,
-			sdk.NewAttribute(sdk.AttributeKeyAmount, coins.String()),
-			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-		),
-	)
-
-	if deposit.Amount.IsEqual(coins) {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDeleteHardDeposit,
-				sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-			),
-		)
-		k.DeleteDeposit(ctx, deposit)
-		return nil
-	}
-
-	deposit.Amount = deposit.Amount.Sub(coins)
-	k.SetDeposit(ctx, deposit)
-
-	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
-
-	return nil
-}
-
 // GetTotalDeposited returns the total amount deposited for the input deposit type and deposit denom
 func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
 	var macc supplyExported.ModuleAccountI
 	macc = k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return macc.GetCoins().AmountOf(depositDenom)
+}
+
+// IncrementSuppliedCoins increments the total amount of supplied coins by the newCoins parameter
+func (k Keeper) IncrementSuppliedCoins(ctx sdk.Context, newCoins sdk.Coins) {
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		if !newCoins.Empty() {
+			k.SetSuppliedCoins(ctx, newCoins)
+		}
+	} else {
+		k.SetSuppliedCoins(ctx, suppliedCoins.Add(newCoins...))
+	}
+}
+
+// DecrementSuppliedCoins decrements the total amount of supplied coins by the coins parameter
+func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrSuppliedCoinsNotFound, "cannot withdraw if no coins are deposited")
+	}
+
+	updatedSuppliedCoins, isAnyNegative := suppliedCoins.SafeSub(coins)
+	if isAnyNegative {
+		return types.ErrNegativeSuppliedCoins
+	}
+
+	k.SetSuppliedCoins(ctx, updatedSuppliedCoins)
+	return nil
 }

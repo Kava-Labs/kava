@@ -76,7 +76,8 @@ func (suite *KeeperTestSuite) TestGetSetPreviousDelegatorDistribution() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
-	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))))
+	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+		types.SupplyInterestFactors{types.NewSupplyInterestFactor("", sdk.MustNewDecFromStr("0"))})
 
 	_, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
 	suite.Require().False(f)
@@ -96,7 +97,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 
 func (suite *KeeperTestSuite) TestIterateDeposits() {
 	for i := 0; i < 5; i++ {
-		dep := types.NewDeposit(sdk.AccAddress("test"+fmt.Sprint(i)), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))))
+		dep := types.NewDeposit(sdk.AccAddress("test"+fmt.Sprint(i)), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))), types.SupplyInterestFactors{})
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, dep) })
 	}
 	var deposits []types.Deposit

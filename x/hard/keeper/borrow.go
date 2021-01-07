@@ -13,11 +13,11 @@ import (
 func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins) error {
 	// Set any new denoms' global borrow index to 1.0
 	for _, coin := range coins {
-		_, foundInterestFactor := k.GetInterestFactor(ctx, coin.Denom)
+		_, foundInterestFactor := k.GetBorrowInterestFactor(ctx, coin.Denom)
 		if !foundInterestFactor {
 			_, foundMm := k.GetMoneyMarket(ctx, coin.Denom)
 			if foundMm {
-				k.SetInterestFactor(ctx, coin.Denom, sdk.OneDec())
+				k.SetBorrowInterestFactor(ctx, coin.Denom, sdk.OneDec())
 			}
 		}
 	}
@@ -28,11 +28,8 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
-	// If the user has an existing borrow, sync its outstanding interest
-	_, found := k.GetBorrow(ctx, borrower)
-	if found {
-		k.SyncOutstandingInterest(ctx, borrower)
-	}
+	// Sync any outstanding interest
+	k.SyncBorrowInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
 	err = k.ValidateBorrow(ctx, borrower, coins)
@@ -57,22 +54,39 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
+	// The first time a user borrows a denom we add it the user's borrow interest factor index
+	var borrowInterestFactors types.BorrowInterestFactors
+	currBorrow, foundBorrow := k.GetBorrow(ctx, borrower)
 	// On user's first borrow, build borrow index list containing denoms and current global borrow index value
-	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
-	if !found {
-		var interestFactors types.InterestFactors
+	if foundBorrow {
+		// If the coin denom to be borrowed is not in the user's existing borrow, we add it borrow index
 		for _, coin := range coins {
-			interestFactorValue, _ := k.GetInterestFactor(ctx, coin.Denom)
-			interestFactor := types.NewInterestFactor(coin.Denom, interestFactorValue)
-			interestFactors = append(interestFactors, interestFactor)
+			if !sdk.NewCoins(coin).DenomsSubsetOf(currBorrow.Amount) {
+				borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
+				borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
+				borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
+			}
 		}
-		borrow := types.NewBorrow(borrower, sdk.Coins{}, interestFactors)
-		k.SetBorrow(ctx, borrow)
+		// Concatenate new borrow interest factors to existing borrow interest factors
+		borrowInterestFactors = append(borrowInterestFactors, currBorrow.Index...)
+	} else {
+		for _, coin := range coins {
+			borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
+			borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
+			borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
+		}
 	}
 
-	// Add the newly borrowed coins to the user's borrow object
-	borrow, _ := k.GetBorrow(ctx, borrower)
-	borrow.Amount = borrow.Amount.Add(coins...)
+	// Calculate new borrow amount
+	var amount sdk.Coins
+	if foundBorrow {
+		amount = currBorrow.Amount.Add(coins...)
+	} else {
+		amount = coins
+	}
+
+	// Update the borrower's amount and borrow interest factors in the store
+	borrow := types.NewBorrow(borrower, amount, borrowInterestFactors)
 	k.SetBorrow(ctx, borrow)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, borrower)
@@ -90,46 +104,6 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	)
 
 	return nil
-}
-
-// SyncOutstandingInterest updates the user's owed interest on newly borrowed coins to the latest global state
-func (k Keeper) SyncOutstandingInterest(ctx sdk.Context, addr sdk.AccAddress) {
-	totalNewInterest := sdk.Coins{}
-
-	// Update user's borrow index list for each asset in the 'coins' array.
-	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
-	borrow, found := k.GetBorrow(ctx, addr)
-	if !found {
-		return
-	}
-	for _, coin := range borrow.Amount {
-		// Locate the borrow index item by coin denom in the user's list of borrow indexes
-		foundAtIndex := -1
-		for i := range borrow.Index {
-			if borrow.Index[i].Denom == coin.Denom {
-				foundAtIndex = i
-				break
-			}
-		}
-
-		interestFactorValue, _ := k.GetInterestFactor(ctx, coin.Denom)
-		if foundAtIndex == -1 { // First time user has borrowed this denom
-			borrow.Index = append(borrow.Index, types.NewInterestFactor(coin.Denom, interestFactorValue))
-		} else { // User has an existing borrow index for this denom
-			// Calculate interest owed by user since asset's last borrow index update
-			storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
-			userLastInterestFactor := borrow.Index[foundAtIndex].Value
-			interest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
-			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
-			// We're synced up, so update user's borrow index value to match the current global borrow index value
-			borrow.Index[foundAtIndex].Value = interestFactorValue
-		}
-	}
-	// Add all pending interest to user's borrow
-	borrow.Amount = borrow.Amount.Add(totalNewInterest...)
-
-	// Update user's borrow in the store
-	k.SetBorrow(ctx, borrow)
 }
 
 // ValidateBorrow validates a borrow request against borrower and protocol requirements
@@ -240,7 +214,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	return nil
 }
 
-// IncrementBorrowedCoins increments the amount of borrowed coins by the newCoins parameter
+// IncrementBorrowedCoins increments the total amount of borrowed coins by the newCoins parameter
 func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {
@@ -252,7 +226,7 @@ func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 	}
 }
 
-// DecrementBorrowedCoins decrements the amount of borrowed coins by the coins parameter
+// DecrementBorrowedCoins decrements the total amount of borrowed coins by the coins parameter
 func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {
@@ -272,29 +246,31 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 func (k Keeper) GetBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) sdk.Coins {
 	borrowBalance := sdk.Coins{}
 	borrow, found := k.GetBorrow(ctx, borrower)
-	if found {
-		totalNewInterest := sdk.Coins{}
-		for _, coin := range borrow.Amount {
-			interestFactorValue, foundInterestFactorValue := k.GetInterestFactor(ctx, coin.Denom)
-			if foundInterestFactorValue {
-				// Locate the interest factor by coin denom in the user's list of interest factors
-				foundAtIndex := -1
-				for i := range borrow.Index {
-					if borrow.Index[i].Denom == coin.Denom {
-						foundAtIndex = i
-						break
-					}
-				}
-				// Calculate interest owed by user for this asset
-				if foundAtIndex != -1 {
-					storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
-					userLastInterestFactor := borrow.Index[foundAtIndex].Value
-					coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
-					totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
+	if !found {
+		return borrowBalance
+	}
+
+	totalNewInterest := sdk.Coins{}
+	for _, coin := range borrow.Amount {
+		interestFactorValue, foundInterestFactorValue := k.GetBorrowInterestFactor(ctx, coin.Denom)
+		if foundInterestFactorValue {
+			// Locate the interest factor by coin denom in the user's list of interest factors
+			foundAtIndex := -1
+			for i := range borrow.Index {
+				if borrow.Index[i].Denom == coin.Denom {
+					foundAtIndex = i
+					break
 				}
 			}
+			// Calculate interest owed by user for this asset
+			if foundAtIndex != -1 {
+				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+				userLastInterestFactor := borrow.Index[foundAtIndex].Value
+				coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
+				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
+			}
 		}
-		borrowBalance = borrow.Amount.Add(totalNewInterest...)
 	}
-	return borrowBalance
+
+	return borrow.Amount.Add(totalNewInterest...)
 }

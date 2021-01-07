@@ -87,6 +87,21 @@ func (suite *KeeperTestSuite) TestRepay() {
 			},
 		},
 		{
+			"invalid: attempt to repay non-supplied coin",
+			args{
+				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
+				depositCoins:         []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))},
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
+				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*KAVA_CF))),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "account can only repay up to 0bnb",
+			},
+		},
+		{
 			"invalid: insufficent balance for repay",
 			args{
 				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
@@ -98,7 +113,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "account can only repay up to",
+				contains:   "account can only repay up to 50000000ukava",
 			},
 		},
 	}
@@ -203,7 +218,8 @@ func (suite *KeeperTestSuite) TestRepay() {
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				// If we overpaid expect an adjustment
-				repaymentCoins := suite.keeper.CalculatePaymentAmount(tc.args.borrowCoins, tc.args.repayCoins)
+				repaymentCoins, err := suite.keeper.CalculatePaymentAmount(tc.args.borrowCoins, tc.args.repayCoins)
+				suite.Require().NoError(err)
 
 				// Check borrower balance
 				expectedBorrowerCoins := tc.args.initialBorrowerCoins.Sub(tc.args.depositCoins).Add(tc.args.borrowCoins...).Sub(repaymentCoins)

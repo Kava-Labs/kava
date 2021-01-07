@@ -69,14 +69,13 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return nil
 	}
 
-	// Get available hard module account cash on hand
+	// Get current protocol state and hold in memory as 'prior'
 	cashPrior := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
 
-	// Get prior borrows
-	borrowsPrior := sdk.NewCoin(denom, sdk.ZeroInt())
-	borrowCoinsPrior, foundBorrowCoinsPrior := k.GetBorrowedCoins(ctx)
-	if foundBorrowCoinsPrior {
-		borrowsPrior = sdk.NewCoin(denom, borrowCoinsPrior.AmountOf(denom))
+	borrowedPrior := sdk.NewCoin(denom, sdk.ZeroInt())
+	borrowedCoinsPrior, foundBorrowedCoinsPrior := k.GetBorrowedCoins(ctx)
+	if foundBorrowedCoinsPrior {
+		borrowedPrior = sdk.NewCoin(denom, borrowedCoinsPrior.AmountOf(denom))
 	}
 
 	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx, denom)
@@ -86,11 +85,18 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		reservesPrior = newReservesPrior
 	}
 
-	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, denom)
-	if !foundInterestFactorPrior {
-		newInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
-		k.SetInterestFactor(ctx, denom, newInterestFactorPrior)
-		interestFactorPrior = newInterestFactorPrior
+	borrowInterestFactorPrior, foundBorrowInterestFactorPrior := k.GetBorrowInterestFactor(ctx, denom)
+	if !foundBorrowInterestFactorPrior {
+		newBorrowInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
+		k.SetBorrowInterestFactor(ctx, denom, newBorrowInterestFactorPrior)
+		borrowInterestFactorPrior = newBorrowInterestFactorPrior
+	}
+
+	supplyInterestFactorPrior, foundSupplyInterestFactorPrior := k.GetSupplyInterestFactor(ctx, denom)
+	if !foundSupplyInterestFactorPrior {
+		newSupplyInterestFactorPrior := sdk.MustNewDecFromStr("1.0")
+		k.SetSupplyInterestFactor(ctx, denom, newSupplyInterestFactorPrior)
+		supplyInterestFactorPrior = newSupplyInterestFactorPrior
 	}
 
 	// Fetch money market from the store
@@ -100,7 +106,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
-	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowsPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
+	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
 	if err != nil {
 		return err
 	}
@@ -111,16 +117,27 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return err
 	}
 
-	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
-	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(borrowsPrior.Amount)).TruncateInt()).Sub(borrowsPrior.Amount)
-	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestAccumulated))
-	totalReservesNew := reservesPrior.Add(sdk.NewCoin(denom, sdk.NewDecFromInt(interestAccumulated).Mul(mm.ReserveFactor).TruncateInt()))
-	interestFactorNew := interestFactorPrior.Mul(interestFactor)
+	// Calculate borrow interest factor and update
+	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
+	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
+	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
+	reservesNew := interestBorrowAccumulated.ToDec().Mul(mm.ReserveFactor).TruncateInt()
+	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
+	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
 
-	k.SetInterestFactor(ctx, denom, interestFactorNew)
+	// Calculate supply interest factor and update
+	supplyInterestNew := interestBorrowAccumulated.Sub(reservesNew)
+	supplyInterestFactor := CalculateSupplyInterestFactor(supplyInterestNew.ToDec(), cashPrior.ToDec(), borrowedPrior.Amount.ToDec(), reservesPrior.Amount.ToDec())
+	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
+	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
+
+	// Update accural keys in store
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
-	k.SetTotalReserves(ctx, denom, totalReservesNew)
+	k.IncrementSuppliedCoins(ctx, sdk.NewCoins(sdk.NewCoin(denom, supplyInterestNew)))
+	k.SetTotalReserves(ctx, denom, reservesPrior.Add(sdk.NewCoin(mm.Denom, reservesNew)))
+	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
+
 	return nil
 }
 
@@ -155,10 +172,10 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 	return sdk.MinDec(sdk.OneDec(), borrows.Quo(totalSupply))
 }
 
-// CalculateInterestFactor calculates the simple interest scaling factor,
+// CalculateBorrowInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate * number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
-func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
+func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
 
@@ -171,6 +188,100 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.I
 
 	// Convert interest factor to an unscaled sdk.Dec
 	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
+}
+
+// CalculateSupplyInterestFactor calculates the supply interest factor, which is the percentage of borrow interest
+// that flows to each unit of supply, i.e. at 50% utilization and 0% reserve factor, a 5% borrow interest will
+// correspond to a 2.5% supply interest.
+func CalculateSupplyInterestFactor(newInterest, cash, borrows, reserves sdk.Dec) sdk.Dec {
+	totalSupply := cash.Add(borrows).Sub(reserves)
+	if totalSupply.IsZero() {
+		return sdk.OneDec()
+	}
+	return (newInterest.Quo(totalSupply)).Add(sdk.OneDec())
+}
+
+// SyncBorrowInterest updates the user's owed interest on newly borrowed coins to the latest global state
+func (k Keeper) SyncBorrowInterest(ctx sdk.Context, addr sdk.AccAddress) {
+	totalNewInterest := sdk.Coins{}
+
+	// Update user's borrow interest factor list for each asset in the 'coins' array.
+	// We use a list of BorrowInterestFactors here because Amino doesn't support marshaling maps.
+	borrow, found := k.GetBorrow(ctx, addr)
+	if !found {
+		return
+	}
+	for _, coin := range borrow.Amount {
+		// Locate the borrow interest factor item by coin denom in the user's list of borrow indexes
+		foundAtIndex := -1
+		for i := range borrow.Index {
+			if borrow.Index[i].Denom == coin.Denom {
+				foundAtIndex = i
+				break
+			}
+		}
+
+		interestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
+		if foundAtIndex == -1 { // First time user has borrowed this denom
+			borrow.Index = append(borrow.Index, types.NewBorrowInterestFactor(coin.Denom, interestFactorValue))
+		} else { // User has an existing borrow index for this denom
+			// Calculate interest owed by user since asset's last borrow index update
+			storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+			userLastInterestFactor := borrow.Index[foundAtIndex].Value
+			interest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
+			totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+			// We're synced up, so update user's borrow index value to match the current global borrow index value
+			borrow.Index[foundAtIndex].Value = interestFactorValue
+		}
+	}
+	// Add all pending interest to user's borrow
+	borrow.Amount = borrow.Amount.Add(totalNewInterest...)
+
+	// Update user's borrow in the store
+	k.SetBorrow(ctx, borrow)
+}
+
+// SyncSupplyInterest updates the user's earned interest on supplied coins based on the latest global state
+func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
+	totalNewInterest := sdk.Coins{}
+
+	// Update user's supply index list for each asset in the 'coins' array.
+	// We use a list of SupplyInterestFactors here because Amino doesn't support marshaling maps.
+	deposit, found := k.GetDeposit(ctx, addr)
+	if !found {
+		return
+	}
+
+	for _, coin := range deposit.Amount {
+		// Locate the deposit index item by coin denom in the user's list of deposit indexes
+		foundAtIndex := -1
+		for i := range deposit.Index {
+			if deposit.Index[i].Denom == coin.Denom {
+				foundAtIndex = i
+				break
+			}
+		}
+
+		interestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
+		if foundAtIndex == -1 { // First time user has supplied this denom
+			deposit.Index = append(deposit.Index, types.NewSupplyInterestFactor(coin.Denom, interestFactorValue))
+		} else { // User has an existing supply index for this denom
+			// Calculate interest earned by user since asset's last deposit index update
+			storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
+			userLastInterestFactor := deposit.Index[foundAtIndex].Value
+			interest := (storedAmount.Mul(interestFactorValue).Quo(userLastInterestFactor)).Sub(storedAmount)
+			if interest.TruncateInt().GT(sdk.ZeroInt()) {
+				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, interest.TruncateInt()))
+			}
+			// We're synced up, so update user's deposit index value to match the current global deposit index value
+			deposit.Index[foundAtIndex].Value = interestFactorValue
+		}
+	}
+	// Add all pending interest to user's deposit
+	deposit.Amount = deposit.Amount.Add(totalNewInterest...)
+
+	// Update user's deposit in the store
+	k.SetDeposit(ctx, deposit)
 }
 
 // APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.

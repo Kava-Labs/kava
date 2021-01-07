@@ -40,11 +40,13 @@ var (
 	ClaimsKeyPrefix                   = []byte{0x04}
 	BorrowsKeyPrefix                  = []byte{0x05}
 	BorrowedCoinsPrefix               = []byte{0x06}
-	MoneyMarketsPrefix                = []byte{0x07}
-	PreviousAccrualTimePrefix         = []byte{0x08} // denom -> time
-	TotalReservesPrefix               = []byte{0x09} // denom -> sdk.Coin
-	InterestFactorPrefix              = []byte{0x10} // denom -> sdk.Dec
-	LtvIndexPrefix                    = []byte{0x11}
+	SuppliedCoinsPrefix               = []byte{0x07}
+	MoneyMarketsPrefix                = []byte{0x08}
+	PreviousAccrualTimePrefix         = []byte{0x09} // denom -> time
+	TotalReservesPrefix               = []byte{0x10} // denom -> sdk.Coin
+	BorrowInterestFactorPrefix        = []byte{0x11} // denom -> sdk.Dec
+	SupplyInterestFactorPrefix        = []byte{0x12} // denom -> sdk.Dec
+	LtvIndexPrefix                    = []byte{0x13}
 	sep                               = []byte(":")
 )
 
