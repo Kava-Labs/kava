@@ -9,6 +9,7 @@ const (
 	QueryGetParams         = "params"
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
+	QueryGetDeposit        = "deposit"
 	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
 	QueryGetBorrowed       = "borrowed"
@@ -17,15 +18,27 @@ const (
 
 // QueryDepositParams is the params for a filtered deposit query
 type QueryDepositParams struct {
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+}
+
+// NewQueryDepositParams creates a new QueryDepositParams
+func NewQueryDepositParams(owner sdk.AccAddress) QueryDepositParams {
+	return QueryDepositParams{
+		Owner: owner,
+	}
+}
+
+// QueryDepositsParams is the params for a filtered deposit query
+type QueryDepositsParams struct {
 	Page         int            `json:"page" yaml:"page"`
 	Limit        int            `json:"limit" yaml:"limit"`
 	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
 	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
 }
 
-// NewQueryDepositParams creates a new QueryDepositParams
-func NewQueryDepositParams(page, limit int, depositDenom string, owner sdk.AccAddress) QueryDepositParams {
-	return QueryDepositParams{
+// NewQueryDepositsParams creates a new QueryDepositsParams
+func NewQueryDepositsParams(page, limit int, depositDenom string, owner sdk.AccAddress) QueryDepositsParams {
+	return QueryDepositsParams{
 		Page:         page,
 		Limit:        limit,
 		DepositDenom: depositDenom,

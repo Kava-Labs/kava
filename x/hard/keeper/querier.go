@@ -22,6 +22,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetModAccounts(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
+		case types.QueryGetDeposit:
+			return queryGetDeposit(ctx, req, k)
 		case types.QueryGetClaims:
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
@@ -79,7 +81,7 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 
 func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 
-	var params types.QueryDepositParams
+	var params types.QueryDepositsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -239,7 +241,6 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 }
 
 func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-
 	var params types.QueryBorrowsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -309,6 +310,26 @@ func queryGetBorrow(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrowBalance)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetDeposit(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryDepositParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var supplyBalance sdk.Coins
+	if len(params.Owner) > 0 {
+		supplyBalance = k.GetSupplyBalance(ctx, params.Owner)
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, supplyBalance)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

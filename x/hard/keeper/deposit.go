@@ -161,3 +161,36 @@ func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	k.SetSuppliedCoins(ctx, updatedSuppliedCoins)
 	return nil
 }
+
+// GetSupplyBalance gets the user's total supply balance (supply balance + pending interest)
+func (k Keeper) GetSupplyBalance(ctx sdk.Context, depositor sdk.AccAddress) sdk.Coins {
+	supplyBalance := sdk.Coins{}
+	deposit, found := k.GetDeposit(ctx, depositor)
+	if !found {
+		return supplyBalance
+	}
+
+	totalNewInterest := sdk.Coins{}
+	for _, coin := range deposit.Amount {
+		interestFactorValue, foundInterestFactorValue := k.GetSupplyInterestFactor(ctx, coin.Denom)
+		if foundInterestFactorValue {
+			// Locate the interest factor by coin denom in the user's list of interest factors
+			foundAtIndex := -1
+			for i := range deposit.Index {
+				if deposit.Index[i].Denom == coin.Denom {
+					foundAtIndex = i
+					break
+				}
+			}
+			// Calculate interest owed by user for this asset
+			if foundAtIndex != -1 {
+				storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
+				userLastInterestFactor := deposit.Index[foundAtIndex].Value
+				coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
+				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
+			}
+		}
+	}
+
+	return deposit.Amount.Add(totalNewInterest...)
+}
