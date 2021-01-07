@@ -27,7 +27,9 @@ func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
 	prevBlockTime := time.Now().UTC()
-	deposit := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1))))
+	deposit := types.NewDeposit(sdk.AccAddress("test"),
+		sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1))),
+		types.SupplyInterestFactors{types.NewSupplyInterestFactor("bnb", sdk.OneDec())})
 	claim := types.NewClaim(sdk.AccAddress("test"), "bnb", sdk.NewCoin("hard", sdk.NewInt(100)), "stake")
 
 	kvPairs := kv.Pairs{
