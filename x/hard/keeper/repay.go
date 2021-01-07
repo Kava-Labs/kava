@@ -43,9 +43,18 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 
 	// Update user's borrow in store
 	borrow.Amount = borrow.Amount.Sub(payment)
-	k.SetBorrow(ctx, borrow)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, sender)
+	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
+	deposit, foundDeposit := k.GetDeposit(ctx, sender)
+	if !foundDeposit {
+		return types.ErrDepositNotFound
+	}
+	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
+	if err != nil {
+		return err
+	}
+
+	k.UpdateBorrowAndLtvIndex(ctx, borrow, newLtv, prevLtv)
 
 	// Update total borrowed amount
 	k.DecrementBorrowedCoins(ctx, payment)
