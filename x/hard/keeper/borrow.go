@@ -87,12 +87,12 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 	// Construct the user's new/updated borrow with amount and interest factors
 	borrow := types.NewBorrow(borrower, amount, borrowInterestFactors)
-	// Fetch the user's deposit from the store
+
+	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
 	deposit, foundDeposit := k.GetDeposit(ctx, borrower)
 	if !foundDeposit {
 		return types.ErrDepositNotFound
 	}
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
 	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
 	if err != nil {
 		return err
