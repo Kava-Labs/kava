@@ -10,7 +10,7 @@ import (
 // Repay borrowed funds
 func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, sender)
+	prevLtv, err := k.GetStoreLTV(ctx, sender)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	borrow.Amount = borrow.Amount.Sub(payment)
 	k.SetBorrow(ctx, borrow)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, sender)
+	k.UpdateItemInLtvIndex(ctx, prevLtv, sender)
 
 	// Update total borrowed amount
 	k.DecrementBorrowedCoins(ctx, payment)

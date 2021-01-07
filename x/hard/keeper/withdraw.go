@@ -10,7 +10,7 @@ import (
 // Withdraw returns some or all of a deposit back to original depositor
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, shouldRemoveIndex, err := k.GetStoreLTV(ctx, depositor)
+	prevLtv, err := k.GetStoreLTV(ctx, depositor)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	deposit.Amount = deposit.Amount.Sub(amount)
 	k.SetDeposit(ctx, deposit)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
+	k.UpdateItemInLtvIndex(ctx, prevLtv, depositor)
 
 	// Update total supplied amount
 	k.DecrementBorrowedCoins(ctx, amount)
