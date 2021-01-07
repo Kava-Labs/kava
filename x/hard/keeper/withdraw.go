@@ -27,18 +27,17 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	if err != nil {
 		return err
 	}
-	proposedDeposit := types.NewDeposit(deposit.Depositor, deposit.Amount.Sub(amount), types.SupplyInterestFactors{})
 
 	borrow, found := k.GetBorrow(ctx, depositor)
 	if !found {
 		borrow = types.Borrow{}
 	}
 
+	proposedDeposit := types.NewDeposit(deposit.Depositor, deposit.Amount.Sub(amount), types.SupplyInterestFactors{})
 	valid, err := k.IsWithinValidLtvRange(ctx, proposedDeposit, borrow)
 	if err != nil {
 		return err
 	}
-
 	if !valid {
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
 	}
@@ -60,9 +59,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	}
 
 	deposit.Amount = deposit.Amount.Sub(amount)
-	k.SetDeposit(ctx, deposit)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, depositor)
+	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
+	if err != nil {
+		return err
+	}
+	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
 
 	// Update total supplied amount
 	k.DecrementBorrowedCoins(ctx, amount)
