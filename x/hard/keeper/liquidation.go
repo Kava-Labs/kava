@@ -24,7 +24,7 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 	for _, borrower := range borrowers {
 		err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
 		if err != nil {
-			if !errors.Is(err, types.ErrBorrowNotLiquidatable) {
+			if !errors.Is(err, types.ErrBorrowNotLiquidatable) && !errors.Is(err, types.ErrBorrowNotFound) {
 				panic(err)
 			}
 		}
