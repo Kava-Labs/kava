@@ -25,7 +25,7 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 		_, err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
 		if err != nil {
 			if !errors.Is(err, types.ErrBorrowNotLiquidatable) {
-				panic(err)
+				panic(err) // TODO: should this panic?
 			}
 		}
 	}
@@ -33,23 +33,21 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 }
 
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
+// TODO: does this need to require a bool?
 func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) (bool, error) {
 	prevLtv, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
 		return false, err
 	}
 
+	// k.SyncSupplyInterest(ctx, borrower) // TODO: must add
 	k.SyncBorrowInterest(ctx, borrower)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, borrower)
-
-	// Fetch deposits and parse coin denoms
 	deposit, found := k.GetDeposit(ctx, borrower)
 	if !found {
-		return false, sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
+		return false, types.ErrDepositNotFound
 	}
 
-	// Fetch borrow balances and parse coin denoms
 	borrow, found := k.GetBorrow(ctx, borrower)
 	if !found {
 		return false, types.ErrBorrowNotFound
@@ -71,14 +69,8 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return false, err
 	}
 
-	currLtv, err := k.GetStoreLTV(ctx, borrower)
-	if err != nil {
-		return false, err
-	}
-	k.DeleteBorrowAndLtvIndex(ctx, borrow, currLtv)
-	k.DeleteDeposit(ctx, deposit)
-
-	return true, err
+	k.DeleteDepositBorrowAndLtvIndex(ctx, deposit, borrow, prevLtv)
+	return true, nil
 }
 
 // SeizeDeposits seizes a list of deposits and sends them to auction
@@ -281,18 +273,6 @@ func (k Keeper) UpdateBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, ne
 	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
 }
 
-// DeleteBorrowAndLtvIndex deletes an existing borrow in the store and removes its old LTV index value
-func (k Keeper) DeleteBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, oldLtv sdk.Dec) {
-	k.RemoveFromLtvIndex(ctx, oldLtv, borrow.Borrower)
-	k.DeleteBorrow(ctx, borrow)
-}
-
-// SetBorrowAndLtvIndex sets a borrow and its current LTV index value in the store
-func (k Keeper) SetBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv sdk.Dec) {
-	k.SetBorrow(ctx, borrow)
-	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
-}
-
 // UpdateDepositAndLtvIndex updates a deposit and its LTV index value in the store
 func (k Keeper) UpdateDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, newLtv, oldLtv sdk.Dec) {
 	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
@@ -300,29 +280,11 @@ func (k Keeper) UpdateDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit,
 	k.InsertIntoLtvIndex(ctx, newLtv, deposit.Depositor)
 }
 
-// DeleteDepositAndLtvIndex deletes an existing deposit in the store and removes its old LTV index value
-func (k Keeper) DeleteDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, oldLtv sdk.Dec) {
+// DeleteDepositBorrowAndLtvIndex deletes deposit, borrow, and ltv index
+func (k Keeper) DeleteDepositBorrowAndLtvIndex(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow, oldLtv sdk.Dec) {
 	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
 	k.DeleteDeposit(ctx, deposit)
-}
-
-// SetDepositAndLtvIndex sets a deposit and its current LTV index value in the store
-func (k Keeper) SetDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, newLtv sdk.Dec) {
-	k.SetDeposit(ctx, deposit)
-	k.InsertIntoLtvIndex(ctx, newLtv, deposit.Depositor)
-}
-
-// TODO: remove
-// UpdateItemInLtvIndex updates the key a borrower's address is stored under in the LTV index
-func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec, borrower sdk.AccAddress) error {
-	currLtv, err := k.GetStoreLTV(ctx, borrower)
-	if err != nil {
-		return err
-	}
-
-	k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
-	k.InsertIntoLtvIndex(ctx, currLtv, borrower)
-	return nil
+	k.DeleteBorrow(ctx, borrow)
 }
 
 // GetStoreLTV calculates the user's current LTV based on their deposits/borrows in the store
