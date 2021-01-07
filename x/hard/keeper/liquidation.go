@@ -25,7 +25,7 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 		err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
 		if err != nil {
 			if !errors.Is(err, types.ErrBorrowNotLiquidatable) {
-				panic(err) // TODO: if the system only has deposits (no borrows) will this panic?
+				panic(err)
 			}
 		}
 	}
@@ -39,7 +39,6 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return err
 	}
 
-	// k.SyncSupplyInterest(ctx, borrower) // TODO: must add
 	k.SyncBorrowInterest(ctx, borrower)
 
 	deposit, found := k.GetDeposit(ctx, borrower)
