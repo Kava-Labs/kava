@@ -246,29 +246,31 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 func (k Keeper) GetBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) sdk.Coins {
 	borrowBalance := sdk.Coins{}
 	borrow, found := k.GetBorrow(ctx, borrower)
-	if found {
-		totalNewInterest := sdk.Coins{}
-		for _, coin := range borrow.Amount {
-			interestFactorValue, foundInterestFactorValue := k.GetBorrowInterestFactor(ctx, coin.Denom)
-			if foundInterestFactorValue {
-				// Locate the interest factor by coin denom in the user's list of interest factors
-				foundAtIndex := -1
-				for i := range borrow.Index {
-					if borrow.Index[i].Denom == coin.Denom {
-						foundAtIndex = i
-						break
-					}
-				}
-				// Calculate interest owed by user for this asset
-				if foundAtIndex != -1 {
-					storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
-					userLastInterestFactor := borrow.Index[foundAtIndex].Value
-					coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
-					totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
+	if !found {
+		return borrowBalance
+	}
+
+	totalNewInterest := sdk.Coins{}
+	for _, coin := range borrow.Amount {
+		interestFactorValue, foundInterestFactorValue := k.GetBorrowInterestFactor(ctx, coin.Denom)
+		if foundInterestFactorValue {
+			// Locate the interest factor by coin denom in the user's list of interest factors
+			foundAtIndex := -1
+			for i := range borrow.Index {
+				if borrow.Index[i].Denom == coin.Denom {
+					foundAtIndex = i
+					break
 				}
 			}
+			// Calculate interest owed by user for this asset
+			if foundAtIndex != -1 {
+				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+				userLastInterestFactor := borrow.Index[foundAtIndex].Value
+				coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
+				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
+			}
 		}
-		borrowBalance = borrow.Amount.Add(totalNewInterest...)
 	}
-	return borrowBalance
+
+	return borrow.Amount.Add(totalNewInterest...)
 }
