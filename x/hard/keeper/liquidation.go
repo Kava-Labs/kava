@@ -34,14 +34,14 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
 func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) (bool, error) {
-	prevLtv, shouldInsertIndex, err := k.GetStoreLTV(ctx, borrower)
+	prevLtv, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
 		return false, err
 	}
 
 	k.SyncBorrowInterest(ctx, borrower)
 
-	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldInsertIndex, borrower)
+	k.UpdateItemInLtvIndex(ctx, prevLtv, borrower)
 
 	// Fetch deposits and parse coin denoms
 	deposit, found := k.GetDeposit(ctx, borrower)
@@ -71,13 +71,11 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return false, err
 	}
 
-	currLtv, _, err := k.GetStoreLTV(ctx, borrower)
+	currLtv, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
 		return false, err
 	}
-	k.RemoveFromLtvIndex(ctx, currLtv, borrower)
-
-	k.DeleteBorrow(ctx, borrow)
+	k.DeleteBorrowAndLtvIndex(ctx, borrow, currLtv)
 	k.DeleteDeposit(ctx, deposit)
 
 	return true, err
@@ -276,36 +274,50 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 	return true, nil
 }
 
+// UpdateBorrowAndLtvIndex updates a borrow and it's LTV index value in the store
+func (k Keeper) UpdateBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv, oldLtv sdk.Dec) {
+	k.RemoveFromLtvIndex(ctx, oldLtv, borrow.Borrower)
+	k.SetBorrow(ctx, borrow)
+	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
+}
+
+// DeleteBorrowAndLtvIndex deletes an existing borrow in the store and removes its old LTV index value
+func (k Keeper) DeleteBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, oldLtv sdk.Dec) {
+	k.RemoveFromLtvIndex(ctx, oldLtv, borrow.Borrower)
+	k.DeleteBorrow(ctx, borrow)
+}
+
+// SetBorrowAndLtvIndex sets a borrow and current LTV index value in the store
+func (k Keeper) SetBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv sdk.Dec) {
+	k.SetBorrow(ctx, borrow)
+	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
+}
+
 // UpdateItemInLtvIndex updates the key a borrower's address is stored under in the LTV index
-func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec,
-	shouldRemoveIndex bool, borrower sdk.AccAddress) error {
-	currLtv, shouldInsertIndex, err := k.GetStoreLTV(ctx, borrower)
+func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec, borrower sdk.AccAddress) error {
+	currLtv, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
 		return err
 	}
 
-	if shouldRemoveIndex {
-		k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
-	}
-	if shouldInsertIndex {
-		k.InsertIntoLtvIndex(ctx, currLtv, borrower)
-	}
+	k.RemoveFromLtvIndex(ctx, prevLtv, borrower)
+	k.InsertIntoLtvIndex(ctx, currLtv, borrower)
 	return nil
 }
 
 // GetStoreLTV calculates the user's current LTV based on their deposits/borrows in the store
 // and does not include any outsanding interest.
-func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, bool, error) {
+func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, error) {
 	// Fetch deposits and parse coin denoms
 	deposit, found := k.GetDeposit(ctx, addr)
 	if !found {
-		return sdk.ZeroDec(), false, nil
+		return sdk.ZeroDec(), nil
 	}
 
 	// Fetch borrow balances and parse coin denoms
 	borrow, found := k.GetBorrow(ctx, addr)
 	if !found {
-		return sdk.ZeroDec(), false, nil
+		return sdk.ZeroDec(), nil
 	}
 
 	return k.CalculateLtv(ctx, deposit, borrow)
@@ -313,11 +325,11 @@ func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, bool
 
 // CalculateLtv calculates the potential LTV given a user's deposits and borrows.
 // The boolean returned indicates if the LTV should be added to the store's LTV index.
-func (k Keeper) CalculateLtv(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow) (sdk.Dec, bool, error) {
+func (k Keeper) CalculateLtv(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow) (sdk.Dec, error) {
 	// Load required liquidation data for every deposit/borrow denom
 	liqMap, err := k.LoadLiquidationData(ctx, deposit, borrow)
 	if err != nil {
-		return sdk.ZeroDec(), false, nil
+		return sdk.ZeroDec(), nil
 	}
 
 	// Build valuation map to hold deposit coin USD valuations
@@ -339,11 +351,11 @@ func (k Keeper) CalculateLtv(ctx sdk.Context, deposit types.Deposit, borrow type
 	// User doesn't have any deposits, catch divide by 0 error
 	sumDeposits := depositCoinValues.Sum()
 	if sumDeposits.Equal(sdk.ZeroDec()) {
-		return sdk.ZeroDec(), false, nil
+		return sdk.ZeroDec(), nil
 	}
 
 	// Loan-to-Value ratio
-	return borrowCoinValues.Sum().Quo(sumDeposits), true, nil
+	return borrowCoinValues.Sum().Quo(sumDeposits), nil
 }
 
 // LoadLiquidationData returns liquidation data, deposit, borrow
