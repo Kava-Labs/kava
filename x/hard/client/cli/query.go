@@ -39,6 +39,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryParamsCmd(queryRoute, cdc),
 		queryModAccountsCmd(queryRoute, cdc),
 		queryDepositsCmd(queryRoute, cdc),
+		queryDepositCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
 		queryBorrowCmd(queryRoute, cdc),
@@ -147,7 +148,7 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
-			params := types.NewQueryDepositParams(page, limit, depositDenom, owner)
+			params := types.NewQueryDepositsParams(page, limit, depositDenom, owner)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
@@ -357,6 +358,53 @@ func queryBorrowCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrow)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var balance sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &balance); err != nil {
+				return fmt.Errorf("failed to unmarshal borrow balance: %w", err)
+			}
+			return cliCtx.PrintOutput(balance)
+		},
+	}
+	cmd.Flags().String(flagOwner, "", "filter for borrows by owner address")
+	return cmd
+}
+
+func queryDepositCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deposit",
+		Short: "query outstanding deposit balance for a user",
+		Long: strings.TrimSpace(`query outstanding deposit balance for a user:
+		Example:
+		$ kvcli q hard deposit --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			var owner sdk.AccAddress
+
+			ownerBech := viper.GetString(flagOwner)
+			if len(ownerBech) != 0 {
+				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
+				if err != nil {
+					return err
+				}
+				owner = borrowOwner
+			}
+
+			params := types.NewQueryDepositParams(owner)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDeposit)
 			res, height, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err

@@ -73,7 +73,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryDepositParams(page, limit, depositDenom, depositOwner)
+		params := types.NewQueryDepositsParams(page, limit, depositDenom, depositOwner)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
