@@ -22,10 +22,10 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 	borrowers := k.GetLtvIndexSlice(ctx, params.CheckLtvIndexCount)
 
 	for _, borrower := range borrowers {
-		_, err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
+		err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
 		if err != nil {
 			if !errors.Is(err, types.ErrBorrowNotLiquidatable) {
-				panic(err) // TODO: should this panic?
+				panic(err) // TODO: if the system only has deposits (no borrows) will this panic?
 			}
 		}
 	}
@@ -33,11 +33,10 @@ func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
 }
 
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
-// TODO: does this need to require a bool?
-func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) (bool, error) {
+func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) error {
 	prevLtv, err := k.GetStoreLTV(ctx, borrower)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	// k.SyncSupplyInterest(ctx, borrower) // TODO: must add
@@ -45,20 +44,20 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 
 	deposit, found := k.GetDeposit(ctx, borrower)
 	if !found {
-		return false, types.ErrDepositNotFound
+		return types.ErrDepositNotFound
 	}
 
 	borrow, found := k.GetBorrow(ctx, borrower)
 	if !found {
-		return false, types.ErrBorrowNotFound
+		return types.ErrBorrowNotFound
 	}
 
 	isWithinRange, err := k.IsWithinValidLtvRange(ctx, deposit, borrow)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if isWithinRange {
-		return false, sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "position is within valid LTV range")
+		return sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "position is within valid LTV range")
 	}
 
 	// Sending coins to auction module with keeper address getting % of the profits
@@ -66,11 +65,11 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 	depositDenoms := getDenoms(deposit.Amount)
 	err = k.SeizeDeposits(ctx, keeper, deposit, borrow, depositDenoms, borrowDenoms)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	k.DeleteDepositBorrowAndLtvIndex(ctx, deposit, borrow, prevLtv)
-	return true, nil
+	return nil
 }
 
 // SeizeDeposits seizes a list of deposits and sends them to auction

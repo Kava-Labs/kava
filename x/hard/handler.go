@@ -124,7 +124,7 @@ func handleMsgRepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgRepay) (*sdk.
 }
 
 func handleMsgLiquidate(ctx sdk.Context, k keeper.Keeper, msg types.MsgLiquidate) (*sdk.Result, error) {
-	_, err := k.AttemptKeeperLiquidation(ctx, msg.Keeper, msg.Borrower)
+	err := k.AttemptKeeperLiquidation(ctx, msg.Keeper, msg.Borrower)
 	if err != nil {
 		return nil, err
 	}
