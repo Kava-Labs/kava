@@ -274,7 +274,7 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 	return true, nil
 }
 
-// UpdateBorrowAndLtvIndex updates a borrow and it's LTV index value in the store
+// UpdateBorrowAndLtvIndex updates a borrow and its LTV index value in the store
 func (k Keeper) UpdateBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv, oldLtv sdk.Dec) {
 	k.RemoveFromLtvIndex(ctx, oldLtv, borrow.Borrower)
 	k.SetBorrow(ctx, borrow)
@@ -287,12 +287,32 @@ func (k Keeper) DeleteBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, ol
 	k.DeleteBorrow(ctx, borrow)
 }
 
-// SetBorrowAndLtvIndex sets a borrow and current LTV index value in the store
+// SetBorrowAndLtvIndex sets a borrow and its current LTV index value in the store
 func (k Keeper) SetBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv sdk.Dec) {
 	k.SetBorrow(ctx, borrow)
 	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
 }
 
+// UpdateDepositAndLtvIndex updates a deposit and its LTV index value in the store
+func (k Keeper) UpdateDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, newLtv, oldLtv sdk.Dec) {
+	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
+	k.SetDeposit(ctx, deposit)
+	k.InsertIntoLtvIndex(ctx, newLtv, deposit.Depositor)
+}
+
+// DeleteDepositAndLtvIndex deletes an existing deposit in the store and removes its old LTV index value
+func (k Keeper) DeleteDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, oldLtv sdk.Dec) {
+	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
+	k.DeleteDeposit(ctx, deposit)
+}
+
+// SetDepositAndLtvIndex sets a deposit and its current LTV index value in the store
+func (k Keeper) SetDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, newLtv sdk.Dec) {
+	k.SetDeposit(ctx, deposit)
+	k.InsertIntoLtvIndex(ctx, newLtv, deposit.Depositor)
+}
+
+// TODO: remove
 // UpdateItemInLtvIndex updates the key a borrower's address is stored under in the LTV index
 func (k Keeper) UpdateItemInLtvIndex(ctx sdk.Context, prevLtv sdk.Dec, borrower sdk.AccAddress) error {
 	currLtv, err := k.GetStoreLTV(ctx, borrower)
