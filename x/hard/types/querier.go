@@ -9,11 +9,9 @@ const (
 	QueryGetParams         = "params"
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
-	QueryGetDeposit        = "deposit"
 	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
 	QueryGetBorrowed       = "borrowed"
-	QueryGetBorrow         = "borrow"
 )
 
 // QueryDepositParams is the params for a filtered deposit query
