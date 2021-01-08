@@ -301,7 +301,7 @@ func (suite *InterestTestSuite) TestCalculateBorrowInterestFactor() {
 			"largest per second interest rate with practical elapsed time",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("18.445"), // Begins to panic at ~18.45 (1845%/second interest rate)
-				timeElapsed:           sdk.NewInt(30),
+				timeElapsed:           sdk.NewInt(30),                  // Assume a 30 second period, longer than any expected individual block
 				expectedValue:         sdk.MustNewDecFromStr("94702138679846565921082258202543002089.215969366091911769"),
 			},
 		},
