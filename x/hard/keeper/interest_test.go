@@ -289,14 +289,20 @@ func (suite *InterestTestSuite) TestCalculateBorrowInterestFactor() {
 				expectedValue:         sdk.MustNewDecFromStr("40628388.864535408465693310"),
 			},
 		},
-		// If we raise the per second interest rate too much we'll cause an integer overflow.
-		// For example, perSecondInterestRate: '1.000005555555' will cause a panic.
 		{
 			"1 year: highest interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000001555555"),
 				timeElapsed:           sdk.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("2017093013158200407564.613502861572552603"),
+			},
+		},
+		{
+			"largest per second interest rate with practical elapsed time",
+			args{
+				perSecondInterestRate: sdk.MustNewDecFromStr("18.445"), // Begins to panic at ~18.45 (1845%/second interest rate)
+				timeElapsed:           sdk.NewInt(30),
+				expectedValue:         sdk.MustNewDecFromStr("94702138679846565921082258202543002089.215969366091911769"),
 			},
 		},
 	}
