@@ -57,11 +57,11 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		var depositDenom string
+		var denom string
 		var depositOwner sdk.AccAddress
 
 		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
-			depositDenom = strings.TrimSpace(x)
+			denom = strings.TrimSpace(x)
 		}
 
 		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
@@ -73,7 +73,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		params := types.NewQueryDepositsParams(page, limit, depositDenom, depositOwner)
+		params := types.NewQueryDepositsParams(page, limit, denom, depositOwner)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -105,12 +105,12 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		var depositDenom string
+		var denom string
 		var claimOwner sdk.AccAddress
 		var claimType types.ClaimType
 
 		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
-			depositDenom = strings.TrimSpace(x)
+			denom = strings.TrimSpace(x)
 		}
 
 		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
@@ -122,7 +122,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		if x := r.URL.Query().Get(RestType); len(x) != 0 {
+		if x := r.URL.Query().Get(RestClaimType); len(x) != 0 {
 			claimTypeStr := strings.ToLower(strings.TrimSpace(x))
 			err := types.ClaimType(claimTypeStr).IsValid()
 			if err != nil {
@@ -132,7 +132,7 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			claimType = types.ClaimType(claimTypeStr)
 		}
 
-		params := types.NewQueryClaimParams(page, limit, depositDenom, claimOwner, claimType)
+		params := types.NewQueryClaimParams(page, limit, denom, claimOwner, claimType)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -167,7 +167,7 @@ func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		var borrowDenom string
 		var borrowOwner sdk.AccAddress
 
-		if x := r.URL.Query().Get(RestBorrowDenom); len(x) != 0 {
+		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
 			borrowDenom = strings.TrimSpace(x)
 		}
 
@@ -257,7 +257,7 @@ func queryBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		var borrowDenom string
 
-		if x := r.URL.Query().Get(RestBorrowDenom); len(x) != 0 {
+		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
 			borrowDenom = strings.TrimSpace(x)
 		}
 

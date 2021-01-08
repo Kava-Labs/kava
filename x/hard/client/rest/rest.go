@@ -11,11 +11,10 @@ import (
 // REST variable names
 // nolint
 const (
-	RestOwner       = "owner"
-	RestDenom       = "deposit-denom"
-	RestType        = "deposit-type"
-	RestBorrowDenom = "borrow-denom"
-	RestName        = "name"
+	RestOwner     = "owner"
+	RestDenom     = "denom"
+	RestClaimType = "claim-type"
+	RestName      = "name"
 )
 
 // RegisterRoutes registers hard-related REST handlers to a router
