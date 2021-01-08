@@ -38,8 +38,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	hardQueryCmd.AddCommand(flags.GetCommands(
 		queryParamsCmd(queryRoute, cdc),
 		queryModAccountsCmd(queryRoute, cdc),
-		queryDepositsCmd(queryRoute, cdc), // TODO: refactor deposits
-		queryDepositCmd(queryRoute, cdc),
+		queryDepositsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
 	)...)
@@ -124,7 +123,10 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		$ kvcli q hard deposits
 		$ kvcli q hard deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
 		$ kvcli q hard deposits --denom ukava
-		$ kvcli q hard deposits --denom btcb`,
+		$ kvcli q hard deposits --denom btcb
+
+		Flag --owner will return the user's latest borrow balance including any outstanding interest.
+		Without flag --owner it is not guaranteed that returned user borrows include outstanding interest.`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -143,6 +145,38 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = depositOwner
 			}
 
+			// Execute 'deposit' query: queries a user's deposit balance, including their outstanding interest
+			if !owner.Empty() {
+				params := types.NewQueryDepositParams(owner)
+				bz, err := cdc.MarshalJSON(params)
+				if err != nil {
+					return err
+				}
+
+				route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDeposit)
+				res, height, err := cliCtx.QueryWithData(route, bz)
+				if err != nil {
+					return err
+				}
+				cliCtx = cliCtx.WithHeight(height)
+
+				var balance sdk.Coins
+				if err := cdc.UnmarshalJSON(res, &balance); err != nil {
+					return fmt.Errorf("failed to unmarshal deposit balance: %w", err)
+				}
+
+				if len(denom) > 0 {
+					if balance.AmountOf(denom).Equal(sdk.ZeroInt()) {
+						return fmt.Errorf("user %s has no deposit balance for denom %s", owner, denom)
+					}
+				}
+
+				return cliCtx.PrintOutput(balance)
+			}
+
+			// Execute 'deposits' query: queries deposits for several users, does not include their outstanding interest.
+			// Note: The 10 users with the lowest LTV ratio have their outstanding interest applied each block, so if
+			// testing with 10 or less addresses they'll all show their latest balance including outstanding interest.
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
@@ -166,6 +200,7 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(deposits)
 		},
 	}
+
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
@@ -181,9 +216,9 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 		Example:
 		$ kvcli q hard claims
-		$ kvcli q hard claims --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --claim-type lp --deposit-denom bnb
-		$ kvcli q hard claims --claim-type stake --deposit-denom ukava
-		$ kvcli q hard claims --deposit-denom btcb`,
+		$ kvcli q hard claims --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --claim-type lp --denom bnb
+		$ kvcli q hard claims --claim-type stake --denom ukava
+		$ kvcli q hard claims --denom btcb`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -234,6 +269,7 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(claims)
 		},
 	}
+
 	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for claims by owner address")
@@ -250,12 +286,11 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 		Example:
 		$ kvcli q hard borrows
-		$ kvcli q hard borrows --borrower kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
-		$ kvcli q hard borrows --borrow-denom bnb
+		$ kvcli q hard borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
+		$ kvcli q hard borrows --denom bnb
 
-
-		Flag --borrower will return the user's latest borrow balance including any outstanding debt.
-		Without flag --borrower it is not guaranteed that returned user borrows include outstanding debt.`,
+		Flag --owner will return the user's latest borrow balance including any outstanding debt.
+		Without flag --owner it is not guaranteed that returned user borrows include outstanding debt.`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -306,7 +341,6 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// Execute 'borrows' query: queries borrows for several users, does not include their outstanding debt.
 			// Note: The 10 users with the lowest LTV ratio have their outstanding debt applied each block, so if
 			// testing with 10 or less addresses they'll all show their latest balance including outstanding debt.
-
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
@@ -362,51 +396,4 @@ func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(borrowedCoins)
 		},
 	}
-}
-
-func queryDepositCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "deposit",
-		Short: "query outstanding deposit balance for a user",
-		Long: strings.TrimSpace(`query outstanding deposit balance for a user:
-		Example:
-		$ kvcli q hard deposit --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny`,
-		),
-		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			var owner sdk.AccAddress
-
-			ownerBech := viper.GetString(flagOwner)
-			if len(ownerBech) != 0 {
-				borrowOwner, err := sdk.AccAddressFromBech32(ownerBech)
-				if err != nil {
-					return err
-				}
-				owner = borrowOwner
-			}
-
-			params := types.NewQueryDepositParams(owner)
-			bz, err := cdc.MarshalJSON(params)
-			if err != nil {
-				return err
-			}
-
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDeposit)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			var balance sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &balance); err != nil {
-				return fmt.Errorf("failed to unmarshal borrow balance: %w", err)
-			}
-			return cliCtx.PrintOutput(balance)
-		},
-	}
-	cmd.Flags().String(flagOwner, "", "filter for borrows by owner address")
-	return cmd
 }
