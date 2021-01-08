@@ -57,22 +57,55 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		var denom string
-		var depositOwner sdk.AccAddress
+		var owner sdk.AccAddress
 
 		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
 			denom = strings.TrimSpace(x)
 		}
 
 		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
-			depositOwnerStr := strings.ToLower(strings.TrimSpace(x))
-			depositOwner, err = sdk.AccAddressFromBech32(depositOwnerStr)
+			ownerStr := strings.ToLower(strings.TrimSpace(x))
+			owner, err = sdk.AccAddressFromBech32(ownerStr)
 			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from deposit owner %s", depositOwnerStr))
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from deposit owner %s", ownerStr))
 				return
 			}
 		}
 
-		params := types.NewQueryDepositsParams(page, limit, denom, depositOwner)
+		if !owner.Empty() {
+			params := types.NewQueryDepositParams(owner)
+			bz, err := cliCtx.Codec.MarshalJSON(params)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetDeposit)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			cliCtx = cliCtx.WithHeight(height)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			var balance sdk.Coins
+			if err := cliCtx.Codec.UnmarshalJSON(res, &balance); err != nil {
+				rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("failed to unmarshal deposit balance: %s", err))
+				return
+			}
+
+			if len(denom) > 0 {
+				if balance.AmountOf(denom).Equal(sdk.ZeroInt()) {
+					rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("user %s has no deposit balance for denom %s", owner, denom))
+					return
+				}
+			}
+
+			rest.PostProcessResponse(w, cliCtx, res)
+			return
+		}
+
+		params := types.NewQueryDepositsParams(page, limit, denom, owner)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
