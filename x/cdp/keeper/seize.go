@@ -17,8 +17,8 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper, owner sdk.AccA
 	if !found {
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
 	}
-	cdp = k.SynchronizeInterest(ctx, cdp)
 	k.hooks.BeforeCDPModified(ctx, cdp)
+	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	err := k.ValidateLiquidation(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees)
 	if err != nil {

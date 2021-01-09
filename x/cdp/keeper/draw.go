@@ -25,9 +25,8 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 	if err != nil {
 		return err
 	}
-
-	cdp = k.SynchronizeInterest(ctx, cdp)
 	k.hooks.BeforeCDPModified(ctx, cdp)
+	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	err = k.ValidateCollateralizationRatio(ctx, cdp.Collateral, cdp.Type, cdp.Principal.Add(principal), cdp.AccumulatedFees)
 	if err != nil {
@@ -88,9 +87,8 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	if err != nil {
 		return err
 	}
-
-	cdp = k.SynchronizeInterest(ctx, cdp)
 	k.hooks.BeforeCDPModified(ctx, cdp)
+	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	// Note: assumes cdp.Principal and cdp.AccumulatedFees don't change during calculations
 	totalPrincipal := cdp.GetTotalPrincipal()
