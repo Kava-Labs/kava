@@ -20,7 +20,6 @@ func (suite *ParamTestSuite) SetupTest() {}
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
-		active        bool
 		rewardPeriods types.RewardPeriods
 		multipliers   types.Multipliers
 		end           time.Time
@@ -40,7 +39,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			"default",
 			args{
-				active:        types.DefaultActive,
 				rewardPeriods: types.DefaultRewardPeriods,
 				multipliers:   types.DefaultMultipliers,
 				end:           types.DefaultClaimEnd,
@@ -53,7 +51,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			"valid",
 			args{
-				active: true,
 				rewardPeriods: types.RewardPeriods{types.NewRewardPeriod(
 					true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 					sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)))},
@@ -72,12 +69,33 @@ func (suite *ParamTestSuite) TestParamValidation() {
 				contains:   "",
 			},
 		},
+		{
+			"invalid: empty reward factor",
+			args{
+				rewardPeriods: types.RewardPeriods{types.NewRewardPeriod(
+					true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+					sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)))},
+				multipliers: types.Multipliers{
+					types.NewMultiplier(
+						types.Small, 1, sdk.MustNewDecFromStr("0.25"),
+					),
+					types.NewMultiplier(
+						types.Large, 1, sdk.Dec{},
+					),
+				},
+				end: time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "claim multiplier factor not initialized",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			params := types.NewParams(
-				tc.args.active, tc.args.rewardPeriods, tc.args.multipliers, tc.args.end,
+				tc.args.rewardPeriods, tc.args.multipliers, tc.args.end,
 			)
 			err := params.Validate()
 			if tc.errArgs.expectPass {

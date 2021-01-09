@@ -44,7 +44,7 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			name: "valid",
 			args: args{
-				params: NewParams(true, RewardPeriods{NewRewardPeriod(true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC), sdk.NewCoin("ukava", sdk.NewInt(25000)))}, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}, time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC)),
+				params: NewParams(RewardPeriods{NewRewardPeriod(true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC), sdk.NewCoin("ukava", sdk.NewInt(25000)))}, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}, time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC)),
 				genAccTimes: GenesisAccumulationTimes{GenesisAccumulationTime{
 					CollateralType:           "bnb-a",
 					PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
@@ -84,6 +84,24 @@ func TestGenesisStateValidate(t *testing.T) {
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "reward factor should be ≥ 0.0",
+			},
+		},
+		{
+			name: "invalid genesis accumulation time",
+			args: args{
+				params: DefaultParams(),
+				genAccTimes: GenesisAccumulationTimes{
+					{
+						CollateralType:           "btcb-a",
+						PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+						RewardFactor:             sdk.Dec{},
+					},
+				},
+				claims: DefaultClaims,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "reward factor not initialized",
 			},
 		},
 		{

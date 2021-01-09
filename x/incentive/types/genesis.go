@@ -89,6 +89,9 @@ func (gats GenesisAccumulationTimes) Validate() error {
 
 // Validate performs validation of GenesisAccumulationTime
 func (gat GenesisAccumulationTime) Validate() error {
+	if gat.RewardFactor == (sdk.Dec{}) {
+		return fmt.Errorf("reward factor not initialized for %s", gat.CollateralType)
+	}
 	if gat.RewardFactor.LT(sdk.ZeroDec()) {
 		return fmt.Errorf("reward factor should be ≥ 0.0, is %s for %s", gat.RewardFactor, gat.CollateralType)
 	}

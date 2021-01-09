@@ -12,6 +12,10 @@ import (
 
 // AccumulateRewards updates the rewards accumulated for the input reward period
 func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+	if !rewardPeriod.Active {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())

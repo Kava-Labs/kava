@@ -41,16 +41,14 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	Active           bool          `json:"active" yaml:"active"` // top level governance switch to disable all rewards
 	RewardPeriods    RewardPeriods `json:"reward_periods" yaml:"reward_periods"`
 	ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"`
 	ClaimEnd         time.Time     `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
-func NewParams(active bool, rewards RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
+func NewParams(rewards RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
 	return Params{
-		Active:           active,
 		RewardPeriods:    rewards,
 		ClaimMultipliers: multipliers,
 		ClaimEnd:         claimEnd,
@@ -59,17 +57,16 @@ func NewParams(active bool, rewards RewardPeriods, multipliers Multipliers, clai
 
 // DefaultParams returns default params for incentive module
 func DefaultParams() Params {
-	return NewParams(DefaultActive, DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
+	return NewParams(DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Active: %t
 	Rewards: %s
 	Claim Multipliers :%s
 	Claim End Time: %s
-	`, p.Active, p.RewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
+	`, p.RewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -80,7 +77,6 @@ func ParamKeyTable() params.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyActive, &p.Active, validateActiveParam),
 		params.NewParamSetPair(KeyRewards, &p.RewardPeriods, validateRewardsParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
@@ -89,10 +85,6 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-	if err := validateActiveParam(p.Active); err != nil {
-		return err
-	}
-
 	if err := validateMultipliersParam(p.ClaimMultipliers); err != nil {
 		return err
 	}
@@ -231,6 +223,9 @@ func (m Multiplier) Validate() error {
 	}
 	if m.MonthsLockup < 0 {
 		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
+	}
+	if m.Factor == (sdk.Dec{}) {
+		return fmt.Errorf("claim multiplier factor not initialized for %s", m.Name)
 	}
 	if m.Factor.IsNegative() {
 		return fmt.Errorf("expected non-negative factor, got %s", m.Factor.String())
