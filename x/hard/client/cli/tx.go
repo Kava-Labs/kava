@@ -182,7 +182,7 @@ func getCmdLiquidate(cdc *codec.Codec) *cobra.Command {
 		Long:  strings.TrimSpace(`liquidate a borrower that's over their loan-to-value ratio`),
 		Args:  cobra.ExactArgs(1),
 		Example: fmt.Sprintf(
-			`%s tx %s borrow kava1hgcfsuwc889wtdmt8pjy7qffua9dd2tralu64j --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s liquidate kava1hgcfsuwc889wtdmt8pjy7qffua9dd2tralu64j --from <key>`, version.ClientName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
