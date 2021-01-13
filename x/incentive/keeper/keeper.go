@@ -16,6 +16,7 @@ type Keeper struct {
 	accountKeeper types.AccountKeeper
 	cdc           *codec.Codec
 	cdpKeeper     types.CdpKeeper
+	hardKeeper    types.HardKeeper
 	key           sdk.StoreKey
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
@@ -24,13 +25,14 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper,
-	cdpk types.CdpKeeper, ak types.AccountKeeper,
+	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper,
 ) Keeper {
 
 	return Keeper{
 		accountKeeper: ak,
 		cdc:           cdc,
 		cdpKeeper:     cdpk,
+		hardKeeper:    hk,
 		key:           key,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 		supplyKeeper:  sk,
@@ -236,4 +238,38 @@ func (k Keeper) GetHardDelegatorRewardFactor(ctx sdk.Context, ctype string) (fac
 func (k Keeper) SetHardDelegatorRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardDelegatorRewardFactorKeyPrefix)
 	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
+}
+
+// GetPreviousHardSupplyRewardAccrualTime returns the last time a denom accrued Hard protocol supply-side rewards
+func (k Keeper) GetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return time.Time{}, false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &blockTime)
+	return blockTime, true
+}
+
+// SetPreviousHardSupplyRewardAccrualTime sets the last time a denom accrued Hard protocol supply-side rewards
+func (k Keeper) SetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
+	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
+}
+
+// GetPreviousHardBorrowRewardAccrualTime returns the last time a denom accrued Hard protocol borrow-side rewards
+func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return time.Time{}, false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &blockTime)
+	return blockTime, true
+}
+
+// SetPreviousHardBorrowRewardAccrualTime sets the last time a denom accrued Hard protocol borrow-side rewards
+func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
+	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
