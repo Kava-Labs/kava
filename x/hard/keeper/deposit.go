@@ -193,7 +193,7 @@ func (k Keeper) loadSyncedDeposit(ctx sdk.Context, deposit types.Deposit) types.
 				}
 			}
 
-			// Calculate interest owed by user for this asset
+			// Calculate interest that will be paid to user for this asset
 			if foundAtIndex != -1 {
 				storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
 				userLastInterestFactor := deposit.Index[foundAtIndex].Value
