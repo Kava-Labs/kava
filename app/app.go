@@ -359,6 +359,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bep3Subspace,
 		app.ModuleAccountAddrs(),
 	)
+	hardKeeper := hard.NewKeeper(
+		app.cdc,
+		keys[hard.StoreKey],
+		hardSubspace,
+		app.accountKeeper,
+		app.supplyKeeper,
+		&stakingKeeper,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+	)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,
 		keys[kavadist.StoreKey],
@@ -371,6 +381,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		incentiveSubspace,
 		app.supplyKeeper,
 		&cdpKeeper,
+		&hardKeeper,
 		app.accountKeeper,
 	)
 	app.issuanceKeeper = issuance.NewKeeper(
@@ -379,16 +390,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		issuanceSubspace,
 		app.accountKeeper,
 		app.supplyKeeper,
-	)
-	hardKeeper := hard.NewKeeper(
-		app.cdc,
-		keys[hard.StoreKey],
-		hardSubspace,
-		app.accountKeeper,
-		app.supplyKeeper,
-		&stakingKeeper,
-		app.pricefeedKeeper,
-		app.auctionKeeper,
 	)
 
 	// register the staking hooks
