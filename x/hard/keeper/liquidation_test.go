@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Lot:             sdk.NewInt64Coin("ukava", 10000411),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8004766),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004765),
 						LotReturns:        lotReturns,
 					},
 				},
@@ -398,13 +398,13 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 				otherBorrowCoins:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(7*KAVA_CF))),
 				beginBlockerTime:      oneMonthInSeconds,
 				ltvIndexCount:         int(10),
-				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98000001))), // initial - (deposit + borrow) + liquidation leftovers + supply interest
 				expectedAuctions: auctypes.Auctions{
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Lot:             sdk.NewInt64Coin("ukava", 10003317),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -441,7 +441,7 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Lot:             sdk.NewInt64Coin("ukava", 10004037),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -449,14 +449,14 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014872),
 						LotReturns:        otherBorrower3LotReturns,
 					},
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              2,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Lot:             sdk.NewInt64Coin("ukava", 10004037),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -464,14 +464,14 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014872),
 						LotReturns:        otherBorrower2LotReturns,
 					},
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Lot:             sdk.NewInt64Coin("ukava", 10004037),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -479,14 +479,14 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014872),
 						LotReturns:        lotReturns,
 					},
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              4,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10*KAVA_CF),
+							Lot:             sdk.NewInt64Coin("ukava", 10004037),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -494,7 +494,7 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8014873),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8014872),
 						LotReturns:        otherBorrower1LotReturns,
 					},
 				},
@@ -799,14 +799,14 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
-				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100.5*KAVA_CF))),
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100500020))),
 				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98000001))), // initial - deposit + borrow + liquidation leftovers
 				expectedAuctions: auctypes.Auctions{
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 9499999),
+							Lot:             sdk.NewInt64Coin("ukava", 9500390),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -837,14 +837,14 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(2*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.2*BTCB_CF))), // $20+$20+$20 = $80 borrowed
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
-				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102.5*KAVA_CF))),
-				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("ukava", sdk.NewInt(60*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(2*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.2*BTCB_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102500001))),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("ukava", sdk.NewInt(60000002)), sdk.NewCoin("bnb", sdk.NewInt(2*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.2*BTCB_CF))), // initial - deposit + borrow + liquidation leftovers
 				expectedAuctions: auctypes.Auctions{
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 11874422),
+							Lot:             sdk.NewInt64Coin("ukava", 11874430),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("bnb", 0),
 							HasReceivedBids: false,
@@ -859,7 +859,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						BaseAuction: auctypes.BaseAuction{
 							ID:              2,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 11874245),
+							Lot:             sdk.NewInt64Coin("ukava", 11874254),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("btc", 0),
 							HasReceivedBids: false,
@@ -874,7 +874,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 11875155),
+							Lot:             sdk.NewInt64Coin("ukava", 11875163),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -889,7 +889,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						BaseAuction: auctypes.BaseAuction{
 							ID:              4,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 11876178),
+							Lot:             sdk.NewInt64Coin("ukava", 11876185),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("usdc", 0),
 							HasReceivedBids: false,
@@ -897,7 +897,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("usdc", 20003283),
+						MaxBid:            sdk.NewInt64Coin("usdc", 20003284),
 						LotReturns:        lotReturns,
 					},
 				},
@@ -920,7 +920,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(120*KAVA_CF))),                                                                                      // $240 borrowed
 				liquidateAfter:        oneMonthInSeconds,
 				auctionSize:           sdk.NewInt(KAVA_CF * 1000),
-				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102.5*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
+				expectedKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102500253)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
 				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(170.000001*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(90*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(99*BTCB_CF))),
 				expectedAuctions: auctypes.Auctions{
 					auctypes.CollateralAuction{
@@ -935,7 +935,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 40037377),
+						MaxBid:            sdk.NewInt64Coin("ukava", 40036023),
 						LotReturns:        lotReturns,
 					},
 					auctypes.CollateralAuction{
@@ -950,14 +950,14 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 40037377),
+						MaxBid:            sdk.NewInt64Coin("ukava", 40036023),
 						LotReturns:        lotReturns,
 					},
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 47499999),
+							Lot:             sdk.NewInt64Coin("ukava", 47504818),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -965,7 +965,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 40037379),
+						MaxBid:            sdk.NewInt64Coin("ukava", 40040087),
 						LotReturns:        lotReturns,
 					},
 				},
