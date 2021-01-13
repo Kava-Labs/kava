@@ -123,10 +123,7 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		$ kvcli q hard deposits
 		$ kvcli q hard deposits --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --denom bnb
 		$ kvcli q hard deposits --denom ukava
-		$ kvcli q hard deposits --denom btcb
-
-		Flag --owner will return the user's latest borrow balance including any outstanding interest.
-		Without flag --owner it is not guaranteed that returned user borrows include outstanding interest.`,
+		$ kvcli q hard deposits --denom btcb`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -145,36 +142,6 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = depositOwner
 			}
 
-			// Execute 'deposit' query: queries a user's deposit balance, including their outstanding interest
-			if !owner.Empty() {
-				params := types.NewQueryDepositParams(owner)
-				bz, err := cdc.MarshalJSON(params)
-				if err != nil {
-					return err
-				}
-
-				route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDeposit)
-				res, height, err := cliCtx.QueryWithData(route, bz)
-				if err != nil {
-					return err
-				}
-				cliCtx = cliCtx.WithHeight(height)
-
-				var balance sdk.Coins
-				if err := cdc.UnmarshalJSON(res, &balance); err != nil {
-					return fmt.Errorf("failed to unmarshal deposit balance: %w", err)
-				}
-
-				if len(denom) > 0 {
-					if balance.AmountOf(denom).Equal(sdk.ZeroInt()) {
-						return fmt.Errorf("user %s has no deposit balance for denom %s", owner, denom)
-					}
-				}
-
-				return cliCtx.PrintOutput(balance)
-			}
-
-			// Execute 'deposits' query: queries deposits for several users, does not include their outstanding interest.
 			// Note: The 10 users with the lowest LTV ratio have their outstanding interest applied each block, so if
 			// testing with 10 or less addresses they'll all show their latest balance including outstanding interest.
 			page := viper.GetInt(flags.FlagPage)

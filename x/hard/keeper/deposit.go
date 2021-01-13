@@ -168,13 +168,13 @@ func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 }
 
 // GetSyncedDeposit returns a deposit object containing current balances and indexes
-func (k Keeper) GetSyncedDeposit(ctx sdk.Context, depositor sdk.AccAddress) types.Deposit {
+func (k Keeper) GetSyncedDeposit(ctx sdk.Context, depositor sdk.AccAddress) (types.Deposit, bool) {
 	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
-		return types.Deposit{}
+		return types.Deposit{}, false
 	}
 
-	return k.loadSyncedDeposit(ctx, deposit)
+	return k.loadSyncedDeposit(ctx, deposit), true
 }
 
 // loadSyncedDeposit calculates a user's synced deposit, but does not update state

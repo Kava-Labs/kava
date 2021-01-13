@@ -72,39 +72,6 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		if !owner.Empty() {
-			params := types.NewQueryDepositParams(owner)
-			bz, err := cliCtx.Codec.MarshalJSON(params)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-
-			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetDeposit)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			cliCtx = cliCtx.WithHeight(height)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			var balance sdk.Coins
-			if err := cliCtx.Codec.UnmarshalJSON(res, &balance); err != nil {
-				rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("failed to unmarshal deposit balance: %s", err))
-				return
-			}
-
-			if len(denom) > 0 {
-				if balance.AmountOf(denom).Equal(sdk.ZeroInt()) {
-					rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("user %s has no deposit balance for denom %s", owner, denom))
-					return
-				}
-			}
-
-			rest.PostProcessResponse(w, cliCtx, res)
-			return
-		}
-
 		params := types.NewQueryDepositsParams(page, limit, denom, owner)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)

@@ -16,18 +16,6 @@ const (
 	QueryGetBorrow         = "borrow"
 )
 
-// QueryDepositParams is the params for a filtered deposit query
-type QueryDepositParams struct {
-	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
-}
-
-// NewQueryDepositParams creates a new QueryDepositParams
-func NewQueryDepositParams(owner sdk.AccAddress) QueryDepositParams {
-	return QueryDepositParams{
-		Owner: owner,
-	}
-}
-
 // QueryDepositsParams is the params for a filtered deposit query
 type QueryDepositsParams struct {
 	Page         int            `json:"page" yaml:"page"`
