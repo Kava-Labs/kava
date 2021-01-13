@@ -30,21 +30,21 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 }
 
 // BeforeDepositCreated function that runs before a deposit is created
-func (h Hooks) BeforeDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
-	// Do stuff
+func (h Hooks) BeforeDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
+	h.k.InitializeHardLiquiditySupplyReward(ctx, deposit, denom)
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
-	// Do stuff
+func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
+	h.k.SynchronizeHardLiquiditySupplyReward(ctx, deposit, denom)
 }
 
 // BeforeBorrowCreated function that runs before a borrow is created
-func (h Hooks) BeforeBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
-	// Do stuff
+func (h Hooks) BeforeBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
+	h.k.InitializeHardLiquidityBorrowReward(ctx, borrow, denom)
 }
 
 // BeforeBorrowModified function that runs before a borrow is modified
-func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
-	// Do stuff
+func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
+	h.k.SynchronizeHardLiquidityBorrowReward(ctx, borrow, denom)
 }
