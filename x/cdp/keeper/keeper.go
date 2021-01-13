@@ -138,26 +138,6 @@ func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdk.In
 	return cdps
 }
 
-// SetSavingsRateDistributed sets the SavingsRateDistributed in the store
-func (k Keeper) SetSavingsRateDistributed(ctx sdk.Context, totalDistributed sdk.Int) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRateDistributedKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(totalDistributed)
-	store.Set([]byte{}, bz)
-}
-
-// GetSavingsRateDistributed gets the SavingsRateDistributed from the store
-func (k Keeper) GetSavingsRateDistributed(ctx sdk.Context) sdk.Int {
-	savingsRateDistributed := sdk.ZeroInt()
-	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsRateDistributedKey)
-	bz := store.Get([]byte{})
-	if bz == nil {
-		return savingsRateDistributed
-	}
-
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &savingsRateDistributed)
-	return savingsRateDistributed
-}
-
 // GetPreviousAccrualTime returns the last time an individual market accrued interest
 func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
@@ -232,4 +212,16 @@ func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))
 	}
 	store.Set([]byte(collateralType+principalDenom), k.cdc.MustMarshalBinaryLengthPrefixed(total))
+}
+
+// getModuleAccountCoins gets the total coin balance of this coin currently held by module accounts
+func (k Keeper) getModuleAccountCoins(ctx sdk.Context, denom string) sdk.Coins {
+	totalModCoinBalance := sdk.NewCoins(sdk.NewCoin(denom, sdk.ZeroInt()))
+	for macc := range k.maccPerms {
+		modCoinBalance := k.supplyKeeper.GetModuleAccount(ctx, macc).GetCoins().AmountOf(denom)
+		if modCoinBalance.IsPositive() {
+			totalModCoinBalance = totalModCoinBalance.Add(sdk.NewCoin(denom, modCoinBalance))
+		}
+	}
+	return totalModCoinBalance
 }

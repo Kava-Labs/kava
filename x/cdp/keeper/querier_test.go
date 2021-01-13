@@ -303,17 +303,6 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 	suite.Require().True(findByName("savings"))
 }
 
-func (suite *QuerierTestSuite) TestQuerySavingsRateDistributed() {
-	ctx := suite.ctx.WithIsCheckTx(false)
-	bz, err := suite.querier(ctx, []string{types.QueryGetSavingsRateDistributed}, abci.RequestQuery{})
-	suite.Nil(err)
-	suite.NotNil(bz)
-
-	var distAmount sdk.Int
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &distAmount))
-	suite.True(sdk.ZeroInt().Equal(distAmount))
-}
-
 func (suite *QuerierTestSuite) TestFindIntersection() {
 	a := types.CDPs{suite.cdps[0], suite.cdps[1], suite.cdps[2], suite.cdps[3], suite.cdps[4]}
 	b := types.CDPs{suite.cdps[3], suite.cdps[4], suite.cdps[5], suite.cdps[6], suite.cdps[7]}

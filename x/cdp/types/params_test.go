@@ -3,7 +3,6 @@ package types_test
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -28,7 +27,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 		surplusLot       sdk.Int
 		debtThreshold    sdk.Int
 		debtLot          sdk.Int
-		distributionFreq time.Duration
 		breaker          bool
 	}
 	type errArgs struct {
@@ -51,7 +49,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -91,7 +88,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -131,7 +127,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -171,7 +166,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -226,7 +220,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -281,7 +274,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -336,7 +328,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -375,7 +366,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -415,7 +405,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -470,7 +459,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -525,7 +513,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -580,7 +567,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -620,7 +606,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -660,7 +645,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -700,7 +684,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -740,7 +723,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -780,7 +762,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -820,7 +801,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -838,30 +818,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "invalid coins: global debt limit",
-			},
-		},
-		{
-			name: "zero savings distribution frequency",
-			args: args{
-				globalDebtLimit:  types.DefaultGlobalDebt,
-				collateralParams: types.DefaultCollateralParams,
-				debtParam:        types.DefaultDebtParam,
-				surplusThreshold: types.DefaultSurplusThreshold,
-				surplusLot:       types.DefaultSurplusLot,
-				debtThreshold:    types.DefaultDebtThreshold,
-				debtLot:          types.DefaultDebtLot,
-				distributionFreq: time.Second * 0,
-				breaker:          types.DefaultCircuitBreaker,
-			},
-			errArgs: errArgs{
-				expectPass: false,
-				contains:   "savings distribution frequency should be positive",
 			},
 		},
 		{
@@ -874,7 +835,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -892,7 +852,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    sdk.ZeroInt(),
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -910,7 +869,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       sdk.ZeroInt(),
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          types.DefaultDebtLot,
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -928,7 +886,6 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				surplusLot:       types.DefaultSurplusLot,
 				debtThreshold:    types.DefaultDebtThreshold,
 				debtLot:          sdk.ZeroInt(),
-				distributionFreq: types.DefaultSavingsDistributionFrequency,
 				breaker:          types.DefaultCircuitBreaker,
 			},
 			errArgs: errArgs{
@@ -939,7 +896,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.globalDebtLimit, tc.args.collateralParams, tc.args.debtParam, tc.args.surplusThreshold, tc.args.surplusLot, tc.args.debtThreshold, tc.args.debtLot, tc.args.distributionFreq, tc.args.breaker)
+			params := types.NewParams(tc.args.globalDebtLimit, tc.args.collateralParams, tc.args.debtParam, tc.args.surplusThreshold, tc.args.surplusLot, tc.args.debtThreshold, tc.args.debtLot, tc.args.breaker)
 			err := params.Validate()
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)

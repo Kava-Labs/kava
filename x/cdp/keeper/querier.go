@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -32,10 +30,6 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryGetParams(ctx, req, keeper)
 		case types.QueryGetAccounts:
 			return queryGetAccounts(ctx, req, keeper)
-		case types.QueryGetSavingsRateDistributed:
-			return queryGetSavingsRateDistributed(ctx, req, keeper)
-		case types.QueryGetPreviousSavingsDistributionTime:
-			return queryGetPreviousSavingsDistributionTime(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
@@ -182,36 +176,6 @@ func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(supply.ModuleCdc, accounts)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-// query get savings rate distributed in the cdp store
-func queryGetSavingsRateDistributed(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	// Get savings rate distributed
-	savingsRateDist := keeper.GetSavingsRateDistributed(ctx)
-
-	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, savingsRateDist)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-// query get savings rate distributed in the cdp store
-func queryGetPreviousSavingsDistributionTime(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	// Get savings rate distributed
-	savingsRateDistTime, found := keeper.GetPreviousSavingsDistribution(ctx)
-
-	if !found {
-		return nil, fmt.Errorf("previous distribution time not found")
-	}
-
-	// Encode results
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, savingsRateDistTime)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

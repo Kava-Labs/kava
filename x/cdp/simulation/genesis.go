@@ -70,12 +70,11 @@ func randomCdpGenState(selection int) types.GenesisState {
 	case 0:
 		return types.GenesisState{
 			Params: types.Params{
-				GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 100000000000000),
-				SurplusAuctionThreshold:      types.DefaultSurplusThreshold,
-				SurplusAuctionLot:            types.DefaultSurplusLot,
-				DebtAuctionLot:               types.DefaultDebtLot,
-				DebtAuctionThreshold:         types.DefaultDebtThreshold,
-				SavingsDistributionFrequency: types.DefaultSavingsDistributionFrequency,
+				GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 100000000000000),
+				SurplusAuctionThreshold: types.DefaultSurplusThreshold,
+				SurplusAuctionLot:       types.DefaultSurplusLot,
+				DebtAuctionLot:          types.DefaultDebtLot,
+				DebtAuctionThreshold:    types.DefaultDebtThreshold,
 				CollateralParams: types.CollateralParams{
 					{
 						Denom:               "xrp",
@@ -125,21 +124,19 @@ func randomCdpGenState(selection int) types.GenesisState {
 					SavingsRate:      sdk.MustNewDecFromStr("0.95"),
 				},
 			},
-			StartingCdpID:            types.DefaultCdpStartingID,
-			DebtDenom:                types.DefaultDebtDenom,
-			GovDenom:                 types.DefaultGovDenom,
-			CDPs:                     types.CDPs{},
-			PreviousDistributionTime: types.DefaultPreviousDistributionTime,
+			StartingCdpID: types.DefaultCdpStartingID,
+			DebtDenom:     types.DefaultDebtDenom,
+			GovDenom:      types.DefaultGovDenom,
+			CDPs:          types.CDPs{},
 		}
 	case 1:
 		return types.GenesisState{
 			Params: types.Params{
-				GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 100000000000000),
-				SurplusAuctionThreshold:      types.DefaultSurplusThreshold,
-				DebtAuctionThreshold:         types.DefaultDebtThreshold,
-				SurplusAuctionLot:            types.DefaultSurplusLot,
-				DebtAuctionLot:               types.DefaultDebtLot,
-				SavingsDistributionFrequency: types.DefaultSavingsDistributionFrequency,
+				GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 100000000000000),
+				SurplusAuctionThreshold: types.DefaultSurplusThreshold,
+				DebtAuctionThreshold:    types.DefaultDebtThreshold,
+				SurplusAuctionLot:       types.DefaultSurplusLot,
+				DebtAuctionLot:          types.DefaultDebtLot,
 				CollateralParams: types.CollateralParams{
 					{
 						Denom:               "bnb",
@@ -163,11 +160,10 @@ func randomCdpGenState(selection int) types.GenesisState {
 					SavingsRate:      sdk.MustNewDecFromStr("0.95"),
 				},
 			},
-			StartingCdpID:            types.DefaultCdpStartingID,
-			DebtDenom:                types.DefaultDebtDenom,
-			GovDenom:                 types.DefaultGovDenom,
-			CDPs:                     types.CDPs{},
-			PreviousDistributionTime: types.DefaultPreviousDistributionTime,
+			StartingCdpID: types.DefaultCdpStartingID,
+			DebtDenom:     types.DefaultDebtDenom,
+			GovDenom:      types.DefaultGovDenom,
+			CDPs:          types.CDPs{},
 		}
 	default:
 		panic("invalid genesis state selector")

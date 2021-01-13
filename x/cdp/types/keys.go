@@ -51,19 +51,17 @@ var sep = []byte(":")
 
 // KVStore key prefixes
 var (
-	CdpIDKeyPrefix              = []byte{0x01}
-	CdpKeyPrefix                = []byte{0x02}
-	CollateralRatioIndexPrefix  = []byte{0x03}
-	CdpIDKey                    = []byte{0x04}
-	DebtDenomKey                = []byte{0x05}
-	GovDenomKey                 = []byte{0x06}
-	DepositKeyPrefix            = []byte{0x07}
-	PrincipalKeyPrefix          = []byte{0x08}
-	PreviousDistributionTimeKey = []byte{0x09}
-	PricefeedStatusKeyPrefix    = []byte{0x10}
-	SavingsRateDistributedKey   = []byte{0x11}
-	PreviousAccrualTimePrefix   = []byte{0x12}
-	InterestFactorPrefix        = []byte{0x13}
+	CdpIDKeyPrefix             = []byte{0x01}
+	CdpKeyPrefix               = []byte{0x02}
+	CollateralRatioIndexPrefix = []byte{0x03}
+	CdpIDKey                   = []byte{0x04}
+	DebtDenomKey               = []byte{0x05}
+	GovDenomKey                = []byte{0x06}
+	DepositKeyPrefix           = []byte{0x07}
+	PrincipalKeyPrefix         = []byte{0x08}
+	PricefeedStatusKeyPrefix   = []byte{0x10}
+	PreviousAccrualTimePrefix  = []byte{0x12}
+	InterestFactorPrefix       = []byte{0x13}
 )
 
 // GetCdpIDBytes returns the byte representation of the cdpID
