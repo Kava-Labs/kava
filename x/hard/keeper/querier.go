@@ -22,6 +22,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetModAccounts(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
+		case types.QueryGetDeposited:
+			return queryGetDeposited(ctx, req, k)
 		case types.QueryGetClaims:
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
@@ -342,6 +344,31 @@ func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrowedCoins)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryDepositedParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		return nil, types.ErrSuppliedCoinsNotFound
+	}
+
+	// If user specified a denom only return coins of that denom type
+	if len(params.Denom) > 0 {
+		suppliedCoins = sdk.NewCoins(sdk.NewCoin(params.Denom, suppliedCoins.AmountOf(params.Denom)))
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, suppliedCoins)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
