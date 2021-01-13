@@ -85,6 +85,46 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 	return nil
 }
 
+// AccumulateHardSupplyRewards updates the rewards accumulated for the input reward period
+func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+	previousAccrualTime, found := k.GetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
+	if timeElapsed.IsZero() {
+		return nil
+	}
+	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+
+	totalSuppliedCoins := k.hardKeeper.GetSuppliedCoins(ctx)
+	for _, coin := range totalSuppliedCoins {
+		if coin.Denom == rewardPeriod.CollateralType {
+			totalSupplied := totalSuppliedCoins.AmountOf(coin.Denom).ToDec()
+			if totalSupplied.IsZero() {
+				k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+				return nil
+			}
+			newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
+			rewardFactor := newRewards.ToDec().Quo(totalSupplied)
+
+			previousRewardFactor, found := k.GetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType)
+			if !found {
+				previousRewardFactor = sdk.ZeroDec()
+			}
+			newRewardFactor := previousRewardFactor.Add(rewardFactor)
+			k.SetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+			k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		}
+	}
+
+	return nil
+}
+
 // InitializeUSDXMintingClaim creates or updates a claim such that no new rewards are accrued, but any existing rewards are not lost.
 // this function should be called after a cdp is created. If a user previously had a cdp, then closed it, they shouldn't
 // accrue rewards during the period the cdp was closed. By setting the reward factor to the current global reward factor,
