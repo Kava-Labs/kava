@@ -11,24 +11,22 @@ import (
 
 // Parameter keys
 var (
-	KeyGlobalDebtLimit        = []byte("GlobalDebtLimit")
-	KeyCollateralParams       = []byte("CollateralParams")
-	KeyDebtParam              = []byte("DebtParam")
-	KeyCircuitBreaker         = []byte("CircuitBreaker")
-	KeyDebtThreshold          = []byte("DebtThreshold")
-	KeyDebtLot                = []byte("DebtLot")
-	KeySurplusThreshold       = []byte("SurplusThreshold")
-	KeySurplusLot             = []byte("SurplusLot")
-	KeySavingsRateDistributed = []byte("SavingsRateDistributed")
-	DefaultGlobalDebt         = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
-	DefaultCircuitBreaker     = false
-	DefaultCollateralParams   = CollateralParams{}
-	DefaultDebtParam          = DebtParam{
+	KeyGlobalDebtLimit      = []byte("GlobalDebtLimit")
+	KeyCollateralParams     = []byte("CollateralParams")
+	KeyDebtParam            = []byte("DebtParam")
+	KeyCircuitBreaker       = []byte("CircuitBreaker")
+	KeyDebtThreshold        = []byte("DebtThreshold")
+	KeyDebtLot              = []byte("DebtLot")
+	KeySurplusThreshold     = []byte("SurplusThreshold")
+	KeySurplusLot           = []byte("SurplusLot")
+	DefaultGlobalDebt       = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
+	DefaultCircuitBreaker   = false
+	DefaultCollateralParams = CollateralParams{}
+	DefaultDebtParam        = DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
 		ConversionFactor: sdk.NewInt(6),
 		DebtFloor:        sdk.NewInt(10000000),
-		SavingsRate:      sdk.MustNewDecFromStr("0.95"),
 	}
 	DefaultCdpStartingID          = uint64(1)
 	DefaultDebtDenom              = "debt"
@@ -174,18 +172,16 @@ type DebtParam struct {
 	Denom            string  `json:"denom" yaml:"denom"`
 	ReferenceAsset   string  `json:"reference_asset" yaml:"reference_asset"`
 	ConversionFactor sdk.Int `json:"conversion_factor" yaml:"conversion_factor"`
-	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"`     // minimum active loan size, used to prevent dust
-	SavingsRate      sdk.Dec `json:"savings_rate" yaml:"savings_rate"` // the percentage of stability fees that are redirected to savings rate
+	DebtFloor        sdk.Int `json:"debt_floor" yaml:"debt_floor"` // minimum active loan size, used to prevent dust
 }
 
 // NewDebtParam returns a new DebtParam
-func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int, savingsRate sdk.Dec) DebtParam {
+func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int) DebtParam {
 	return DebtParam{
 		Denom:            denom,
 		ReferenceAsset:   refAsset,
 		ConversionFactor: conversionFactor,
 		DebtFloor:        debtFloor,
-		SavingsRate:      savingsRate,
 	}
 }
 
@@ -195,8 +191,7 @@ func (dp DebtParam) String() string {
 	Reference Asset: %s
 	Conversion Factor: %s
 	Debt Floor %s
-	Savings  Rate %s
-	`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor, dp.SavingsRate)
+	`, dp.Denom, dp.ReferenceAsset, dp.ConversionFactor, dp.DebtFloor)
 }
 
 // DebtParams array of DebtParam
@@ -397,9 +392,6 @@ func validateDebtParam(i interface{}) error {
 		return fmt.Errorf("debt denom invalid %s", debtParam.Denom)
 	}
 
-	if debtParam.SavingsRate.LT(sdk.ZeroDec()) || debtParam.SavingsRate.GT(sdk.OneDec()) {
-		return fmt.Errorf("savings rate should be between 0 and 1, is %s for %s", debtParam.SavingsRate, debtParam.Denom)
-	}
 	return nil
 }
 

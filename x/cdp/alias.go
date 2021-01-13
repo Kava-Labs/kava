@@ -144,7 +144,6 @@ var (
 	KeyDebtParam                  = types.KeyDebtParam
 	KeyDebtThreshold              = types.KeyDebtThreshold
 	KeyGlobalDebtLimit            = types.KeyGlobalDebtLimit
-	KeySavingsRateDistributed     = types.KeySavingsRateDistributed
 	KeySurplusLot                 = types.KeySurplusLot
 	KeySurplusThreshold           = types.KeySurplusThreshold
 	MaxSortableDec                = types.MaxSortableDec

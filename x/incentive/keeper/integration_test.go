@@ -77,7 +77,6 @@ func NewCDPGenStateMulti() app.GenesisState {
 				ReferenceAsset:   "usd",
 				ConversionFactor: i(6),
 				DebtFloor:        i(10000000),
-				SavingsRate:      d("0.95"),
 			},
 		},
 		StartingCdpID: cdp.DefaultCdpStartingID,

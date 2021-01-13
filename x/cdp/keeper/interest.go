@@ -65,21 +65,11 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		panic(fmt.Sprintf("Debt parameters for %s not found", types.DefaultStableDenom))
 	}
 
-	// divide the accumulated interest into savings (redistributed to USDX holders) and surplus (protocol profits)
-	newFeesSavings := interestAccumulated.ToDec().Mul(dp.SavingsRate).RoundInt()
-	newFeesSurplus := interestAccumulated.Sub(newFeesSavings)
+	newFeesSurplus := interestAccumulated
 
 	// mint surplus coins to the liquidator module account.
 	if newFeesSurplus.IsPositive() {
 		err := k.supplyKeeper.MintCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSurplus)))
-		if err != nil {
-			return err
-		}
-	}
-
-	// mint savings rate coins to the savings module account.
-	if newFeesSavings.IsPositive() {
-		err := k.supplyKeeper.MintCoins(ctx, types.SavingsRateMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, newFeesSavings)))
 		if err != nil {
 			return err
 		}
