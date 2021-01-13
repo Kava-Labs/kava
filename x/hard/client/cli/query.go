@@ -39,10 +39,10 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryParamsCmd(queryRoute, cdc),
 		queryModAccountsCmd(queryRoute, cdc),
 		queryDepositsCmd(queryRoute, cdc),
-		queryDepositedCmd(queryRoute, cdc),
+		queryTotalDepositedCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
-		queryBorrowedCmd(queryRoute, cdc),
+		queryTotalBorrowedCmd(queryRoute, cdc),
 	)...)
 
 	return hardQueryCmd
@@ -307,15 +307,15 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryTotalBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "borrowed",
+		Use:   "total-borrowed",
 		Short: "get total current borrowed amount",
 		Long: strings.TrimSpace(`get the total amount of coins currently borrowed using flags:
 
 		Example:
-		$ kvcli q hard borrowed
-		$ kvcli q hard borrowed --denom bnb`,
+		$ kvcli q hard total-borrowed
+		$ kvcli q hard total-borrowed --denom bnb`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -324,14 +324,14 @@ func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			denom := viper.GetString(flagDenom)
 
 			// Construct query with params
-			params := types.NewQueryBorrowedParams(denom)
+			params := types.NewQueryTotalBorrowedParams(denom)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
 
 			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrowed)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetTotalBorrowed)
 			res, height, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
@@ -339,26 +339,26 @@ func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx = cliCtx.WithHeight(height)
 
 			// Decode and print results
-			var borrowedCoins sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &borrowedCoins); err != nil {
-				return fmt.Errorf("failed to unmarshal borrowed coins: %w", err)
+			var totalBorrowedCoins sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &totalBorrowedCoins); err != nil {
+				return fmt.Errorf("failed to unmarshal total borrowed coins: %w", err)
 			}
-			return cliCtx.PrintOutput(borrowedCoins)
+			return cliCtx.PrintOutput(totalBorrowedCoins)
 		},
 	}
-	cmd.Flags().String(flagDenom, "", "(optional) filter borrowed coins by denom")
+	cmd.Flags().String(flagDenom, "", "(optional) filter total borrowed coins by denom")
 	return cmd
 }
 
-func queryDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryTotalDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposited",
+		Use:   "total-deposited",
 		Short: "get total current deposited amount",
 		Long: strings.TrimSpace(`get the total amount of coins currently deposited using flags:
 
 		Example:
-		$ kvcli q hard deposited
-		$ kvcli q hard deposited --denom bnb`,
+		$ kvcli q hard total-deposited
+		$ kvcli q hard total-deposited --denom bnb`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -367,14 +367,14 @@ func queryDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			denom := viper.GetString(flagDenom)
 
 			// Construct query with params
-			params := types.NewQueryDepositedParams(denom)
+			params := types.NewQueryTotalDepositedParams(denom)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
 
 			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetDeposited)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetTotalDeposited)
 			res, height, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
@@ -382,13 +382,13 @@ func queryDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			cliCtx = cliCtx.WithHeight(height)
 
 			// Decode and print results
-			var suppliedCoins sdk.Coins
-			if err := cdc.UnmarshalJSON(res, &suppliedCoins); err != nil {
-				return fmt.Errorf("failed to unmarshal supplied coins: %w", err)
+			var totalSuppliedCoins sdk.Coins
+			if err := cdc.UnmarshalJSON(res, &totalSuppliedCoins); err != nil {
+				return fmt.Errorf("failed to unmarshal total deposited coins: %w", err)
 			}
-			return cliCtx.PrintOutput(suppliedCoins)
+			return cliCtx.PrintOutput(totalSuppliedCoins)
 		},
 	}
-	cmd.Flags().String(flagDenom, "", "(optional) filter supplied coins by denom")
+	cmd.Flags().String(flagDenom, "", "(optional) filter total deposited coins by denom")
 	return cmd
 }

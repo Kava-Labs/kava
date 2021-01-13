@@ -17,11 +17,11 @@ import (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/deposits", types.ModuleName), queryDepositsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/deposited", types.ModuleName), queryDepositedHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/total-deposited", types.ModuleName), queryTotalDepositedHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/claims", types.ModuleName), queryClaimsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/accounts", types.ModuleName), queryModAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/borrows", types.ModuleName), queryBorrowsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/borrowed", types.ModuleName), queryBorrowedHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/total-borrowed", types.ModuleName), queryTotalBorrowedHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -92,7 +92,7 @@ func queryDepositsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryTotalDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -111,7 +111,7 @@ func queryDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			denom = strings.TrimSpace(x)
 		}
 
-		params := types.NewQueryDepositedParams(denom)
+		params := types.NewQueryTotalDepositedParams(denom)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -119,7 +119,7 @@ func queryDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetDeposited)
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetTotalDeposited)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
@@ -237,7 +237,7 @@ func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	}
 }
 
-func queryBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryTotalBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -256,7 +256,7 @@ func queryBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			denom = strings.TrimSpace(x)
 		}
 
-		params := types.NewQueryBorrowedParams(denom)
+		params := types.NewQueryTotalBorrowedParams(denom)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -264,7 +264,7 @@ func queryBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetBorrowed)
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetTotalBorrowed)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {

@@ -22,14 +22,14 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetModAccounts(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
-		case types.QueryGetDeposited:
-			return queryGetDeposited(ctx, req, k)
+		case types.QueryGetTotalDeposited:
+			return queryGetTotalDeposited(ctx, req, k)
 		case types.QueryGetClaims:
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
 			return queryGetBorrows(ctx, req, k)
-		case types.QueryGetBorrowed:
-			return queryGetBorrowed(ctx, req, k)
+		case types.QueryGetTotalBorrowed:
+			return queryGetTotalBorrowed(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -326,8 +326,8 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 	return bz, nil
 }
 
-func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryBorrowedParams
+func queryGetTotalBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryTotalBorrowedParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -351,8 +351,8 @@ func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	return bz, nil
 }
 
-func queryGetDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryDepositedParams
+func queryGetTotalDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryTotalDepositedParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())

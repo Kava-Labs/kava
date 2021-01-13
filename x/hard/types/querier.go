@@ -9,10 +9,10 @@ const (
 	QueryGetParams         = "params"
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
-	QueryGetDeposited      = "deposited"
+	QueryGetTotalDeposited = "total-deposited"
 	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
-	QueryGetBorrowed       = "borrowed"
+	QueryGetTotalBorrowed  = "total-borrowed"
 )
 
 // QueryDepositsParams is the params for a filtered deposit query
@@ -87,26 +87,26 @@ func NewQueryBorrowsParams(page, limit int, owner sdk.AccAddress, denom string) 
 	}
 }
 
-// QueryBorrowedParams is the params for a filtered borrowed coins query
-type QueryBorrowedParams struct {
+// QueryTotalBorrowedParams is the params for a filtered total borrowed coins query
+type QueryTotalBorrowedParams struct {
 	Denom string `json:"denom" yaml:"denom"`
 }
 
-// NewQueryBorrowedParams creates a new QueryBorrowedParams
-func NewQueryBorrowedParams(denom string) QueryBorrowedParams {
-	return QueryBorrowedParams{
+// NewQueryTotalBorrowedParams creates a new QueryTotalBorrowedParams
+func NewQueryTotalBorrowedParams(denom string) QueryTotalBorrowedParams {
+	return QueryTotalBorrowedParams{
 		Denom: denom,
 	}
 }
 
-// QueryDepositedParams is the params for a filtered deposited coins query
-type QueryDepositedParams struct {
+// QueryTotalDepositedParams is the params for a filtered total deposited coins query
+type QueryTotalDepositedParams struct {
 	Denom string `json:"denom" yaml:"denom"`
 }
 
-// NewQueryDepositedParams creates a new QueryDepositedParams
-func NewQueryDepositedParams(denom string) QueryDepositedParams {
-	return QueryDepositedParams{
+// NewQueryTotalDepositedParams creates a new QueryTotalDepositedParams
+func NewQueryTotalDepositedParams(denom string) QueryTotalDepositedParams {
+	return QueryTotalDepositedParams{
 		Denom: denom,
 	}
 }
