@@ -25,8 +25,8 @@ type CdpKeeper interface {
 
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol
 type HardKeeper interface {
-	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins)
-	GetSuppliedCoins(ctx sdk.Context) (coins sdk.Coins)
+	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
+	GetSuppliedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
 }
 
 // AccountKeeper defines the expected keeper interface for interacting with account

@@ -61,7 +61,7 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	totalBorrowedCoins := k.hardKeeper.GetBorrowedCoins(ctx)
+	totalBorrowedCoins, _ := k.hardKeeper.GetBorrowedCoins(ctx)
 	for _, coin := range totalBorrowedCoins {
 		if coin.Denom == rewardPeriod.CollateralType {
 			totalBorrowed := totalBorrowedCoins.AmountOf(coin.Denom).ToDec()
@@ -101,7 +101,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 		return nil
 	}
 
-	totalSuppliedCoins := k.hardKeeper.GetSuppliedCoins(ctx)
+	totalSuppliedCoins, _ := k.hardKeeper.GetSuppliedCoins(ctx)
 	for _, coin := range totalSuppliedCoins {
 		if coin.Denom == rewardPeriod.CollateralType {
 			totalSupplied := totalSuppliedCoins.AmountOf(coin.Denom).ToDec()
