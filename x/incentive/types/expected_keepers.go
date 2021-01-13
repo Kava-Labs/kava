@@ -23,6 +23,12 @@ type CdpKeeper interface {
 	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
 }
 
+// HardKeeper defines the expected hard keeper for interacting with Hard protocol
+type HardKeeper interface {
+	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins)
+	GetDepositedCoins(ctx sdk.Context) (coins sdk.Coins)
+}
+
 // AccountKeeper defines the expected keeper interface for interacting with account
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
