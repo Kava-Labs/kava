@@ -41,6 +41,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryDepositsCmd(queryRoute, cdc),
 		queryClaimsCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
+		queryBorrowedCmd(queryRoute, cdc),
 	)...)
 
 	return hardQueryCmd
@@ -160,7 +161,7 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 			cliCtx = cliCtx.WithHeight(height)
 
-			var deposits []types.Deposit
+			var deposits types.Deposits
 			if err := cdc.UnmarshalJSON(res, &deposits); err != nil {
 				return fmt.Errorf("failed to unmarshal deposits: %w", err)
 			}
@@ -291,7 +292,7 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			}
 			cliCtx = cliCtx.WithHeight(height)
 
-			var borrows []types.Borrow
+			var borrows types.Borrows
 			if err := cdc.UnmarshalJSON(res, &borrows); err != nil {
 				return fmt.Errorf("failed to unmarshal borrows: %w", err)
 			}
@@ -306,17 +307,31 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 }
 
 func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "borrowed",
 		Short: "get total current borrowed amount",
-		Long:  "get the total amount of coins currently borrowed for the Hard protocol",
-		Args:  cobra.NoArgs,
+		Long: strings.TrimSpace(`get the total amount of coins currently borrowed using flags:
+
+		Example:
+		$ kvcli q hard borrowed
+		$ kvcli q hard borrowed --denom bnb`,
+		),
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// Query
+			denom := viper.GetString(flagDenom)
+
+			// Construct query with params
+			params := types.NewQueryBorrowedParams(denom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Execute query
 			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrowed)
-			res, height, err := cliCtx.QueryWithData(route, nil)
+			res, height, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err
 			}
@@ -330,4 +345,6 @@ func queryBorrowedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			return cliCtx.PrintOutput(borrowedCoins)
 		},
 	}
+	cmd.Flags().String(flagDenom, "", "(optional) filter for borrows by denom")
+	return cmd
 }
