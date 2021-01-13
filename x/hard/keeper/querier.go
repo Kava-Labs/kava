@@ -324,12 +324,12 @@ func queryGetDeposit(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	var supplyBalance sdk.Coins
+	var deposit types.Deposit
 	if len(params.Owner) > 0 {
-		supplyBalance = k.GetSupplyBalance(ctx, params.Owner)
+		deposit = k.GetSyncedDeposit(ctx, params.Owner)
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, supplyBalance)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, deposit)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

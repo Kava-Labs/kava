@@ -167,15 +167,20 @@ func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	return nil
 }
 
-// GetSupplyBalance gets the user's total supply balance (supply balance + pending interest)
-func (k Keeper) GetSupplyBalance(ctx sdk.Context, depositor sdk.AccAddress) sdk.Coins {
-	supplyBalance := sdk.Coins{}
+// GetSyncedDeposit returns a deposit object containing current balances and indexes
+func (k Keeper) GetSyncedDeposit(ctx sdk.Context, depositor sdk.AccAddress) types.Deposit {
 	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
-		return supplyBalance
+		return types.Deposit{}
 	}
 
+	return k.loadSyncedDeposit(ctx, deposit)
+}
+
+// loadSyncedDeposit calculates a user's synced deposit, but does not update state
+func (k Keeper) loadSyncedDeposit(ctx sdk.Context, deposit types.Deposit) types.Deposit {
 	totalNewInterest := sdk.Coins{}
+	newSupplyIndexes := types.SupplyInterestFactors{}
 	for _, coin := range deposit.Amount {
 		interestFactorValue, foundInterestFactorValue := k.GetSupplyInterestFactor(ctx, coin.Denom)
 		if foundInterestFactorValue {
@@ -187,6 +192,7 @@ func (k Keeper) GetSupplyBalance(ctx sdk.Context, depositor sdk.AccAddress) sdk.
 					break
 				}
 			}
+
 			// Calculate interest owed by user for this asset
 			if foundAtIndex != -1 {
 				storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
@@ -195,7 +201,10 @@ func (k Keeper) GetSupplyBalance(ctx sdk.Context, depositor sdk.AccAddress) sdk.
 				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
 			}
 		}
+
+		supplyIndex := types.NewSupplyInterestFactor(coin.Denom, interestFactorValue)
+		newSupplyIndexes = append(newSupplyIndexes, supplyIndex)
 	}
 
-	return deposit.Amount.Add(totalNewInterest...)
+	return types.NewDeposit(deposit.Depositor, deposit.Amount.Add(totalNewInterest...), newSupplyIndexes)
 }
