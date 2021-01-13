@@ -20,6 +20,9 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyIntere
 	}
 }
 
+// Deposits is a slice of Deposit
+type Deposits []Deposit
+
 // SupplyInterestFactor defines an individual borrow interest factor
 type SupplyInterestFactor struct {
 	Denom string  `json:"denom" yaml:"denom"`
