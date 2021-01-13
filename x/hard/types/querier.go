@@ -9,48 +9,46 @@ const (
 	QueryGetParams         = "params"
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
-	QueryGetDeposit        = "deposit"
 	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
 	QueryGetBorrowed       = "borrowed"
-	QueryGetBorrow         = "borrow"
 )
 
 // QueryDepositsParams is the params for a filtered deposit query
 type QueryDepositsParams struct {
-	Page         int            `json:"page" yaml:"page"`
-	Limit        int            `json:"limit" yaml:"limit"`
-	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
-	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
+	Page  int            `json:"page" yaml:"page"`
+	Limit int            `json:"limit" yaml:"limit"`
+	Denom string         `json:"denom" yaml:"denom"`
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
 }
 
 // NewQueryDepositsParams creates a new QueryDepositsParams
-func NewQueryDepositsParams(page, limit int, depositDenom string, owner sdk.AccAddress) QueryDepositsParams {
+func NewQueryDepositsParams(page, limit int, denom string, owner sdk.AccAddress) QueryDepositsParams {
 	return QueryDepositsParams{
-		Page:         page,
-		Limit:        limit,
-		DepositDenom: depositDenom,
-		Owner:        owner,
+		Page:  page,
+		Limit: limit,
+		Denom: denom,
+		Owner: owner,
 	}
 }
 
 // QueryClaimParams is the params for a filtered claim query
 type QueryClaimParams struct {
-	Page         int            `json:"page" yaml:"page"`
-	Limit        int            `json:"limit" yaml:"limit"`
-	DepositDenom string         `json:"deposit_denom" yaml:"deposit_denom"`
-	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
-	ClaimType    ClaimType      `json:"claim_type" yaml:"claim_type"`
+	Page      int            `json:"page" yaml:"page"`
+	Limit     int            `json:"limit" yaml:"limit"`
+	Denom     string         `json:"denom" yaml:"denom"`
+	Owner     sdk.AccAddress `json:"owner" yaml:"owner"`
+	ClaimType ClaimType      `json:"claim_type" yaml:"claim_type"`
 }
 
 // NewQueryClaimParams creates a new QueryClaimParams
-func NewQueryClaimParams(page, limit int, depositDenom string, owner sdk.AccAddress, claimType ClaimType) QueryClaimParams {
+func NewQueryClaimParams(page, limit int, denom string, owner sdk.AccAddress, claimType ClaimType) QueryClaimParams {
 	return QueryClaimParams{
-		Page:         page,
-		Limit:        limit,
-		DepositDenom: depositDenom,
-		Owner:        owner,
-		ClaimType:    claimType,
+		Page:      page,
+		Limit:     limit,
+		Denom:     denom,
+		Owner:     owner,
+		ClaimType: claimType,
 	}
 }
 
@@ -72,19 +70,19 @@ func NewQueryAccountParams(page, limit int, name string) QueryAccountParams {
 
 // QueryBorrowsParams is the params for a filtered borrows query
 type QueryBorrowsParams struct {
-	Page        int            `json:"page" yaml:"page"`
-	Limit       int            `json:"limit" yaml:"limit"`
-	Owner       sdk.AccAddress `json:"owner" yaml:"owner"`
-	BorrowDenom string         `json:"borrow_denom" yaml:"borrow_denom"`
+	Page  int            `json:"page" yaml:"page"`
+	Limit int            `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
+	Denom string         `json:"denom" yaml:"denom"`
 }
 
 // NewQueryBorrowsParams creates a new QueryBorrowsParams
-func NewQueryBorrowsParams(page, limit int, owner sdk.AccAddress, borrowDenom string) QueryBorrowsParams {
+func NewQueryBorrowsParams(page, limit int, owner sdk.AccAddress, denom string) QueryBorrowsParams {
 	return QueryBorrowsParams{
-		Page:        page,
-		Limit:       limit,
-		Owner:       owner,
-		BorrowDenom: borrowDenom,
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+		Denom: denom,
 	}
 }
 
@@ -97,17 +95,5 @@ type QueryBorrowedParams struct {
 func NewQueryBorrowedParams(denom string) QueryBorrowedParams {
 	return QueryBorrowedParams{
 		Denom: denom,
-	}
-}
-
-// QueryBorrowParams is the params for a current borrow balance query
-type QueryBorrowParams struct {
-	Owner sdk.AccAddress `json:"owner" yaml:"owner"`
-}
-
-// NewQueryBorrowParams creates a new QueryBorrowParams
-func NewQueryBorrowParams(owner sdk.AccAddress) QueryBorrowParams {
-	return QueryBorrowParams{
-		Owner: owner,
 	}
 }
