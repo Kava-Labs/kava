@@ -254,10 +254,7 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Example:
 		$ kvcli q hard borrows
 		$ kvcli q hard borrows --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny
-		$ kvcli q hard borrows --denom bnb
-
-		Flag --owner will return the user's latest borrow balance including any outstanding debt.
-		Without flag --owner it is not guaranteed that returned user borrows include outstanding debt.`,
+		$ kvcli q hard borrows --denom bnb`,
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -276,36 +273,6 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = borrowOwner
 			}
 
-			// Execute 'borrow' query: queries a user's borrow balance, including their outstanding debt
-			if !owner.Empty() {
-				params := types.NewQueryBorrowParams(owner)
-				bz, err := cdc.MarshalJSON(params)
-				if err != nil {
-					return err
-				}
-
-				route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetBorrow)
-				res, height, err := cliCtx.QueryWithData(route, bz)
-				if err != nil {
-					return err
-				}
-				cliCtx = cliCtx.WithHeight(height)
-
-				var balance sdk.Coins
-				if err := cdc.UnmarshalJSON(res, &balance); err != nil {
-					return fmt.Errorf("failed to unmarshal borrow balance: %w", err)
-				}
-
-				if len(denom) > 0 {
-					if balance.AmountOf(denom).Equal(sdk.ZeroInt()) {
-						return fmt.Errorf("user %s has no borrow balance for denom %s", owner, denom)
-					}
-				}
-
-				return cliCtx.PrintOutput(balance)
-			}
-
-			// Execute 'borrows' query: queries borrows for several users, does not include their outstanding debt.
 			// Note: The 10 users with the lowest LTV ratio have their outstanding debt applied each block, so if
 			// testing with 10 or less addresses they'll all show their latest balance including outstanding debt.
 			page := viper.GetInt(flags.FlagPage)

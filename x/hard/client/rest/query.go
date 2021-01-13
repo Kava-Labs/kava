@@ -179,39 +179,6 @@ func queryBorrowsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		if !owner.Empty() {
-			params := types.NewQueryBorrowParams(owner)
-			bz, err := cliCtx.Codec.MarshalJSON(params)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-
-			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetBorrow)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			cliCtx = cliCtx.WithHeight(height)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			var balance sdk.Coins
-			if err := cliCtx.Codec.UnmarshalJSON(res, &balance); err != nil {
-				rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("failed to unmarshal borrow balance: %s", err))
-				return
-			}
-
-			if len(denom) > 0 {
-				if balance.AmountOf(denom).Equal(sdk.ZeroInt()) {
-					rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("user %s has no borrow balance for denom %s", owner, denom))
-					return
-				}
-			}
-
-			rest.PostProcessResponse(w, cliCtx, res)
-			return
-		}
-
 		params := types.NewQueryBorrowsParams(page, limit, owner, denom)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
