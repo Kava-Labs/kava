@@ -17,7 +17,9 @@ const (
 	QuerierRoute = ModuleName
 )
 
-// TODO: Could store previous reward time accruals under the same key indexed by type ('usd_minting', 'hard_supply', etc.)
+// TODO: Refactor so that each incentive type has:
+// 1. [Incentive]ClaimKeyPrefix
+// 2. [Incentve]AccumulatorKeyPrefix { PreviousAccrualTime block.Time, IndexFactors types.IndexFactors }
 
 // Key Prefixes
 var (
@@ -32,5 +34,6 @@ var (
 	HardDelegatorRewardFactorKeyPrefix              = []byte{0x09} // prefix for key that stores Hard delegator reward factors
 	PreviousHardDelegatorRewardAccrualTimeKeyPrefix = []byte{0x10} // prefix for key that stores the previous time Hard delegator rewards accrued
 
-	USDXMintingRewardDenom = "ukava"
+	USDXMintingRewardDenom   = "ukava"
+	HardLiquidityRewardDenom = "hard"
 )
