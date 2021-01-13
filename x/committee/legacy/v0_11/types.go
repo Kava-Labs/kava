@@ -14,7 +14,7 @@ import (
 	upgrade "github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	cdptypes "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 	"github.com/kava-labs/kava/x/pricefeed"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
