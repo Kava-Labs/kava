@@ -20,6 +20,9 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 	}
 }
 
+// Borrows is a slice of Borrow
+type Borrows []Borrow
+
 // BorrowInterestFactor defines an individual borrow interest factor
 type BorrowInterestFactor struct {
 	Denom string  `json:"denom" yaml:"denom"`

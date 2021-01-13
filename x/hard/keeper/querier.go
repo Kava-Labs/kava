@@ -22,16 +22,14 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetModAccounts(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
-		case types.QueryGetDeposit:
-			return queryGetDeposit(ctx, req, k)
+		case types.QueryGetTotalDeposited:
+			return queryGetTotalDeposited(ctx, req, k)
 		case types.QueryGetClaims:
 			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
 			return queryGetBorrows(ctx, req, k)
-		case types.QueryGetBorrow:
-			return queryGetBorrow(ctx, req, k)
-		case types.QueryGetBorrowed:
-			return queryGetBorrowed(ctx, req, k)
+		case types.QueryGetTotalBorrowed:
+			return queryGetTotalBorrowed(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -86,33 +84,32 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	depositDenom := len(params.DepositDenom) > 0
+	denom := len(params.Denom) > 0
 	owner := len(params.Owner) > 0
 
-	var deposits []types.Deposit
+	var deposits types.Deposits
 	switch {
-	case depositDenom && owner:
-		deposit, found := k.GetDeposit(ctx, params.Owner)
+	case owner && denom:
+		deposit, found := k.GetSyncedDeposit(ctx, params.Owner)
 		if found {
-			for _, depCoin := range deposit.Amount {
-				if depCoin.Denom == params.DepositDenom {
+			for _, coin := range deposit.Amount {
+				if coin.Denom == params.Denom {
 					deposits = append(deposits, deposit)
 				}
 			}
-
 		}
-	case depositDenom:
+	case owner:
+		deposit, found := k.GetSyncedDeposit(ctx, params.Owner)
+		if found {
+			deposits = append(deposits, deposit)
+		}
+	case denom:
 		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
-			if deposit.Amount.AmountOf(params.DepositDenom).IsPositive() {
+			if deposit.Amount.AmountOf(params.Denom).IsPositive() {
 				deposits = append(deposits, deposit)
 			}
 			return false
 		})
-	case owner:
-		deposit, found := k.GetDeposit(ctx, params.Owner)
-		if found {
-			deposits = append(deposits, deposit)
-		}
 	default:
 		k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
@@ -120,18 +117,35 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 		})
 	}
 
-	start, end := client.Paginate(len(deposits), params.Page, params.Limit, 100)
-	if start < 0 || end < 0 {
-		deposits = []types.Deposit{}
-	} else {
-		deposits = deposits[start:end]
+	var bz []byte
+
+	// If owner param was specified then deposits array already contains the user's synced deposit
+	if owner {
+		bz, err = codec.MarshalJSONIndent(types.ModuleCdc, deposits)
+		if err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		return bz, nil
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, deposits)
+	// Otherwise we need to simulate syncing of each deposit
+	var syncedDeposits types.Deposits
+	for _, deposit := range deposits {
+		syncedDeposit, _ := k.GetSyncedDeposit(ctx, deposit.Depositor)
+		syncedDeposits = append(syncedDeposits, syncedDeposit)
+	}
+
+	start, end := client.Paginate(len(syncedDeposits), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		syncedDeposits = types.Deposits{}
+	} else {
+		syncedDeposits = syncedDeposits[start:end]
+	}
+
+	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, syncedDeposits)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
 	return bz, nil
 }
 
@@ -142,26 +156,26 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	depositDenom := len(params.DepositDenom) > 0
+	depositDenom := len(params.Denom) > 0
 	owner := len(params.Owner) > 0
 	claimType := len(params.ClaimType) > 0
 
 	var claims []types.Claim
 	switch {
 	case depositDenom && owner && claimType:
-		claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, params.ClaimType)
+		claim, found := k.GetClaim(ctx, params.Owner, params.Denom, params.ClaimType)
 		if found {
 			claims = append(claims, claim)
 		}
 	case depositDenom && owner:
 		for _, dt := range types.ClaimTypesClaimQuery {
-			claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, dt)
+			claim, found := k.GetClaim(ctx, params.Owner, params.Denom, dt)
 			if found {
 				claims = append(claims, claim)
 			}
 		}
 	case depositDenom && claimType:
-		k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, params.DepositDenom, func(claim types.Claim) (stop bool) {
+		k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, params.Denom, func(claim types.Claim) (stop bool) {
 			claims = append(claims, claim)
 			return false
 		})
@@ -185,7 +199,7 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 		}
 	case depositDenom:
 		for _, dt := range types.ClaimTypesClaimQuery {
-			k.IterateClaimsByTypeAndDenom(ctx, dt, params.DepositDenom, func(claim types.Claim) (stop bool) {
+			k.IterateClaimsByTypeAndDenom(ctx, dt, params.Denom, func(claim types.Claim) (stop bool) {
 				claims = append(claims, claim)
 				return false
 			})
@@ -241,39 +255,79 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 }
 
 func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
 	var params types.QueryBorrowsParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
+	denom := len(params.Denom) > 0
+	owner := len(params.Owner) > 0
 
-	// TODO: filter query results
-	// depositDenom := len(params.BorrowDenom) > 0
-	// owner := len(params.Owner) > 0
-
-	var borrows []types.Borrow
-	k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
-		borrows = append(borrows, borrow)
-		return false
-	})
-
-	start, end := client.Paginate(len(borrows), params.Page, params.Limit, 100)
-	if start < 0 || end < 0 {
-		borrows = []types.Borrow{}
-	} else {
-		borrows = borrows[start:end]
+	var borrows types.Borrows
+	switch {
+	case owner && denom:
+		borrow, found := k.GetSyncedBorrow(ctx, params.Owner)
+		if found {
+			for _, coin := range borrow.Amount {
+				if coin.Denom == params.Denom {
+					borrows = append(borrows, borrow)
+				}
+			}
+		}
+	case owner:
+		borrow, found := k.GetSyncedBorrow(ctx, params.Owner)
+		if found {
+			borrows = append(borrows, borrow)
+		}
+	case denom:
+		k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+			if borrow.Amount.AmountOf(params.Denom).IsPositive() {
+				borrows = append(borrows, borrow)
+			}
+			return false
+		})
+	default:
+		k.IterateBorrows(ctx, func(borrow types.Borrow) (stop bool) {
+			borrows = append(borrows, borrow)
+			return false
+		})
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrows)
+	var bz []byte
+
+	// If owner param was specified then borrows array already contains the user's synced borrow
+	if owner {
+		bz, err = codec.MarshalJSONIndent(types.ModuleCdc, borrows)
+		if err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		return bz, nil
+	}
+
+	// Otherwise we need to simulate syncing of each borrow
+	var syncedBorrows types.Borrows
+	for _, borrow := range borrows {
+		syncedBorrow, _ := k.GetSyncedBorrow(ctx, borrow.Borrower)
+		syncedBorrows = append(syncedBorrows, syncedBorrow)
+	}
+
+	start, end := client.Paginate(len(syncedBorrows), params.Page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		syncedBorrows = types.Borrows{}
+	} else {
+		syncedBorrows = syncedBorrows[start:end]
+	}
+
+	bz, err = codec.MarshalJSONIndent(types.ModuleCdc, syncedBorrows)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
 	return bz, nil
 }
 
-func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryBorrowedParams
+func queryGetTotalBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryTotalBorrowedParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -297,39 +351,24 @@ func queryGetBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	return bz, nil
 }
 
-func queryGetBorrow(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryBorrowsParams
+func queryGetTotalDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryTotalDepositedParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	var borrowBalance sdk.Coins
-	if len(params.Owner) > 0 {
-		borrowBalance = k.GetBorrowBalance(ctx, params.Owner)
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		return nil, types.ErrSuppliedCoinsNotFound
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, borrowBalance)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	// If user specified a denom only return coins of that denom type
+	if len(params.Denom) > 0 {
+		suppliedCoins = sdk.NewCoins(sdk.NewCoin(params.Denom, suppliedCoins.AmountOf(params.Denom)))
 	}
 
-	return bz, nil
-}
-
-func queryGetDeposit(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryDepositParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-
-	var supplyBalance sdk.Coins
-	if len(params.Owner) > 0 {
-		supplyBalance = k.GetSupplyBalance(ctx, params.Owner)
-	}
-
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, supplyBalance)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, suppliedCoins)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

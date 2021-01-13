@@ -74,7 +74,6 @@ var (
 	NewPeriod                        = types.NewPeriod
 	NewQueryAccountParams            = types.NewQueryAccountParams
 	NewQueryClaimParams              = types.NewQueryClaimParams
-	NewQueryDepositParams            = types.NewQueryDepositParams
 	ParamKeyTable                    = types.ParamKeyTable
 	RegisterCodec                    = types.RegisterCodec
 
@@ -135,7 +134,6 @@ type (
 	Params                         = types.Params
 	QueryAccountParams             = types.QueryAccountParams
 	QueryClaimParams               = types.QueryClaimParams
-	QueryDepositParams             = types.QueryDepositParams
 	StakingKeeper                  = types.StakingKeeper
 	SupplyKeeper                   = types.SupplyKeeper
 )

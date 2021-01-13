@@ -251,15 +251,20 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	return nil
 }
 
-// GetBorrowBalance gets the user's total borrow balance (borrow balance + pending interest)
-func (k Keeper) GetBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) sdk.Coins {
-	borrowBalance := sdk.Coins{}
+// GetSyncedBorrow returns a borrow object containing current balances and indexes
+func (k Keeper) GetSyncedBorrow(ctx sdk.Context, borrower sdk.AccAddress) (types.Borrow, bool) {
 	borrow, found := k.GetBorrow(ctx, borrower)
 	if !found {
-		return borrowBalance
+		return types.Borrow{}, false
 	}
 
+	return k.loadSyncedBorrow(ctx, borrow), true
+}
+
+// loadSyncedBorrow calculates a user's synced borrow, but does not update state
+func (k Keeper) loadSyncedBorrow(ctx sdk.Context, borrow types.Borrow) types.Borrow {
 	totalNewInterest := sdk.Coins{}
+	newBorrowIndexes := types.BorrowInterestFactors{}
 	for _, coin := range borrow.Amount {
 		interestFactorValue, foundInterestFactorValue := k.GetBorrowInterestFactor(ctx, coin.Denom)
 		if foundInterestFactorValue {
@@ -271,6 +276,7 @@ func (k Keeper) GetBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) sdk.C
 					break
 				}
 			}
+
 			// Calculate interest owed by user for this asset
 			if foundAtIndex != -1 {
 				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
@@ -279,7 +285,10 @@ func (k Keeper) GetBorrowBalance(ctx sdk.Context, borrower sdk.AccAddress) sdk.C
 				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))
 			}
 		}
+
+		borrowIndex := types.NewBorrowInterestFactor(coin.Denom, interestFactorValue)
+		newBorrowIndexes = append(newBorrowIndexes, borrowIndex)
 	}
 
-	return borrow.Amount.Add(totalNewInterest...)
+	return types.NewBorrow(borrow.Borrower, borrow.Amount.Add(totalNewInterest...), newBorrowIndexes)
 }
