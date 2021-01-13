@@ -9,6 +9,7 @@ const (
 	QueryGetParams         = "params"
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
+	QueryGetDeposited      = "deposited"
 	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
 	QueryGetBorrowed       = "borrowed"
@@ -94,6 +95,18 @@ type QueryBorrowedParams struct {
 // NewQueryBorrowedParams creates a new QueryBorrowedParams
 func NewQueryBorrowedParams(denom string) QueryBorrowedParams {
 	return QueryBorrowedParams{
+		Denom: denom,
+	}
+}
+
+// QueryDepositedParams is the params for a filtered deposited coins query
+type QueryDepositedParams struct {
+	Denom string `json:"denom" yaml:"denom"`
+}
+
+// NewQueryDepositedParams creates a new QueryDepositedParams
+func NewQueryDepositedParams(denom string) QueryDepositedParams {
+	return QueryDepositedParams{
 		Denom: denom,
 	}
 }
