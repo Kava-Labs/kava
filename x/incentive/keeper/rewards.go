@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -155,6 +156,93 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetUSDXMintingClaim(ctx, claim)
+	return
+}
+
+// InitializeHardLiquidityBorrowReward initializes the borrow-side of a hard liquidity provider claim
+// by creating the claim and setting the borrow reward factor index
+func (k Keeper) InitializeHardLiquidityBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
+	_, found := k.GetRewardPeriod(ctx, denom)
+	if !found {
+		return
+	}
+
+	borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, denom)
+	if !foundBorrowFactor {
+		borrowFactor = sdk.ZeroDec()
+	}
+
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
+	// User's first hard liquidity reward for this denom on the borrow-side
+	if !found {
+		claim = types.NewHardLiquidityProviderClaim(
+			borrow.Borrower,
+			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
+			types.RewardIndexes{},
+			types.RewardIndexes{types.NewRewardIndex(denom, borrowFactor)},
+			types.RewardIndexes{},
+		)
+		k.SetHardLiquidityProviderClaim(ctx, claim)
+		return
+	}
+
+	// Update user's existing hard liquidity reward claim with current borrow reward index factor
+	borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(denom)
+	if !hasBorrowRewardIndex {
+		claim.BorrowRewardIndexes = append(claim.BorrowRewardIndexes, types.NewRewardIndex(denom, borrowFactor))
+	} else {
+		claim.BorrowRewardIndexes[borrowIndex] = types.NewRewardIndex(denom, borrowFactor)
+	}
+
+	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+// SynchronizeHardLiquidityBorrowReward updates the claim object by adding any accumulated rewards
+// and updating the reward index value
+func (k Keeper) SynchronizeHardLiquidityBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
+	_, found := k.GetRewardPeriod(ctx, denom)
+	if !found {
+		return
+	}
+
+	borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, denom)
+	if !found {
+		borrowFactor = sdk.ZeroDec()
+	}
+
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
+	if !found {
+		claim = types.NewHardLiquidityProviderClaim(
+			borrow.Borrower,
+			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
+			types.RewardIndexes{},
+			types.RewardIndexes{types.NewRewardIndex(denom, borrowFactor)},
+			types.RewardIndexes{},
+		)
+		k.SetHardLiquidityProviderClaim(ctx, claim)
+		return
+	}
+
+	borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(denom)
+	if !hasBorrowRewardIndex {
+		claim.BorrowRewardIndexes = append(claim.BorrowRewardIndexes, types.NewRewardIndex(denom, borrowFactor))
+		k.SetHardLiquidityProviderClaim(ctx, claim)
+	}
+
+	userRewardFactor := claim.BorrowRewardIndexes[borrowIndex].RewardFactor
+	rewardsAccumulatedFactor := borrowFactor.Sub(userRewardFactor)
+	if rewardsAccumulatedFactor.IsZero() {
+		return
+	}
+	claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
+	newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(denom).ToDec()).RoundInt()
+	if newRewardsAmount.IsZero() {
+		k.SetHardLiquidityProviderClaim(ctx, claim)
+		return
+	}
+	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
+	claim.Reward = claim.Reward.Add(newRewardsCoin)
+	k.SetHardLiquidityProviderClaim(ctx, claim)
 	return
 }
 
