@@ -7,6 +7,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
+	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
@@ -140,4 +141,79 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 		},
 	}
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
+}
+
+func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ...incentive.RewardPeriod) app.GenesisState {
+	var accumulationTimes incentive.GenesisAccumulationTimes
+	for _, rp := range rewardPeriods {
+		accumulationTimes = append(
+			accumulationTimes,
+			incentive.NewGenesisAccumulationTime(
+				rp.CollateralType,
+				previousAccumTime,
+				sdk.ZeroDec(),
+			),
+		)
+	}
+	genesis := incentive.NewGenesisState(
+		incentive.NewParams(
+			rewardPeriods,
+			incentive.Multipliers{
+				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
+				incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
+			},
+			endTime,
+		),
+		accumulationTimes,
+		incentive.USDXMintingClaims{},
+	)
+	return app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(genesis)}
+}
+
+func NewCDPGenStateHighInterest() app.GenesisState {
+	oneYear := time.Hour * 24 * 365
+	cdpGenesis := cdp.GenesisState{
+		Params: cdp.Params{
+			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 2000000000000),
+			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:            cdp.DefaultSurplusLot,
+			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
+			DebtAuctionLot:               cdp.DefaultDebtLot,
+			SavingsDistributionFrequency: oneYear * 100, // never run savings distribution
+			CollateralParams: cdp.CollateralParams{
+				{
+					Denom:               "bnb",
+					Type:                "bnb-a",
+					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
+					StabilityFee:        sdk.MustNewDecFromStr("1.000000051034942716"), // 500% APR
+					LiquidationPenalty:  d("0.05"),
+					AuctionSize:         i(50000000000),
+					Prefix:              0x22,
+					SpotMarketID:        "bnb:usd",
+					LiquidationMarketID: "bnb:usd",
+					ConversionFactor:    i(8),
+				},
+			},
+			DebtParam: cdp.DebtParam{
+				Denom:            "usdx",
+				ReferenceAsset:   "usd",
+				ConversionFactor: i(6),
+				DebtFloor:        i(10000000),
+				SavingsRate:      d("0.95"),
+			},
+		},
+		StartingCdpID:            cdp.DefaultCdpStartingID,
+		DebtDenom:                cdp.DefaultDebtDenom,
+		GovDenom:                 cdp.DefaultGovDenom,
+		CDPs:                     cdp.CDPs{},
+		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
+		},
+		TotalPrincipals: cdp.GenesisTotalPrincipals{
+			cdp.NewGenesisTotalPrincipal("bnb-a", sdk.ZeroInt()),
+		},
+	}
+	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
 }
