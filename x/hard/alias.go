@@ -55,7 +55,11 @@ var (
 	DefaultGenesisState         = types.DefaultGenesisState
 	DefaultParams               = types.DefaultParams
 	DepositTypeIteratorKey      = types.DepositTypeIteratorKey
+	DefaultPreviousBlockTime    = types.DefaultPreviousBlockTime
 	GetTotalVestingPeriodLength = types.GetTotalVestingPeriodLength
+	NewBorrowLimit              = types.NewBorrowLimit
+	NewMoneyMarket              = types.NewMoneyMarket
+	NewInterestRateModel        = types.NewInterestRateModel
 	NewDeposit                  = types.NewDeposit
 	NewGenesisState             = types.NewGenesisState
 	NewMsgClaimReward           = types.NewMsgClaimReward
@@ -73,7 +77,6 @@ var (
 	// variable aliases
 	BorrowsKeyPrefix                 = types.BorrowsKeyPrefix
 	DefaultActive                    = types.DefaultActive
-	DefaultPreviousBlockTime         = types.DefaultPreviousBlockTime
 	ClaimTypesClaimQuery             = types.ClaimTypesClaimQuery
 	DepositsKeyPrefix                = types.DepositsKeyPrefix
 	ErrAccountNotFound               = types.ErrAccountNotFound

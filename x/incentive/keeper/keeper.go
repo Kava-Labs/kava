@@ -259,7 +259,7 @@ func (k Keeper) SetPreviousHardSupplyRewardAccrualTime(ctx sdk.Context, denom st
 
 // GetPreviousHardBorrowRewardAccrualTime returns the last time a denom accrued Hard protocol borrow-side rewards
 func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardSupplyRewardAccrualTimeKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
 		return time.Time{}, false

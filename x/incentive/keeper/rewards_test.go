@@ -11,10 +11,11 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-func (suite *KeeperTestSuite) TestAccumulateRewards() {
+func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 	type args struct {
 		ctype                 string
 		rewardsPerSecond      sdk.Coin
@@ -64,7 +65,7 @@ func (suite *KeeperTestSuite) TestAccumulateRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithCDPGenState()
+			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup cdp state
@@ -97,7 +98,7 @@ func (suite *KeeperTestSuite) TestAccumulateRewards() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSyncRewards() {
+func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 	type args struct {
 		ctype                string
 		rewardsPerSecond     sdk.Coin
@@ -143,7 +144,7 @@ func (suite *KeeperTestSuite) TestSyncRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithCDPGenState()
+			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
@@ -203,20 +204,121 @@ func (suite *KeeperTestSuite) TestSyncRewards() {
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
 		})
 	}
-
 }
 
-func (suite *KeeperTestSuite) SetupWithCDPGenState() {
+func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
+	type args struct {
+		borrow               sdk.Coin
+		rewardsPerSecond     sdk.Coin
+		initialTime          time.Time
+		timeElapsed          int
+		expectedRewardFactor sdk.Dec
+	}
+	type test struct {
+		name string
+		args args
+	}
+	testCases := []test{
+		{
+			"7 seconds",
+			args{
+				borrow:               c("bnb", 1000000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          7,
+				expectedRewardFactor: d("0.000000856478000000"),
+			},
+		},
+		{
+			"1 day",
+			args{
+				borrow:               c("bnb", 1000000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          86400,
+				expectedRewardFactor: d("0.0105713856"),
+			},
+		},
+		{
+			"0 seconds",
+			args{
+				borrow:               c("bnb", 1000000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          0,
+				expectedRewardFactor: d("0.0"),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// Mint coins to hard module account
+			supplyKeeper := suite.app.GetSupplyKeeper()
+			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+
+			// User deposits and borrows to increase total borrowed amount
+			hardKeeper := suite.app.GetHardKeeper()
+			userAddr := suite.addrs[3]
+			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000000000000))))
+			suite.Require().NoError(err)
+			err = hardKeeper.Borrow(suite.ctx, userAddr, sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000000000000))))
+			suite.Require().NoError(err)
+
+			// setup incentive state
+			params := types.NewParams(
+				true,
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
+
+			// Set up chain context at future time
+			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			rewardPeriod, found := suite.keeper.GetRewardPeriod(runCtx, tc.args.borrow.Denom)
+			suite.Require().True(found)
+			err = suite.keeper.AccumulateHardBorrowRewards(runCtx, rewardPeriod)
+			suite.Require().NoError(err)
+
+			rewardFactor, found := suite.keeper.GetHardBorrowRewardFactor(runCtx, tc.args.borrow.Denom)
+			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) SetupWithGenState() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+
+	authGS := app.NewAuthGenState(
+		[]sdk.AccAddress{addrs[3]},
+		[]sdk.Coins{sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000000000000000)))},
+	)
+
 	tApp.InitializeFromGenesisStates(
+		authGS,
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
+		NewHardGenStateMulti(),
 	)
-	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+
 	keeper := tApp.GetIncentiveKeeper()
+	hardKeeper := tApp.GetHardKeeper()
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.keeper = keeper
+	suite.hardKeeper = hardKeeper
 	suite.addrs = addrs
 }
