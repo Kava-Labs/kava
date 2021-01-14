@@ -24,6 +24,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 
 	k.SetParams(ctx, gs.Params)
 
+	// TODO: previous hard module accrual times/indexes should be set here
+
 	for _, gat := range gs.PreviousAccumulationTimes {
 		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 		k.SetUSDXMintingRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
