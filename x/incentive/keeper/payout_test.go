@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithCDPGenState()
+			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
