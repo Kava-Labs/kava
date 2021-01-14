@@ -405,6 +405,94 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
+	type args struct {
+		deposit              sdk.Coin
+		rewardsPerSecond     sdk.Coin
+		initialTime          time.Time
+		timeElapsed          int
+		expectedRewardFactor sdk.Dec
+	}
+	type test struct {
+		name string
+		args args
+	}
+	testCases := []test{
+		{
+			"7 seconds",
+			args{
+				deposit:              c("bnb", 1000000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          7,
+				expectedRewardFactor: d("0.000000856478000000"),
+			},
+		},
+		{
+			"1 day",
+			args{
+				deposit:              c("bnb", 1000000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          86400,
+				expectedRewardFactor: d("0.0105713856"),
+			},
+		},
+		{
+			"0 seconds",
+			args{
+				deposit:              c("bnb", 1000000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          0,
+				expectedRewardFactor: d("0.0"),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// Mint coins to hard module account
+			supplyKeeper := suite.app.GetSupplyKeeper()
+			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+
+			// setup incentive state
+			params := types.NewParams(
+				true,
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
+
+			// User deposits to increase total supplied amount
+			hardKeeper := suite.app.GetHardKeeper()
+			userAddr := suite.addrs[3]
+			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
+			suite.Require().NoError(err)
+
+			// Set up chain context at future time
+			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			rewardPeriod, found := suite.keeper.GetRewardPeriod(runCtx, tc.args.deposit.Denom)
+			suite.Require().True(found)
+			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
+			suite.Require().NoError(err)
+
+			rewardFactor, found := suite.keeper.GetHardSupplyRewardFactor(runCtx, tc.args.deposit.Denom)
+			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) SetupWithGenState() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})

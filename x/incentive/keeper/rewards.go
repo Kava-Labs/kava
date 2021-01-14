@@ -349,9 +349,11 @@ func (k Keeper) SynchronizeHardLiquidityBorrowReward(ctx sdk.Context, borrow har
 	}
 
 	borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(denom)
-	if !hasBorrowRewardIndex {
+
+	if !hasBorrowRewardIndex || len(claim.BorrowRewardIndexes) == 0 {
 		claim.BorrowRewardIndexes = append(claim.BorrowRewardIndexes, types.NewRewardIndex(denom, borrowFactor))
 		k.SetHardLiquidityProviderClaim(ctx, claim)
+
 	}
 
 	userRewardFactor := claim.BorrowRewardIndexes[borrowIndex].RewardFactor
