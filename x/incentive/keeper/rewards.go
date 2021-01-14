@@ -35,7 +35,12 @@ func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeri
 		return nil
 	}
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-	rewardFactor := newRewards.ToDec().Quo(totalPrincipal)
+	cdpFactor, found := k.cdpKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	rewardFactor := newRewards.ToDec().Mul(cdpFactor).Quo(totalPrincipal)
 
 	previousRewardFactor, found := k.GetRewardFactor(ctx, rewardPeriod.CollateralType)
 	if !found {
@@ -110,7 +115,7 @@ func (k Keeper) SynchronizeReward(ctx sdk.Context, cdp cdptypes.CDP) {
 		return
 	}
 	claim.RewardIndexes[index].RewardFactor = globalRewardFactor
-	newRewardsAmount := rewardsAccumulatedFactor.Mul(cdp.GetTotalPrincipal().Amount.ToDec()).RoundInt()
+	newRewardsAmount := cdp.GetTotalPrincipal().Amount.ToDec().Quo(cdp.InterestFactor).Mul(rewardsAccumulatedFactor).RoundInt()
 	if newRewardsAmount.IsZero() {
 		k.SetClaim(ctx, claim)
 		return
