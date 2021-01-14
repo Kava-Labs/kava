@@ -89,6 +89,7 @@ type (
 	Keeper                    = keeper.Keeper
 	AccountKeeper             = types.AccountKeeper
 	CDPHooks                  = types.CDPHooks
+	HARDHooks                 = types.HARDHooks
 	CdpKeeper                 = types.CdpKeeper
 	GenesisAccumulationTime   = types.GenesisAccumulationTime
 	GenesisAccumulationTimes  = types.GenesisAccumulationTimes
