@@ -34,6 +34,22 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		k.SyncOutstandingInterest(ctx, borrower)
 	}
 
+	// Call incentive hook for each coin
+	currBorrow, hasBorrow := k.GetBorrow(ctx, borrower)
+	if hasBorrow {
+		currBorrowDenoms := getDenoms(currBorrow.Amount)
+		newBorrowDenoms := getDenoms(coins)
+		for _, denom := range removeDuplicates(currBorrowDenoms, newBorrowDenoms) {
+			k.BeforeBorrowModified(ctx, currBorrow, denom)
+		}
+	} else {
+		for _, coin := range coins {
+			// TODO: Instead of building a temp borrow for first borrow, could refactor BeforeBorrowModified
+			//		 function to take (borrower, coins, coin.Denom) as arguments instead of borrow object
+			k.BeforeBorrowModified(ctx, types.NewBorrow(borrower, coins, types.InterestFactors{}), coin.Denom)
+		}
+	}
+
 	// Validate borrow amount within user and protocol limits
 	err = k.ValidateBorrow(ctx, borrower, coins)
 	if err != nil {
