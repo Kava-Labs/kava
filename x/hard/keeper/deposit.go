@@ -109,6 +109,20 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 
 	k.SyncOutstandingInterest(ctx, depositor)
 
+	// Call incentive hook for each coin
+	currDeposit, hasDeposit := k.GetDeposit(ctx, depositor)
+	if hasDeposit {
+		currDepositDenoms := getDenoms(currDeposit.Amount)
+		newDepositDenoms := getDenoms(coins)
+		for _, denom := range removeDuplicates(currDepositDenoms, newDepositDenoms) {
+			k.BeforeDepositModified(ctx, currDeposit, denom)
+		}
+	} else {
+		for _, coin := range coins {
+			k.BeforeDepositModified(ctx, types.NewDeposit(depositor, coins), coin.Denom)
+		}
+	}
+
 	borrow, found := k.GetBorrow(ctx, depositor)
 	if !found {
 		borrow = types.Borrow{}
