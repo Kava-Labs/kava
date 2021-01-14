@@ -107,6 +107,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
+				{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
@@ -114,6 +115,12 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
+			{
+				MarketID:      "kava:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
 			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
