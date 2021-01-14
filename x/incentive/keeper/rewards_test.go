@@ -220,7 +220,7 @@ func TestRewardCalculation(t *testing.T) {
 		rewardsPerSecond,
 	)
 
-	// Setup app and genesis module params
+	// Setup app and module params
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: initialTime})
@@ -243,24 +243,26 @@ func TestRewardCalculation(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Calculate rewards
-	// Step through several blocks, calculating the cdp rewards naively
-	// 6307200 1/5th of a year
-	blockTimes := newRepeatingSliceInt(630720, 10) // super long blocks
-	expectedCDPReward := c(rewardPeriod.RewardsPerSecond.Denom, 0)
+	// Calculate expected cdp reward using iteration
+
+	// Use 10 blocks, each a very long 630720s, to total 6307200s or 1/5th of a year
+	// The cdp stability fee is set to the max value 500%, so this time ensures the debt increases a significant amount (doubles)
+	// High stability fees increase the chance of catching calculation bugs.
+	blockTimes := newRepeatingSliceInt(630720, 10)
+	expectedCDPReward := sdk.ZeroDec() //c(rewardPeriod.RewardsPerSecond.Denom, 0)
 	for _, bt := range blockTimes {
 		ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(int(time.Second) * bt)))
 
-		// run cdp and incentive begin blockers
+		// run cdp and incentive begin blockers to update factors
 		tApp.BeginBlocker(ctx, abci.RequestBeginBlock{})
 
-		// replicate incentive calculations
+		// calculate expected cdp reward
 		cdpBlockReward, err := calculateCDPBlockReward(ctx, cdpKeeper, addrs[0], ctype, sdk.NewInt(int64(bt)), rewardPeriod)
 		require.NoError(t, err)
 		expectedCDPReward = expectedCDPReward.Add(cdpBlockReward)
 	}
 
-	// compute cdp reward using interest factor
+	// calculate cdp reward using factor
 	cdp, found := cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, addrs[0], ctype)
 	require.True(t, found)
 	incentiveKeeper := tApp.GetIncentiveKeeper()
@@ -270,12 +272,16 @@ func TestRewardCalculation(t *testing.T) {
 	claim, found := incentiveKeeper.GetClaim(ctx, addrs[0])
 	require.True(t, found)
 
-	require.Equalf(t, expectedCDPReward, claim.Reward, "expected: %s, actual %s", expectedCDPReward, claim.Reward)
-
+	// Compare two methods of calculation
+	relativeError := expectedCDPReward.Sub(claim.Reward.Amount.ToDec()).Quo(expectedCDPReward).Abs()
+	maxError := d("0.0001")
+	require.Truef(t, relativeError.LT(maxError),
+		"percent diff %s > %s , expected: %s, actual %s,", relativeError, maxError, expectedCDPReward, claim.Reward.Amount,
+	)
 }
 
 // calculateCDPBlockReward computes the reward that should be distributed to a cdp for the current block.
-func calculateCDPBlockReward(ctx sdk.Context, cdpKeeper cdpkeeper.Keeper, owner sdk.AccAddress, ctype string, timeElapsed sdk.Int, rewardPeriod types.RewardPeriod) (sdk.Coin, error) {
+func calculateCDPBlockReward(ctx sdk.Context, cdpKeeper cdpkeeper.Keeper, owner sdk.AccAddress, ctype string, timeElapsed sdk.Int, rewardPeriod types.RewardPeriod) (sdk.Dec, error) {
 	// Calculate total rewards to distribute this block
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
 
@@ -284,17 +290,13 @@ func calculateCDPBlockReward(ctx sdk.Context, cdpKeeper cdpkeeper.Keeper, owner 
 	// cdpDebt
 	cdp, found := cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, owner, ctype)
 	if !found {
-		return sdk.Coin{}, fmt.Errorf("couldn't find cdp for owner '%s' and collateral type '%s'", owner, ctype)
+		return sdk.Dec{}, fmt.Errorf("couldn't find cdp for owner '%s' and collateral type '%s'", owner, ctype)
 	}
 	accumulatedInterest := cdpKeeper.CalculateNewInterest(ctx, cdp)
 	cdpDebt := cdp.Principal.Add(cdp.AccumulatedFees).Add(accumulatedInterest).Amount
 
 	// Calculate cdp's reward
-	cdpBlockReward := sdk.NewCoin(
-		rewardPeriod.RewardsPerSecond.Denom,
-		newRewards.Mul(cdpDebt).ToDec().Quo(totalPrincipal).RoundInt(),
-	)
-	return cdpBlockReward, nil
+	return newRewards.Mul(cdpDebt).ToDec().Quo(totalPrincipal), nil
 }
 
 func (suite *KeeperTestSuite) SetupWithCDPGenState() {
