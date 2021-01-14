@@ -55,6 +55,16 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return false, types.ErrBorrowNotFound
 	}
 
+	// Call incentive hook for each coin denom in the user's deposit
+	for _, denom := range getDenoms(deposit.Amount) {
+		k.BeforeDepositModified(ctx, deposit, denom)
+	}
+
+	// Call incentive hook for each coin denom in the user's borrow
+	for _, denom := range getDenoms(borrow.Amount) {
+		k.BeforeBorrowModified(ctx, borrow, denom)
+	}
+
 	isWithinRange, err := k.IsWithinValidLtvRange(ctx, deposit, borrow)
 	if err != nil {
 		return false, err

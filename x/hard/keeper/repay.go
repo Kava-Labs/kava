@@ -18,6 +18,20 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	// Sync interest so loan is up-to-date
 	k.SyncOutstandingInterest(ctx, sender)
 
+	// Call incentive hook for each coin
+	currBorrow, hasBorrow := k.GetBorrow(ctx, sender)
+	if hasBorrow {
+		currBorrowDenoms := getDenoms(currBorrow.Amount)
+		newBorrowDenoms := getDenoms(coins)
+		for _, denom := range removeDuplicates(currBorrowDenoms, newBorrowDenoms) {
+			k.BeforeBorrowModified(ctx, currBorrow, denom)
+		}
+	} else {
+		for _, coin := range coins {
+			k.BeforeBorrowModified(ctx, types.NewBorrow(sender, coins, types.InterestFactors{}), coin.Denom)
+		}
+	}
+
 	// Validate requested repay
 	err = k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
