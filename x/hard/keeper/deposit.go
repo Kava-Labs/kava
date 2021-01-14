@@ -20,6 +20,20 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 	k.SyncOutstandingInterest(ctx, depositor)
 
+	// Call incentive hook for each coin
+	currDeposit, hasDeposit := k.GetDeposit(ctx, depositor)
+	if hasDeposit {
+		currDepositDenoms := getDenoms(currDeposit.Amount)
+		newDepositDenoms := getDenoms(coins)
+		for _, denom := range removeDuplicates(currDepositDenoms, newDepositDenoms) {
+			k.BeforeDepositModified(ctx, currDeposit, denom)
+		}
+	} else {
+		for _, coin := range coins {
+			k.BeforeDepositModified(ctx, types.NewDeposit(depositor, coins), coin.Denom)
+		}
+	}
+
 	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
 		return err
@@ -54,6 +68,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	k.SetDeposit(ctx, deposit)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
+
+	k.IncrementSuppliedCoins(ctx, coins)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -142,6 +158,37 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
 
+	// Update total borrowed amount
+	k.DecrementSuppliedCoins(ctx, coins)
+
+	return nil
+}
+
+// IncrementSuppliedCoins increments the amount of supplied coins by the newCoins parameter
+func (k Keeper) IncrementSuppliedCoins(ctx sdk.Context, newCoins sdk.Coins) {
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		if !newCoins.Empty() {
+			k.SetSuppliedCoins(ctx, newCoins)
+		}
+	} else {
+		k.SetSuppliedCoins(ctx, suppliedCoins.Add(newCoins...))
+	}
+}
+
+// DecrementSuppliedCoins decrements the amount of supplied coins by the coins parameter
+func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
+	suppliedCoins, found := k.GetSuppliedCoins(ctx)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrSuppliedCoinsNotFound, "cannot withdraw coins if no coins are currently deposited")
+	}
+
+	updatedSuppliedCoins, isAnyNegative := suppliedCoins.SafeSub(coins)
+	if isAnyNegative {
+		return types.ErrNegativeSuppliedCoins
+	}
+
+	k.SetSuppliedCoins(ctx, updatedSuppliedCoins)
 	return nil
 }
 
