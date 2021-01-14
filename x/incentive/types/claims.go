@@ -172,9 +172,9 @@ func (c HardLiquidityProviderClaim) String() string {
 }
 
 // HasSupplyRewardIndex check if a claim has a supply reward index for the input collateral type
-func (c HardLiquidityProviderClaim) HasSupplyRewardIndex(collateralType string) (int64, bool) {
+func (c HardLiquidityProviderClaim) HasSupplyRewardIndex(denom string) (int64, bool) {
 	for index, ri := range c.SupplyRewardIndexes {
-		if ri.CollateralType == collateralType {
+		if ri.CollateralType == denom {
 			return int64(index), true
 		}
 	}
@@ -182,9 +182,9 @@ func (c HardLiquidityProviderClaim) HasSupplyRewardIndex(collateralType string) 
 }
 
 // HasBorrowRewardIndex check if a claim has a borrow reward index for the input collateral type
-func (c HardLiquidityProviderClaim) HasBorrowRewardIndex(collateralType string) (int64, bool) {
+func (c HardLiquidityProviderClaim) HasBorrowRewardIndex(denom string) (int64, bool) {
 	for index, ri := range c.SupplyRewardIndexes {
-		if ri.CollateralType == collateralType {
+		if ri.CollateralType == denom {
 			return int64(index), true
 		}
 	}
@@ -217,6 +217,8 @@ func (cs HardLiquidityProviderClaims) Validate() error {
 }
 
 // -------------- Subcomponents of Custom Claim Types --------------
+
+// TODO: refactor RewardPeriod name from 'collateralType' to 'denom'
 
 // RewardIndex stores reward accumulation information
 type RewardIndex struct {

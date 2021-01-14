@@ -44,8 +44,6 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 	return nil
 }
 
-// TODO: reward period 'denom' instead of 'collateralType'
-
 // AccumulateHardBorrowRewards updates the rewards accumulated for the input reward period
 func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType)
