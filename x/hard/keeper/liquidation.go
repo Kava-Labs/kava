@@ -64,9 +64,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 	}
 
 	// Sending coins to auction module with keeper address getting % of the profits
-	borrowDenoms := getDenoms(borrow.Amount)
-	depositDenoms := getDenoms(deposit.Amount)
-	err = k.SeizeDeposits(ctx, keeper, deposit, borrow, depositDenoms, borrowDenoms)
+	err = k.SeizeDeposits(ctx, keeper, deposit, borrow)
 	if err != nil {
 		return false, err
 	}
@@ -84,8 +82,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 }
 
 // SeizeDeposits seizes a list of deposits and sends them to auction
-func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit types.Deposit,
-	borrow types.Borrow, dDenoms, bDenoms []string) error {
+func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit types.Deposit, borrow types.Borrow) error {
 	liqMap, err := k.LoadLiquidationData(ctx, deposit, borrow)
 	if err != nil {
 		return err
