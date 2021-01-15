@@ -268,14 +268,22 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 // UpdateBorrowAndLtvIndex updates a borrow and its LTV index value in the store
 func (k Keeper) UpdateBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv, oldLtv sdk.Dec) {
 	k.RemoveFromLtvIndex(ctx, oldLtv, borrow.Borrower)
-	k.SetBorrow(ctx, borrow)
+	if borrow.Amount.Empty() {
+		k.DeleteBorrow(ctx, borrow)
+	} else {
+		k.SetBorrow(ctx, borrow)
+	}
 	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
 }
 
 // UpdateDepositAndLtvIndex updates a deposit and its LTV index value in the store
 func (k Keeper) UpdateDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, newLtv, oldLtv sdk.Dec) {
 	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
-	k.SetDeposit(ctx, deposit)
+	if deposit.Amount.Empty() {
+		k.DeleteDeposit(ctx, deposit)
+	} else {
+		k.SetDeposit(ctx, deposit)
+	}
 	k.InsertIntoLtvIndex(ctx, newLtv, deposit.Depositor)
 }
 
