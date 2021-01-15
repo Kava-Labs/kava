@@ -24,12 +24,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 		createDeposit             bool
 		expectedAccountBalance    sdk.Coins
 		expectedModAccountBalance sdk.Coins
-		depositExists             bool
 		finalDepositAmount        sdk.Coins
 	}
 	type errArgs struct {
-		expectPass bool
-		contains   string
+		expectPass   bool
+		expectDelete bool
+		contains     string
 	}
 	type withdrawTest struct {
 		name    string
@@ -47,12 +47,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-				depositExists:             true,
 				finalDepositAmount:        sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 			},
 			errArgs{
-				expectPass: true,
-				contains:   "",
+				expectPass:   true,
+				expectDelete: false,
+				contains:     "",
 			},
 		},
 		{
@@ -65,12 +65,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.Coins(nil),
-				depositExists:             false,
 				finalDepositAmount:        sdk.Coins{},
 			},
 			errArgs{
-				expectPass: true,
-				contains:   "",
+				expectPass:   true,
+				expectDelete: true,
+				contains:     "",
 			},
 		},
 		{
@@ -83,12 +83,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
 				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000))),
-				depositExists:             false,
 				finalDepositAmount:        sdk.Coins{},
 			},
 			errArgs{
-				expectPass: true,
-				contains:   "",
+				expectPass:   true,
+				expectDelete: true,
+				contains:     "",
 			},
 		},
 		{
@@ -101,12 +101,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
-				depositExists:             false,
 				finalDepositAmount:        sdk.Coins{},
 			},
 			errArgs{
-				expectPass: false,
-				contains:   "no coins of this type deposited",
+				expectPass:   false,
+				expectDelete: false,
+				contains:     "no coins of this type deposited",
 			},
 		},
 	}
@@ -198,11 +198,11 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
 				testDeposit, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor)
-				if tc.args.depositExists {
+				if tc.errArgs.expectDelete {
+					suite.Require().False(f)
+				} else {
 					suite.Require().True(f)
 					suite.Require().Equal(tc.args.finalDepositAmount, testDeposit.Amount)
-				} else {
-					suite.Require().False(f)
 				}
 			} else {
 				suite.Require().Error(err)
