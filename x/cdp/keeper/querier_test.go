@@ -287,7 +287,7 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 
 	var accounts []supply.ModuleAccount
 	suite.Require().Nil(supply.ModuleCdc.UnmarshalJSON(bz, &accounts))
-	suite.Require().Equal(3, len(accounts))
+	suite.Require().Equal(2, len(accounts))
 
 	findByName := func(name string) bool {
 		for _, account := range accounts {
@@ -300,7 +300,6 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 
 	suite.Require().True(findByName("cdp"))
 	suite.Require().True(findByName("liquidator"))
-	suite.Require().True(findByName("savings"))
 }
 
 func (suite *QuerierTestSuite) TestFindIntersection() {

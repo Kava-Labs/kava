@@ -37,7 +37,6 @@ const (
 	RestOwner                               = types.RestOwner
 	RestRatio                               = types.RestRatio
 	RouterKey                               = types.RouterKey
-	SavingsRateMacc                         = types.SavingsRateMacc
 	StoreKey                                = types.StoreKey
 )
 

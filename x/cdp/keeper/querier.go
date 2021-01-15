@@ -166,12 +166,10 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]by
 func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	cdpAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
 	liquidatorAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
-	savingsRateAccAccount := keeper.supplyKeeper.GetModuleAccount(ctx, types.SavingsRateMacc)
 
 	accounts := []supply.ModuleAccount{
 		*cdpAccAccount.(*supply.ModuleAccount),
 		*liquidatorAccAccount.(*supply.ModuleAccount),
-		*savingsRateAccAccount.(*supply.ModuleAccount),
 	}
 
 	// Encode results
