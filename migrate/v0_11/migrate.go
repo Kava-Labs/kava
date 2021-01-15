@@ -308,7 +308,6 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 						DebtFloor:        oldDebtParam.DebtFloor,
 						Denom:            oldDebtParam.Denom,
 						ReferenceAsset:   oldDebtParam.ReferenceAsset,
-						SavingsRate:      oldDebtParam.SavingsRate,
 					}
 					oldAssetParam := subPermission.AllowedAssetParams[0]
 					newAssetParam := v0_11committee.AllowedAssetParam{

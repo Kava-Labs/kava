@@ -50,11 +50,11 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 
 	oldDebtParam := oldGenState.Params.DebtParam
 
-	newDebtParam := v0_13cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor, oldDebtParam.SavingsRate)
+	newDebtParam := v0_13cdp.NewDebtParam(oldDebtParam.Denom, oldDebtParam.ReferenceAsset, oldDebtParam.ConversionFactor, oldDebtParam.DebtFloor)
 
 	newGlobalDebtLimit := oldGenState.Params.GlobalDebtLimit
 
-	newParams := v0_13cdp.NewParams(newGlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, oldGenState.Params.SavingsDistributionFrequency, false)
+	newParams := v0_13cdp.NewParams(newGlobalDebtLimit, newCollateralParams, newDebtParam, oldGenState.Params.SurplusAuctionThreshold, oldGenState.Params.SurplusAuctionLot, oldGenState.Params.DebtAuctionThreshold, oldGenState.Params.DebtAuctionLot, false)
 
 	return v0_13cdp.NewGenesisState(
 		newParams,
@@ -63,8 +63,6 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 		newStartingID,
 		oldGenState.DebtDenom,
 		oldGenState.GovDenom,
-		oldGenState.PreviousDistributionTime,
-		sdk.ZeroInt(),
 		newGenesisAccumulationTimes,
 		totalPrincipals,
 	)

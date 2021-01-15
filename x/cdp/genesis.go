@@ -24,10 +24,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 	if liqModuleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", LiquidatorMacc))
 	}
-	savingsRateMacc := sk.GetModuleAccount(ctx, SavingsRateMacc)
-	if savingsRateMacc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", SavingsRateMacc))
-	}
 
 	// validate denoms - check that any collaterals in the params are in the pricefeed,
 	// pricefeed MUST call InitGenesis before cdp
@@ -84,16 +80,11 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 	k.SetNextCdpID(ctx, gs.StartingCdpID)
 	k.SetDebtDenom(ctx, gs.DebtDenom)
 	k.SetGovDenom(ctx, gs.GovDenom)
-	// only set the previous block time if it's different than default
-	if !gs.PreviousDistributionTime.Equal(types.DefaultPreviousDistributionTime) {
-		k.SetPreviousSavingsDistribution(ctx, gs.PreviousDistributionTime)
-	}
 
 	for _, d := range gs.Deposits {
 		k.SetDeposit(ctx, d)
 	}
 
-	k.SetSavingsRateDistributed(ctx, gs.SavingsRateDistributed)
 }
 
 // ExportGenesis export genesis state for cdp module
@@ -114,12 +105,6 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	cdpID := k.GetNextCdpID(ctx)
 	debtDenom := k.GetDebtDenom(ctx)
 	govDenom := k.GetGovDenom(ctx)
-	savingsRateDist := k.GetSavingsRateDistributed(ctx)
-
-	previousDistributionTime, found := k.GetPreviousSavingsDistribution(ctx)
-	if !found {
-		previousDistributionTime = DefaultPreviousDistributionTime
-	}
 
 	var previousAccumTimes types.GenesisAccumulationTimes
 	var totalPrincipals types.GenesisTotalPrincipals
@@ -137,5 +122,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 		totalPrincipals = append(totalPrincipals, genTotalPrincipal)
 	}
 
-	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousDistributionTime, savingsRateDist, previousAccumTimes, totalPrincipals)
+	return NewGenesisState(params, cdps, deposits, cdpID, debtDenom, govDenom, previousAccumTimes, totalPrincipals)
 }

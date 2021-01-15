@@ -16,16 +16,14 @@ type GenesisState struct {
 	StartingCdpID             uint64                   `json:"starting_cdp_id" yaml:"starting_cdp_id"`
 	DebtDenom                 string                   `json:"debt_denom" yaml:"debt_denom"`
 	GovDenom                  string                   `json:"gov_denom" yaml:"gov_denom"`
-	PreviousDistributionTime  time.Time                `json:"previous_distribution_time" yaml:"previous_distribution_time"`
-	SavingsRateDistributed    sdk.Int                  `json:"savings_rate_distributed" yaml:"savings_rate_distributed"`
 	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
 	TotalPrincipals           GenesisTotalPrincipals   `json:"total_principals" yaml:"total_principals"`
 }
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID uint64,
-	debtDenom, govDenom string, previousDistTime time.Time, savingsRateDist sdk.Int,
-	prevAccumTimes GenesisAccumulationTimes, totalPrincipals GenesisTotalPrincipals) GenesisState {
+	debtDenom, govDenom string, prevAccumTimes GenesisAccumulationTimes,
+	totalPrincipals GenesisTotalPrincipals) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		CDPs:                      cdps,
@@ -33,8 +31,6 @@ func NewGenesisState(params Params, cdps CDPs, deposits Deposits, startingCdpID 
 		StartingCdpID:             startingCdpID,
 		DebtDenom:                 debtDenom,
 		GovDenom:                  govDenom,
-		PreviousDistributionTime:  previousDistTime,
-		SavingsRateDistributed:    savingsRateDist,
 		PreviousAccumulationTimes: prevAccumTimes,
 		TotalPrincipals:           totalPrincipals,
 	}
@@ -49,8 +45,6 @@ func DefaultGenesisState() GenesisState {
 		DefaultCdpStartingID,
 		DefaultDebtDenom,
 		DefaultGovDenom,
-		DefaultPreviousDistributionTime,
-		DefaultSavingsRateDistributed,
 		GenesisAccumulationTimes{},
 		GenesisTotalPrincipals{},
 	)
@@ -77,14 +71,6 @@ func (gs GenesisState) Validate() error {
 	}
 
 	if err := gs.TotalPrincipals.Validate(); err != nil {
-		return err
-	}
-
-	if gs.PreviousDistributionTime.IsZero() {
-		return fmt.Errorf("previous distribution time not set")
-	}
-
-	if err := validateSavingsRateDistributed(gs.SavingsRateDistributed); err != nil {
 		return err
 	}
 

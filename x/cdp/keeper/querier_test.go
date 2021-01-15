@@ -287,7 +287,7 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 
 	var accounts []supply.ModuleAccount
 	suite.Require().Nil(supply.ModuleCdc.UnmarshalJSON(bz, &accounts))
-	suite.Require().Equal(3, len(accounts))
+	suite.Require().Equal(2, len(accounts))
 
 	findByName := func(name string) bool {
 		for _, account := range accounts {
@@ -300,18 +300,6 @@ func (suite *QuerierTestSuite) TestQueryAccounts() {
 
 	suite.Require().True(findByName("cdp"))
 	suite.Require().True(findByName("liquidator"))
-	suite.Require().True(findByName("savings"))
-}
-
-func (suite *QuerierTestSuite) TestQuerySavingsRateDistributed() {
-	ctx := suite.ctx.WithIsCheckTx(false)
-	bz, err := suite.querier(ctx, []string{types.QueryGetSavingsRateDistributed}, abci.RequestQuery{})
-	suite.Nil(err)
-	suite.NotNil(bz)
-
-	var distAmount sdk.Int
-	suite.Nil(types.ModuleCdc.UnmarshalJSON(bz, &distAmount))
-	suite.True(sdk.ZeroInt().Equal(distAmount))
 }
 
 func (suite *QuerierTestSuite) TestFindIntersection() {

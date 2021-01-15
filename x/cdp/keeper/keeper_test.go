@@ -34,15 +34,3 @@ func (suite *KeeperTestSuite) ResetChain() {
 	suite.ctx = ctx
 	suite.keeper = keeper
 }
-
-func (suite *KeeperTestSuite) TestGetSetSavingsRateDistributed() {
-	suite.ResetChain()
-
-	// Set savings rate distributed value
-	savingsRateDist := sdk.NewInt(555000555000)
-	suite.keeper.SetSavingsRateDistributed(suite.ctx, savingsRateDist)
-
-	// Check store's savings rate distributed value
-	s := suite.keeper.GetSavingsRateDistributed(suite.ctx)
-	suite.Equal(savingsRateDist, s)
-}

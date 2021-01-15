@@ -542,7 +542,6 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 		ReferenceAsset:   "usd",
 		ConversionFactor: i(6),
 		DebtFloor:        i(10000000),
-		SavingsRate:      d("0.95"),
 	}
 	newDenomDP := testDP
 	newDenomDP.Denom = "usdz"
@@ -564,8 +563,7 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 		{
 			name: "allowed change",
 			allowed: AllowedDebtParam{
-				DebtFloor:   true,
-				SavingsRate: true,
+				DebtFloor: true,
 			},
 			current:       testDP,
 			incoming:      newDebtFloorDP,
@@ -574,8 +572,7 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 		{
 			name: "un-allowed change",
 			allowed: AllowedDebtParam{
-				DebtFloor:   true,
-				SavingsRate: true,
+				DebtFloor: true,
 			},
 			current:       testDP,
 			incoming:      newDenomDP,
@@ -584,8 +581,7 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 		{
 			name: "allowed no change",
 			allowed: AllowedDebtParam{
-				DebtFloor:   true,
-				SavingsRate: true,
+				DebtFloor: true,
 			},
 			current:       testDP,
 			incoming:      testDP, // no change
@@ -594,8 +590,7 @@ func (suite *PermissionsTestSuite) TestAllowedDebtParam_Allows() {
 		{
 			name: "un-allowed change with allowed change",
 			allowed: AllowedDebtParam{
-				DebtFloor:   true,
-				SavingsRate: true,
+				DebtFloor: true,
 			},
 			current:       testDP,
 			incoming:      newDenomAndDebtFloorDP,
