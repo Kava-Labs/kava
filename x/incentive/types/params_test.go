@@ -22,7 +22,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
 		active                     bool
 		usdxMintingRewardPeriods   types.RewardPeriods
-		hardLiquidityRewardPeriods types.RewardPeriods
+		hardSupplyRewardPeriods    types.RewardPeriods
+		hardBorrowRewardPeriods    types.RewardPeriods
 		hardDelegatorRewardPeriods types.RewardPeriods
 		multipliers                types.Multipliers
 		end                        time.Time
@@ -44,7 +45,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			args{
 				active:                     types.DefaultActive,
 				usdxMintingRewardPeriods:   types.DefaultRewardPeriods,
-				hardLiquidityRewardPeriods: types.DefaultRewardPeriods,
+				hardSupplyRewardPeriods:    types.DefaultRewardPeriods,
+				hardBorrowRewardPeriods:    types.DefaultRewardPeriods,
 				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
 				multipliers:                types.DefaultMultipliers,
 				end:                        types.DefaultClaimEnd,
@@ -69,7 +71,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						types.Large, 1, sdk.MustNewDecFromStr("1.0"),
 					),
 				},
-				hardLiquidityRewardPeriods: types.DefaultRewardPeriods,
+				hardSupplyRewardPeriods:    types.DefaultRewardPeriods,
+				hardBorrowRewardPeriods:    types.DefaultRewardPeriods,
 				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
 				end:                        time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},
@@ -83,8 +86,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			params := types.NewParams(
-				tc.args.active, tc.args.usdxMintingRewardPeriods, tc.args.hardLiquidityRewardPeriods,
-				tc.args.hardDelegatorRewardPeriods, tc.args.multipliers, tc.args.end,
+				tc.args.active, tc.args.usdxMintingRewardPeriods, tc.args.hardSupplyRewardPeriods,
+				tc.args.hardBorrowRewardPeriods, tc.args.hardDelegatorRewardPeriods, tc.args.multipliers, tc.args.end,
 			)
 			err := params.Validate()
 			if tc.errArgs.expectPass {
