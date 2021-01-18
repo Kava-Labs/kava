@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 		borrower              sdk.AccAddress
 		initialModuleCoins    sdk.Coins
 		initialBorrowerCoins  sdk.Coins
-		depositCoins          []sdk.Coin
+		depositCoins          sdk.Coins
 		borrowCoins           sdk.Coins
 		beginBlockerTime      int64
 		ltvIndexCount         int
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				borrower:              borrower,
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
 				beginBlockerTime:      oneMonthInSeconds,
 				ltvIndexCount:         int(10),
@@ -89,12 +89,80 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 			},
 		},
 		{
+			"valid: HARD module account starts with no coins",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.Coins{},
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 10000411),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004765),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+		// {
+		// 	"valid: LTV index liquidates borrow with multiple coin types",
+		// 	args{
+		// 		borrower:              borrower,
+		// 		initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+		// 		initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF))),
+		// 		depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF))),
+		// 		borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(8*BNB_CF))),
+		// 		beginBlockerTime:      oneMonthInSeconds,
+		// 		ltvIndexCount:         int(10),
+		// 		expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(98*BNB_CF))), // initial - deposit + borrow + liquidation leftovers
+		// 		expectedAuctions: auctypes.Auctions{
+		// 			auctypes.CollateralAuction{
+		// 				BaseAuction: auctypes.BaseAuction{
+		// 					ID:              1,
+		// 					Initiator:       "hard_liquidator",
+		// 					Lot:             sdk.NewInt64Coin("ukava", 10000411),
+		// 					Bidder:          nil,
+		// 					Bid:             sdk.NewInt64Coin("ukava", 0),
+		// 					HasReceivedBids: false,
+		// 					EndTime:         endTime,
+		// 					MaxEndTime:      endTime,
+		// 				},
+		// 				CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+		// 				MaxBid:            sdk.NewInt64Coin("ukava", 8004765),
+		// 				LotReturns:        lotReturns,
+		// 			},
+		// 		},
+		// 	},
+		// 	errArgs{
+		// 		expectLiquidate: true,
+		// 		contains:        "",
+		// 	},
+		// },
+		{
 			"invalid: borrow not over limit, LTV index does not liquidate",
 			args{
 				borrower:              borrower,
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(7*KAVA_CF))),
 				beginBlockerTime:      oneMonthInSeconds,
 				ltvIndexCount:         int(10),

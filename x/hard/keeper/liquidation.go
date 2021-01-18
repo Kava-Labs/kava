@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -87,8 +88,9 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 		amount := depCoin.Amount
 		mm, _ := k.GetMoneyMarket(ctx, denom)
 
-		// No rewards for anyone if liquidated by LTV index
+		// No keeper rewards if liquidated by LTV index
 		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
+			fmt.Println("Keeper is NOT liquidator account")
 			keeperReward := mm.KeeperRewardPercentage.MulInt(amount).TruncateInt()
 			if keeperReward.GT(sdk.ZeroInt()) {
 				// Send keeper their reward
@@ -104,6 +106,8 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 		// Add remaining deposit coin to aucDeposits
 		aucDeposits = aucDeposits.Add(sdk.NewCoin(denom, amount))
 	}
+
+	fmt.Println("aucDeposits:", aucDeposits)
 
 	// Build valuation map to hold deposit coin USD valuations
 	depositCoinValues := types.NewValuationMap()
@@ -139,6 +143,8 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 	bKeys := borrowCoinValues.GetSortedKeys()
 	dKeys := depositCoinValues.GetSortedKeys()
 
+	fmt.Println("1")
+
 	// Set up auction constants
 	returnAddrs := []sdk.AccAddress{borrower}
 	weights := []sdk.Int{sdk.NewInt(100)}
@@ -148,20 +154,65 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 		bValue := borrowCoinValues.Get(bKey)
 		maxLotSize := bValue.Quo(ltv)
 
+		fmt.Println("2")
+		fmt.Println("bKey:", bKey)
+		fmt.Println("bValue:", bValue)
+
 		for _, dKey := range dKeys {
 			dValue := depositCoinValues.Get(dKey)
+			fmt.Println("3")
 			if maxLotSize.Equal(sdk.ZeroDec()) {
 				break // exit out of the loop if we have cleared the full amount
 			}
+			fmt.Println("4")
+			fmt.Println("dKey:", dKey)
+			fmt.Println("dValue:", dValue)
+
+			// USD amount we want to recover via auctions
+			var usdToRecover sdk.Dec
+			// var usdUserLeftover sdk.Dec
+			if dKey == bKey {
+				if dValue.GTE(bValue) { // TODO: this should pretty much always be true
+					usdToRecover = dValue.Sub(bValue)
+					fmt.Println("usdToRecover:", usdToRecover)
+
+					// seize USD to recover (should it be sent somewhere?)
+					nativeToRecover := usdToRecover.MulInt(liqMap[dKey].conversionFactor).Quo(liqMap[dKey].price)
+					fmt.Println("nativeToRecover:", nativeToRecover)
+
+					macc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+					maccCoins := macc.SpendableCoins(ctx.BlockTime())
+					maccCoin := maccCoins.AmountOf(dKey)
+					fmt.Println("maccCoin:", maccCoin)
+
+					// TODO: can't get maccoin this way...
+					var nativeAmtToReturn sdk.Dec
+					if maccCoin.ToDec().GT(nativeToRecover) {
+						nativeAmtToReturn = maccCoin.ToDec().Sub(nativeToRecover)
+					}
+					fmt.Println("nativeAmtToReturn:", nativeAmtToReturn)
+
+				}
+			}
+
+			// else {
+			// 	usdToRecover = bValue.Sub(dValue)
+			// }
 
 			if dValue.GTE(maxLotSize) { // We can start an auction for the whole borrow amount
+				fmt.Println("5a")
+
 				bid := sdk.NewCoin(bKey, borrows.AmountOf(bKey))
 				lotSize := maxLotSize.MulInt(liqMap[dKey].conversionFactor).Quo(liqMap[dKey].price)
 				lot := sdk.NewCoin(dKey, lotSize.TruncateInt())
+				fmt.Println("bid:", bid)
+				fmt.Println("lot:", lot)
 				// Sanity check that we can deliver coins to the liquidator account
 				if deposits.AmountOf(dKey).LT(lot.Amount) {
 					return types.ErrInsufficientCoins
 				}
+
+				fmt.Println("5b")
 
 				// Start auction: bid = full borrow amount, lot = maxLotSize
 				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
@@ -173,6 +224,8 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 					return err
 				}
 
+				fmt.Println("5c")
+
 				// Update USD valuation maps
 				borrowCoinValues.SetZero(bKey)
 				depositCoinValues.Decrement(dKey, maxLotSize)
@@ -182,29 +235,40 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				// Update max lot size
 				maxLotSize = sdk.ZeroDec()
 			} else { // We can only start an auction for the partial borrow amount
+				fmt.Println("6a")
+
 				maxBid := dValue.Mul(ltv)
 				bidSize := maxBid.MulInt(liqMap[bKey].conversionFactor).Quo(liqMap[bKey].price)
 				bid := sdk.NewCoin(bKey, bidSize.TruncateInt())
 				lot := sdk.NewCoin(dKey, deposits.AmountOf(dKey))
+				fmt.Println("bid:", bid)
+				fmt.Println("lot:", lot)
 
 				if bid.Amount.Equal(sdk.ZeroInt()) || lot.Amount.Equal(sdk.ZeroInt()) {
 					continue
+				}
+
+				if bid.Denom == lot.Denom {
+
 				}
 
 				// Sanity check that we can deliver coins to the liquidator account
 				if deposits.AmountOf(dKey).LT(lot.Amount) {
 					return types.ErrInsufficientCoins
 				}
+				fmt.Println("6b")
 
 				// Start auction: bid = maxBid, lot = whole deposit amount
 				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
 					return err
 				}
+				fmt.Println("6c")
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return err
 				}
+				fmt.Println("6d")
 
 				// Update variables to account for partial auction
 				borrowCoinValues.Decrement(bKey, maxBid)
