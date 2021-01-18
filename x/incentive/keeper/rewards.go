@@ -59,25 +59,23 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	totalBorrowedCoins, _ := k.hardKeeper.GetBorrowedCoins(ctx)
-	for _, coin := range totalBorrowedCoins {
-		if coin.Denom == rewardPeriod.CollateralType {
-			totalBorrowed := totalBorrowedCoins.AmountOf(coin.Denom).ToDec()
-			if totalBorrowed.IsZero() {
-				k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-				return nil
-			}
-			newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-			rewardFactor := newRewards.ToDec().Quo(totalBorrowed)
-
-			previousRewardFactor, found := k.GetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType)
-			if !found {
-				previousRewardFactor = sdk.ZeroDec()
-			}
-			newRewardFactor := previousRewardFactor.Add(rewardFactor)
-			k.SetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+	totalBorrowedCoins, foundTotalBorrowedCoins := k.hardKeeper.GetBorrowedCoins(ctx)
+	if foundTotalBorrowedCoins {
+		totalBorrowed := totalBorrowedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
+		if totalBorrowed.IsZero() {
 			k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+			return nil
 		}
+		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
+		rewardFactor := newRewards.ToDec().Quo(totalBorrowed)
+
+		previousRewardFactor, found := k.GetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType)
+		if !found {
+			previousRewardFactor = sdk.ZeroDec()
+		}
+		newRewardFactor := previousRewardFactor.Add(rewardFactor)
+		k.SetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	}
 
 	return nil
@@ -99,25 +97,23 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 		return nil
 	}
 
-	totalSuppliedCoins, _ := k.hardKeeper.GetSuppliedCoins(ctx)
-	for _, coin := range totalSuppliedCoins {
-		if coin.Denom == rewardPeriod.CollateralType {
-			totalSupplied := totalSuppliedCoins.AmountOf(coin.Denom).ToDec()
-			if totalSupplied.IsZero() {
-				k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-				return nil
-			}
-			newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-			rewardFactor := newRewards.ToDec().Quo(totalSupplied)
-
-			previousRewardFactor, found := k.GetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType)
-			if !found {
-				previousRewardFactor = sdk.ZeroDec()
-			}
-			newRewardFactor := previousRewardFactor.Add(rewardFactor)
-			k.SetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+	totalSuppliedCoins, foundTotalSuppliedCoins := k.hardKeeper.GetSuppliedCoins(ctx)
+	if foundTotalSuppliedCoins {
+		totalSupplied := totalSuppliedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
+		if totalSupplied.IsZero() {
 			k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+			return nil
 		}
+		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
+		rewardFactor := newRewards.ToDec().Quo(totalSupplied)
+
+		previousRewardFactor, found := k.GetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType)
+		if !found {
+			previousRewardFactor = sdk.ZeroDec()
+		}
+		newRewardFactor := previousRewardFactor.Add(rewardFactor)
+		k.SetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	}
 
 	return nil
