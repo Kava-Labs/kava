@@ -156,7 +156,6 @@ func (k Keeper) SetHardLiquidityProviderClaim(ctx sdk.Context, c types.HardLiqui
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(c)
 	store.Set(c.Owner, bz)
-
 }
 
 // DeleteHardLiquidityProviderClaim deletes the claim in the store corresponding to the input address, collateral type, and id
