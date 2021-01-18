@@ -230,7 +230,6 @@ func TestRewardCalculation(t *testing.T) {
 		NewCDPGenStateHighInterest(),
 		NewIncentiveGenState(initialTime, initialTime.Add(oneYear), rewardPeriod),
 	)
-	fmt.Println("RUN INIT GENESIS")
 
 	// Create a CDP
 	cdpKeeper := tApp.GetCDPKeeper()
