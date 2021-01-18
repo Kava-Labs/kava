@@ -28,8 +28,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 	}
 
 	type errArgs struct {
-		expectPass bool
-		contains   string
+		expectPass   bool
+		expectDelete bool
+		contains     string
 	}
 
 	type borrowTest struct {
@@ -52,8 +53,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 			},
 			errArgs{
-				expectPass: true,
-				contains:   "",
+				expectPass:   true,
+				expectDelete: false,
+				contains:     "",
 			},
 		},
 		{
@@ -67,8 +69,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(50*KAVA_CF))),
 			},
 			errArgs{
-				expectPass: true,
-				contains:   "",
+				expectPass:   true,
+				expectDelete: true,
+				contains:     "",
 			},
 		},
 		{
@@ -82,8 +85,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(60*KAVA_CF))), // Exceeds borrowed coins but not user's balance
 			},
 			errArgs{
-				expectPass: true,
-				contains:   "",
+				expectPass:   true,
+				expectDelete: true,
+				contains:     "",
 			},
 		},
 		{
@@ -97,8 +101,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*KAVA_CF))),
 			},
 			errArgs{
-				expectPass: false,
-				contains:   "account can only repay up to 0bnb",
+				expectPass:   false,
+				expectDelete: false,
+				contains:     "account can only repay up to 0bnb",
 			},
 		},
 		{
@@ -112,8 +117,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(51*KAVA_CF))), // Exceeds user's KAVA balance
 			},
 			errArgs{
-				expectPass: false,
-				contains:   "account can only repay up to 50000000ukava",
+				expectPass:   false,
+				expectDelete: false,
+				contains:     "account can only repay up to 50000000ukava",
 			},
 		},
 	}
@@ -232,9 +238,15 @@ func (suite *KeeperTestSuite) TestRepay() {
 				suite.Require().Equal(expectedModuleCoins, mAcc.GetCoins())
 
 				// Check user's borrow object
-				borrow, _ := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
+				borrow, foundBorrow := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
 				expectedBorrowCoins := tc.args.borrowCoins.Sub(repaymentCoins)
-				suite.Require().Equal(expectedBorrowCoins, borrow.Amount)
+
+				if tc.errArgs.expectDelete {
+					suite.Require().False(foundBorrow)
+				} else {
+					suite.Require().True(foundBorrow)
+					suite.Require().Equal(expectedBorrowCoins, borrow.Amount)
+				}
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
@@ -250,7 +262,8 @@ func (suite *KeeperTestSuite) TestRepay() {
 				suite.Require().Equal(expectedModuleCoins, mAcc.GetCoins())
 
 				// Check user's borrow object (no repay coins)
-				borrow, _ := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
+				borrow, foundBorrow := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
+				suite.Require().True(foundBorrow)
 				suite.Require().Equal(tc.args.borrowCoins, borrow.Amount)
 			}
 		})
