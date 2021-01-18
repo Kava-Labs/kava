@@ -20,6 +20,7 @@ type CdpKeeper interface {
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
 	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
 	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
+	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
 }
 
 // AccountKeeper defines the expected keeper interface for interacting with account
