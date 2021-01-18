@@ -13,6 +13,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/kavadist"
 )
 
@@ -41,7 +42,16 @@ func (suite *HandlerTestSuite) SetupTest() {
 		coins = append(coins, cs(c("bnb", 10000000000), c("ukava", 10000000000)))
 	}
 	authGS := app.NewAuthGenState(addrs, coins)
-	tApp.InitializeFromGenesisStates(authGS)
+	incentiveGS := incentive.NewGenesisState(
+		incentive.NewParams(
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.Multipliers{incentive.NewMultiplier(incentive.MultiplierName("small"), 1, d("0.25")), incentive.NewMultiplier(incentive.MultiplierName("large"), 12, d("1.0"))},
+			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
+		),
+		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultClaims,
+	)
+	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)})
 
 	suite.addrs = addrs
 	suite.handler = incentive.NewHandler(keeper)
@@ -51,15 +61,10 @@ func (suite *HandlerTestSuite) SetupTest() {
 }
 
 func (suite *HandlerTestSuite) addClaim() {
-	supplyKeeper := suite.app.GetSupplyKeeper()
-	macc := supplyKeeper.GetModuleAccount(suite.ctx, kavadist.ModuleName)
-	err := supplyKeeper.MintCoins(suite.ctx, macc.GetName(), cs(c("ukava", 1000000)))
+	sk := suite.app.GetSupplyKeeper()
+	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 	suite.Require().NoError(err)
-	cp := incentive.NewClaimPeriod("bnb", 1, suite.ctx.BlockTime().Add(time.Hour*168), incentive.Multipliers{incentive.NewMultiplier(incentive.Small, 1, sdk.MustNewDecFromStr("0.33"))})
-	suite.NotPanics(func() {
-		suite.keeper.SetClaimPeriod(suite.ctx, cp)
-	})
-	c1 := incentive.NewClaim(suite.addrs[0], c("ukava", 1000000), "bnb", 1)
+	c1 := incentive.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())})
 	suite.NotPanics(func() {
 		suite.keeper.SetClaim(suite.ctx, c1)
 	})
@@ -67,7 +72,7 @@ func (suite *HandlerTestSuite) addClaim() {
 
 func (suite *HandlerTestSuite) TestMsgClaimReward() {
 	suite.addClaim()
-	msg := incentive.NewMsgClaimReward(suite.addrs[0], "bnb", "small")
+	msg := incentive.NewMsgClaimUSDXMintingReward(suite.addrs[0], "small")
 	res, err := suite.handler(suite.ctx, msg)
 	suite.NoError(err)
 	suite.Require().NotNil(res)
@@ -75,3 +80,7 @@ func (suite *HandlerTestSuite) TestMsgClaimReward() {
 func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
 }
+
+// Avoid cluttering test cases with long function names
+func i(in int64) sdk.Int   { return sdk.NewInt(in) }
+func d(str string) sdk.Dec { return sdk.MustNewDecFromStr(str) }

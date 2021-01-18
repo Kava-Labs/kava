@@ -17,15 +17,17 @@ const (
 
 // QueryClaimsParams params for query /incentive/claims
 type QueryClaimsParams struct {
-	Owner          sdk.AccAddress
-	CollateralType string
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
 }
 
 // NewQueryClaimsParams returns QueryClaimsParams
-func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClaimsParams {
+func NewQueryClaimsParams(page, limit int, owner sdk.AccAddress) QueryClaimsParams {
 	return QueryClaimsParams{
-		Owner:          owner,
-		CollateralType: collateralType,
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
 	}
 }
 
@@ -33,6 +35,5 @@ func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClai
 type PostClaimReq struct {
 	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 }

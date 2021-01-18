@@ -42,7 +42,7 @@ func postClaimHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgClaimReward(requestBody.Sender, requestBody.CollateralType, requestBody.MultiplierName)
+		msg := types.NewMsgClaimUSDXMintingReward(requestBody.Sender, requestBody.MultiplierName)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

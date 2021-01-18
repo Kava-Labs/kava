@@ -17,6 +17,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper, owner sdk.AccA
 	if !found {
 		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
 	}
+	k.hooks.BeforeCDPModified(ctx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	err := k.ValidateLiquidation(ctx, cdp.Collateral, cdp.Type, cdp.Principal, cdp.AccumulatedFees)
@@ -101,6 +102,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio)
 	cdpsToLiquidate := k.GetAllCdpsByCollateralTypeAndRatio(ctx, collateralType, normalizedRatio)
 	for _, c := range cdpsToLiquidate {
+		k.hooks.BeforeCDPModified(ctx, c)
 		err := k.SeizeCollateral(ctx, c)
 		if err != nil {
 			return err

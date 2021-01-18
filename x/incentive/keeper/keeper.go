@@ -37,182 +37,39 @@ func NewKeeper(
 	}
 }
 
-// GetRewardPeriod returns the reward period from the store for the input collateral type and a boolean for if it was found
-func (k Keeper) GetRewardPeriod(ctx sdk.Context, collateralType string) (types.RewardPeriod, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	bz := store.Get([]byte(collateralType))
-	if bz == nil {
-		return types.RewardPeriod{}, false
-	}
-	var rp types.RewardPeriod
-	k.cdc.MustUnmarshalBinaryBare(bz, &rp)
-	return rp, true
-}
-
-// SetRewardPeriod sets the reward period in the store for the input deno,
-func (k Keeper) SetRewardPeriod(ctx sdk.Context, rp types.RewardPeriod) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(rp)
-	store.Set([]byte(rp.CollateralType), bz)
-}
-
-// DeleteRewardPeriod deletes the reward period in the store for the input collateral type,
-func (k Keeper) DeleteRewardPeriod(ctx sdk.Context, collateralType string) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	store.Delete([]byte(collateralType))
-}
-
-// IterateRewardPeriods iterates over all reward period objects in the store and preforms a callback function
-func (k Keeper) IterateRewardPeriods(ctx sdk.Context, cb func(rp types.RewardPeriod) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var rp types.RewardPeriod
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &rp)
-		if cb(rp) {
-			break
-		}
-	}
-}
-
-// GetAllRewardPeriods returns all reward periods in the store
-func (k Keeper) GetAllRewardPeriods(ctx sdk.Context) types.RewardPeriods {
-	rps := types.RewardPeriods{}
-	k.IterateRewardPeriods(ctx, func(rp types.RewardPeriod) (stop bool) {
-		rps = append(rps, rp)
-		return false
-	})
-	return rps
-}
-
-// GetNextClaimPeriodID returns the highest claim period id in the store for the input collateral type
-func (k Keeper) GetNextClaimPeriodID(ctx sdk.Context, collateralType string) uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
-	bz := store.Get([]byte(collateralType))
-	if bz == nil {
-		k.SetNextClaimPeriodID(ctx, collateralType, 1)
-		return uint64(1)
-	}
-	return types.BytesToUint64(bz)
-}
-
-// SetNextClaimPeriodID sets the highest claim period id in the store for the input collateral type
-func (k Keeper) SetNextClaimPeriodID(ctx sdk.Context, collateralType string, id uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
-	store.Set([]byte(collateralType), sdk.Uint64ToBigEndian(id))
-}
-
-// IterateClaimPeriodIDKeysAndValues iterates over the claim period id (value) and collateral type (key) of each claim period id in the store and performs a callback function
-func (k Keeper) IterateClaimPeriodIDKeysAndValues(ctx sdk.Context, cb func(collateralType string, id uint64) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.NextClaimPeriodIDPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		id := types.BytesToUint64(iterator.Value())
-		collateralType := string(iterator.Key())
-		if cb(collateralType, id) {
-			break
-		}
-	}
-}
-
-// GetAllClaimPeriodIDPairs returns all collateralType:nextClaimPeriodID pairs in the store
-func (k Keeper) GetAllClaimPeriodIDPairs(ctx sdk.Context) types.GenesisClaimPeriodIDs {
-	ids := types.GenesisClaimPeriodIDs{}
-	k.IterateClaimPeriodIDKeysAndValues(ctx, func(collateralType string, id uint64) (stop bool) {
-		genID := types.GenesisClaimPeriodID{
-			CollateralType: collateralType,
-			ID:             id,
-		}
-		ids = append(ids, genID)
-		return false
-	})
-	return ids
-}
-
-// GetClaimPeriod returns claim period in the store for the input ID and collateral type and a boolean for if it was found
-func (k Keeper) GetClaimPeriod(ctx sdk.Context, id uint64, collateralType string) (types.ClaimPeriod, bool) {
-	var cp types.ClaimPeriod
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
-	bz := store.Get(types.GetClaimPeriodPrefix(collateralType, id))
-	if bz == nil {
-		return types.ClaimPeriod{}, false
-	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &cp)
-	return cp, true
-}
-
-// SetClaimPeriod sets the claim period in the store for the input ID and collateral type
-func (k Keeper) SetClaimPeriod(ctx sdk.Context, cp types.ClaimPeriod) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(cp)
-	store.Set(types.GetClaimPeriodPrefix(cp.CollateralType, cp.ID), bz)
-}
-
-// DeleteClaimPeriod deletes the claim period in the store for the input ID and collateral type
-func (k Keeper) DeleteClaimPeriod(ctx sdk.Context, id uint64, collateralType string) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
-	store.Delete(types.GetClaimPeriodPrefix(collateralType, id))
-}
-
-// IterateClaimPeriods iterates over all claim period objects in the store and preforms a callback function
-func (k Keeper) IterateClaimPeriods(ctx sdk.Context, cb func(cp types.ClaimPeriod) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimPeriodKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var cp types.ClaimPeriod
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &cp)
-		if cb(cp) {
-			break
-		}
-	}
-}
-
-// GetAllClaimPeriods returns all ClaimPeriod objects in the store
-func (k Keeper) GetAllClaimPeriods(ctx sdk.Context) types.ClaimPeriods {
-	cps := types.ClaimPeriods{}
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		cps = append(cps, cp)
-		return false
-	})
-	return cps
-}
-
 // GetClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
-func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64) (types.Claim, bool) {
+func (k Keeper) GetClaim(ctx sdk.Context, addr sdk.AccAddress) (types.USDXMintingClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	bz := store.Get(types.GetClaimPrefix(addr, collateralType, id))
+	bz := store.Get(addr)
 	if bz == nil {
-		return types.Claim{}, false
+		return types.USDXMintingClaim{}, false
 	}
-	var c types.Claim
+	var c types.USDXMintingClaim
 	k.cdc.MustUnmarshalBinaryBare(bz, &c)
 	return c, true
 }
 
 // SetClaim sets the claim in the store corresponding to the input address, collateral type, and id
-func (k Keeper) SetClaim(ctx sdk.Context, c types.Claim) {
+func (k Keeper) SetClaim(ctx sdk.Context, c types.USDXMintingClaim) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(c)
-	store.Set(types.GetClaimPrefix(c.Owner, c.CollateralType, c.ClaimPeriodID), bz)
+	store.Set(c.Owner, bz)
 
 }
 
 // DeleteClaim deletes the claim in the store corresponding to the input address, collateral type, and id
-func (k Keeper) DeleteClaim(ctx sdk.Context, owner sdk.AccAddress, collateralType string, id uint64) {
+func (k Keeper) DeleteClaim(ctx sdk.Context, owner sdk.AccAddress) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	store.Delete(types.GetClaimPrefix(owner, collateralType, id))
+	store.Delete(owner)
 }
 
 // IterateClaims iterates over all claim  objects in the store and preforms a callback function
-func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.Claim) (stop bool)) {
+func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.USDXMintingClaim) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var c types.Claim
+		var c types.USDXMintingClaim
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &c)
 		if cb(c) {
 			break
@@ -221,28 +78,61 @@ func (k Keeper) IterateClaims(ctx sdk.Context, cb func(c types.Claim) (stop bool
 }
 
 // GetAllClaims returns all Claim objects in the store
-func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
-	cs := types.Claims{}
-	k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
+func (k Keeper) GetAllClaims(ctx sdk.Context) types.USDXMintingClaims {
+	cs := types.USDXMintingClaims{}
+	k.IterateClaims(ctx, func(c types.USDXMintingClaim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
 	return cs
 }
 
-// GetPreviousBlockTime get the blocktime for the previous block
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get([]byte{})
-	if b == nil {
+// GetPreviousAccrualTime returns the last time a collateral type accrued rewards
+func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BlockTimeKey)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
 		return time.Time{}, false
 	}
-	k.cdc.MustUnmarshalBinaryBare(b, &blockTime)
+	k.cdc.MustUnmarshalBinaryBare(bz, &blockTime)
 	return blockTime, true
 }
 
-// SetPreviousBlockTime set the time of the previous block
-func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryBare(blockTime))
+// SetPreviousAccrualTime sets the last time a collateral type accrued rewards
+func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, ctype string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BlockTimeKey)
+	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(blockTime))
+}
+
+// IterateAccrualTimes iterates over all previous accrual times and preforms a callback function
+func (k Keeper) IterateAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.BlockTimeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var accrualTime time.Time
+		var collateralType string
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &collateralType)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &accrualTime)
+		if cb(collateralType, accrualTime) {
+			break
+		}
+	}
+}
+
+// GetRewardFactor returns the current reward factor for an individual collateral type
+func (k Keeper) GetRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardFactorKey)
+	bz := store.Get([]byte(ctype))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &factor)
+	return factor, true
+}
+
+// SetRewardFactor sets the current reward factor for an individual collateral type
+func (k Keeper) SetRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardFactorKey)
+	store.Set([]byte(ctype), k.cdc.MustMarshalBinaryBare(factor))
 }

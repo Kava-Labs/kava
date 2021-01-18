@@ -27,7 +27,7 @@ import (
 	v0_11committee "github.com/kava-labs/kava/x/committee"
 	v0_9committee "github.com/kava-labs/kava/x/committee/legacy/v0_9"
 	v0_11harvest "github.com/kava-labs/kava/x/harvest/legacy/v0_11"
-	v0_11incentive "github.com/kava-labs/kava/x/incentive"
+	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	v0_9incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_9"
 	v0_11issuance "github.com/kava-labs/kava/x/issuance"
 	v0_11pricefeed "github.com/kava-labs/kava/x/pricefeed"
@@ -308,7 +308,6 @@ func MigrateCommittee(oldGenState v0_9committee.GenesisState) v0_11committee.Gen
 						DebtFloor:        oldDebtParam.DebtFloor,
 						Denom:            oldDebtParam.Denom,
 						ReferenceAsset:   oldDebtParam.ReferenceAsset,
-						SavingsRate:      oldDebtParam.SavingsRate,
 					}
 					oldAssetParam := subPermission.AllowedAssetParams[0]
 					newAssetParam := v0_11committee.AllowedAssetParam{

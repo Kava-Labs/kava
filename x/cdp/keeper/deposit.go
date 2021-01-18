@@ -25,7 +25,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	if err != nil {
 		return err
 	}
-
+	k.hooks.BeforeCDPModified(ctx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
@@ -72,7 +72,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	if collateral.Amount.GT(deposit.Amount.Amount) {
 		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
-
+	k.hooks.BeforeCDPModified(ctx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Type, cdp.Principal, cdp.AccumulatedFees, spot)

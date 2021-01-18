@@ -14,7 +14,6 @@ import (
 
 type msgTest struct {
 	from           sdk.AccAddress
-	collateralType string
 	multiplierName string
 	expectPass     bool
 }
@@ -29,25 +28,26 @@ func (suite *MsgTestSuite) SetupTest() {
 	tests := []msgTest{
 		{
 			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-			collateralType: "bnb",
 			multiplierName: "large",
 			expectPass:     true,
 		},
 		{
 			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-			collateralType: "",
+			multiplierName: "medium",
+			expectPass:     true,
+		},
+		{
+			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
 			multiplierName: "small",
-			expectPass:     false,
+			expectPass:     true,
 		},
 		{
 			from:           sdk.AccAddress{},
-			collateralType: "bnb",
 			multiplierName: "medium",
 			expectPass:     false,
 		},
 		{
 			from:           sdk.AccAddress(crypto.AddressHash([]byte("KavaTest1"))),
-			collateralType: "bnb",
 			multiplierName: "huge",
 			expectPass:     false,
 		},
@@ -57,7 +57,7 @@ func (suite *MsgTestSuite) SetupTest() {
 
 func (suite *MsgTestSuite) TestMsgValidation() {
 	for _, t := range suite.tests {
-		msg := types.NewMsgClaimReward(t.from, t.collateralType, t.multiplierName)
+		msg := types.NewMsgClaimUSDXMintingReward(t.from, t.multiplierName)
 		err := msg.ValidateBasic()
 		if t.expectPass {
 			suite.Require().NoError(err)

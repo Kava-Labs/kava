@@ -43,7 +43,6 @@ func TestDecodeDistributionStore(t *testing.T) {
 		kv.Pair{Key: []byte(types.GovDenomKey), Value: cdc.MustMarshalBinaryLengthPrefixed(denom)},
 		kv.Pair{Key: []byte(types.DepositKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(deposit)},
 		kv.Pair{Key: []byte(types.PrincipalKeyPrefix), Value: cdc.MustMarshalBinaryLengthPrefixed(principal)},
-		kv.Pair{Key: []byte(types.PreviousDistributionTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevDistTime)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -59,7 +58,6 @@ func TestDecodeDistributionStore(t *testing.T) {
 		{"GovDenom", fmt.Sprintf("%s\n%s", denom, denom)},
 		{"DepositKeyPrefix", fmt.Sprintf("%v\n%v", deposit, deposit)},
 		{"Principal", fmt.Sprintf("%v\n%v", principal, principal)},
-		{"PreviousDistributionTime", fmt.Sprintf("%s\n%s", prevDistTime, prevDistTime)},
 		{"other", ""},
 	}
 	for i, tt := range tests {

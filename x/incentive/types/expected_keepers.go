@@ -17,12 +17,19 @@ type SupplyKeeper interface {
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
-	IterateCdpsByCollateralType(ctx sdk.Context, collateralType string, cb func(cdp cdptypes.CDP) (stop bool))
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
+	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
+	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
 }
 
 // AccountKeeper defines the expected keeper interface for interacting with account
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 	SetAccount(ctx sdk.Context, acc authexported.Account)
+}
+
+// CDPHooks event hooks for other keepers to run code in response to CDP modifications
+type CDPHooks interface {
+	AfterCDPCreated(ctx sdk.Context, cdp cdptypes.CDP)
+	BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP)
 }
