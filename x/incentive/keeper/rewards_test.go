@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			borrow, found := hardKeeper.GetBorrow(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow, tc.args.borrow.Denom)
+				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 			})
 
 			// Check that reward factor and claim have been updated as expected
@@ -593,7 +593,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			deposit, found := hardKeeper.GetDeposit(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit, tc.args.deposit.Denom)
+				suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit)
 			})
 
 			// Check that reward factor and claim have been updated as expected
