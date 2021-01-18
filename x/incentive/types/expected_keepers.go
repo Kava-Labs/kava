@@ -42,10 +42,10 @@ type CDPHooks interface {
 
 // HARDHooks event hooks for other keepers to run code in response to HARD modifications
 type HARDHooks interface {
-	BeforeDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
-	BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
-	AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
-	BeforeBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow, denom string)
-	BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, denom string)
-	AfterBorrowModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
+	AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit)
+	BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit)
+	AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit)
+	AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow)
+	BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow)
+	AfterBorrowModified(ctx sdk.Context, deposit hardtypes.Deposit)
 }

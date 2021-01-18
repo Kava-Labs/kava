@@ -29,14 +29,15 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 	h.k.SynchronizeUSDXMintingReward(ctx, cdp)
 }
 
-// BeforeDepositCreated function that runs before a deposit is created
-func (h Hooks) BeforeDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
-	h.k.InitializeHardSupplyReward(ctx, deposit, denom)
+// AfterDepositCreated function that runs after a deposit is created
+func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
+	// TODO: simplify InitializeHardSupplyReward
+	h.k.InitializeHardSupplyReward(ctx, deposit)
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
-	h.k.SynchronizeHardSupplyReward(ctx, deposit, denom)
+func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
+	h.k.SynchronizeHardSupplyReward(ctx, deposit)
 }
 
 // AfterDepositModified function that runs after a deposit is modified
@@ -44,14 +45,14 @@ func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) 
 	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
 }
 
-// BeforeBorrowCreated function that runs before a borrow is created
-func (h Hooks) BeforeBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
-	h.k.InitializeHardBorrowReward(ctx, borrow, denom)
+// AfterBorrowCreated function that runs after a borrow is created
+func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
+	h.k.InitializeHardBorrowReward(ctx, borrow)
 }
 
 // BeforeBorrowModified function that runs before a borrow is modified
-func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
-	h.k.SynchronizeHardBorrowReward(ctx, borrow, denom)
+func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
+	h.k.SynchronizeHardBorrowReward(ctx, borrow)
 }
 
 // AfterBorrowModified function that runs after a borrow is modified

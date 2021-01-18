@@ -9,17 +9,17 @@ import (
 // Implements StakingHooks interface
 var _ types.HARDHooks = Keeper{}
 
-// BeforeDepositCreated - call hook if registered
-func (k Keeper) BeforeDepositCreated(ctx sdk.Context, deposit types.Deposit, denom string) {
+// AfterDepositCreated - call hook if registered
+func (k Keeper) AfterDepositCreated(ctx sdk.Context, deposit types.Deposit) {
 	if k.hooks != nil {
-		k.hooks.BeforeDepositCreated(ctx, deposit, denom)
+		k.hooks.AfterDepositCreated(ctx, deposit)
 	}
 }
 
 // BeforeDepositModified - call hook if registered
-func (k Keeper) BeforeDepositModified(ctx sdk.Context, deposit types.Deposit, denom string) {
+func (k Keeper) BeforeDepositModified(ctx sdk.Context, deposit types.Deposit) {
 	if k.hooks != nil {
-		k.hooks.BeforeDepositModified(ctx, deposit, denom)
+		k.hooks.BeforeDepositModified(ctx, deposit)
 	}
 }
 
@@ -30,17 +30,17 @@ func (k Keeper) AfterDepositModified(ctx sdk.Context, deposit types.Deposit) {
 	}
 }
 
-// BeforeBorrowCreated - call hook if registered
-func (k Keeper) BeforeBorrowCreated(ctx sdk.Context, borrow types.Borrow, denom string) {
+// AfterBorrowCreated - call hook if registered
+func (k Keeper) AfterBorrowCreated(ctx sdk.Context, borrow types.Borrow) {
 	if k.hooks != nil {
-		k.hooks.BeforeBorrowCreated(ctx, borrow, denom)
+		k.hooks.AfterBorrowCreated(ctx, borrow)
 	}
 }
 
 // BeforeBorrowModified - call hook if registered
-func (k Keeper) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow, denom string) {
+func (k Keeper) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow) {
 	if k.hooks != nil {
-		k.hooks.BeforeBorrowModified(ctx, borrow, denom)
+		k.hooks.BeforeBorrowModified(ctx, borrow)
 	}
 }
 

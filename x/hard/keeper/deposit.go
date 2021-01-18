@@ -20,19 +20,24 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 	k.SyncOutstandingInterest(ctx, depositor)
 
-	// Call incentive hook for each coin
-	currDeposit, hasDeposit := k.GetDeposit(ctx, depositor)
-	if hasDeposit {
-		currDepositDenoms := getDenoms(currDeposit.Amount)
-		newDepositDenoms := getDenoms(coins)
-		for _, denom := range removeDuplicates(currDepositDenoms, newDepositDenoms) {
-			k.BeforeDepositModified(ctx, currDeposit, denom)
-		}
-	} else {
-		for _, coin := range coins {
-			k.BeforeDepositModified(ctx, types.NewDeposit(depositor, coins), coin.Denom)
-		}
+	deposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
+	if hasExistingDeposit {
+		k.BeforeDepositModified(ctx, deposit)
 	}
+
+	// Call incentive hook for each coin
+	// currDeposit, hasDeposit := k.GetDeposit(ctx, depositor)
+	// if hasDeposit {
+	// 	currDepositDenoms := getDenoms(currDeposit.Amount)
+	// 	newDepositDenoms := getDenoms(coins)
+	// 	for _, denom := range removeDuplicates(currDepositDenoms, newDepositDenoms) {
+	// 		k.BeforeDepositModified(ctx, currDeposit, denom)
+	// 	}
+	// } else {
+	// 	for _, coin := range coins {
+	// 		k.BeforeDepositModified(ctx, types.NewDeposit(depositor, coins), coin.Denom)
+	// 	}
+	// }
 
 	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
@@ -58,8 +63,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	deposit, found := k.GetDeposit(ctx, depositor)
-	if !found {
+	// Make new deposit or add to existing deposit
+	if !hasExistingDeposit {
 		deposit = types.NewDeposit(depositor, coins)
 	} else {
 		deposit.Amount = deposit.Amount.Add(coins...)
@@ -70,6 +75,12 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
 
 	k.IncrementSuppliedCoins(ctx, coins)
+
+	if !hasExistingDeposit { // User's first deposit
+		k.AfterDepositCreated(ctx, deposit)
+	} else {
+		k.AfterDepositModified(ctx, deposit)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
