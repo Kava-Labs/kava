@@ -31,7 +31,6 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 
 // AfterDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
-	// TODO: simplify InitializeHardSupplyReward
 	h.k.InitializeHardSupplyReward(ctx, deposit)
 }
 

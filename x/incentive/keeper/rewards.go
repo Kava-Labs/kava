@@ -210,7 +210,7 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 
 		supplyFactor, foundSupplyFactor := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
 		if !foundSupplyFactor {
-			supplyFactor = sdk.ZeroDec() // TODO: should this be set to 0?
+			supplyFactor = sdk.ZeroDec()
 		}
 
 		supplyRewardIndexes = append(supplyRewardIndexes, types.NewRewardIndex(coin.Denom, supplyFactor))
@@ -218,8 +218,9 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(claim.Owner, claim.Reward,
-			supplyRewardIndexes, claim.BorrowRewardIndexes, claim.DelegationRewardIndexes)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor,
+			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
+			supplyRewardIndexes, nil, nil)
 		k.SetHardLiquidityProviderClaim(ctx, claim)
 		return
 	}
@@ -269,91 +270,68 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 
 // InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim
 // by creating the claim and setting the borrow reward factor index
-func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
-	_, found := k.GetHardBorrowRewardPeriod(ctx, denom)
-	if !found {
+func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
+	claim, claimFound := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
+	if !claimFound {
 		return
 	}
 
-	borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, denom)
-	if !foundBorrowFactor {
-		borrowFactor = sdk.ZeroDec()
+	var borrowRewardIndexes types.RewardIndexes
+	for _, coin := range borrow.Amount {
+		_, found := k.GetHardBorrowRewardPeriod(ctx, coin.Denom)
+		if !found {
+			continue
+		}
+
+		borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
+		if !foundBorrowFactor {
+			borrowFactor = sdk.ZeroDec()
+		}
+
+		borrowRewardIndexes = append(borrowRewardIndexes, types.NewRewardIndex(coin.Denom, borrowFactor))
 	}
 
-	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
-	// User's first hard liquidity reward for this denom on the borrow-side
-	if !found {
-		claim = types.NewHardLiquidityProviderClaim(
-			borrow.Borrower,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			types.RewardIndexes{},
-			types.RewardIndexes{types.NewRewardIndex(denom, borrowFactor)},
-			types.RewardIndexes{},
-		)
-		k.SetHardLiquidityProviderClaim(ctx, claim)
-		return
-	}
-
-	// Update user's existing hard liquidity reward claim with current borrow reward index factor
-	borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(denom)
-	if !hasBorrowRewardIndex {
-		claim.BorrowRewardIndexes = append(claim.BorrowRewardIndexes, types.NewRewardIndex(denom, borrowFactor))
-	} else {
-		claim.BorrowRewardIndexes[borrowIndex] = types.NewRewardIndex(denom, borrowFactor)
-	}
+	claim.BorrowRewardIndexes = borrowRewardIndexes
 
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
 // SynchronizeHardBorrowReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value
-func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
-	_, found := k.GetHardBorrowRewardPeriod(ctx, denom)
-	if !found {
-		return
-	}
-
-	borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, denom)
-	if !found {
-		borrowFactor = sdk.ZeroDec()
-	}
-
+func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(
-			borrow.Borrower,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			types.RewardIndexes{},
-			types.RewardIndexes{types.NewRewardIndex(denom, borrowFactor)},
-			types.RewardIndexes{},
-		)
-		k.SetHardLiquidityProviderClaim(ctx, claim)
 		return
 	}
 
-	borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(denom)
+	for _, coin := range borrow.Amount {
+		borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
+		if !found {
+			continue
+		}
 
-	if !hasBorrowRewardIndex || len(claim.BorrowRewardIndexes) == 0 {
-		claim.BorrowRewardIndexes = append(claim.BorrowRewardIndexes, types.NewRewardIndex(denom, borrowFactor))
-		k.SetHardLiquidityProviderClaim(ctx, claim)
+		borrowIndex, BorrowRewardIndex := claim.HasBorrowRewardIndex(coin.Denom)
+		if !BorrowRewardIndex {
+			continue
+		}
 
+		userRewardFactor := claim.BorrowRewardIndexes[borrowIndex].RewardFactor
+		rewardsAccumulatedFactor := borrowFactor.Sub(userRewardFactor)
+		if rewardsAccumulatedFactor.IsZero() {
+			continue
+		}
+		claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
+
+		newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+		if newRewardsAmount.IsZero() {
+			continue
+		}
+
+		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
+		claim.Reward = claim.Reward.Add(newRewardsCoin)
 	}
 
-	userRewardFactor := claim.BorrowRewardIndexes[borrowIndex].RewardFactor
-	rewardsAccumulatedFactor := borrowFactor.Sub(userRewardFactor)
-	if rewardsAccumulatedFactor.IsZero() {
-		return
-	}
-	claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
-	newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(denom).ToDec()).RoundInt()
-	if newRewardsAmount.IsZero() {
-		k.SetHardLiquidityProviderClaim(ctx, claim)
-		return
-	}
-	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetHardLiquidityProviderClaim(ctx, claim)
-	return
 }
 
 // UpdateHardSupplyIndexDenoms adds any new deposit denoms to the claim's supply reward index
