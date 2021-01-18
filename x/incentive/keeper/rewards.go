@@ -341,16 +341,17 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 		return
 	}
 
+	supplyRewardIndexes := claim.SupplyRewardIndexes
 	for _, coin := range deposit.Amount {
-		supplyIndex, hasIndex := claim.HasSupplyRewardIndex(coin.Denom)
+		_, hasIndex := claim.HasSupplyRewardIndex(coin.Denom)
 		if !hasIndex {
 			supplyFactor, foundSupplyFactor := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
 			if !foundSupplyFactor {
-				claim.SupplyRewardIndexes[supplyIndex] = types.NewRewardIndex(coin.Denom, supplyFactor)
+				supplyRewardIndexes = append(supplyRewardIndexes, types.NewRewardIndex(coin.Denom, supplyFactor))
 			}
 		}
 	}
-
+	claim.SupplyRewardIndexes = supplyRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
@@ -361,16 +362,17 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 		return
 	}
 
+	borrowRewardIndexes := claim.BorrowRewardIndexes
 	for _, coin := range borrow.Amount {
-		borrowIndex, hasIndex := claim.HasBorrowRewardIndex(coin.Denom)
+		_, hasIndex := claim.HasBorrowRewardIndex(coin.Denom)
 		if !hasIndex {
 			borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
-			if !foundBorrowFactor {
-				claim.BorrowRewardIndexes[borrowIndex] = types.NewRewardIndex(coin.Denom, borrowFactor)
+			if foundBorrowFactor {
+				borrowRewardIndexes = append(borrowRewardIndexes, types.NewRewardIndex(coin.Denom, borrowFactor))
 			}
 		}
 	}
-
+	claim.BorrowRewardIndexes = borrowRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
