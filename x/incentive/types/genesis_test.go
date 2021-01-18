@@ -55,6 +55,7 @@ func TestGenesisStateValidate(t *testing.T) {
 					},
 					DefaultRewardPeriods,
 					DefaultRewardPeriods,
+					DefaultRewardPeriods,
 					Multipliers{
 						NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
 					},

@@ -95,6 +95,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				tc.args.multipliers,
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -124,7 +125,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
-			rewardPeriod, found := suite.keeper.GetRewardPeriod(suite.ctx, tc.args.ctype)
+			rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(suite.ctx, tc.args.ctype)
 			suite.Require().True(found)
 			err = suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)

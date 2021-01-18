@@ -124,7 +124,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 // accrue rewards during the period the cdp was closed. By setting the reward factor to the current global reward factor,
 // any unclaimed rewards are preserved, but no new rewards are added.
 func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
-	_, found := k.GetRewardPeriod(ctx, cdp.Type)
+	_, found := k.GetUSDXMintingRewardPeriod(ctx, cdp.Type)
 	if !found {
 		// this collateral type is not incentivized, do nothing
 		return
@@ -152,7 +152,7 @@ func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 // SynchronizeUSDXMintingReward updates the claim object by adding any accumulated rewards and updating the reward index value.
 // this should be called before a cdp is modified, immediately after the 'SynchronizeInterest' method is called in the cdp module
 func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) {
-	_, found := k.GetRewardPeriod(ctx, cdp.Type)
+	_, found := k.GetUSDXMintingRewardPeriod(ctx, cdp.Type)
 	if !found {
 		// this collateral type is not incentivized, do nothing
 		return
@@ -193,10 +193,10 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 	return
 }
 
-// InitializeHardLiquiditySupplyReward initializes the supply-side of a hard liquidity provider claim
+// InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
 // by creating the claim and setting the supply reward factor index
-func (k Keeper) InitializeHardLiquiditySupplyReward(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
-	_, found := k.GetRewardPeriod(ctx, denom)
+func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
+	_, found := k.GetHardSupplyRewardPeriod(ctx, denom)
 	if !found {
 		return
 	}
@@ -231,10 +231,10 @@ func (k Keeper) InitializeHardLiquiditySupplyReward(ctx sdk.Context, deposit har
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// SynchronizeHardLiquiditySupplyReward updates the claim object by adding any accumulated rewards
+// SynchronizeHardSupplyReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value
-func (k Keeper) SynchronizeHardLiquiditySupplyReward(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
-	_, found := k.GetRewardPeriod(ctx, denom)
+func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit, denom string) {
+	_, found := k.GetHardSupplyRewardPeriod(ctx, denom)
 	if !found {
 		return
 	}
@@ -280,10 +280,10 @@ func (k Keeper) SynchronizeHardLiquiditySupplyReward(ctx sdk.Context, deposit ha
 	return
 }
 
-// InitializeHardLiquidityBorrowReward initializes the borrow-side of a hard liquidity provider claim
+// InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim
 // by creating the claim and setting the borrow reward factor index
-func (k Keeper) InitializeHardLiquidityBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
-	_, found := k.GetRewardPeriod(ctx, denom)
+func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
+	_, found := k.GetHardBorrowRewardPeriod(ctx, denom)
 	if !found {
 		return
 	}
@@ -318,10 +318,10 @@ func (k Keeper) InitializeHardLiquidityBorrowReward(ctx sdk.Context, borrow hard
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// SynchronizeHardLiquidityBorrowReward updates the claim object by adding any accumulated rewards
+// SynchronizeHardBorrowReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value
-func (k Keeper) SynchronizeHardLiquidityBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
-	_, found := k.GetRewardPeriod(ctx, denom)
+func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow, denom string) {
+	_, found := k.GetHardBorrowRewardPeriod(ctx, denom)
 	if !found {
 		return
 	}

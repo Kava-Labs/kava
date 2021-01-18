@@ -77,6 +77,7 @@ func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -86,7 +87,7 @@ func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
-			rewardPeriod, found := suite.keeper.GetRewardPeriod(suite.ctx, tc.args.ctype)
+			rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(suite.ctx, tc.args.ctype)
 			suite.Require().True(found)
 			err := suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
@@ -152,6 +153,7 @@ func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -180,7 +182,7 @@ func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
-				rewardPeriod, found := suite.keeper.GetRewardPeriod(blockCtx, tc.args.ctype)
+				rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(blockCtx, tc.args.ctype)
 				suite.Require().True(found)
 				err := suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
 				suite.Require().NoError(err)
@@ -264,6 +266,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -283,7 +286,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
 
-			rewardPeriod, found := suite.keeper.GetRewardPeriod(runCtx, tc.args.borrow.Denom)
+			rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(runCtx, tc.args.borrow.Denom)
 			suite.Require().True(found)
 			err = suite.keeper.AccumulateHardBorrowRewards(runCtx, rewardPeriod)
 			suite.Require().NoError(err)
@@ -348,6 +351,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -377,7 +381,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 
-				rewardPeriod, found := suite.keeper.GetRewardPeriod(blockCtx, tc.args.borrow.Denom)
+				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(blockCtx, tc.args.borrow.Denom)
 				suite.Require().True(found)
 
 				err := suite.keeper.AccumulateHardBorrowRewards(blockCtx, rewardPeriod)
@@ -390,7 +394,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			borrow, found := hardKeeper.GetBorrow(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardLiquidityBorrowReward(suite.ctx, borrow, tc.args.borrow.Denom)
+				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow, tc.args.borrow.Denom)
 			})
 
 			// Check that reward factor and claim have been updated as expected
@@ -465,6 +469,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -482,7 +487,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
 
-			rewardPeriod, found := suite.keeper.GetRewardPeriod(runCtx, tc.args.deposit.Denom)
+			rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(runCtx, tc.args.deposit.Denom)
 			suite.Require().True(found)
 			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
 			suite.Require().NoError(err)
@@ -547,6 +552,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -574,7 +580,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
 
-				rewardPeriod, found := suite.keeper.GetRewardPeriod(blockCtx, tc.args.deposit.Denom)
+				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(blockCtx, tc.args.deposit.Denom)
 				suite.Require().True(found)
 
 				err := suite.keeper.AccumulateHardSupplyRewards(blockCtx, rewardPeriod)
@@ -587,7 +593,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			deposit, found := hardKeeper.GetDeposit(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardLiquiditySupplyReward(suite.ctx, deposit, tc.args.deposit.Denom)
+				suite.keeper.SynchronizeHardSupplyReward(suite.ctx, deposit, tc.args.deposit.Denom)
 			})
 
 			// Check that reward factor and claim have been updated as expected
