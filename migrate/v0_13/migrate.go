@@ -3,13 +3,16 @@ package v0_13
 import (
 	"time"
 
-	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
-	v0_13cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_13"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+
+	v0_13cdp "github.com/kava-labs/kava/x/cdp"
+	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 )
 
-// MigrateCDP migrates from a v0.9 (or v0.10) cdp genesis state to a v0.11 cdp genesis state
+// MigrateCDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
 func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 	var newCDPs v0_13cdp.CDPs
 	var newDeposits v0_13cdp.Deposits
@@ -66,4 +69,40 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 		newGenesisAccumulationTimes,
 		totalPrincipals,
 	)
+}
+
+// MigrateAuth migrates from a v0.11 auth genesis state to a v0.13
+func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
+	savingsRateMaccCoins := sdk.NewCoins()
+	savingsMaccAddr := supply.NewModuleAddress(v0_11cdp.SavingsRateMacc)
+	savingsRateMaccIndex := 0
+	liquidatorMaccIndex := 0
+	for idx, acc := range genesisState.Accounts {
+		if acc.GetAddress().Equals(savingsMaccAddr) {
+			savingsRateMaccCoins = acc.GetCoins()
+			savingsRateMaccIndex = idx
+			err := acc.SetCoins(acc.GetCoins().Sub(acc.GetCoins()))
+			if err != nil {
+				panic(err)
+			}
+		}
+		if acc.GetAddress().Equals(supply.NewModuleAddress(v0_13cdp.LiquidatorMacc)) {
+			liquidatorMaccIndex = idx
+		}
+	}
+	liquidatorAcc := genesisState.Accounts[liquidatorMaccIndex]
+	err := liquidatorAcc.SetCoins(liquidatorAcc.GetCoins().Add(savingsRateMaccCoins...))
+	if err != nil {
+		panic(err)
+	}
+	genesisState.Accounts[liquidatorMaccIndex] = liquidatorAcc
+
+	genesisState.Accounts = removeIndex(genesisState.Accounts, savingsRateMaccIndex)
+	return genesisState
+}
+
+func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
+	ret := make(authexported.GenesisAccounts, 0)
+	ret = append(ret, accs[:index]...)
+	return append(ret, accs[index+1:]...)
 }
