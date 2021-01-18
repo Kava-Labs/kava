@@ -369,6 +369,50 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	return
 }
 
+// UpdateHardSupplyIndexDenoms adds any new deposit denoms to the claim's supply reward index
+func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.Deposit) {
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
+	if !found {
+		return
+	}
+
+	// build map of all denoms in claim.SupplyIndexes
+	for _, coin := range deposit.Amount {
+		supplyIndex, hasIndex := claim.HasSupplyRewardIndex(coin.Denom)
+		if !hasIndex {
+			supplyFactor, foundSupplyFactor := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
+			if !foundSupplyFactor {
+				supplyFactor = sdk.ZeroDec()
+			}
+			claim.SupplyRewardIndexes[supplyIndex] = types.NewRewardIndex(coin.Denom, supplyFactor)
+		}
+	}
+
+	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
+// UpdateHardBorrowIndexDenoms adds any new borrow denoms to the claim's supply reward index
+func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
+	if !found {
+		return
+	}
+
+	// build map of all denoms in claim.BorrowIndexes
+	for _, coin := range borrow.Amount {
+		borrowIndex, hasIndex := claim.HasBorrowRewardIndex(coin.Denom)
+		if !hasIndex {
+			borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
+			if !foundBorrowFactor {
+				borrowFactor = sdk.ZeroDec()
+			}
+			claim.BorrowRewardIndexes[borrowIndex] = types.NewRewardIndex(coin.Denom, borrowFactor)
+		}
+	}
+
+	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
 // ZeroClaim zeroes out the claim object's rewards and returns the updated claim object
 func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
 	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
