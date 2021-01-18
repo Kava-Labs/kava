@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"errors"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
@@ -203,6 +204,258 @@ func (suite *SeizeTestSuite) TestApplyLiquidationPenalty() {
 	penalty = suite.keeper.ApplyLiquidationPenalty(suite.ctx, "xrp-a", i(675760172))
 	suite.Equal(i(33788009), penalty)
 	suite.Panics(func() { suite.keeper.ApplyLiquidationPenalty(suite.ctx, "lol-a", i(1000)) })
+}
+
+func (suite *SeizeTestSuite) TestKeeperLiquidation() {
+	type args struct {
+		ctype               string
+		blockTime           time.Time
+		initialPrice        sdk.Dec
+		finalPrice          sdk.Dec
+		collateral          sdk.Coin
+		principal           sdk.Coin
+		expectedKeeperCoins sdk.Coins        // additional coins (if any) the borrower address should have after successfully liquidating position
+		expectedAuctions    auction.Auctions // the auctions we should expect to find have been started
+	}
+
+	type errArgs struct {
+		expectLiquidate bool
+		contains        string
+	}
+
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	// Set up auction constants
+	layout := "2006-01-02T15:04:05.000Z"
+	endTimeStr := "9000-01-01T00:00:00.000Z"
+	endTime, _ := time.Parse(layout, endTimeStr)
+	addr, _ := sdk.AccAddressFromBech32("kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2")
+
+	testCases := []test{
+		{
+			"valid liquidation",
+			args{
+				"btc-a",
+				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				d("20000.00"),
+				d("19000.0"),
+				c("btc", 10000000),
+				c("usdx", 1333330000),
+				cs(c("btc", 100100000), c("xrp", 10000000000)),
+				auction.Auctions{
+					auction.CollateralAuction{
+						BaseAuction: auction.BaseAuction{
+							ID:              1,
+							Initiator:       "liquidator",
+							Lot:             c("btc", 9900000),
+							Bidder:          nil,
+							Bid:             c("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: c("debt", 1333330000),
+						MaxBid:            c("usdx", 1366663250),
+						LotReturns:        auction.WeightedAddresses{[]sdk.AccAddress{addr}, []sdk.Int{sdk.NewInt(9900000)}},
+					},
+				},
+			},
+			errArgs{
+				true,
+				"",
+			},
+		},
+		{
+			"invalid - not below collateralization ratio",
+			args{
+				"btc-a",
+				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				d("20000.00"),
+				d("21000.0"),
+				c("btc", 10000000),
+				c("usdx", 1333330000),
+				cs(),
+				auction.Auctions{},
+			},
+			errArgs{
+				false,
+				"collateral ratio not below liquidation ratio",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			// setup pricefeed
+			pk := suite.app.GetPriceFeedKeeper()
+			_, err := pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			suite.Require().NoError(err)
+			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			suite.Require().NoError(err)
+
+			// setup cdp state
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			err = suite.keeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.collateral, tc.args.principal, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			// update pricefeed
+			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			suite.Require().NoError(err)
+			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			suite.Require().NoError(err)
+
+			_, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)
+			suite.Require().True(found)
+
+			err = suite.keeper.AttemptKeeperLiquidation(suite.ctx, suite.addrs[1], suite.addrs[0], tc.args.ctype)
+
+			if tc.errArgs.expectLiquidate {
+				suite.Require().NoError(err)
+
+				_, found = suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)
+				suite.Require().False(found)
+
+				ak := suite.app.GetAuctionKeeper()
+				auctions := ak.GetAllAuctions(suite.ctx)
+				suite.Require().Equal(tc.args.expectedAuctions, auctions)
+
+				ack := suite.app.GetAccountKeeper()
+				keeper := ack.GetAccount(suite.ctx, suite.addrs[1])
+				suite.Require().Equal(tc.args.expectedKeeperCoins, keeper.GetCoins())
+			} else {
+				suite.Require().Error(err)
+				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
+	}
+}
+
+func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
+	type args struct {
+		ctype            string
+		blockTime        time.Time
+		initialPrice     sdk.Dec
+		finalPrice       sdk.Dec
+		collaterals      sdk.Coins
+		principals       sdk.Coins
+		expectedAuctions auction.Auctions // the auctions we should expect to find have been started
+	}
+	type errArgs struct {
+		expectLiquidate bool
+		contains        string
+	}
+	type test struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	// Set up auction constants
+	layout := "2006-01-02T15:04:05.000Z"
+	endTimeStr := "9000-01-01T00:00:00.000Z"
+	endTime, _ := time.Parse(layout, endTimeStr)
+	addr, _ := sdk.AccAddressFromBech32("kava1ze7y9qwdddejmy7jlw4cymqqlt2wh05yhwmrv2")
+
+	testCases := []test{
+		{
+			"1 liquidation",
+			args{
+				"btc-a",
+				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				d("20000.00"),
+				d("10000.00"),
+				sdk.Coins{c("btc", 10000000), c("btc", 10000000)},
+				sdk.Coins{c("usdx", 1000000000), c("usdx", 500000000)},
+				auction.Auctions{
+					auction.CollateralAuction{
+						BaseAuction: auction.BaseAuction{
+							ID:              1,
+							Initiator:       "liquidator",
+							Lot:             c("btc", 10000000),
+							Bidder:          nil,
+							Bid:             c("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: c("debt", 1000000000),
+						MaxBid:            c("usdx", 1025000000),
+						LotReturns:        auction.WeightedAddresses{[]sdk.AccAddress{addr}, []sdk.Int{sdk.NewInt(10000000)}},
+					},
+				},
+			},
+			errArgs{
+				true,
+				"",
+			},
+		},
+		{
+			"no liquidation",
+			args{
+				"btc-a",
+				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				d("20000.00"),
+				d("10000.00"),
+				sdk.Coins{c("btc", 10000000), c("btc", 10000000)},
+				sdk.Coins{c("usdx", 500000000), c("usdx", 500000000)},
+				auction.Auctions{},
+			},
+			errArgs{
+				false,
+				"collateral ratio not below liquidation ratio",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			// setup pricefeed
+			pk := suite.app.GetPriceFeedKeeper()
+			_, err := pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			suite.Require().NoError(err)
+			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			suite.Require().NoError(err)
+
+			// setup cdp state
+			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+
+			for idx, col := range tc.args.collaterals {
+				err := suite.keeper.AddCdp(suite.ctx, suite.addrs[idx], col, tc.args.principals[idx], tc.args.ctype)
+				suite.Require().NoError(err)
+			}
+
+			// update pricefeed
+			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			suite.Require().NoError(err)
+			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			suite.Require().NoError(err)
+
+			_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()})
+			ak := suite.app.GetAuctionKeeper()
+			auctions := ak.GetAllAuctions(suite.ctx)
+			if tc.errArgs.expectLiquidate {
+				suite.Require().Equal(tc.args.expectedAuctions, auctions)
+				for _, a := range auctions {
+					ca := a.(auction.CollateralAuction)
+					_, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, ca.LotReturns.Addresses[0], tc.args.ctype)
+					suite.Require().False(found)
+				}
+			} else {
+				suite.Require().Equal(0, len(auctions))
+				for idx, _ := range tc.args.collaterals {
+					_, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[idx], tc.args.ctype)
+					suite.Require().True(found)
+				}
+			}
+		})
+	}
 }
 
 func TestSeizeTestSuite(t *testing.T) {

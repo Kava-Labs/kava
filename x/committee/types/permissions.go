@@ -425,15 +425,13 @@ type AllowedDebtParam struct {
 	ReferenceAsset   bool `json:"reference_asset" yaml:"reference_asset"`
 	ConversionFactor bool `json:"conversion_factor" yaml:"conversion_factor"`
 	DebtFloor        bool `json:"debt_floor" yaml:"debt_floor"`
-	SavingsRate      bool `json:"savings_rate" yaml:"savings_rate"`
 }
 
 func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 	allowed := ((current.Denom == incoming.Denom) || adp.Denom) &&
 		((current.ReferenceAsset == incoming.ReferenceAsset) || adp.ReferenceAsset) &&
 		(current.ConversionFactor.Equal(incoming.ConversionFactor) || adp.ConversionFactor) &&
-		(current.DebtFloor.Equal(incoming.DebtFloor) || adp.DebtFloor) &&
-		(current.SavingsRate.Equal(incoming.SavingsRate) || adp.SavingsRate)
+		(current.DebtFloor.Equal(incoming.DebtFloor) || adp.DebtFloor)
 	return allowed
 }
 

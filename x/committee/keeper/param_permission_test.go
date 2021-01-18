@@ -68,7 +68,6 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 		ReferenceAsset:   "usd",
 		ConversionFactor: i(6),
 		DebtFloor:        i(10000000),
-		SavingsRate:      d("0.95"),
 	}
 	testDPUpdatedDebtFloor := testDP
 	testDPUpdatedDebtFloor.DebtFloor = i(1000)

@@ -99,7 +99,6 @@ var (
 		auction.ModuleName:          nil,
 		cdp.ModuleName:              {supply.Minter, supply.Burner},
 		cdp.LiquidatorMacc:          {supply.Minter, supply.Burner},
-		cdp.SavingsRateMacc:         {supply.Minter},
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
@@ -341,7 +340,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.supplyKeeper,
 		auctionSubspace,
 	)
-	app.cdpKeeper = cdp.NewKeeper(
+	cdpKeeper := cdp.NewKeeper(
 		app.cdc,
 		keys[cdp.StoreKey],
 		cdpSubspace,
@@ -370,7 +369,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		keys[incentive.StoreKey],
 		incentiveSubspace,
 		app.supplyKeeper,
-		app.cdpKeeper,
+		&cdpKeeper,
 		app.accountKeeper,
 	)
 	app.issuanceKeeper = issuance.NewKeeper(
@@ -395,6 +394,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
+
+	app.cdpKeeper = *cdpKeeper.SetHooks(cdp.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)

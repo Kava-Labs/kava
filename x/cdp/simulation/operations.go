@@ -184,12 +184,12 @@ func SimulateMsgCdp(ak types.AccountKeeper, k keeper.Keeper, pfk types.Pricefeed
 		if shouldDraw(r) {
 			collateralShifted := ShiftDec(sdk.NewDecFromInt(existingCDP.Collateral.Amount), randCollateralParam.ConversionFactor.Neg())
 			collateralValue := collateralShifted.Mul(priceShifted)
-			newFeesAccumulated := k.CalculateFees(ctx, existingCDP.Principal, sdk.NewInt(ctx.BlockTime().Unix()-existingCDP.FeesUpdated.Unix()), randCollateralParam.Type).Amount
-			totalFees := existingCDP.AccumulatedFees.Amount.Add(newFeesAccumulated)
+			newFeesAccumulated := k.CalculateNewInterest(ctx, existingCDP)
+			totalFees := existingCDP.AccumulatedFees.Add(newFeesAccumulated)
 			// given the current collateral value, calculate how much debt we could add while maintaining a valid liquidation ratio
-			debt := existingCDP.Principal.Amount.Add(totalFees)
+			debt := existingCDP.Principal.Add(totalFees)
 			maxTotalDebt := collateralValue.Quo(randCollateralParam.LiquidationRatio)
-			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
+			maxDebt := (maxTotalDebt.Sub(sdk.NewDecFromInt(debt.Amount))).Mul(sdk.MustNewDecFromStr("0.95")).TruncateInt()
 			if maxDebt.LTE(sdk.OneInt()) {
 				// debt in cdp is maxed out
 				return simulation.NewOperationMsgBasic(types.ModuleName, "no-operation", "cdp debt maxed out, cannot draw more debt", false, nil), nil, nil

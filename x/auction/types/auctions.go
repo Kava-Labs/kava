@@ -272,10 +272,11 @@ func (a CollateralAuction) String() string {
   End Time:   						%s
 	Max End Time:      			%s
 	Max Bid									%s
-	LotReturns						%s`,
+	LotReturns						%s
+	Corresponding Debt %s`,
 		a.GetID(), a.Initiator, a.Lot,
 		a.Bidder, a.Bid, a.GetEndTime().String(),
-		a.MaxEndTime.String(), a.MaxBid, a.LotReturns,
+		a.MaxEndTime.String(), a.MaxBid, a.LotReturns, a.CorrespondingDebt,
 	)
 }
 

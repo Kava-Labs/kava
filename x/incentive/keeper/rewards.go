@@ -1,118 +1,172 @@
 package keeper
 
 import (
+	"math"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// HandleRewardPeriodExpiry deletes expired RewardPeriods from the store and creates a ClaimPeriod in the store for each expired RewardPeriod
-func (k Keeper) HandleRewardPeriodExpiry(ctx sdk.Context, rp types.RewardPeriod) {
-	k.CreateUniqueClaimPeriod(ctx, rp.CollateralType, rp.ClaimEnd, rp.ClaimMultipliers)
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardPeriodKeyPrefix)
-	store.Delete([]byte(rp.CollateralType))
-	return
-}
-
-// CreateNewRewardPeriod creates a new reward period from the input reward
-func (k Keeper) CreateNewRewardPeriod(ctx sdk.Context, reward types.Reward) {
-	rp := types.NewRewardPeriodFromReward(reward, ctx.BlockTime())
-	k.SetRewardPeriod(ctx, rp)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeRewardPeriod,
-			sdk.NewAttribute(types.AttributeKeyRewardPeriod, rp.String()),
-		),
-	)
-}
-
-// CreateAndDeleteRewardPeriods creates reward periods for active rewards that don't already have a reward period and deletes reward periods for inactive rewards that currently have a reward period
-func (k Keeper) CreateAndDeleteRewardPeriods(ctx sdk.Context) {
-	params := k.GetParams(ctx)
-
-	for _, r := range params.Rewards {
-		_, found := k.GetRewardPeriod(ctx, r.CollateralType)
-		// if governance has made a reward inactive, delete the current period
-		if found && !r.Active {
-			k.DeleteRewardPeriod(ctx, r.CollateralType)
-		}
-		// if a reward period for an active reward is not found, create one
-		if !found && r.Active {
-			k.CreateNewRewardPeriod(ctx, r)
-		}
+// AccumulateRewards updates the rewards accumulated for the input reward period
+func (k Keeper) AccumulateRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+	if !rewardPeriod.Active {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
 	}
+	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
+	if timeElapsed.IsZero() {
+		return nil
+	}
+	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, rewardPeriod.CollateralType, types.PrincipalDenom).ToDec()
+	if totalPrincipal.IsZero() {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
+	cdpFactor, found := k.cdpKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	rewardFactor := newRewards.ToDec().Mul(cdpFactor).Quo(totalPrincipal)
+
+	previousRewardFactor, found := k.GetRewardFactor(ctx, rewardPeriod.CollateralType)
+	if !found {
+		previousRewardFactor = sdk.ZeroDec()
+	}
+	newRewardFactor := previousRewardFactor.Add(rewardFactor)
+	k.SetRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+	k.SetPreviousAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+	return nil
 }
 
-// ApplyRewardsToCdps iterates over the reward periods and creates a claim for each
-// cdp owner that created usdx with the collateral specified in the reward period.
-func (k Keeper) ApplyRewardsToCdps(ctx sdk.Context) {
-	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+// InitializeClaim creates or updates a claim such that no new rewards are accrued, but any existing rewards are not lost.
+// this function should be called after a cdp is created. If a user previously had a cdp, then closed it, they shouldn't
+// accrue rewards during the period the cdp was closed. By setting the reward factor to the current global reward factor,
+// any unclaimed rewards are preserved, but no new rewards are added.
+func (k Keeper) InitializeClaim(ctx sdk.Context, cdp cdptypes.CDP) {
+	_, found := k.GetRewardPeriod(ctx, cdp.Type)
 	if !found {
-		previousBlockTime = ctx.BlockTime()
-		k.SetPreviousBlockTime(ctx, previousBlockTime)
+		// this collateral type is not incentivized, do nothing
+		return
+	}
+	rewardFactor, found := k.GetRewardFactor(ctx, cdp.Type)
+	if !found {
+		rewardFactor = sdk.ZeroDec()
+	}
+	claim, found := k.GetClaim(ctx, cdp.Owner)
+	if !found { // this is the owner's first usdx minting reward claim
+		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{types.NewRewardIndex(cdp.Type, rewardFactor)})
+		k.SetClaim(ctx, claim)
+		return
+	}
+	// the owner has an existing usdx minting reward claim
+	index, hasRewardIndex := claim.HasRewardIndex(cdp.Type)
+	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
+		claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(cdp.Type, rewardFactor))
+	} else { // the owner has a previous usdx minting reward for this collateral type
+		claim.RewardIndexes[index] = types.NewRewardIndex(cdp.Type, rewardFactor)
+	}
+	k.SetClaim(ctx, claim)
+}
+
+// SynchronizeReward updates the claim object by adding any accumulated rewards and updating the reward index value.
+// this should be called before a cdp is modified, immediately after the 'SynchronizeInterest' method is called in the cdp module
+func (k Keeper) SynchronizeReward(ctx sdk.Context, cdp cdptypes.CDP) {
+	_, found := k.GetRewardPeriod(ctx, cdp.Type)
+	if !found {
+		// this collateral type is not incentivized, do nothing
 		return
 	}
 
-	k.IterateRewardPeriods(ctx, func(rp types.RewardPeriod) bool {
-		expired := false
-		// the total amount of usdx created with the collateral type being incentivized
-		totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, rp.CollateralType, types.PrincipalDenom)
-		// the number of seconds since last payout
-		timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
-		if rp.End.Before(ctx.BlockTime()) {
-			timeElapsed = sdk.NewInt(rp.End.Unix() - previousBlockTime.Unix())
-			expired = true
-		}
-
-		// the amount of rewards to pay (rewardAmount * timeElapsed)
-		rewardsThisPeriod := rp.Reward.Amount.Mul(timeElapsed)
-		id := k.GetNextClaimPeriodID(ctx, rp.CollateralType)
-		k.cdpKeeper.IterateCdpsByCollateralType(ctx, rp.CollateralType, func(cdp cdptypes.CDP) bool {
-			rewardsShare := sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Quo(sdk.NewDecFromInt(totalPrincipal))
-			// sanity check - don't create zero claims
-			if rewardsShare.IsZero() {
-				return false
-			}
-			rewardsEarned := rewardsShare.Mul(sdk.NewDecFromInt(rewardsThisPeriod)).RoundInt()
-			k.AddToClaim(ctx, cdp.Owner, rp.CollateralType, id, sdk.NewCoin(types.GovDenom, rewardsEarned))
-			return false
-		})
-		if !expired {
-			return false
-		}
-		k.HandleRewardPeriodExpiry(ctx, rp)
-		return false
-	})
-
-	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
-}
-
-// CreateUniqueClaimPeriod creates a new claim period in the store and updates the highest claim period id
-func (k Keeper) CreateUniqueClaimPeriod(ctx sdk.Context, collateralType string, end time.Time, multipliers types.Multipliers) {
-	id := k.GetNextClaimPeriodID(ctx, collateralType)
-	claimPeriod := types.NewClaimPeriod(collateralType, id, end, multipliers)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeClaimPeriod,
-			sdk.NewAttribute(types.AttributeKeyClaimPeriod, claimPeriod.String()),
-		),
-	)
-	k.SetClaimPeriod(ctx, claimPeriod)
-	k.SetNextClaimPeriodID(ctx, collateralType, id+1)
-}
-
-// AddToClaim adds the amount to an existing claim or creates a new one for that amount
-func (k Keeper) AddToClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64, amount sdk.Coin) {
-	claim, found := k.GetClaim(ctx, addr, collateralType, id)
-	if found {
-		claim.Reward = claim.Reward.Add(amount)
-	} else {
-		claim = types.NewClaim(addr, amount, collateralType, id)
+	globalRewardFactor, found := k.GetRewardFactor(ctx, cdp.Type)
+	if !found {
+		globalRewardFactor = sdk.ZeroDec()
 	}
+	claim, found := k.GetClaim(ctx, cdp.Owner)
+	if !found {
+		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{types.NewRewardIndex(cdp.Type, globalRewardFactor)})
+		k.SetClaim(ctx, claim)
+		return
+	}
+
+	// the owner has an existing usdx minting reward claim
+	index, hasRewardIndex := claim.HasRewardIndex(cdp.Type)
+	if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
+		claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(cdp.Type, globalRewardFactor))
+		k.SetClaim(ctx, claim)
+		return
+	}
+	userRewardFactor := claim.RewardIndexes[index].RewardFactor
+	rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+	if rewardsAccumulatedFactor.IsZero() {
+		return
+	}
+	claim.RewardIndexes[index].RewardFactor = globalRewardFactor
+	newRewardsAmount := cdp.GetTotalPrincipal().Amount.ToDec().Quo(cdp.InterestFactor).Mul(rewardsAccumulatedFactor).RoundInt()
+	if newRewardsAmount.IsZero() {
+		k.SetClaim(ctx, claim)
+		return
+	}
+	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
+	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetClaim(ctx, claim)
+	return
+}
+
+// ZeroClaim zeroes out the claim object's rewards and returns the updated claim object
+func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
+	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
+	k.SetClaim(ctx, claim)
+	return claim
+}
+
+// SynchronizeClaim updates the claim object by adding any rewards that have accumulated.
+// Returns the updated claim object
+func (k Keeper) SynchronizeClaim(ctx sdk.Context, claim types.USDXMintingClaim) (types.USDXMintingClaim, error) {
+	for _, ri := range claim.RewardIndexes {
+		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.Owner, ri.CollateralType)
+		if !found {
+			// if the cdp for this collateral type has been closed, no updates are needed
+			continue
+		}
+		claim = k.synchronizeRewardAndReturnClaim(ctx, cdp)
+	}
+	return claim, nil
+}
+
+// this function assumes a claim already exists, so don't call it if that's not the case
+func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CDP) types.USDXMintingClaim {
+	k.SynchronizeReward(ctx, cdp)
+	claim, _ := k.GetClaim(ctx, cdp.Owner)
+	return claim
+}
+
+// CalculateTimeElapsed calculates the number of reward-eligible seconds that have passed since the previous
+// time rewards were accrued, taking into account the end time of the reward period
+func CalculateTimeElapsed(rewardPeriod types.RewardPeriod, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
+	if rewardPeriod.End.Before(blockTime) &&
+		(rewardPeriod.End.Before(previousAccrualTime) || rewardPeriod.End.Equal(previousAccrualTime)) {
+		return sdk.ZeroInt()
+	}
+	if rewardPeriod.End.Before(blockTime) {
+		return sdk.NewInt(int64(math.RoundToEven(
+			rewardPeriod.End.Sub(previousAccrualTime).Seconds(),
+		)))
+	}
+	return sdk.NewInt(int64(math.RoundToEven(
+		blockTime.Sub(previousAccrualTime).Seconds(),
+	)))
 }

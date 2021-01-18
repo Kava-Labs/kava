@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	BaseDigitFactor                         = keeper.BaseDigitFactor
 	AttributeKeyCdpID                       = types.AttributeKeyCdpID
 	AttributeKeyDeposit                     = types.AttributeKeyDeposit
 	AttributeKeyError                       = types.AttributeKeyError
@@ -38,12 +37,12 @@ const (
 	RestOwner                               = types.RestOwner
 	RestRatio                               = types.RestRatio
 	RouterKey                               = types.RouterKey
-	SavingsRateMacc                         = types.SavingsRateMacc
 	StoreKey                                = types.StoreKey
 )
 
 var (
 	// function aliases
+	CalculateInterestFactor            = keeper.CalculateInterestFactor
 	FilterCDPs                         = keeper.FilterCDPs
 	FindIntersection                   = keeper.FindIntersection
 	NewKeeper                          = keeper.NewKeeper
@@ -65,12 +64,16 @@ var (
 	NewCollateralParam                 = types.NewCollateralParam
 	NewDebtParam                       = types.NewDebtParam
 	NewDeposit                         = types.NewDeposit
+	NewGenesisAccumulationTime         = types.NewGenesisAccumulationTime
 	NewGenesisState                    = types.NewGenesisState
+	NewGenesisTotalPrincipal           = types.NewGenesisTotalPrincipal
 	NewMsgCreateCDP                    = types.NewMsgCreateCDP
 	NewMsgDeposit                      = types.NewMsgDeposit
 	NewMsgDrawDebt                     = types.NewMsgDrawDebt
+	NewMsgLiquidate                    = types.NewMsgLiquidate
 	NewMsgRepayDebt                    = types.NewMsgRepayDebt
 	NewMsgWithdraw                     = types.NewMsgWithdraw
+	NewMultiCDPHooks                   = types.NewMultiCDPHooks
 	NewParams                          = types.NewParams
 	NewQueryCdpDeposits                = types.NewQueryCdpDeposits
 	NewQueryCdpParams                  = types.NewQueryCdpParams
@@ -91,63 +94,62 @@ var (
 	ValidSortableDec                   = types.ValidSortableDec
 
 	// variable aliases
-	CdpIDKey                            = types.CdpIDKey
-	CdpIDKeyPrefix                      = types.CdpIDKeyPrefix
-	CdpKeyPrefix                        = types.CdpKeyPrefix
-	CollateralRatioIndexPrefix          = types.CollateralRatioIndexPrefix
-	DebtDenomKey                        = types.DebtDenomKey
-	DefaultCdpStartingID                = types.DefaultCdpStartingID
-	DefaultCircuitBreaker               = types.DefaultCircuitBreaker
-	DefaultCollateralParams             = types.DefaultCollateralParams
-	DefaultDebtDenom                    = types.DefaultDebtDenom
-	DefaultDebtLot                      = types.DefaultDebtLot
-	DefaultDebtParam                    = types.DefaultDebtParam
-	DefaultDebtThreshold                = types.DefaultDebtThreshold
-	DefaultGlobalDebt                   = types.DefaultGlobalDebt
-	DefaultGovDenom                     = types.DefaultGovDenom
-	DefaultPreviousDistributionTime     = types.DefaultPreviousDistributionTime
-	DefaultSavingsDistributionFrequency = types.DefaultSavingsDistributionFrequency
-	DefaultSavingsRateDistributed       = types.DefaultSavingsRateDistributed
-	DefaultStableDenom                  = types.DefaultStableDenom
-	DefaultSurplusLot                   = types.DefaultSurplusLot
-	DefaultSurplusThreshold             = types.DefaultSurplusThreshold
-	DepositKeyPrefix                    = types.DepositKeyPrefix
-	ErrBelowDebtFloor                   = types.ErrBelowDebtFloor
-	ErrCdpAlreadyExists                 = types.ErrCdpAlreadyExists
-	ErrCdpNotAvailable                  = types.ErrCdpNotAvailable
-	ErrCdpNotFound                      = types.ErrCdpNotFound
-	ErrCollateralNotSupported           = types.ErrCollateralNotSupported
-	ErrDebtNotSupported                 = types.ErrDebtNotSupported
-	ErrDenomPrefixNotFound              = types.ErrDenomPrefixNotFound
-	ErrDepositNotAvailable              = types.ErrDepositNotAvailable
-	ErrDepositNotFound                  = types.ErrDepositNotFound
-	ErrExceedsDebtLimit                 = types.ErrExceedsDebtLimit
-	ErrInvalidCollateral                = types.ErrInvalidCollateral
-	ErrInvalidCollateralLength          = types.ErrInvalidCollateralLength
-	ErrInvalidCollateralRatio           = types.ErrInvalidCollateralRatio
-	ErrInvalidDebtRequest               = types.ErrInvalidDebtRequest
-	ErrInvalidDeposit                   = types.ErrInvalidDeposit
-	ErrInvalidPayment                   = types.ErrInvalidPayment
-	ErrInvalidWithdrawAmount            = types.ErrInvalidWithdrawAmount
-	ErrLoadingAugmentedCDP              = types.ErrLoadingAugmentedCDP
-	ErrPricefeedDown                    = types.ErrPricefeedDown
-	GovDenomKey                         = types.GovDenomKey
-	KeyCircuitBreaker                   = types.KeyCircuitBreaker
-	KeyCollateralParams                 = types.KeyCollateralParams
-	KeyDebtLot                          = types.KeyDebtLot
-	KeyDebtParam                        = types.KeyDebtParam
-	KeyDebtThreshold                    = types.KeyDebtThreshold
-	KeyDistributionFrequency            = types.KeyDistributionFrequency
-	KeyGlobalDebtLimit                  = types.KeyGlobalDebtLimit
-	KeySavingsRateDistributed           = types.KeySavingsRateDistributed
-	KeySurplusLot                       = types.KeySurplusLot
-	KeySurplusThreshold                 = types.KeySurplusThreshold
-	MaxSortableDec                      = types.MaxSortableDec
-	ModuleCdc                           = types.ModuleCdc
-	PreviousDistributionTimeKey         = types.PreviousDistributionTimeKey
-	PricefeedStatusKeyPrefix            = types.PricefeedStatusKeyPrefix
-	PrincipalKeyPrefix                  = types.PrincipalKeyPrefix
-	SavingsRateDistributedKey           = types.SavingsRateDistributedKey
+	CdpIDKey                      = types.CdpIDKey
+	CdpIDKeyPrefix                = types.CdpIDKeyPrefix
+	CdpKeyPrefix                  = types.CdpKeyPrefix
+	CollateralRatioIndexPrefix    = types.CollateralRatioIndexPrefix
+	DebtDenomKey                  = types.DebtDenomKey
+	DefaultCdpStartingID          = types.DefaultCdpStartingID
+	DefaultCircuitBreaker         = types.DefaultCircuitBreaker
+	DefaultCollateralParams       = types.DefaultCollateralParams
+	DefaultDebtDenom              = types.DefaultDebtDenom
+	DefaultDebtLot                = types.DefaultDebtLot
+	DefaultDebtParam              = types.DefaultDebtParam
+	DefaultDebtThreshold          = types.DefaultDebtThreshold
+	DefaultGlobalDebt             = types.DefaultGlobalDebt
+	DefaultGovDenom               = types.DefaultGovDenom
+	DefaultSavingsRateDistributed = types.DefaultSavingsRateDistributed
+	DefaultStableDenom            = types.DefaultStableDenom
+	DefaultSurplusLot             = types.DefaultSurplusLot
+	DefaultSurplusThreshold       = types.DefaultSurplusThreshold
+	DepositKeyPrefix              = types.DepositKeyPrefix
+	ErrAccountNotFound            = types.ErrAccountNotFound
+	ErrBelowDebtFloor             = types.ErrBelowDebtFloor
+	ErrCdpAlreadyExists           = types.ErrCdpAlreadyExists
+	ErrCdpNotAvailable            = types.ErrCdpNotAvailable
+	ErrCdpNotFound                = types.ErrCdpNotFound
+	ErrCollateralNotSupported     = types.ErrCollateralNotSupported
+	ErrDebtNotSupported           = types.ErrDebtNotSupported
+	ErrDenomPrefixNotFound        = types.ErrDenomPrefixNotFound
+	ErrDepositNotAvailable        = types.ErrDepositNotAvailable
+	ErrDepositNotFound            = types.ErrDepositNotFound
+	ErrExceedsDebtLimit           = types.ErrExceedsDebtLimit
+	ErrInsufficientBalance        = types.ErrInsufficientBalance
+	ErrInvalidCollateral          = types.ErrInvalidCollateral
+	ErrInvalidCollateralLength    = types.ErrInvalidCollateralLength
+	ErrInvalidCollateralRatio     = types.ErrInvalidCollateralRatio
+	ErrInvalidDebtRequest         = types.ErrInvalidDebtRequest
+	ErrInvalidDeposit             = types.ErrInvalidDeposit
+	ErrInvalidPayment             = types.ErrInvalidPayment
+	ErrInvalidWithdrawAmount      = types.ErrInvalidWithdrawAmount
+	ErrLoadingAugmentedCDP        = types.ErrLoadingAugmentedCDP
+	ErrNotLiquidatable            = types.ErrNotLiquidatable
+	ErrPricefeedDown              = types.ErrPricefeedDown
+	GovDenomKey                   = types.GovDenomKey
+	InterestFactorPrefix          = types.InterestFactorPrefix
+	KeyCircuitBreaker             = types.KeyCircuitBreaker
+	KeyCollateralParams           = types.KeyCollateralParams
+	KeyDebtLot                    = types.KeyDebtLot
+	KeyDebtParam                  = types.KeyDebtParam
+	KeyDebtThreshold              = types.KeyDebtThreshold
+	KeyGlobalDebtLimit            = types.KeyGlobalDebtLimit
+	KeySurplusLot                 = types.KeySurplusLot
+	KeySurplusThreshold           = types.KeySurplusThreshold
+	MaxSortableDec                = types.MaxSortableDec
+	ModuleCdc                     = types.ModuleCdc
+	PreviousAccrualTimePrefix     = types.PreviousAccrualTimePrefix
+	PricefeedStatusKeyPrefix      = types.PricefeedStatusKeyPrefix
+	PrincipalKeyPrefix            = types.PrincipalKeyPrefix
 )
 
 type (
@@ -157,6 +159,7 @@ type (
 	AugmentedCDP                    = types.AugmentedCDP
 	AugmentedCDPs                   = types.AugmentedCDPs
 	CDP                             = types.CDP
+	CDPHooks                        = types.CDPHooks
 	CDPs                            = types.CDPs
 	CollateralParam                 = types.CollateralParam
 	CollateralParams                = types.CollateralParams
@@ -164,12 +167,18 @@ type (
 	DebtParams                      = types.DebtParams
 	Deposit                         = types.Deposit
 	Deposits                        = types.Deposits
+	GenesisAccumulationTime         = types.GenesisAccumulationTime
+	GenesisAccumulationTimes        = types.GenesisAccumulationTimes
 	GenesisState                    = types.GenesisState
+	GenesisTotalPrincipal           = types.GenesisTotalPrincipal
+	GenesisTotalPrincipals          = types.GenesisTotalPrincipals
 	MsgCreateCDP                    = types.MsgCreateCDP
 	MsgDeposit                      = types.MsgDeposit
 	MsgDrawDebt                     = types.MsgDrawDebt
+	MsgLiquidate                    = types.MsgLiquidate
 	MsgRepayDebt                    = types.MsgRepayDebt
 	MsgWithdraw                     = types.MsgWithdraw
+	MultiCDPHooks                   = types.MultiCDPHooks
 	Params                          = types.Params
 	PricefeedKeeper                 = types.PricefeedKeeper
 	QueryCdpDeposits                = types.QueryCdpDeposits

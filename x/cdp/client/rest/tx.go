@@ -20,6 +20,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/cdp/{owner}/{collateralType}/withdraw", postWithdrawHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/cdp/{owner}/{collateralType}/draw", postDrawHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/cdp/{owner}/{collateralType}/repay", postRepayHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/cdp/{owner}/collateralType}/liquidate", postLiquidateHandlerFn(cliCtx)).Methods("POST")
 }
 
 func postCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -178,6 +179,38 @@ func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			requestBody.Owner,
 			requestBody.CollateralType,
 			requestBody.Payment,
+		)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postLiquidateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var requestBody PostLiquidateReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgLiquidate(
+			fromAddr,
+			requestBody.Owner,
+			requestBody.CollateralType,
 		)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -14,30 +15,33 @@ import (
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/claims/{%s}/{%s}", types.ModuleName, types.RestClaimOwner, types.RestClaimCollateralType), queryClaimsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/rewardperiods", types.ModuleName), queryRewardPeriodsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/claimperiods", types.ModuleName), queryClaimPeriodsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/claims", types.ModuleName), queryClaimsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		vars := mux.Vars(r)
-		ownerBech32 := vars[types.RestClaimOwner]
-		denom := vars[types.RestClaimCollateralType]
-
-		owner, err := sdk.AccAddressFromBech32(ownerBech32)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
+		var owner sdk.AccAddress
+		if x := r.URL.Query().Get(types.RestClaimOwner); len(x) != 0 {
+			ownerStr := strings.ToLower(strings.TrimSpace(x))
+			owner, err = sdk.AccAddressFromBech32(ownerStr)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from claim owner %s", ownerStr))
+				return
+			}
 		}
 
-		queryParams := types.NewQueryClaimsParams(owner, denom)
+		queryParams := types.NewQueryClaimsParams(page, limit, owner)
 		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
@@ -45,46 +49,6 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetClaims), bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryRewardPeriodsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryGetRewardPeriods)
-
-		res, height, err := cliCtx.QueryWithData(route, nil)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryClaimPeriodsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryGetClaimPeriods)
-
-		res, height, err := cliCtx.QueryWithData(route, nil)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return

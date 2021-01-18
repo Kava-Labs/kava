@@ -129,37 +129,6 @@ func (suite *DrawTestSuite) TestRepayPrincipalOverpay() {
 	suite.False(found)
 }
 
-func (suite *DrawTestSuite) TestAddRepayPrincipalFees() {
-	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[2], c("xrp", 1000000000000), c("usdx", 100000000000), "xrp-a")
-	suite.NoError(err)
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Minute * 10))
-	err = suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp-a")
-	suite.NoError(err)
-	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[2], "xrp-a", c("usdx", 10000000))
-	suite.NoError(err)
-	t, _ := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
-	suite.Equal(c("usdx", 92827), t.AccumulatedFees)
-	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[2], "xrp-a", c("usdx", 100))
-	suite.NoError(err)
-	t, _ = suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
-	suite.Equal(c("usdx", 92727), t.AccumulatedFees)
-	err = suite.keeper.RepayPrincipal(suite.ctx, suite.addrs[2], "xrp-a", c("usdx", 100010092727))
-	suite.NoError(err)
-	_, f := suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(2))
-	suite.False(f)
-
-	err = suite.keeper.AddCdp(suite.ctx, suite.addrs[2], c("xrp", 1000000000000), c("usdx", 100000000), "xrp-a")
-	suite.NoError(err)
-
-	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 31536000)) // move forward one year in time
-	err = suite.keeper.UpdateFeesForAllCdps(suite.ctx, "xrp-a")
-	suite.NoError(err)
-	err = suite.keeper.AddPrincipal(suite.ctx, suite.addrs[2], "xrp-a", c("usdx", 100000000))
-	suite.NoError(err)
-	t, _ = suite.keeper.GetCDP(suite.ctx, "xrp-a", uint64(3))
-	suite.Equal(c("usdx", 5000000), t.AccumulatedFees)
-}
-
 func (suite *DrawTestSuite) TestPricefeedFailure() {
 	ctx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour * 2))
 	pfk := suite.app.GetPriceFeedKeeper()

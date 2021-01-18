@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -14,42 +12,48 @@ import (
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
-// PayoutClaim sends the timelocked claim coins to the input address
-func (k Keeper) PayoutClaim(ctx sdk.Context, addr sdk.AccAddress, collateralType string, id uint64, multiplierName types.MultiplierName) error {
-	claim, found := k.GetClaim(ctx, addr, collateralType, id)
+// ClaimReward sends the reward amount to the input address and zero's out the claim in the store
+func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName types.MultiplierName) error {
+	claim, found := k.GetClaim(ctx, addr)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "id: %d, collateral type %s, address: %s", id, collateralType, addr)
-	}
-	claimPeriod, found := k.GetClaimPeriod(ctx, id, collateralType)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimPeriodNotFound, "id: %d, collateral type: %s", id, collateralType)
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
 	}
 
-	multiplier, found := claimPeriod.GetMultiplier(multiplierName)
+	multiplier, found := k.GetMultiplier(ctx, multiplierName)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
 	}
 
-	rewardAmount := sdk.NewDecFromInt(claim.Reward.Amount).Mul(multiplier.Factor).RoundInt()
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
+	}
+
+	claim, err := k.SynchronizeClaim(ctx, claim)
+	if err != nil {
+		return err
+	}
+
+	rewardAmount := claim.Reward.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
 	if rewardAmount.IsZero() {
 		return types.ErrZeroClaim
 	}
 	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
 	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
 
-	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
+	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
 	if err != nil {
 		return err
 	}
 
-	k.DeleteClaim(ctx, addr, collateralType, id)
+	k.ZeroClaim(ctx, claim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimPeriod, fmt.Sprintf("%d", claim.ClaimPeriodID)),
 		),
 	)
 	return nil
@@ -110,75 +114,6 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
 	k.accountKeeper.SetAccount(ctx, pva)
 	return nil
-}
-
-// DeleteExpiredClaimsAndClaimPeriods deletes expired claim periods and their associated claims
-func (k Keeper) DeleteExpiredClaimsAndClaimPeriods(ctx sdk.Context) {
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if !cp.End.Before(ctx.BlockTime()) {
-			return false
-		}
-		k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-			if !(c.CollateralType == cp.CollateralType && c.ClaimPeriodID == cp.ID) {
-				return false
-			}
-			k.DeleteClaim(ctx, c.Owner, c.CollateralType, c.ClaimPeriodID)
-			return false
-		})
-		k.DeleteClaimPeriod(ctx, cp.ID, cp.CollateralType)
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeClaimPeriodExpiry,
-				sdk.NewAttribute(types.AttributeKeyClaimPeriod, cp.String()),
-			),
-		)
-
-		return false
-	})
-}
-
-// GetActiveClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
-func (k Keeper) GetActiveClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.Claims, found bool) {
-	found = false
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.CollateralType != collateralType {
-			return false
-		}
-		c, hasClaim := k.GetClaim(ctx, addr, cp.CollateralType, cp.ID)
-		if !hasClaim {
-			return false
-		}
-		found = true
-		claims = append(claims, c)
-		return false
-	})
-	return claims, found
-}
-
-// GetAllClaimsByAddressAndCollateralType returns all claims for a specific user and address and a bool for if any were found
-func (k Keeper) GetAllClaimsByAddressAndCollateralType(ctx sdk.Context, addr sdk.AccAddress, collateralType string) (claims types.AugmentedClaims, found bool) {
-	found = false
-	k.IterateClaimPeriods(ctx, func(cp types.ClaimPeriod) (stop bool) {
-		if cp.CollateralType != collateralType {
-			return false
-		}
-		c, hasClaim := k.GetClaim(ctx, addr, cp.CollateralType, cp.ID)
-		if !hasClaim {
-			return false
-		}
-		ac := types.NewAugmentedClaim(c, true)
-		found = true
-		claims = append(claims, ac)
-		return false
-	})
-	nextClaimID := k.GetNextClaimPeriodID(ctx, collateralType)
-	c, hasClaim := k.GetClaim(ctx, addr, collateralType, nextClaimID)
-	if !hasClaim {
-		return claims, found
-	}
-	ac := types.NewAugmentedClaim(c, false)
-	claims = append(claims, ac)
-	return claims, true
 }
 
 // addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for

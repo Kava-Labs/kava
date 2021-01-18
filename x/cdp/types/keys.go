@@ -25,9 +25,6 @@ const (
 
 	// LiquidatorMacc module account for liquidator
 	LiquidatorMacc = "liquidator"
-
-	// SavingsRateMacc module account for savings rate
-	SavingsRateMacc = "savings"
 )
 
 var sep = []byte(":")
@@ -51,17 +48,17 @@ var sep = []byte(":")
 
 // KVStore key prefixes
 var (
-	CdpIDKeyPrefix              = []byte{0x00}
-	CdpKeyPrefix                = []byte{0x01}
-	CollateralRatioIndexPrefix  = []byte{0x02}
-	CdpIDKey                    = []byte{0x03}
-	DebtDenomKey                = []byte{0x04}
-	GovDenomKey                 = []byte{0x05}
-	DepositKeyPrefix            = []byte{0x06}
-	PrincipalKeyPrefix          = []byte{0x07}
-	PreviousDistributionTimeKey = []byte{0x08}
-	PricefeedStatusKeyPrefix    = []byte{0x09}
-	SavingsRateDistributedKey   = []byte{0x10}
+	CdpIDKeyPrefix             = []byte{0x01}
+	CdpKeyPrefix               = []byte{0x02}
+	CollateralRatioIndexPrefix = []byte{0x03}
+	CdpIDKey                   = []byte{0x04}
+	DebtDenomKey               = []byte{0x05}
+	GovDenomKey                = []byte{0x06}
+	DepositKeyPrefix           = []byte{0x07}
+	PrincipalKeyPrefix         = []byte{0x08}
+	PricefeedStatusKeyPrefix   = []byte{0x10}
+	PreviousAccrualTimePrefix  = []byte{0x12}
+	InterestFactorPrefix       = []byte{0x13}
 )
 
 // GetCdpIDBytes returns the byte representation of the cdpID
