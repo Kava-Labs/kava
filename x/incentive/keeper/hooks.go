@@ -41,7 +41,7 @@ func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit,
 
 // AfterDepositModified function that runs after a deposit is modified
 func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
-	// TODO: Add any new denoms in the Deposit to SupplyIndexes
+	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
 }
 
 // BeforeBorrowCreated function that runs before a borrow is created
@@ -56,5 +56,5 @@ func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, de
 
 // AfterBorrowModified function that runs after a borrow is modified
 func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
-	// TODO: Add any new denoms in the Borrow to BorrowIndexes
+	h.k.UpdateHardBorrowIndexDenoms(ctx, borrow)
 }
