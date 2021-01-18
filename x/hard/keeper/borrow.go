@@ -28,26 +28,12 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
-	// If the user has an existing borrow, sync its outstanding interest
-	_, found := k.GetBorrow(ctx, borrower)
-	if found {
-		k.SyncOutstandingInterest(ctx, borrower)
-	}
+	k.SyncOutstandingInterest(ctx, borrower)
 
-	// Call incentive hook for each coin
-	currBorrow, hasBorrow := k.GetBorrow(ctx, borrower)
-	if hasBorrow {
-		currBorrowDenoms := getDenoms(currBorrow.Amount)
-		newBorrowDenoms := getDenoms(coins)
-		for _, denom := range removeDuplicates(currBorrowDenoms, newBorrowDenoms) {
-			k.BeforeBorrowModified(ctx, currBorrow, denom)
-		}
-	} else {
-		for _, coin := range coins {
-			// TODO: Instead of building a temp borrow for first borrow, could refactor BeforeBorrowModified
-			//		 function to take (borrower, coins, coin.Denom) as arguments instead of borrow object
-			k.BeforeBorrowModified(ctx, types.NewBorrow(borrower, coins, types.InterestFactors{}), coin.Denom)
-		}
+	// Call incentive hook
+	borrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
+	if hasExistingBorrow {
+		k.BeforeBorrowModified(ctx, borrow)
 	}
 
 	// Validate borrow amount within user and protocol limits
@@ -75,21 +61,21 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 	// On user's first borrow, build borrow index list containing denoms and current global borrow index value
 	// We use a list of BorrowIndexItem here because Amino doesn't support marshaling maps.
-	if !found {
+	if !hasExistingBorrow {
 		var interestFactors types.InterestFactors
 		for _, coin := range coins {
 			interestFactorValue, _ := k.GetInterestFactor(ctx, coin.Denom)
 			interestFactor := types.NewInterestFactor(coin.Denom, interestFactorValue)
 			interestFactors = append(interestFactors, interestFactor)
 		}
-		borrow := types.NewBorrow(borrower, sdk.Coins{}, interestFactors)
+		borrow = types.NewBorrow(borrower, sdk.Coins{}, interestFactors)
 		k.SetBorrow(ctx, borrow)
 	}
 
 	// Add the newly borrowed coins to the user's borrow object
-	borrow, _ := k.GetBorrow(ctx, borrower)
-	borrow.Amount = borrow.Amount.Add(coins...)
-	k.SetBorrow(ctx, borrow)
+	currBorrow, _ := k.GetBorrow(ctx, borrower)
+	currBorrow.Amount = currBorrow.Amount.Add(coins...)
+	k.SetBorrow(ctx, currBorrow)
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, borrower)
 
@@ -97,7 +83,11 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	// it has already been included in the total borrowed coins by the BeginBlocker.
 	k.IncrementBorrowedCoins(ctx, coins)
 
-	k.AfterBorrowModified(ctx, borrow)
+	if !hasExistingBorrow {
+		k.AfterBorrowCreated(ctx, currBorrow)
+	} else {
+		k.AfterBorrowModified(ctx, currBorrow)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

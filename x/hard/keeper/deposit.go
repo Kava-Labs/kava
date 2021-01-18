@@ -20,24 +20,11 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 	k.SyncOutstandingInterest(ctx, depositor)
 
+	// Call incentive hook
 	deposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
 	if hasExistingDeposit {
 		k.BeforeDepositModified(ctx, deposit)
 	}
-
-	// Call incentive hook for each coin
-	// currDeposit, hasDeposit := k.GetDeposit(ctx, depositor)
-	// if hasDeposit {
-	// 	currDepositDenoms := getDenoms(currDeposit.Amount)
-	// 	newDepositDenoms := getDenoms(coins)
-	// 	for _, denom := range removeDuplicates(currDepositDenoms, newDepositDenoms) {
-	// 		k.BeforeDepositModified(ctx, currDeposit, denom)
-	// 	}
-	// } else {
-	// 	for _, coin := range coins {
-	// 		k.BeforeDepositModified(ctx, types.NewDeposit(depositor, coins), coin.Denom)
-	// 	}
-	// }
 
 	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
@@ -107,7 +94,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 
 // Withdraw returns some or all of a deposit back to original depositor
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
-	deposit, found := k.GetDeposit(ctx, depositor)
+	_, found := k.GetDeposit(ctx, depositor)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
@@ -120,19 +107,9 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 
 	k.SyncOutstandingInterest(ctx, depositor)
 
-	// Call incentive hook for each coin
-	currDeposit, hasDeposit := k.GetDeposit(ctx, depositor)
-	if hasDeposit {
-		currDepositDenoms := getDenoms(currDeposit.Amount)
-		newDepositDenoms := getDenoms(coins)
-		for _, denom := range removeDuplicates(currDepositDenoms, newDepositDenoms) {
-			k.BeforeDepositModified(ctx, currDeposit, denom)
-		}
-	} else {
-		for _, coin := range coins {
-			k.BeforeDepositModified(ctx, types.NewDeposit(depositor, coins), coin.Denom)
-		}
-	}
+	// Call incentive hook
+	deposit, _ := k.GetDeposit(ctx, depositor)
+	k.BeforeDepositModified(ctx, deposit)
 
 	borrow, found := k.GetBorrow(ctx, depositor)
 	if !found {
@@ -183,8 +160,10 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 
 	k.UpdateItemInLtvIndex(ctx, prevLtv, shouldRemoveIndex, depositor)
 
-	// Update total borrowed amount
 	k.DecrementSuppliedCoins(ctx, coins)
+
+	// Call incentive hook
+	k.AfterDepositModified(ctx, deposit)
 
 	return nil
 }
