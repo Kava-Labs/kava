@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
 							Initiator:       "hard_liquidator",
-							Lot:             sdk.NewInt64Coin("ukava", 10000411),
+							Lot:             sdk.NewInt64Coin("ukava", 2000000),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
 							HasReceivedBids: false,
@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 							MaxEndTime:      endTime,
 						},
 						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-						MaxBid:            sdk.NewInt64Coin("ukava", 8004765),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8050763),
 						LotReturns:        lotReturns,
 					},
 				},
@@ -122,40 +122,70 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				contains:        "",
 			},
 		},
-		// {
-		// 	"valid: LTV index liquidates borrow with multiple coin types",
-		// 	args{
-		// 		borrower:              borrower,
-		// 		initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-		// 		initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF))),
-		// 		depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF))),
-		// 		borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(8*BNB_CF))),
-		// 		beginBlockerTime:      oneMonthInSeconds,
-		// 		ltvIndexCount:         int(10),
-		// 		expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(98*BNB_CF))), // initial - deposit + borrow + liquidation leftovers
-		// 		expectedAuctions: auctypes.Auctions{
-		// 			auctypes.CollateralAuction{
-		// 				BaseAuction: auctypes.BaseAuction{
-		// 					ID:              1,
-		// 					Initiator:       "hard_liquidator",
-		// 					Lot:             sdk.NewInt64Coin("ukava", 10000411),
-		// 					Bidder:          nil,
-		// 					Bid:             sdk.NewInt64Coin("ukava", 0),
-		// 					HasReceivedBids: false,
-		// 					EndTime:         endTime,
-		// 					MaxEndTime:      endTime,
-		// 				},
-		// 				CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-		// 				MaxBid:            sdk.NewInt64Coin("ukava", 8004765),
-		// 				LotReturns:        lotReturns,
-		// 			},
-		// 		},
-		// 	},
-		// 	errArgs{
-		// 		expectLiquidate: true,
-		// 		contains:        "",
-		// 	},
-		// },
+		{
+			"valid: LTV index liquidates borrow with multiple coin types",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF))),
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF))),
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(8*BNB_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98.000001*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(98*BNB_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("bnb", 200000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 804948248),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 8004),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 128242),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              3,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 9992406),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004766),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
 		{
 			"invalid: borrow not over limit, LTV index does not liquidate",
 			args{
