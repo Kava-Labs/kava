@@ -58,7 +58,7 @@ module.exports = {
           children: [
             {
               title: "REST API Spec",
-              path: "https://rpc.kava.io/"
+              path: "https://swagger.kava.io/"
             },
             {
               title: "Protocol Reference",
