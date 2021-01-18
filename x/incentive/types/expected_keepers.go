@@ -12,7 +12,6 @@ import (
 // SupplyKeeper defines the expected supply keeper for module accounts
 type SupplyKeeper interface {
 	GetModuleAccount(ctx sdk.Context, name string) supplyexported.ModuleAccountI
-
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
@@ -45,6 +44,8 @@ type CDPHooks interface {
 type HARDHooks interface {
 	BeforeDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
 	BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
+	AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
 	BeforeBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow, denom string)
 	BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, denom string)
+	AfterBorrowModified(ctx sdk.Context, deposit hardtypes.Deposit, denom string)
 }
