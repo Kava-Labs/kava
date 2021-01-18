@@ -168,15 +168,13 @@ func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ..
 }
 
 func NewCDPGenStateHighInterest() app.GenesisState {
-	oneYear := time.Hour * 24 * 365
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
-			SurplusAuctionLot:            cdp.DefaultSurplusLot,
-			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
-			DebtAuctionLot:               cdp.DefaultDebtLot,
-			SavingsDistributionFrequency: oneYear * 100, // never run savings distribution
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
+			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:       cdp.DefaultSurplusLot,
+			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
+			DebtAuctionLot:          cdp.DefaultDebtLot,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:               "bnb",
@@ -197,14 +195,12 @@ func NewCDPGenStateHighInterest() app.GenesisState {
 				ReferenceAsset:   "usd",
 				ConversionFactor: i(6),
 				DebtFloor:        i(10000000),
-				SavingsRate:      d("0.95"),
 			},
 		},
-		StartingCdpID:            cdp.DefaultCdpStartingID,
-		DebtDenom:                cdp.DefaultDebtDenom,
-		GovDenom:                 cdp.DefaultGovDenom,
-		CDPs:                     cdp.CDPs{},
-		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
+		StartingCdpID: cdp.DefaultCdpStartingID,
+		DebtDenom:     cdp.DefaultDebtDenom,
+		GovDenom:      cdp.DefaultGovDenom,
+		CDPs:          cdp.CDPs{},
 		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
 			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
 		},
