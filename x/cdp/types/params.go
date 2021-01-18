@@ -28,18 +28,17 @@ var (
 		ConversionFactor: sdk.NewInt(6),
 		DebtFloor:        sdk.NewInt(10000000),
 	}
-	DefaultCdpStartingID          = uint64(1)
-	DefaultDebtDenom              = "debt"
-	DefaultGovDenom               = "ukava"
-	DefaultStableDenom            = "usdx"
-	DefaultSurplusThreshold       = sdk.NewInt(500000000000)
-	DefaultDebtThreshold          = sdk.NewInt(100000000000)
-	DefaultSurplusLot             = sdk.NewInt(10000000000)
-	DefaultDebtLot                = sdk.NewInt(10000000000)
-	DefaultSavingsRateDistributed = sdk.NewInt(0)
-	minCollateralPrefix           = 0
-	maxCollateralPrefix           = 255
-	stabilityFeeMax               = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
+	DefaultCdpStartingID    = uint64(1)
+	DefaultDebtDenom        = "debt"
+	DefaultGovDenom         = "ukava"
+	DefaultStableDenom      = "usdx"
+	DefaultSurplusThreshold = sdk.NewInt(500000000000)
+	DefaultDebtThreshold    = sdk.NewInt(100000000000)
+	DefaultSurplusLot       = sdk.NewInt(10000000000)
+	DefaultDebtLot          = sdk.NewInt(10000000000)
+	minCollateralPrefix     = 0
+	maxCollateralPrefix     = 255
+	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
 )
 
 // Params governance parameters for cdp module

@@ -28,7 +28,6 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 		startingID         uint64
 		debtDenom          string
 		govDenom           string
-		savingsRateDist    sdk.Int
 		genAccumTimes      cdp.GenesisAccumulationTimes
 		genTotalPrincipals cdp.GenesisTotalPrincipals
 	}
@@ -54,7 +53,6 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				deposits:           cdp.Deposits{},
 				debtDenom:          "",
 				govDenom:           cdp.DefaultGovDenom,
-				savingsRateDist:    cdp.DefaultSavingsRateDistributed,
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
 			},
@@ -71,7 +69,6 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				deposits:           cdp.Deposits{},
 				debtDenom:          cdp.DefaultDebtDenom,
 				govDenom:           "",
-				savingsRateDist:    cdp.DefaultSavingsRateDistributed,
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
 			},
@@ -88,7 +85,6 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				deposits:           cdp.Deposits{},
 				debtDenom:          cdp.DefaultDebtDenom,
 				govDenom:           cdp.DefaultGovDenom,
-				savingsRateDist:    sdk.NewInt(100),
 				genAccumTimes:      cdp.GenesisAccumulationTimes{cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec().Sub(sdk.SmallestDec()))},
 				genTotalPrincipals: cdp.DefaultGenesisState().TotalPrincipals,
 			},
@@ -105,7 +101,6 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				deposits:           cdp.Deposits{},
 				debtDenom:          cdp.DefaultDebtDenom,
 				govDenom:           cdp.DefaultGovDenom,
-				savingsRateDist:    sdk.NewInt(100),
 				genAccumTimes:      cdp.DefaultGenesisState().PreviousAccumulationTimes,
 				genTotalPrincipals: cdp.GenesisTotalPrincipals{cdp.NewGenesisTotalPrincipal("bnb-a", sdk.NewInt(-1))},
 			},
@@ -152,7 +147,6 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 			appGS,
 		)
 	})
-
 }
 
 func TestGenesisTestSuite(t *testing.T) {
