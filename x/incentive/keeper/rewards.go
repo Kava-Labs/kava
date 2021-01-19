@@ -347,7 +347,7 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 		_, hasIndex := claim.HasSupplyRewardIndex(coin.Denom)
 		if !hasIndex {
 			supplyFactor, foundSupplyFactor := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
-			if !foundSupplyFactor {
+			if foundSupplyFactor {
 				supplyRewardIndexes = append(supplyRewardIndexes, types.NewRewardIndex(coin.Denom, supplyFactor))
 			}
 		}
