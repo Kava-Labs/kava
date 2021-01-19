@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -237,6 +238,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 	for _, coin := range deposit.Amount {
 		supplyFactor, found := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
 		if !found {
+			fmt.Printf("\n[LOG]: %s does not have a supply factor", coin.Denom) // TODO: remove before production
 			continue
 		}
 
@@ -288,7 +290,6 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 	}
 
 	claim.BorrowRewardIndexes = borrowRewardIndexes
-
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
