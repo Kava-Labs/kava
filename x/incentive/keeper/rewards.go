@@ -255,7 +255,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 		claim.SupplyRewardIndexes[supplyIndex].RewardFactor = supplyFactor
 
 		newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-		if newRewardsAmount.IsZero() {
+		if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 			continue
 		}
 
@@ -320,7 +320,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 		claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
 
 		newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-		if newRewardsAmount.IsZero() {
+		if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 			continue
 		}
 
