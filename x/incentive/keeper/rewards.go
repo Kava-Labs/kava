@@ -220,7 +220,7 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor,
 			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			types.RewardIndexes{}, types.RewardIndexes{}, types.RewardIndexes{})
+			nil, nil, nil)
 	}
 
 	claim.SupplyRewardIndexes = supplyRewardIndexes
@@ -269,15 +269,17 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 // InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim
 // by creating the claim and setting the borrow reward factor index
 func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
-	claim, claimFound := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
-	if !claimFound {
-		return
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
+	if !found {
+		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower,
+			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
+			nil, nil, nil)
 	}
 
 	var borrowRewardIndexes types.RewardIndexes
 	for _, coin := range borrow.Amount {
-		_, found := k.GetHardBorrowRewardPeriod(ctx, coin.Denom)
-		if !found {
+		_, rpFound := k.GetHardBorrowRewardPeriod(ctx, coin.Denom)
+		if !rpFound {
 			continue
 		}
 
