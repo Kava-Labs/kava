@@ -363,7 +363,9 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
-		return
+		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower,
+			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
+			nil, nil, nil)
 	}
 
 	borrowRewardIndexes := claim.BorrowRewardIndexes
@@ -375,6 +377,9 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 				borrowRewardIndexes = append(borrowRewardIndexes, types.NewRewardIndex(coin.Denom, borrowFactor))
 			}
 		}
+	}
+	if len(borrowRewardIndexes) == 0 {
+		return
 	}
 	claim.BorrowRewardIndexes = borrowRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
