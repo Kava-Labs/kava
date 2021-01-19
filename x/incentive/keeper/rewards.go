@@ -196,15 +196,10 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
 // by creating the claim and setting the supply reward factor index
 func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
-	_, claimFound := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
-	if claimFound {
-		return
-	}
-
 	var supplyRewardIndexes types.RewardIndexes
 	for _, coin := range deposit.Amount {
-		_, found := k.GetHardSupplyRewardPeriod(ctx, coin.Denom)
-		if !found {
+		_, rpFound := k.GetHardSupplyRewardPeriod(ctx, coin.Denom)
+		if !rpFound {
 			continue
 		}
 
@@ -217,15 +212,16 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 	}
 
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
-	if !found {
+	if found {
+		// Reset borrow reward indexes
+		claim.BorrowRewardIndexes = types.RewardIndexes{}
+	} else {
+		// Instantiate claim object
 		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor,
 			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			supplyRewardIndexes, nil, nil)
-		k.SetHardLiquidityProviderClaim(ctx, claim)
-		return
+			types.RewardIndexes{}, types.RewardIndexes{}, types.RewardIndexes{})
 	}
 
-	// User has a HARD claim, but supply reward indexes are empty
 	claim.SupplyRewardIndexes = supplyRewardIndexes
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
