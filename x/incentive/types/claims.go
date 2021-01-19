@@ -183,7 +183,7 @@ func (c HardLiquidityProviderClaim) HasSupplyRewardIndex(denom string) (int64, b
 
 // HasBorrowRewardIndex check if a claim has a borrow reward index for the input collateral type
 func (c HardLiquidityProviderClaim) HasBorrowRewardIndex(denom string) (int64, bool) {
-	for index, ri := range c.SupplyRewardIndexes {
+	for index, ri := range c.BorrowRewardIndexes {
 		if ri.CollateralType == denom {
 			return int64(index), true
 		}
