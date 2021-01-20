@@ -5,11 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/tendermint/tendermint/crypto"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 func TestGenesisStateValidate(t *testing.T) {
@@ -44,7 +42,25 @@ func TestGenesisStateValidate(t *testing.T) {
 		{
 			name: "valid",
 			args: args{
-				params: NewParams(RewardPeriods{NewRewardPeriod(true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC), sdk.NewCoin("ukava", sdk.NewInt(25000)))}, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}, time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC)),
+				params: NewParams(
+					true,
+					RewardPeriods{
+						NewRewardPeriod(
+							true,
+							"bnb-a",
+							time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+							time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+							sdk.NewCoin("ukava", sdk.NewInt(25000)),
+						),
+					},
+					DefaultRewardPeriods,
+					DefaultRewardPeriods,
+					DefaultRewardPeriods,
+					Multipliers{
+						NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
+					},
+					time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+				),
 				genAccTimes: GenesisAccumulationTimes{GenesisAccumulationTime{
 					CollateralType:           "bnb-a",
 					PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
@@ -52,9 +68,10 @@ func TestGenesisStateValidate(t *testing.T) {
 				}},
 				claims: USDXMintingClaims{
 					{
-						Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
-						Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
-
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
 						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
@@ -87,33 +104,16 @@ func TestGenesisStateValidate(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid genesis accumulation time",
-			args: args{
-				params: DefaultParams(),
-				genAccTimes: GenesisAccumulationTimes{
-					{
-						CollateralType:           "btcb-a",
-						PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
-						RewardFactor:             sdk.Dec{},
-					},
-				},
-				claims: DefaultClaims,
-			},
-			errArgs: errArgs{
-				expectPass: false,
-				contains:   "reward factor not initialized",
-			},
-		},
-		{
 			name: "invalid claim",
 			args: args{
 				params:      DefaultParams(),
 				genAccTimes: DefaultGenesisAccumulationTimes,
 				claims: USDXMintingClaims{
 					{
-						Owner:  sdk.AccAddress{},
-						Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
-
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress{},
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
 						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",

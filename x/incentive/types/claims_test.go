@@ -28,7 +28,11 @@ func TestClaimsValidate(t *testing.T) {
 		{
 			"invalid owner",
 			USDXMintingClaims{
-				{Owner: nil},
+				USDXMintingClaim{
+					BaseClaim: BaseClaim{
+						Owner: nil,
+					},
+				},
 			},
 			false,
 		},
@@ -36,8 +40,10 @@ func TestClaimsValidate(t *testing.T) {
 			"invalid reward",
 			USDXMintingClaims{
 				{
-					Owner:  owner,
-					Reward: sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
+					BaseClaim: BaseClaim{
+						Owner:  owner,
+						Reward: sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
+					},
 				},
 			},
 			false,
@@ -46,8 +52,10 @@ func TestClaimsValidate(t *testing.T) {
 			"invalid collateral type",
 			USDXMintingClaims{
 				{
-					Owner:         owner,
-					Reward:        sdk.NewCoin("bnb", sdk.OneInt()),
+					BaseClaim: BaseClaim{
+						Owner:  owner,
+						Reward: sdk.NewCoin("bnb", sdk.OneInt()),
+					},
 					RewardIndexes: []RewardIndex{{"", sdk.ZeroDec()}},
 				},
 			},
