@@ -135,7 +135,6 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 	k.IncrementSuppliedCoins(ctx, sdk.NewCoins(sdk.NewCoin(denom, supplyInterestNew)))
 	k.SetTotalReserves(ctx, denom, reservesPrior.Add(sdk.NewCoin(mm.Denom, reservesNew)))
-	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
 
 	return nil

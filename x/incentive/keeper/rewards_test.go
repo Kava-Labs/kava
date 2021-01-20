@@ -276,7 +276,8 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
@@ -368,7 +369,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
@@ -493,7 +495,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
 			// User deposits to increase total supplied amount
@@ -583,7 +585,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount

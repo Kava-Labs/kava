@@ -57,6 +57,8 @@ var (
 	DefaultParams                 = types.DefaultParams
 	DepositTypeIteratorKey        = types.DepositTypeIteratorKey
 	GetTotalVestingPeriodLength   = types.GetTotalVestingPeriodLength
+	NewBorrowLimit                = types.NewBorrowLimit
+	NewInterestRateModel          = types.NewInterestRateModel
 	NewDeposit                    = types.NewDeposit
 	NewGenesisState               = types.NewGenesisState
 	NewMsgClaimReward             = types.NewMsgClaimReward
@@ -66,6 +68,7 @@ var (
 	NewMultiplier                 = types.NewMultiplier
 	NewParams                     = types.NewParams
 	NewPeriod                     = types.NewPeriod
+	NewMoneyMarket                = types.NewMoneyMarket
 	NewQueryAccountParams         = types.NewQueryAccountParams
 	NewQueryClaimParams           = types.NewQueryClaimParams
 	ParamKeyTable                 = types.ParamKeyTable

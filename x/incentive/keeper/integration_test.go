@@ -14,12 +14,11 @@ import (
 func NewCDPGenStateMulti() app.GenesisState {
 	cdpGenesis := cdp.GenesisState{
 		Params: cdp.Params{
-			GlobalDebtLimit:              sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold:      cdp.DefaultSurplusThreshold,
-			SurplusAuctionLot:            cdp.DefaultSurplusLot,
-			DebtAuctionThreshold:         cdp.DefaultDebtThreshold,
-			DebtAuctionLot:               cdp.DefaultDebtLot,
-			SavingsDistributionFrequency: cdp.DefaultSavingsDistributionFrequency,
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
+			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
+			SurplusAuctionLot:       cdp.DefaultSurplusLot,
+			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
+			DebtAuctionLot:          cdp.DefaultDebtLot,
 			CollateralParams: cdp.CollateralParams{
 				{
 					Denom:               "xrp",
@@ -79,20 +78,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 				ReferenceAsset:   "usd",
 				ConversionFactor: i(6),
 				DebtFloor:        i(10000000),
-				SavingsRate:      d("0.95"),
 			},
 		},
-		StartingCdpID:            cdp.DefaultCdpStartingID,
-		DebtDenom:                cdp.DefaultDebtDenom,
-		GovDenom:                 cdp.DefaultGovDenom,
-		CDPs:                     cdp.CDPs{},
-		PreviousDistributionTime: cdp.DefaultPreviousDistributionTime,
-		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
-			cdp.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
-			cdp.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
-			cdp.NewGenesisAccumulationTime("busd-a", time.Time{}, sdk.OneDec()),
-			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
-		},
+		StartingCdpID: cdp.DefaultCdpStartingID,
+		DebtDenom:     cdp.DefaultDebtDenom,
+		GovDenom:      cdp.DefaultGovDenom,
+		CDPs:          cdp.CDPs{},
 		TotalPrincipals: cdp.GenesisTotalPrincipals{
 			cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
 			cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
