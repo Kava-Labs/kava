@@ -160,7 +160,11 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 
 			if dValue.GTE(maxLotSize) { // We can start an auction for the whole borrow amount]
 				bid := sdk.NewCoin(bKey, borrows.AmountOf(bKey))
+
 				lotSize := maxLotSize.MulInt(liqMap[dKey].conversionFactor).Quo(liqMap[dKey].price)
+				if lotSize.TruncateInt().Equal(sdk.ZeroInt()) {
+					continue
+				}
 				lot := sdk.NewCoin(dKey, lotSize.TruncateInt())
 
 				insufficientLotFunds := false
@@ -233,19 +237,15 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				borrowCoinValues.Decrement(bKey, maxBid)
 				depositCoinValues.SetZero(dKey)
 
-				fmt.Println("borrows before:", borrows)
 				borrows = borrows.Sub(sdk.NewCoins(bid))
 				if insufficientLotFunds {
 					deposits = deposits.Sub(sdk.NewCoins(sdk.NewCoin(dKey, deposits.AmountOf(dKey))))
 				} else {
 					deposits = deposits.Sub(sdk.NewCoins(lot))
 				}
-				fmt.Println("borrows after:", borrows)
 
 				// Update max lot size
-				fmt.Println("maxLotSize before:", maxLotSize)
 				maxLotSize = borrowCoinValues.Get(bKey).Quo(ltv)
-				fmt.Println("maxLotSize after:", maxLotSize)
 			}
 		}
 	}
