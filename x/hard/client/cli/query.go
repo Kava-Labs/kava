@@ -19,10 +19,9 @@ import (
 
 // flags for cli queries
 const (
-	flagName      = "name"
-	flagDenom     = "denom"
-	flagOwner     = "owner"
-	flagClaimType = "claim-type"
+	flagName  = "name"
+	flagDenom = "denom"
+	flagOwner = "owner"
 )
 
 // GetQueryCmd returns the cli query commands for the  module
@@ -40,7 +39,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryModAccountsCmd(queryRoute, cdc),
 		queryDepositsCmd(queryRoute, cdc),
 		queryTotalDepositedCmd(queryRoute, cdc),
-		queryClaimsCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
 		queryTotalBorrowedCmd(queryRoute, cdc),
 	)...)
@@ -174,76 +172,6 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
 	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by denom")
-	return cmd
-}
-
-func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "claims",
-		Short: "query hard module claims with optional filters",
-		Long: strings.TrimSpace(`query for all hard module claims or a specific claim using flags:
-
-		Example:
-		$ kvcli q hard claims
-		$ kvcli q hard claims --owner kava1l0xsq2z7gqd7yly0g40y5836g0appumark77ny --claim-type lp --denom bnb
-		$ kvcli q hard claims --claim-type stake --denom ukava
-		$ kvcli q hard claims --denom btcb`,
-		),
-		Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			var owner sdk.AccAddress
-			var claimType types.ClaimType
-
-			ownerBech := viper.GetString(flagOwner)
-			denom := viper.GetString(flagDenom)
-			claimTypeStr := viper.GetString(flagClaimType)
-
-			if len(ownerBech) != 0 {
-				claimOwner, err := sdk.AccAddressFromBech32(ownerBech)
-				if err != nil {
-					return err
-				}
-				owner = claimOwner
-			}
-
-			if len(claimTypeStr) != 0 {
-				if err := types.ClaimType(claimTypeStr).IsValid(); err != nil {
-					return err
-				}
-				claimType = types.ClaimType(claimTypeStr)
-			}
-
-			page := viper.GetInt(flags.FlagPage)
-			limit := viper.GetInt(flags.FlagLimit)
-
-			params := types.NewQueryClaimParams(page, limit, denom, owner, claimType)
-			bz, err := cdc.MarshalJSON(params)
-			if err != nil {
-				return err
-			}
-
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetClaims)
-			res, height, err := cliCtx.QueryWithData(route, bz)
-			if err != nil {
-				return err
-			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			var claims []types.Claim
-			if err := cdc.UnmarshalJSON(res, &claims); err != nil {
-				return fmt.Errorf("failed to unmarshal claims: %w", err)
-			}
-			return cliCtx.PrintOutput(claims)
-		},
-	}
-
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page to query for")
-	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit (max 100)")
-	cmd.Flags().String(flagOwner, "", "(optional) filter for claims by owner address")
-	cmd.Flags().String(flagDenom, "", "(optional) filter for claims by denom")
-	cmd.Flags().String(flagClaimType, "", "(optional) filter for claims by type (lp or staking)")
 	return cmd
 }
 
