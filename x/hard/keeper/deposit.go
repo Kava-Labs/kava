@@ -29,6 +29,12 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
+	// Call incentive hook
+	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
+	if hasExistingDeposit {
+		k.BeforeDepositModified(ctx, existingDeposit)
+	}
+
 	// Sync any outstanding interest
 	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
@@ -98,10 +104,12 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	}
 
 	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
-
-	// Update total supplied amount by newly supplied coins. Don't add user's pending interest as
-	// it has already been included in the total supplied coins by the BeginBlocker.
 	k.IncrementSuppliedCoins(ctx, coins)
+	if !foundDeposit { // User's first deposit
+		k.AfterDepositCreated(ctx, deposit)
+	} else {
+		k.AfterDepositModified(ctx, deposit)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -116,6 +124,13 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 // ValidateDeposit validates a deposit
 func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
+	for _, depCoin := range coins {
+		_, foundMm := k.GetMoneyMarket(ctx, depCoin.Denom)
+		if !foundMm {
+			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "money market denom %s not found", depCoin.Denom)
+		}
+	}
+
 	return nil
 }
 
