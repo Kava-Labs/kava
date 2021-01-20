@@ -15,9 +15,6 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 		return err
 	}
 
-	// Sync interest so loan is up-to-date
-	k.SyncOutstandingInterest(ctx, sender)
-
 	// Validate requested repay
 	err = k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
@@ -32,6 +29,9 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 
 	// Call incentive hook
 	k.BeforeBorrowModified(ctx, borrow)
+
+	// Sync interest so loan is up-to-date
+	k.SyncOutstandingInterest(ctx, sender)
 
 	payment := k.CalculatePaymentAmount(borrow.Amount, coins)
 
@@ -51,7 +51,9 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	k.DecrementBorrowedCoins(ctx, payment)
 
 	// Call incentive hook
-	k.AfterBorrowModified(ctx, borrow)
+	if !borrow.Amount.Empty() {
+		k.AfterBorrowModified(ctx, borrow)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
