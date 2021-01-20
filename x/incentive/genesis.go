@@ -10,7 +10,7 @@ import (
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, cdpKeeper types.CdpKeeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, gs types.GenesisState) {
 
 	// check if the module account exists
 	moduleAcc := supplyKeeper.GetModuleAccount(ctx, types.IncentiveMacc)
@@ -22,22 +22,17 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
 
-	for _, rp := range gs.Params.RewardPeriods {
-		_, found := cdpKeeper.GetCollateral(ctx, rp.CollateralType)
-		if !found {
-			panic(fmt.Sprintf("usdx minting collateral type %s not found in cdp collateral types", rp.CollateralType))
-		}
-	}
-
 	k.SetParams(ctx, gs.Params)
 
+	// TODO: previous hard module accrual times/indexes should be set here
+
 	for _, gat := range gs.PreviousAccumulationTimes {
-		k.SetPreviousAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
-		k.SetRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
+		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+		k.SetUSDXMintingRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
 	}
 
 	for _, claim := range gs.USDXMintingClaims {
-		k.SetClaim(ctx, claim)
+		k.SetUSDXMintingClaim(ctx, claim)
 	}
 
 }
@@ -46,16 +41,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
-	claims := k.GetAllClaims(ctx)
+	claims := k.GetAllUSDXMintingClaims(ctx)
 
 	var gats GenesisAccumulationTimes
 
-	for _, rp := range params.RewardPeriods {
-		pat, found := k.GetPreviousAccrualTime(ctx, rp.CollateralType)
+	for _, rp := range params.USDXMintingRewardPeriods {
+		pat, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rp.CollateralType)
 		if !found {
 			pat = ctx.BlockTime()
 		}
-		factor, found := k.GetRewardFactor(ctx, rp.CollateralType)
+		factor, found := k.GetUSDXMintingRewardFactor(ctx, rp.CollateralType)
 		if !found {
 			factor = sdk.ZeroDec()
 		}
