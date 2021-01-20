@@ -10,6 +10,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -226,7 +227,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          7,
-				expectedRewardFactor: d("0.000000856478000000"),
+				expectedRewardFactor: d("0.000000856478000001"),
 			},
 		},
 		{
@@ -236,7 +237,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          86400,
-				expectedRewardFactor: d("0.0105713856"),
+				expectedRewardFactor: d("0.010571385600010177"),
 			},
 		},
 		{
@@ -274,6 +275,10 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
 
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+
 			// User deposits and borrows to increase total borrowed amount
 			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
@@ -285,6 +290,9 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			// Set up chain context at future time
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			// Run Hard begin blocker in order to update the denom's index factor
+			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
 			rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(runCtx, tc.args.borrow.Denom)
 			suite.Require().True(found)
@@ -319,7 +327,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-				expectedRewardFactor: d("0.001223540000000000"),
+				expectedRewardFactor: d("0.001223540000173228"),
 				expectedRewards:      c("hard", 12235400),
 			},
 		},
@@ -330,8 +338,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
-				expectedRewardFactor: d("10.57138560000000000"),
-				expectedRewards:      c("hard", 105713856000),
+				expectedRewardFactor: d("10.571385603126235340"),
+				expectedRewards:      c("hard", 105713856031),
 			},
 		},
 	}
@@ -359,6 +367,10 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
 			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
 
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+
 			// User deposits and borrows to increase total borrowed amount
 			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
@@ -380,6 +392,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
+
+				// Run Hard begin blocker for each block ctx to update denom's interest factor
+				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
 				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(blockCtx, tc.args.borrow.Denom)
 				suite.Require().True(found)
@@ -429,7 +444,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          7,
-				expectedRewardFactor: d("0.000000856478000000"),
+				expectedRewardFactor: d("0.000000856478009276"),
 			},
 		},
 		{
@@ -439,7 +454,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          86400,
-				expectedRewardFactor: d("0.0105713856"),
+				expectedRewardFactor: d("0.010572798789350756"),
 			},
 		},
 		{
@@ -463,7 +478,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
 			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
 
-			// setup incentive state
+			// Set up incentive state
 			params := types.NewParams(
 				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -477,6 +492,10 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
 
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+
 			// User deposits to increase total supplied amount
 			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
@@ -486,6 +505,9 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			// Set up chain context at future time
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			// Run Hard begin blocker in order to update the denom's index factor
+			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
 			rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(runCtx, tc.args.deposit.Denom)
 			suite.Require().True(found)
@@ -520,8 +542,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-				expectedRewardFactor: d("0.001223540000000000"),
-				expectedRewards:      c("hard", 12235400),
+				expectedRewardFactor: d("0.001223540104113383"),
+				expectedRewards:      c("hard", 12235401),
 			},
 		},
 		{
@@ -531,8 +553,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
-				expectedRewardFactor: d("10.57138560000000000"),
-				expectedRewards:      c("hard", 105713856000),
+				expectedRewardFactor: d("10.579161259377111431"),
+				expectedRewards:      c("hard", 105791612594),
 			},
 		},
 	}
@@ -560,6 +582,10 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
 
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+
 			// User deposits and borrows to increase total borrowed amount
 			hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
@@ -579,6 +605,9 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
 				previousBlockTime = updatedBlockTime
 				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
+
+				// Run Hard begin blocker for each block ctx to update denom's interest factor
+				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
 				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(blockCtx, tc.args.deposit.Denom)
 				suite.Require().True(found)
