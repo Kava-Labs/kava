@@ -15,6 +15,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -23,10 +24,11 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	keeper keeper.Keeper
-	app    app.TestApp
-	ctx    sdk.Context
-	addrs  []sdk.AccAddress
+	keeper     keeper.Keeper
+	hardKeeper hardkeeper.Keeper
+	app        app.TestApp
+	ctx        sdk.Context
+	addrs      []sdk.AccAddress
 }
 
 // The default state used by each test
@@ -52,43 +54,39 @@ func (suite *KeeperTestSuite) getModuleAccount(name string) supplyexported.Modul
 	return sk.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
+func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
-	_, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 	suite.Require().NotPanics(func() {
-		suite.keeper.SetClaim(suite.ctx, c)
+		suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
 	})
-	testC, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+	testC, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(c, testC)
 	suite.Require().NotPanics(func() {
-		suite.keeper.DeleteClaim(suite.ctx, suite.addrs[0])
+		suite.keeper.DeleteUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	})
-	_, found = suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+	_, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 }
 
-func (suite *KeeperTestSuite) TestIterateClaims() {
+func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	for i := 0; i < len(suite.addrs); i++ {
 		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 		suite.Require().NotPanics(func() {
-			suite.keeper.SetClaim(suite.ctx, c)
+			suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
 		})
 	}
 	claims := types.USDXMintingClaims{}
-	suite.keeper.IterateClaims(suite.ctx, func(c types.USDXMintingClaim) bool {
+	suite.keeper.IterateUSDXMintingClaims(suite.ctx, func(c types.USDXMintingClaim) bool {
 		claims = append(claims, c)
 		return false
 	})
 	suite.Require().Equal(len(suite.addrs), len(claims))
 
-	claims = suite.keeper.GetAllClaims(suite.ctx)
+	claims = suite.keeper.GetAllUSDXMintingClaims(suite.ctx)
 	suite.Require().Equal(len(suite.addrs), len(claims))
-}
-
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
 }
 
 func createPeriodicVestingAccount(origVesting sdk.Coins, periods vesting.Periods, startTime, endTime int64) (*vesting.PeriodicVestingAccount, error) {
@@ -112,3 +110,7 @@ func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
 func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
+
+func TestKeeperTestSuite(t *testing.T) {
+	suite.Run(t, new(KeeperTestSuite))
+}
