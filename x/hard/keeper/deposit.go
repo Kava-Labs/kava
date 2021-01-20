@@ -18,13 +18,13 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	k.SyncOutstandingInterest(ctx, depositor)
-
 	// Call incentive hook
 	deposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
 	if hasExistingDeposit {
 		k.BeforeDepositModified(ctx, deposit)
 	}
+
+	k.SyncOutstandingInterest(ctx, depositor)
 
 	err = k.ValidateDeposit(ctx, coins)
 	if err != nil {
@@ -105,11 +105,11 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	k.SyncOutstandingInterest(ctx, depositor)
-
 	// Call incentive hook
 	deposit, _ := k.GetDeposit(ctx, depositor)
 	k.BeforeDepositModified(ctx, deposit)
+
+	k.SyncOutstandingInterest(ctx, depositor)
 
 	borrow, found := k.GetBorrow(ctx, depositor)
 	if !found {

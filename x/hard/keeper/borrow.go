@@ -28,13 +28,13 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
-	k.SyncOutstandingInterest(ctx, borrower)
-
 	// Call incentive hook
 	borrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
 	if hasExistingBorrow {
 		k.BeforeBorrowModified(ctx, borrow)
 	}
+
+	k.SyncOutstandingInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
 	err = k.ValidateBorrow(ctx, borrower, coins)
