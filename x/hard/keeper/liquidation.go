@@ -179,7 +179,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				if err != nil {
 					return err
 				}
-				fmt.Println("1 StartCollateralAuction with lot:", lot)
+				fmt.Printf("1...StartCollateralAuction - lot: %s, bid: %s\n", lot, bid)
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return err
@@ -223,7 +223,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				if err != nil {
 					return err
 				}
-				fmt.Println("2 StartCollateralAuction with lot:", lot)
+				fmt.Printf("2...StartCollateralAuction - lot: %s, bid: %s\n", lot, bid)
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return err
@@ -232,15 +232,20 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				// Update variables to account for partial auction
 				borrowCoinValues.Decrement(bKey, maxBid)
 				depositCoinValues.SetZero(dKey)
-				// Update deposits, borrows
+
+				fmt.Println("borrows before:", borrows)
 				borrows = borrows.Sub(sdk.NewCoins(bid))
 				if insufficientLotFunds {
 					deposits = deposits.Sub(sdk.NewCoins(sdk.NewCoin(dKey, deposits.AmountOf(dKey))))
 				} else {
 					deposits = deposits.Sub(sdk.NewCoins(lot))
 				}
+				fmt.Println("borrows after:", borrows)
+
 				// Update max lot size
+				fmt.Println("maxLotSize before:", maxLotSize)
 				maxLotSize = borrowCoinValues.Get(bKey).Quo(ltv)
+				fmt.Println("maxLotSize after:", maxLotSize)
 			}
 		}
 	}
