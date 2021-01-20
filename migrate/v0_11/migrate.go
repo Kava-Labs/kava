@@ -636,27 +636,11 @@ func MigrateGov(oldGenState v39_1gov.GenesisState) v39_1gov.GenesisState {
 
 // MigrateHarvest initializes the harvest genesis state for kava-4
 func MigrateHarvest() v0_11harvest.GenesisState {
-	// total HARD per second for lps (week one): 633761
-	// HARD per second for delegators (week one): 1267522
-	incentiveGoLiveDate := time.Date(2020, 10, 16, 14, 0, 0, 0, time.UTC)
-	incentiveEndDate := time.Date(2024, 10, 16, 14, 0, 0, 0, time.UTC)
-	claimEndDate := time.Date(2025, 10, 16, 14, 0, 0, 0, time.UTC)
 	harvestGS := v0_11harvest.NewGenesisState(v0_11harvest.NewParams(
 		true,
-		v0_11harvest.DistributionSchedules{
-			v0_11harvest.NewDistributionSchedule(true, "usdx", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(310543)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-			v0_11harvest.NewDistributionSchedule(true, "hard", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(285193)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-			v0_11harvest.NewDistributionSchedule(true, "bnb", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(12675)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(25350)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-		},
-		v0_11harvest.DelegatorDistributionSchedules{v0_11harvest.NewDelegatorDistributionSchedule(
-			v0_11harvest.NewDistributionSchedule(true, "ukava", incentiveGoLiveDate, incentiveEndDate, sdk.NewCoin("hard", sdk.NewInt(1267522)), claimEndDate, v0_11harvest.Multipliers{v0_11harvest.NewMultiplier(v0_11harvest.Small, 1, sdk.MustNewDecFromStr("0.33")), v0_11harvest.NewMultiplier(v0_11harvest.Large, 12, sdk.OneDec())}),
-			time.Hour*24,
-		),
-		},
 		hard.MoneyMarkets{}, //TODO UPDATE
 		10,
-	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes)
+	), v0_11harvest.DefaultPreviousBlockTime)
 	return harvestGS
 }
 

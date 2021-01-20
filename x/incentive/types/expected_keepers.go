@@ -6,6 +6,7 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
 )
 
 // SupplyKeeper defines the expected supply keeper for module accounts
@@ -32,4 +33,12 @@ type AccountKeeper interface {
 type CDPHooks interface {
 	AfterCDPCreated(ctx sdk.Context, cdp cdptypes.CDP)
 	BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP)
+}
+
+// HARDHooks event hooks for other keepers to run code in response to HARD modifications
+type HARDHooks interface {
+	BeforeDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit)
+	BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit)
+	BeforeBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow)
+	BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow)
 }

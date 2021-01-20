@@ -45,3 +45,11 @@ type PricefeedKeeper interface {
 type AuctionKeeper interface {
 	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin) (uint64, error)
 }
+
+// HARDHooks event hooks for other keepers to run code in response to HARD modifications
+type HARDHooks interface {
+	BeforeDepositCreated(ctx sdk.Context, deposit Deposit)
+	BeforeDepositModified(ctx sdk.Context, deposit Deposit)
+	BeforeBorrowCreated(ctx sdk.Context, borrow Borrow)
+	BeforeBorrowModified(ctx sdk.Context, borrow Borrow)
+}

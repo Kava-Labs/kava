@@ -22,8 +22,6 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetModAccounts(ctx, req, k)
 		case types.QueryGetDeposits:
 			return queryGetDeposits(ctx, req, k)
-		case types.QueryGetClaims:
-			return queryGetClaims(ctx, req, k)
 		case types.QueryGetBorrows:
 			return queryGetBorrows(ctx, req, k)
 		case types.QueryGetBorrow:
@@ -126,111 +124,6 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, deposits)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
-}
-
-func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-
-	var params types.QueryClaimParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	depositDenom := len(params.DepositDenom) > 0
-	owner := len(params.Owner) > 0
-	claimType := len(params.ClaimType) > 0
-
-	var claims []types.Claim
-	switch {
-	case depositDenom && owner && claimType:
-		claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, params.ClaimType)
-		if found {
-			claims = append(claims, claim)
-		}
-	case depositDenom && owner:
-		for _, dt := range types.ClaimTypesClaimQuery {
-			claim, found := k.GetClaim(ctx, params.Owner, params.DepositDenom, dt)
-			if found {
-				claims = append(claims, claim)
-			}
-		}
-	case depositDenom && claimType:
-		k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, params.DepositDenom, func(claim types.Claim) (stop bool) {
-			claims = append(claims, claim)
-			return false
-		})
-	case owner && claimType:
-		hardParams := k.GetParams(ctx)
-		switch {
-		case params.ClaimType == types.LP:
-			for _, lps := range hardParams.LiquidityProviderSchedules {
-				claim, found := k.GetClaim(ctx, params.Owner, lps.DepositDenom, params.ClaimType)
-				if found {
-					claims = append(claims, claim)
-				}
-			}
-		case params.ClaimType == types.Stake:
-			for _, dss := range hardParams.DelegatorDistributionSchedules {
-				claim, found := k.GetClaim(ctx, params.Owner, dss.DistributionSchedule.DepositDenom, params.ClaimType)
-				if found {
-					claims = append(claims, claim)
-				}
-			}
-		}
-	case depositDenom:
-		for _, dt := range types.ClaimTypesClaimQuery {
-			k.IterateClaimsByTypeAndDenom(ctx, dt, params.DepositDenom, func(claim types.Claim) (stop bool) {
-				claims = append(claims, claim)
-				return false
-			})
-		}
-	case owner:
-		hardParams := k.GetParams(ctx)
-		for _, lps := range hardParams.LiquidityProviderSchedules {
-			claim, found := k.GetClaim(ctx, params.Owner, lps.DepositDenom, types.LP)
-			if found {
-				claims = append(claims, claim)
-			}
-		}
-		for _, dds := range hardParams.DelegatorDistributionSchedules {
-			claim, found := k.GetClaim(ctx, params.Owner, dds.DistributionSchedule.DepositDenom, types.Stake)
-			if found {
-				claims = append(claims, claim)
-			}
-		}
-	case claimType:
-		hardParams := k.GetParams(ctx)
-		for _, lps := range hardParams.LiquidityProviderSchedules {
-			k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, lps.DepositDenom, func(claim types.Claim) (stop bool) {
-				claims = append(claims, claim)
-				return false
-			})
-		}
-		for _, dds := range hardParams.DelegatorDistributionSchedules {
-			k.IterateClaimsByTypeAndDenom(ctx, params.ClaimType, dds.DistributionSchedule.DepositDenom, func(claim types.Claim) (stop bool) {
-				claims = append(claims, claim)
-				return false
-			})
-		}
-	default:
-		k.IterateClaims(ctx, func(claim types.Claim) (stop bool) {
-			claims = append(claims, claim)
-			return false
-		})
-	}
-
-	start, end := client.Paginate(len(claims), params.Page, params.Limit, 100)
-	if start < 0 || end < 0 {
-		claims = []types.Claim{}
-	} else {
-		claims = claims[start:end]
-	}
-
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, claims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
