@@ -24,7 +24,8 @@ type CdpKeeper interface {
 
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol
 type HardKeeper interface {
-	GetInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
+	GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
+	GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
 	GetSuppliedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
 }

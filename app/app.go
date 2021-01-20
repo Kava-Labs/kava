@@ -358,6 +358,16 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		bep3Subspace,
 		app.ModuleAccountAddrs(),
 	)
+	hardKeeper := hard.NewKeeper(
+		app.cdc,
+		keys[hard.StoreKey],
+		hardSubspace,
+		app.accountKeeper,
+		app.supplyKeeper,
+		&stakingKeeper,
+		app.pricefeedKeeper,
+		app.auctionKeeper,
+	)
 	app.kavadistKeeper = kavadist.NewKeeper(
 		app.cdc,
 		keys[kavadist.StoreKey],
@@ -370,6 +380,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		incentiveSubspace,
 		app.supplyKeeper,
 		&cdpKeeper,
+		&hardKeeper,
 		app.accountKeeper,
 	)
 	app.issuanceKeeper = issuance.NewKeeper(
@@ -379,16 +390,6 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		app.accountKeeper,
 		app.supplyKeeper,
 	)
-	app.hardKeeper = hard.NewKeeper(
-		app.cdc,
-		keys[hard.StoreKey],
-		hardSubspace,
-		app.accountKeeper,
-		app.supplyKeeper,
-		&stakingKeeper,
-		app.pricefeedKeeper,
-		app.auctionKeeper,
-	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -396,6 +397,8 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdp.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
+
+	app.hardKeeper = *hardKeeper.SetHooks(hard.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -418,7 +421,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		pricefeed.NewAppModule(app.pricefeedKeeper, app.accountKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper, app.cdpKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),
@@ -471,7 +474,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		auction.NewAppModule(app.auctionKeeper, app.accountKeeper, app.supplyKeeper),
 		bep3.NewAppModule(app.bep3Keeper, app.accountKeeper, app.supplyKeeper),
 		kavadist.NewAppModule(app.kavadistKeeper, app.supplyKeeper),
-		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper, app.cdpKeeper),
+		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.supplyKeeper),
 		committee.NewAppModule(app.committeeKeeper, app.accountKeeper),
 		issuance.NewAppModule(app.issuanceKeeper, app.accountKeeper, app.supplyKeeper),
 		hard.NewAppModule(app.hardKeeper, app.supplyKeeper, app.pricefeedKeeper),

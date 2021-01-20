@@ -62,6 +62,7 @@ var (
 	NewMsgClaimReward             = types.NewMsgClaimReward
 	NewMsgDeposit                 = types.NewMsgDeposit
 	NewMsgWithdraw                = types.NewMsgWithdraw
+	NewMultiHARDHooks             = types.NewMultiHARDHooks
 	NewMultiplier                 = types.NewMultiplier
 	NewParams                     = types.NewParams
 	NewPeriod                     = types.NewPeriod

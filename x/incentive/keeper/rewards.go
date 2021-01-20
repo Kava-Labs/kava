@@ -68,7 +68,7 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 			return nil
 		}
 		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-		hardFactor, found := k.hardKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+		hardFactor, found := k.hardKeeper.GetBorrowInterestFactor(ctx, rewardPeriod.CollateralType)
 		if !found {
 			k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 			return nil
@@ -111,7 +111,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 			return nil
 		}
 		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-		hardFactor, found := k.hardKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+		hardFactor, found := k.hardKeeper.GetSupplyInterestFactor(ctx, rewardPeriod.CollateralType)
 		if !found {
 			k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 			return nil
