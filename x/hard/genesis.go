@@ -21,12 +21,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
 	}
 
-	for _, pdt := range gs.PreviousDistributionTimes {
-		if !pdt.PreviousDistributionTime.Equal(DefaultPreviousBlockTime) {
-			k.SetPreviousDelegationDistribution(ctx, pdt.PreviousDistributionTime, pdt.Denom)
-		}
-	}
-
 	for _, mm := range gs.Params.MoneyMarkets {
 		k.SetMoneyMarket(ctx, mm.Denom, mm)
 	}
@@ -64,12 +58,5 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	if !found {
 		previousBlockTime = DefaultPreviousBlockTime
 	}
-	previousDistTimes := GenesisDistributionTimes{}
-	for _, dds := range params.DelegatorDistributionSchedules {
-		previousDistTime, found := k.GetPreviousDelegatorDistribution(ctx, dds.DistributionSchedule.DepositDenom)
-		if found {
-			previousDistTimes = append(previousDistTimes, GenesisDistributionTime{PreviousDistributionTime: previousDistTime, Denom: dds.DistributionSchedule.DepositDenom})
-		}
-	}
-	return NewGenesisState(params, previousBlockTime, previousDistTimes)
+	return NewGenesisState(params, previousBlockTime)
 }
