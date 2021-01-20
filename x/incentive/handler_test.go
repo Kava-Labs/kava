@@ -44,6 +44,10 @@ func (suite *HandlerTestSuite) SetupTest() {
 	authGS := app.NewAuthGenState(addrs, coins)
 	incentiveGS := incentive.NewGenesisState(
 		incentive.NewParams(
+			true,
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.MultiplierName("small"), 1, d("0.25")), incentive.NewMultiplier(incentive.MultiplierName("large"), 12, d("1.0"))},
 			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
@@ -51,7 +55,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultClaims,
 	)
-	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)}, NewCDPGenStateMulti(), NewPricefeedGenStateMulti())
+	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)})
 
 	suite.addrs = addrs
 	suite.handler = incentive.NewHandler(keeper)
@@ -66,7 +70,7 @@ func (suite *HandlerTestSuite) addClaim() {
 	suite.Require().NoError(err)
 	c1 := incentive.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())})
 	suite.NotPanics(func() {
-		suite.keeper.SetClaim(suite.ctx, c1)
+		suite.keeper.SetUSDXMintingClaim(suite.ctx, c1)
 	})
 }
 
