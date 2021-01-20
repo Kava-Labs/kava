@@ -446,7 +446,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          7,
-				expectedRewardFactor: d("0.000000856478009276"),
+				expectedRewardFactor: d("0.000000856478000000"),
 			},
 		},
 		{
@@ -456,7 +456,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          86400,
-				expectedRewardFactor: d("0.010572798789350756"),
+				expectedRewardFactor: d("0.010571385600000000"),
 			},
 		},
 		{
@@ -544,8 +544,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-				expectedRewardFactor: d("0.001223540104113383"),
-				expectedRewards:      c("hard", 12235401),
+				expectedRewardFactor: d("0.001223540000000000"),
+				expectedRewards:      c("hard", 12235400),
 			},
 		},
 		{
@@ -555,8 +555,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
-				expectedRewardFactor: d("10.579161259377111431"),
-				expectedRewards:      c("hard", 105791612594),
+				expectedRewardFactor: d("10.571385600000000000"),
+				expectedRewards:      c("hard", 105713856000),
 			},
 		},
 	}
