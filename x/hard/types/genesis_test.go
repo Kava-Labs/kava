@@ -18,7 +18,6 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 	type args struct {
 		params types.Params
 		pbt    time.Time
-		pdts   types.GenesisDistributionTimes
 	}
 	testCases := []struct {
 		name        string
@@ -31,7 +30,6 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			args: args{
 				params: types.DefaultParams(),
 				pbt:    types.DefaultPreviousBlockTime,
-				pdts:   types.DefaultDistributionTimes,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -41,9 +39,6 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			args: args{
 				params: types.NewParams(true, types.DefaultMoneyMarkets, types.DefaultCheckLtvIndexCount),
 				pbt:    time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
-				pdts: types.GenesisDistributionTimes{
-					{PreviousDistributionTime: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC), Denom: "bnb"},
-				},
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -53,29 +48,14 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			args: args{
 				params: types.NewParams(true, types.DefaultMoneyMarkets, types.DefaultCheckLtvIndexCount),
 				pbt:    time.Time{},
-				pdts: types.GenesisDistributionTimes{
-					{PreviousDistributionTime: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC), Denom: "bnb"},
-				},
 			},
 			expectPass:  false,
 			expectedErr: "previous block time not set",
 		},
-		{
-			name: "invalid previous distribution time",
-			args: args{
-				params: types.NewParams(true, types.DefaultMoneyMarkets, types.DefaultCheckLtvIndexCount),
-				pbt:    time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
-				pdts: types.GenesisDistributionTimes{
-					{PreviousDistributionTime: time.Time{}, Denom: "bnb"},
-				},
-			},
-			expectPass:  false,
-			expectedErr: "previous distribution time not set",
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := types.NewGenesisState(tc.args.params, tc.args.pbt, tc.args.pdts)
+			gs := types.NewGenesisState(tc.args.params, tc.args.pbt)
 			err := gs.Validate()
 			if tc.expectPass {
 				suite.NoError(err)
