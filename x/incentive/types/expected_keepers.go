@@ -20,6 +20,7 @@ type CdpKeeper interface {
 	IterateCdpsByCollateralType(ctx sdk.Context, collateralType string, cb func(cdp cdptypes.CDP) (stop bool))
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
 	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
+	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
 }
 
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol

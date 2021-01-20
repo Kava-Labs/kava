@@ -10,7 +10,7 @@ import (
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, cdpKeeper types.CdpKeeper, gs types.GenesisState) {
 
 	// check if the module account exists
 	moduleAcc := supplyKeeper.GetModuleAccount(ctx, types.IncentiveMacc)
@@ -20,6 +20,13 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
+	}
+
+	for _, rp := range gs.Params.USDXMintingRewardPeriods {
+		_, found := cdpKeeper.GetCollateral(ctx, rp.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("usdx minting collateral type %s not found in cdp collateral types", rp.CollateralType))
+		}
 	}
 
 	k.SetParams(ctx, gs.Params)

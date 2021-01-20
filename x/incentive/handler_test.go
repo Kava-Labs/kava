@@ -55,7 +55,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 		incentive.DefaultGenesisAccumulationTimes,
 		incentive.DefaultClaims,
 	)
-	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)})
+	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)}, NewCDPGenStateMulti(), NewPricefeedGenStateMulti())
 
 	suite.addrs = addrs
 	suite.handler = incentive.NewHandler(keeper)
