@@ -68,7 +68,12 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 			return nil
 		}
 		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-		rewardFactor := newRewards.ToDec().Quo(totalBorrowed)
+		hardFactor, found := k.hardKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+		if !found {
+			k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+			return nil
+		}
+		rewardFactor := newRewards.ToDec().Mul(hardFactor).Quo(totalBorrowed)
 
 		previousRewardFactor, found := k.GetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType)
 		if !found {
@@ -76,8 +81,8 @@ func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.
 		}
 		newRewardFactor := previousRewardFactor.Add(rewardFactor)
 		k.SetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
-		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	}
+	k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 
 	return nil
 }
@@ -106,7 +111,12 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 			return nil
 		}
 		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-		rewardFactor := newRewards.ToDec().Quo(totalSupplied)
+		hardFactor, found := k.hardKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+		if !found {
+			k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+			return nil
+		}
+		rewardFactor := newRewards.ToDec().Mul(hardFactor).Quo(totalSupplied)
 
 		previousRewardFactor, found := k.GetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType)
 		if !found {
@@ -114,8 +124,8 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 		}
 		newRewardFactor := previousRewardFactor.Add(rewardFactor)
 		k.SetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
-		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	}
+	k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 
 	return nil
 }
