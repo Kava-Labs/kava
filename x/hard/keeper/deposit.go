@@ -116,19 +116,6 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 // ValidateDeposit validates a deposit
 func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
-	params := k.GetParams(ctx)
-	for _, depCoin := range coins {
-		found := false
-		for _, lps := range params.LiquidityProviderSchedules {
-			if lps.DepositDenom == depCoin.Denom {
-				found = true
-			}
-		}
-		if !found {
-			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "liquidity provider denom %s not found", depCoin.Denom)
-		}
-	}
-
 	return nil
 }
 
