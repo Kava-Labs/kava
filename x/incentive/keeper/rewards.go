@@ -402,6 +402,72 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
+// SynchronizeHardDelegatorRewards updates the claim object by adding any accumulated rewards
+func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress) {
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
+	if !found {
+		return
+	}
+
+	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, UKAVA_DENOM)
+	if !found {
+		return
+	}
+
+	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(UKAVA_DENOM)
+	if !hasDelegatorRewardIndex {
+		return
+	}
+
+	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
+	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
+	if rewardsAccumulatedFactor.IsZero() {
+		return
+	}
+	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
+
+	var totalDelegated sdk.Dec
+
+	// TODO: set reasonable max limit on delegation iteration
+	maxUInt := ^uint16(0)
+	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, maxUInt)
+	for _, delegation := range delegations {
+		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
+		if !found {
+			continue
+		}
+
+		// Delegators don't accumulate rewards if their validator is unbonded/slashed
+		if validator.GetStatus() != sdk.Bonded {
+			continue
+		}
+
+		if validator.GetTokens().IsZero() {
+			continue
+		}
+
+		sharesToTokens := sdk.NewDecFromInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
+		delegatedTokens := sharesToTokens.Mul(delegation.GetShares())
+		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
+			continue
+		}
+
+		totalDelegated = totalDelegated.Add(delegatedTokens)
+		// delegationShare := delegationTokens.Quo(sdk.NewDecFromInt(totalBonded))
+		// rewardsEarned := delegationShare.Mul(sdk.NewDecFromInt(rewardsToDistribute)).RoundInt()
+	}
+
+	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
+	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+		return
+	}
+
+	// Add rewards to delegator's hard claim
+	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
+	claim.Reward = claim.Reward.Add(newRewardsCoin)
+	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
 // AccumulateHardDelegatorRewards updates the rewards accumulated for the input reward period
 func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccAddress, rewardPeriod types.RewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
