@@ -18,7 +18,6 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/deposits", types.ModuleName), queryDepositsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/total-deposited", types.ModuleName), queryTotalDepositedHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/claims", types.ModuleName), queryClaimsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/accounts", types.ModuleName), queryModAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/borrows", types.ModuleName), queryBorrowsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/total-borrowed", types.ModuleName), queryTotalBorrowedHandlerFn(cliCtx)).Methods("GET")
@@ -120,65 +119,6 @@ func queryTotalDepositedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetTotalDeposited)
-		res, height, err := cliCtx.QueryWithData(route, bz)
-		cliCtx = cliCtx.WithHeight(height)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		// Parse the query height
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		var denom string
-		var claimOwner sdk.AccAddress
-		var claimType types.ClaimType
-
-		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
-			denom = strings.TrimSpace(x)
-		}
-
-		if x := r.URL.Query().Get(RestOwner); len(x) != 0 {
-			claimOwnerStr := strings.ToLower(strings.TrimSpace(x))
-			claimOwner, err = sdk.AccAddressFromBech32(claimOwnerStr)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from claim owner %s", claimOwnerStr))
-				return
-			}
-		}
-
-		if x := r.URL.Query().Get(RestClaimType); len(x) != 0 {
-			claimTypeStr := strings.ToLower(strings.TrimSpace(x))
-			err := types.ClaimType(claimTypeStr).IsValid()
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			claimType = types.ClaimType(claimTypeStr)
-		}
-
-		params := types.NewQueryClaimParams(page, limit, denom, claimOwner, claimType)
-
-		bz, err := cliCtx.Codec.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetClaims)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {
