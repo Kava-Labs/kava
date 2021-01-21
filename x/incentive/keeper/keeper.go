@@ -20,12 +20,13 @@ type Keeper struct {
 	key           sdk.StoreKey
 	paramSubspace subspace.Subspace
 	supplyKeeper  types.SupplyKeeper
+	stakingKeeper types.StakingKeeper
 }
 
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, sk types.SupplyKeeper,
-	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper,
+	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
 ) Keeper {
 
 	return Keeper{
@@ -36,6 +37,7 @@ func NewKeeper(
 		key:           key,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 		supplyKeeper:  sk,
+		stakingKeeper: stk,
 	}
 }
 
@@ -274,5 +276,22 @@ func (k Keeper) GetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom st
 // SetPreviousHardBorrowRewardAccrualTime sets the last time a denom accrued Hard protocol borrow-side rewards
 func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardBorrowRewardAccrualTimeKeyPrefix)
+	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
+}
+
+// GetPreviousDelegatorRewardAccrualTime returns the last time a denom accrued Hard protocol delegator rewards
+func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return time.Time{}, false
+	}
+	k.cdc.MustUnmarshalBinaryBare(bz, &blockTime)
+	return blockTime, true
+}
+
+// SetPreviousDelegatorRewardAccrualTime sets the last time a denom accrued Hard protocol delegator rewards
+func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
