@@ -86,18 +86,21 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupWithCDPGenState()
+			suite.SetupWithGenState()
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				tc.args.multipliers,
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
-			suite.keeper.SetRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
+			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
+			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
 
 			// setup account state
 			sk := suite.app.GetSupplyKeeper()
@@ -115,15 +118,15 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 			err = cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
-			claim, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
 			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
 
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
-			rewardPeriod, found := suite.keeper.GetRewardPeriod(suite.ctx, tc.args.ctype)
+			rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(suite.ctx, tc.args.ctype)
 			suite.Require().True(found)
-			err = suite.keeper.AccumulateRewards(suite.ctx, rewardPeriod)
+			err = suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
 
 			err = suite.keeper.ClaimReward(suite.ctx, suite.addrs[0], tc.args.multiplier)
@@ -140,7 +143,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 					suite.Require().Equal(tc.args.expectedPeriods, vacc.VestingPeriods)
 				}
 
-				claim, found := suite.keeper.GetClaim(suite.ctx, suite.addrs[0])
+				claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 				fmt.Println(claim)
 				suite.Require().True(found)
 				suite.Require().Equal(c("ukava", 0), claim.Reward)

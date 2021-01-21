@@ -8,6 +8,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
@@ -155,6 +156,9 @@ func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ..
 	genesis := incentive.NewGenesisState(
 		incentive.NewParams(
 			rewardPeriods,
+			types.RewardPeriods{},
+			types.RewardPeriods{},
+			types.RewardPeriods{},
 			incentive.Multipliers{
 				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
 				incentive.NewMultiplier(incentive.Large, 12, d("1.0")),

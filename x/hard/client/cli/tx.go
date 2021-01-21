@@ -32,7 +32,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	hardTxCmd.AddCommand(flags.PostCommands(
 		getCmdDeposit(cdc),
 		getCmdWithdraw(cdc),
-		getCmdClaimReward(cdc),
 		getCmdBorrow(cdc),
 		getCmdLiquidate(cdc),
 		getCmdRepay(cdc),
@@ -82,35 +81,6 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 			msg := types.NewMsgWithdraw(cliCtx.GetFromAddress(), amount)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-}
-
-func getCmdClaimReward(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "claim [receiver-addr] [deposit-denom] [deposit-type] [multiplier]",
-		Short: "claim HARD tokens to receiver address",
-		Long: strings.TrimSpace(
-			`sends accumulated HARD tokens from the hard module account to the receiver address.
-			Note that receiver address should match the sender address,
-			unless the sender is a validator-vesting account`),
-		Args: cobra.ExactArgs(4),
-		Example: fmt.Sprintf(
-			`%s tx %s claim kava1hgcfsuwc889wtdmt8pjy7qffua9dd2tralu64j bnb lp large --from <key>`, version.ClientName, types.ModuleName,
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			receiver, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-			msg := types.NewMsgClaimReward(cliCtx.GetFromAddress(), receiver, args[1], args[2], args[3])
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

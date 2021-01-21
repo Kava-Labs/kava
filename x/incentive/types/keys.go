@@ -17,11 +17,23 @@ const (
 	QuerierRoute = ModuleName
 )
 
+// TODO: Refactor so that each incentive type has:
+// 1. [Incentive]ClaimKeyPrefix
+// 2. [Incentve]AccumulatorKeyPrefix { PreviousAccrualTime block.Time, IndexFactors types.IndexFactors }
+
 // Key Prefixes
 var (
-	ClaimKeyPrefix  = []byte{0x01} // prefix for keys that store claims
-	BlockTimeKey    = []byte{0x02} // prefix for key that stores the blocktime
-	RewardFactorKey = []byte{0x03} // prefix for key that stores reward factors
+	USDXMintingClaimKeyPrefix                       = []byte{0x01} // prefix for keys that store USDX minting claims
+	USDXMintingRewardFactorKeyPrefix                = []byte{0x02} // prefix for key that stores USDX minting reward factors
+	PreviousUSDXMintingRewardAccrualTimeKeyPrefix   = []byte{0x03} // prefix for key that stores the blocktime
+	HardLiquidityClaimKeyPrefix                     = []byte{0x04} // prefix for keys that store Hard liquidity claims
+	HardSupplyRewardFactorKeyPrefix                 = []byte{0x05} // prefix for key that stores Hard supply reward factors
+	PreviousHardSupplyRewardAccrualTimeKeyPrefix    = []byte{0x06} // prefix for key that stores the previous time Hard supply rewards accrued
+	HardBorrowRewardFactorKeyPrefix                 = []byte{0x07} // prefix for key that stores Hard borrow reward factors
+	PreviousHardBorrowRewardAccrualTimeKeyPrefix    = []byte{0x08} // prefix for key that stores the previous time Hard borrow rewards accrued
+	HardDelegatorRewardFactorKeyPrefix              = []byte{0x09} // prefix for key that stores Hard delegator reward factors
+	PreviousHardDelegatorRewardAccrualTimeKeyPrefix = []byte{0x10} // prefix for key that stores the previous time Hard delegator rewards accrued
 
-	USDXMintingRewardDenom = "ukava"
+	USDXMintingRewardDenom   = "ukava"
+	HardLiquidityRewardDenom = "hard"
 )

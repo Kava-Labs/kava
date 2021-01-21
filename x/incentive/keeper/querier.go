@@ -46,10 +46,10 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	}
 	var claims types.USDXMintingClaims
 	if len(requestParams.Owner) > 0 {
-		claim, _ := k.GetClaim(ctx, requestParams.Owner)
+		claim, _ := k.GetUSDXMintingClaim(ctx, requestParams.Owner)
 		claims = append(claims, claim)
 	} else {
-		claims = k.GetAllClaims(ctx)
+		claims = k.GetAllUSDXMintingClaims(ctx)
 	}
 
 	var paginatedClaims types.USDXMintingClaims

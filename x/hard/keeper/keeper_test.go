@@ -60,21 +60,6 @@ func (suite *KeeperTestSuite) TestGetSetPreviousBlockTime() {
 	suite.Equal(now, pbt)
 }
 
-func (suite *KeeperTestSuite) TestGetSetPreviousDelegatorDistribution() {
-	now := tmtime.Now()
-
-	_, f := suite.keeper.GetPreviousDelegatorDistribution(suite.ctx, suite.keeper.BondDenom(suite.ctx))
-	suite.Require().False(f)
-
-	suite.NotPanics(func() {
-		suite.keeper.SetPreviousDelegationDistribution(suite.ctx, now, suite.keeper.BondDenom(suite.ctx))
-	})
-
-	pdt, f := suite.keeper.GetPreviousDelegatorDistribution(suite.ctx, suite.keeper.BondDenom(suite.ctx))
-	suite.True(f)
-	suite.Equal(now, pdt)
-}
-
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 		types.SupplyInterestFactors{types.NewSupplyInterestFactor("", sdk.MustNewDecFromStr("0"))})
@@ -106,21 +91,6 @@ func (suite *KeeperTestSuite) TestIterateDeposits() {
 		return false
 	})
 	suite.Require().Equal(5, len(deposits))
-}
-
-func (suite *KeeperTestSuite) TestGetSetDeleteClaim() {
-	claim := types.NewClaim(sdk.AccAddress("test"), "bnb", sdk.NewCoin("hard", sdk.NewInt(100)), "lp")
-	_, f := suite.keeper.GetClaim(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
-	suite.Require().False(f)
-
-	suite.Require().NotPanics(func() { suite.keeper.SetClaim(suite.ctx, claim) })
-	testClaim, f := suite.keeper.GetClaim(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
-	suite.Require().True(f)
-	suite.Require().Equal(claim, testClaim)
-
-	suite.Require().NotPanics(func() { suite.keeper.DeleteClaim(suite.ctx, claim) })
-	_, f = suite.keeper.GetClaim(suite.ctx, sdk.AccAddress("test"), "bnb", "lp")
-	suite.Require().False(f)
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {

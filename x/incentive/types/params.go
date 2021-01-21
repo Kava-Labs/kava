@@ -24,8 +24,10 @@ const (
 
 // Parameter keys and default values
 var (
-	KeyActive                       = []byte("Active")
-	KeyRewards                      = []byte("RewardPeriods")
+	KeyUSDXMintingRewardPeriods     = []byte("USDXMintingRewardPeriods")
+	KeyHardSupplyRewardPeriods      = []byte("HardSupplyRewardPeriods")
+	KeyHardBorrowRewardPeriods      = []byte("HardBorrowRewardPeriods")
+	KeyHardDelegatorRewardPeriods   = []byte("HardDelegatorRewardPeriods")
 	KeyClaimEnd                     = []byte("ClaimEnd")
 	KeyMultipliers                  = []byte("ClaimMultipliers")
 	DefaultActive                   = false
@@ -41,32 +43,44 @@ var (
 
 // Params governance parameters for the incentive module
 type Params struct {
-	RewardPeriods    RewardPeriods `json:"reward_periods" yaml:"reward_periods"`
-	ClaimMultipliers Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"`
-	ClaimEnd         time.Time     `json:"claim_end" yaml:"claim_end"`
+	USDXMintingRewardPeriods   RewardPeriods `json:"usdx_minting_reward_periods" yaml:"usdx_minting_reward_periods"`
+	HardSupplyRewardPeriods    RewardPeriods `json:"hard_supply_reward_periods" yaml:"hard_supply_reward_periods"`
+	HardBorrowRewardPeriods    RewardPeriods `json:"hard_borrow_reward_periods" yaml:"hard_borrow_reward_periods"`
+	HardDelegatorRewardPeriods RewardPeriods `json:"hard_delegator_reward_periods" yaml:"hard_delegator_reward_periods"`
+	ClaimMultipliers           Multipliers   `json:"claim_multipliers" yaml:"claim_multipliers"`
+	ClaimEnd                   time.Time     `json:"claim_end" yaml:"claim_end"`
 }
 
 // NewParams returns a new params object
-func NewParams(rewards RewardPeriods, multipliers Multipliers, claimEnd time.Time) Params {
+func NewParams(usdxMinting, hardSupply, hardBorrow, hardDelegator RewardPeriods,
+	multipliers Multipliers, claimEnd time.Time) Params {
 	return Params{
-		RewardPeriods:    rewards,
-		ClaimMultipliers: multipliers,
-		ClaimEnd:         claimEnd,
+		USDXMintingRewardPeriods:   usdxMinting,
+		HardSupplyRewardPeriods:    hardSupply,
+		HardBorrowRewardPeriods:    hardBorrow,
+		HardDelegatorRewardPeriods: hardDelegator,
+		ClaimMultipliers:           multipliers,
+		ClaimEnd:                   claimEnd,
 	}
 }
 
 // DefaultParams returns default params for incentive module
 func DefaultParams() Params {
-	return NewParams(DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
+	return NewParams(DefaultRewardPeriods, DefaultRewardPeriods,
+		DefaultRewardPeriods, DefaultRewardPeriods, DefaultMultipliers, DefaultClaimEnd)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Rewards: %s
+	USDX Minting Reward Periods: %s
+	Hard Supply Reward Periods: %s
+	Hard Borrow Reward Periods: %s
+	Hard Delegator Reward Periods: %s
 	Claim Multipliers :%s
 	Claim End Time: %s
-	`, p.RewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
+	`, p.USDXMintingRewardPeriods, p.HardSupplyRewardPeriods, p.HardBorrowRewardPeriods,
+		p.HardDelegatorRewardPeriods, p.ClaimMultipliers, p.ClaimEnd)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -77,7 +91,10 @@ func ParamKeyTable() params.KeyTable {
 // ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyRewards, &p.RewardPeriods, validateRewardsParam),
+		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardSupplyRewardPeriods, &p.HardSupplyRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardDelegatorRewardPeriods, &p.HardDelegatorRewardPeriods, validateRewardPeriodsParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
 	}
@@ -85,22 +102,27 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
+
 	if err := validateMultipliersParam(p.ClaimMultipliers); err != nil {
 		return err
 	}
 
-	return validateRewardsParam(p.RewardPeriods)
-}
-
-func validateActiveParam(i interface{}) error {
-	_, ok := i.(bool)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+	if err := validateRewardPeriodsParam(p.USDXMintingRewardPeriods); err != nil {
+		return err
 	}
-	return nil
+
+	if err := validateRewardPeriodsParam(p.HardSupplyRewardPeriods); err != nil {
+		return err
+	}
+
+	if err := validateRewardPeriodsParam(p.HardBorrowRewardPeriods); err != nil {
+		return err
+	}
+
+	return validateRewardPeriodsParam(p.HardDelegatorRewardPeriods)
 }
 
-func validateRewardsParam(i interface{}) error {
+func validateRewardPeriodsParam(i interface{}) error {
 	rewards, ok := i.(RewardPeriods)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -223,9 +245,6 @@ func (m Multiplier) Validate() error {
 	}
 	if m.MonthsLockup < 0 {
 		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
-	}
-	if m.Factor == (sdk.Dec{}) {
-		return fmt.Errorf("claim multiplier factor not initialized for %s", m.Name)
 	}
 	if m.Factor.IsNegative() {
 		return fmt.Errorf("expected non-negative factor, got %s", m.Factor.String())

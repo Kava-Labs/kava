@@ -15,13 +15,15 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	k.SyncBorrowInterest(ctx, depositor)
-	k.SyncSupplyInterest(ctx, depositor)
-
 	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
+	// Call incentive hook
+	k.BeforeDepositModified(ctx, deposit)
+
+	k.SyncBorrowInterest(ctx, depositor)
+	k.SyncSupplyInterest(ctx, depositor)
 
 	amount, err := k.CalculateWithdrawAmount(deposit.Amount, coins)
 	if err != nil {
@@ -47,19 +49,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	if deposit.Amount.IsEqual(amount) {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDeleteHardDeposit,
-				sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
-			),
-		)
-		k.DeleteDeposit(ctx, deposit)
-		return nil
-	}
-
 	deposit.Amount = deposit.Amount.Sub(amount)
-
 	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
 	if err != nil {
 		return err
@@ -69,6 +59,9 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	// Update total supplied amount
 	k.DecrementBorrowedCoins(ctx, amount)
 
+	// Call incentive hook
+	k.AfterDepositModified(ctx, deposit)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHardWithdrawal,
@@ -76,7 +69,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 			sdk.NewAttribute(types.AttributeKeyDepositor, depositor.String()),
 		),
 	)
-
 	return nil
 }
 

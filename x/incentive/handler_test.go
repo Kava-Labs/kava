@@ -45,6 +45,9 @@ func (suite *HandlerTestSuite) SetupTest() {
 	incentiveGS := incentive.NewGenesisState(
 		incentive.NewParams(
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
+			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
 			incentive.Multipliers{incentive.NewMultiplier(incentive.MultiplierName("small"), 1, d("0.25")), incentive.NewMultiplier(incentive.MultiplierName("large"), 12, d("1.0"))},
 			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
 		),
@@ -66,7 +69,7 @@ func (suite *HandlerTestSuite) addClaim() {
 	suite.Require().NoError(err)
 	c1 := incentive.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())})
 	suite.NotPanics(func() {
-		suite.keeper.SetClaim(suite.ctx, c1)
+		suite.keeper.SetUSDXMintingClaim(suite.ctx, c1)
 	})
 }
 

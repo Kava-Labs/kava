@@ -7,7 +7,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp"
-	"github.com/kava-labs/kava/x/incentive"
+	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/pricefeed"
 )
 
@@ -104,6 +104,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	pfGenesis := pricefeed.GenesisState{
 		Params: pricefeed.Params{
 			Markets: []pricefeed.Market{
+				{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "btc:usd", BaseAsset: "btc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
@@ -111,6 +112,12 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
+			{
+				MarketID:      "kava:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
 			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
@@ -140,73 +147,26 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
 }
 
-func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ...incentive.RewardPeriod) app.GenesisState {
-	var accumulationTimes incentive.GenesisAccumulationTimes
-	for _, rp := range rewardPeriods {
-		accumulationTimes = append(
-			accumulationTimes,
-			incentive.NewGenesisAccumulationTime(
-				rp.CollateralType,
-				previousAccumTime,
-				sdk.ZeroDec(),
-			),
-		)
-	}
-	genesis := incentive.NewGenesisState(
-		incentive.NewParams(
-			rewardPeriods,
-			incentive.Multipliers{
-				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),
-				incentive.NewMultiplier(incentive.Large, 12, d("1.0")),
-			},
-			endTime,
-		),
-		accumulationTimes,
-		incentive.USDXMintingClaims{},
-	)
-	return app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(genesis)}
-}
+func NewHardGenStateMulti() app.GenesisState {
+	KAVA_CF := int64(1000000)
+	USDX_CF := int64(1000000)
+	BNB_CF := int64(100000000)
+	BTCB_CF := int64(100000000)
 
-func NewCDPGenStateHighInterest() app.GenesisState {
-	cdpGenesis := cdp.GenesisState{
-		Params: cdp.Params{
-			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold: cdp.DefaultSurplusThreshold,
-			SurplusAuctionLot:       cdp.DefaultSurplusLot,
-			DebtAuctionThreshold:    cdp.DefaultDebtThreshold,
-			DebtAuctionLot:          cdp.DefaultDebtLot,
-			CollateralParams: cdp.CollateralParams{
-				{
-					Denom:               "bnb",
-					Type:                "bnb-a",
-					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
-					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:        sdk.MustNewDecFromStr("1.000000051034942716"), // 500% APR
-					LiquidationPenalty:  d("0.05"),
-					AuctionSize:         i(50000000000),
-					Prefix:              0x22,
-					SpotMarketID:        "bnb:usd",
-					LiquidationMarketID: "bnb:usd",
-					ConversionFactor:    i(8),
-				},
-			},
-			DebtParam: cdp.DebtParam{
-				Denom:            "usdx",
-				ReferenceAsset:   "usd",
-				ConversionFactor: i(6),
-				DebtFloor:        i(10000000),
-			},
+	loanToValue, _ := sdk.NewDecFromStr("0.6")
+	borrowLimit := sdk.NewDec(1000000000000000)
+
+	hardGS := hard.NewGenesisState(hard.NewParams(
+		true,
+		hard.MoneyMarkets{
+			hard.NewMoneyMarket("usdx", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "usdx:usd", sdk.NewInt(1000000), sdk.NewInt(USDX_CF*1000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+			hard.NewMoneyMarket("ukava", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "kava:usd", sdk.NewInt(1000000), sdk.NewInt(KAVA_CF*1000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+			hard.NewMoneyMarket("bnb", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "bnb:usd", sdk.NewInt(1000000), sdk.NewInt(BNB_CF*1000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+			hard.NewMoneyMarket("btcb", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "btc:usd", sdk.NewInt(1000000), sdk.NewInt(BTCB_CF*1000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+			hard.NewMoneyMarket("xrp", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "xrp:usd", sdk.NewInt(1000000), sdk.NewInt(BTCB_CF*1000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 		},
-		StartingCdpID: cdp.DefaultCdpStartingID,
-		DebtDenom:     cdp.DefaultDebtDenom,
-		GovDenom:      cdp.DefaultGovDenom,
-		CDPs:          cdp.CDPs{},
-		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
-			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
-		},
-		TotalPrincipals: cdp.GenesisTotalPrincipals{
-			cdp.NewGenesisTotalPrincipal("bnb-a", sdk.ZeroInt()),
-		},
-	}
-	return app.GenesisState{cdp.ModuleName: cdp.ModuleCdc.MustMarshalJSON(cdpGenesis)}
+		0, // LTV counter
+	), hard.DefaultPreviousBlockTime)
+
+	return app.GenesisState{hard.ModuleName: hard.ModuleCdc.MustMarshalJSON(hardGS)}
 }
