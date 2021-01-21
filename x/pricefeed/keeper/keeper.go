@@ -8,6 +8,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
@@ -199,6 +200,30 @@ func (k Keeper) GetCurrentPrice(ctx sdk.Context, marketID string) (types.Current
 		return types.CurrentPrice{}, types.ErrNoValidPrice
 	}
 	return price, nil
+}
+
+// IterateCurrentPrices iterates over all current price objects in the store and performs a callback function
+func (k Keeper) IterateCurrentPrices(ctx sdk.Context, cb func(cp types.CurrentPrice) (stop bool)) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.CurrentPricePrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var cp types.CurrentPrice
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &cp)
+		if cb(cp) {
+			break
+		}
+	}
+}
+
+// GetCurrentPrices returns all current price objects from the store
+func (k Keeper) GetCurrentPrices(ctx sdk.Context) types.CurrentPrices {
+	cps := types.CurrentPrices{}
+	k.IterateCurrentPrices(ctx, func(cp types.CurrentPrice) (stop bool) {
+		cps = append(cps, cp)
+		return false
+	})
+	return cps
 }
 
 // GetRawPrices fetches the set of all prices posted by oracles for an asset
