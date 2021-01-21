@@ -18,7 +18,8 @@ type SupplyKeeper interface {
 
 // StakingKeeper defines the expected staking keeper for module accounts
 type StakingKeeper interface {
-	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
+	GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (delegations []stakingtypes.Delegation)
+	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 	TotalBondedTokens(ctx sdk.Context) sdk.Int
 }
 
