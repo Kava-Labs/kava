@@ -46,10 +46,6 @@ module.exports = {
             {
               title: "JavaScript SDK",
               path: "/building/javascript-sdk.html"
-            },
-            {
-              title: "Migration Guide: kava-3",
-              path: "/building/kava-3-migration-guide.html"
             }
           ]
         },
