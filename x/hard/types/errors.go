@@ -13,10 +13,6 @@ var (
 	ErrDepositNotFound = sdkerrors.Register(ModuleName, 3, "deposit not found")
 	// ErrInvalidWithdrawAmount error for invalid withdrawal amount
 	ErrInvalidWithdrawAmount = sdkerrors.Register(ModuleName, 4, "invalid withdrawal amount")
-	// ErrLPScheduleNotFound error for liquidity provider rewards schedule not found
-	ErrLPScheduleNotFound = sdkerrors.Register(ModuleName, 5, "no liquidity provider rewards schedule found")
-	// ErrGovScheduleNotFound error for governance distribution rewards schedule not found
-	ErrGovScheduleNotFound = sdkerrors.Register(ModuleName, 6, "no governance rewards schedule found")
 	// ErrInvalidMultiplier error for multiplier not found
 	ErrInvalidMultiplier = sdkerrors.Register(ModuleName, 7, "invalid rewards multiplier")
 	// ErrInsufficientModAccountBalance error for module account with innsufficient balance
