@@ -20,7 +20,6 @@ func (suite *ParamTestSuite) SetupTest() {}
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
-		active                     bool
 		usdxMintingRewardPeriods   types.RewardPeriods
 		hardSupplyRewardPeriods    types.RewardPeriods
 		hardBorrowRewardPeriods    types.RewardPeriods
@@ -43,7 +42,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			"default",
 			args{
-				active:                     types.DefaultActive,
 				usdxMintingRewardPeriods:   types.DefaultRewardPeriods,
 				hardSupplyRewardPeriods:    types.DefaultRewardPeriods,
 				hardBorrowRewardPeriods:    types.DefaultRewardPeriods,
@@ -59,7 +57,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			"valid",
 			args{
-				active: true,
 				usdxMintingRewardPeriods: types.RewardPeriods{types.NewRewardPeriod(
 					true, "bnb-a", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 					sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)))},
@@ -85,8 +82,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(
-				tc.args.active, tc.args.usdxMintingRewardPeriods, tc.args.hardSupplyRewardPeriods,
+			params := types.NewParams(tc.args.usdxMintingRewardPeriods, tc.args.hardSupplyRewardPeriods,
 				tc.args.hardBorrowRewardPeriods, tc.args.hardDelegatorRewardPeriods, tc.args.multipliers, tc.args.end,
 			)
 			err := params.Validate()

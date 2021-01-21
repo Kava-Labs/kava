@@ -74,7 +74,6 @@ func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 
 			// setup incentive state
 			params := types.NewParams(
-				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -150,7 +149,6 @@ func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 
 			// setup incentive state
 			params := types.NewParams(
-				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -263,7 +261,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 
 			// setup incentive state
 			params := types.NewParams(
-				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -356,7 +353,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 
 			// setup incentive state
 			params := types.NewParams(
-				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -482,7 +478,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 
 			// Set up incentive state
 			params := types.NewParams(
-				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -572,7 +567,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 
 			// setup incentive state
 			params := types.NewParams(
-				true,
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
@@ -704,7 +698,6 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 
 			// Setup incentive state
 			params := types.NewParams(
-				true,
 				rewardPeriods, rewardPeriods, rewardPeriods, rewardPeriods,
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
@@ -816,7 +809,6 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 
 			// Setup incentive state
 			params := types.NewParams(
-				true,
 				rewardPeriods, rewardPeriods, rewardPeriods, rewardPeriods,
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),

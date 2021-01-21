@@ -43,7 +43,6 @@ func TestGenesisStateValidate(t *testing.T) {
 			name: "valid",
 			args: args{
 				params: NewParams(
-					true,
 					RewardPeriods{
 						NewRewardPeriod(
 							true,

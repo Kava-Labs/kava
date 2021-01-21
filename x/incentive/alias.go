@@ -74,7 +74,6 @@ var (
 	ErrZeroClaim                                  = types.ErrZeroClaim
 	GovDenom                                      = types.GovDenom
 	IncentiveMacc                                 = types.IncentiveMacc
-	KeyActive                                     = types.KeyActive
 	KeyClaimEnd                                   = types.KeyClaimEnd
 	KeyMultipliers                                = types.KeyMultipliers
 	KeyUSDXMintingRewardPeriods                   = types.KeyUSDXMintingRewardPeriods

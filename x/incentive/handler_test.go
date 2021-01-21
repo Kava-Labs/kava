@@ -44,7 +44,6 @@ func (suite *HandlerTestSuite) SetupTest() {
 	authGS := app.NewAuthGenState(addrs, coins)
 	incentiveGS := incentive.NewGenesisState(
 		incentive.NewParams(
-			true,
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
 			incentive.RewardPeriods{incentive.NewRewardPeriod(true, "bnb-a", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), time.Date(2024, 12, 15, 14, 0, 0, 0, time.UTC), c("ukava", 122354))},
