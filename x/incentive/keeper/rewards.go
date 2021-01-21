@@ -442,6 +442,27 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccA
 	return nil
 }
 
+// InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
+func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress) {
+	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, UKAVA_DENOM)
+	if !foundDelegatorFactor { // Should always be found...
+		delegatorFactor = sdk.ZeroDec()
+	}
+
+	delegatorRewardIndexes := types.NewRewardIndex(UKAVA_DENOM, delegatorFactor)
+
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
+	if !found {
+		// Instantiate claim object
+		claim = types.NewHardLiquidityProviderClaim(delegator,
+			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
+			nil, nil, nil)
+	}
+
+	claim.DelegatorRewardIndexes = types.RewardIndexes{delegatorRewardIndexes}
+	k.SetHardLiquidityProviderClaim(ctx, claim)
+}
+
 // ZeroClaim zeroes out the claim object's rewards and returns the updated claim object
 func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
 	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
