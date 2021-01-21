@@ -382,6 +382,7 @@ func NewApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts AppOptio
 		&cdpKeeper,
 		&hardKeeper,
 		app.accountKeeper,
+		&stakingKeeper,
 	)
 	app.issuanceKeeper = issuance.NewKeeper(
 		app.cdc,

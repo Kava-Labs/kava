@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -15,6 +16,12 @@ type SupplyKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
+// StakingKeeper defines the expected staking keeper for module accounts
+type StakingKeeper interface {
+	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
+	TotalBondedTokens(ctx sdk.Context) sdk.Int
+}
+
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
 	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
@@ -25,6 +32,7 @@ type CdpKeeper interface {
 
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol
 type HardKeeper interface {
+	GetDelegatorInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
 	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
