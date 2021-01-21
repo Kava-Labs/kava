@@ -12,6 +12,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const UKAVA_DENOM = "ukava"
+
 // AccumulateUSDXMintingRewards updates the rewards accumulated for the input reward period
 func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rewardPeriod.CollateralType)
@@ -401,7 +403,7 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 }
 
 // AccumulateHardDelegatorRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccAddress, rewardPeriod types.RewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
@@ -439,30 +441,6 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	return nil
 }
-
-// // TODO: move to global variable
-// const UKAVA_DENOM = "ukava"
-
-// // InitializeHardDelegatorReward initializes the delegator reward index of a hard  claim
-// func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress) {
-// 	delegationFactor, foundDelegationFactor := k.GetHardDelegationRewardFactor(ctx, UKAVA_DENOM)
-// 	if !foundDelegationFactor { // Should always be found...
-// 		delegationFactor = sdk.ZeroDec()
-// 	}
-
-// 	delegatorRewardIndexes := types.NewRewardIndex(UKAVA_DENOM, delegationFactor)
-
-// 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
-// 	if !found {
-// 		// Instantiate claim object
-// 		claim = types.NewHardLiquidityProviderClaim(delegator,
-// 			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-// 			nil, nil, nil)
-// 	}
-
-// 	claim.DelegatorRewardIndexes = delegatorRewardIndexes
-// 	k.SetHardLiquidityProviderClaim(ctx, claim)
-// }
 
 // ZeroClaim zeroes out the claim object's rewards and returns the updated claim object
 func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
