@@ -14,24 +14,31 @@ Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using
 
 ## Mainnet
 
-The current recommended version of the software for mainnet is [v0.10.0](https://github.com/Kava-Labs/kava/releases/tag/v0.10.0). Note, the master branch of this repository contains development work since the last mainnet release and it may **not** be runnable on mainnet.
+The current recommended version of the software for mainnet is [v0.12.1](https://github.com/Kava-Labs/kava/releases/tag/v0.12.1). Note, the master branch of this repository contains development work since the last mainnet release and it may **not** be runnable on mainnet.
 
 ### Installation
 
 ```bash
-git checkout v0.10.0
+git checkout v0.12.1
 make install
 ```
 
 ### Upgrade
 
-The mainnet upgrade to `kava-3` took place on June 10th, 2020 at 14:00 UTC. The version of Kava for `kava-3` is [__v0.10.0__](https://github.com/Kava-Labs/kava/releases/tag/v0.10.0).
+The scheduled mainnet upgrade to `kava-4` took place on October 15th, 2020 at 14:00 UTC. The current version of Kava for `kava-4` is [__v0.12.1__](https://github.com/Kava-Labs/kava/releases/tag/v0.12.1).
 
-Migration instructions can be found [here](https://github.com/Kava-Labs/kava/blob/v0.10.0/contrib/kava-3/migration.md).
+The canonical genesis file can be found [here](https://github.com/Kava-Labs/launch/tree/master/kava-4)
+
+The canonical genesis file hash is
+
+```
+jq -S -c -M '' genesis.json | shasum -a 256
+# 760cd37ab07d136e5cbb8795244683f0725f63f5c69ccf61626fe735f1ed9793
+```
 
 ## Testnet
 
-The recommended version of the software for kava-testnet-6000 is v0.8.0-rc1. For further information on joining the testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
+For further information on joining the testnet, head over to the [testnet repo](https://github.com/Kava-Labs/kava-testnets).
 
 ## License
 

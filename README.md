@@ -25,7 +25,7 @@ Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using
 
 ## Mainnet
 
-Note, the current recommended version of the software for mainnet is v0.11.0. The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
+The current recommended version of the software for mainnet is [v0.12.1](https://github.com/Kava-Labs/kava/releases/tag/v0.12.1). The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
 
 ### Installation
 
