@@ -512,7 +512,7 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccA
 // TODO: could a single delegation update the delegator index, effectively updating the value before
 //		 the delegator has a chance to earn rewards on their delegations?
 // InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
-func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress) {
+func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
 	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, UKAVA_DENOM)
 	if !foundDelegatorFactor { // Should always be found...
 		delegatorFactor = sdk.ZeroDec()

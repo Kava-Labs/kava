@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 )
@@ -13,6 +15,7 @@ type Hooks struct {
 
 var _ cdptypes.CDPHooks = Hooks{}
 var _ hardtypes.HARDHooks = Hooks{}
+var _ stakingtypes.StakingHooks = Hooks{}
 
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
@@ -66,34 +69,54 @@ func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 // ------------------- Staking Module Hooks -------------------
 // TODO: how to ensure that existing delegators get their rewards?
 
-// delegate:
+// on delegate:
 // 1a. if existing delegation: 	k.BeforeDelegationSharesModified(ctx, delAddr, validator.OperatorAddress)
 // 1b. if new delegation: 		k.BeforeDelegationCreated(ctx, delAddr, validator.OperatorAddress)
 // 2.  							k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-
-// unbond:
+//
+// on unbond:
 // 1	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
 // 2	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 
 // BeforeDelegationCreated runs before a delegation is created
 func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	// h.k.InitializeHardDelegationReward(ctx, delAddr, valAddr)
-	// TODO: create delegation reward indexes inside hard reward object for the delegating address
+	h.k.InitializeHardDelegatorReward(ctx, delAddr)
 }
 
 // BeforeDelegationSharesModified runs before an existing delegation is modified
 func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	// h.k.SynchronizeHardDelegationReward(ctx, borrow)
-	// TODO: update delegation reward indexes inside hard reward object for the delegating address
+	h.k.SynchronizeHardDelegatorRewards(ctx, delAddr)
 }
+
+// TODO: Consider calling the following hooks when validators are slashed/unbonded/rebonded in order
+// 		 to properly allocate rewards to their delegators and not wait until the delegator takes an action:
+// BeforeValidatorSlashed is called before a validator is slashed
+func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {}
+
+// AfterValidatorBeginUnbonding is called after a validator begins unbonding
+func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+}
+
+// AfterValidatorBonded is called after a validator is bonded
+func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+}
+
+// NOTE: following hooks are just stub methods to ensure interface compliance
 
 // AfterDelegationModified runs after a delegation is modified
 func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	// h.k.UpdateHardDelegationIndexDenoms(ctx, borrow)
-	// TODO: update delegation reward indexes inside hard reward object for the delegating address
 }
 
 // BeforeDelegationRemoved runs directly before a delegation is deleted
 func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+}
 
+// AfterValidatorCreated runs after a validator is created
+func (h Hooks) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {}
+
+// BeforeValidatorModified runs before a validator is modified
+func (h Hooks) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) {}
+
+// AfterValidatorRemoved runs after a validator is removed
+func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
 }
