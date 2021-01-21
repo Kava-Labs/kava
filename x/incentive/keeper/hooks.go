@@ -17,6 +17,8 @@ var _ hardtypes.HARDHooks = Hooks{}
 // Hooks create new incentive hooks
 func (k Keeper) Hooks() Hooks { return Hooks{k} }
 
+// ------------------- Cdp Module Hooks -------------------
+
 // AfterCDPCreated function that runs after a cdp is created
 func (h Hooks) AfterCDPCreated(ctx sdk.Context, cdp cdptypes.CDP) {
 	h.k.InitializeUSDXMintingClaim(ctx, cdp)
@@ -28,6 +30,8 @@ func (h Hooks) AfterCDPCreated(ctx sdk.Context, cdp cdptypes.CDP) {
 func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 	h.k.SynchronizeUSDXMintingReward(ctx, cdp)
 }
+
+// ------------------- Hard Module Hooks -------------------
 
 // AfterDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
@@ -57,4 +61,39 @@ func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 // AfterBorrowModified function that runs after a borrow is modified
 func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 	h.k.UpdateHardBorrowIndexDenoms(ctx, borrow)
+}
+
+// ------------------- Staking Module Hooks -------------------
+// TODO: how to ensure that existing delegators get their rewards?
+
+// delegate:
+// 1a. if existing delegation: 	k.BeforeDelegationSharesModified(ctx, delAddr, validator.OperatorAddress)
+// 1b. if new delegation: 		k.BeforeDelegationCreated(ctx, delAddr, validator.OperatorAddress)
+// 2.  							k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+
+// unbond:
+// 1	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
+// 2	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
+
+// BeforeDelegationCreated runs before a delegation is created
+func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	// h.k.InitializeHardDelegationReward(ctx, delAddr, valAddr)
+	// TODO: create delegation reward indexes inside hard reward object for the delegating address
+}
+
+// BeforeDelegationSharesModified runs before an existing delegation is modified
+func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	// h.k.SynchronizeHardDelegationReward(ctx, borrow)
+	// TODO: update delegation reward indexes inside hard reward object for the delegating address
+}
+
+// AfterDelegationModified runs after a delegation is modified
+func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	// h.k.UpdateHardDelegationIndexDenoms(ctx, borrow)
+	// TODO: update delegation reward indexes inside hard reward object for the delegating address
+}
+
+// BeforeDelegationRemoved runs directly before a delegation is deleted
+func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+
 }
