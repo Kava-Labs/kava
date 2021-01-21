@@ -27,40 +27,6 @@ type Params struct {
 	CheckLtvIndexCount int          `json:"check_ltv_index_count" yaml:"check_ltv_index_count"`
 }
 
-// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
-type Multiplier struct {
-	Name         MultiplierName `json:"name" yaml:"name"`
-	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
-	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
-}
-
-// NewMultiplier returns a new Multiplier
-func NewMultiplier(name MultiplierName, lockup int64, factor sdk.Dec) Multiplier {
-	return Multiplier{
-		Name:         name,
-		MonthsLockup: lockup,
-		Factor:       factor,
-	}
-}
-
-// Validate multiplier param
-func (m Multiplier) Validate() error {
-	if err := m.Name.IsValid(); err != nil {
-		return err
-	}
-	if m.MonthsLockup < 0 {
-		return fmt.Errorf("expected non-negative lockup, got %d", m.MonthsLockup)
-	}
-	if m.Factor.IsNegative() {
-		return fmt.Errorf("expected non-negative factor, got %s", m.Factor.String())
-	}
-
-	return nil
-}
-
-// Multipliers slice of Multiplier
-type Multipliers []Multiplier
-
 // BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
 	HasMaxLimit  bool    `json:"has_max_limit" yaml:"has_max_limit"`

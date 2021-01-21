@@ -10,7 +10,6 @@ const (
 	QueryGetModuleAccounts = "accounts"
 	QueryGetDeposits       = "deposits"
 	QueryGetTotalDeposited = "total-deposited"
-	QueryGetClaims         = "claims"
 	QueryGetBorrows        = "borrows"
 	QueryGetTotalBorrowed  = "total-borrowed"
 )
@@ -30,26 +29,6 @@ func NewQueryDepositsParams(page, limit int, denom string, owner sdk.AccAddress)
 		Limit: limit,
 		Denom: denom,
 		Owner: owner,
-	}
-}
-
-// QueryClaimParams is the params for a filtered claim query
-type QueryClaimParams struct {
-	Page      int            `json:"page" yaml:"page"`
-	Limit     int            `json:"limit" yaml:"limit"`
-	Denom     string         `json:"denom" yaml:"denom"`
-	Owner     sdk.AccAddress `json:"owner" yaml:"owner"`
-	ClaimType ClaimType      `json:"claim_type" yaml:"claim_type"`
-}
-
-// NewQueryClaimParams creates a new QueryClaimParams
-func NewQueryClaimParams(page, limit int, denom string, owner sdk.AccAddress, claimType ClaimType) QueryClaimParams {
-	return QueryClaimParams{
-		Page:      page,
-		Limit:     limit,
-		Denom:     denom,
-		Owner:     owner,
-		ClaimType: claimType,
 	}
 }
 
