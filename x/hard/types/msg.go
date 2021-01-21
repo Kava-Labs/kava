@@ -7,25 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// MultiplierName name for valid multiplier
-type MultiplierName string
-
-// Valid reward multipliers and reward types
-const (
-	Small  MultiplierName = "small"
-	Medium MultiplierName = "medium"
-	Large  MultiplierName = "large"
-)
-
-// IsValid checks if the input is one of the expected strings
-func (mn MultiplierName) IsValid() error {
-	switch mn {
-	case Small, Medium, Large:
-		return nil
-	}
-	return fmt.Errorf("invalid multiplier name: %s", mn)
-}
-
 // ensure Msg interface compliance at compile time
 var (
 	_ sdk.Msg = &MsgDeposit{}

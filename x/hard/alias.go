@@ -23,8 +23,6 @@ const (
 	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
 	LPAccount                          = types.LPAccount
 	LiquidatorAccount                  = types.LiquidatorAccount
-	Large                              = types.Large
-	Medium                             = types.Medium
 	ModuleAccountName                  = types.ModuleAccountName
 	ModuleName                         = types.ModuleName
 	QuerierRoute                       = types.QuerierRoute
@@ -32,7 +30,6 @@ const (
 	QueryGetModuleAccounts             = types.QueryGetModuleAccounts
 	QueryGetParams                     = types.QueryGetParams
 	RouterKey                          = types.RouterKey
-	Small                              = types.Small
 	StoreKey                           = types.StoreKey
 )
 
@@ -56,7 +53,6 @@ var (
 	NewMsgDeposit                 = types.NewMsgDeposit
 	NewMsgWithdraw                = types.NewMsgWithdraw
 	NewMultiHARDHooks             = types.NewMultiHARDHooks
-	NewMultiplier                 = types.NewMultiplier
 	NewParams                     = types.NewParams
 	NewPeriod                     = types.NewPeriod
 	NewMoneyMarket                = types.NewMoneyMarket
@@ -71,13 +67,10 @@ var (
 	DepositsKeyPrefix                = types.DepositsKeyPrefix
 	ErrAccountNotFound               = types.ErrAccountNotFound
 	ErrDepositNotFound               = types.ErrDepositNotFound
-	ErrGovScheduleNotFound           = types.ErrGovScheduleNotFound
 	ErrInsufficientModAccountBalance = types.ErrInsufficientModAccountBalance
 	ErrInvaliWithdrawAmount          = types.ErrInvalidWithdrawAmount
 	ErrInvalidAccountType            = types.ErrInvalidAccountType
 	ErrInvalidDepositDenom           = types.ErrInvalidDepositDenom
-	ErrInvalidMultiplier             = types.ErrInvalidMultiplier
-	ErrLPScheduleNotFound            = types.ErrLPScheduleNotFound
 	GovDenom                         = types.GovDenom
 	KeyActive                        = types.KeyActive
 	ModuleCdc                        = types.ModuleCdc
@@ -94,9 +87,6 @@ type (
 	GenesisState       = types.GenesisState
 	MsgDeposit         = types.MsgDeposit
 	MsgWithdraw        = types.MsgWithdraw
-	Multiplier         = types.Multiplier
-	MultiplierName     = types.MultiplierName
-	Multipliers        = types.Multipliers
 	Params             = types.Params
 	QueryAccountParams = types.QueryAccountParams
 	StakingKeeper      = types.StakingKeeper
