@@ -9,10 +9,6 @@ import (
 
 const (
 	AttributeKeyBlockHeight            = types.AttributeKeyBlockHeight
-	AttributeKeyClaimAmount            = types.AttributeKeyClaimAmount
-	AttributeKeyClaimHolder            = types.AttributeKeyClaimHolder
-	AttributeKeyClaimMultiplier        = types.AttributeKeyClaimMultiplier
-	AttributeKeyClaimType              = types.AttributeKeyClaimType
 	AttributeKeyDeposit                = types.AttributeKeyDeposit
 	AttributeKeyDepositDenom           = types.AttributeKeyDepositDenom
 	AttributeKeyDepositor              = types.AttributeKeyDepositor
@@ -20,13 +16,11 @@ const (
 	AttributeValueCategory             = types.AttributeValueCategory
 	DefaultParamspace                  = types.DefaultParamspace
 	DelegatorAccount                   = types.DelegatorAccount
-	EventTypeClaimHardReward           = types.EventTypeClaimHardReward
 	EventTypeDeleteHardDeposit         = types.EventTypeDeleteHardDeposit
 	EventTypeHardDelegatorDistribution = types.EventTypeHardDelegatorDistribution
 	EventTypeHardDeposit               = types.EventTypeHardDeposit
 	EventTypeHardLPDistribution        = types.EventTypeHardLPDistribution
 	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
-	LP                                 = types.LP
 	LPAccount                          = types.LPAccount
 	LiquidatorAccount                  = types.LiquidatorAccount
 	Large                              = types.Large
@@ -34,13 +28,11 @@ const (
 	ModuleAccountName                  = types.ModuleAccountName
 	ModuleName                         = types.ModuleName
 	QuerierRoute                       = types.QuerierRoute
-	QueryGetClaims                     = types.QueryGetClaims
 	QueryGetDeposits                   = types.QueryGetDeposits
 	QueryGetModuleAccounts             = types.QueryGetModuleAccounts
 	QueryGetParams                     = types.QueryGetParams
 	RouterKey                          = types.RouterKey
 	Small                              = types.Small
-	Stake                              = types.Stake
 	StoreKey                           = types.StoreKey
 )
 
@@ -61,7 +53,6 @@ var (
 	NewInterestRateModel          = types.NewInterestRateModel
 	NewDeposit                    = types.NewDeposit
 	NewGenesisState               = types.NewGenesisState
-	NewMsgClaimReward             = types.NewMsgClaimReward
 	NewMsgDeposit                 = types.NewMsgDeposit
 	NewMsgWithdraw                = types.NewMsgWithdraw
 	NewMultiHARDHooks             = types.NewMultiHARDHooks
@@ -70,7 +61,6 @@ var (
 	NewPeriod                     = types.NewPeriod
 	NewMoneyMarket                = types.NewMoneyMarket
 	NewQueryAccountParams         = types.NewQueryAccountParams
-	NewQueryClaimParams           = types.NewQueryClaimParams
 	ParamKeyTable                 = types.ParamKeyTable
 	RegisterCodec                 = types.RegisterCodec
 
@@ -78,21 +68,16 @@ var (
 	BorrowsKeyPrefix                 = types.BorrowsKeyPrefix
 	DefaultActive                    = types.DefaultActive
 	DefaultPreviousBlockTime         = types.DefaultPreviousBlockTime
-	ClaimTypesClaimQuery             = types.ClaimTypesClaimQuery
 	DepositsKeyPrefix                = types.DepositsKeyPrefix
 	ErrAccountNotFound               = types.ErrAccountNotFound
-	ErrClaimExpired                  = types.ErrClaimExpired
-	ErrClaimNotFound                 = types.ErrClaimNotFound
 	ErrDepositNotFound               = types.ErrDepositNotFound
 	ErrGovScheduleNotFound           = types.ErrGovScheduleNotFound
 	ErrInsufficientModAccountBalance = types.ErrInsufficientModAccountBalance
 	ErrInvaliWithdrawAmount          = types.ErrInvalidWithdrawAmount
 	ErrInvalidAccountType            = types.ErrInvalidAccountType
 	ErrInvalidDepositDenom           = types.ErrInvalidDepositDenom
-	ErrInvalidClaimType              = types.ErrInvalidClaimType
 	ErrInvalidMultiplier             = types.ErrInvalidMultiplier
 	ErrLPScheduleNotFound            = types.ErrLPScheduleNotFound
-	ErrZeroClaim                     = types.ErrZeroClaim
 	GovDenom                         = types.GovDenom
 	KeyActive                        = types.KeyActive
 	ModuleCdc                        = types.ModuleCdc
@@ -106,9 +91,7 @@ type (
 	MoneyMarket        = types.MoneyMarket
 	MoneyMarkets       = types.MoneyMarkets
 	Deposit            = types.Deposit
-	ClaimType          = types.ClaimType
 	GenesisState       = types.GenesisState
-	MsgClaimReward     = types.MsgClaimReward
 	MsgDeposit         = types.MsgDeposit
 	MsgWithdraw        = types.MsgWithdraw
 	Multiplier         = types.Multiplier
@@ -116,7 +99,6 @@ type (
 	Multipliers        = types.Multipliers
 	Params             = types.Params
 	QueryAccountParams = types.QueryAccountParams
-	QueryClaimParams   = types.QueryClaimParams
 	StakingKeeper      = types.StakingKeeper
 	SupplyKeeper       = types.SupplyKeeper
 )
