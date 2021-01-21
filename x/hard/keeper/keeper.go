@@ -321,6 +321,25 @@ func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec,
 	return supplyInterestFactor, true
 }
 
+// SetDelegatorInterestFactor sets the current delegator interest factor for an individual market
+func (k Keeper) SetDelegatorInterestFactor(ctx sdk.Context, denom string, delegatorInterestFactor sdk.Dec) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorInterestFactorPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(delegatorInterestFactor)
+	store.Set([]byte(denom), bz)
+}
+
+// GetDelegatorInterestFactor returns the current delegator interest factor for an individual market
+func (k Keeper) GetDelegatorInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorInterestFactorPrefix)
+	bz := store.Get([]byte(denom))
+	if bz == nil {
+		return sdk.ZeroDec(), false
+	}
+	var delegatorInterestFactor sdk.Dec
+	k.cdc.MustUnmarshalBinaryBare(bz, &delegatorInterestFactor)
+	return delegatorInterestFactor, true
+}
+
 // SetSupplyInterestFactor sets the current supply interest factor for an individual market
 func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInterestFactor sdk.Dec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
