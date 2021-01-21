@@ -272,22 +272,27 @@ func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, denom string, previousAc
 }
 
 // GetTotalReserves returns the total reserves for an individual market
-func (k Keeper) GetTotalReserves(ctx sdk.Context, denom string) (sdk.Coin, bool) {
+func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	bz := store.Get([]byte(denom))
+	bz := store.Get([]byte{})
 	if bz == nil {
-		return sdk.Coin{}, false
+		return sdk.Coins{}, false
 	}
-	var totalReserves sdk.Coin
+	var totalReserves sdk.Coins
 	k.cdc.MustUnmarshalBinaryBare(bz, &totalReserves)
 	return totalReserves, true
 }
 
 // SetTotalReserves sets the total reserves for an individual market
-func (k Keeper) SetTotalReserves(ctx sdk.Context, denom string, coin sdk.Coin) {
+func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
+
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(coin)
-	store.Set([]byte(denom), bz)
+	if coins.Empty() {
+		store.Set([]byte{}, []byte{})
+		return
+	}
+	bz := k.cdc.MustMarshalBinaryBare(coins)
+	store.Set([]byte{}, bz)
 }
 
 // GetBorrowInterestFactor returns the current borrow interest factor for an individual market

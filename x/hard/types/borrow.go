@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -20,8 +23,40 @@ func NewBorrow(borrower sdk.AccAddress, amount sdk.Coins, index BorrowInterestFa
 	}
 }
 
+// Validate deposit validation
+func (b Borrow) Validate() error {
+	if b.Borrower.Empty() {
+		return fmt.Errorf("Depositor cannot be empty")
+	}
+	if !b.Amount.IsValid() {
+		return fmt.Errorf("Invalid deposit coins: %s", b.Amount)
+	}
+
+	if err := b.Index.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Borrows is a slice of Borrow
 type Borrows []Borrow
+
+// Validate validates Borrows
+func (bs Borrows) Validate() error {
+	borrowDupMap := make(map[string]Borrow)
+	for _, b := range bs {
+		if err := b.Validate(); err != nil {
+			return err
+		}
+		dup, ok := borrowDupMap[b.Borrower.String()]
+		if ok {
+			return fmt.Errorf("duplicate borrower: %s\n%s", b, dup)
+		}
+		borrowDupMap[b.Borrower.String()] = b
+	}
+	return nil
+}
 
 // BorrowInterestFactor defines an individual borrow interest factor
 type BorrowInterestFactor struct {
@@ -37,5 +72,40 @@ func NewBorrowInterestFactor(denom string, value sdk.Dec) BorrowInterestFactor {
 	}
 }
 
+// Validate validates BorrowInterestFactor values
+func (bif BorrowInterestFactor) Validate() error {
+	if strings.TrimSpace(bif.Denom) == "" {
+		return fmt.Errorf("borrow interest factor denom cannot be empty")
+	}
+	if bif.Value.IsNegative() {
+		return fmt.Errorf("borrow interest factor value cannot be negative: %s", bif)
+
+	}
+	return nil
+}
+
+func (bif BorrowInterestFactor) String() string {
+	return fmt.Sprintf(`[%s,%s]
+	`, bif.Denom, bif.Value)
+}
+
 // BorrowInterestFactors is a slice of BorrowInterestFactor, because Amino won't marshal maps
 type BorrowInterestFactors []BorrowInterestFactor
+
+// Validate validates BorrowInterestFactors
+func (bifs BorrowInterestFactors) Validate() error {
+	for _, bif := range bifs {
+		if err := bif.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (bifs BorrowInterestFactors) String() string {
+	out := ""
+	for _, bif := range bifs {
+		out += bif.String()
+	}
+	return out
+}
