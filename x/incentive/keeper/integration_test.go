@@ -84,6 +84,12 @@ func NewCDPGenStateMulti() app.GenesisState {
 		DebtDenom:     cdp.DefaultDebtDenom,
 		GovDenom:      cdp.DefaultGovDenom,
 		CDPs:          cdp.CDPs{},
+		PreviousAccumulationTimes: cdp.GenesisAccumulationTimes{
+			cdp.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("busd-a", time.Time{}, sdk.OneDec()),
+			cdp.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
+		},
 		TotalPrincipals: cdp.GenesisTotalPrincipals{
 			cdp.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
 			cdp.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),

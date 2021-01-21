@@ -33,7 +33,12 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 		return nil
 	}
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-	rewardFactor := newRewards.ToDec().Quo(totalPrincipal)
+	cdpFactor, found := k.cdpKeeper.GetInterestFactor(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousUSDXMintingAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+	rewardFactor := newRewards.ToDec().Mul(cdpFactor).Quo(totalPrincipal)
 
 	previousRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, rewardPeriod.CollateralType)
 	if !found {

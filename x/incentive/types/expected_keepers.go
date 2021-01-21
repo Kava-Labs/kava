@@ -17,7 +17,7 @@ type SupplyKeeper interface {
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
-	IterateCdpsByCollateralType(ctx sdk.Context, collateralType string, cb func(cdp cdptypes.CDP) (stop bool))
+	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
 	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
 	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
