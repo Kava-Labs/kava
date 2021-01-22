@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -862,6 +862,115 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 				suite.Require().True(hasIndex)
 			}
 			suite.Require().True(len(claimAfterSecondBorrow.BorrowRewardIndexes) == len(tc.args.expectedBorrowIndexDenoms))
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
+	type args struct {
+		delegation           sdk.Coin
+		rewardsPerSecond     sdk.Coin
+		initialTime          time.Time
+		timeElapsed          int
+		expectedRewardFactor sdk.Dec
+	}
+	type test struct {
+		name string
+		args args
+	}
+	testCases := []test{
+		{
+			"7 seconds",
+			args{
+				delegation:           c("ukava", 10000000000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          7,
+				expectedRewardFactor: d("1"),
+			},
+		},
+		// {
+		// 	"1 day",
+		// 	args{
+		// 		deposit:              c("bnb", 1000000000000),
+		// 		rewardsPerSecond:     c("hard", 122354),
+		// 		initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+		// 		timeElapsed:          86400,
+		// 		expectedRewardFactor: d("0.010571385600000000"),
+		// 	},
+		// },
+		// {
+		// 	"0 seconds",
+		// 	args{
+		// 		deposit:              c("bnb", 1000000000000),
+		// 		rewardsPerSecond:     c("hard", 122354),
+		// 		initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+		// 		timeElapsed:          0,
+		// 		expectedRewardFactor: d("0.0"),
+		// 	},
+		// },
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// Mint coins to hard module account
+			supplyKeeper := suite.app.GetSupplyKeeper()
+			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+
+			// Set up incentive state
+			params := types.NewParams(
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
+
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetDelegatorInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+
+			// 1. Get validator address
+			// 2. Get validator's bond status via validator.Status
+			// 3. subtractAccount == true for delegation, subtractAccount == false for redelegation
+
+			stakingKeeper := suite.app.GetStakingKeeper()
+
+			// validators[0] = stakingKeeper.TestingUpdateValidator(app.StakingKeeper, ctx, validators[0], true)
+			valAddr := sdk.ValAddress(suite.addrs[2])
+			// pks := simapp.CreateTestPubKeys(1)
+			validator, found := stakingKeeper.GetValidator(suite.ctx, valAddr)
+			suite.Require().True(found)
+			validator.AddTokensFromDel(sdk.NewInt(10)) // 10 tokens
+
+			// User delegates some tokens to a validator
+			userAddr := suite.addrs[3]
+			newShares, err := stakingKeeper.Delegate(suite.ctx, userAddr, tc.args.delegation.Amount, validator.Status, validator, true)
+			suite.Require().NoError(err)
+
+			fmt.Println("newShares:", newShares)
+
+			// Set up chain context at future time
+			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			runCtx := suite.ctx.WithBlockTime(runAtTime)
+
+			// Run Hard begin blocker in order to update the denom's index factor
+			hard.BeginBlocker(runCtx, suite.hardKeeper)
+
+			rewardPeriod, found := suite.keeper.GetHardDelegatorRewardPeriod(runCtx, tc.args.delegation.Denom)
+			suite.Require().True(found)
+			err = suite.keeper.AccumulateHardDelegatorRewards(runCtx, rewardPeriod)
+			suite.Require().NoError(err)
+
+			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(runCtx, tc.args.delegation.Denom)
+			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
 }
