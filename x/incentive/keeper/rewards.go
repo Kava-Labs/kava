@@ -444,16 +444,11 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 			continue
 		}
 
-		sharesToTokens := sdk.NewDecFromInt(validator.GetTokens()).Quo(validator.GetDelegatorShares())
-		delegatedTokens := sharesToTokens.Mul(delegation.GetShares())
+		delegatedTokens := validator.TokensFromShares(delegation.GetShares())
 		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
 			continue
 		}
-
 		totalDelegated = totalDelegated.Add(delegatedTokens)
-		// TODO: do we need to consider respective share of validator tokens?
-		// delegationShare := delegationTokens.Quo(sdk.NewDecFromInt(totalBonded))
-		// rewardsEarned := delegationShare.Mul(sdk.NewDecFromInt(rewardsToDistribute)).RoundInt()
 	}
 
 	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
@@ -507,8 +502,6 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccA
 	return nil
 }
 
-// TODO: could a single delegation update the delegator index, effectively updating the value before
-//		 the delegator has a chance to earn rewards on their delegations?
 // InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
 func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
 	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
