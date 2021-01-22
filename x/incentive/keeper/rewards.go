@@ -463,10 +463,10 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 }
 
 // AccumulateHardDelegatorRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccAddress, rewardPeriod types.RewardPeriod) error {
-	previousAccrualTime, found := k.GetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
+func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+	previousAccrualTime, found := k.GetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
 	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
@@ -474,20 +474,20 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccA
 		return nil
 	}
 	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
 
 	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx).ToDec()
 	if totalBonded.IsZero() {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
 
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
 	delegatorFactor, found := k.hardKeeper.GetDelegatorInterestFactor(ctx, rewardPeriod.CollateralType)
 	if !found {
-		k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
 	rewardFactor := newRewards.ToDec().Mul(delegatorFactor).Quo(totalBonded)
@@ -498,7 +498,7 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccA
 	}
 	newRewardFactor := previousRewardFactor.Add(rewardFactor)
 	k.SetHardDelegatorRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
-	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+	k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	return nil
 }
 
