@@ -12,8 +12,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-const UKAVA_DENOM = "ukava"
-
 // AccumulateUSDXMintingRewards updates the rewards accumulated for the input reward period
 func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rewardPeriod.CollateralType)
@@ -409,12 +407,12 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 		return
 	}
 
-	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, UKAVA_DENOM)
+	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
 	if !found {
 		return
 	}
 
-	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(UKAVA_DENOM)
+	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(types.BondDenom)
 	if !hasDelegatorRewardIndex {
 		return
 	}
@@ -513,12 +511,12 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, delAddr sdk.AccA
 //		 the delegator has a chance to earn rewards on their delegations?
 // InitializeHardDelegatorReward initializes the delegator reward index of a hard claim
 func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
-	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, UKAVA_DENOM)
+	delegatorFactor, foundDelegatorFactor := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
 	if !foundDelegatorFactor { // Should always be found...
 		delegatorFactor = sdk.ZeroDec()
 	}
 
-	delegatorRewardIndexes := types.NewRewardIndex(UKAVA_DENOM, delegatorFactor)
+	delegatorRewardIndexes := types.NewRewardIndex(types.BondDenom, delegatorFactor)
 
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
 	if !found {

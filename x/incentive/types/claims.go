@@ -11,6 +11,7 @@ import (
 const (
 	USDXMintingClaimType           = "usdx_minting"
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
+	BondDenom                      = "ukava"
 )
 
 // Claim is an interface for handling common claim actions

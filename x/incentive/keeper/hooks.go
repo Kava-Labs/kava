@@ -88,8 +88,8 @@ func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAd
 	h.k.SynchronizeHardDelegatorRewards(ctx, delAddr)
 }
 
-// TODO: Consider calling the following hooks when validators are slashed/unbonded/rebonded in order
-// 		 to properly allocate rewards to their delegators and not wait until the delegator takes an action:
+// NOTE: following hooks are just implemented to ensure StakingHooks interface compliance
+
 // BeforeValidatorSlashed is called before a validator is slashed
 func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {}
 
@@ -100,8 +100,6 @@ func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAd
 // AfterValidatorBonded is called after a validator is bonded
 func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
 }
-
-// NOTE: following hooks are just stub methods to ensure interface compliance
 
 // AfterDelegationModified runs after a delegation is modified
 func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
