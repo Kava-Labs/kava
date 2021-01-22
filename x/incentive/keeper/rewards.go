@@ -424,7 +424,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 	}
 	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
 
-	var totalDelegated sdk.Dec
+	totalDelegated := sdk.ZeroDec()
 
 	// TODO: set reasonable max limit on delegation iteration
 	maxUInt := ^uint16(0)

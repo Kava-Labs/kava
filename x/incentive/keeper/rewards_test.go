@@ -986,7 +986,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardFactor: d("6.117700000000000000"),
-				expectedRewards:      c("hard", 12235400),
+				expectedRewards:      c("hard", 6117700),
 			},
 		},
 		{
@@ -997,7 +997,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardFactor: d("52856.928000000000000000"),
-				expectedRewards:      c("hard", 105713856000),
+				expectedRewards:      c("hard", 52856928000),
 			},
 		},
 	}
@@ -1036,10 +1036,10 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
 
-			// TODO: Check that Staking hooks initialized a HardLiquidityProviderClaim
-			// claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
-			// suite.Require().True(found)
-			// suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardFactor)
+			// Check that Staking hooks initialized a HardLiquidityProviderClaim
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+			suite.Require().True(found)
+			suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardFactor)
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -1071,7 +1071,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, claim.DelegatorRewardIndexes[0].RewardFactor)
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
