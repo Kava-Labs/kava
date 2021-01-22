@@ -1,17 +1,11 @@
 package keeper_test
 
 import (
-	"bytes"
-	"encoding/hex"
-	"fmt"
-	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -889,33 +883,33 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 		{
 			"7 seconds",
 			args{
-				delegation:           c("ukava", 10000000000),
+				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:          7,
-				expectedRewardFactor: d("1"),
+				expectedRewardFactor: d("0.428239000000000000"),
 			},
 		},
-		// {
-		// 	"1 day",
-		// 	args{
-		// 		deposit:              c("bnb", 1000000000000),
-		// 		rewardsPerSecond:     c("hard", 122354),
-		// 		initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-		// 		timeElapsed:          86400,
-		// 		expectedRewardFactor: d("0.010571385600000000"),
-		// 	},
-		// },
-		// {
-		// 	"0 seconds",
-		// 	args{
-		// 		deposit:              c("bnb", 1000000000000),
-		// 		rewardsPerSecond:     c("hard", 122354),
-		// 		initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-		// 		timeElapsed:          0,
-		// 		expectedRewardFactor: d("0.0"),
-		// 	},
-		// },
+		{
+			"1 day",
+			args{
+				delegation:           c("ukava", 1_000_000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          86400,
+				expectedRewardFactor: d("5285.692800000000000000"),
+			},
+		},
+		{
+			"0 seconds",
+			args{
+				delegation:           c("ukava", 1_000_000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:          0,
+				expectedRewardFactor: d("0.0"),
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -944,23 +938,12 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			suite.hardKeeper.SetDelegatorInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
-			// Set up validator in staking keeper state
-			stakingKeeper := suite.app.GetStakingKeeper()
-			publicKeys := createTestPubKeys(1)
-			valAddr := sdk.ValAddress(suite.addrs[2])
-			validator := stakingtypes.NewValidator(valAddr, publicKeys[0], stakingtypes.Description{})
-			stakingkeeper.TestingUpdateValidator(stakingKeeper, suite.ctx, validator, true)
-
-			validator, found := stakingKeeper.GetValidator(suite.ctx, valAddr)
-			suite.Require().True(found)
-			validator.AddTokensFromDel(sdk.NewInt(10)) // 10 tokens
-
-			// User delegates some tokens to a validator
-			userAddr := suite.addrs[3]
-			newShares, err := stakingKeeper.Delegate(suite.ctx, userAddr, tc.args.delegation.Amount, validator.Status, validator, true)
+			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
+			suite.Require().NoError(err)
+			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
-			fmt.Println("newShares:", newShares)
+			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
 
 			// Set up chain context at future time
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
@@ -1047,10 +1030,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
 			// User deposits and borrows to increase total borrowed amount
-			// hardKeeper := suite.app.GetHardKeeper()
 			userAddr := suite.addrs[3]
-			// err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
-			// suite.Require().NoError(err)
 
 			// Check that Staking hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
@@ -1081,8 +1061,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			// After we've accumulated, run synchronize
 			// deposit, found := hardKeeper.GetDeposit(suite.ctx, suite.addrs[3])
 			// found := false // TODO: get delegation
-			// delegation := stakingtypes.Delegation{}
-			// suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, userAddr)
 			})
@@ -1100,61 +1078,81 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 }
 
 func (suite *KeeperTestSuite) SetupWithGenState() {
+	config := sdk.GetConfig()
+	app.SetBech32AddressPrefixes(config)
+
+	_, allAddrs := app.GeneratePrivKeyAddressPairs(10)
+	suite.addrs = allAddrs[:5]
+	for _, a := range allAddrs[5:] {
+		suite.validatorAddrs = append(suite.validatorAddrs, sdk.ValAddress(a))
+	}
+
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(5)
-
-	authGS := app.NewAuthGenState(
-		[]sdk.AccAddress{addrs[3]},
-		[]sdk.Coins{
-			sdk.NewCoins(
-				sdk.NewCoin("bnb", sdk.NewInt(1000000000000000)),
-				sdk.NewCoin("ukava", sdk.NewInt(1000000000000000)),
-				sdk.NewCoin("btcb", sdk.NewInt(1000000000000000)),
-				sdk.NewCoin("xrp", sdk.NewInt(1000000000000000)),
-			),
-		},
-	)
-
 	tApp.InitializeFromGenesisStates(
-		authGS,
+		coinsAuthGenState(allAddrs, cs(c("ukava", 5_000_000))),
+		stakingGenesisState(),
 		NewPricefeedGenStateMulti(),
 		NewCDPGenStateMulti(),
 		NewHardGenStateMulti(),
 	)
 
-	keeper := tApp.GetIncentiveKeeper()
-	hardKeeper := tApp.GetHardKeeper()
 	suite.app = tApp
 	suite.ctx = ctx
-	suite.keeper = keeper
-	suite.hardKeeper = hardKeeper
-	suite.addrs = addrs
+	suite.keeper = tApp.GetIncentiveKeeper()
+	suite.hardKeeper = tApp.GetHardKeeper()
+	suite.stakingKeeper = tApp.GetStakingKeeper()
 }
 
-func createTestPubKeys(numPubKeys int) []crypto.PubKey {
-	var publicKeys []crypto.PubKey
-	var buffer bytes.Buffer
-
-	//start at 10 to avoid changing 1 to 01, 2 to 02, etc
-	for i := 100; i < (numPubKeys + 100); i++ {
-		numString := strconv.Itoa(i)
-		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") //base pubkey string
-		buffer.WriteString(numString)                                                       //adding on final two digits to make pubkeys unique
-		publicKeys = append(publicKeys, NewPubKey(buffer.String()))
-		buffer.Reset()
+func coinsAuthGenState(addresses []sdk.AccAddress, coins sdk.Coins) app.GenesisState {
+	coinsList := []sdk.Coins{}
+	for range addresses {
+		coinsList = append(coinsList, coins)
 	}
-	return publicKeys
+
+	// Load up our primary user address
+	if len(addresses) >= 4 {
+		coinsList[3] = sdk.NewCoins(
+			sdk.NewCoin("bnb", sdk.NewInt(1000000000000000)),
+			sdk.NewCoin("ukava", sdk.NewInt(1000000000000000)),
+			sdk.NewCoin("btcb", sdk.NewInt(1000000000000000)),
+			sdk.NewCoin("xrp", sdk.NewInt(1000000000000000)),
+		)
+	}
+
+	return app.NewAuthGenState(addresses, coinsList)
 }
 
-func NewPubKey(pk string) (res crypto.PubKey) {
-	pkBytes, err := hex.DecodeString(pk)
-	if err != nil {
-		panic(err)
+func stakingGenesisState() app.GenesisState {
+	genState := staking.DefaultGenesisState()
+	genState.Params.BondDenom = "ukava"
+	return app.GenesisState{
+		staking.ModuleName: staking.ModuleCdc.MustMarshalJSON(genState),
 	}
-	//res, err = crypto.PubKeyFromBytes(pkBytes)
-	var pkEd ed25519.PubKeyEd25519
-	copy(pkEd[:], pkBytes)
-	return pkEd
+}
+
+func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
+	msg := staking.NewMsgCreateValidator(
+		address,
+		ed25519.GenPrivKey().PubKey(),
+		selfDelegation,
+		staking.Description{},
+		staking.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		sdk.NewInt(1_000_000),
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
+}
+
+func (suite *KeeperTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
+	msg := staking.NewMsgDelegate(
+		delegator,
+		validator,
+		amount,
+	)
+	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
+	_, err := handleStakingMsg(ctx, msg)
+	return err
 }
