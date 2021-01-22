@@ -981,25 +981,25 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 		{
 			"10 blocks",
 			args{
-				delegation:           c("ukava", 100000000), // TODO: 2 decimal diff
+				delegation:           c("ukava", 1_000_000),
 				rewardsPerSecond:     c("hard", 122354),
 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-				expectedRewardFactor: d("0.001223540000000000"),
+				expectedRewardFactor: d("6.117700000000000000"),
 				expectedRewards:      c("hard", 12235400),
 			},
 		},
-		// {
-		// 	"10 blocks - long block time",
-		// 	args{
-		// 		deposit:              c("bnb", 10000000000),
-		// 		rewardsPerSecond:     c("hard", 122354),
-		// 		initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-		// 		blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
-		// 		expectedRewardFactor: d("10.571385600000000000"),
-		// 		expectedRewards:      c("hard", 105713856000),
-		// 	},
-		// },
+		{
+			"10 blocks - long block time",
+			args{
+				delegation:           c("ukava", 1_000_000),
+				rewardsPerSecond:     c("hard", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
+				expectedRewardFactor: d("52856.928000000000000000"),
+				expectedRewards:      c("hard", 105713856000),
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -1021,21 +1021,25 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
-			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
+			suite.keeper.SetPreviousHardDelegatorRewardAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
+			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
-			suite.hardKeeper.SetBorrowInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetDelegatorInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
-			// User deposits and borrows to increase total borrowed amount
-			userAddr := suite.addrs[3]
+			// Delegator delegates
+			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
+			suite.Require().NoError(err)
+			suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			suite.Require().NoError(err)
 
-			// Check that Staking hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
-			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardFactor)
+			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+
+			// TODO: Check that Staking hooks initialized a HardLiquidityProviderClaim
+			// claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
+			// suite.Require().True(found)
+			// suite.Require().Equal(sdk.ZeroDec(), claim.DelegatorRewardIndexes[0].RewardFactor)
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -1059,17 +1063,15 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// After we've accumulated, run synchronize
-			// deposit, found := hardKeeper.GetDeposit(suite.ctx, suite.addrs[3])
-			// found := false // TODO: get delegation
 			suite.Require().NotPanics(func() {
-				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, userAddr)
+				suite.keeper.SynchronizeHardDelegatorRewards(suite.ctx, suite.addrs[0])
 			})
 
 			// Check that reward factor and claim have been updated as expected
 			rewardFactor, found := suite.keeper.GetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
-			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, claim.DelegatorRewardIndexes[0].RewardFactor)
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
