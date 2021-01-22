@@ -1,11 +1,18 @@
 package keeper_test
 
 import (
+	"bytes"
+	"encoding/hex"
 	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -937,15 +944,13 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			suite.hardKeeper.SetDelegatorInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
-			// 1. Get validator address
-			// 2. Get validator's bond status via validator.Status
-			// 3. subtractAccount == true for delegation, subtractAccount == false for redelegation
-
+			// Set up validator in staking keeper state
 			stakingKeeper := suite.app.GetStakingKeeper()
-
-			// validators[0] = stakingKeeper.TestingUpdateValidator(app.StakingKeeper, ctx, validators[0], true)
+			publicKeys := createTestPubKeys(1)
 			valAddr := sdk.ValAddress(suite.addrs[2])
-			// pks := simapp.CreateTestPubKeys(1)
+			validator := stakingtypes.NewValidator(valAddr, publicKeys[0], stakingtypes.Description{})
+			stakingkeeper.TestingUpdateValidator(stakingKeeper, suite.ctx, validator, true)
+
 			validator, found := stakingKeeper.GetValidator(suite.ctx, valAddr)
 			suite.Require().True(found)
 			validator.AddTokensFromDel(sdk.NewInt(10)) // 10 tokens
@@ -1007,4 +1012,30 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 	suite.keeper = keeper
 	suite.hardKeeper = hardKeeper
 	suite.addrs = addrs
+}
+
+func createTestPubKeys(numPubKeys int) []crypto.PubKey {
+	var publicKeys []crypto.PubKey
+	var buffer bytes.Buffer
+
+	//start at 10 to avoid changing 1 to 01, 2 to 02, etc
+	for i := 100; i < (numPubKeys + 100); i++ {
+		numString := strconv.Itoa(i)
+		buffer.WriteString("0B485CFC0EECC619440448436F8FC9DF40566F2369E72400281454CB552AF") //base pubkey string
+		buffer.WriteString(numString)                                                       //adding on final two digits to make pubkeys unique
+		publicKeys = append(publicKeys, NewPubKey(buffer.String()))
+		buffer.Reset()
+	}
+	return publicKeys
+}
+
+func NewPubKey(pk string) (res crypto.PubKey) {
+	pkBytes, err := hex.DecodeString(pk)
+	if err != nil {
+		panic(err)
+	}
+	//res, err = crypto.PubKeyFromBytes(pkBytes)
+	var pkEd ed25519.PubKeyEd25519
+	copy(pkEd[:], pkBytes)
+	return pkEd
 }
