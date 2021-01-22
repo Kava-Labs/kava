@@ -69,15 +69,6 @@ func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 // ------------------- Staking Module Hooks -------------------
 // TODO: how to ensure that existing delegators get their rewards?
 
-// on delegate:
-// 1a. if existing delegation: 	k.BeforeDelegationSharesModified(ctx, delAddr, validator.OperatorAddress)
-// 1b. if new delegation: 		k.BeforeDelegationCreated(ctx, delAddr, validator.OperatorAddress)
-// 2.  							k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-//
-// on unbond:
-// 1	k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
-// 2	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-
 // BeforeDelegationCreated runs before a delegation is created
 func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
 	h.k.InitializeHardDelegatorReward(ctx, delAddr)

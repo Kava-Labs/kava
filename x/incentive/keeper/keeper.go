@@ -279,8 +279,8 @@ func (k Keeper) SetPreviousHardBorrowRewardAccrualTime(ctx sdk.Context, denom st
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
 
-// GetPreviousDelegatorRewardAccrualTime returns the last time a denom accrued Hard protocol delegator rewards
-func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
+// GetPreviousHardDelegatorRewardAccrualTime returns the last time a denom accrued Hard protocol delegator rewards
+func (k Keeper) GetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom string) (blockTime time.Time, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
@@ -290,8 +290,8 @@ func (k Keeper) GetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom str
 	return blockTime, true
 }
 
-// SetPreviousDelegatorRewardAccrualTime sets the last time a denom accrued Hard protocol delegator rewards
-func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
+// SetPreviousHardDelegatorRewardAccrualTime sets the last time a denom accrued Hard protocol delegator rewards
+func (k Keeper) SetPreviousHardDelegatorRewardAccrualTime(ctx sdk.Context, denom string, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix)
 	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(blockTime))
 }
