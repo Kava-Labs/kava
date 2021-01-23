@@ -39,6 +39,14 @@ func (b Borrow) Validate() error {
 	return nil
 }
 
+func (b Borrow) String() string {
+	return fmt.Sprintf(`Deposit:
+	Borrower: %s
+	Amount: %s
+	Index: %s
+	`, b.Borrower, b.Amount, b.Index)
+}
+
 // Borrows is a slice of Borrow
 type Borrows []Borrow
 

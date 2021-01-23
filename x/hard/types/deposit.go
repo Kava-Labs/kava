@@ -41,9 +41,9 @@ func (d Deposit) Validate() error {
 
 func (d Deposit) String() string {
 	return fmt.Sprintf(`Deposit:
-	%s
-	%s
-	%s
+	Depositor: %s
+	Amount: %s
+	Index: %s
 	`, d.Depositor, d.Amount, d.Index)
 }
 
