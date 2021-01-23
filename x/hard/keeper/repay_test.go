@@ -137,7 +137,6 @@ func (suite *KeeperTestSuite) TestRepay() {
 
 			// Hard module genesis state
 			hardGS := types.NewGenesisState(types.NewParams(
-				true,
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1")), // Borrow Limit
@@ -157,7 +156,9 @@ func (suite *KeeperTestSuite) TestRepay() {
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
 				0, // LTV counter
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
+				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
+			)
 
 			// Pricefeed module genesis state
 			pricefeedGS := pricefeed.GenesisState{

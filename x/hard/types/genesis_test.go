@@ -7,7 +7,17 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/hard/types"
+)
+
+const (
+	USDX_CF = 1000000
+	KAVA_CF = 1000000
+	BTCB_CF = 100000000
+	BNB_CF  = 100000000
+	BUSD_CF = 100000000
 )
 
 type GenesisTestSuite struct {
@@ -17,7 +27,12 @@ type GenesisTestSuite struct {
 func (suite *GenesisTestSuite) TestGenesisValidation() {
 	type args struct {
 		params types.Params
-		pbt    time.Time
+		gats   types.GenesisAccumulationTimes
+		deps   types.Deposits
+		brws   types.Borrows
+		ts     sdk.Coins
+		tb     sdk.Coins
+		tr     sdk.Coins
 	}
 	testCases := []struct {
 		name        string
@@ -29,7 +44,12 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			name: "default",
 			args: args{
 				params: types.DefaultParams(),
-				pbt:    types.DefaultPreviousBlockTime,
+				gats:   types.DefaultAccumulationTimes,
+				deps:   types.DefaultDeposits,
+				brws:   types.DefaultBorrows,
+				ts:     types.DefaultTotalSupplied,
+				tb:     types.DefaultTotalBorrowed,
+				tr:     types.DefaultTotalReserves,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -37,25 +57,28 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 		{
 			name: "valid",
 			args: args{
-				params: types.NewParams(true, types.DefaultMoneyMarkets, types.DefaultCheckLtvIndexCount),
-				pbt:    time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
+				params: types.NewParams(
+					types.MoneyMarkets{
+						types.NewMoneyMarket("usdx", types.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000"), sdk.MustNewDecFromStr("1")), "usdx:usd", sdk.NewInt(USDX_CF), sdk.NewInt(USDX_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					},
+					10,
+				),
+				gats: types.GenesisAccumulationTimes{
+					types.NewGenesisAccumulationTime("usdx", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), sdk.OneDec(), sdk.OneDec()),
+				},
+				deps: types.DefaultDeposits,
+				brws: types.DefaultBorrows,
+				ts:   sdk.Coins{},
+				tb:   sdk.Coins{},
+				tr:   sdk.Coins{},
 			},
 			expectPass:  true,
 			expectedErr: "",
 		},
-		{
-			name: "invalid previous blocktime",
-			args: args{
-				params: types.NewParams(true, types.DefaultMoneyMarkets, types.DefaultCheckLtvIndexCount),
-				pbt:    time.Time{},
-			},
-			expectPass:  false,
-			expectedErr: "previous block time not set",
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := types.NewGenesisState(tc.args.params, tc.args.pbt)
+			gs := types.NewGenesisState(tc.args.params, tc.args.gats, tc.args.deps, tc.args.brws, tc.args.ts, tc.args.tb, tc.args.tr)
 			err := gs.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

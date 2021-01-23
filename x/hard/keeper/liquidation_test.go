@@ -122,7 +122,6 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 
 			// Hard module genesis state
 			hardGS := types.NewGenesisState(types.NewParams(
-				true,
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
@@ -182,7 +181,9 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
 				tc.args.ltvIndexCount, // LTV counter
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
+				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
+			)
 
 			// Pricefeed module genesis state
 			pricefeedGS := pricefeed.GenesisState{
@@ -534,7 +535,6 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 
 			// Hard module genesis state
 			hardGS := types.NewGenesisState(types.NewParams(
-				true,
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
@@ -554,7 +554,9 @@ func (suite *KeeperTestSuite) TestFullIndexLiquidation() {
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
 				tc.args.ltvIndexCount, // LTV counter
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
+				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
+			)
 
 			// Pricefeed module genesis state
 			pricefeedGS := pricefeed.GenesisState{
@@ -1157,7 +1159,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 			// Hard module genesis state
 			hardGS := types.NewGenesisState(types.NewParams(
-				true,
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
@@ -1217,7 +1218,9 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 				},
 				0, // LTV counter
-			), types.DefaultPreviousBlockTime)
+			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
+				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
+			)
 
 			// Pricefeed module genesis state
 			pricefeedGS := pricefeed.GenesisState{

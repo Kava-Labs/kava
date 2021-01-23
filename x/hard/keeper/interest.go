@@ -78,10 +78,10 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		borrowedPrior = sdk.NewCoin(denom, borrowedCoinsPrior.AmountOf(denom))
 	}
 
-	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx, denom)
+	reservesPrior, foundReservesPrior := k.GetTotalReserves(ctx)
 	if !foundReservesPrior {
-		newReservesPrior := sdk.NewCoin(denom, sdk.ZeroInt())
-		k.SetTotalReserves(ctx, denom, newReservesPrior)
+		newReservesPrior := sdk.NewCoins()
+		k.SetTotalReserves(ctx, newReservesPrior)
 		reservesPrior = newReservesPrior
 	}
 
@@ -106,7 +106,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
-	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.Amount))
+	borrowRateApy, err := CalculateBorrowRate(mm.InterestRateModel, sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.AmountOf(denom)))
 	if err != nil {
 		return err
 	}
@@ -127,14 +127,14 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 	// Calculate supply interest factor and update
 	supplyInterestNew := interestBorrowAccumulated.Sub(reservesNew)
-	supplyInterestFactor := CalculateSupplyInterestFactor(supplyInterestNew.ToDec(), cashPrior.ToDec(), borrowedPrior.Amount.ToDec(), reservesPrior.Amount.ToDec())
+	supplyInterestFactor := CalculateSupplyInterestFactor(supplyInterestNew.ToDec(), cashPrior.ToDec(), borrowedPrior.Amount.ToDec(), reservesPrior.AmountOf(denom).ToDec())
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
 
 	// Update accural keys in store
 	k.IncrementBorrowedCoins(ctx, totalBorrowInterestAccumulated)
 	k.IncrementSuppliedCoins(ctx, sdk.NewCoins(sdk.NewCoin(denom, supplyInterestNew)))
-	k.SetTotalReserves(ctx, denom, reservesPrior.Add(sdk.NewCoin(mm.Denom, reservesNew)))
+	k.SetTotalReserves(ctx, reservesPrior.Add(sdk.NewCoin(denom, reservesNew)))
 	k.SetPreviousAccrualTime(ctx, denom, ctx.BlockTime())
 
 	return nil

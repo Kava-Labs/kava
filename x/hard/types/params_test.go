@@ -17,7 +17,6 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
 		mms        types.MoneyMarkets
 		ltvCounter int
-		active     bool
 	}
 	testCases := []struct {
 		name        string
@@ -28,17 +27,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 		{
 			name: "default",
 			args: args{
-				active: types.DefaultActive,
-			},
-			expectPass:  true,
-			expectedErr: "",
-		},
-		{
-			name: "valid",
-			args: args{
 				mms:        types.DefaultMoneyMarkets,
-				ltvCounter: 10,
-				active:     true,
+				ltvCounter: types.DefaultCheckLtvIndexCount,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -46,7 +36,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			params := types.NewParams(tc.args.active, tc.args.mms, tc.args.ltvCounter)
+			params := types.NewParams(tc.args.mms, tc.args.ltvCounter)
 			err := params.Validate()
 			if tc.expectPass {
 				suite.NoError(err)
