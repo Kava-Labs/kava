@@ -11,6 +11,7 @@ import (
 const (
 	USDXMintingClaimType           = "usdx_minting"
 	HardLiquidityProviderClaimType = "hard_liquidity_provider"
+	BondDenom                      = "ukava"
 )
 
 // Claim is an interface for handling common claim actions
@@ -122,23 +123,23 @@ func (cs USDXMintingClaims) Validate() error {
 
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 type HardLiquidityProviderClaim struct {
-	BaseClaim               `json:"base_claim" yaml:"base_claim"`
-	SupplyRewardIndexes     RewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
-	BorrowRewardIndexes     RewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
-	DelegationRewardIndexes RewardIndexes `json:"delegation_reward_indexes" yaml:"delegation_reward_indexes"`
+	BaseClaim              `json:"base_claim" yaml:"base_claim"`
+	SupplyRewardIndexes    RewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
+	BorrowRewardIndexes    RewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
+	DelegatorRewardIndexes RewardIndexes `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
 }
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
 func NewHardLiquidityProviderClaim(owner sdk.AccAddress, reward sdk.Coin, supplyRewardIndexes,
-	borrowRewardIndexes, delegationRewardIndexes RewardIndexes) HardLiquidityProviderClaim {
+	borrowRewardIndexes, delegatorRewardIndexes RewardIndexes) HardLiquidityProviderClaim {
 	return HardLiquidityProviderClaim{
 		BaseClaim: BaseClaim{
 			Owner:  owner,
 			Reward: reward,
 		},
-		SupplyRewardIndexes:     supplyRewardIndexes,
-		BorrowRewardIndexes:     borrowRewardIndexes,
-		DelegationRewardIndexes: delegationRewardIndexes,
+		SupplyRewardIndexes:    supplyRewardIndexes,
+		BorrowRewardIndexes:    borrowRewardIndexes,
+		DelegatorRewardIndexes: delegatorRewardIndexes,
 	}
 }
 
@@ -155,7 +156,7 @@ func (c HardLiquidityProviderClaim) Validate() error {
 		return err
 	}
 
-	if err := c.DelegationRewardIndexes.Validate(); err != nil {
+	if err := c.DelegatorRewardIndexes.Validate(); err != nil {
 		return err
 	}
 
@@ -167,8 +168,8 @@ func (c HardLiquidityProviderClaim) String() string {
 	return fmt.Sprintf(`%s
 	Supply Reward Indexes: %s,
 	Borrow Reward Indexes: %s,
-	Delegation Reward Indexes: %s,
-	`, c.BaseClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes, c.DelegationRewardIndexes)
+	Delegator Reward Indexes: %s,
+	`, c.BaseClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes, c.DelegatorRewardIndexes)
 }
 
 // HasSupplyRewardIndex check if a claim has a supply reward index for the input collateral type
@@ -191,9 +192,9 @@ func (c HardLiquidityProviderClaim) HasBorrowRewardIndex(denom string) (int64, b
 	return 0, false
 }
 
-// HasDelegationRewardIndex check if a claim has a delegation reward index for the input collateral type
-func (c HardLiquidityProviderClaim) HasDelegationRewardIndex(collateralType string) (int64, bool) {
-	for index, ri := range c.SupplyRewardIndexes {
+// HasDelegatorRewardIndex check if a claim has a delegator reward index for the input collateral type
+func (c HardLiquidityProviderClaim) HasDelegatorRewardIndex(collateralType string) (int64, bool) {
+	for index, ri := range c.DelegatorRewardIndexes {
 		if ri.CollateralType == collateralType {
 			return int64(index), true
 		}

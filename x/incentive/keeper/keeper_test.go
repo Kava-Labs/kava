@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -24,18 +25,22 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	keeper     keeper.Keeper
-	hardKeeper hardkeeper.Keeper
-	app        app.TestApp
-	ctx        sdk.Context
-	addrs      []sdk.AccAddress
+	keeper         keeper.Keeper
+	hardKeeper     hardkeeper.Keeper
+	stakingKeeper  stakingkeeper.Keeper
+	app            app.TestApp
+	ctx            sdk.Context
+	addrs          []sdk.AccAddress
+	validatorAddrs []sdk.ValAddress
 }
 
 // The default state used by each test
 func (suite *KeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
 	tApp.InitializeFromGenesisStates()
+
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	keeper := tApp.GetIncentiveKeeper()
 	suite.app = tApp

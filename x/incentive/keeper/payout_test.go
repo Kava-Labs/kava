@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 				multipliers:              types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				multiplier:               types.MultiplierName("large"),
 				timeElapsed:              86400,
-				expectedBalance:          cs(c("usdx", 10000000000), c("ukava", 10571385600)),
+				expectedBalance:          cs(c("usdx", 10000000000), c("ukava", 10576385600)),
 				expectedPeriods:          vesting.Periods{vesting.Period{Length: 31536000, Amount: cs(c("ukava", 10571385600))}},
 				isPeriodicVestingAccount: true,
 			},
