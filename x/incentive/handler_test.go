@@ -63,7 +63,34 @@ func (suite *HandlerTestSuite) SetupTest() {
 	suite.ctx = ctx
 }
 
-func (suite *HandlerTestSuite) addClaim() {
+func (suite *HandlerTestSuite) TestMsgUSDXMintingClaimReward() {
+	suite.addUSDXMintingClaim()
+	msg := incentive.NewMsgClaimUSDXMintingReward(suite.addrs[0], "small")
+	res, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+	suite.Require().NotNil(res)
+}
+
+func (suite *HandlerTestSuite) TestMsgHardLiquidityProviderClaimReward() {
+	suite.addHardLiquidityProviderClaim()
+	msg := incentive.NewMsgClaimHardLiquidityProviderReward(suite.addrs[0], "small")
+	res, err := suite.handler(suite.ctx, msg)
+	suite.NoError(err)
+	suite.Require().NotNil(res)
+}
+
+func (suite *HandlerTestSuite) addHardLiquidityProviderClaim() {
+	sk := suite.app.GetSupplyKeeper()
+	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
+	suite.Require().NoError(err)
+	rewardPeriod := types.RewardIndexes{types.NewRewardIndex("bnb-s", sdk.ZeroDec())}
+	c1 := incentive.NewHardLiquidityProviderClaim(suite.addrs[0], c("ukava", 1000000), rewardPeriod, rewardPeriod, rewardPeriod)
+	suite.NotPanics(func() {
+		suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, c1)
+	})
+}
+
+func (suite *HandlerTestSuite) addUSDXMintingClaim() {
 	sk := suite.app.GetSupplyKeeper()
 	err := sk.MintCoins(suite.ctx, kavadist.ModuleName, cs(c("ukava", 1000000000000)))
 	suite.Require().NoError(err)
@@ -73,13 +100,6 @@ func (suite *HandlerTestSuite) addClaim() {
 	})
 }
 
-func (suite *HandlerTestSuite) TestMsgClaimReward() {
-	suite.addClaim()
-	msg := incentive.NewMsgClaimUSDXMintingReward(suite.addrs[0], "small")
-	res, err := suite.handler(suite.ctx, msg)
-	suite.NoError(err)
-	suite.Require().NotNil(res)
-}
 func TestHandlerTestSuite(t *testing.T) {
 	suite.Run(t, new(HandlerTestSuite))
 }
