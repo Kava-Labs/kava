@@ -76,7 +76,9 @@ var (
 	// variable aliases
 	ClaimsKeyPrefix                   = types.ClaimsKeyPrefix
 	DefaultActive                     = types.DefaultActive
+	DefaultClaims                     = types.DefaultClaims
 	DefaultDelegatorSchedules         = types.DefaultDelegatorSchedules
+	DefaultDeposits                   = types.DefaultDeposits
 	DefaultDistributionTimes          = types.DefaultDistributionTimes
 	DefaultGovSchedules               = types.DefaultGovSchedules
 	DefaultLPSchedules                = types.DefaultLPSchedules
@@ -95,6 +97,7 @@ var (
 	ErrInvalidDepositDenom            = types.ErrInvalidDepositDenom
 	ErrInvalidDepositType             = types.ErrInvalidDepositType
 	ErrInvalidMultiplier              = types.ErrInvalidMultiplier
+	ErrInvalidReceiver                = types.ErrInvalidReceiver
 	ErrLPScheduleNotFound             = types.ErrLPScheduleNotFound
 	ErrZeroClaim                      = types.ErrZeroClaim
 	GovDenom                          = types.GovDenom
@@ -110,10 +113,12 @@ type (
 	Keeper                         = keeper.Keeper
 	AccountKeeper                  = types.AccountKeeper
 	Claim                          = types.Claim
+	Claims                         = types.Claims
 	DelegatorDistributionSchedule  = types.DelegatorDistributionSchedule
 	DelegatorDistributionSchedules = types.DelegatorDistributionSchedules
 	Deposit                        = types.Deposit
 	DepositType                    = types.DepositType
+	Deposits                       = types.Deposits
 	DistributionSchedule           = types.DistributionSchedule
 	DistributionSchedules          = types.DistributionSchedules
 	GenesisDistributionTime        = types.GenesisDistributionTime

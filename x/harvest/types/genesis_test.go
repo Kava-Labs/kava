@@ -21,6 +21,8 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 		params types.Params
 		pbt    time.Time
 		pdts   types.GenesisDistributionTimes
+		deps   types.Deposits
+		claims types.Claims
 	}
 	testCases := []struct {
 		name        string
@@ -34,6 +36,8 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 				params: types.DefaultParams(),
 				pbt:    types.DefaultPreviousBlockTime,
 				pdts:   types.DefaultDistributionTimes,
+				deps:   types.DefaultDeposits,
+				claims: types.DefaultClaims,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -56,6 +60,8 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 				pdts: types.GenesisDistributionTimes{
 					{PreviousDistributionTime: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC), Denom: "bnb"},
 				},
+				deps:   types.DefaultDeposits,
+				claims: types.DefaultClaims,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -78,6 +84,8 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 				pdts: types.GenesisDistributionTimes{
 					{PreviousDistributionTime: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC), Denom: "bnb"},
 				},
+				deps:   types.DefaultDeposits,
+				claims: types.DefaultClaims,
 			},
 			expectPass:  false,
 			expectedErr: "previous block time not set",
@@ -100,6 +108,8 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 				pdts: types.GenesisDistributionTimes{
 					{PreviousDistributionTime: time.Time{}, Denom: "bnb"},
 				},
+				deps:   types.DefaultDeposits,
+				claims: types.DefaultClaims,
 			},
 			expectPass:  false,
 			expectedErr: "previous distribution time not set",
@@ -107,7 +117,7 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := types.NewGenesisState(tc.args.params, tc.args.pbt, tc.args.pdts)
+			gs := types.NewGenesisState(tc.args.params, tc.args.pbt, tc.args.pdts, tc.args.deps, tc.args.claims)
 			err := gs.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

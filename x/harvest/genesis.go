@@ -45,6 +45,14 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 		panic(fmt.Sprintf("%s module account has not been set", DepositModuleAccount))
 	}
 
+	for _, dep := range gs.Deposits {
+		k.SetDeposit(ctx, dep)
+	}
+
+	for _, claim := range gs.Claims {
+		k.SetClaim(ctx, claim)
+	}
+
 }
 
 // ExportGenesis export genesis state for harvest module
@@ -61,5 +69,16 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 			previousDistTimes = append(previousDistTimes, GenesisDistributionTime{PreviousDistributionTime: previousDistTime, Denom: dds.DistributionSchedule.DepositDenom})
 		}
 	}
-	return NewGenesisState(params, previousBlockTime, previousDistTimes)
+	deposits := types.Deposits{}
+	k.IterateDeposits(ctx, func(deposit types.Deposit) (stop bool) {
+		deposits = append(deposits, deposit)
+		return false
+	})
+
+	claims := types.Claims{}
+	k.IterateClaims(ctx, func(claim types.Claim) (stop bool) {
+		claims = append(claims, claim)
+		return false
+	})
+	return NewGenesisState(params, previousBlockTime, previousDistTimes, deposits, claims)
 }

@@ -263,7 +263,7 @@ func (suite *KeeperTestSuite) TestClaim() {
 					time.Hour*24,
 				),
 				},
-			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes)
+			), types.DefaultPreviousBlockTime, types.DefaultDistributionTimes, types.DefaultDeposits, types.DefaultClaims)
 			tApp.InitializeFromGenesisStates(authGS, app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			if tc.args.validatorVesting {
 				ak := tApp.GetAccountKeeper()
