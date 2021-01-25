@@ -20,4 +20,5 @@ func RegisterCodec(cdc *codec.Codec) {
 
 	// Register msgs
 	cdc.RegisterConcrete(MsgClaimUSDXMintingReward{}, "incentive/MsgClaimUSDXMintingReward", nil)
+	cdc.RegisterConcrete(MsgClaimHardLiquidityProviderReward{}, "incentive/MsgClaimHardLiquidityProviderReward", nil)
 }
