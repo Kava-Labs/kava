@@ -16,10 +16,11 @@ import (
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/incentive/claim", postClaimHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/incentive/claim-cdp", postClaimCdpHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/incentive/claim-hard", postClaimHardHandlerFn(cliCtx)).Methods("POST")
 }
 
-func postClaimHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postClaimCdpHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody types.PostClaimReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
@@ -43,6 +44,39 @@ func postClaimHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgClaimUSDXMintingReward(requestBody.Sender, requestBody.MultiplierName)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, requestBody.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postClaimHardHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var requestBody types.PostClaimReq
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &requestBody) {
+			return
+		}
+
+		requestBody.BaseReq = requestBody.BaseReq.Sanitize()
+		if !requestBody.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		fromAddr, err := sdk.AccAddressFromBech32(requestBody.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if !bytes.Equal(fromAddr, requestBody.Sender) {
+			rest.WriteErrorResponse(w, http.StatusUnauthorized, fmt.Sprintf("expected: %s, got: %s", fromAddr, requestBody.Sender))
+			return
+		}
+
+		msg := types.NewMsgClaimHardLiquidityProviderReward(requestBody.Sender, requestBody.MultiplierName)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
