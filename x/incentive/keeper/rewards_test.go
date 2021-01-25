@@ -935,7 +935,6 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetDelegatorInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
@@ -1025,7 +1024,6 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			suite.keeper.SetHardDelegatorRewardFactor(suite.ctx, tc.args.delegation.Denom, sdk.ZeroDec())
 
 			// Set up hard state (interest factor for the relevant denom)
-			suite.hardKeeper.SetDelegatorInterestFactor(suite.ctx, tc.args.delegation.Denom, sdk.MustNewDecFromStr("1.0"))
 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.delegation.Denom, tc.args.initialTime)
 
 			// Delegator delegates

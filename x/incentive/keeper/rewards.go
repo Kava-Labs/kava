@@ -485,12 +485,7 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 	}
 
 	newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-	delegatorFactor, found := k.hardKeeper.GetDelegatorInterestFactor(ctx, rewardPeriod.CollateralType)
-	if !found {
-		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-		return nil
-	}
-	rewardFactor := newRewards.ToDec().Mul(delegatorFactor).Quo(totalBonded)
+	rewardFactor := newRewards.ToDec().Quo(totalBonded)
 
 	previousRewardFactor, found := k.GetHardDelegatorRewardFactor(ctx, rewardPeriod.CollateralType)
 	if !found {

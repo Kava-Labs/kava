@@ -67,7 +67,6 @@ func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 }
 
 // ------------------- Staking Module Hooks -------------------
-// TODO: how to ensure that existing delegators get their rewards?
 
 // BeforeDelegationCreated runs before a delegation is created
 func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
