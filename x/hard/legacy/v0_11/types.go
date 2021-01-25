@@ -47,14 +47,18 @@ type GenesisState struct {
 	Params                    Params                   `json:"params" yaml:"params"`
 	PreviousBlockTime         time.Time                `json:"previous_block_time" yaml:"previous_block_time"`
 	PreviousDistributionTimes GenesisDistributionTimes `json:"previous_distribution_times" yaml:"previous_distribution_times"`
+	Deposits                  Deposits                 `json:"deposits" yaml:"deposits"`
+	Claims                    Claims                   `json:"claims" yaml:"claims"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes) GenesisState {
+func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes, deps Deposits, claims Claims) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		PreviousBlockTime:         previousBlockTime,
 		PreviousDistributionTimes: previousDistTimes,
+		Deposits:                  deps,
+		Claims:                    claims,
 	}
 }
 
@@ -422,6 +426,9 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coin, dtype DepositType) De
 	}
 }
 
+// Deposits slice of Deposit
+type Deposits []Deposit
+
 // Claim defines an amount of coins that the owner can claim
 type Claim struct {
 	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
@@ -439,6 +446,9 @@ func NewClaim(owner sdk.AccAddress, denom string, amount sdk.Coin, dtype Deposit
 		Type:         dtype,
 	}
 }
+
+// Claims slice of Claim
+type Claims []Claim
 
 // NewPeriod returns a new vesting period
 func NewPeriod(amount sdk.Coins, length int64) vesting.Period {
