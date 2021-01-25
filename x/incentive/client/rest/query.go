@@ -41,14 +41,14 @@ func queryClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		queryParams := types.NewQueryClaimsParams(page, limit, owner)
+		queryParams := types.NewQueryCdpClaimsParams(page, limit, owner)
 		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
 			return
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetClaims), bz)
+		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetCdpClaims), bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return

@@ -23,7 +23,8 @@ const (
 	ModuleName                 = types.ModuleName
 	QuerierRoute               = types.QuerierRoute
 	QueryGetClaimPeriods       = types.QueryGetClaimPeriods
-	QueryGetClaims             = types.QueryGetClaims
+	QueryGetCdpClaims          = types.QueryGetCdpClaims
+	QueryGetHardClaims         = types.QueryGetHardClaims
 	QueryGetParams             = types.QueryGetParams
 	QueryGetRewardPeriods      = types.QueryGetRewardPeriods
 	RestClaimCollateralType    = types.RestClaimCollateralType
@@ -47,7 +48,8 @@ var (
 	NewMultiplier                = types.NewMultiplier
 	NewParams                    = types.NewParams
 	NewPeriod                    = types.NewPeriod
-	NewQueryClaimsParams         = types.NewQueryClaimsParams
+	NewQueryCdpClaimsParams      = types.NewQueryCdpClaimsParams
+	NewQueryHardClaimsParams     = types.NewQueryHardClaimsParams
 	NewRewardIndex               = types.NewRewardIndex
 	NewRewardPeriod              = types.NewRewardPeriod
 	NewUSDXMintingClaim          = types.NewUSDXMintingClaim
@@ -99,7 +101,8 @@ type (
 	Multipliers               = types.Multipliers
 	Params                    = types.Params
 	PostClaimReq              = types.PostClaimReq
-	QueryClaimsParams         = types.QueryClaimsParams
+	QueryCdpClaimsParams      = types.QueryCdpClaimsParams
+	QueryHardClaimsParams     = types.QueryHardClaimsParams
 	RewardIndex               = types.RewardIndex
 	RewardIndexes             = types.RewardIndexes
 	RewardPeriod              = types.RewardPeriod

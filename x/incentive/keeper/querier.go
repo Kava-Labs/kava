@@ -17,8 +17,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, k)
-		case types.QueryGetClaims:
-			return queryGetClaims(ctx, req, k)
+		case types.QueryGetCdpClaims:
+			return queryGetCdpClaims(ctx, req, k)
+		case types.QueryGetHardClaims:
+			return queryGetHardClaims(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -38,8 +40,8 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	return bz, nil
 }
 
-func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var requestParams types.QueryClaimsParams
+func queryGetCdpClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var requestParams types.QueryCdpClaimsParams
 	err := k.cdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -57,6 +59,36 @@ func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
 	if start < 0 || end < 0 {
 		paginatedClaims = types.USDXMintingClaims{}
+	} else {
+		paginatedClaims = claims[start:end]
+	}
+
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryGetHardClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var requestParams types.QueryHardClaimsParams
+	err := k.cdc.UnmarshalJSON(req.Data, &requestParams)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	var claims types.HardLiquidityProviderClaims
+	if len(requestParams.Owner) > 0 {
+		claim, _ := k.GetHardLiquidityProviderClaim(ctx, requestParams.Owner)
+		claims = append(claims, claim)
+	} else {
+		claims = k.GetAllHardLiquidityProviderClaims(ctx)
+	}
+
+	var paginatedClaims types.HardLiquidityProviderClaims
+
+	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
+	if start < 0 || end < 0 {
+		paginatedClaims = types.HardLiquidityProviderClaims{}
 	} else {
 		paginatedClaims = claims[start:end]
 	}

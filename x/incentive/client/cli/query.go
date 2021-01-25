@@ -25,7 +25,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	incentiveQueryCmd.AddCommand(flags.GetCommands(
 		queryParamsCmd(queryRoute, cdc),
-		queryClaimsCmd(queryRoute, cdc),
+		queryCdpClaimsCmd(queryRoute, cdc),
+		queryHardClaimsCmd(queryRoute, cdc),
 	)...)
 
 	return incentiveQueryCmd
@@ -35,16 +36,16 @@ const (
 	flagOwner = "owner"
 )
 
-func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func queryCdpClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "claims ",
+		Use:   "cdp-claims",
 		Short: "query USDX minting claims",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query USDX minting claims with optional flag for finding claims for a specifc owner
 
 			Example:
-			$ %s query %s claims
-			$ %s query %s claims --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			$ %s query %s cdp-claims
+			$ %s query %s cdp-claims --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
 			`,
 				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName)),
 		Args: cobra.NoArgs,
@@ -60,14 +61,67 @@ func queryClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			params := types.NewQueryClaimsParams(page, limit, owner)
+			params := types.NewQueryCdpClaimsParams(page, limit, owner)
 			bz, err := cdc.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
 
 			// Query
-			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetClaims)
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetCdpClaims)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			var claims types.USDXMintingClaims
+			if err := cdc.UnmarshalJSON(res, &claims); err != nil {
+				return fmt.Errorf("failed to unmarshal claims: %w", err)
+			}
+			return cliCtx.PrintOutput(claims)
+
+		},
+	}
+	cmd.Flags().String(flagOwner, "", "(optional) filter by claim owner address")
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page of CDPs to to query for")
+	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of CDPs to query for")
+	return cmd
+}
+
+func queryHardClaimsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "hard-claims",
+		Short: "query Hard liquidity provider claims",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query Hard liquidity provider claims with optional flag for finding claims for a specifc owner
+
+			Example:
+			$ %s query %s hard-claims
+			$ %s query %s hard-claims --owner kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw
+			`,
+				version.ClientName, types.ModuleName, version.ClientName, types.ModuleName)),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			strOwner := viper.GetString(flagOwner)
+			page := viper.GetInt(flags.FlagPage)
+			limit := viper.GetInt(flags.FlagLimit)
+
+			// Prepare params for querier
+			owner, err := sdk.AccAddressFromBech32(strOwner)
+			if err != nil {
+				return err
+			}
+			params := types.NewQueryHardClaimsParams(page, limit, owner)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetHardClaims)
 			res, height, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
 				return err

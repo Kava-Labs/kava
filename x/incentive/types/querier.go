@@ -7,7 +7,8 @@ import (
 
 // Querier routes for the incentive module
 const (
-	QueryGetClaims          = "claims"
+	QueryGetCdpClaims       = "cdp-claims"
+	QueryGetHardClaims      = "hard-claims"
 	RestClaimOwner          = "owner"
 	RestClaimCollateralType = "collateral_type"
 	QueryGetParams          = "parameters"
@@ -15,16 +16,32 @@ const (
 	QueryGetClaimPeriods    = "claim-periods"
 )
 
-// QueryClaimsParams params for query /incentive/claims
-type QueryClaimsParams struct {
+// QueryCdpClaimsParams params for query /incentive/claims
+type QueryCdpClaimsParams struct {
 	Page  int `json:"page" yaml:"page"`
 	Limit int `json:"limit" yaml:"limit"`
 	Owner sdk.AccAddress
 }
 
-// NewQueryClaimsParams returns QueryClaimsParams
-func NewQueryClaimsParams(page, limit int, owner sdk.AccAddress) QueryClaimsParams {
-	return QueryClaimsParams{
+// NewQueryCdpClaimsParams returns QueryCdpClaimsParams
+func NewQueryCdpClaimsParams(page, limit int, owner sdk.AccAddress) QueryCdpClaimsParams {
+	return QueryCdpClaimsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+	}
+}
+
+// QueryHardClaimsParams params for query /incentive/claims
+type QueryHardClaimsParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryHardClaimsParams returns QueryHardClaimsParams
+func NewQueryHardClaimsParams(page, limit int, owner sdk.AccAddress) QueryHardClaimsParams {
+	return QueryHardClaimsParams{
 		Page:  page,
 		Limit: limit,
 		Owner: owner,
