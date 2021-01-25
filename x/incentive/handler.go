@@ -23,7 +23,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 func handleMsgClaimUSDXMintingReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimUSDXMintingReward) (*sdk.Result, error) {
 
-	err := k.ClaimReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
 	if err != nil {
 		return nil, err
 	}

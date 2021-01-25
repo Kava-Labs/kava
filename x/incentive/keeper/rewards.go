@@ -518,16 +518,16 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
-// ZeroClaim zeroes out the claim object's rewards and returns the updated claim object
-func (k Keeper) ZeroClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
+// ZeroUSDXMintingClaim zeroes out the claim object's rewards and returns the updated claim object
+func (k Keeper) ZeroUSDXMintingClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
 	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
 	k.SetUSDXMintingClaim(ctx, claim)
 	return claim
 }
 
-// SynchronizeClaim updates the claim object by adding any rewards that have accumulated.
+// SynchronizeUSDXMintingClaim updates the claim object by adding any rewards that have accumulated.
 // Returns the updated claim object
-func (k Keeper) SynchronizeClaim(ctx sdk.Context, claim types.USDXMintingClaim) (types.USDXMintingClaim, error) {
+func (k Keeper) SynchronizeUSDXMintingClaim(ctx sdk.Context, claim types.USDXMintingClaim) (types.USDXMintingClaim, error) {
 	for _, ri := range claim.RewardIndexes {
 		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.Owner, ri.CollateralType)
 		if !found {
@@ -543,6 +543,31 @@ func (k Keeper) SynchronizeClaim(ctx sdk.Context, claim types.USDXMintingClaim) 
 func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CDP) types.USDXMintingClaim {
 	k.SynchronizeUSDXMintingReward(ctx, cdp)
 	claim, _ := k.GetUSDXMintingClaim(ctx, cdp.Owner)
+	return claim
+}
+
+// SynchronizeHardLiquidityProviderClaim adds any accumulated rewards
+func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk.AccAddress) {
+	// Synchronize any hard liquidity supply-side rewards
+	deposit, foundDeposit := k.hardKeeper.GetDeposit(ctx, owner)
+	if foundDeposit {
+		k.SynchronizeHardSupplyReward(ctx, deposit)
+	}
+
+	// Synchronize any hard liquidity borrow-side rewards
+	borrow, foundBorrow := k.hardKeeper.GetBorrow(ctx, owner)
+	if foundBorrow {
+		k.SynchronizeHardBorrowReward(ctx, borrow)
+	}
+
+	// Synchronize any hard delegator rewards
+	k.SynchronizeHardDelegatorRewards(ctx, owner)
+}
+
+// ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
+func (k Keeper) ZeroHardLiquidityProviderClaim(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
+	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
+	k.SetHardLiquidityProviderClaim(ctx, claim)
 	return claim
 }
 

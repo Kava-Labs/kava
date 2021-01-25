@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestPayoutClaim() {
 			err = suite.keeper.AccumulateUSDXMintingRewards(suite.ctx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			err = suite.keeper.ClaimReward(suite.ctx, suite.addrs[0], tc.args.multiplier)
+			err = suite.keeper.ClaimUSDXMintingReward(suite.ctx, suite.addrs[0], tc.args.multiplier)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
