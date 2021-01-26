@@ -17,4 +17,5 @@ var (
 	ErrInvalidMultiplier             = sdkerrors.Register(ModuleName, 8, "invalid rewards multiplier")
 	ErrZeroClaim                     = sdkerrors.Register(ModuleName, 9, "cannot claim - claim amount rounds to zero")
 	ErrClaimExpired                  = sdkerrors.Register(ModuleName, 10, "claim has expired")
+	ErrInvalidClaimType              = sdkerrors.Register(ModuleName, 11, "invalid claim type")
 )
