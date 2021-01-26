@@ -23,7 +23,8 @@ const (
 	ModuleName                 = types.ModuleName
 	QuerierRoute               = types.QuerierRoute
 	QueryGetClaimPeriods       = types.QueryGetClaimPeriods
-	QueryGetClaims             = types.QueryGetClaims
+	QueryGetCdpClaims          = types.QueryGetCdpClaims
+	QueryGetHardClaims         = types.QueryGetHardClaims
 	QueryGetParams             = types.QueryGetParams
 	QueryGetRewardPeriods      = types.QueryGetRewardPeriods
 	RestClaimCollateralType    = types.RestClaimCollateralType
@@ -35,24 +36,27 @@ const (
 
 var (
 	// function aliases
-	CalculateTimeElapsed         = keeper.CalculateTimeElapsed
-	NewKeeper                    = keeper.NewKeeper
-	NewQuerier                   = keeper.NewQuerier
-	DefaultGenesisState          = types.DefaultGenesisState
-	DefaultParams                = types.DefaultParams
-	GetTotalVestingPeriodLength  = types.GetTotalVestingPeriodLength
-	NewGenesisAccumulationTime   = types.NewGenesisAccumulationTime
-	NewGenesisState              = types.NewGenesisState
-	NewMsgClaimUSDXMintingReward = types.NewMsgClaimUSDXMintingReward
-	NewMultiplier                = types.NewMultiplier
-	NewParams                    = types.NewParams
-	NewPeriod                    = types.NewPeriod
-	NewQueryClaimsParams         = types.NewQueryClaimsParams
-	NewRewardIndex               = types.NewRewardIndex
-	NewRewardPeriod              = types.NewRewardPeriod
-	NewUSDXMintingClaim          = types.NewUSDXMintingClaim
-	ParamKeyTable                = types.ParamKeyTable
-	RegisterCodec                = types.RegisterCodec
+	CalculateTimeElapsed                   = keeper.CalculateTimeElapsed
+	NewKeeper                              = keeper.NewKeeper
+	NewQuerier                             = keeper.NewQuerier
+	DefaultGenesisState                    = types.DefaultGenesisState
+	DefaultParams                          = types.DefaultParams
+	GetTotalVestingPeriodLength            = types.GetTotalVestingPeriodLength
+	NewGenesisAccumulationTime             = types.NewGenesisAccumulationTime
+	NewGenesisState                        = types.NewGenesisState
+	NewMsgClaimUSDXMintingReward           = types.NewMsgClaimUSDXMintingReward
+	NewMsgClaimHardLiquidityProviderReward = types.NewMsgClaimHardLiquidityProviderReward
+	NewMultiplier                          = types.NewMultiplier
+	NewParams                              = types.NewParams
+	NewPeriod                              = types.NewPeriod
+	NewQueryCdpClaimsParams                = types.NewQueryCdpClaimsParams
+	NewQueryHardClaimsParams               = types.NewQueryHardClaimsParams
+	NewRewardIndex                         = types.NewRewardIndex
+	NewRewardPeriod                        = types.NewRewardPeriod
+	NewUSDXMintingClaim                    = types.NewUSDXMintingClaim
+	NewHardLiquidityProviderClaim          = types.NewHardLiquidityProviderClaim
+	ParamKeyTable                          = types.ParamKeyTable
+	RegisterCodec                          = types.RegisterCodec
 
 	// variable aliases
 	PreviousUSDXMintingRewardAccrualTimeKeyPrefix = types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix
@@ -99,7 +103,8 @@ type (
 	Multipliers               = types.Multipliers
 	Params                    = types.Params
 	PostClaimReq              = types.PostClaimReq
-	QueryClaimsParams         = types.QueryClaimsParams
+	QueryCdpClaimsParams      = types.QueryCdpClaimsParams
+	QueryHardClaimsParams     = types.QueryHardClaimsParams
 	RewardIndex               = types.RewardIndex
 	RewardIndexes             = types.RewardIndexes
 	RewardPeriod              = types.RewardPeriod

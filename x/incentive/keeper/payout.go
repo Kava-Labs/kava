@@ -12,8 +12,8 @@ import (
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
-// ClaimReward sends the reward amount to the input address and zero's out the claim in the store
-func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName types.MultiplierName) error {
+// ClaimUSDXMintingReward sends the reward amount to the input address and zero's out the claim in the store
+func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName types.MultiplierName) error {
 	claim, found := k.GetUSDXMintingClaim(ctx, addr)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
@@ -30,7 +30,7 @@ func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
 	}
 
-	claim, err := k.SynchronizeClaim(ctx, claim)
+	claim, err := k.SynchronizeUSDXMintingClaim(ctx, claim)
 	if err != nil {
 		return err
 	}
@@ -47,13 +47,64 @@ func (k Keeper) ClaimReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName
 		return err
 	}
 
-	k.ZeroClaim(ctx, claim)
+	k.ZeroUSDXMintingClaim(ctx, claim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, claim.GetOwner().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetType()),
+		),
+	)
+	return nil
+}
+
+// ClaimHardReward sends the reward amount to the input address and zero's out the claim in the store
+func (k Keeper) ClaimHardReward(ctx sdk.Context, addr sdk.AccAddress, multiplierName types.MultiplierName) error {
+	_, found := k.GetHardLiquidityProviderClaim(ctx, addr)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
+	}
+
+	multiplier, found := k.GetMultiplier(ctx, multiplierName)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, string(multiplierName))
+	}
+
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
+	}
+
+	k.SynchronizeHardLiquidityProviderClaim(ctx, addr)
+
+	claim, found := k.GetHardLiquidityProviderClaim(ctx, addr)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
+	}
+
+	rewardAmount := claim.Reward.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
+	if rewardAmount.IsZero() {
+		return types.ErrZeroClaim
+	}
+	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
+	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
+
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
+	if err != nil {
+		return err
+	}
+
+	k.ZeroHardLiquidityProviderClaim(ctx, claim)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaim,
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, claim.GetOwner().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType()),
 		),
 	)
 	return nil
