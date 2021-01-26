@@ -46,21 +46,19 @@ func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rewardType = strings.ToLower(strings.TrimSpace(x))
 		}
 
-		queryParams := types.NewQueryRewardsParams(page, limit, owner, rewardType)
-		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
+		switch strings.ToLower(rewardType) {
+		case "hard":
+			params := types.NewQueryHardRewardsParams(page, limit, owner)
+			executeHardRewardsQuery(w, cliCtx, params)
+		case "usdx_minting":
+			params := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
+			executeUSDXMintingRewardsQuery(w, cliCtx, params)
+		default:
+			hardParams := types.NewQueryHardRewardsParams(page, limit, owner)
+			executeHardRewardsQuery(w, cliCtx, hardParams)
+			usdxMintingParams := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
+			executeUSDXMintingRewardsQuery(w, cliCtx, usdxMintingParams)
 		}
-
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetRewards), bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
@@ -82,4 +80,38 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
+}
+
+func executeHardRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryHardRewardsParams) {
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetHardRewards), bz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, res)
+}
+
+func executeUSDXMintingRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryUSDXMintingRewardsParams) {
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetUSDXMintingRewards), bz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, res)
 }
