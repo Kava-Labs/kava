@@ -52,8 +52,9 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, addr sdk.AccAddress, mul
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, claim.GetOwner().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetType()),
 		),
 	)
 	return nil
@@ -101,8 +102,9 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, addr sdk.AccAddress, multiplier
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, addr.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, claim.GetOwner().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.GetReward().String()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType()),
 		),
 	)
 	return nil

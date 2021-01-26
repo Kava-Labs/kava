@@ -10,6 +10,7 @@ const (
 	AttributeValueCategory   = ModuleName
 	AttributeKeyClaimedBy    = "claimed_by"
 	AttributeKeyClaimAmount  = "claim_amount"
+	AttributeKeyClaimType    = "claim_type"
 	AttributeKeyRewardPeriod = "reward_period"
 	AttributeKeyClaimPeriod  = "claim_period"
 )
