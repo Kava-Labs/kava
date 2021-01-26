@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,10 +19,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, k)
-		case types.QueryGetCdpClaims:
-			return queryGetCdpClaims(ctx, req, k)
-		case types.QueryGetHardClaims:
-			return queryGetHardClaims(ctx, req, k)
+		case types.QueryGetRewards:
+			return queryGetRewards(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -40,62 +40,87 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	return bz, nil
 }
 
-func queryGetCdpClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var requestParams types.QueryCdpClaimsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &requestParams)
+func queryGetRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryRewardsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	var claims types.USDXMintingClaims
-	if len(requestParams.Owner) > 0 {
-		claim, _ := k.GetUSDXMintingClaim(ctx, requestParams.Owner)
-		claims = append(claims, claim)
-	} else {
-		claims = k.GetAllUSDXMintingClaims(ctx)
+	hasType := len(params.Type) > 0
+	owner := len(params.Owner) > 0
+
+	var usdxMintingClaims types.USDXMintingClaims
+	var hardClaims types.HardLiquidityProviderClaims
+	switch {
+	case owner && hasType:
+		if strings.ToLower(params.Type) == "usdx-minting" {
+			usdxMintingClaim, foundUsdxMintingClaim := k.GetUSDXMintingClaim(ctx, params.Owner)
+			if foundUsdxMintingClaim {
+				usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
+			}
+		} else if strings.ToLower(params.Type) == "hard" {
+			hardClaim, foundHardClaim := k.GetHardLiquidityProviderClaim(ctx, params.Owner)
+			if foundHardClaim {
+				hardClaims = append(hardClaims, hardClaim)
+			}
+		} else {
+			return nil, types.ErrInvalidClaimType
+		}
+	case owner:
+		usdxMintingClaim, foundUsdxMintingClaim := k.GetUSDXMintingClaim(ctx, params.Owner)
+		if foundUsdxMintingClaim {
+			usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
+		}
+		hardClaim, foundHardClaim := k.GetHardLiquidityProviderClaim(ctx, params.Owner)
+		if foundHardClaim {
+			hardClaims = append(hardClaims, hardClaim)
+		}
+	case hasType:
+		if strings.ToLower(params.Type) == "usdx-minting" {
+			usdxMintingClaims = k.GetAllUSDXMintingClaims(ctx)
+		} else if strings.ToLower(params.Type) == "hard" {
+			hardClaims = k.GetAllHardLiquidityProviderClaims(ctx)
+		} else {
+			return nil, types.ErrInvalidClaimType
+		}
+	default:
+		usdxMintingClaims = k.GetAllUSDXMintingClaims(ctx)
+		hardClaims = k.GetAllHardLiquidityProviderClaims(ctx)
 	}
 
-	var paginatedClaims types.USDXMintingClaims
-
-	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
-	if start < 0 || end < 0 {
-		paginatedClaims = types.USDXMintingClaims{}
+	var paginatedUsdxMintingClaims types.USDXMintingClaims
+	startU, endU := client.Paginate(len(usdxMintingClaims), params.Page, params.Limit, 100)
+	if startU < 0 || endU < 0 {
+		paginatedUsdxMintingClaims = types.USDXMintingClaims{}
 	} else {
-		paginatedClaims = claims[start:end]
+		paginatedUsdxMintingClaims = usdxMintingClaims[startU:endU]
 	}
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	// TODO: use hardClaimsLimited instead of hardClaims to enforce that global query limit is not exceeded
+	// remainingClaims := params.Limit - len(paginatedUsdxMintingClaims)
+	// hardClaimsLimited := hardClaims[0:remainingClaims]
+
+	var paginatedHardClaims types.HardLiquidityProviderClaims
+	startH, endH := client.Paginate(len(hardClaims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedHardClaims = types.HardLiquidityProviderClaims{}
+	} else {
+		paginatedHardClaims = hardClaims[startH:endH]
+	}
+
+	// Marshal USDX minting claims
+	bzUsdxMintingClaims, err := codec.MarshalJSONIndent(k.cdc, paginatedUsdxMintingClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	return bz, nil
-}
 
-func queryGetHardClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var requestParams types.QueryHardClaimsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &requestParams)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	var claims types.HardLiquidityProviderClaims
-	if len(requestParams.Owner) > 0 {
-		claim, _ := k.GetHardLiquidityProviderClaim(ctx, requestParams.Owner)
-		claims = append(claims, claim)
-	} else {
-		claims = k.GetAllHardLiquidityProviderClaims(ctx)
-	}
-
-	var paginatedClaims types.HardLiquidityProviderClaims
-
-	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
-	if start < 0 || end < 0 {
-		paginatedClaims = types.HardLiquidityProviderClaims{}
-	} else {
-		paginatedClaims = claims[start:end]
-	}
-
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	// Marshal Hard claims
+	bzHardClaims, err := codec.MarshalJSONIndent(k.cdc, paginatedHardClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+
+	// Return concatenated bytes
+	bz := append(bzUsdxMintingClaims[:], bzHardClaims[:]...)
 	return bz, nil
 }
