@@ -77,8 +77,14 @@ func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes Re
 	}
 }
 
-// GetType returns the claim type, used to identify auctions in event attributes
+// GetType returns the claim's type
 func (c USDXMintingClaim) GetType() string { return USDXMintingClaimType }
+
+// GetReward returns the claim's reward coin
+func (c USDXMintingClaim) GetReward() sdk.Coin { return c.Reward }
+
+// GetOwner returns the claim's owner
+func (c USDXMintingClaim) GetOwner() sdk.AccAddress { return c.Owner }
 
 // Validate performs a basic check of a Claim fields
 func (c USDXMintingClaim) Validate() error {
@@ -143,8 +149,14 @@ func NewHardLiquidityProviderClaim(owner sdk.AccAddress, reward sdk.Coin, supply
 	}
 }
 
-// GetType returns the claim type, used to identify auctions in event attributes
+// GetType returns the claim's type
 func (c HardLiquidityProviderClaim) GetType() string { return HardLiquidityProviderClaimType }
+
+// GetReward returns the claim's reward coin
+func (c HardLiquidityProviderClaim) GetReward() sdk.Coin { return c.Reward }
+
+// GetOwner returns the claim's owner
+func (c HardLiquidityProviderClaim) GetOwner() sdk.AccAddress { return c.Owner }
 
 // Validate performs a basic check of a HardLiquidityProviderClaim fields
 func (c HardLiquidityProviderClaim) Validate() error {

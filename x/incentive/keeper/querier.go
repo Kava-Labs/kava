@@ -17,10 +17,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, k)
-		case types.QueryGetCdpClaims:
-			return queryGetCdpClaims(ctx, req, k)
-		case types.QueryGetHardClaims:
-			return queryGetHardClaims(ctx, req, k)
+		case types.QueryGetHardRewards:
+			return queryGetHardRewards(ctx, req, k)
+		case types.QueryGetUSDXMintingRewards:
+			return queryGetUSDXMintingRewards(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -40,60 +40,70 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, e
 	return bz, nil
 }
 
-func queryGetCdpClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var requestParams types.QueryCdpClaimsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &requestParams)
+func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryHardRewardsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	var claims types.USDXMintingClaims
-	if len(requestParams.Owner) > 0 {
-		claim, _ := k.GetUSDXMintingClaim(ctx, requestParams.Owner)
-		claims = append(claims, claim)
-	} else {
-		claims = k.GetAllUSDXMintingClaims(ctx)
+	owner := len(params.Owner) > 0
+
+	var hardClaims types.HardLiquidityProviderClaims
+	switch {
+	case owner:
+		hardClaim, foundHardClaim := k.GetHardLiquidityProviderClaim(ctx, params.Owner)
+		if foundHardClaim {
+			hardClaims = append(hardClaims, hardClaim)
+		}
+	default:
+		hardClaims = k.GetAllHardLiquidityProviderClaims(ctx)
 	}
 
-	var paginatedClaims types.USDXMintingClaims
-
-	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
-	if start < 0 || end < 0 {
-		paginatedClaims = types.USDXMintingClaims{}
+	var paginatedHardClaims types.HardLiquidityProviderClaims
+	startH, endH := client.Paginate(len(hardClaims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedHardClaims = types.HardLiquidityProviderClaims{}
 	} else {
-		paginatedClaims = claims[start:end]
+		paginatedHardClaims = hardClaims[startH:endH]
 	}
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	// Marshal Hard claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedHardClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
 
-func queryGetHardClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var requestParams types.QueryHardClaimsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &requestParams)
+func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryUSDXMintingRewardsParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	var claims types.HardLiquidityProviderClaims
-	if len(requestParams.Owner) > 0 {
-		claim, _ := k.GetHardLiquidityProviderClaim(ctx, requestParams.Owner)
-		claims = append(claims, claim)
-	} else {
-		claims = k.GetAllHardLiquidityProviderClaims(ctx)
+	owner := len(params.Owner) > 0
+
+	var usdxMintingClaims types.USDXMintingClaims
+	switch {
+	case owner:
+		usdxMintingClaim, foundUsdxMintingClaim := k.GetUSDXMintingClaim(ctx, params.Owner)
+		if foundUsdxMintingClaim {
+			usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
+		}
+	default:
+		usdxMintingClaims = k.GetAllUSDXMintingClaims(ctx)
 	}
 
-	var paginatedClaims types.HardLiquidityProviderClaims
-
-	start, end := client.Paginate(len(claims), requestParams.Page, requestParams.Limit, 100)
-	if start < 0 || end < 0 {
-		paginatedClaims = types.HardLiquidityProviderClaims{}
+	var paginatedUsdxMintingClaims types.USDXMintingClaims
+	startU, endU := client.Paginate(len(usdxMintingClaims), params.Page, params.Limit, 100)
+	if startU < 0 || endU < 0 {
+		paginatedUsdxMintingClaims = types.USDXMintingClaims{}
 	} else {
-		paginatedClaims = claims[start:end]
+		paginatedUsdxMintingClaims = usdxMintingClaims[startU:endU]
 	}
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedClaims)
+	// Marshal USDX minting claims
+	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedUsdxMintingClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

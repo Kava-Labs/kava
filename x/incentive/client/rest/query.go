@@ -15,12 +15,11 @@ import (
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc(fmt.Sprintf("/%s/cdp-claims", types.ModuleName), queryCdpClaimsHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc(fmt.Sprintf("/%s/hard-claims", types.ModuleName), queryHardClaimsHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/rewards", types.ModuleName), queryRewardsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/parameters", types.ModuleName), queryParamsHandlerFn(cliCtx)).Methods("GET")
 }
 
-func queryCdpClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -42,61 +41,23 @@ func queryCdpClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			}
 		}
 
-		queryParams := types.NewQueryCdpClaimsParams(page, limit, owner)
-		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
+		var rewardType string
+		if x := r.URL.Query().Get(types.RestClaimType); len(x) != 0 {
+			rewardType = strings.ToLower(strings.TrimSpace(x))
 		}
 
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetCdpClaims), bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
+		switch strings.ToLower(rewardType) {
+		case "hard":
+			params := types.NewQueryHardRewardsParams(page, limit, owner)
+			executeHardRewardsQuery(w, cliCtx, params)
+		case "usdx_minting":
+			params := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
+			executeUSDXMintingRewardsQuery(w, cliCtx, params)
+		default:
+			hardParams := types.NewQueryHardRewardsParams(page, limit, owner)
+			usdxMintingParams := types.NewQueryUSDXMintingRewardsParams(page, limit, owner)
+			executeBothRewardQueries(w, cliCtx, hardParams, usdxMintingParams)
 		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
-	}
-}
-
-func queryHardClaimsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-
-		var owner sdk.AccAddress
-		if x := r.URL.Query().Get(types.RestClaimOwner); len(x) != 0 {
-			ownerStr := strings.ToLower(strings.TrimSpace(x))
-			owner, err = sdk.AccAddressFromBech32(ownerStr)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("cannot parse address from claim owner %s", ownerStr))
-				return
-			}
-		}
-
-		queryParams := types.NewQueryHardClaimsParams(page, limit, owner)
-		bz, err := cliCtx.Codec.MarshalJSON(queryParams)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetHardClaims), bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
@@ -118,4 +79,68 @@ func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
+}
+
+func executeHardRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryHardRewardsParams) {
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetHardRewards), bz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, res)
+}
+
+func executeUSDXMintingRewardsQuery(w http.ResponseWriter, cliCtx context.CLIContext, params types.QueryUSDXMintingRewardsParams) {
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetUSDXMintingRewards), bz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, res)
+}
+
+func executeBothRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext,
+	hardParams types.QueryHardRewardsParams, usdxMintingParams types.QueryUSDXMintingRewardsParams) {
+	hardBz, err := cliCtx.Codec.MarshalJSON(hardParams)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	hardRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetHardRewards), hardBz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	usdxMintingBz, err := cliCtx.Codec.MarshalJSON(usdxMintingParams)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
+		return
+	}
+
+	usdxMintingRes, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetUSDXMintingRewards), usdxMintingBz)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	cliCtx = cliCtx.WithHeight(height)
+	rest.PostProcessResponse(w, cliCtx, append(hardRes, usdxMintingRes...))
 }
