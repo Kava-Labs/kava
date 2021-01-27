@@ -21,3 +21,5 @@ func NewClaim(owner sdk.AccAddress, denom string, amount sdk.Coin, dtype Deposit
 		Type:         dtype,
 	}
 }
+
+type Claims []Claim

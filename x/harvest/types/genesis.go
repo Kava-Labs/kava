@@ -14,6 +14,8 @@ import (
 var (
 	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
 	DefaultDistributionTimes = GenesisDistributionTimes{}
+	DefaultDeposits          = Deposits{}
+	DefaultClaims            = Claims{}
 )
 
 // GenesisState is the state that must be provided at genesis.
@@ -21,14 +23,18 @@ type GenesisState struct {
 	Params                    Params                   `json:"params" yaml:"params"`
 	PreviousBlockTime         time.Time                `json:"previous_block_time" yaml:"previous_block_time"`
 	PreviousDistributionTimes GenesisDistributionTimes `json:"previous_distribution_times" yaml:"previous_distribution_times"`
+	Deposits                  Deposits                 `json:"deposits" yaml:"deposits"`
+	Claims                    Claims                   `json:"claims" yaml:"claims"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes) GenesisState {
+func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes, deposits Deposits, claims Claims) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		PreviousBlockTime:         previousBlockTime,
 		PreviousDistributionTimes: previousDistTimes,
+		Deposits:                  deposits,
+		Claims:                    claims,
 	}
 }
 
@@ -38,6 +44,8 @@ func DefaultGenesisState() GenesisState {
 		Params:                    DefaultParams(),
 		PreviousBlockTime:         DefaultPreviousBlockTime,
 		PreviousDistributionTimes: DefaultDistributionTimes,
+		Deposits:                  DefaultDeposits,
+		Claims:                    DefaultClaims,
 	}
 }
 

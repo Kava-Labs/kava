@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestApplyDepositRewards() {
 					time.Hour*24,
 				),
 				},
-			), tc.args.previousBlockTime, types.DefaultDistributionTimes)
+			), tc.args.previousBlockTime, types.DefaultDistributionTimes, types.DefaultDeposits, types.DefaultClaims)
 			tApp.InitializeFromGenesisStates(app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(harvestGS)})
 			supplyKeeper := tApp.GetSupplyKeeper()
 			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, cs(tc.args.totalDeposits))
@@ -439,6 +439,7 @@ func harvestGenesisState(rewardRate sdk.Coin) app.GenesisState {
 		),
 		types.DefaultPreviousBlockTime,
 		types.DefaultDistributionTimes,
+		types.DefaultDeposits, types.DefaultClaims,
 	)
 	return app.GenesisState{
 		types.ModuleName: types.ModuleCdc.MustMarshalJSON(genState),

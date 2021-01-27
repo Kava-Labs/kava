@@ -19,3 +19,5 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coin, dtype DepositType) De
 		Type:      dtype,
 	}
 }
+
+type Deposits []Deposit
