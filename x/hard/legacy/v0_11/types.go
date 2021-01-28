@@ -39,6 +39,8 @@ var (
 	DefaultDelegatorSchedules = DelegatorDistributionSchedules{}
 	DefaultPreviousBlockTime  = tmtime.Canonical(time.Unix(0, 0))
 	DefaultDistributionTimes  = GenesisDistributionTimes{}
+	DefaultDeposits           = Deposits{}
+	DefaultClaims             = Claims{}
 	GovDenom                  = cdptypes.DefaultGovDenom
 )
 
@@ -47,14 +49,18 @@ type GenesisState struct {
 	Params                    Params                   `json:"params" yaml:"params"`
 	PreviousBlockTime         time.Time                `json:"previous_block_time" yaml:"previous_block_time"`
 	PreviousDistributionTimes GenesisDistributionTimes `json:"previous_distribution_times" yaml:"previous_distribution_times"`
+	Deposits                  Deposits                 `json:"deposits" yaml:"deposits"`
+	Claims                    Claims                   `json:"claims" yaml:"claims"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes) GenesisState {
+func NewGenesisState(params Params, previousBlockTime time.Time, previousDistTimes GenesisDistributionTimes, deposits Deposits, claims Claims) GenesisState {
 	return GenesisState{
 		Params:                    params,
 		PreviousBlockTime:         previousBlockTime,
 		PreviousDistributionTimes: previousDistTimes,
+		Deposits:                  deposits,
+		Claims:                    claims,
 	}
 }
 
@@ -77,6 +83,17 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 	return nil
+}
+
+// DefaultGenesisState returns a default genesis state
+func DefaultGenesisState() GenesisState {
+	return GenesisState{
+		Params:                    DefaultParams(),
+		PreviousBlockTime:         DefaultPreviousBlockTime,
+		PreviousDistributionTimes: DefaultDistributionTimes,
+		Deposits:                  DefaultDeposits,
+		Claims:                    DefaultClaims,
+	}
 }
 
 // GenesisDistributionTime stores the previous distribution time and its corresponding denom
@@ -422,6 +439,8 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coin, dtype DepositType) De
 	}
 }
 
+type Deposits []Deposit
+
 // Claim defines an amount of coins that the owner can claim
 type Claim struct {
 	Owner        sdk.AccAddress `json:"owner" yaml:"owner"`
@@ -453,3 +472,5 @@ func GetTotalVestingPeriodLength(periods vesting.Periods) int64 {
 	}
 	return length
 }
+
+type Claims []Claim

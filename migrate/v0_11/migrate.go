@@ -652,7 +652,7 @@ func MigrateHarvest() v0_11harvest.GenesisState {
 			time.Hour*24,
 		),
 		},
-	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes)
+	), v0_11harvest.DefaultPreviousBlockTime, v0_11harvest.DefaultDistributionTimes, v0_11harvest.DefaultDeposits, v0_11harvest.DefaultClaims)
 	return harvestGS
 }
 
