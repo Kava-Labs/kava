@@ -274,3 +274,13 @@ func (ris RewardIndexes) Validate() error {
 	}
 	return nil
 }
+
+// GetIndex returns the index position of the input collateral type
+func (ris RewardIndexes) GetIndex(ct string) (int, bool) {
+	for i, ri := range ris {
+		if ri.CollateralType == ct {
+			return i, true
+		}
+	}
+	return 0, false
+}

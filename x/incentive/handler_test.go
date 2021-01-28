@@ -52,7 +52,11 @@ func (suite *HandlerTestSuite) SetupTest() {
 			time.Date(2025, 12, 15, 14, 0, 0, 0, time.UTC),
 		),
 		incentive.DefaultGenesisAccumulationTimes,
-		incentive.DefaultClaims,
+		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultUSDXClaims,
+		incentive.DefaultHardClaims,
 	)
 	tApp.InitializeFromGenesisStates(authGS, app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(incentiveGS)}, NewCDPGenStateMulti(), NewPricefeedGenStateMulti())
 

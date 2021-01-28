@@ -33,7 +33,8 @@ var (
 	DefaultActive                   = false
 	DefaultRewardPeriods            = RewardPeriods{}
 	DefaultMultipliers              = Multipliers{}
-	DefaultClaims                   = USDXMintingClaims{}
+	DefaultUSDXClaims               = USDXMintingClaims{}
+	DefaultHardClaims               = HardLiquidityProviderClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
 	DefaultClaimEnd                 = tmtime.Canonical(time.Unix(0, 0))
 	GovDenom                        = cdptypes.DefaultGovDenom
