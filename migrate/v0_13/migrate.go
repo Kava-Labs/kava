@@ -11,6 +11,12 @@ import (
 
 	v0_13cdp "github.com/kava-labs/kava/x/cdp"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	v0_13hard "github.com/kava-labs/kava/x/hard"
+	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
+)
+
+var (
+	GenesisTime = time.Date(2021, 2, 25, 14, 0, 0, 0, time.UTC)
 )
 
 // MigrateCDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
@@ -76,6 +82,75 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 		newGenesisAccumulationTimes,
 		totalPrincipals,
 	)
+}
+
+func MigrateHard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
+	v13Deposits := v0_13hard.Deposits{}
+	v13DepositorMap := make(map[string]v0_13hard.Deposit)
+	v13GenesisAccumulationTimes := v0_13hard.GenesisAccumulationTimes{}
+	v13TotalSupplied := sdk.NewCoins()
+
+	for _, dep := range genesisState.Deposits {
+		v13Deposit, ok := v13DepositorMap[dep.Depositor.String()]
+		if !ok {
+			v13Deposit := v0_13hard.NewDeposit(dep.Depositor, sdk.NewCoins(dep.Amount), v0_13hard.SupplyInterestFactors{v0_13hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec())})
+			v13DepositorMap[dep.Depositor.String()] = v13Deposit
+		} else {
+			v13Deposit.Amount = v13Deposit.Amount.Add(dep.Amount)
+			v13Deposit.Index = append(v13Deposit.Index, v0_13hard.NewSupplyInterestFactor(dep.Amount.Denom, sdk.OneDec()))
+			v13DepositorMap[dep.Depositor.String()] = v13Deposit
+		}
+	}
+
+	newParams := v0_13hard.NewParams(
+		v0_13hard.MoneyMarkets{
+			// btcb money market - TODO:
+			// 1. is auction size actually used/enforced?
+			// 2. What even is this interest rate model
+			v0_13hard.NewMoneyMarket("btcb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "btc:usd", sdk.NewInt(8), sdk.NewInt(100000000),
+				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+			),
+			// xrpb
+			v0_13hard.NewMoneyMarket("xrpb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "xrp:usd", sdk.NewInt(8), sdk.NewInt(10000000000000),
+				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+			),
+			// busd
+			v0_13hard.NewMoneyMarket("busd", v0_13hard.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000000"), sdk.MustNewDecFromStr("0.5")), "busd:usd", sdk.NewInt(8), sdk.NewInt(5000000000000),
+				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+			),
+			// usdx
+			v0_13hard.NewMoneyMarket("usdx", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.ZeroDec()), "usdx:usd", sdk.NewInt(6), sdk.NewInt(50000000000),
+				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+			),
+			// ukava
+			v0_13hard.NewMoneyMarket("ukava", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "kava:usd", sdk.NewInt(6), sdk.NewInt(10000000000),
+				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+			),
+			// hard
+			v0_13hard.NewMoneyMarket("hard", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "hard:usd", sdk.NewInt(6), sdk.NewInt(25000000000),
+				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+			),
+		},
+		10,
+	)
+
+	for _, newDep := range v13DepositorMap {
+		v13Deposits = append(v13Deposits, newDep)
+		v13TotalSupplied = v13TotalSupplied.Add(newDep.Amount...)
+	}
+
+	for _, mm := range newParams.MoneyMarkets {
+		genAccumulationTime := v0_13hard.NewGenesisAccumulationTime(mm.Denom, GenesisTime, sdk.OneDec(), sdk.OneDec())
+		v13GenesisAccumulationTimes = append(v13GenesisAccumulationTimes, genAccumulationTime)
+	}
+
+	return v0_13hard.NewGenesisState(newParams, v13GenesisAccumulationTimes, v13Deposits, v0_13hard.DefaultBorrows, v13TotalSupplied, v0_13hard.DefaultTotalBorrowed, v0_13hard.DefaultTotalReserves)
 }
 
 // MigrateAuth migrates from a v0.11 auth genesis state to a v0.13

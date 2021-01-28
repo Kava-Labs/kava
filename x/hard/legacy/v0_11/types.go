@@ -439,6 +439,7 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coin, dtype DepositType) De
 	}
 }
 
+// Deposits slice of Deposit
 type Deposits []Deposit
 
 // Claim defines an amount of coins that the owner can claim
@@ -459,6 +460,9 @@ func NewClaim(owner sdk.AccAddress, denom string, amount sdk.Coin, dtype Deposit
 	}
 }
 
+// Claims slice of Claim
+type Claims []Claim
+
 // NewPeriod returns a new vesting period
 func NewPeriod(amount sdk.Coins, length int64) vesting.Period {
 	return vesting.Period{Amount: amount, Length: length}
@@ -472,5 +476,3 @@ func GetTotalVestingPeriodLength(periods vesting.Periods) int64 {
 	}
 	return length
 }
-
-type Claims []Claim
