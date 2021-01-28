@@ -587,3 +587,130 @@ func CalculateTimeElapsed(rewardPeriod types.RewardPeriod, blockTime time.Time, 
 		blockTime.Sub(previousAccrualTime).Seconds(),
 	)))
 }
+
+// SimulateHardSynchronization calculates a user's outstanding hard rewards by simulating reward synchronization
+func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
+	// 1. Simulate Hard supply-side rewards
+	for _, ri := range claim.SupplyRewardIndexes {
+		supplyFactor, found := k.GetHardSupplyRewardFactor(ctx, ri.CollateralType)
+		if !found {
+			continue
+		}
+
+		supplyIndex, hasSupplyRewardIndex := claim.HasSupplyRewardIndex(ri.CollateralType)
+		if !hasSupplyRewardIndex {
+			continue
+		}
+		claim.SupplyRewardIndexes[supplyIndex].RewardFactor = supplyFactor
+
+		rewardsAccumulatedFactor := supplyFactor.Sub(ri.RewardFactor)
+		if rewardsAccumulatedFactor.IsZero() {
+			continue
+		}
+
+		deposit, found := k.hardKeeper.GetDeposit(ctx, claim.GetOwner())
+		if !found {
+			continue
+		}
+
+		var newRewardsAmount sdk.Int
+		if deposit.Amount.AmountOf(ri.CollateralType).GT(sdk.ZeroInt()) {
+			newRewardsAmount = rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
+				continue
+			}
+		}
+		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
+		claim.Reward = claim.Reward.Add(newRewardsCoin)
+	}
+
+	// 2. Simulate Hard borrow-side rewards
+	for _, ri := range claim.BorrowRewardIndexes {
+		borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, ri.CollateralType)
+		if !found {
+			continue
+		}
+
+		borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(ri.CollateralType)
+		if !hasBorrowRewardIndex {
+			continue
+		}
+		claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
+
+		rewardsAccumulatedFactor := borrowFactor.Sub(ri.RewardFactor)
+		if rewardsAccumulatedFactor.IsZero() {
+			continue
+		}
+
+		borrow, found := k.hardKeeper.GetBorrow(ctx, claim.GetOwner())
+		if !found {
+			continue
+		}
+
+		var newRewardsAmount sdk.Int
+		if borrow.Amount.AmountOf(ri.CollateralType).GT(sdk.ZeroInt()) {
+			newRewardsAmount = rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
+				continue
+			}
+		}
+		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
+		claim.Reward = claim.Reward.Add(newRewardsCoin)
+	}
+
+	// 3. Simulate Hard delegator rewards
+	delagatorFactor, found := k.GetHardDelegatorRewardFactor(ctx, types.BondDenom)
+	if !found {
+		return claim
+	}
+
+	delegatorIndex, hasDelegatorRewardIndex := claim.HasDelegatorRewardIndex(types.BondDenom)
+	if !hasDelegatorRewardIndex {
+		return claim
+	}
+
+	userRewardFactor := claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor
+	rewardsAccumulatedFactor := delagatorFactor.Sub(userRewardFactor)
+	if rewardsAccumulatedFactor.IsZero() {
+		return claim
+	}
+	claim.DelegatorRewardIndexes[delegatorIndex].RewardFactor = delagatorFactor
+
+	totalDelegated := sdk.ZeroDec()
+
+	// TODO: set reasonable max limit on delegation iteration
+	maxUInt := ^uint16(0)
+	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, claim.GetOwner(), maxUInt)
+	for _, delegation := range delegations {
+		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
+		if !found {
+			continue
+		}
+
+		// Delegators don't accumulate rewards if their validator is unbonded/slashed
+		if validator.GetStatus() != sdk.Bonded {
+			continue
+		}
+
+		if validator.GetTokens().IsZero() {
+			continue
+		}
+
+		delegatedTokens := validator.TokensFromShares(delegation.GetShares())
+		if delegatedTokens.IsZero() || delegatedTokens.IsNegative() {
+			continue
+		}
+		totalDelegated = totalDelegated.Add(delegatedTokens)
+	}
+
+	rewardsEarned := rewardsAccumulatedFactor.Mul(totalDelegated).RoundInt()
+	if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+		return claim
+	}
+
+	// Add rewards to delegator's hard claim
+	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
+	claim.Reward = claim.Reward.Add(newRewardsCoin)
+
+	return claim
+}
