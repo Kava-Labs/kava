@@ -714,3 +714,44 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 	return claim
 }
+
+// SimulateUSDXMintingSynchronization calculates a user's outstanding USDX minting rewards by simulating reward synchronization
+func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
+	for _, ri := range claim.RewardIndexes {
+		_, found := k.GetUSDXMintingRewardPeriod(ctx, ri.CollateralType)
+		if !found {
+			continue
+		}
+
+		globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, ri.CollateralType)
+		if !found {
+			globalRewardFactor = sdk.ZeroDec()
+		}
+
+		// the owner has an existing usdx minting reward claim
+		index, hasRewardIndex := claim.HasRewardIndex(ri.CollateralType)
+		if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
+			claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(ri.CollateralType, globalRewardFactor))
+		}
+		userRewardFactor := claim.RewardIndexes[index].RewardFactor
+		rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+		if rewardsAccumulatedFactor.IsZero() {
+			continue
+		}
+
+		claim.RewardIndexes[index].RewardFactor = globalRewardFactor
+
+		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.GetOwner(), ri.CollateralType)
+		if !found {
+			continue
+		}
+		newRewardsAmount := rewardsAccumulatedFactor.Mul(cdp.GetTotalPrincipal().Amount.ToDec()).RoundInt()
+		if newRewardsAmount.IsZero() {
+			continue
+		}
+		newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
+		claim.Reward = claim.Reward.Add(newRewardsCoin)
+	}
+
+	return claim
+}
