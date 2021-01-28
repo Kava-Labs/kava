@@ -1410,6 +1410,109 @@ func (suite *KeeperTestSuite) TestSimulateHardDelegatorRewardSynchronization() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestSimulateUSDXMintingRewardSynchronization() {
+	type args struct {
+		ctype                string
+		rewardsPerSecond     sdk.Coin
+		initialTime          time.Time
+		initialCollateral    sdk.Coin
+		initialPrincipal     sdk.Coin
+		blockTimes           []int
+		expectedRewardFactor sdk.Dec
+		expectedRewards      sdk.Coin
+	}
+	type test struct {
+		name string
+		args args
+	}
+
+	testCases := []test{
+		{
+			"10 blocks",
+			args{
+				ctype:                "bnb-a",
+				rewardsPerSecond:     c("ukava", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:    c("bnb", 1000000000000),
+				initialPrincipal:     c("usdx", 10000000000),
+				blockTimes:           []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardFactor: d("0.001223540000000000"),
+				expectedRewards:      c("ukava", 12235400),
+			},
+		},
+		{
+			"10 blocks - long block time",
+			args{
+				ctype:                "bnb-a",
+				rewardsPerSecond:     c("ukava", 122354),
+				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialCollateral:    c("bnb", 1000000000000),
+				initialPrincipal:     c("usdx", 10000000000),
+				blockTimes:           []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
+				expectedRewardFactor: d("10.57138560000000000"),
+				expectedRewards:      c("ukava", 105713856000),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// setup incentive state
+			params := types.NewParams(
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousUSDXMintingAccrualTime(suite.ctx, tc.args.ctype, tc.args.initialTime)
+			suite.keeper.SetUSDXMintingRewardFactor(suite.ctx, tc.args.ctype, sdk.ZeroDec())
+
+			// setup account state
+			sk := suite.app.GetSupplyKeeper()
+			sk.MintCoins(suite.ctx, cdptypes.ModuleName, sdk.NewCoins(tc.args.initialCollateral))
+			sk.SendCoinsFromModuleToAccount(suite.ctx, cdptypes.ModuleName, suite.addrs[0], sdk.NewCoins(tc.args.initialCollateral))
+
+			// setup cdp state
+			cdpKeeper := suite.app.GetCDPKeeper()
+			err := cdpKeeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
+			suite.Require().NoError(err)
+
+			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+			suite.Require().True(found)
+			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
+
+			var timeElapsed int
+			previousBlockTime := suite.ctx.BlockTime()
+			for _, t := range tc.args.blockTimes {
+				timeElapsed += t
+				updatedBlockTime := previousBlockTime.Add(time.Duration(int(time.Second) * t))
+				previousBlockTime = updatedBlockTime
+				blockCtx := suite.ctx.WithBlockTime(updatedBlockTime)
+				rewardPeriod, found := suite.keeper.GetUSDXMintingRewardPeriod(blockCtx, tc.args.ctype)
+				suite.Require().True(found)
+				err := suite.keeper.AccumulateUSDXMintingRewards(blockCtx, rewardPeriod)
+				suite.Require().NoError(err)
+			}
+			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+
+			claim, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+			suite.Require().True(found)
+			suite.Require().Equal(claim.RewardIndexes[0].RewardFactor, sdk.ZeroDec())
+			suite.Require().Equal(claim.Reward, sdk.NewCoin("ukava", sdk.ZeroInt()))
+
+			updatedClaim := suite.keeper.SimulateUSDXMintingSynchronization(suite.ctx, claim)
+			suite.Require().Equal(tc.args.expectedRewardFactor, updatedClaim.RewardIndexes[0].RewardFactor)
+			suite.Require().Equal(tc.args.expectedRewards, updatedClaim.Reward)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) SetupWithGenState() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
