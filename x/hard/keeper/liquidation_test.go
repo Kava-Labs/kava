@@ -537,19 +537,19 @@ func (suite *KeeperTestSuite) TestPricefeedLiquidation() {
 				users:            users,
 				initialUserCoins: initialUserCoins,
 				steps: []step{
-					step{ // User one deposits 10 KAVA
+					{ // User one deposits 10 KAVA
 						action:          "deposit",
 						moveTimeForward: 0,
 						sender:          userOne,
 						coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 					},
-					step{ // User two deposits 10 USDX
+					{ // User two deposits 10 USDX
 						action:          "deposit",
 						moveTimeForward: 0,
 						sender:          userTwo,
 						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10*KAVA_CF))),
 					},
-					step{ // User one borrows 8 USDX
+					{ // User one borrows 8 USDX
 						action:          "borrow",
 						moveTimeForward: 0,
 						sender:          userOne,
@@ -584,71 +584,71 @@ func (suite *KeeperTestSuite) TestPricefeedLiquidation() {
 				contains:        "",
 			},
 		},
-		// {
-		// 	"scenario 2: insolvent",
-		// 	args{
-		// 		users:            users,
-		// 		initialUserCoins: initialUserCoins,
-		// 		steps: []step{
-		// 			step{ // User one deposits 10 KAVA
-		// 				action:          "deposit",
-		// 				moveTimeForward: 0,
-		// 				sender:          userOne,
-		// 				coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
-		// 			},
-		// 			step{ // User two deposits 10 USDX
-		// 				action:          "deposit",
-		// 				moveTimeForward: 0,
-		// 				sender:          userTwo,
-		// 				coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10*KAVA_CF))),
-		// 			},
-		// 			step{ // User one borrows 8 USDX
-		// 				action:          "borrow",
-		// 				moveTimeForward: 0,
-		// 				sender:          userOne,
-		// 				coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8*KAVA_CF))),
-		// 			},
-		// 			step{ // User three deposits 20 HARD
-		// 				action:          "deposit",
-		// 				moveTimeForward: 0,
-		// 				sender:          userThree,
-		// 				coins:           sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(20*KAVA_CF))),
-		// 			},
-		// 			step{ // User three borrows 8 KAVA
-		// 				action:          "borrow",
-		// 				moveTimeForward: 0,
-		// 				sender:          userThree,
-		// 				coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
-		// 			},
-		// 		},
-		// 		liquidateUser:     userOne,
-		// 		oracle:            oracle,
-		// 		pricefeedMarket:   "kava:usd",
-		// 		pricefeedPrice:    sdk.MustNewDecFromStr("0.99"),
-		// 		expectedUserCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(90.000001*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(108*KAVA_CF)), sdk.NewCoin("hard", sdk.NewInt(100*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
-		// 		expectedAuctions: auctypes.Auctions{ // Expect: lot = 2 KAVA, max bid = 8 USDX
-		// 			auctypes.CollateralAuction{
-		// 				BaseAuction: auctypes.BaseAuction{
-		// 					ID:              1,
-		// 					Initiator:       "hard_liquidator",
-		// 					Lot:             sdk.NewInt64Coin("ukava", 2*KAVA_CF),
-		// 					Bidder:          nil,
-		// 					Bid:             sdk.NewInt64Coin("usdx", 0),
-		// 					HasReceivedBids: false,
-		// 					EndTime:         endTime,
-		// 					MaxEndTime:      endTime,
-		// 				},
-		// 				CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
-		// 				MaxBid:            sdk.NewInt64Coin("usdx", 8*KAVA_CF),
-		// 				LotReturns:        lotReturns,
-		// 			},
-		// 		},
-		// 	},
-		// 	errArgs{
-		// 		expectLiquidate: true,
-		// 		contains:        "",
-		// 	},
-		// },
+		{
+			"scenario 2: insolvent",
+			args{
+				users:            users,
+				initialUserCoins: initialUserCoins,
+				steps: []step{
+					{ // User one deposits 10 KAVA
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userOne,
+						coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+					},
+					{ // User two deposits 10 USDX
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userTwo,
+						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10*KAVA_CF))),
+					},
+					{ // User one borrows 8 USDX
+						action:          "borrow",
+						moveTimeForward: 0,
+						sender:          userOne,
+						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8*KAVA_CF))),
+					},
+					{ // User three deposits 20 HARD
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userThree,
+						coins:           sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(20*KAVA_CF))),
+					},
+					{ // User three borrows 8 KAVA
+						action:          "borrow",
+						moveTimeForward: 0,
+						sender:          userThree,
+						coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+					},
+				},
+				liquidateUser:     userOne,
+				oracle:            oracle,
+				pricefeedMarket:   "kava:usd",
+				pricefeedPrice:    sdk.MustNewDecFromStr("0.99"),
+				expectedUserCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(90.000000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(108*KAVA_CF)), sdk.NewCoin("hard", sdk.NewInt(100*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{ // Expect: lot = 2 KAVA, max bid = 8 USDX
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 2*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("usdx", 8*KAVA_CF),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -693,7 +693,7 @@ func (suite *KeeperTestSuite) TestPricefeedLiquidation() {
 					types.NewMoneyMarket("hard",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"hard:usd",                     // Market ID
-						sdk.NewInt(BNB_CF),             // Conversion Factor
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
 						sdk.NewInt(100000*KAVA_CF),     // Auction Size
 						model,                          // Interest Rate Model
 						reserveFactor,                  // Reserve Factor
@@ -772,8 +772,11 @@ func (suite *KeeperTestSuite) TestPricefeedLiquidation() {
 			expiryTime := currCtx.BlockTime().Add(100 * time.Hour)
 			_, err = suite.pricefeedKeeper.SetPrice(currCtx, tc.args.oracle, tc.args.pricefeedMarket, tc.args.pricefeedPrice, expiryTime)
 			suite.Require().NoError(err)
-			err = suite.pricefeedKeeper.SetCurrentPrices(currCtx, "kava:usd")
+			err = suite.pricefeedKeeper.SetCurrentPrices(currCtx, tc.args.pricefeedMarket)
 			suite.Require().NoError(err)
+			priceInfo, err := suite.pricefeedKeeper.GetCurrentPrice(ctx, tc.args.pricefeedMarket)
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.args.pricefeedPrice, priceInfo.Price)
 
 			// Liquidate the borrow by running begin blocker
 			hard.BeginBlocker(currCtx, suite.keeper)
