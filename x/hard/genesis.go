@@ -16,20 +16,27 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 
 	k.SetParams(ctx, gs.Params)
 
-	// only set the previous block time if it's different than default
-	if !gs.PreviousBlockTime.Equal(DefaultPreviousBlockTime) {
-		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
-	}
-
-	for _, pdt := range gs.PreviousDistributionTimes {
-		if !pdt.PreviousDistributionTime.Equal(DefaultPreviousBlockTime) {
-			k.SetPreviousDelegationDistribution(ctx, pdt.PreviousDistributionTime, pdt.Denom)
-		}
-	}
-
 	for _, mm := range gs.Params.MoneyMarkets {
 		k.SetMoneyMarket(ctx, mm.Denom, mm)
 	}
+
+	for _, gat := range gs.PreviousAccumulationTimes {
+		k.SetPreviousAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+		k.SetSupplyInterestFactor(ctx, gat.CollateralType, gat.SupplyInterestFactor)
+		k.SetBorrowInterestFactor(ctx, gat.CollateralType, gat.BorrowInterestFactor)
+	}
+
+	for _, deposit := range gs.Deposits {
+		k.SetDeposit(ctx, deposit)
+	}
+
+	for _, borrow := range gs.Borrows {
+		k.SetBorrow(ctx, borrow)
+	}
+
+	k.SetSuppliedCoins(ctx, gs.TotalSupplied)
+	k.SetBorrowedCoins(ctx, gs.TotalBorrowed)
+	k.SetTotalReserves(ctx, gs.TotalReserves)
 
 	// check if the module account exists
 	LPModuleAcc := supplyKeeper.GetModuleAccount(ctx, LPAccount)
@@ -60,16 +67,53 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 // ExportGenesis export genesis state for hard module
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	params := k.GetParams(ctx)
-	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+
+	gats := types.GenesisAccumulationTimes{}
+	deposits := types.Deposits{}
+	borrows := types.Borrows{}
+
+	k.IterateDeposits(ctx, func(d types.Deposit) bool {
+		deposits = append(deposits, d)
+		return false
+	})
+
+	k.IterateBorrows(ctx, func(b types.Borrow) bool {
+		borrows = append(borrows, b)
+		return false
+	})
+
+	totalSupplied, found := k.GetSuppliedCoins(ctx)
 	if !found {
-		previousBlockTime = DefaultPreviousBlockTime
+		totalSupplied = DefaultTotalSupplied
 	}
-	previousDistTimes := GenesisDistributionTimes{}
-	for _, dds := range params.DelegatorDistributionSchedules {
-		previousDistTime, found := k.GetPreviousDelegatorDistribution(ctx, dds.DistributionSchedule.DepositDenom)
-		if found {
-			previousDistTimes = append(previousDistTimes, GenesisDistributionTime{PreviousDistributionTime: previousDistTime, Denom: dds.DistributionSchedule.DepositDenom})
+	totalBorrowed, found := k.GetBorrowedCoins(ctx)
+	if !found {
+		totalBorrowed = DefaultTotalBorrowed
+	}
+	totalReserves, found := k.GetTotalReserves(ctx)
+	if !found {
+		totalReserves = DefaultTotalReserves
+	}
+
+	for _, mm := range params.MoneyMarkets {
+		supplyFactor, f := k.GetSupplyInterestFactor(ctx, mm.Denom)
+		if !f {
+			supplyFactor = sdk.ZeroDec()
 		}
+		borrowFactor, f := k.GetBorrowInterestFactor(ctx, mm.Denom)
+		if !f {
+			borrowFactor = sdk.ZeroDec()
+		}
+		previousAccrualTime, f := k.GetPreviousAccrualTime(ctx, mm.Denom)
+		if !f {
+			previousAccrualTime = ctx.BlockTime()
+		}
+		gat := types.NewGenesisAccumulationTime(mm.Denom, previousAccrualTime, supplyFactor, borrowFactor)
+		gats = append(gats, gat)
+
 	}
-	return NewGenesisState(params, previousBlockTime, previousDistTimes)
+	return NewGenesisState(
+		params, gats, deposits, borrows,
+		totalSupplied, totalBorrowed, totalReserves,
+	)
 }

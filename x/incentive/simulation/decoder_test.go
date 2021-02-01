@@ -24,21 +24,22 @@ func makeTestCodec() (cdc *codec.Codec) {
 
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
-
-	// Set up RewardPeriod, ClaimPeriod, Claim, and previous block time
-	rewardPeriod := types.NewRewardPeriod("btc", time.Now().UTC(), time.Now().Add(time.Hour*1).UTC(),
-		sdk.NewCoin("ukava", sdk.NewInt(10000000000)), time.Now().Add(time.Hour*2).UTC(), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
-	claimPeriod := types.NewClaimPeriod("btc", 1, time.Now().Add(time.Hour*24).UTC(), types.Multipliers{types.NewMultiplier(types.Small, 1, sdk.MustNewDecFromStr("0.33"))})
 	addr, _ := sdk.AccAddressFromBech32("kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw")
-	claim := types.NewClaim(addr, sdk.NewCoin("ukava", sdk.NewInt(1000000)), "bnb", 1)
+	claim := types.NewUSDXMintingClaim(addr, sdk.NewCoin("ukava", sdk.NewInt(1000000)), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
 	prevBlockTime := time.Now().Add(time.Hour * -1).UTC()
+	factor := sdk.ZeroDec()
 
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: types.RewardPeriodKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&rewardPeriod)},
-		kv.Pair{Key: types.ClaimPeriodKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&claimPeriod)},
-		kv.Pair{Key: types.ClaimKeyPrefix, Value: cdc.MustMarshalBinaryLengthPrefixed(&claim)},
-		kv.Pair{Key: types.NextClaimPeriodIDPrefix, Value: sdk.Uint64ToBigEndian(10)},
-		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryLengthPrefixed(prevBlockTime)},
+		kv.Pair{Key: types.USDXMintingClaimKeyPrefix, Value: cdc.MustMarshalBinaryBare(claim)},
+		kv.Pair{Key: []byte(types.PreviousUSDXMintingRewardAccrualTimeKeyPrefix), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
+		kv.Pair{Key: []byte(types.USDXMintingRewardFactorKeyPrefix), Value: cdc.MustMarshalBinaryBare(factor)},
+		// kv.Pair{Key: types.HardLiquidityClaimKeyPrefix, Value: cdc.MustMarshalBinaryBare(claim)},
+		// kv.Pair{Key: []byte(types.HardSupplyRewardFactorKeyPrefix), Value: cdc.MustMarshalBinaryBare(factor)},
+		// kv.Pair{Key: []byte(types.PreviousHardSupplyRewardAccrualTimeKeyPrefix), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
+		// kv.Pair{Key: []byte(types.HardBorrowRewardFactorKeyPrefix), Value: cdc.MustMarshalBinaryBare(factor)},
+		// kv.Pair{Key: []byte(types.PreviousHardBorrowRewardAccrualTimeKeyPrefix), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
+		// kv.Pair{Key: []byte(types.HardDelegatorRewardFactorKeyPrefix), Value: cdc.MustMarshalBinaryBare(factor)},
+		// kv.Pair{Key: []byte(types.PreviousHardDelegatorRewardAccrualTimeKeyPrefix), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -46,11 +47,16 @@ func TestDecodeDistributionStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"RewardPeriod", fmt.Sprintf("%v\n%v", rewardPeriod, rewardPeriod)},
-		{"ClaimPeriod", fmt.Sprintf("%v\n%v", claimPeriod, claimPeriod)},
-		{"Claim", fmt.Sprintf("%v\n%v", claim, claim)},
-		{"NextClaimPeriodID", "10\n10"},
-		{"PreviousBlockTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
+		{"USDXMintingClaim", fmt.Sprintf("%v\n%v", claim, claim)},
+		{"PreviousUSDXMintingRewardAccrualTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
+		{"USDXMintingRewardFactor", fmt.Sprintf("%v\n%v", factor, factor)},
+		// {"HardLiquidityClaim", fmt.Sprintf("%v\n%v", claim, claim)},
+		// {"PreviousHardSupplyRewardAccrualTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
+		// {"HardSupplyRewardFactor", fmt.Sprintf("%v\n%v", factor, factor)},
+		// {"PreviousHardBorrowRewardAccrualTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
+		// {"HardBorrowRewardFactor", fmt.Sprintf("%v\n%v", factor, factor)},
+		// {"PreviousHardDelegatorRewardAccrualTime", fmt.Sprintf("%v\n%v", prevBlockTime, prevBlockTime)},
+		// {"HardSupplyDelegatorFactor", fmt.Sprintf("%v\n%v", factor, factor)},
 		{"other", ""},
 	}
 	for i, tt := range tests {

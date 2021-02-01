@@ -21,6 +21,7 @@ type Keeper struct {
 	stakingKeeper   types.StakingKeeper
 	pricefeedKeeper types.PricefeedKeeper
 	auctionKeeper   types.AuctionKeeper
+	hooks           types.HARDHooks
 }
 
 // NewKeeper creates a new keeper
@@ -40,7 +41,17 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace,
 		stakingKeeper:   stk,
 		pricefeedKeeper: pfk,
 		auctionKeeper:   auk,
+		hooks:           nil,
 	}
+}
+
+// SetHooks sets the cdp keeper hooks
+func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
+	if k.hooks != nil {
+		panic("cannot set validator hooks twice")
+	}
+	k.hooks = hooks
+	return k
 }
 
 // GetPreviousBlockTime get the blocktime for the previous block
@@ -58,23 +69,6 @@ func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, foun
 func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
 	store.Set([]byte{}, k.cdc.MustMarshalBinaryBare(blockTime))
-}
-
-// GetPreviousDelegatorDistribution get the time of the previous delegator distribution
-func (k Keeper) GetPreviousDelegatorDistribution(ctx sdk.Context, denom string) (distTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegationDistributionKey)
-	bz := store.Get([]byte(denom))
-	if bz == nil {
-		return time.Time{}, false
-	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &distTime)
-	return distTime, true
-}
-
-// SetPreviousDelegationDistribution set the time of the previous delegator distribution
-func (k Keeper) SetPreviousDelegationDistribution(ctx sdk.Context, distTime time.Time, denom string) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousDelegationDistributionKey)
-	store.Set([]byte(denom), k.cdc.MustMarshalBinaryBare(distTime))
 }
 
 // GetDeposit returns a deposit from the store for a particular depositor address, deposit denom
@@ -111,59 +105,6 @@ func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) 
 		var deposit types.Deposit
 		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &deposit)
 		if cb(deposit) {
-			break
-		}
-	}
-}
-
-// GetClaim returns a claim from the store for a particular claim owner, deposit denom, and claim type
-func (k Keeper) GetClaim(ctx sdk.Context, owner sdk.AccAddress, depositDenom string, claimType types.ClaimType) (types.Claim, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	bz := store.Get(types.ClaimKey(claimType, depositDenom, owner))
-	if bz == nil {
-		return types.Claim{}, false
-	}
-	var claim types.Claim
-	k.cdc.MustUnmarshalBinaryBare(bz, &claim)
-	return claim, true
-}
-
-// SetClaim stores the input claim in the store, prefixed by the deposit type, deposit denom, and owner address, in that order
-func (k Keeper) SetClaim(ctx sdk.Context, claim types.Claim) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(claim)
-	store.Set(types.ClaimKey(claim.Type, claim.DepositDenom, claim.Owner), bz)
-}
-
-// DeleteClaim deletes a claim from the store
-func (k Keeper) DeleteClaim(ctx sdk.Context, claim types.Claim) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	store.Delete(types.ClaimKey(claim.Type, claim.DepositDenom, claim.Owner))
-}
-
-// IterateClaims iterates over all claim objects in the store and performs a callback function
-func (k Keeper) IterateClaims(ctx sdk.Context, cb func(claim types.Claim) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var claim types.Claim
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &claim)
-		if cb(claim) {
-			break
-		}
-	}
-}
-
-// IterateClaimsByTypeAndDenom iterates over all claim objects in the store with the matching claim type and deposit denom and performs a callback function
-func (k Keeper) IterateClaimsByTypeAndDenom(ctx sdk.Context, claimType types.ClaimType, depositDenom string, cb func(claim types.Claim) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.ClaimTypeIteratorKey(claimType, depositDenom))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var claim types.Claim
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &claim)
-		if cb(claim) {
 			break
 		}
 	}
@@ -331,22 +272,27 @@ func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, denom string, previousAc
 }
 
 // GetTotalReserves returns the total reserves for an individual market
-func (k Keeper) GetTotalReserves(ctx sdk.Context, denom string) (sdk.Coin, bool) {
+func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	bz := store.Get([]byte(denom))
+	bz := store.Get([]byte{})
 	if bz == nil {
-		return sdk.Coin{}, false
+		return sdk.Coins{}, false
 	}
-	var totalReserves sdk.Coin
+	var totalReserves sdk.Coins
 	k.cdc.MustUnmarshalBinaryBare(bz, &totalReserves)
 	return totalReserves, true
 }
 
 // SetTotalReserves sets the total reserves for an individual market
-func (k Keeper) SetTotalReserves(ctx sdk.Context, denom string, coin sdk.Coin) {
+func (k Keeper) SetTotalReserves(ctx sdk.Context, coins sdk.Coins) {
+
 	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(coin)
-	store.Set([]byte(denom), bz)
+	if coins.Empty() {
+		store.Set([]byte{}, []byte{})
+		return
+	}
+	bz := k.cdc.MustMarshalBinaryBare(coins)
+	store.Set([]byte{}, bz)
 }
 
 // GetBorrowInterestFactor returns the current borrow interest factor for an individual market

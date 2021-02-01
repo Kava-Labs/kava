@@ -10,7 +10,7 @@ import (
 )
 
 // InitGenesis initializes the store state from a genesis state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeeper, cdpKeeper types.CdpKeeper, gs types.GenesisState) {
 
 	// check if the module account exists
 	moduleAcc := supplyKeeper.GetModuleAccount(ctx, types.IncentiveMacc)
@@ -22,53 +22,48 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
 	}
 
+	for _, rp := range gs.Params.USDXMintingRewardPeriods {
+		_, found := cdpKeeper.GetCollateral(ctx, rp.CollateralType)
+		if !found {
+			panic(fmt.Sprintf("usdx minting collateral type %s not found in cdp collateral types", rp.CollateralType))
+		}
+	}
+
 	k.SetParams(ctx, gs.Params)
 
-	for _, r := range gs.Params.Rewards {
-		k.SetNextClaimPeriodID(ctx, r.CollateralType, 1)
+	// TODO: previous hard module accrual times/indexes should be set here
+
+	for _, gat := range gs.PreviousAccumulationTimes {
+		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+		k.SetUSDXMintingRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
 	}
 
-	// only set the previous block time if it's different than default
-	if !gs.PreviousBlockTime.Equal(types.DefaultPreviousBlockTime) {
-		k.SetPreviousBlockTime(ctx, gs.PreviousBlockTime)
-	}
-
-	// set store objects
-	for _, rp := range gs.RewardPeriods {
-		k.SetRewardPeriod(ctx, rp)
-	}
-
-	for _, cp := range gs.ClaimPeriods {
-		k.SetClaimPeriod(ctx, cp)
-	}
-
-	for _, c := range gs.Claims {
-		k.SetClaim(ctx, c)
-	}
-
-	for _, id := range gs.NextClaimPeriodIDs {
-		k.SetNextClaimPeriodID(ctx, id.CollateralType, id.ID)
+	for _, claim := range gs.USDXMintingClaims {
+		k.SetUSDXMintingClaim(ctx, claim)
 	}
 
 }
 
 // ExportGenesis export genesis state for incentive module
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
-	// get all objects out of the store
 	params := k.GetParams(ctx)
-	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 
-	// since it is not set in genesis, if somehow the chain got started and was exported
-	// immediately after InitGenesis, there would be no previousBlockTime value.
-	if !found {
-		previousBlockTime = types.DefaultPreviousBlockTime
+	claims := k.GetAllUSDXMintingClaims(ctx)
+
+	var gats GenesisAccumulationTimes
+
+	for _, rp := range params.USDXMintingRewardPeriods {
+		pat, found := k.GetPreviousUSDXMintingAccrualTime(ctx, rp.CollateralType)
+		if !found {
+			pat = ctx.BlockTime()
+		}
+		factor, found := k.GetUSDXMintingRewardFactor(ctx, rp.CollateralType)
+		if !found {
+			factor = sdk.ZeroDec()
+		}
+		gat := types.NewGenesisAccumulationTime(rp.CollateralType, pat, factor)
+		gats = append(gats, gat)
 	}
 
-	// Get all objects from the store
-	rewardPeriods := k.GetAllRewardPeriods(ctx)
-	claimPeriods := k.GetAllClaimPeriods(ctx)
-	claims := k.GetAllClaims(ctx)
-	claimPeriodIDs := k.GetAllClaimPeriodIDPairs(ctx)
-
-	return types.NewGenesisState(params, previousBlockTime, rewardPeriods, claimPeriods, claims, claimPeriodIDs)
+	return types.NewGenesisState(params, gats, claims)
 }

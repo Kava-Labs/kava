@@ -28,7 +28,12 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		return err
 	}
 
-	// Sync any outstanding interest
+	// Call incentive hook
+	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
+	if hasExistingBorrow {
+		k.BeforeBorrowModified(ctx, existingBorrow)
+	}
+
 	k.SyncBorrowInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
@@ -84,7 +89,6 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	} else {
 		amount = coins
 	}
-
 	// Construct the user's new/updated borrow with amount and interest factors
 	borrow := types.NewBorrow(borrower, amount, borrowInterestFactors)
 
@@ -103,6 +107,12 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	// Update total borrowed amount by newly borrowed coins. Don't add user's pending interest as
 	// it has already been included in the total borrowed coins by the BeginBlocker.
 	k.IncrementBorrowedCoins(ctx, coins)
+
+	if !hasExistingBorrow {
+		k.AfterBorrowCreated(ctx, borrow)
+	} else {
+		k.AfterBorrowModified(ctx, borrow)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

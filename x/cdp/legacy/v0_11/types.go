@@ -8,12 +8,68 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
+const (
+	// ModuleName The name that will be used throughout the module
+	ModuleName = "cdp"
+
+	// StoreKey Top level store key where all module items will be stored
+	StoreKey = ModuleName
+
+	// RouterKey Top level router key
+	RouterKey = ModuleName
+
+	// QuerierRoute Top level query string
+	QuerierRoute = ModuleName
+
+	// DefaultParamspace default name for parameter store
+	DefaultParamspace = ModuleName
+
+	// LiquidatorMacc module account for liquidator
+	LiquidatorMacc = "liquidator"
+
+	// SavingsRateMacc module account for savings rate
+	SavingsRateMacc = "savings"
+)
+
+// Parameter keys
 var (
-	stabilityFeeMax     = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
-	minCollateralPrefix = 0
-	maxCollateralPrefix = 255
+	KeyGlobalDebtLimit        = []byte("GlobalDebtLimit")
+	KeyCollateralParams       = []byte("CollateralParams")
+	KeyDebtParam              = []byte("DebtParam")
+	KeyDistributionFrequency  = []byte("DistributionFrequency")
+	KeyCircuitBreaker         = []byte("CircuitBreaker")
+	KeyDebtThreshold          = []byte("DebtThreshold")
+	KeyDebtLot                = []byte("DebtLot")
+	KeySurplusThreshold       = []byte("SurplusThreshold")
+	KeySurplusLot             = []byte("SurplusLot")
+	KeySavingsRateDistributed = []byte("SavingsRateDistributed")
+	DefaultGlobalDebt         = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
+	DefaultCircuitBreaker     = false
+	DefaultCollateralParams   = CollateralParams{}
+	DefaultDebtParam          = DebtParam{
+		Denom:            "usdx",
+		ReferenceAsset:   "usd",
+		ConversionFactor: sdk.NewInt(6),
+		DebtFloor:        sdk.NewInt(10000000),
+		SavingsRate:      sdk.MustNewDecFromStr("0.95"),
+	}
+	DefaultCdpStartingID                = uint64(1)
+	DefaultDebtDenom                    = "debt"
+	DefaultGovDenom                     = "ukava"
+	DefaultStableDenom                  = "usdx"
+	DefaultSurplusThreshold             = sdk.NewInt(500000000000)
+	DefaultDebtThreshold                = sdk.NewInt(100000000000)
+	DefaultSurplusLot                   = sdk.NewInt(10000000000)
+	DefaultDebtLot                      = sdk.NewInt(10000000000)
+	DefaultPreviousDistributionTime     = tmtime.Canonical(time.Unix(0, 0))
+	DefaultSavingsDistributionFrequency = time.Hour * 12
+	DefaultSavingsRateDistributed       = sdk.NewInt(0)
+	minCollateralPrefix                 = 0
+	maxCollateralPrefix                 = 255
+	stabilityFeeMax                     = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
 )
 
 // CDP is the state of a single collateralized debt position.
@@ -29,6 +85,19 @@ type CDP struct {
 
 // NewCDP creates a new CDP object
 func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal, fees sdk.Coin, time time.Time) CDP {
+	return CDP{
+		ID:              id,
+		Owner:           owner,
+		Type:            collateralType,
+		Collateral:      collateral,
+		Principal:       principal,
+		AccumulatedFees: fees,
+		FeesUpdated:     time,
+	}
+}
+
+// NewCDPWithFees creates a new CDP object, for use during migration
+func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal, fees sdk.Coin, time time.Time) CDP {
 	return CDP{
 		ID:              id,
 		Owner:           owner,

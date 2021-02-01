@@ -12,10 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v39_1auth "github.com/cosmos/cosmos-sdk/x/auth"
 	v39_1auth_vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
 	v39_1supply "github.com/cosmos/cosmos-sdk/x/supply"
-
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	v38_5auth "github.com/kava-labs/kava/migrate/v0_11/legacy/cosmos-sdk/v0.38.5/auth"
@@ -166,26 +163,4 @@ func TestMigratePricefeed(t *testing.T) {
 	newGenState := MigratePricefeed(oldGenState)
 	err = newGenState.Validate()
 	require.NoError(t, err)
-}
-
-func TestMigrateFull(t *testing.T) {
-	oldGenDoc, err := tmtypes.GenesisDocFromFile(filepath.Join("testdata", "kava-3-export.json"))
-	require.NoError(t, err)
-
-	// 2) migrate
-	newGenDoc := Migrate(*oldGenDoc)
-	tApp := app.NewTestApp()
-	cdc := app.MakeCodec()
-	var newAppState genutil.AppMap
-	require.NoError(t,
-		cdc.UnmarshalJSON(newGenDoc.AppState, &newAppState),
-	)
-	err = app.ModuleBasics.ValidateGenesis(newAppState)
-	if err != nil {
-		require.NoError(t, err)
-	}
-	require.NotPanics(t, func() {
-		// this runs both InitGenesis for all modules (which panic on errors) and runs all invariants
-		tApp.InitializeFromGenesisStatesWithTime(newGenDoc.GenesisTime, app.GenesisState(newAppState))
-	})
 }

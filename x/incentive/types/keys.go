@@ -1,11 +1,5 @@
 package types
 
-import (
-	"encoding/binary"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 const (
 	// ModuleName The name that will be used throughout the module
 	ModuleName = "incentive"
@@ -23,39 +17,23 @@ const (
 	QuerierRoute = ModuleName
 )
 
+// TODO: Refactor so that each incentive type has:
+// 1. [Incentive]ClaimKeyPrefix
+// 2. [Incentve]AccumulatorKeyPrefix { PreviousAccrualTime block.Time, IndexFactors types.IndexFactors }
+
 // Key Prefixes
 var (
-	RewardPeriodKeyPrefix   = []byte{0x01} // prefix for keys that store reward periods
-	ClaimPeriodKeyPrefix    = []byte{0x02} // prefix for keys that store claim periods
-	ClaimKeyPrefix          = []byte{0x03} // prefix for keys that store claims
-	NextClaimPeriodIDPrefix = []byte{0x04} // prefix for keys that store the next ID for claims periods
-	PreviousBlockTimeKey    = []byte{0x05} // prefix for key that stores the previous blocktime
+	USDXMintingClaimKeyPrefix                       = []byte{0x01} // prefix for keys that store USDX minting claims
+	USDXMintingRewardFactorKeyPrefix                = []byte{0x02} // prefix for key that stores USDX minting reward factors
+	PreviousUSDXMintingRewardAccrualTimeKeyPrefix   = []byte{0x03} // prefix for key that stores the blocktime
+	HardLiquidityClaimKeyPrefix                     = []byte{0x04} // prefix for keys that store Hard liquidity claims
+	HardSupplyRewardFactorKeyPrefix                 = []byte{0x05} // prefix for key that stores Hard supply reward factors
+	PreviousHardSupplyRewardAccrualTimeKeyPrefix    = []byte{0x06} // prefix for key that stores the previous time Hard supply rewards accrued
+	HardBorrowRewardFactorKeyPrefix                 = []byte{0x07} // prefix for key that stores Hard borrow reward factors
+	PreviousHardBorrowRewardAccrualTimeKeyPrefix    = []byte{0x08} // prefix for key that stores the previous time Hard borrow rewards accrued
+	HardDelegatorRewardFactorKeyPrefix              = []byte{0x09} // prefix for key that stores Hard delegator reward factors
+	PreviousHardDelegatorRewardAccrualTimeKeyPrefix = []byte{0x10} // prefix for key that stores the previous time Hard delegator rewards accrued
+
+	USDXMintingRewardDenom   = "ukava"
+	HardLiquidityRewardDenom = "hard"
 )
-
-// Keys
-// 0x00:CollateralType <> RewardPeriod the current active reward period (max 1 reward period per collateral type)
-// 0x01:CollateralType:ID <> ClaimPeriod object for that ID, indexed by collateral type and ID
-// 0x02:CollateralType:ID:Owner <> Claim object, indexed by collateral type, ID and owner
-// 0x03:CollateralType <> NextClaimPeriodIDPrefix the ID of the next claim period, indexed by collateral type
-
-// BytesToUint64 returns uint64 format from a byte array
-func BytesToUint64(bz []byte) uint64 {
-	return binary.BigEndian.Uint64(bz)
-}
-
-// GetClaimPeriodPrefix returns the key (collateral type + id) for a claim prefix
-func GetClaimPeriodPrefix(collateralType string, id uint64) []byte {
-	return createKey([]byte(collateralType), sdk.Uint64ToBigEndian(id))
-}
-
-// GetClaimPrefix returns the key (collateral type + id + address) for a claim
-func GetClaimPrefix(addr sdk.AccAddress, collateralType string, id uint64) []byte {
-	return createKey([]byte(collateralType), sdk.Uint64ToBigEndian(id), addr)
-}
-
-func createKey(bytes ...[]byte) (r []byte) {
-	for _, b := range bytes {
-		r = append(r, b...)
-	}
-	return
-}

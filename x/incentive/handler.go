@@ -1,8 +1,6 @@
 package incentive
 
 import (
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -15,36 +13,33 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		case types.MsgClaimReward:
-			return handleMsgClaimReward(ctx, k, msg)
+		case types.MsgClaimUSDXMintingReward:
+			return handleMsgClaimUSDXMintingReward(ctx, k, msg)
+		case types.MsgClaimHardLiquidityProviderReward:
+			return handleMsgClaimHardLiquidityProviderReward(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
-
 		}
 	}
 }
 
-func handleMsgClaimReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimReward) (*sdk.Result, error) {
+func handleMsgClaimUSDXMintingReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimUSDXMintingReward) (*sdk.Result, error) {
 
-	claims, found := k.GetActiveClaimsByAddressAndCollateralType(ctx, msg.Sender, msg.CollateralType)
-	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrNoClaimsFound, "address: %s, collateral type: %s", msg.Sender, msg.CollateralType)
+	err := k.ClaimUSDXMintingReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	if err != nil {
+		return nil, err
 	}
+	return &sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
 
-	for _, claim := range claims {
-		err := k.PayoutClaim(ctx, claim.Owner, claim.CollateralType, claim.ClaimPeriodID, types.MultiplierName(strings.ToLower(msg.MultiplierName)))
-		if err != nil {
-			return nil, err
-		}
+func handleMsgClaimHardLiquidityProviderReward(ctx sdk.Context, k keeper.Keeper, msg types.MsgClaimHardLiquidityProviderReward) (*sdk.Result, error) {
+
+	err := k.ClaimHardReward(ctx, msg.Sender, types.MultiplierName(msg.MultiplierName))
+	if err != nil {
+		return nil, err
 	}
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		),
-	)
-
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
 	}, nil

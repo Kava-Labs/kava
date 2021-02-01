@@ -14,11 +14,9 @@ func init() {
 
 // RegisterCodec registers the necessary types for hard module
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgClaimReward{}, "hard/MsgClaimReward", nil)
 	cdc.RegisterConcrete(MsgDeposit{}, "hard/MsgDeposit", nil)
 	cdc.RegisterConcrete(MsgWithdraw{}, "hard/MsgWithdraw", nil)
 	cdc.RegisterConcrete(MsgBorrow{}, "hard/MsgBorrow", nil)
 	cdc.RegisterConcrete(MsgLiquidate{}, "hard/MsgLiquidate", nil)
 	cdc.RegisterConcrete(MsgRepay{}, "hard/MsgRepay", nil)
-	cdc.RegisterConcrete(DistributionSchedule{}, "hard/DistributionSchedule", nil)
 }

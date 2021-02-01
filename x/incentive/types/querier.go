@@ -7,25 +7,64 @@ import (
 
 // Querier routes for the incentive module
 const (
-	QueryGetClaims          = "claims"
-	RestClaimOwner          = "owner"
-	RestClaimCollateralType = "collateral_type"
-	QueryGetParams          = "parameters"
-	QueryGetRewardPeriods   = "reward-periods"
-	QueryGetClaimPeriods    = "claim-periods"
+	QueryGetRewards            = "rewards"
+	QueryGetHardRewards        = "hard-rewards"
+	QueryGetUSDXMintingRewards = "usdx-minting-rewards"
+	QueryGetParams             = "parameters"
+	QueryGetRewardPeriods      = "reward-periods"
+	QueryGetClaimPeriods       = "claim-periods"
+	RestClaimCollateralType    = "collateral_type"
+	RestClaimOwner             = "owner"
+	RestClaimType              = "type"
 )
 
-// QueryClaimsParams params for query /incentive/claims
-type QueryClaimsParams struct {
-	Owner          sdk.AccAddress
-	CollateralType string
+// QueryRewardsParams params for query /incentive/rewards
+type QueryRewardsParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+	Type  string
 }
 
-// NewQueryClaimsParams returns QueryClaimsParams
-func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClaimsParams {
-	return QueryClaimsParams{
-		Owner:          owner,
-		CollateralType: collateralType,
+// NewQueryRewardsParams returns QueryRewardsParams
+func NewQueryRewardsParams(page, limit int, owner sdk.AccAddress, rewardType string) QueryRewardsParams {
+	return QueryRewardsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+		Type:  rewardType,
+	}
+}
+
+// QueryUSDXMintingRewardsParams params for query /incentive/rewards type usdx-minting
+type QueryUSDXMintingRewardsParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryUSDXMintingRewardsParams returns QueryUSDXMintingRewardsParams
+func NewQueryUSDXMintingRewardsParams(page, limit int, owner sdk.AccAddress) QueryUSDXMintingRewardsParams {
+	return QueryUSDXMintingRewardsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
+	}
+}
+
+// QueryHardRewardsParams params for query /incentive/rewards type hard
+type QueryHardRewardsParams struct {
+	Page  int `json:"page" yaml:"page"`
+	Limit int `json:"limit" yaml:"limit"`
+	Owner sdk.AccAddress
+}
+
+// NewQueryHardRewardsParams returns QueryHardRewardsParams
+func NewQueryHardRewardsParams(page, limit int, owner sdk.AccAddress) QueryHardRewardsParams {
+	return QueryHardRewardsParams{
+		Page:  page,
+		Limit: limit,
+		Owner: owner,
 	}
 }
 
@@ -33,6 +72,5 @@ func NewQueryClaimsParams(owner sdk.AccAddress, collateralType string) QueryClai
 type PostClaimReq struct {
 	BaseReq        rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	Sender         sdk.AccAddress `json:"sender" yaml:"sender"`
-	CollateralType string         `json:"collateral_type" yaml:"collateral_type"`
 	MultiplierName string         `json:"multiplier_name" yaml:"multiplier_name"`
 }

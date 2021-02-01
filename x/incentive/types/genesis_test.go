@@ -1,166 +1,144 @@
 package types
 
 import (
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
 )
 
-func TestGenesisClaimPeriodIDsValidate(t *testing.T) {
-	testCases := []struct {
-		msg                   string
-		genesisClaimPeriodIDs GenesisClaimPeriodIDs
-		expPass               bool
-	}{
-		{
-			"valid",
-			GenesisClaimPeriodIDs{
-				{CollateralType: "bnb", ID: 1},
-			},
-			true,
-		},
-		{
-			"invalid collateral type",
-			GenesisClaimPeriodIDs{
-				{CollateralType: "", ID: 1},
-			},
-			false,
-		},
-		{
-			"invalid ID",
-			GenesisClaimPeriodIDs{
-				{CollateralType: "bnb", ID: 0},
-			},
-			false,
-		},
-		{
-			"duplicate",
-			GenesisClaimPeriodIDs{
-				{CollateralType: "bnb", ID: 1},
-				{CollateralType: "bnb", ID: 1},
-			},
-			false,
-		},
-	}
-
-	for _, tc := range testCases {
-		err := tc.genesisClaimPeriodIDs.Validate()
-		if tc.expPass {
-			require.NoError(t, err, tc.msg)
-		} else {
-			require.Error(t, err, tc.msg)
-		}
-	}
-}
-
 func TestGenesisStateValidate(t *testing.T) {
-	now := time.Now()
-	mockPrivKey := tmtypes.NewMockPV()
-	pubkey, err := mockPrivKey.GetPubKey()
-	require.NoError(t, err)
-	owner := sdk.AccAddress(pubkey.Address())
-
-	rewards := Rewards{
-		NewReward(
-			true, "bnb", sdk.NewCoin("ukava", sdk.NewInt(10000000000)),
-			time.Hour*24*7, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))}, time.Hour*24*14,
-		),
+	type args struct {
+		params      Params
+		genAccTimes GenesisAccumulationTimes
+		claims      USDXMintingClaims
 	}
-	rewardPeriods := RewardPeriods{NewRewardPeriod("bnb", now, now.Add(time.Hour), sdk.NewCoin("bnb", sdk.OneInt()), now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))})}
-	claimPeriods := ClaimPeriods{NewClaimPeriod("bnb", 10, now, Multipliers{NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33"))})}
-	claims := Claims{NewClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), "bnb", 10)}
-	gcps := GenesisClaimPeriodIDs{{CollateralType: "bnb", ID: 1}}
+
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
 
 	testCases := []struct {
-		msg          string
-		genesisState GenesisState
-		expPass      bool
+		name    string
+		args    args
+		errArgs errArgs
 	}{
 		{
-			msg:          "default",
-			genesisState: DefaultGenesisState(),
-			expPass:      true,
+			name: "default",
+			args: args{
+				params:      DefaultParams(),
+				genAccTimes: DefaultGenesisAccumulationTimes,
+				claims:      DefaultClaims,
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
 		},
 		{
-			msg: "valid genesis",
-			genesisState: NewGenesisState(
-				NewParams(true, rewards),
-				now, rewardPeriods, claimPeriods, claims, gcps,
-			),
-			expPass: true,
-		},
-		{
-			msg: "invalid Params",
-			genesisState: GenesisState{
-				Params: Params{
-					Active: true,
-					Rewards: Rewards{
-						Reward{},
+			name: "valid",
+			args: args{
+				params: NewParams(
+					RewardPeriods{
+						NewRewardPeriod(
+							true,
+							"bnb-a",
+							time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+							time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+							sdk.NewCoin("ukava", sdk.NewInt(25000)),
+						),
+					},
+					DefaultRewardPeriods,
+					DefaultRewardPeriods,
+					DefaultRewardPeriods,
+					Multipliers{
+						NewMultiplier(Small, 1, sdk.MustNewDecFromStr("0.33")),
+					},
+					time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+				),
+				genAccTimes: GenesisAccumulationTimes{GenesisAccumulationTime{
+					CollateralType:           "bnb-a",
+					PreviousAccumulationTime: time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+					RewardFactor:             sdk.ZeroDec(),
+				}},
+				claims: USDXMintingClaims{
+					{
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
+						RewardIndexes: []RewardIndex{
+							{
+								CollateralType: "bnb-a",
+								RewardFactor:   sdk.ZeroDec(),
+							},
+						},
 					},
 				},
 			},
-			expPass: false,
-		},
-		{
-			msg: "zero PreviousBlockTime",
-			genesisState: GenesisState{
-				PreviousBlockTime: time.Time{},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
 			},
-			expPass: false,
 		},
 		{
-			msg: "invalid RewardsPeriod",
-			genesisState: GenesisState{
-				PreviousBlockTime: now,
-				RewardPeriods: RewardPeriods{
-					{Start: time.Time{}},
+			name: "invalid genesis accumulation time",
+			args: args{
+				params: DefaultParams(),
+				genAccTimes: GenesisAccumulationTimes{
+					{
+						CollateralType: "btcb-a",
+						RewardFactor:   sdk.MustNewDecFromStr("-0.1"),
+					},
+				},
+				claims: DefaultClaims,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "reward factor should be ≥ 0.0",
+			},
+		},
+		{
+			name: "invalid claim",
+			args: args{
+				params:      DefaultParams(),
+				genAccTimes: DefaultGenesisAccumulationTimes,
+				claims: USDXMintingClaims{
+					{
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress{},
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
+						RewardIndexes: []RewardIndex{
+							{
+								CollateralType: "bnb-a",
+								RewardFactor:   sdk.ZeroDec(),
+							},
+						},
+					},
 				},
 			},
-			expPass: false,
-		},
-		{
-			msg: "invalid ClaimPeriods",
-			genesisState: GenesisState{
-				PreviousBlockTime: now,
-				ClaimPeriods: ClaimPeriods{
-					{ID: 0},
-				},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "claim owner cannot be empty",
 			},
-			expPass: false,
-		},
-		{
-			msg: "invalid Claims",
-			genesisState: GenesisState{
-				PreviousBlockTime: now,
-				Claims: Claims{
-					{ClaimPeriodID: 0},
-				},
-			},
-			expPass: false,
-		},
-		{
-			msg: "invalid NextClaimPeriodIds",
-			genesisState: GenesisState{
-				PreviousBlockTime: now,
-				NextClaimPeriodIDs: GenesisClaimPeriodIDs{
-					{ID: 0},
-				},
-			},
-			expPass: false,
 		},
 	}
 
 	for _, tc := range testCases {
-		err := tc.genesisState.Validate()
-		if tc.expPass {
-			require.NoError(t, err, tc.msg)
-		} else {
-			require.Error(t, err, tc.msg)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			gs := NewGenesisState(tc.args.params, tc.args.genAccTimes, tc.args.claims)
+			err := gs.Validate()
+			if tc.errArgs.expectPass {
+				require.NoError(t, err, tc.name)
+			} else {
+				require.Error(t, err, tc.name)
+				require.True(t, strings.Contains(err.Error(), tc.errArgs.contains))
+			}
+		})
 	}
 }

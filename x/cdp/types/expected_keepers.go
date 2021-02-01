@@ -48,3 +48,9 @@ type AccountKeeper interface {
 	IterateAccounts(ctx sdk.Context, cb func(account authexported.Account) (stop bool))
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
 }
+
+// CDPHooks event hooks for other keepers to run code in response to CDP modifications
+type CDPHooks interface {
+	AfterCDPCreated(ctx sdk.Context, cdp CDP)
+	BeforeCDPModified(ctx sdk.Context, cdp CDP)
+}

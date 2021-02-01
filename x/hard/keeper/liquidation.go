@@ -39,15 +39,29 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return err
 	}
 
-	k.SyncBorrowInterest(ctx, borrower)
-	k.SyncSupplyInterest(ctx, borrower)
-
 	deposit, found := k.GetDeposit(ctx, borrower)
 	if !found {
 		return types.ErrDepositNotFound
 	}
 
 	borrow, found := k.GetBorrow(ctx, borrower)
+	if !found {
+		return types.ErrBorrowNotFound
+	}
+
+	// Call incentive hooks
+	k.BeforeDepositModified(ctx, deposit)
+	k.BeforeBorrowModified(ctx, borrow)
+
+	k.SyncBorrowInterest(ctx, borrower)
+	k.SyncSupplyInterest(ctx, borrower)
+
+	deposit, found = k.GetDeposit(ctx, borrower)
+	if !found {
+		return types.ErrDepositNotFound
+	}
+
+	borrow, found = k.GetBorrow(ctx, borrower)
 	if !found {
 		return types.ErrBorrowNotFound
 	}

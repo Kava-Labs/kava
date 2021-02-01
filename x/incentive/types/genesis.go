@@ -2,83 +2,34 @@ package types
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"strings"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-// GenesisClaimPeriodID stores the next claim id and its corresponding collateral type
-type GenesisClaimPeriodID struct {
-	CollateralType string `json:"collateral_type" yaml:"collateral_type"`
-	ID             uint64 `json:"id" yaml:"id"`
-}
-
-// Validate performs a basic check of a GenesisClaimPeriodID fields.
-func (gcp GenesisClaimPeriodID) Validate() error {
-	if gcp.ID == 0 {
-		return errors.New("genesis claim period id cannot be 0")
-	}
-	if strings.TrimSpace(gcp.CollateralType) == "" {
-		return fmt.Errorf("collateral type cannot be blank: %v", gcp)
-	}
-	return nil
-}
-
-// GenesisClaimPeriodIDs array of GenesisClaimPeriodID
-type GenesisClaimPeriodIDs []GenesisClaimPeriodID
-
-// Validate checks if all the GenesisClaimPeriodIDs are valid and there are no duplicated
-// entries.
-func (gcps GenesisClaimPeriodIDs) Validate() error {
-	seenIDS := make(map[string]bool)
-	var key string
-	for _, gcp := range gcps {
-		key = gcp.CollateralType + fmt.Sprint(gcp.ID)
-		if seenIDS[key] {
-			return fmt.Errorf("duplicated genesis claim period with id %d and collateral type %s", gcp.ID, gcp.CollateralType)
-		}
-
-		if err := gcp.Validate(); err != nil {
-			return err
-		}
-		seenIDS[key] = true
-	}
-
-	return nil
-}
 
 // GenesisState is the state that must be provided at genesis.
 type GenesisState struct {
-	Params             Params                `json:"params" yaml:"params"`
-	PreviousBlockTime  time.Time             `json:"previous_block_time" yaml:"previous_block_time"`
-	RewardPeriods      RewardPeriods         `json:"reward_periods" yaml:"reward_periods"`
-	ClaimPeriods       ClaimPeriods          `json:"claim_periods" yaml:"claim_periods"`
-	Claims             Claims                `json:"claims" yaml:"claims"`
-	NextClaimPeriodIDs GenesisClaimPeriodIDs `json:"next_claim_period_ids" yaml:"next_claim_period_ids"`
+	Params                    Params                   `json:"params" yaml:"params"`
+	PreviousAccumulationTimes GenesisAccumulationTimes `json:"previous_accumulation_times" yaml:"previous_accumulation_times"`
+	USDXMintingClaims         USDXMintingClaims        `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 }
 
 // NewGenesisState returns a new genesis state
-func NewGenesisState(params Params, previousBlockTime time.Time, rp RewardPeriods, cp ClaimPeriods, c Claims, ids GenesisClaimPeriodIDs) GenesisState {
+func NewGenesisState(params Params, prevAccumTimes GenesisAccumulationTimes, c USDXMintingClaims) GenesisState {
 	return GenesisState{
-		Params:             params,
-		PreviousBlockTime:  previousBlockTime,
-		RewardPeriods:      rp,
-		ClaimPeriods:       cp,
-		Claims:             c,
-		NextClaimPeriodIDs: ids,
+		Params:                    params,
+		PreviousAccumulationTimes: prevAccumTimes,
+		USDXMintingClaims:         c,
 	}
 }
 
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:             DefaultParams(),
-		PreviousBlockTime:  DefaultPreviousBlockTime,
-		RewardPeriods:      RewardPeriods{},
-		ClaimPeriods:       ClaimPeriods{},
-		Claims:             Claims{},
-		NextClaimPeriodIDs: GenesisClaimPeriodIDs{},
+		Params:                    DefaultParams(),
+		PreviousAccumulationTimes: GenesisAccumulationTimes{},
+		USDXMintingClaims:         DefaultClaims,
 	}
 }
 
@@ -88,19 +39,11 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if gs.PreviousBlockTime.IsZero() {
-		return errors.New("previous block time cannot be 0")
-	}
-	if err := gs.RewardPeriods.Validate(); err != nil {
+	if err := gs.PreviousAccumulationTimes.Validate(); err != nil {
 		return err
 	}
-	if err := gs.ClaimPeriods.Validate(); err != nil {
-		return err
-	}
-	if err := gs.Claims.Validate(); err != nil {
-		return err
-	}
-	return gs.NextClaimPeriodIDs.Validate()
+
+	return gs.USDXMintingClaims.Validate()
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent
@@ -113,4 +56,41 @@ func (gs GenesisState) Equal(gs2 GenesisState) bool {
 // IsEmpty returns true if a GenesisState is empty
 func (gs GenesisState) IsEmpty() bool {
 	return gs.Equal(GenesisState{})
+}
+
+// GenesisAccumulationTime stores the previous reward distribution time and its corresponding collateral type
+type GenesisAccumulationTime struct {
+	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
+	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
+	RewardFactor             sdk.Dec   `json:"reward_factor" yaml:"reward_factor"`
+}
+
+// NewGenesisAccumulationTime returns a new GenesisAccumulationTime
+func NewGenesisAccumulationTime(ctype string, prevTime time.Time, factor sdk.Dec) GenesisAccumulationTime {
+	return GenesisAccumulationTime{
+		CollateralType:           ctype,
+		PreviousAccumulationTime: prevTime,
+		RewardFactor:             factor,
+	}
+}
+
+// GenesisAccumulationTimes slice of GenesisAccumulationTime
+type GenesisAccumulationTimes []GenesisAccumulationTime
+
+// Validate performs validation of GenesisAccumulationTimes
+func (gats GenesisAccumulationTimes) Validate() error {
+	for _, gat := range gats {
+		if err := gat.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Validate performs validation of GenesisAccumulationTime
+func (gat GenesisAccumulationTime) Validate() error {
+	if gat.RewardFactor.LT(sdk.ZeroDec()) {
+		return fmt.Errorf("reward factor should be ≥ 0.0, is %s for %s", gat.RewardFactor, gat.CollateralType)
+	}
+	return nil
 }

@@ -5,11 +5,19 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/hard/types"
+)
+
+const (
+	USDX_CF = 1000000
+	KAVA_CF = 1000000
+	BTCB_CF = 100000000
+	BNB_CF  = 100000000
+	BUSD_CF = 100000000
 )
 
 type GenesisTestSuite struct {
@@ -19,8 +27,12 @@ type GenesisTestSuite struct {
 func (suite *GenesisTestSuite) TestGenesisValidation() {
 	type args struct {
 		params types.Params
-		pbt    time.Time
-		pdts   types.GenesisDistributionTimes
+		gats   types.GenesisAccumulationTimes
+		deps   types.Deposits
+		brws   types.Borrows
+		ts     sdk.Coins
+		tb     sdk.Coins
+		tr     sdk.Coins
 	}
 	testCases := []struct {
 		name        string
@@ -32,8 +44,12 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			name: "default",
 			args: args{
 				params: types.DefaultParams(),
-				pbt:    types.DefaultPreviousBlockTime,
-				pdts:   types.DefaultDistributionTimes,
+				gats:   types.DefaultAccumulationTimes,
+				deps:   types.DefaultDeposits,
+				brws:   types.DefaultBorrows,
+				ts:     types.DefaultTotalSupplied,
+				tb:     types.DefaultTotalBorrowed,
+				tr:     types.DefaultTotalReserves,
 			},
 			expectPass:  true,
 			expectedErr: "",
@@ -42,78 +58,27 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			name: "valid",
 			args: args{
 				params: types.NewParams(
-					true,
-					types.DistributionSchedules{
-						types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.OneDec()), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("1.5")), types.NewMultiplier(types.Medium, 24, sdk.MustNewDecFromStr("3"))}),
+					types.MoneyMarkets{
+						types.NewMoneyMarket("usdx", types.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000"), sdk.MustNewDecFromStr("1")), "usdx:usd", sdk.NewInt(USDX_CF), sdk.NewInt(USDX_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 					},
-					types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
-						types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
-						time.Hour*24,
-					),
-					},
-					types.DefaultMoneyMarkets,
-					types.DefaultCheckLtvIndexCount,
+					10,
 				),
-				pbt: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
-				pdts: types.GenesisDistributionTimes{
-					{PreviousDistributionTime: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC), Denom: "bnb"},
+				gats: types.GenesisAccumulationTimes{
+					types.NewGenesisAccumulationTime("usdx", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), sdk.OneDec(), sdk.OneDec()),
 				},
+				deps: types.DefaultDeposits,
+				brws: types.DefaultBorrows,
+				ts:   sdk.Coins{},
+				tb:   sdk.Coins{},
+				tr:   sdk.Coins{},
 			},
 			expectPass:  true,
 			expectedErr: "",
 		},
-		{
-			name: "invalid previous blocktime",
-			args: args{
-				params: types.NewParams(
-					true,
-					types.DistributionSchedules{
-						types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.OneDec()), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("1.5")), types.NewMultiplier(types.Medium, 24, sdk.MustNewDecFromStr("3"))}),
-					},
-					types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
-						types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
-						time.Hour*24,
-					),
-					},
-					types.DefaultMoneyMarkets,
-					types.DefaultCheckLtvIndexCount,
-				),
-				pbt: time.Time{},
-				pdts: types.GenesisDistributionTimes{
-					{PreviousDistributionTime: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC), Denom: "bnb"},
-				},
-			},
-			expectPass:  false,
-			expectedErr: "previous block time not set",
-		},
-		{
-			name: "invalid previous distribution time",
-			args: args{
-				params: types.NewParams(
-					true,
-					types.DistributionSchedules{
-						types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2020, 11, 22, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(5000)), time.Date(2021, 11, 22, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.OneDec()), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("1.5")), types.NewMultiplier(types.Medium, 24, sdk.MustNewDecFromStr("3"))}),
-					},
-					types.DelegatorDistributionSchedules{types.NewDelegatorDistributionSchedule(
-						types.NewDistributionSchedule(true, "bnb", time.Date(2020, 10, 8, 14, 0, 0, 0, time.UTC), time.Date(2025, 10, 8, 14, 0, 0, 0, time.UTC), sdk.NewCoin("hard", sdk.NewInt(500)), time.Date(2026, 10, 8, 14, 0, 0, 0, time.UTC), types.Multipliers{types.NewMultiplier(types.Small, 0, sdk.MustNewDecFromStr("0.33")), types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.5")), types.NewMultiplier(types.Medium, 24, sdk.OneDec())}),
-						time.Hour*24,
-					),
-					},
-					types.DefaultMoneyMarkets,
-					types.DefaultCheckLtvIndexCount,
-				),
-				pbt: time.Date(2020, 10, 8, 12, 0, 0, 0, time.UTC),
-				pdts: types.GenesisDistributionTimes{
-					{PreviousDistributionTime: time.Time{}, Denom: "bnb"},
-				},
-			},
-			expectPass:  false,
-			expectedErr: "previous distribution time not set",
-		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			gs := types.NewGenesisState(tc.args.params, tc.args.pbt, tc.args.pdts)
+			gs := types.NewGenesisState(tc.args.params, tc.args.gats, tc.args.deps, tc.args.brws, tc.args.ts, tc.args.tb, tc.args.tr)
 			err := gs.Validate()
 			if tc.expectPass {
 				suite.NoError(err)

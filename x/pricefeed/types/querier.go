@@ -15,6 +15,8 @@ const (
 	QueryRawPrices = "rawprices"
 	// QueryPrice command for price queries
 	QueryPrice = "price"
+	// QueryPrices command for quering all prices
+	QueryPrices = "prices"
 )
 
 // QueryWithMarketIDParams fields for querying information from a specific market

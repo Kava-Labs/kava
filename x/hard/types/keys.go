@@ -34,35 +34,24 @@ const (
 )
 
 var (
-	PreviousBlockTimeKey              = []byte{0x01}
-	PreviousDelegationDistributionKey = []byte{0x02}
-	DepositsKeyPrefix                 = []byte{0x03}
-	ClaimsKeyPrefix                   = []byte{0x04}
-	BorrowsKeyPrefix                  = []byte{0x05}
-	BorrowedCoinsPrefix               = []byte{0x06}
-	SuppliedCoinsPrefix               = []byte{0x07}
-	MoneyMarketsPrefix                = []byte{0x08}
-	PreviousAccrualTimePrefix         = []byte{0x09} // denom -> time
-	TotalReservesPrefix               = []byte{0x10} // denom -> sdk.Coin
-	BorrowInterestFactorPrefix        = []byte{0x11} // denom -> sdk.Dec
-	SupplyInterestFactorPrefix        = []byte{0x12} // denom -> sdk.Dec
-	LtvIndexPrefix                    = []byte{0x13}
-	sep                               = []byte(":")
+	PreviousBlockTimeKey          = []byte{0x01}
+	DepositsKeyPrefix             = []byte{0x03}
+	BorrowsKeyPrefix              = []byte{0x05}
+	BorrowedCoinsPrefix           = []byte{0x06}
+	SuppliedCoinsPrefix           = []byte{0x07}
+	MoneyMarketsPrefix            = []byte{0x08}
+	PreviousAccrualTimePrefix     = []byte{0x09} // denom -> time
+	TotalReservesPrefix           = []byte{0x10} // denom -> sdk.Coin
+	BorrowInterestFactorPrefix    = []byte{0x11} // denom -> sdk.Dec
+	SupplyInterestFactorPrefix    = []byte{0x12} // denom -> sdk.Dec
+	DelegatorInterestFactorPrefix = []byte{0x12} // denom -> sdk.Dec
+	LtvIndexPrefix                = []byte{0x13}
+	sep                           = []byte(":")
 )
 
 // DepositTypeIteratorKey returns an interator prefix for interating over deposits by deposit denom
 func DepositTypeIteratorKey(denom string) []byte {
 	return createKey([]byte(denom))
-}
-
-// ClaimKey key of a specific deposit in the store
-func ClaimKey(depositType ClaimType, denom string, owner sdk.AccAddress) []byte {
-	return createKey([]byte(depositType), sep, []byte(denom), sep, owner)
-}
-
-// ClaimTypeIteratorKey returns an interator prefix for interating over claims by deposit type and denom
-func ClaimTypeIteratorKey(depositType ClaimType, denom string) []byte {
-	return createKey([]byte(depositType), sep, []byte(denom))
 }
 
 // GetBorrowByLtvKey is used by the LTV index
