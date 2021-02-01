@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -56,7 +55,7 @@ func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaim() {
 				multiplier:               types.MultiplierName("large"),
 				timeElapsed:              86400,
 				expectedBalance:          cs(c("usdx", 10000000000), c("ukava", 10576385600)),
-				expectedPeriods:          vesting.Periods{vesting.Period{Length: 31536000, Amount: cs(c("ukava", 10571385600))}},
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("ukava", 10571385600))}},
 				isPeriodicVestingAccount: true,
 			},
 			errArgs{
@@ -145,7 +144,6 @@ func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaim() {
 				}
 
 				claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
-				fmt.Println(claim)
 				suite.Require().True(found)
 				suite.Require().Equal(c("ukava", 0), claim.Reward)
 			} else {
@@ -190,7 +188,7 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 				multiplier:               types.MultiplierName("large"),
 				timeElapsed:              86400,
 				expectedReward:           c("hard", 21142771200), // 10571385600 (deposit reward) + 10571385600 (borrow reward)
-				expectedPeriods:          vesting.Periods{vesting.Period{Length: 31536000, Amount: cs(c("hard", 21142771200))}},
+				expectedPeriods:          vesting.Periods{vesting.Period{Length: 32918400, Amount: cs(c("hard", 21142771200))}},
 				isPeriodicVestingAccount: true,
 			},
 			errArgs{
