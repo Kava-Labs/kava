@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -183,7 +182,6 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				if err != nil {
 					return err
 				}
-				fmt.Printf("1...StartCollateralAuction - lot: %s, bid: %s\n", lot, bid)
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return err
@@ -227,7 +225,6 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				if err != nil {
 					return err
 				}
-				fmt.Printf("2...StartCollateralAuction - lot: %s, bid: %s\n", lot, bid)
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return err
