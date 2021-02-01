@@ -72,7 +72,7 @@ func (msg MsgPostPrice) ValidateBasic() error {
 	if msg.Price.IsNegative() {
 		return fmt.Errorf("price cannot be negative: %s", msg.Price.String())
 	}
-	if msg.Expiry.IsZero() {
+	if msg.Expiry.Unix() <= 0 {
 		return errors.New("must set an expiration time")
 	}
 	return nil

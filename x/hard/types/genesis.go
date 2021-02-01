@@ -6,12 +6,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-)
-
-// GenesisState default values
-var (
-	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
 )
 
 // GenesisState is the state that must be provided at genesis.
