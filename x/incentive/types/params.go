@@ -93,8 +93,8 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyUSDXMintingRewardPeriods, &p.USDXMintingRewardPeriods, validateRewardPeriodsParam),
-		params.NewParamSetPair(KeyHardSupplyRewardPeriods, &p.HardSupplyRewardPeriods, validateRewardPeriodsParam),
-		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardSupplyRewardPeriods, &p.HardSupplyRewardPeriods, validateMultiRewardPeriodsParam),
+		params.NewParamSetPair(KeyHardBorrowRewardPeriods, &p.HardBorrowRewardPeriods, validateMultiRewardPeriodsParam),
 		params.NewParamSetPair(KeyHardDelegatorRewardPeriods, &p.HardDelegatorRewardPeriods, validateRewardPeriodsParam),
 		params.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
 		params.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersParam),
@@ -112,11 +112,11 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateRewardPeriodsParam(p.HardSupplyRewardPeriods); err != nil {
+	if err := validateMultiRewardPeriodsParam(p.HardSupplyRewardPeriods); err != nil {
 		return err
 	}
 
-	if err := validateRewardPeriodsParam(p.HardBorrowRewardPeriods); err != nil {
+	if err := validateMultiRewardPeriodsParam(p.HardBorrowRewardPeriods); err != nil {
 		return err
 	}
 
@@ -125,6 +125,15 @@ func (p Params) Validate() error {
 
 func validateRewardPeriodsParam(i interface{}) error {
 	rewards, ok := i.(RewardPeriods)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return rewards.Validate()
+}
+
+func validateMultiRewardPeriodsParam(i interface{}) error {
+	rewards, ok := i.(MultiRewardPeriods)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

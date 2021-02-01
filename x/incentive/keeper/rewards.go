@@ -308,7 +308,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			}
 			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if foundUserRewardIndexIndex {
-				fmt.Printf("\n[LOG]: factor index should always be found", coin.Denom) // TODO: remove before production
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 
@@ -325,7 +325,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if foundFactorIndex {
-				fmt.Printf("\n[LOG]: factor index should always be found", coin.Denom) // TODO: remove before production
+				fmt.Printf("[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
@@ -384,7 +384,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			}
 			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if foundUserRewardIndexIndex {
-				fmt.Printf("\n[LOG]: factor index should always be found", coin.Denom) // TODO: remove before production
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 
@@ -401,7 +401,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if foundFactorIndex {
-				fmt.Printf("\n[LOG]: factor index should always be found", coin.Denom) // TODO: remove before production
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
