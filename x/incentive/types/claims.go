@@ -164,19 +164,19 @@ func (cs USDXMintingClaims) Validate() error {
 
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 type HardLiquidityProviderClaim struct {
-	BaseClaim              `json:"base_claim" yaml:"base_claim"`
+	BaseMultiClaim         `json:"base_claim" yaml:"base_claim"`
 	SupplyRewardIndexes    MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
 	BorrowRewardIndexes    MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
 	DelegatorRewardIndexes RewardIndexes      `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
 }
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
-func NewHardLiquidityProviderClaim(owner sdk.AccAddress, reward sdk.Coin, supplyRewardIndexes,
+func NewHardLiquidityProviderClaim(owner sdk.AccAddress, rewards sdk.Coins, supplyRewardIndexes,
 	borrowRewardIndexes MultiRewardIndexes, delegatorRewardIndexes RewardIndexes) HardLiquidityProviderClaim {
 	return HardLiquidityProviderClaim{
-		BaseClaim: BaseClaim{
+		BaseMultiClaim: BaseMultiClaim{
 			Owner:  owner,
-			Reward: reward,
+			Reward: rewards,
 		},
 		SupplyRewardIndexes:    supplyRewardIndexes,
 		BorrowRewardIndexes:    borrowRewardIndexes,
@@ -188,7 +188,7 @@ func NewHardLiquidityProviderClaim(owner sdk.AccAddress, reward sdk.Coin, supply
 func (c HardLiquidityProviderClaim) GetType() string { return HardLiquidityProviderClaimType }
 
 // GetReward returns the claim's reward coin
-func (c HardLiquidityProviderClaim) GetReward() sdk.Coin { return c.Reward }
+func (c HardLiquidityProviderClaim) GetReward() sdk.Coins { return c.Reward }
 
 // GetOwner returns the claim's owner
 func (c HardLiquidityProviderClaim) GetOwner() sdk.AccAddress { return c.Owner }
@@ -207,7 +207,7 @@ func (c HardLiquidityProviderClaim) Validate() error {
 		return err
 	}
 
-	return c.BaseClaim.Validate()
+	return c.BaseMultiClaim.Validate()
 }
 
 // String implements fmt.Stringer
@@ -216,7 +216,7 @@ func (c HardLiquidityProviderClaim) String() string {
 	Supply Reward Indexes: %s,
 	Borrow Reward Indexes: %s,
 	Delegator Reward Indexes: %s,
-	`, c.BaseClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes, c.DelegatorRewardIndexes)
+	`, c.BaseMultiClaim, c.SupplyRewardIndexes, c.BorrowRewardIndexes, c.DelegatorRewardIndexes)
 }
 
 // HasSupplyRewardIndex check if a claim has a supply reward index for the input collateral type
