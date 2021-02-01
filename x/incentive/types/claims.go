@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -52,6 +53,40 @@ func (c BaseClaim) Validate() error {
 
 // String implements fmt.Stringer
 func (c BaseClaim) String() string {
+	return fmt.Sprintf(`Claim:
+	Owner: %s,
+	Reward: %s,
+	`, c.Owner, c.Reward)
+}
+
+// BaseMultiClaim is a common type shared by all Claims with multiple reward denoms
+type BaseMultiClaim struct {
+	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
+	Reward sdk.Coins      `json:"reward" yaml:"reward"`
+}
+
+// GetOwner is a getter for Claim Owner
+func (c BaseMultiClaim) GetOwner() sdk.AccAddress { return c.Owner }
+
+// GetReward is a getter for Claim Reward
+func (c BaseMultiClaim) GetReward() sdk.Coins { return c.Reward }
+
+// GetType returns the claim type, used to identify auctions in event attributes
+func (c BaseMultiClaim) GetType() string { return "base" }
+
+// Validate performs a basic check of a BaseClaim fields
+func (c BaseMultiClaim) Validate() error {
+	if c.Owner.Empty() {
+		return errors.New("claim owner cannot be empty")
+	}
+	if !c.Reward.IsValid() {
+		return fmt.Errorf("invalid reward amount: %s", c.Reward)
+	}
+	return nil
+}
+
+// String implements fmt.Stringer
+func (c BaseMultiClaim) String() string {
 	return fmt.Sprintf(`Claim:
 	Owner: %s,
 	Reward: %s,
@@ -130,14 +165,14 @@ func (cs USDXMintingClaims) Validate() error {
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 type HardLiquidityProviderClaim struct {
 	BaseClaim              `json:"base_claim" yaml:"base_claim"`
-	SupplyRewardIndexes    RewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
-	BorrowRewardIndexes    RewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
-	DelegatorRewardIndexes RewardIndexes `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
+	SupplyRewardIndexes    MultiRewardIndexes `json:"supply_reward_indexes" yaml:"supply_reward_indexes"`
+	BorrowRewardIndexes    MultiRewardIndexes `json:"borrow_reward_indexes" yaml:"borrow_reward_indexes"`
+	DelegatorRewardIndexes RewardIndexes      `json:"delegator_reward_indexes" yaml:"delegator_reward_indexes"`
 }
 
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
 func NewHardLiquidityProviderClaim(owner sdk.AccAddress, reward sdk.Coin, supplyRewardIndexes,
-	borrowRewardIndexes, delegatorRewardIndexes RewardIndexes) HardLiquidityProviderClaim {
+	borrowRewardIndexes MultiRewardIndexes, delegatorRewardIndexes RewardIndexes) HardLiquidityProviderClaim {
 	return HardLiquidityProviderClaim{
 		BaseClaim: BaseClaim{
 			Owner:  owner,
@@ -265,10 +300,168 @@ func (ri RewardIndex) Validate() error {
 // RewardIndexes slice of RewardIndex
 type RewardIndexes []RewardIndex
 
+// GetRewardIndex fetches a RewardIndex by its denom
+func (ris RewardIndexes) GetRewardIndex(denom string) (RewardIndex, bool) {
+	for _, ri := range ris {
+		if ri.CollateralType == denom {
+			return ri, true
+		}
+	}
+	return RewardIndex{}, false
+}
+
+// GetFactorIndex gets the index of a specific reward index inside the array by its index
+func (ris RewardIndexes) GetFactorIndex(denom string) (int, bool) {
+	for i, ri := range ris {
+		if ri.CollateralType == denom {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
 // Validate validation for reward indexes
 func (ris RewardIndexes) Validate() error {
 	for _, ri := range ris {
 		if err := ri.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// -------------------------------------------------------------------------
+
+// MultiRewardPeriod supports multiple reward types
+type MultiRewardPeriod struct {
+	Active           bool      `json:"active" yaml:"active"`
+	CollateralType   string    `json:"collateral_type" yaml:"collateral_type"`
+	Start            time.Time `json:"start" yaml:"start"`
+	End              time.Time `json:"end" yaml:"end"`
+	RewardsPerSecond sdk.Coins `json:"rewards_per_second" yaml:"rewards_per_second"` // per second reward payouts
+}
+
+// String implements fmt.Stringer
+func (mrp MultiRewardPeriod) String() string {
+	return fmt.Sprintf(`Reward Period:
+	Collateral Type: %s,
+	Start: %s,
+	End: %s,
+	Rewards Per Second: %s,
+	Active %t,
+	`, mrp.CollateralType, mrp.Start, mrp.End, mrp.RewardsPerSecond, mrp.Active)
+}
+
+// NewMultiRewardPeriod returns a new MultiRewardPeriod
+func NewMultiRewardPeriod(active bool, collateralType string, start time.Time, end time.Time, reward sdk.Coins) MultiRewardPeriod {
+	return MultiRewardPeriod{
+		Active:           active,
+		CollateralType:   collateralType,
+		Start:            start,
+		End:              end,
+		RewardsPerSecond: reward,
+	}
+}
+
+// Validate performs a basic check of a MultiRewardPeriod.
+func (mrp MultiRewardPeriod) Validate() error {
+	if mrp.Start.IsZero() {
+		return errors.New("reward period start time cannot be 0")
+	}
+	if mrp.End.IsZero() {
+		return errors.New("reward period end time cannot be 0")
+	}
+	if mrp.Start.After(mrp.End) {
+		return fmt.Errorf("end period time %s cannot be before start time %s", mrp.End, mrp.Start)
+	}
+	if !mrp.RewardsPerSecond.IsValid() {
+		return fmt.Errorf("invalid reward amount: %s", mrp.RewardsPerSecond)
+	}
+	if strings.TrimSpace(mrp.CollateralType) == "" {
+		return fmt.Errorf("reward period collateral type cannot be blank: %s", mrp)
+	}
+	return nil
+}
+
+// MultiRewardPeriods array of MultiRewardPeriod
+type MultiRewardPeriods []MultiRewardPeriod
+
+// Validate checks if all the RewardPeriods are valid and there are no duplicated
+// entries.
+func (mrps MultiRewardPeriods) Validate() error {
+	seenPeriods := make(map[string]bool)
+	for _, rp := range mrps {
+		if seenPeriods[rp.CollateralType] {
+			return fmt.Errorf("duplicated reward period with collateral type %s", rp.CollateralType)
+		}
+
+		if err := rp.Validate(); err != nil {
+			return err
+		}
+		seenPeriods[rp.CollateralType] = true
+	}
+
+	return nil
+}
+
+// MultiRewardIndex stores reward accumulation information on multiple reward types
+type MultiRewardIndex struct {
+	CollateralType string        `json:"collateral_type" yaml:"collateral_type"`
+	RewardIndexes  RewardIndexes `json:"reward_indexes" yaml:"reward_indexes"`
+}
+
+// NewMultiRewardIndex returns a new MultiRewardIndex
+func NewMultiRewardIndex(collateralType string, indexes RewardIndexes) MultiRewardIndex {
+	return MultiRewardIndex{
+		CollateralType: collateralType,
+		RewardIndexes:  indexes,
+	}
+}
+
+// GetFactorIndex gets the index of a specific reward index inside the array by its index
+func (mri MultiRewardIndex) GetFactorIndex(denom string) (int, bool) {
+	for i, ri := range mri.RewardIndexes {
+		if ri.CollateralType == denom {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+func (mri MultiRewardIndex) String() string {
+	return fmt.Sprintf(`Collateral Type: %s, Reward Indexes: %s`, mri.CollateralType, mri.RewardIndexes)
+}
+
+// Validate validates multi-reward index
+func (mri MultiRewardIndex) Validate() error {
+	for _, rf := range mri.RewardIndexes {
+		if rf.RewardFactor.IsNegative() {
+			return fmt.Errorf("reward index's factor value cannot be negative: %s", rf)
+		}
+	}
+	if strings.TrimSpace(mri.CollateralType) == "" {
+		return fmt.Errorf("collateral type should not be empty")
+	}
+	return nil
+}
+
+// MultiRewardIndexes slice of MultiRewardIndex
+type MultiRewardIndexes []MultiRewardIndex
+
+// GetRewardIndex fetches a RewardIndex from a MultiRewardIndex by its denom
+func (mris MultiRewardIndexes) GetRewardIndex(denom string) (MultiRewardIndex, bool) {
+	for _, ri := range mris {
+		if ri.CollateralType == denom {
+			return ri, true
+		}
+	}
+	return MultiRewardIndex{}, false
+}
+
+// Validate validation for reward indexes
+func (mris MultiRewardIndexes) Validate() error {
+	for _, mri := range mris {
+		if err := mri.Validate(); err != nil {
 			return err
 		}
 	}
