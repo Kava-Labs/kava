@@ -93,8 +93,8 @@ func (suite *KeeperTestSuite) TestPayoutUSDXMintingClaim() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				tc.args.multipliers,
 				tc.args.initialTime.Add(time.Hour*24*365*5),
@@ -230,15 +230,18 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			suite.Require().NoError(err)
 
 			// Set up generic reward periods
+			var multiRewardPeriods types.MultiRewardPeriods
 			var rewardPeriods types.RewardPeriods
 			for _, coin := range tc.args.deposit {
 				rewardPeriod := types.NewRewardPeriod(true, coin.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
 				rewardPeriods = append(rewardPeriods, rewardPeriod)
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, coin.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))
+				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
 			}
 
 			// Set up incentive state
 			params := types.NewParams(
-				rewardPeriods, rewardPeriods, rewardPeriods, rewardPeriods,
+				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
 				tc.args.multipliers,
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
@@ -247,11 +250,13 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			// Set each denom's previous accrual time and supply reward factor
 			for _, coin := range tc.args.deposit {
 				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
-				suite.keeper.SetHardSupplyRewardFactor(suite.ctx, coin.Denom, sdk.ZeroDec())
+				defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, coin.Denom, defaultRewardIndexes)
 			}
 			for _, coin := range tc.args.borrow {
 				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
-				suite.keeper.SetHardBorrowRewardFactor(suite.ctx, coin.Denom, sdk.ZeroDec())
+				defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, coin.Denom, defaultRewardIndexes)
 			}
 
 			hardKeeper := suite.app.GetHardKeeper()
@@ -268,7 +273,9 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim that has 0 rewards
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroInt(), claim.Reward.Amount)
+			for _, coin := range tc.args.deposit {
+				suite.Require().Equal(sdk.ZeroInt(), claim.Reward.AmountOf(coin.Denom))
+			}
 
 			// Set up future runtime context
 			runAtTime := time.Unix(suite.ctx.BlockTime().Unix()+(tc.args.timeElapsed), 0)
@@ -279,7 +286,7 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 
 			// Accumulate supply rewards for each deposit denom
 			for _, coin := range tc.args.deposit {
-				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(runCtx, coin.Denom)
+				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, coin.Denom)
 				suite.Require().True(found)
 				err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
 				suite.Require().NoError(err)
@@ -287,7 +294,7 @@ func (suite *KeeperTestSuite) TestPayoutHardLiquidityProviderClaim() {
 
 			// Accumulate borrow rewards for each deposit denom
 			for _, coin := range tc.args.borrow {
-				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(runCtx, coin.Denom)
+				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(runCtx, coin.Denom)
 				suite.Require().True(found)
 				err = suite.keeper.AccumulateHardBorrowRewards(runCtx, rewardPeriod)
 				suite.Require().NoError(err)

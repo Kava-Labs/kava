@@ -21,8 +21,8 @@ func (suite *ParamTestSuite) SetupTest() {}
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
 		usdxMintingRewardPeriods   types.RewardPeriods
-		hardSupplyRewardPeriods    types.RewardPeriods
-		hardBorrowRewardPeriods    types.RewardPeriods
+		hardSupplyRewardPeriods    types.MultiRewardPeriods
+		hardBorrowRewardPeriods    types.MultiRewardPeriods
 		hardDelegatorRewardPeriods types.RewardPeriods
 		multipliers                types.Multipliers
 		end                        time.Time
@@ -43,8 +43,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			"default",
 			args{
 				usdxMintingRewardPeriods:   types.DefaultRewardPeriods,
-				hardSupplyRewardPeriods:    types.DefaultRewardPeriods,
-				hardBorrowRewardPeriods:    types.DefaultRewardPeriods,
+				hardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				hardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
 				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
 				multipliers:                types.DefaultMultipliers,
 				end:                        types.DefaultClaimEnd,
@@ -68,8 +68,8 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						types.Large, 1, sdk.MustNewDecFromStr("1.0"),
 					),
 				},
-				hardSupplyRewardPeriods:    types.DefaultRewardPeriods,
-				hardBorrowRewardPeriods:    types.DefaultRewardPeriods,
+				hardSupplyRewardPeriods:    types.DefaultMultiRewardPeriods,
+				hardBorrowRewardPeriods:    types.DefaultMultiRewardPeriods,
 				hardDelegatorRewardPeriods: types.DefaultRewardPeriods,
 				end:                        time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
 			},

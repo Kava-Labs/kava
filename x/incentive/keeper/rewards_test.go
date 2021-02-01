@@ -76,8 +76,8 @@ func (suite *KeeperTestSuite) TestAccumulateUSDXMintingRewards() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
@@ -151,8 +151,8 @@ func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.ctype, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
@@ -263,15 +263,16 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
-			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+			suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom, defaultRewardIndexes)
 
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
@@ -293,12 +294,15 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			// Run Hard begin blocker in order to update the denom's index factor
 			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
-			rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(runCtx, tc.args.borrow.Denom)
+			rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(runCtx, tc.args.borrow.Denom)
 			suite.Require().True(found)
 			err = suite.keeper.AccumulateHardBorrowRewards(runCtx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			rewardFactor, found := suite.keeper.GetHardBorrowRewardFactor(runCtx, tc.args.borrow.Denom)
+			rewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
+			suite.Require().True(found)
+			rewardFactor, found := rewardIndexes.GetRewardIndex(types.HardLiquidityRewardDenom)
+			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
@@ -355,15 +359,16 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
-			suite.keeper.SetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom, sdk.ZeroDec())
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+			suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom, defaultRewardIndexes)
 
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
@@ -381,7 +386,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.BorrowRewardIndexes[0].RewardFactor)
+			suite.Require().Equal(sdk.ZeroDec(), claim.BorrowRewardIndexes[0].RewardIndexes[0].RewardFactor)
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -395,7 +400,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				// Run Hard begin blocker for each block ctx to update denom's interest factor
 				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
-				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriod(blockCtx, tc.args.borrow.Denom)
+				rewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(blockCtx, tc.args.borrow.Denom)
 				suite.Require().True(found)
 
 				err := suite.keeper.AccumulateHardBorrowRewards(blockCtx, rewardPeriod)
@@ -412,12 +417,15 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			})
 
 			// Check that reward factor and claim have been updated as expected
-			rewardFactor, found := suite.keeper.GetHardBorrowRewardFactor(suite.ctx, tc.args.borrow.Denom)
+			rewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
+			suite.Require().True(found)
+			rewardFactor, found := rewardIndexes.GetRewardIndex(types.HardLiquidityRewardDenom)
+			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
 			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
-			suite.Require().Equal(tc.args.expectedRewardFactor, claim.BorrowRewardIndexes[0].RewardFactor)
+			suite.Require().Equal(tc.args.expectedRewardFactor, claim.BorrowRewardIndexes[0].RewardIndexes[0].RewardFactor)
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
 		})
 	}
@@ -480,15 +488,16 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			// Set up incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
-			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+			suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom, defaultRewardIndexes)
 
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
@@ -507,12 +516,15 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			// Run Hard begin blocker in order to update the denom's index factor
 			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
-			rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(runCtx, tc.args.deposit.Denom)
+			rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, tc.args.deposit.Denom)
 			suite.Require().True(found)
 			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
 			suite.Require().NoError(err)
 
-			rewardFactor, found := suite.keeper.GetHardSupplyRewardFactor(runCtx, tc.args.deposit.Denom)
+			rewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom)
+			suite.Require().True(found)
+			rewardFactor, found := rewardIndexes.GetRewardIndex(types.HardLiquidityRewardDenom)
+			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 		})
 	}
@@ -569,15 +581,16 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
 			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
-			suite.keeper.SetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom, sdk.ZeroDec())
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+			suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom, defaultRewardIndexes)
 
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
@@ -593,7 +606,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
 			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.SupplyRewardIndexes[0].RewardFactor)
+			suite.Require().Equal(sdk.ZeroDec(), claim.SupplyRewardIndexes[0].RewardIndexes[0].RewardFactor)
 
 			// Run accumulator at several intervals
 			var timeElapsed int
@@ -607,7 +620,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 				// Run Hard begin blocker for each block ctx to update denom's interest factor
 				hard.BeginBlocker(blockCtx, suite.hardKeeper)
 
-				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriod(blockCtx, tc.args.deposit.Denom)
+				rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(blockCtx, tc.args.deposit.Denom)
 				suite.Require().True(found)
 
 				err := suite.keeper.AccumulateHardSupplyRewards(blockCtx, rewardPeriod)
@@ -624,12 +637,15 @@ func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 			})
 
 			// Check that reward factor and claim have been updated as expected
-			rewardFactor, found := suite.keeper.GetHardSupplyRewardFactor(suite.ctx, tc.args.deposit.Denom)
+			rewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.deposit.Denom)
+			suite.Require().True(found)
+			rewardFactor, found := rewardIndexes.GetRewardIndex(types.HardLiquidityRewardDenom)
+			suite.Require().True(found)
 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
 
 			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
 			suite.Require().True(found)
-			suite.Require().Equal(tc.args.expectedRewardFactor, claim.SupplyRewardIndexes[0].RewardFactor)
+			suite.Require().Equal(tc.args.expectedRewardFactor, claim.SupplyRewardIndexes[0].RewardIndexes[0].RewardFactor)
 			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
 		})
 	}
@@ -691,24 +707,28 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
 
 			// Set up generic reward periods
+			var multiRewardPeriods types.MultiRewardPeriods
 			var rewardPeriods types.RewardPeriods
 			for _, denom := range tc.args.expectedSupplyIndexDenoms {
 				rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
 				rewardPeriods = append(rewardPeriods, rewardPeriod)
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))
+				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
 			}
 
 			// Setup incentive state
 			params := types.NewParams(
-				rewardPeriods, rewardPeriods, rewardPeriods, rewardPeriods,
+				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
 
 			// Set each denom's previous accrual time and supply reward factor
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
 			for _, denom := range tc.args.expectedSupplyIndexDenoms {
 				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, denom, tc.args.initialTime)
-				suite.keeper.SetHardSupplyRewardFactor(suite.ctx, denom, sdk.ZeroDec())
+				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, denom, defaultRewardIndexes)
 			}
 
 			// User deposits (first time)
@@ -802,29 +822,34 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
 
 			// Set up generic reward periods
+			var multiRewardPeriods types.MultiRewardPeriods
 			var rewardPeriods types.RewardPeriods
 			for _, denom := range tc.args.expectedBorrowIndexDenoms {
 				rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
 				rewardPeriods = append(rewardPeriods, rewardPeriod)
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))
+				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
 			}
 
 			// Setup incentive state
 			params := types.NewParams(
-				rewardPeriods, rewardPeriods, rewardPeriods, rewardPeriods,
+				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
 			suite.keeper.SetParams(suite.ctx, params)
+
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
 			// Set each initial deposit denom's previous accrual time and supply reward factor
 			for _, coin := range tc.args.initialDeposit {
-				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
-				suite.keeper.SetHardBorrowRewardFactor(suite.ctx, coin.Denom, sdk.ZeroDec())
+				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
+				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, coin.Denom, defaultRewardIndexes)
 			}
 
 			// Set each expected borrow denom's previous accrual time and borrow reward factor
 			for _, denom := range tc.args.expectedBorrowIndexDenoms {
 				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, tc.args.initialTime)
-				suite.keeper.SetHardBorrowRewardFactor(suite.ctx, denom, sdk.ZeroDec())
+				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, denom, defaultRewardIndexes)
 			}
 
 			// User deposits initial funds (so that user can borrow)
@@ -924,8 +949,8 @@ func (suite *KeeperTestSuite) TestAccumulateHardDelegatorRewards() {
 			// Set up incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
@@ -1013,8 +1038,8 @@ func (suite *KeeperTestSuite) TestSynchronizeHardDelegatorReward() {
 			// setup incentive state
 			params := types.NewParams(
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.delegation.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
