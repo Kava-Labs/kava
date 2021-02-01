@@ -670,3 +670,142 @@ func (suite *KeeperTestSuite) SetupWithAccountState() {
 	suite.ctx = ctx
 	suite.addrs = addrs
 }
+
+func (suite *KeeperTestSuite) TestGetPeriodLength() {
+	type args struct {
+		blockTime      time.Time
+		multiplier     types.Multiplier
+		expectedLength int64
+	}
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+	type periodTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+	testCases := []periodTest{
+		{
+			name: "first half of month",
+			args: args{
+				blockTime:      time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2021, 5, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "first half of month long lockup",
+			args: args{
+				blockTime:      time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 24, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2022, 11, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 11, 2, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "second half of month",
+			args: args{
+				blockTime:      time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2021, 7, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "second half of month long lockup",
+			args: args{
+				blockTime:      time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Large, 24, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2023, 1, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 31, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "end of feb",
+			args: args{
+				blockTime:      time.Date(2021, 2, 28, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2021, 9, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2021, 2, 28, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "leap year",
+			args: args{
+				blockTime:      time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2020, 9, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "leap year long lockup",
+			args: args{
+				blockTime:      time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Large, 24, sdk.MustNewDecFromStr("1")),
+				expectedLength: time.Date(2022, 3, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 2, 29, 15, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "exactly half of month",
+			args: args{
+				blockTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2021, 7, 1, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+		{
+			name: "just before half of month",
+			args: args{
+				blockTime:      time.Date(2020, 12, 15, 13, 59, 59, 0, time.UTC),
+				multiplier:     types.NewMultiplier(types.Medium, 6, sdk.MustNewDecFromStr("0.333333")),
+				expectedLength: time.Date(2021, 6, 15, 14, 0, 0, 0, time.UTC).Unix() - time.Date(2020, 12, 15, 13, 59, 59, 0, time.UTC).Unix(),
+			},
+			errArgs: errArgs{
+				expectPass: true,
+				contains:   "",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			ctx := suite.ctx.WithBlockTime(tc.args.blockTime)
+			length, err := suite.keeper.GetPeriodLength(ctx, tc.args.multiplier)
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(tc.args.expectedLength, length)
+			} else {
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
