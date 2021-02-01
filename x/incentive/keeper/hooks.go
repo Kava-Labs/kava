@@ -53,17 +53,17 @@ func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) 
 
 // AfterBorrowCreated function that runs after a borrow is created
 func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
-	h.k.InitializeHardBorrowReward(ctx, borrow)
+	// h.k.InitializeHardBorrowReward(ctx, borrow) // TODO:
 }
 
 // BeforeBorrowModified function that runs before a borrow is modified
 func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
-	h.k.SynchronizeHardBorrowReward(ctx, borrow)
+	// h.k.SynchronizeHardBorrowReward(ctx, borrow) // TODO:
 }
 
 // AfterBorrowModified function that runs after a borrow is modified
 func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
-	h.k.UpdateHardBorrowIndexDenoms(ctx, borrow)
+	// h.k.UpdateHardBorrowIndexDenoms(ctx, borrow) // TODO:
 }
 
 // ------------------- Staking Module Hooks -------------------
