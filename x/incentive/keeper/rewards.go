@@ -263,52 +263,36 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 // SynchronizeHardSupplyReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value
 func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
-	// 1. Fetch user's claim object from store
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
 		return
 	}
 
-	// We want to sync the user's supply reward indexes with the current GLOBAL supply reward index in the store
 	for _, coin := range deposit.Amount {
-		// 1. Fetch the GLOBAL supply reward indexes for this denom (top level)
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
 		if !foundGlobalRewardIndexes {
 			continue
 		}
-		// globalRewardIndexes = {Denom: bnb, RewardIndexes: {ukava, 0.123}, {hard, 0.555}}
 
-		// 2. Fetch the USER supply reward indexes for this denom (top level)
 		userRewardIndexes, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
 		if !foundUserRewardIndexes {
 			continue
 		}
 
-		// userRewardIndexes = {Denom: bnb, MultiRewardIndexes: {ukava, 0.1}, {hard, 0.2}}
-
-		// 3. For each reward index denom (second level) in the GLOBAL supply reward indexes
 		for _, globalRewardIndex := range globalRewardIndexes {
-			// globalRewardIndex = RewardIndex: {ukava, 0.123}
-
-			// TODO: Do we need to iterate over each user reward coin denom?
-			// 4. Check if the user has a supply reward index for this denom (second level)
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
 				continue
 			}
-			// userRewardIndex = RewardIndex: {ukava, 0.1}
 			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if foundUserRewardIndexIndex {
 				fmt.Printf("\n[LOG]: factor index should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
-			// userRewardIndexIndex = 0
 
-			// 5. If they do, check if the GLOBAL denom's (second level) reward factor is greater than the user's
 			globalRewardFactor := globalRewardIndex.RewardFactor
 			userRewardFactor := userRewardIndex.RewardFactor
 			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-			// rewardsAccumulatedFactor = 0.123 - 0.1
 			if rewardsAccumulatedFactor.IsZero() {
 				continue
 			}
@@ -316,17 +300,15 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
-			// 6. Update the user's reward factor to the GLOBAL reward factor
+
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if foundFactorIndex {
 				fmt.Printf("\n[LOG]: factor index should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
-
 			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
 			claim.Reward = claim.Reward.Add(newRewardsCoin)
-
 		}
 	}
 	k.SetHardLiquidityProviderClaim(ctx, claim)
