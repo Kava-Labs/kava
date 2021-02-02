@@ -90,7 +90,7 @@ func (a BaseAuction) Validate() error {
 	if !a.Bid.IsValid() {
 		return fmt.Errorf("invalid bid: %s", a.Bid)
 	}
-	if a.EndTime.IsZero() || a.MaxEndTime.IsZero() {
+	if a.EndTime.Unix() <= 0 || a.MaxEndTime.Unix() <= 0 {
 		return errors.New("end time cannot be zero")
 	}
 	if a.EndTime.After(a.MaxEndTime) {

@@ -94,7 +94,6 @@ var (
 	DefaultCheckLtvIndexCount        = types.DefaultCheckLtvIndexCount
 	DefaultDeposits                  = types.DefaultDeposits
 	DefaultMoneyMarkets              = types.DefaultMoneyMarkets
-	DefaultPreviousBlockTime         = types.DefaultPreviousBlockTime
 	DefaultTotalBorrowed             = types.DefaultTotalBorrowed
 	DefaultTotalReserves             = types.DefaultTotalReserves
 	DefaultTotalSupplied             = types.DefaultTotalSupplied

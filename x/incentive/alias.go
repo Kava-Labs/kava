@@ -51,6 +51,7 @@ var (
 	NewQueryRewardsParams                  = types.NewQueryRewardsParams
 	NewRewardIndex                         = types.NewRewardIndex
 	NewRewardPeriod                        = types.NewRewardPeriod
+	NewMultiRewardPeriod                   = types.NewMultiRewardPeriod
 	NewUSDXMintingClaim                    = types.NewUSDXMintingClaim
 	NewHardLiquidityProviderClaim          = types.NewHardLiquidityProviderClaim
 	ParamKeyTable                          = types.ParamKeyTable
@@ -65,6 +66,7 @@ var (
 	DefaultGenesisAccumulationTimes               = types.DefaultGenesisAccumulationTimes
 	DefaultMultipliers                            = types.DefaultMultipliers
 	DefaultRewardPeriods                          = types.DefaultRewardPeriods
+	DefaultMultiRewardPeriods                     = types.DefaultMultiRewardPeriods
 	ErrAccountNotFound                            = types.ErrAccountNotFound
 	ErrClaimExpired                               = types.ErrClaimExpired
 	ErrClaimNotFound                              = types.ErrClaimNotFound
@@ -106,6 +108,8 @@ type (
 	RewardIndexes             = types.RewardIndexes
 	RewardPeriod              = types.RewardPeriod
 	RewardPeriods             = types.RewardPeriods
+	MultiRewardPeriod         = types.MultiRewardPeriod
+	MultiRewardPeriods        = types.MultiRewardPeriods
 	SupplyKeeper              = types.SupplyKeeper
 	USDXMintingClaim          = types.USDXMintingClaim
 	USDXMintingClaims         = types.USDXMintingClaims
