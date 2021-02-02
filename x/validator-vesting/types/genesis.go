@@ -39,7 +39,7 @@ func (data GenesisState) IsEmpty() bool {
 
 // ValidateGenesis returns nil because accounts are validated by auth
 func ValidateGenesis(data GenesisState) error {
-	if data.PreviousBlockTime.IsZero() {
+	if data.PreviousBlockTime.Unix() <= 0 {
 		return errors.New("previous block time cannot be zero")
 	}
 	return nil

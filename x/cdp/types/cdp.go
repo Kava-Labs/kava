@@ -90,7 +90,7 @@ func (cdp CDP) Validate() error {
 	if !cdp.AccumulatedFees.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "accumulated fees %s", cdp.AccumulatedFees)
 	}
-	if cdp.FeesUpdated.IsZero() {
+	if cdp.FeesUpdated.Unix() <= 0 {
 		return errors.New("cdp updated fee time cannot be zero")
 	}
 	if strings.TrimSpace(cdp.Type) == "" {

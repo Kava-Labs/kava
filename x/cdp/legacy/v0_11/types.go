@@ -109,6 +109,7 @@ func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collat
 	}
 }
 
+// Validate performs stateless validation of cdp object state
 func (cdp CDP) Validate() error {
 	if cdp.ID == 0 {
 		return errors.New("cdp id cannot be 0")
@@ -125,7 +126,7 @@ func (cdp CDP) Validate() error {
 	if !cdp.AccumulatedFees.IsValid() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "accumulated fees %s", cdp.AccumulatedFees)
 	}
-	if cdp.FeesUpdated.IsZero() {
+	if cdp.FeesUpdated.Unix() <= 0 {
 		return errors.New("cdp updated fee time cannot be zero")
 	}
 	if strings.TrimSpace(cdp.Type) == "" {
@@ -631,7 +632,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if gs.PreviousDistributionTime.IsZero() {
+	if gs.PreviousDistributionTime.Unix() <= 0 {
 		return fmt.Errorf("previous distribution time not set")
 	}
 
