@@ -928,7 +928,7 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 		initialDeposit            sdk.Coins
 		firstBorrow               sdk.Coins
 		secondBorrow              sdk.Coins
-		rewardsPerSecond          sdk.Coin
+		rewardsPerSecond          sdk.Coins
 		initialTime               time.Time
 		expectedBorrowIndexDenoms []string
 	}
@@ -939,34 +939,67 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 
 	testCases := []test{
 		{
-			"update adds one borrow reward index",
+			"single reward denom: update adds one borrow reward index",
 			args{
 				initialDeposit:            cs(c("bnb", 10000000000)),
 				firstBorrow:               cs(c("bnb", 50000000)),
 				secondBorrow:              cs(c("ukava", 500000000)),
-				rewardsPerSecond:          c("hard", 122354),
+				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb", "ukava"},
 			},
 		},
 		{
-			"update adds multiple borrow supply reward indexes",
+			"single reward denom: update adds multiple borrow supply reward indexes",
 			args{
 				initialDeposit:            cs(c("btcb", 10000000000)),
 				firstBorrow:               cs(c("btcb", 50000000)),
 				secondBorrow:              cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000)),
-				rewardsPerSecond:          c("hard", 122354),
+				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"btcb", "ukava", "bnb", "xrp"},
 			},
 		},
 		{
-			"update doesn't add duplicate borrow reward index for same denom",
+			"single reward denom: update doesn't add duplicate borrow reward index for same denom",
 			args{
 				initialDeposit:            cs(c("bnb", 100000000000)),
 				firstBorrow:               cs(c("bnb", 50000000)),
 				secondBorrow:              cs(c("bnb", 50000000000)),
-				rewardsPerSecond:          c("hard", 122354),
+				rewardsPerSecond:          cs(c("hard", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedBorrowIndexDenoms: []string{"bnb"},
+			},
+		},
+		{
+			"multiple reward denoms: update adds one borrow reward index",
+			args{
+				initialDeposit:            cs(c("bnb", 10000000000)),
+				firstBorrow:               cs(c("bnb", 50000000)),
+				secondBorrow:              cs(c("ukava", 500000000)),
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedBorrowIndexDenoms: []string{"bnb", "ukava"},
+			},
+		},
+		{
+			"multiple reward denoms: update adds multiple borrow supply reward indexes",
+			args{
+				initialDeposit:            cs(c("btcb", 10000000000)),
+				firstBorrow:               cs(c("btcb", 50000000)),
+				secondBorrow:              cs(c("ukava", 500000000), c("bnb", 50000000000), c("xrp", 50000000000)),
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedBorrowIndexDenoms: []string{"btcb", "ukava", "bnb", "xrp"},
+			},
+		},
+		{
+			"multiple reward denoms: update doesn't add duplicate borrow reward index for same denom",
+			args{
+				initialDeposit:            cs(c("bnb", 100000000000)),
+				firstBorrow:               cs(c("bnb", 50000000)),
+				secondBorrow:              cs(c("bnb", 50000000000)),
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedBorrowIndexDenoms: []string{"bnb"},
 			},
@@ -985,10 +1018,13 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			// Set up generic reward periods
 			var multiRewardPeriods types.MultiRewardPeriods
 			var rewardPeriods types.RewardPeriods
-			for _, denom := range tc.args.expectedBorrowIndexDenoms {
-				rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
-				rewardPeriods = append(rewardPeriods, rewardPeriod)
-				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))
+			for i, denom := range tc.args.expectedBorrowIndexDenoms {
+				// Create just one reward period for USDX Minting / Hard Delegator reward periods (otherwise params will panic on duplicate)
+				if i == 0 {
+					rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[i])
+					rewardPeriods = append(rewardPeriods, rewardPeriod)
+				}
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
 				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
 			}
 
@@ -1000,17 +1036,15 @@ func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			)
 			suite.keeper.SetParams(suite.ctx, params)
 
-			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
-			// Set each initial deposit denom's previous accrual time and supply reward factor
-			for _, coin := range tc.args.initialDeposit {
-				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, coin.Denom, tc.args.initialTime)
-				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, coin.Denom, defaultRewardIndexes)
-			}
-
 			// Set each expected borrow denom's previous accrual time and borrow reward factor
+			var rewardIndexes types.RewardIndexes
+			for _, rewardCoin := range tc.args.rewardsPerSecond {
+				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+				rewardIndexes = append(rewardIndexes, rewardIndex)
+			}
 			for _, denom := range tc.args.expectedBorrowIndexDenoms {
-				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, denom, tc.args.initialTime)
-				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, denom, defaultRewardIndexes)
+				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, denom, tc.args.initialTime)
+				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, denom, rewardIndexes)
 			}
 
 			// User deposits initial funds (so that user can borrow)
