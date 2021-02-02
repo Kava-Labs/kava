@@ -658,70 +658,100 @@ func CalculateTimeElapsed(start, end, blockTime time.Time, previousAccrualTime t
 func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
 	// 1. Simulate Hard supply-side rewards
 	for _, ri := range claim.SupplyRewardIndexes {
-		supplyFactor, found := k.GetHardSupplyRewardFactor(ctx, ri.CollateralType)
-		if !found {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, ri.CollateralType)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		supplyIndex, hasSupplyRewardIndex := claim.HasSupplyRewardIndex(ri.CollateralType)
-		if !hasSupplyRewardIndex {
-			continue
-		}
-		claim.SupplyRewardIndexes[supplyIndex].RewardFactor = supplyFactor
-
-		rewardsAccumulatedFactor := supplyFactor.Sub(ri.RewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
+		userRewardIndexes, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		deposit, found := k.hardKeeper.GetDeposit(ctx, claim.GetOwner())
-		if !found {
-			continue
-		}
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				continue
+			}
+			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndexIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
 
-		var newRewardsAmount sdk.Int
-		if deposit.Amount.AmountOf(ri.CollateralType).GT(sdk.ZeroInt()) {
-			newRewardsAmount = rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+			deposit, found := k.hardKeeper.GetDeposit(ctx, claim.GetOwner())
+			if !found {
+				continue
+			}
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				fmt.Printf("[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
+			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
-		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
 	}
 
 	// 2. Simulate Hard borrow-side rewards
 	for _, ri := range claim.BorrowRewardIndexes {
-		borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, ri.CollateralType)
-		if !found {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, ri.CollateralType)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(ri.CollateralType)
-		if !hasBorrowRewardIndex {
-			continue
-		}
-		claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
-
-		rewardsAccumulatedFactor := borrowFactor.Sub(ri.RewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
+		userRewardIndexes, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		borrow, found := k.hardKeeper.GetBorrow(ctx, claim.GetOwner())
-		if !found {
-			continue
-		}
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				continue
+			}
+			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndexIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
 
-		var newRewardsAmount sdk.Int
-		if borrow.Amount.AmountOf(ri.CollateralType).GT(sdk.ZeroInt()) {
-			newRewardsAmount = rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+			borrow, found := k.hardKeeper.GetBorrow(ctx, claim.GetOwner())
+			if !found {
+				continue
+			}
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				fmt.Printf("[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
+			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
-		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
 	}
 
 	// 3. Simulate Hard delegator rewards
