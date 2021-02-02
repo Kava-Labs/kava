@@ -142,10 +142,10 @@ func (ds DistributionSchedule) Validate() error {
 	if ds.RewardsPerSecond.Denom != "hard" {
 		return fmt.Errorf("reward denom should be hard, is %s", ds.RewardsPerSecond.Denom)
 	}
-	if ds.Start.IsZero() {
+	if ds.Start.Unix() <= 0 {
 		return errors.New("reward period start time cannot be 0")
 	}
-	if ds.End.IsZero() {
+	if ds.End.Unix() <= 0 {
 		return errors.New("reward period end time cannot be 0")
 	}
 	if ds.Start.After(ds.End) {

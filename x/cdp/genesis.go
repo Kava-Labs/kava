@@ -55,7 +55,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, pk types.PricefeedKeeper, sk types.S
 
 	for _, gat := range gs.PreviousAccumulationTimes {
 		k.SetInterestFactor(ctx, gat.CollateralType, gat.InterestFactor)
-		if !gat.PreviousAccumulationTime.IsZero() {
+		if gat.PreviousAccumulationTime.Unix() > 0 {
 			k.SetPreviousAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 		}
 	}

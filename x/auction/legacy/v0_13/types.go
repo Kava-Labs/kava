@@ -1,4 +1,4 @@
-package types
+package v0_13
 
 import (
 	"errors"
@@ -10,18 +10,224 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
+// Defaults for auction params
 const (
-	CollateralAuctionType = "collateral"
-	SurplusAuctionType    = "surplus"
-	DebtAuctionType       = "debt"
-	ForwardAuctionPhase   = "forward"
-	ReverseAuctionPhase   = "reverse"
+	// DefaultMaxAuctionDuration max length of auction
+	DefaultMaxAuctionDuration time.Duration = 2 * 24 * time.Hour
+	// DefaultBidDuration how long an auction gets extended when someone bids
+	DefaultBidDuration    time.Duration = 1 * time.Hour
+	CollateralAuctionType               = "collateral"
+	SurplusAuctionType                  = "surplus"
+	DebtAuctionType                     = "debt"
+	ForwardAuctionPhase                 = "forward"
+	ReverseAuctionPhase                 = "reverse"
+	DefaultNextAuctionID  uint64        = 1
 )
 
-// DistantFuture is a very large time value to use as initial the ending time for auctions.
-// It is not set to the max time supported. This can cause problems with time comparisons, see https://stackoverflow.com/a/32620397.
-// Also amino panics when encoding times ≥ the start of year 10000.
-var DistantFuture = time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
+// module variables
+var (
+	// DefaultIncrement is the smallest percent change a new bid must have from the old one
+	DefaultIncrement       sdk.Dec = sdk.MustNewDecFromStr("0.05")
+	KeyBidDuration                 = []byte("BidDuration")
+	KeyMaxAuctionDuration          = []byte("MaxAuctionDuration")
+	KeyIncrementSurplus            = []byte("IncrementSurplus")
+	KeyIncrementDebt               = []byte("IncrementDebt")
+	KeyIncrementCollateral         = []byte("IncrementCollateral")
+	emptyDec                       = sdk.Dec{}
+)
+
+// GenesisAuction interface for auctions at genesis
+type GenesisAuction interface {
+	Auction
+	GetModuleAccountCoins() sdk.Coins
+	Validate() error
+}
+
+// GenesisAuctions is a slice of genesis auctions.
+type GenesisAuctions []GenesisAuction
+
+// GenesisState is auction state that must be provided at chain genesis.
+type GenesisState struct {
+	NextAuctionID uint64          `json:"next_auction_id" yaml:"next_auction_id"`
+	Params        Params          `json:"params" yaml:"params"`
+	Auctions      GenesisAuctions `json:"auctions" yaml:"auctions"`
+}
+
+// NewGenesisState returns a new genesis state object for auctions module.
+func NewGenesisState(nextID uint64, ap Params, ga GenesisAuctions) GenesisState {
+	return GenesisState{
+		NextAuctionID: nextID,
+		Params:        ap,
+		Auctions:      ga,
+	}
+}
+
+// DefaultGenesisState returns the default genesis state for auction module.
+func DefaultGenesisState() GenesisState {
+	return NewGenesisState(
+		DefaultNextAuctionID,
+		DefaultParams(),
+		GenesisAuctions{},
+	)
+}
+
+// Validate validates genesis inputs. It returns error if validation of any input fails.
+func (gs GenesisState) Validate() error {
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
+	ids := map[uint64]bool{}
+	for _, a := range gs.Auctions {
+
+		if err := a.Validate(); err != nil {
+			return fmt.Errorf("found invalid auction: %w", err)
+		}
+
+		if ids[a.GetID()] {
+			return fmt.Errorf("found duplicate auction ID (%d)", a.GetID())
+		}
+		ids[a.GetID()] = true
+
+		if a.GetID() >= gs.NextAuctionID {
+			return fmt.Errorf("found auction ID ≥ the nextAuctionID (%d ≥ %d)", a.GetID(), gs.NextAuctionID)
+		}
+	}
+	return nil
+}
+
+// Params is the governance parameters for the auction module.
+type Params struct {
+	MaxAuctionDuration  time.Duration `json:"max_auction_duration" yaml:"max_auction_duration"` // max length of auction
+	BidDuration         time.Duration `json:"bid_duration" yaml:"bid_duration"`                 // additional time added to the auction end time after each bid, capped by the expiry.
+	IncrementSurplus    sdk.Dec       `json:"increment_surplus" yaml:"increment_surplus"`       // percentage change (of auc.Bid) required for a new bid on a surplus auction
+	IncrementDebt       sdk.Dec       `json:"increment_debt" yaml:"increment_debt"`             // percentage change (of auc.Lot) required for a new bid on a debt auction
+	IncrementCollateral sdk.Dec       `json:"increment_collateral" yaml:"increment_collateral"` // percentage change (of auc.Bid or auc.Lot) required for a new bid on a collateral auction
+}
+
+// NewParams returns a new Params object.
+func NewParams(maxAuctionDuration, bidDuration time.Duration, incrementSurplus, incrementDebt, incrementCollateral sdk.Dec) Params {
+	return Params{
+		MaxAuctionDuration:  maxAuctionDuration,
+		BidDuration:         bidDuration,
+		IncrementSurplus:    incrementSurplus,
+		IncrementDebt:       incrementDebt,
+		IncrementCollateral: incrementCollateral,
+	}
+}
+
+// DefaultParams returns the default parameters for auctions.
+func DefaultParams() Params {
+	return NewParams(
+		DefaultMaxAuctionDuration,
+		DefaultBidDuration,
+		DefaultIncrement,
+		DefaultIncrement,
+		DefaultIncrement,
+	)
+}
+
+// Validate checks that the parameters have valid values.
+func (p Params) Validate() error {
+	if err := validateBidDurationParam(p.BidDuration); err != nil {
+		return err
+	}
+
+	if err := validateMaxAuctionDurationParam(p.MaxAuctionDuration); err != nil {
+		return err
+	}
+
+	if p.BidDuration > p.MaxAuctionDuration {
+		return errors.New("bid duration param cannot be larger than max auction duration")
+	}
+
+	if err := validateIncrementSurplusParam(p.IncrementSurplus); err != nil {
+		return err
+	}
+
+	if err := validateIncrementDebtParam(p.IncrementDebt); err != nil {
+		return err
+	}
+
+	return validateIncrementCollateralParam(p.IncrementCollateral)
+}
+
+func validateBidDurationParam(i interface{}) error {
+	bidDuration, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if bidDuration < 0 {
+		return fmt.Errorf("bid duration cannot be negative %d", bidDuration)
+	}
+
+	return nil
+}
+
+func validateMaxAuctionDurationParam(i interface{}) error {
+	maxAuctionDuration, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if maxAuctionDuration < 0 {
+		return fmt.Errorf("max auction duration cannot be negative %d", maxAuctionDuration)
+	}
+
+	return nil
+}
+
+func validateIncrementSurplusParam(i interface{}) error {
+	incrementSurplus, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if incrementSurplus == emptyDec || incrementSurplus.IsNil() {
+		return errors.New("surplus auction increment cannot be nil or empty")
+	}
+
+	if incrementSurplus.IsNegative() {
+		return fmt.Errorf("surplus auction increment cannot be less than zero %s", incrementSurplus)
+	}
+
+	return nil
+}
+
+func validateIncrementDebtParam(i interface{}) error {
+	incrementDebt, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if incrementDebt == emptyDec || incrementDebt.IsNil() {
+		return errors.New("debt auction increment cannot be nil or empty")
+	}
+
+	if incrementDebt.IsNegative() {
+		return fmt.Errorf("debt auction increment cannot be less than zero %s", incrementDebt)
+	}
+
+	return nil
+}
+
+func validateIncrementCollateralParam(i interface{}) error {
+	incrementCollateral, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if incrementCollateral == emptyDec || incrementCollateral.IsNil() {
+		return errors.New("collateral auction increment cannot be nil or empty")
+	}
+
+	if incrementCollateral.IsNegative() {
+		return fmt.Errorf("collateral auction increment cannot be less than zero %s", incrementCollateral)
+	}
+
+	return nil
+}
 
 // Auction is an interface for handling common actions on auctions.
 type Auction interface {
@@ -90,7 +296,7 @@ func (a BaseAuction) Validate() error {
 	if !a.Bid.IsValid() {
 		return fmt.Errorf("invalid bid: %s", a.Bid)
 	}
-	if a.EndTime.Unix() <= 0 || a.MaxEndTime.Unix() <= 0 {
+	if a.EndTime.IsZero() || a.MaxEndTime.IsZero() {
 		return errors.New("end time cannot be zero")
 	}
 	if a.EndTime.After(a.MaxEndTime) {

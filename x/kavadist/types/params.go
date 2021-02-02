@@ -18,7 +18,7 @@ var (
 	KeyPeriods               = []byte("Periods")
 	DefaultActive            = false
 	DefaultPeriods           = Periods{}
-	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(0, 0))
+	DefaultPreviousBlockTime = tmtime.Canonical(time.Unix(1, 0))
 	GovDenom                 = cdptypes.DefaultGovDenom
 )
 
@@ -132,7 +132,7 @@ func validatePeriodsParams(i interface{}) error {
 		}
 		prevEnd = pr.End
 
-		if pr.Start.IsZero() || pr.End.IsZero() {
+		if pr.Start.Unix() <= 0 || pr.End.Unix() <= 0 {
 			return fmt.Errorf("start or end time cannot be zero: %s", pr)
 		}
 

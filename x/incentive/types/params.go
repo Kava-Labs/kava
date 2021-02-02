@@ -36,7 +36,7 @@ var (
 	DefaultMultipliers              = Multipliers{}
 	DefaultClaims                   = USDXMintingClaims{}
 	DefaultGenesisAccumulationTimes = GenesisAccumulationTimes{}
-	DefaultClaimEnd                 = tmtime.Canonical(time.Unix(0, 0))
+	DefaultClaimEnd                 = tmtime.Canonical(time.Unix(1, 0))
 	GovDenom                        = cdptypes.DefaultGovDenom
 	PrincipalDenom                  = "usdx"
 	IncentiveMacc                   = kavadistTypes.ModuleName
@@ -154,7 +154,7 @@ func validateClaimEndParam(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if endTime.IsZero() {
+	if endTime.Unix() <= 0 {
 		return fmt.Errorf("end time should not be zero")
 	}
 	return nil
@@ -193,10 +193,10 @@ func NewRewardPeriod(active bool, collateralType string, start time.Time, end ti
 
 // Validate performs a basic check of a RewardPeriod fields.
 func (rp RewardPeriod) Validate() error {
-	if rp.Start.IsZero() {
+	if rp.Start.Unix() <= 0 {
 		return errors.New("reward period start time cannot be 0")
 	}
-	if rp.End.IsZero() {
+	if rp.End.Unix() <= 0 {
 		return errors.New("reward period end time cannot be 0")
 	}
 	if rp.Start.After(rp.End) {

@@ -67,8 +67,14 @@ func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 		paginatedHardClaims = hardClaims[startH:endH]
 	}
 
+	var augmentedHardClaims types.HardLiquidityProviderClaims
+	for _, claim := range paginatedHardClaims {
+		augmentedClaim := k.SimulateHardSynchronization(ctx, claim)
+		augmentedHardClaims = append(augmentedHardClaims, augmentedClaim)
+	}
+
 	// Marshal Hard claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedHardClaims)
+	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedHardClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -102,8 +108,14 @@ func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper
 		paginatedUsdxMintingClaims = usdxMintingClaims[startU:endU]
 	}
 
+	var augmentedUsdxMintingClaims types.USDXMintingClaims
+	for _, claim := range paginatedUsdxMintingClaims {
+		augmentedClaim := k.SimulateUSDXMintingSynchronization(ctx, claim)
+		augmentedUsdxMintingClaims = append(augmentedUsdxMintingClaims, augmentedClaim)
+	}
+
 	// Marshal USDX minting claims
-	bz, err := codec.MarshalJSONIndent(k.cdc, paginatedUsdxMintingClaims)
+	bz, err := codec.MarshalJSONIndent(k.cdc, augmentedUsdxMintingClaims)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

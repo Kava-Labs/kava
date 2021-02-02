@@ -23,7 +23,7 @@ var (
 	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
 	DefaultMinBlockLock      uint64  = 220
 	DefaultMaxBlockLock      uint64  = 270
-	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(0, 0))
+	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(1, 0))
 )
 
 // Params governance parameters for bep3 module
