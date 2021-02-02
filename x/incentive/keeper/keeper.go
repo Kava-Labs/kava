@@ -190,42 +190,42 @@ func (k Keeper) GetAllHardLiquidityProviderClaims(ctx sdk.Context) types.HardLiq
 	return cs
 }
 
-// SetHardSupplyRewardFactor sets the current interest factor for an individual market
-func (k Keeper) SetHardSupplyRewardFactor(ctx sdk.Context, denom string, borrowIndex sdk.Dec) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardFactorKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(borrowIndex)
+// SetHardSupplyRewardIndexes sets the current reward indexes for an individual denom
+func (k Keeper) SetHardSupplyRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(indexes)
 	store.Set([]byte(denom), bz)
 }
 
-// GetHardSupplyRewardFactor returns the current interest factor for an individual market
-func (k Keeper) GetHardSupplyRewardFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardFactorKeyPrefix)
+// GetHardSupplyRewardIndexes gets the current reward indexes for an individual denom
+func (k Keeper) GetHardSupplyRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardSupplyRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
-		return sdk.ZeroDec(), false
+		return types.RewardIndexes{}, false
 	}
-	var interestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &interestFactor)
-	return interestFactor, true
+	var rewardIndexes types.RewardIndexes
+	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
+	return rewardIndexes, true
 }
 
-// SetHardBorrowRewardFactor sets the current interest factor for an individual market
-func (k Keeper) SetHardBorrowRewardFactor(ctx sdk.Context, denom string, borrowIndex sdk.Dec) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardFactorKeyPrefix)
-	bz := k.cdc.MustMarshalBinaryBare(borrowIndex)
+// SetHardBorrowRewardIndexes sets the current reward indexes for an individual denom
+func (k Keeper) SetHardBorrowRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
+	bz := k.cdc.MustMarshalBinaryBare(indexes)
 	store.Set([]byte(denom), bz)
 }
 
-// GetHardBorrowRewardFactor returns the current interest factor for an individual market
-func (k Keeper) GetHardBorrowRewardFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardFactorKeyPrefix)
+// GetHardBorrowRewardIndexes gets the current reward indexes for an individual denom
+func (k Keeper) GetHardBorrowRewardIndexes(ctx sdk.Context, denom string) (types.RewardIndexes, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.HardBorrowRewardIndexesKeyPrefix)
 	bz := store.Get([]byte(denom))
 	if bz == nil {
-		return sdk.ZeroDec(), false
+		return types.RewardIndexes{}, false
 	}
-	var interestFactor sdk.Dec
-	k.cdc.MustUnmarshalBinaryBare(bz, &interestFactor)
-	return interestFactor, true
+	var rewardIndexes types.RewardIndexes
+	k.cdc.MustUnmarshalBinaryBare(bz, &rewardIndexes)
+	return rewardIndexes, true
 }
 
 // GetHardDelegatorRewardFactor returns the current reward factor for an individual collateral type

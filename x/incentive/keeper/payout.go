@@ -85,14 +85,17 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, addr sdk.AccAddress, multiplier
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
 	}
 
-	rewardAmount := claim.Reward.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
-	if rewardAmount.IsZero() {
-		return types.ErrZeroClaim
+	var rewardCoins sdk.Coins
+	for _, coin := range claim.Reward {
+		rewardAmount := coin.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
+		if rewardAmount.IsZero() {
+			continue
+		}
+		rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, rewardAmount))
 	}
-	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
 	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
 
-	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, rewardCoins, length)
 	if err != nil {
 		return err
 	}
