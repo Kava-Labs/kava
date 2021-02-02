@@ -301,14 +301,15 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			continue
 		}
 
+		userRewardIndexIndex, foundUserRewardIndexIndex := claim.SupplyRewardIndexes.GetRewardIndexIndex(coin.Denom)
+		if !foundUserRewardIndexIndex {
+			fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
+			continue
+		}
+
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
-			}
-			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundUserRewardIndexIndex {
-				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 
@@ -521,6 +522,7 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 	}
 
 	// Add rewards to delegator's hard claim
+	// TODO: types.HardLiquidityRewardDenom
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetHardLiquidityProviderClaim(ctx, claim)
