@@ -431,104 +431,104 @@ func (suite *KeeperTestSuite) TestSynchronizeUSDXMintingReward() {
 // 	}
 // }
 
-// func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
-// 	type args struct {
-// 		deposit              sdk.Coin
-// 		rewardsPerSecond     sdk.Coin
-// 		initialTime          time.Time
-// 		timeElapsed          int
-// 		expectedRewardFactor sdk.Dec
-// 	}
-// 	type test struct {
-// 		name string
-// 		args args
-// 	}
-// 	testCases := []test{
-// 		{
-// 			"7 seconds",
-// 			args{
-// 				deposit:              c("bnb", 1000000000000),
-// 				rewardsPerSecond:     c("hard", 122354),
-// 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-// 				timeElapsed:          7,
-// 				expectedRewardFactor: d("0.000000856478000000"),
-// 			},
-// 		},
-// 		{
-// 			"1 day",
-// 			args{
-// 				deposit:              c("bnb", 1000000000000),
-// 				rewardsPerSecond:     c("hard", 122354),
-// 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-// 				timeElapsed:          86400,
-// 				expectedRewardFactor: d("0.010571385600000000"),
-// 			},
-// 		},
-// 		{
-// 			"0 seconds",
-// 			args{
-// 				deposit:              c("bnb", 1000000000000),
-// 				rewardsPerSecond:     c("hard", 122354),
-// 				initialTime:          time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-// 				timeElapsed:          0,
-// 				expectedRewardFactor: d("0.0"),
-// 			},
-// 		},
-// 	}
-// 	for _, tc := range testCases {
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupWithGenState()
-// 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
+	type args struct {
+		deposit             sdk.Coin
+		rewardsPerSecond    sdk.Coin
+		initialTime         time.Time
+		timeElapsed         int
+		expectedRewardIndex types.RewardIndex
+	}
+	type test struct {
+		name string
+		args args
+	}
+	testCases := []test{
+		{
+			"7 seconds",
+			args{
+				deposit:             c("bnb", 1000000000000),
+				rewardsPerSecond:    c("hard", 122354),
+				initialTime:         time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:         7,
+				expectedRewardIndex: types.NewRewardIndex("hard", d("0.000000856478000000")),
+			},
+		},
+		{
+			"1 day",
+			args{
+				deposit:             c("bnb", 1000000000000),
+				rewardsPerSecond:    c("hard", 122354),
+				initialTime:         time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:         86400,
+				expectedRewardIndex: types.NewRewardIndex("hard", d("0.010571385600000000")),
+			},
+		},
+		{
+			"0 seconds",
+			args{
+				deposit:             c("bnb", 1000000000000),
+				rewardsPerSecond:    c("hard", 122354),
+				initialTime:         time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				timeElapsed:         0,
+				expectedRewardIndex: types.NewRewardIndex("hard", d("0.0")),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 
-// 			// Mint coins to hard module account
-// 			supplyKeeper := suite.app.GetSupplyKeeper()
-// 			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
-// 			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+			// Mint coins to hard module account
+			supplyKeeper := suite.app.GetSupplyKeeper()
+			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
 
-// 			// Set up incentive state
-// 			params := types.NewParams(
-// 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-// 				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
-// 				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
-// 				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-// 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
-// 				tc.args.initialTime.Add(time.Hour*24*365*5),
-// 			)
-// 			suite.keeper.SetParams(suite.ctx, params)
-// 			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
-// 			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
-// 			suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom, defaultRewardIndexes)
+			// Set up incentive state
+			params := types.NewParams(
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.deposit.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+			suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+			suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom, defaultRewardIndexes)
 
-// 			// Set up hard state (interest factor for the relevant denom)
-// 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
-// 			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
+			// Set up hard state (interest factor for the relevant denom)
+			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.deposit.Denom, sdk.MustNewDecFromStr("1.0"))
+			suite.hardKeeper.SetPreviousAccrualTime(suite.ctx, tc.args.deposit.Denom, tc.args.initialTime)
 
-// 			// User deposits to increase total supplied amount
-// 			hardKeeper := suite.app.GetHardKeeper()
-// 			userAddr := suite.addrs[3]
-// 			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
-// 			suite.Require().NoError(err)
+			// User deposits to increase total supplied amount
+			hardKeeper := suite.app.GetHardKeeper()
+			userAddr := suite.addrs[3]
+			err := hardKeeper.Deposit(suite.ctx, userAddr, sdk.NewCoins(tc.args.deposit))
+			suite.Require().NoError(err)
 
-// 			// Set up chain context at future time
-// 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
-// 			runCtx := suite.ctx.WithBlockTime(runAtTime)
+			// Set up chain context at future time
+			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
+			runCtx := suite.ctx.WithBlockTime(runAtTime)
 
-// 			// Run Hard begin blocker in order to update the denom's index factor
-// 			hard.BeginBlocker(runCtx, suite.hardKeeper)
+			// Run Hard begin blocker in order to update the denom's index factor
+			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
-// 			rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, tc.args.deposit.Denom)
-// 			suite.Require().True(found)
-// 			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
-// 			suite.Require().NoError(err)
+			rewardPeriod, found := suite.keeper.GetHardSupplyRewardPeriods(runCtx, tc.args.deposit.Denom)
+			suite.Require().True(found)
+			err = suite.keeper.AccumulateHardSupplyRewards(runCtx, rewardPeriod)
+			suite.Require().NoError(err)
 
-// 			rewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom)
-// 			suite.Require().True(found)
-// 			rewardFactor, found := rewardIndexes.GetRewardIndex(types.HardLiquidityRewardDenom)
-// 			suite.Require().True(found)
-// 			suite.Require().Equal(tc.args.expectedRewardFactor, rewardFactor)
-// 		})
-// 	}
-// }
+			rewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom)
+			suite.Require().True(found)
+			rewardIndex, found := rewardIndexes.GetRewardIndex(types.HardLiquidityRewardDenom)
+			suite.Require().True(found)
+			suite.Require().Equal(tc.args.expectedRewardIndex, rewardIndex)
+		})
+	}
+}
 
 // func (suite *KeeperTestSuite) TestSynchronizeHardSupplyReward() {
 // 	type args struct {
