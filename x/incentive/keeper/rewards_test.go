@@ -356,8 +356,8 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 			err = suite.keeper.AccumulateHardBorrowRewards(runCtx, multiRewardPeriod)
 			suite.Require().NoError(err)
 
-			// Check that each expected reward index matches the current stored reward index for theh denom
-			globalRewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
+			// Check that each expected reward index matches the current stored reward index for the denom
+			globalRewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(runCtx, tc.args.borrow.Denom)
 			suite.Require().True(found)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
@@ -602,7 +602,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			"multiple reward denoms: 7 seconds",
 			args{
 				deposit:          c("bnb", 1000000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("kava", 122354)),
+				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				timeElapsed:      7,
 				expectedRewardIndexes: types.RewardIndexes{
@@ -703,7 +703,7 @@ func (suite *KeeperTestSuite) TestAccumulateHardSupplyRewards() {
 			suite.Require().NoError(err)
 
 			// Check that each expected reward index matches the current stored reward index for theh denom
-			globalRewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(suite.ctx, tc.args.deposit.Denom)
+			globalRewardIndexes, found := suite.keeper.GetHardSupplyRewardIndexes(runCtx, tc.args.deposit.Denom)
 			suite.Require().True(found)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
