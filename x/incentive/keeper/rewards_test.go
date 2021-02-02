@@ -779,7 +779,7 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 	type args struct {
 		firstDeposit              sdk.Coins
 		secondDeposit             sdk.Coins
-		rewardsPerSecond          sdk.Coin
+		rewardsPerSecond          sdk.Coins
 		initialTime               time.Time
 		expectedSupplyIndexDenoms []string
 	}
@@ -790,31 +790,61 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 
 	testCases := []test{
 		{
-			"update adds one supply reward index",
+			"single reward denom: update adds one supply reward index",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
 				secondDeposit:             cs(c("ukava", 10000000000)),
-				rewardsPerSecond:          c("hard", 122354),
+				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb", "ukava"},
 			},
 		},
 		{
-			"update adds multiple supply reward indexes",
+			"single reward denom: update adds multiple supply reward indexes",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
 				secondDeposit:             cs(c("ukava", 10000000000), c("btcb", 10000000000), c("xrp", 10000000000)),
-				rewardsPerSecond:          c("hard", 122354),
+				rewardsPerSecond:          cs(c("hard", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb", "ukava", "btcb", "xrp"},
 			},
 		},
 		{
-			"update doesn't add duplicate supply reward index for same denom",
+			"single reward denom: update doesn't add duplicate supply reward index for same denom",
 			args{
 				firstDeposit:              cs(c("bnb", 10000000000)),
 				secondDeposit:             cs(c("bnb", 5000000000)),
-				rewardsPerSecond:          c("hard", 122354),
+				rewardsPerSecond:          cs(c("hard", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedSupplyIndexDenoms: []string{"bnb"},
+			},
+		},
+		{
+			"multiple reward denoms: update adds one supply reward index",
+			args{
+				firstDeposit:              cs(c("bnb", 10000000000)),
+				secondDeposit:             cs(c("ukava", 10000000000)),
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedSupplyIndexDenoms: []string{"bnb", "ukava"},
+			},
+		},
+		{
+			"multiple reward denoms: update adds multiple supply reward indexes",
+			args{
+				firstDeposit:              cs(c("bnb", 10000000000)),
+				secondDeposit:             cs(c("ukava", 10000000000), c("btcb", 10000000000), c("xrp", 10000000000)),
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedSupplyIndexDenoms: []string{"bnb", "ukava", "btcb", "xrp"},
+			},
+		},
+		{
+			"multiple reward denoms: update doesn't add duplicate supply reward index for same denom",
+			args{
+				firstDeposit:              cs(c("bnb", 10000000000)),
+				secondDeposit:             cs(c("bnb", 5000000000)),
+				rewardsPerSecond:          cs(c("hard", 122354), c("ukava", 122354)),
 				initialTime:               time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 				expectedSupplyIndexDenoms: []string{"bnb"},
 			},
@@ -833,10 +863,13 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			// Set up generic reward periods
 			var multiRewardPeriods types.MultiRewardPeriods
 			var rewardPeriods types.RewardPeriods
-			for _, denom := range tc.args.expectedSupplyIndexDenoms {
-				rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
-				rewardPeriods = append(rewardPeriods, rewardPeriod)
-				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), cs(tc.args.rewardsPerSecond))
+			for i, denom := range tc.args.expectedSupplyIndexDenoms {
+				// Create just one reward period for USDX Minting / Hard Delegator reward periods (otherwise params will panic on duplicate)
+				if i == 0 {
+					rewardPeriod := types.NewRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[i])
+					rewardPeriods = append(rewardPeriods, rewardPeriod)
+				}
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)
 				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
 			}
 
@@ -849,10 +882,14 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 			suite.keeper.SetParams(suite.ctx, params)
 
 			// Set each denom's previous accrual time and supply reward factor
-			defaultRewardIndexes := types.RewardIndexes{types.NewRewardIndex(types.HardLiquidityRewardDenom, sdk.ZeroDec())}
+			var rewardIndexes types.RewardIndexes
+			for _, rewardCoin := range tc.args.rewardsPerSecond {
+				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+				rewardIndexes = append(rewardIndexes, rewardIndex)
+			}
 			for _, denom := range tc.args.expectedSupplyIndexDenoms {
 				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.ctx, denom, tc.args.initialTime)
-				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, denom, defaultRewardIndexes)
+				suite.keeper.SetHardSupplyRewardIndexes(suite.ctx, denom, rewardIndexes)
 			}
 
 			// User deposits (first time)
