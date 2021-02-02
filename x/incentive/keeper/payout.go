@@ -93,8 +93,11 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, addr sdk.AccAddress, multiplier
 		}
 		rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, rewardAmount))
 	}
-	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
+	if rewardCoins.IsZero() {
+		return types.ErrZeroClaim
+	}
 
+	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
 	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, rewardCoins, length)
 	if err != nil {
 		return err
