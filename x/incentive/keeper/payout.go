@@ -202,8 +202,9 @@ func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (i
 		}
 		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(multiplier.MonthsLockup+monthOffset), 0)
 		return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
+	default:
+		return 0, types.ErrInvalidMultiplier
 	}
-	return 0, types.ErrInvalidMultiplier
 }
 
 // addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for
