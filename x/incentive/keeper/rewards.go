@@ -378,14 +378,15 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
+		userRewardIndexIndex, foundUserRewardIndexIndex := claim.BorrowRewardIndexes.GetRewardIndexIndex(coin.Denom)
+		if !foundUserRewardIndexIndex {
+			fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
+			continue
+		}
+
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
-			}
-			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
-			if !foundUserRewardIndexIndex {
-				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
 			}
 
