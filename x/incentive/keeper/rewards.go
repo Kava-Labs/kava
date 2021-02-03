@@ -523,7 +523,6 @@ func (k Keeper) SynchronizeHardDelegatorRewards(ctx sdk.Context, delegator sdk.A
 	}
 
 	// Add rewards to delegator's hard claim
-	// TODO: types.HardLiquidityRewardDenom
 	newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, rewardsEarned)
 	claim.Reward = claim.Reward.Add(newRewardsCoin)
 	k.SetHardLiquidityProviderClaim(ctx, claim)
