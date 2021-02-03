@@ -23,7 +23,7 @@ const (
 	DefaultParamspace                  = types.DefaultParamspace
 	DelegatorAccount                   = types.DelegatorAccount
 	EventTypeDeleteHardDeposit         = types.EventTypeDeleteHardDeposit
-	EventTypeDepositLiquidation        = types.EventTypeDepositLiquidation
+	EventTypeHardLiquidation           = types.EventTypeHardLiquidation
 	EventTypeHardBorrow                = types.EventTypeHardBorrow
 	EventTypeHardDelegatorDistribution = types.EventTypeHardDelegatorDistribution
 	EventTypeHardDeposit               = types.EventTypeHardDeposit
