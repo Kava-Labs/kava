@@ -95,29 +95,28 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 	}
 
 	// Seize % of every deposit and send to the keeper
-	aucDeposits := sdk.Coins{}
+	keeperRewardCoins := sdk.Coins{}
 	for _, depCoin := range deposit.Amount {
-		denom := depCoin.Denom
-		amount := depCoin.Amount
-		mm, _ := k.GetMoneyMarket(ctx, denom)
-
+		mm, _ := k.GetMoneyMarket(ctx, depCoin.Denom)
 		// No keeper rewards if liquidated by LTV index
 		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
-			keeperReward := mm.KeeperRewardPercentage.MulInt(amount).TruncateInt()
+			keeperReward := mm.KeeperRewardPercentage.MulInt(depCoin.Amount).TruncateInt()
 			if keeperReward.GT(sdk.ZeroInt()) {
 				// Send keeper their reward
-				keeperCoin := sdk.NewCoin(denom, keeperReward)
-				err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, sdk.NewCoins(keeperCoin))
-				if err != nil {
-					return err
-				}
-				amount = amount.Sub(keeperReward)
+				keeperCoin := sdk.NewCoin(depCoin.Denom, keeperReward)
+				keeperRewardCoins = append(keeperRewardCoins, keeperCoin)
 			}
 		}
-
-		// Add remaining deposit coin to aucDeposits
-		aucDeposits = aucDeposits.Add(sdk.NewCoin(denom, amount))
 	}
+	if !keeperRewardCoins.Empty() {
+		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins)
+		if err != nil {
+			return err
+		}
+	}
+
+	// All deposit amounts not given to keeper as rewards are eligible to be auctioned off
+	aucDeposits := deposit.Amount.Sub(keeperRewardCoins)
 
 	// Build valuation map to hold deposit coin USD valuations
 	depositCoinValues := types.NewValuationMap()
@@ -138,17 +137,26 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 	// Loan-to-Value ratio after sending keeper their reward
 	ltv := borrowCoinValues.Sum().Quo(depositCoinValues.Sum())
 
-	err = k.StartAuctions(ctx, deposit.Depositor, borrow.Amount, aucDeposits, depositCoinValues, borrowCoinValues, ltv, liqMap)
-	if err != nil {
-		return err
+	liquidatedCoins, err := k.StartAuctions(ctx, deposit.Depositor, borrow.Amount, aucDeposits, depositCoinValues, borrowCoinValues, ltv, liqMap)
+	// If some coins were liquidated and sent to auction prior to error, still need to emit liquidation event
+	if !liquidatedCoins.Empty() {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeHardLiquidation,
+				sdk.NewAttribute(types.AttributeKeyLiquidatedOwner, deposit.Depositor.String()),
+				sdk.NewAttribute(types.AttributeKeyLiquidatedCoins, liquidatedCoins.String()),
+				sdk.NewAttribute(types.AttributeKeyKeeper, keeper.String()),
+				sdk.NewAttribute(types.AttributeKeyKeeperRewardCoins, keeperRewardCoins.String()),
+			),
+		)
 	}
-
-	return nil
+	// Returns nil if there's no error
+	return err
 }
 
 // StartAuctions attempts to start auctions for seized assets
 func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows, deposits sdk.Coins,
-	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData) error {
+	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData) (sdk.Coins, error) {
 	// Sort keys to ensure deterministic behavior
 	bKeys := borrowCoinValues.GetSortedKeys()
 	dKeys := depositCoinValues.GetSortedKeys()
@@ -161,6 +169,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 	macc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	maccCoins := macc.SpendableCoins(ctx.BlockTime())
 
+	var liquidatedCoins sdk.Coins
 	for _, bKey := range bKeys {
 		bValue := borrowCoinValues.Get(bKey)
 		maxLotSize := bValue.Quo(ltv)
@@ -188,18 +197,20 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 
 				// Sanity check that we can deliver coins to the liquidator account
 				if deposits.AmountOf(dKey).LT(lot.Amount) {
-					return types.ErrInsufficientCoins
+					return liquidatedCoins, types.ErrInsufficientCoins
 				}
 
 				// Start auction: bid = full borrow amount, lot = maxLotSize
 				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
-					return err
+					return liquidatedCoins, err
 				}
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
-					return err
+					return liquidatedCoins, err
 				}
+				// Add lot to liquidated coins
+				liquidatedCoins = liquidatedCoins.Add(lot)
 
 				// Update USD valuation maps
 				borrowCoinValues.SetZero(bKey)
@@ -231,18 +242,20 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 
 				// Sanity check that we can deliver coins to the liquidator account
 				if deposits.AmountOf(dKey).LT(lot.Amount) {
-					return types.ErrInsufficientCoins
+					return liquidatedCoins, types.ErrInsufficientCoins
 				}
 
 				// Start auction: bid = maxBid, lot = whole deposit amount
 				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
 				if err != nil {
-					return err
+					return liquidatedCoins, err
 				}
 				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
-					return err
+					return liquidatedCoins, err
 				}
+				// Add lot to liquidated coins
+				liquidatedCoins = liquidatedCoins.Add(lot)
 
 				// Update variables to account for partial auction
 				borrowCoinValues.Decrement(bKey, maxBid)
@@ -268,12 +281,12 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 			returnCoin := sdk.NewCoins(sdk.NewCoin(dKey, remaining))
 			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, borrower, returnCoin)
 			if err != nil {
-				return err
+				return liquidatedCoins, err
 			}
 		}
 	}
 
-	return nil
+	return liquidatedCoins, nil
 }
 
 // IsWithinValidLtvRange compares a borrow and deposit to see if it's within a valid LTV range at current prices
