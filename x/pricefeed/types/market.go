@@ -135,7 +135,7 @@ func (pp PostedPrice) Validate() error {
 	if pp.Price.IsNegative() {
 		return fmt.Errorf("posted price cannot be negative %s", pp.Price)
 	}
-	if pp.Expiry.IsZero() {
+	if pp.Expiry.Unix() <= 0 {
 		return errors.New("expiry time cannot be zero")
 	}
 	return nil

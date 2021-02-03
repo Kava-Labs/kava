@@ -101,7 +101,7 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 		amount := depCoin.Amount
 		mm, _ := k.GetMoneyMarket(ctx, denom)
 
-		// No rewards for anyone if liquidated by LTV index
+		// No keeper rewards if liquidated by LTV index
 		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
 			keeperReward := mm.KeeperRewardPercentage.MulInt(amount).TruncateInt()
 			if keeperReward.GT(sdk.ZeroInt()) {
@@ -158,6 +158,9 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 	weights := []sdk.Int{sdk.NewInt(100)}
 	debt := sdk.NewCoin("debt", sdk.ZeroInt())
 
+	macc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
+	maccCoins := macc.SpendableCoins(ctx.BlockTime())
+
 	for _, bKey := range bKeys {
 		bValue := borrowCoinValues.Get(bKey)
 		maxLotSize := bValue.Quo(ltv)
@@ -168,10 +171,21 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				break // exit out of the loop if we have cleared the full amount
 			}
 
-			if dValue.GTE(maxLotSize) { // We can start an auction for the whole borrow amount
+			if dValue.GTE(maxLotSize) { // We can start an auction for the whole borrow amount]
 				bid := sdk.NewCoin(bKey, borrows.AmountOf(bKey))
+
 				lotSize := maxLotSize.MulInt(liqMap[dKey].conversionFactor).Quo(liqMap[dKey].price)
+				if lotSize.TruncateInt().Equal(sdk.ZeroInt()) {
+					continue
+				}
 				lot := sdk.NewCoin(dKey, lotSize.TruncateInt())
+
+				insufficientLotFunds := false
+				if lot.Amount.GT(maccCoins.AmountOf(dKey)) {
+					insufficientLotFunds = true
+					lot = sdk.NewCoin(lot.Denom, maccCoins.AmountOf(dKey))
+				}
+
 				// Sanity check that we can deliver coins to the liquidator account
 				if deposits.AmountOf(dKey).LT(lot.Amount) {
 					return types.ErrInsufficientCoins
@@ -192,7 +206,11 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				depositCoinValues.Decrement(dKey, maxLotSize)
 				// Update deposits, borrows
 				borrows = borrows.Sub(sdk.NewCoins(bid))
-				deposits = deposits.Sub(sdk.NewCoins(lot))
+				if insufficientLotFunds {
+					deposits = deposits.Sub(sdk.NewCoins(sdk.NewCoin(dKey, deposits.AmountOf(dKey))))
+				} else {
+					deposits = deposits.Sub(sdk.NewCoins(lot))
+				}
 				// Update max lot size
 				maxLotSize = sdk.ZeroDec()
 			} else { // We can only start an auction for the partial borrow amount
@@ -203,6 +221,12 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 
 				if bid.Amount.Equal(sdk.ZeroInt()) || lot.Amount.Equal(sdk.ZeroInt()) {
 					continue
+				}
+
+				insufficientLotFunds := false
+				if lot.Amount.GT(maccCoins.AmountOf(dKey)) {
+					insufficientLotFunds = true
+					lot = sdk.NewCoin(lot.Denom, maccCoins.AmountOf(dKey))
 				}
 
 				// Sanity check that we can deliver coins to the liquidator account
@@ -223,9 +247,14 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				// Update variables to account for partial auction
 				borrowCoinValues.Decrement(bKey, maxBid)
 				depositCoinValues.SetZero(dKey)
-				// Update deposits, borrows
+
 				borrows = borrows.Sub(sdk.NewCoins(bid))
-				deposits = deposits.Sub(sdk.NewCoins(lot))
+				if insufficientLotFunds {
+					deposits = deposits.Sub(sdk.NewCoins(sdk.NewCoin(dKey, deposits.AmountOf(dKey))))
+				} else {
+					deposits = deposits.Sub(sdk.NewCoins(lot))
+				}
+
 				// Update max lot size
 				maxLotSize = borrowCoinValues.Get(bKey).Quo(ltv)
 			}

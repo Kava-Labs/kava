@@ -156,8 +156,8 @@ func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ..
 	genesis := incentive.NewGenesisState(
 		incentive.NewParams(
 			rewardPeriods,
-			types.RewardPeriods{},
-			types.RewardPeriods{},
+			types.MultiRewardPeriods{},
+			types.MultiRewardPeriods{},
 			types.RewardPeriods{},
 			incentive.Multipliers{
 				incentive.NewMultiplier(incentive.Small, 1, d("0.25")),

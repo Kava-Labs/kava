@@ -1,4 +1,4 @@
-package v0_9
+package v0_13
 
 import (
 	"errors"
@@ -9,8 +9,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const (
-	ModuleName = "pricefeed"
+// Parameter keys
+var (
+	KeyMarkets     = []byte("Markets")
+	DefaultMarkets = Markets{}
 )
 
 // GenesisState - pricefeed state that must be provided at genesis
@@ -27,12 +29,56 @@ func NewGenesisState(p Params, pp []PostedPrice) GenesisState {
 	}
 }
 
+// DefaultGenesisState defines default GenesisState for pricefeed
+func DefaultGenesisState() GenesisState {
+	return NewGenesisState(
+		DefaultParams(),
+		[]PostedPrice{},
+	)
+}
+
+// Validate performs basic validation of genesis data returning an
+// error for any failed validation criteria.
+func (gs GenesisState) Validate() error {
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+	return gs.PostedPrices.Validate()
+}
+
+// Params params for pricefeed. Can be altered via governance
 type Params struct {
 	Markets Markets `json:"markets" yaml:"markets"` //  Array containing the markets supported by the pricefeed
 }
 
+// NewParams creates a new AssetParams object
+func NewParams(markets Markets) Params {
+	return Params{
+		Markets: markets,
+	}
+}
+
+// DefaultParams default params for pricefeed
+func DefaultParams() Params {
+	return NewParams(DefaultMarkets)
+}
+
+// Validate ensure that params have valid values
+func (p Params) Validate() error {
+	return validateMarketParams(p.Markets)
+}
+
+func validateMarketParams(i interface{}) error {
+	markets, ok := i.(Markets)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return markets.Validate()
+}
+
+// Market an asset in the pricefeed
 type Market struct {
-	// TODO: rename to ID
 	MarketID   string           `json:"market_id" yaml:"market_id"`
 	BaseAsset  string           `json:"base_asset" yaml:"base_asset"`
 	QuoteAsset string           `json:"quote_asset" yaml:"quote_asset"`
@@ -40,15 +86,15 @@ type Market struct {
 	Active     bool             `json:"active" yaml:"active"`
 }
 
-// String implement fmt.Stringer
-func (m Market) String() string {
-	return fmt.Sprintf(`Asset:
-	Market ID: %s
-	Base Asset: %s
-	Quote Asset: %s
-	Oracles: %s
-	Active: %t`,
-		m.MarketID, m.BaseAsset, m.QuoteAsset, m.Oracles, m.Active)
+// NewMarket returns a new Market
+func NewMarket(id, base, quote string, oracles []sdk.AccAddress, active bool) Market {
+	return Market{
+		MarketID:   id,
+		BaseAsset:  base,
+		QuoteAsset: quote,
+		Oracles:    oracles,
+		Active:     active,
+	}
 }
 
 // Validate performs a basic validation of the market params
@@ -94,15 +140,6 @@ func (ms Markets) Validate() error {
 	return nil
 }
 
-// String implements fmt.Stringer
-func (ms Markets) String() string {
-	out := "Markets:\n"
-	for _, m := range ms {
-		out += fmt.Sprintf("%s\n", m.String())
-	}
-	return strings.TrimSpace(out)
-}
-
 // CurrentPrice struct that contains the metadata of a current price for a particular market in the pricefeed module.
 type CurrentPrice struct {
 	MarketID string  `json:"market_id" yaml:"market_id"`
@@ -146,7 +183,7 @@ func (pp PostedPrice) Validate() error {
 	if pp.Price.IsNegative() {
 		return fmt.Errorf("posted price cannot be negative %s", pp.Price)
 	}
-	if pp.Expiry.Unix() <= 0 {
+	if pp.Expiry.IsZero() {
 		return errors.New("expiry time cannot be zero")
 	}
 	return nil
@@ -171,27 +208,4 @@ func (pps PostedPrices) Validate() error {
 	}
 
 	return nil
-}
-
-// implement fmt.Stringer
-func (cp CurrentPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
-Price: %s`, cp.MarketID, cp.Price))
-}
-
-// implement fmt.Stringer
-func (pp PostedPrice) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`Market ID: %s
-Oracle Address: %s
-Price: %s
-Expiry: %s`, pp.MarketID, pp.OracleAddress, pp.Price, pp.Expiry))
-}
-
-// String implements fmt.Stringer
-func (ps PostedPrices) String() string {
-	out := "Posted Prices:\n"
-	for _, p := range ps {
-		out += fmt.Sprintf("%s\n", p.String())
-	}
-	return strings.TrimSpace(out)
 }

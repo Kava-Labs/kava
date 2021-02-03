@@ -8,6 +8,9 @@ import (
 )
 
 const (
+	BeginningOfMonth               = keeper.BeginningOfMonth
+	MidMonth                       = keeper.MidMonth
+	PaymentHour                    = keeper.PaymentHour
 	AttributeKeyClaimAmount        = types.AttributeKeyClaimAmount
 	AttributeKeyClaimPeriod        = types.AttributeKeyClaimPeriod
 	AttributeKeyClaimType          = types.AttributeKeyClaimType
@@ -53,6 +56,8 @@ var (
 	NewHardLiquidityProviderClaim          = types.NewHardLiquidityProviderClaim
 	NewMsgClaimHardLiquidityProviderReward = types.NewMsgClaimHardLiquidityProviderReward
 	NewMsgClaimUSDXMintingReward           = types.NewMsgClaimUSDXMintingReward
+	NewMultiRewardIndex                    = types.NewMultiRewardIndex
+	NewMultiRewardPeriod                   = types.NewMultiRewardPeriod
 	NewMultiplier                          = types.NewMultiplier
 	NewParams                              = types.NewParams
 	NewPeriod                              = types.NewPeriod
@@ -70,6 +75,7 @@ var (
 	DefaultClaimEnd                                 = types.DefaultClaimEnd
 	DefaultGenesisAccumulationTimes                 = types.DefaultGenesisAccumulationTimes
 	DefaultHardClaims                               = types.DefaultHardClaims
+	DefaultMultiRewardPeriods                       = types.DefaultMultiRewardPeriods
 	DefaultMultipliers                              = types.DefaultMultipliers
 	DefaultRewardPeriods                            = types.DefaultRewardPeriods
 	DefaultUSDXClaims                               = types.DefaultUSDXClaims
@@ -84,11 +90,11 @@ var (
 	ErrRewardPeriodNotFound                         = types.ErrRewardPeriodNotFound
 	ErrZeroClaim                                    = types.ErrZeroClaim
 	GovDenom                                        = types.GovDenom
-	HardBorrowRewardFactorKeyPrefix                 = types.HardBorrowRewardFactorKeyPrefix
+	HardBorrowRewardIndexesKeyPrefix                = types.HardBorrowRewardIndexesKeyPrefix
 	HardDelegatorRewardFactorKeyPrefix              = types.HardDelegatorRewardFactorKeyPrefix
 	HardLiquidityClaimKeyPrefix                     = types.HardLiquidityClaimKeyPrefix
 	HardLiquidityRewardDenom                        = types.HardLiquidityRewardDenom
-	HardSupplyRewardFactorKeyPrefix                 = types.HardSupplyRewardFactorKeyPrefix
+	HardSupplyRewardIndexesKeyPrefix                = types.HardSupplyRewardIndexesKeyPrefix
 	IncentiveMacc                                   = types.IncentiveMacc
 	KeyClaimEnd                                     = types.KeyClaimEnd
 	KeyHardBorrowRewardPeriods                      = types.KeyHardBorrowRewardPeriods
@@ -112,6 +118,7 @@ type (
 	Keeper                              = keeper.Keeper
 	AccountKeeper                       = types.AccountKeeper
 	BaseClaim                           = types.BaseClaim
+	BaseMultiClaim                      = types.BaseMultiClaim
 	CDPHooks                            = types.CDPHooks
 	CdpKeeper                           = types.CdpKeeper
 	Claim                               = types.Claim
@@ -125,6 +132,10 @@ type (
 	HardLiquidityProviderClaims         = types.HardLiquidityProviderClaims
 	MsgClaimHardLiquidityProviderReward = types.MsgClaimHardLiquidityProviderReward
 	MsgClaimUSDXMintingReward           = types.MsgClaimUSDXMintingReward
+	MultiRewardIndex                    = types.MultiRewardIndex
+	MultiRewardIndexes                  = types.MultiRewardIndexes
+	MultiRewardPeriod                   = types.MultiRewardPeriod
+	MultiRewardPeriods                  = types.MultiRewardPeriods
 	Multiplier                          = types.Multiplier
 	MultiplierName                      = types.MultiplierName
 	Multipliers                         = types.Multipliers

@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 		borrower              sdk.AccAddress
 		initialModuleCoins    sdk.Coins
 		initialBorrowerCoins  sdk.Coins
-		depositCoins          []sdk.Coin
+		depositCoins          sdk.Coins
 		borrowCoins           sdk.Coins
 		beginBlockerTime      int64
 		ltvIndexCount         int
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 				borrower:              borrower,
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
 				beginBlockerTime:      oneMonthInSeconds,
 				ltvIndexCount:         int(10),
@@ -89,12 +89,159 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 			},
 		},
 		{
+			"valid: HARD module account starts with no coins",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.Coins{},
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 2000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8050763),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+		{
+			"valid: LTV index liquidates borrow with multiple coin types",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF))),
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF))),
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(8*BNB_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98.000001*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(98*BNB_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("bnb", 200000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 804948248),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 8004),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 128242),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              3,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 9992406),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8004766),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+		{
+			"valid: HARD module account starts with no coins, LTV index liquidates borrow with multiple coin types",
+			args{
+				borrower:              borrower,
+				initialModuleCoins:    sdk.Coins{},
+				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(100*BNB_CF))),
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF))),
+				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(8*BNB_CF))),
+				beginBlockerTime:      oneMonthInSeconds,
+				ltvIndexCount:         int(10),
+				expectedBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(98*BNB_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("bnb", 200000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("bnb", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("bnb", 805076483),
+						LotReturns:        lotReturns,
+					},
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              2,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 2000000),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("ukava", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("ukava", 8050764),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+		{
 			"invalid: borrow not over limit, LTV index does not liquidate",
 			args{
 				borrower:              borrower,
 				initialModuleCoins:    sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:  sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:          []sdk.Coin{sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))},
+				depositCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
 				borrowCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(7*KAVA_CF))),
 				beginBlockerTime:      oneMonthInSeconds,
 				ltvIndexCount:         int(10),
@@ -313,6 +460,329 @@ func (suite *KeeperTestSuite) TestIndexLiquidation() {
 
 				// Check that no auctions have been created
 				auctions := suite.auctionKeeper.GetAllAuctions(liqCtx)
+				suite.Require().True(len(auctions) == 0)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestPricefeedLiquidation() {
+	type step struct {
+		action          string
+		moveTimeForward int64 // Seconds to increase blocktime before taking action
+		sender          sdk.AccAddress
+		coins           sdk.Coins
+	}
+
+	type args struct {
+		users             []sdk.AccAddress
+		initialUserCoins  []sdk.Coins
+		steps             []step
+		liquidateUser     sdk.AccAddress
+		oracle            sdk.AccAddress
+		pricefeedMarket   string
+		pricefeedPrice    sdk.Dec
+		expectedUserCoins sdk.Coins         // additional coins (if any) the borrower address should have after successfully liquidating position
+		expectedAuctions  auctypes.Auctions // the auctions we should expect to find have been started
+	}
+
+	type errArgs struct {
+		expectLiquidate bool
+		contains        string
+	}
+
+	type liqTest struct {
+		name    string
+		args    args
+		errArgs errArgs
+	}
+
+	// Set up test constants
+	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
+	reserveFactor := sdk.MustNewDecFromStr("0.05")
+	oracle := sdk.AccAddress(crypto.AddressHash([]byte("oracleaddr")))
+
+	userOne := sdk.AccAddress(crypto.AddressHash([]byte("useraddrone")))
+	userTwo := sdk.AccAddress(crypto.AddressHash([]byte("useraddrtwo")))
+	userThree := sdk.AccAddress(crypto.AddressHash([]byte("useraddrthree")))
+	users := []sdk.AccAddress{userOne, userTwo, userThree}
+
+	// All users start with 100 KAVA, 100 USDX, 100 HARD
+	initialCoins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("hard", sdk.NewInt(100*KAVA_CF)))
+	initialUserCoins := []sdk.Coins{initialCoins, initialCoins, initialCoins}
+
+	// Set up auction constants
+	layout := "2006-01-02T15:04:05.000Z"
+	endTimeStr := "9000-01-01T00:00:00.000Z"
+	endTime, _ := time.Parse(layout, endTimeStr)
+	lotReturns, _ := auctypes.NewWeightedAddresses([]sdk.AccAddress{userOne}, []sdk.Int{sdk.NewInt(100)})
+
+	testCases := []liqTest{
+		{
+			"scenario 1: solvent",
+			args{
+				users:            users,
+				initialUserCoins: initialUserCoins,
+				steps: []step{
+					{ // User one deposits 10 KAVA
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userOne,
+						coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+					},
+					{ // User two deposits 10 USDX
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userTwo,
+						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10*KAVA_CF))),
+					},
+					{ // User one borrows 8 USDX
+						action:          "borrow",
+						moveTimeForward: 0,
+						sender:          userOne,
+						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8*KAVA_CF))),
+					},
+				},
+				liquidateUser:     userOne,
+				oracle:            oracle,
+				pricefeedMarket:   "kava:usd",
+				pricefeedPrice:    sdk.MustNewDecFromStr("0.99"),
+				expectedUserCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(90.000001*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(108*KAVA_CF)), sdk.NewCoin("hard", sdk.NewInt(100*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{ // Expect: lot = 10 KAVA, max bid = 8 USDX
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 9999999),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("usdx", 8*KAVA_CF),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+		{
+			"scenario 2: insolvent",
+			args{
+				users:            users,
+				initialUserCoins: initialUserCoins,
+				steps: []step{
+					{ // User one deposits 10 KAVA
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userOne,
+						coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))),
+					},
+					{ // User two deposits 10 USDX
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userTwo,
+						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10*KAVA_CF))),
+					},
+					{ // User one borrows 8 USDX
+						action:          "borrow",
+						moveTimeForward: 0,
+						sender:          userOne,
+						coins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(8*KAVA_CF))),
+					},
+					{ // User three deposits 20 HARD
+						action:          "deposit",
+						moveTimeForward: 0,
+						sender:          userThree,
+						coins:           sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(20*KAVA_CF))),
+					},
+					{ // User three borrows 8 KAVA
+						action:          "borrow",
+						moveTimeForward: 0,
+						sender:          userThree,
+						coins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),
+					},
+				},
+				liquidateUser:     userOne,
+				oracle:            oracle,
+				pricefeedMarket:   "kava:usd",
+				pricefeedPrice:    sdk.MustNewDecFromStr("0.99"),
+				expectedUserCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(90.000000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(108*KAVA_CF)), sdk.NewCoin("hard", sdk.NewInt(100*KAVA_CF))), // initial - deposit + borrow + liquidation leftovers
+				expectedAuctions: auctypes.Auctions{ // Expect: lot = 2 KAVA, max bid = 8 USDX
+					auctypes.CollateralAuction{
+						BaseAuction: auctypes.BaseAuction{
+							ID:              1,
+							Initiator:       "hard_liquidator",
+							Lot:             sdk.NewInt64Coin("ukava", 2*KAVA_CF),
+							Bidder:          nil,
+							Bid:             sdk.NewInt64Coin("usdx", 0),
+							HasReceivedBids: false,
+							EndTime:         endTime,
+							MaxEndTime:      endTime,
+						},
+						CorrespondingDebt: sdk.NewInt64Coin("debt", 0),
+						MaxBid:            sdk.NewInt64Coin("usdx", 8*KAVA_CF),
+						LotReturns:        lotReturns,
+					},
+				},
+			},
+			errArgs{
+				expectLiquidate: true,
+				contains:        "",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// Initialize test app and set context
+			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, abci.Header{Height: 1, Time: tmtime.Now()})
+
+			// Auth module genesis state
+			authGS := app.NewAuthGenState(users, initialUserCoins)
+
+			// Hard module genesis state
+			hardGS := types.NewGenesisState(types.NewParams(
+				types.MoneyMarkets{
+					types.NewMoneyMarket("usdx",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"usdx:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("ukava",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"kava:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+					types.NewMoneyMarket("hard",
+						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						"hard:usd",                     // Market ID
+						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdk.NewInt(100000*KAVA_CF),     // Auction Size
+						model,                          // Interest Rate Model
+						reserveFactor,                  // Reserve Factor
+						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
+				},
+				10, // LTV counter
+			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows, types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves)
+
+			// Pricefeed module genesis state
+			pricefeedGS := pricefeed.GenesisState{
+				Params: pricefeed.Params{
+					Markets: []pricefeed.Market{
+						{MarketID: "usdx:usd", BaseAsset: "usdx", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+						{MarketID: "kava:usd", BaseAsset: "kava", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+						{MarketID: "hard:usd", BaseAsset: "hard", QuoteAsset: "usd", Oracles: []sdk.AccAddress{oracle}, Active: true},
+					},
+				},
+				PostedPrices: []pricefeed.PostedPrice{
+					{
+						MarketID:      "usdx:usd",
+						OracleAddress: oracle,
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "kava:usd",
+						OracleAddress: oracle,
+						Price:         sdk.MustNewDecFromStr("2.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+					{
+						MarketID:      "hard:usd",
+						OracleAddress: oracle,
+						Price:         sdk.MustNewDecFromStr("1.00"),
+						Expiry:        time.Now().Add(100 * time.Hour),
+					},
+				},
+			}
+
+			// Initialize test application
+			tApp.InitializeFromGenesisStates(authGS,
+				app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pricefeedGS)},
+				app.GenesisState{types.ModuleName: types.ModuleCdc.MustMarshalJSON(hardGS)})
+			// Load keepers
+			auctionKeeper := tApp.GetAuctionKeeper()
+			pricefeedKeeper := tApp.GetPriceFeedKeeper()
+			keeper := tApp.GetHardKeeper()
+			// Set test suite globals
+			suite.app = tApp
+			suite.ctx = ctx
+			suite.keeper = keeper
+			suite.auctionKeeper = auctionKeeper
+			suite.pricefeedKeeper = pricefeedKeeper
+
+			var err error
+
+			// Run begin blocker to set up state
+			hard.BeginBlocker(suite.ctx, suite.keeper)
+
+			currCtx := suite.ctx
+			for _, step := range tc.args.steps {
+				currCtx = currCtx.WithBlockTime(time.Unix(currCtx.BlockTime().Unix()+(step.moveTimeForward), 0))
+				switch step.action {
+				case "deposit":
+					err = suite.keeper.Deposit(currCtx, step.sender, step.coins)
+					suite.Require().NoError(err)
+				case "borrow":
+					err = suite.keeper.Borrow(currCtx, step.sender, step.coins)
+					suite.Require().NoError(err)
+				default:
+					suite.Fail("each define action for each step")
+				}
+			}
+
+			// Update asset's price in price feed
+			expiryTime := currCtx.BlockTime().Add(100 * time.Hour)
+			_, err = suite.pricefeedKeeper.SetPrice(currCtx, tc.args.oracle, tc.args.pricefeedMarket, tc.args.pricefeedPrice, expiryTime)
+			suite.Require().NoError(err)
+			err = suite.pricefeedKeeper.SetCurrentPrices(currCtx, tc.args.pricefeedMarket)
+			suite.Require().NoError(err)
+			priceInfo, err := suite.pricefeedKeeper.GetCurrentPrice(ctx, tc.args.pricefeedMarket)
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.args.pricefeedPrice, priceInfo.Price)
+
+			// Liquidate the borrow by running begin blocker
+			hard.BeginBlocker(currCtx, suite.keeper)
+
+			if tc.errArgs.expectLiquidate {
+				// Check borrow does not exist after liquidation
+				_, foundBorrowAfter := suite.keeper.GetBorrow(currCtx, tc.args.liquidateUser)
+				suite.Require().False(foundBorrowAfter)
+				// Check deposits do not exist after liquidation
+				_, foundDepositAfter := suite.keeper.GetDeposit(currCtx, tc.args.liquidateUser)
+				suite.Require().False(foundDepositAfter)
+
+				// Check that borrower's balance contains the expected coins
+				accBorrower := suite.getAccountAtCtx(tc.args.liquidateUser, currCtx)
+				suite.Require().Equal(tc.args.expectedUserCoins, accBorrower.GetCoins())
+
+				// Check that the expected auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(currCtx)
+				suite.Require().True(len(auctions) > 0)
+				suite.Require().Equal(tc.args.expectedAuctions, auctions)
+			} else {
+				// Check that the user's borrow exists
+				_, foundBorrowAfter := suite.keeper.GetBorrow(currCtx, tc.args.liquidateUser)
+				suite.Require().True(foundBorrowAfter)
+				// Check that the user's deposits exist
+				_, foundDepositAfter := suite.keeper.GetDeposit(currCtx, tc.args.liquidateUser)
+				suite.Require().True(foundDepositAfter)
+
+				// Check that no auctions have been created
+				auctions := suite.auctionKeeper.GetAllAuctions(currCtx)
 				suite.Require().True(len(auctions) == 0)
 			}
 		})

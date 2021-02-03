@@ -77,7 +77,7 @@ func (gs GenesisState) Validate() error {
 	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if gs.PreviousBlockTime.IsZero() {
+	if gs.PreviousBlockTime.Unix() <= 0 {
 		return errors.New("previous block time cannot be 0")
 	}
 	if err := gs.RewardPeriods.Validate(); err != nil {
@@ -259,10 +259,10 @@ func NewRewardPeriod(denom string, start time.Time, end time.Time, reward sdk.Co
 
 // Validate performs a basic check of a RewardPeriod fields.
 func (rp RewardPeriod) Validate() error {
-	if rp.Start.IsZero() {
+	if rp.Start.Unix() <= 0 {
 		return errors.New("reward period start time cannot be 0")
 	}
-	if rp.End.IsZero() {
+	if rp.End.Unix() <= 0 {
 		return errors.New("reward period end time cannot be 0")
 	}
 	if rp.Start.After(rp.End) {
@@ -271,7 +271,7 @@ func (rp RewardPeriod) Validate() error {
 	if !rp.Reward.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", rp.Reward)
 	}
-	if rp.ClaimEnd.IsZero() {
+	if rp.ClaimEnd.Unix() <= 0 {
 		return errors.New("reward period claim end time cannot be 0")
 	}
 	if rp.ClaimTimeLock == 0 {
@@ -324,7 +324,7 @@ func (cp ClaimPeriod) Validate() error {
 	if cp.ID == 0 {
 		return errors.New("claim period id cannot be 0")
 	}
-	if cp.End.IsZero() {
+	if cp.End.Unix() <= 0 {
 		return errors.New("claim period end time cannot be 0")
 	}
 	if cp.TimeLock == 0 {

@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -10,6 +12,15 @@ import (
 
 	"github.com/kava-labs/kava/x/incentive/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+)
+
+const (
+	// BeginningOfMonth harvest rewards that are claimed after the 15th at 14:00UTC of the month always vest on the first of the month
+	BeginningOfMonth = 1
+	// MidMonth harvest rewards that are claimed before the 15th at 14:00UTC of the month always vest on the 15 of the month
+	MidMonth = 15
+	// PaymentHour harvest rewards always vest at 14:00UTC
+	PaymentHour = 14
 )
 
 // ClaimUSDXMintingReward sends the reward amount to the input address and zero's out the claim in the store
@@ -40,7 +51,10 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, addr sdk.AccAddress, mul
 		return types.ErrZeroClaim
 	}
 	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
-	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
+	length, err := k.GetPeriodLength(ctx, multiplier)
+	if err != nil {
+		return err
+	}
 
 	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
 	if err != nil {
@@ -85,14 +99,20 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, addr sdk.AccAddress, multiplier
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", addr)
 	}
 
-	rewardAmount := claim.Reward.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
-	if rewardAmount.IsZero() {
-		return types.ErrZeroClaim
+	var rewardCoins sdk.Coins
+	for _, coin := range claim.Reward {
+		rewardAmount := coin.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
+		if rewardAmount.IsZero() {
+			continue
+		}
+		rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, rewardAmount))
 	}
-	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
-	length := ctx.BlockTime().AddDate(0, int(multiplier.MonthsLockup), 0).Unix() - ctx.BlockTime().Unix()
+	length, err := k.GetPeriodLength(ctx, multiplier)
+	if err != nil {
+		return err
+	}
 
-	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, sdk.NewCoins(rewardCoin), length)
+	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, addr, rewardCoins, length)
 	if err != nil {
 		return err
 	}
@@ -165,6 +185,29 @@ func (k Keeper) SendTimeLockedCoinsToBaseAccount(ctx sdk.Context, senderModule s
 	pva := vesting.NewPeriodicVestingAccountRaw(bva, ctx.BlockTime().Unix(), newPeriods)
 	k.accountKeeper.SetAccount(ctx, pva)
 	return nil
+}
+
+// GetPeriodLength returns the length of the period based on the input blocktime and multiplier
+// note that pay dates are always the 1st or 15th of the month at 14:00UTC.
+func (k Keeper) GetPeriodLength(ctx sdk.Context, multiplier types.Multiplier) (int64, error) {
+
+	if multiplier.MonthsLockup == 0 {
+		return 0, nil
+	}
+	switch multiplier.Name {
+	case types.Small, types.Medium, types.Large:
+		currentDay := ctx.BlockTime().Day()
+		payDay := BeginningOfMonth
+		monthOffset := int64(1)
+		if currentDay < MidMonth || (currentDay == MidMonth && ctx.BlockTime().Hour() < PaymentHour) {
+			payDay = MidMonth
+			monthOffset = int64(0)
+		}
+		periodEndDate := time.Date(ctx.BlockTime().Year(), ctx.BlockTime().Month(), payDay, PaymentHour, 0, 0, 0, time.UTC).AddDate(0, int(multiplier.MonthsLockup+monthOffset), 0)
+		return periodEndDate.Unix() - ctx.BlockTime().Unix(), nil
+	default:
+		return 0, types.ErrInvalidMultiplier
+	}
 }
 
 // addCoinsToVestingSchedule adds coins to the input account's vesting schedule where length is the amount of time (from the current block time), in seconds, that the coins will be vesting for

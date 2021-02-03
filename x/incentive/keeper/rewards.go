@@ -19,7 +19,7 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 		k.SetPreviousUSDXMintingAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
+	timeElapsed := CalculateTimeElapsed(rewardPeriod.Start, rewardPeriod.End, ctx.BlockTime(), previousAccrualTime)
 	if timeElapsed.IsZero() {
 		return nil
 	}
@@ -51,87 +51,134 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 }
 
 // AccumulateHardBorrowRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+func (k Keeper) AccumulateHardBorrowRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
+	timeElapsed := CalculateTimeElapsed(rewardPeriod.Start, rewardPeriod.End, ctx.BlockTime(), previousAccrualTime)
 	if timeElapsed.IsZero() {
 		return nil
 	}
-	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
+	if rewardPeriod.RewardsPerSecond.IsZero() {
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
+
 	totalBorrowedCoins, foundTotalBorrowedCoins := k.hardKeeper.GetBorrowedCoins(ctx)
-	if foundTotalBorrowedCoins {
-		totalBorrowed := totalBorrowedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
-		if totalBorrowed.IsZero() {
-			k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-			return nil
-		}
-		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-		hardFactor, found := k.hardKeeper.GetBorrowInterestFactor(ctx, rewardPeriod.CollateralType)
-		if !found {
-			k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-			return nil
-		}
-		rewardFactor := newRewards.ToDec().Mul(hardFactor).Quo(totalBorrowed)
-
-		previousRewardFactor, found := k.GetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType)
-		if !found {
-			previousRewardFactor = sdk.ZeroDec()
-		}
-		newRewardFactor := previousRewardFactor.Add(rewardFactor)
-		k.SetHardBorrowRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+	if !foundTotalBorrowedCoins {
+		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
 	}
-	k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 
+	totalBorrowed := totalBorrowedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
+	if totalBorrowed.IsZero() {
+		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+
+	previousRewardIndexes, found := k.GetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType)
+	if !found {
+		for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+			rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+			previousRewardIndexes = append(previousRewardIndexes, rewardIndex)
+		}
+		k.SetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType, previousRewardIndexes)
+	}
+	hardFactor, found := k.hardKeeper.GetBorrowInterestFactor(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+
+	newRewardIndexes := previousRewardIndexes
+	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+		newRewards := rewardCoin.Amount.ToDec().Mul(timeElapsed.ToDec())
+		previousRewardIndex, found := previousRewardIndexes.GetRewardIndex(rewardCoin.Denom)
+		if !found {
+			previousRewardIndex = types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+		}
+
+		// Calculate new reward factor and update reward index
+		rewardFactor := newRewards.Mul(hardFactor).Quo(totalBorrowed)
+		newRewardFactorValue := previousRewardIndex.RewardFactor.Add(rewardFactor)
+		newRewardIndex := types.NewRewardIndex(rewardCoin.Denom, newRewardFactorValue)
+		i, found := newRewardIndexes.GetFactorIndex(rewardCoin.Denom)
+		if found {
+			newRewardIndexes[i] = newRewardIndex
+		} else {
+			newRewardIndexes = append(newRewardIndexes, newRewardIndex)
+		}
+	}
+	k.SetHardBorrowRewardIndexes(ctx, rewardPeriod.CollateralType, newRewardIndexes)
+	k.SetPreviousHardBorrowRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	return nil
 }
 
 // AccumulateHardSupplyRewards updates the rewards accumulated for the input reward period
-func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.RewardPeriod) error {
+func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
 	previousAccrualTime, found := k.GetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType)
 	if !found {
 		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
+	timeElapsed := CalculateTimeElapsed(rewardPeriod.Start, rewardPeriod.End, ctx.BlockTime(), previousAccrualTime)
 	if timeElapsed.IsZero() {
 		return nil
 	}
-	if rewardPeriod.RewardsPerSecond.Amount.IsZero() {
+	if rewardPeriod.RewardsPerSecond.IsZero() {
 		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
 
 	totalSuppliedCoins, foundTotalSuppliedCoins := k.hardKeeper.GetSuppliedCoins(ctx)
-	if foundTotalSuppliedCoins {
-		totalSupplied := totalSuppliedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
-		if totalSupplied.IsZero() {
-			k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-			return nil
-		}
-		newRewards := timeElapsed.Mul(rewardPeriod.RewardsPerSecond.Amount)
-		hardFactor, found := k.hardKeeper.GetSupplyInterestFactor(ctx, rewardPeriod.CollateralType)
-		if !found {
-			k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
-			return nil
-		}
-		rewardFactor := newRewards.ToDec().Mul(hardFactor).Quo(totalSupplied)
-
-		previousRewardFactor, found := k.GetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType)
-		if !found {
-			previousRewardFactor = sdk.ZeroDec()
-		}
-		newRewardFactor := previousRewardFactor.Add(rewardFactor)
-		k.SetHardSupplyRewardFactor(ctx, rewardPeriod.CollateralType, newRewardFactor)
+	if !foundTotalSuppliedCoins {
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
 	}
-	k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 
+	totalSupplied := totalSuppliedCoins.AmountOf(rewardPeriod.CollateralType).ToDec()
+	if totalSupplied.IsZero() {
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+
+	previousRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, rewardPeriod.CollateralType)
+	if !found {
+		for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+			rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+			previousRewardIndexes = append(previousRewardIndexes, rewardIndex)
+		}
+		k.SetHardSupplyRewardIndexes(ctx, rewardPeriod.CollateralType, previousRewardIndexes)
+	}
+	hardFactor, found := k.hardKeeper.GetSupplyInterestFactor(ctx, rewardPeriod.CollateralType)
+	if !found {
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
+		return nil
+	}
+
+	newRewardIndexes := previousRewardIndexes
+	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
+		newRewards := rewardCoin.Amount.ToDec().Mul(timeElapsed.ToDec())
+		previousRewardIndex, found := previousRewardIndexes.GetRewardIndex(rewardCoin.Denom)
+		if !found {
+			previousRewardIndex = types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
+		}
+
+		// Calculate new reward factor and update reward index
+		rewardFactor := newRewards.Mul(hardFactor).Quo(totalSupplied)
+		newRewardFactorValue := previousRewardIndex.RewardFactor.Add(rewardFactor)
+		newRewardIndex := types.NewRewardIndex(rewardCoin.Denom, newRewardFactorValue)
+		i, found := newRewardIndexes.GetFactorIndex(rewardCoin.Denom)
+		if found {
+			newRewardIndexes[i] = newRewardIndex
+		} else {
+			newRewardIndexes = append(newRewardIndexes, newRewardIndex)
+		}
+	}
+	k.SetHardSupplyRewardIndexes(ctx, rewardPeriod.CollateralType, newRewardIndexes)
+	k.SetPreviousHardSupplyRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 	return nil
 }
 
@@ -212,30 +259,23 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
 // by creating the claim and setting the supply reward factor index
 func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.Deposit) {
-	var supplyRewardIndexes types.RewardIndexes
+	var supplyRewardIndexes types.MultiRewardIndexes
 	for _, coin := range deposit.Amount {
-		_, rpFound := k.GetHardSupplyRewardPeriod(ctx, coin.Denom)
-		if !rpFound {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
-
-		supplyFactor, foundSupplyFactor := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
-		if !foundSupplyFactor {
-			supplyFactor = sdk.ZeroDec()
-		}
-
-		supplyRewardIndexes = append(supplyRewardIndexes, types.NewRewardIndex(coin.Denom, supplyFactor))
+		multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+		supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 	}
 
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if found {
 		// Reset borrow reward indexes
-		claim.BorrowRewardIndexes = types.RewardIndexes{}
+		claim.BorrowRewardIndexes = types.MultiRewardIndexes{}
 	} else {
 		// Instantiate claim object
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
 	}
 
 	claim.SupplyRewardIndexes = supplyRewardIndexes
@@ -251,33 +291,48 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 	}
 
 	for _, coin := range deposit.Amount {
-		supplyFactor, found := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
-		if !found {
-			fmt.Printf("\n[LOG]: %s does not have a supply factor", coin.Denom) // TODO: remove before production
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		supplyIndex, hasSupplyRewardIndex := claim.HasSupplyRewardIndex(coin.Denom)
-		if !hasSupplyRewardIndex {
+		userRewardIndexes, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		userRewardFactor := claim.SupplyRewardIndexes[supplyIndex].RewardFactor
-		rewardsAccumulatedFactor := supplyFactor.Sub(userRewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
-			continue
-		}
-		claim.SupplyRewardIndexes[supplyIndex].RewardFactor = supplyFactor
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				continue
+			}
+			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndexIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
+				continue
+			}
 
-		newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-		if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
-			continue
-		}
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
+				continue
+			}
 
-		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				fmt.Printf("[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
+				continue
+			}
+			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
+		}
 	}
-
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
@@ -286,24 +341,17 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil, nil)
 	}
 
-	var borrowRewardIndexes types.RewardIndexes
+	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
-		_, rpFound := k.GetHardBorrowRewardPeriod(ctx, coin.Denom)
-		if !rpFound {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
-
-		borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
-		if !foundBorrowFactor {
-			borrowFactor = sdk.ZeroDec()
-		}
-
-		borrowRewardIndexes = append(borrowRewardIndexes, types.NewRewardIndex(coin.Denom, borrowFactor))
+		multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+		borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 	}
 
 	claim.BorrowRewardIndexes = borrowRewardIndexes
@@ -319,32 +367,48 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 	}
 
 	for _, coin := range borrow.Amount {
-		borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
-		if !found {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		borrowIndex, BorrowRewardIndex := claim.HasBorrowRewardIndex(coin.Denom)
-		if !BorrowRewardIndex {
+		userRewardIndexes, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		userRewardFactor := claim.BorrowRewardIndexes[borrowIndex].RewardFactor
-		rewardsAccumulatedFactor := borrowFactor.Sub(userRewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
-			continue
-		}
-		claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				continue
+			}
+			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndexIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
+				continue
+			}
 
-		newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
-		if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
-			continue
-		}
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(coin.Denom).ToDec()).RoundInt()
+			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
+				continue
+			}
 
-		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
+				continue
+			}
+			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
+		}
 	}
-
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 }
 
@@ -352,19 +416,19 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.Deposit) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, deposit.Depositor)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(deposit.Depositor, sdk.Coins{}, nil, nil, nil)
 	}
 
 	supplyRewardIndexes := claim.SupplyRewardIndexes
 	for _, coin := range deposit.Amount {
-		_, hasIndex := claim.HasSupplyRewardIndex(coin.Denom)
-		if !hasIndex {
-			supplyFactor, foundSupplyFactor := k.GetHardSupplyRewardFactor(ctx, coin.Denom)
-			if foundSupplyFactor {
-				supplyRewardIndexes = append(supplyRewardIndexes, types.NewRewardIndex(coin.Denom, supplyFactor))
+		_, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserRewardIndexes {
+			globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+			if !foundGlobalRewardIndexes {
+				continue // No rewards for this coin type
 			}
+			multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+			supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 		}
 	}
 	if len(supplyRewardIndexes) == 0 {
@@ -378,19 +442,19 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Borrow) {
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, borrow.Borrower)
 	if !found {
-		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(borrow.Borrower, sdk.Coins{}, nil, nil, nil)
 	}
 
 	borrowRewardIndexes := claim.BorrowRewardIndexes
 	for _, coin := range borrow.Amount {
-		_, hasIndex := claim.HasBorrowRewardIndex(coin.Denom)
-		if !hasIndex {
-			borrowFactor, foundBorrowFactor := k.GetHardBorrowRewardFactor(ctx, coin.Denom)
-			if foundBorrowFactor {
-				borrowRewardIndexes = append(borrowRewardIndexes, types.NewRewardIndex(coin.Denom, borrowFactor))
+		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserRewardIndexes {
+			globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+			if !foundGlobalRewardIndexes {
+				continue // No rewards for this coin type
 			}
+			multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+			borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 		}
 	}
 	if len(borrowRewardIndexes) == 0 {
@@ -469,7 +533,7 @@ func (k Keeper) AccumulateHardDelegatorRewards(ctx sdk.Context, rewardPeriod typ
 		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, ctx.BlockTime())
 		return nil
 	}
-	timeElapsed := CalculateTimeElapsed(rewardPeriod, ctx.BlockTime(), previousAccrualTime)
+	timeElapsed := CalculateTimeElapsed(rewardPeriod.Start, rewardPeriod.End, ctx.BlockTime(), previousAccrualTime)
 	if timeElapsed.IsZero() {
 		return nil
 	}
@@ -509,9 +573,7 @@ func (k Keeper) InitializeHardDelegatorReward(ctx sdk.Context, delegator sdk.Acc
 	claim, found := k.GetHardLiquidityProviderClaim(ctx, delegator)
 	if !found {
 		// Instantiate claim object
-		claim = types.NewHardLiquidityProviderClaim(delegator,
-			sdk.NewCoin(types.HardLiquidityRewardDenom, sdk.ZeroInt()),
-			nil, nil, nil)
+		claim = types.NewHardLiquidityProviderClaim(delegator, sdk.Coins{}, nil, nil, nil)
 	}
 
 	claim.DelegatorRewardIndexes = types.RewardIndexes{delegatorRewardIndexes}
@@ -554,11 +616,11 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 		k.SynchronizeHardSupplyReward(ctx, deposit)
 	}
 
-	// Synchronize any hard liquidity borrow-side rewards
-	borrow, foundBorrow := k.hardKeeper.GetBorrow(ctx, owner)
-	if foundBorrow {
-		k.SynchronizeHardBorrowReward(ctx, borrow)
-	}
+	// // Synchronize any hard liquidity borrow-side rewards
+	// borrow, foundBorrow := k.hardKeeper.GetBorrow(ctx, owner)
+	// if foundBorrow {
+	// 	k.SynchronizeHardBorrowReward(ctx, borrow)
+	// }
 
 	// Synchronize any hard delegator rewards
 	k.SynchronizeHardDelegatorRewards(ctx, owner)
@@ -566,21 +628,25 @@ func (k Keeper) SynchronizeHardLiquidityProviderClaim(ctx sdk.Context, owner sdk
 
 // ZeroHardLiquidityProviderClaim zeroes out the claim object's rewards and returns the updated claim object
 func (k Keeper) ZeroHardLiquidityProviderClaim(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
-	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
+	var zeroRewards sdk.Coins
+	for _, coin := range claim.Reward {
+		zeroRewards = append(zeroRewards, sdk.NewCoin(coin.Denom, sdk.ZeroInt()))
+	}
+	claim.Reward = zeroRewards
 	k.SetHardLiquidityProviderClaim(ctx, claim)
 	return claim
 }
 
 // CalculateTimeElapsed calculates the number of reward-eligible seconds that have passed since the previous
 // time rewards were accrued, taking into account the end time of the reward period
-func CalculateTimeElapsed(rewardPeriod types.RewardPeriod, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
-	if rewardPeriod.End.Before(blockTime) &&
-		(rewardPeriod.End.Before(previousAccrualTime) || rewardPeriod.End.Equal(previousAccrualTime)) {
+func CalculateTimeElapsed(start, end, blockTime time.Time, previousAccrualTime time.Time) sdk.Int {
+	if end.Before(blockTime) &&
+		(end.Before(previousAccrualTime) || end.Equal(previousAccrualTime)) {
 		return sdk.ZeroInt()
 	}
-	if rewardPeriod.End.Before(blockTime) {
+	if end.Before(blockTime) {
 		return sdk.NewInt(int64(math.RoundToEven(
-			rewardPeriod.End.Sub(previousAccrualTime).Seconds(),
+			end.Sub(previousAccrualTime).Seconds(),
 		)))
 	}
 	return sdk.NewInt(int64(math.RoundToEven(
@@ -592,70 +658,100 @@ func CalculateTimeElapsed(rewardPeriod types.RewardPeriod, blockTime time.Time, 
 func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiquidityProviderClaim) types.HardLiquidityProviderClaim {
 	// 1. Simulate Hard supply-side rewards
 	for _, ri := range claim.SupplyRewardIndexes {
-		supplyFactor, found := k.GetHardSupplyRewardFactor(ctx, ri.CollateralType)
-		if !found {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, ri.CollateralType)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		supplyIndex, hasSupplyRewardIndex := claim.HasSupplyRewardIndex(ri.CollateralType)
-		if !hasSupplyRewardIndex {
-			continue
-		}
-		claim.SupplyRewardIndexes[supplyIndex].RewardFactor = supplyFactor
-
-		rewardsAccumulatedFactor := supplyFactor.Sub(ri.RewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
+		userRewardIndexes, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		deposit, found := k.hardKeeper.GetDeposit(ctx, claim.GetOwner())
-		if !found {
-			continue
-		}
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				continue
+			}
+			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndexIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
 
-		var newRewardsAmount sdk.Int
-		if deposit.Amount.AmountOf(ri.CollateralType).GT(sdk.ZeroInt()) {
-			newRewardsAmount = rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+			deposit, found := k.hardKeeper.GetDeposit(ctx, claim.GetOwner())
+			if !found {
+				continue
+			}
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				fmt.Printf("[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
+			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
-		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
 	}
 
 	// 2. Simulate Hard borrow-side rewards
 	for _, ri := range claim.BorrowRewardIndexes {
-		borrowFactor, found := k.GetHardBorrowRewardFactor(ctx, ri.CollateralType)
-		if !found {
+		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, ri.CollateralType)
+		if !foundGlobalRewardIndexes {
 			continue
 		}
 
-		borrowIndex, hasBorrowRewardIndex := claim.HasBorrowRewardIndex(ri.CollateralType)
-		if !hasBorrowRewardIndex {
-			continue
-		}
-		claim.BorrowRewardIndexes[borrowIndex].RewardFactor = borrowFactor
-
-		rewardsAccumulatedFactor := borrowFactor.Sub(ri.RewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
+		userRewardIndexes, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		borrow, found := k.hardKeeper.GetBorrow(ctx, claim.GetOwner())
-		if !found {
-			continue
-		}
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				continue
+			}
+			userRewardIndexIndex, foundUserRewardIndexIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndexIndex {
+				fmt.Printf("\n[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
 
-		var newRewardsAmount sdk.Int
-		if borrow.Amount.AmountOf(ri.CollateralType).GT(sdk.ZeroInt()) {
-			newRewardsAmount = rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+			borrow, found := k.hardKeeper.GetBorrow(ctx, claim.GetOwner())
+			if !found {
+				continue
+			}
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				fmt.Printf("[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				continue
+			}
+			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, newRewardsAmount)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
 		}
-		newRewardsCoin := sdk.NewCoin(types.HardLiquidityRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
 	}
 
 	// 3. Simulate Hard delegator rewards
