@@ -57,7 +57,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
 
 	// Update total supplied amount
-	k.DecrementBorrowedCoins(ctx, amount)
+	k.DecrementSuppliedCoins(ctx, amount)
 
 	// Call incentive hook
 	k.AfterDepositModified(ctx, deposit)
