@@ -63,26 +63,15 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	// The first time a user deposits a denom we add it the user's supply interest factor index
-	var supplyInterestFactors types.SupplyInterestFactors
+	interestFactors := types.SupplyInterestFactors{}
 	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
-	// On user's first deposit, build deposit index list containing denoms and current global deposit index value
 	if foundDeposit {
-		// If the coin denom to be deposited is not in the user's existing deposit, we add it deposit index
-		for _, coin := range coins {
-			if !sdk.NewCoins(coin).DenomsSubsetOf(currDeposit.Amount) {
-				supplyInterestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
-				supplyInterestFactor := types.NewSupplyInterestFactor(coin.Denom, supplyInterestFactorValue)
-				supplyInterestFactors = append(supplyInterestFactors, supplyInterestFactor)
-			}
-		}
-		// Concatenate new deposit interest factors to existing deposit interest factors
-		supplyInterestFactors = append(supplyInterestFactors, currDeposit.Index...)
-	} else {
-		for _, coin := range coins {
-			supplyInterestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
-			supplyInterestFactor := types.NewSupplyInterestFactor(coin.Denom, supplyInterestFactorValue)
-			supplyInterestFactors = append(supplyInterestFactors, supplyInterestFactor)
+		interestFactors = currDeposit.Index
+	}
+	for _, coin := range coins {
+		interestFactorValue, foundValue := k.GetSupplyInterestFactor(ctx, coin.Denom)
+		if foundValue {
+			interestFactors = interestFactors.SetInterestFactor(coin.Denom, interestFactorValue)
 		}
 	}
 
@@ -94,7 +83,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		amount = coins
 	}
 	// Update the depositer's amount and supply interest factors in the store
-	deposit := types.NewDeposit(depositor, amount, supplyInterestFactors)
+	deposit := types.NewDeposit(depositor, amount, interestFactors)
 
 	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
 	borrow, _ := k.GetBorrow(ctx, depositor)

@@ -49,6 +49,13 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
+	// If any coin denoms have been completely withdrawn reset the denom's supply index factor
+	for _, coin := range deposit.Amount {
+		if !sdk.NewCoins(coin).DenomsSubsetOf(proposedDeposit.Amount) {
+			deposit.Index = deposit.Index.SetInterestFactor(coin.Denom, sdk.ZeroDec())
+		}
+	}
+
 	deposit.Amount = deposit.Amount.Sub(amount)
 	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
 	if err != nil {
