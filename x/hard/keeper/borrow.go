@@ -34,6 +34,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		k.BeforeBorrowModified(ctx, existingBorrow)
 	}
 
+	k.SyncSupplyInterest(ctx, borrower)
 	k.SyncBorrowInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
