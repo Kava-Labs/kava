@@ -132,7 +132,6 @@ var (
 	ModuleCdc                        = types.ModuleCdc
 	MoneyMarketsPrefix               = types.MoneyMarketsPrefix
 	PreviousAccrualTimePrefix        = types.PreviousAccrualTimePrefix
-	PreviousBlockTimeKey             = types.PreviousBlockTimeKey
 	SuppliedCoinsPrefix              = types.SuppliedCoinsPrefix
 	SupplyInterestFactorPrefix       = types.SupplyInterestFactorPrefix
 	TotalReservesPrefix              = types.TotalReservesPrefix
