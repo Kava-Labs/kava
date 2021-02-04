@@ -60,10 +60,6 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 	} else {
 		acc := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 		accs = append(accs, acc)
-		acc = k.supplyKeeper.GetModuleAccount(ctx, types.LPAccount)
-		accs = append(accs, acc)
-		acc = k.supplyKeeper.GetModuleAccount(ctx, types.DelegatorAccount)
-		accs = append(accs, acc)
 	}
 
 	bz, err := codec.MarshalJSONIndent(k.cdc, accs)
