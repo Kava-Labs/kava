@@ -49,19 +49,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func (suite *KeeperTestSuite) TestGetSetPreviousBlockTime() {
-	now := tmtime.Now()
-
-	_, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.Require().False(f)
-
-	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, now) })
-
-	pbt, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.True(f)
-	suite.Equal(now, pbt)
-}
-
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 		types.SupplyInterestFactors{types.NewSupplyInterestFactor("", sdk.MustNewDecFromStr("0"))})

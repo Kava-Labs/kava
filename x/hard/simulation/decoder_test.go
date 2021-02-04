@@ -3,7 +3,6 @@ package simulation
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -26,11 +25,9 @@ func makeTestCodec() (cdc *codec.Codec) {
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
-	prevBlockTime := time.Now().UTC()
 	deposit := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1))), types.SupplyInterestFactors{})
 
 	kvPairs := kv.Pairs{
-		kv.Pair{Key: []byte(types.PreviousBlockTimeKey), Value: cdc.MustMarshalBinaryBare(prevBlockTime)},
 		kv.Pair{Key: []byte(types.DepositsKeyPrefix), Value: cdc.MustMarshalBinaryBare(deposit)},
 		kv.Pair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
@@ -39,7 +36,6 @@ func TestDecodeDistributionStore(t *testing.T) {
 		name        string
 		expectedLog string
 	}{
-		{"PreviousBlockTime", fmt.Sprintf("%s\n%s", prevBlockTime, prevBlockTime)},
 		{"Deposit", fmt.Sprintf("%s\n%s", deposit, deposit)},
 		{"other", ""},
 	}
