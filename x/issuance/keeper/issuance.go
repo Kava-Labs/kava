@@ -136,9 +136,7 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 	}
 	blocked, i := k.checkBlockedAddress(asset, addr)
 	if !blocked {
-		if blocked {
-			return sdkerrors.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
-		}
+		return sdkerrors.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
 	}
 
 	blockedAddrs := k.removeBlockedAddress(asset.BlockedAddresses, i)

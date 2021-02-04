@@ -114,7 +114,7 @@ func (a Asset) String() string {
 		a.Owner, a.Paused, a.Denom, a.BlockedAddresses, a.RateLimit)
 }
 
-// Assets array of Asset
+// Assets slice of Asset
 type Assets []Asset
 
 // Validate checks if all assets are valid and there are no duplicate entries
