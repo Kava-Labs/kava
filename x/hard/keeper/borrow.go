@@ -59,26 +59,15 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	// The first time a user borrows a denom we add it the user's borrow interest factor index
-	var borrowInterestFactors types.BorrowInterestFactors
+	interestFactors := types.BorrowInterestFactors{}
 	currBorrow, foundBorrow := k.GetBorrow(ctx, borrower)
-	// On user's first borrow, build borrow index list containing denoms and current global borrow index value
 	if foundBorrow {
-		// If the coin denom to be borrowed is not in the user's existing borrow, we add it borrow index
-		for _, coin := range coins {
-			if !sdk.NewCoins(coin).DenomsSubsetOf(currBorrow.Amount) {
-				borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
-				borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
-				borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
-			}
-		}
-		// Concatenate new borrow interest factors to existing borrow interest factors
-		borrowInterestFactors = append(borrowInterestFactors, currBorrow.Index...)
-	} else {
-		for _, coin := range coins {
-			borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
-			borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
-			borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
+		interestFactors = currBorrow.Index
+	}
+	for _, coin := range coins {
+		interestFactorValue, foundValue := k.GetBorrowInterestFactor(ctx, coin.Denom)
+		if foundValue {
+			interestFactors = interestFactors.SetInterestFactor(coin.Denom, interestFactorValue)
 		}
 	}
 
@@ -90,7 +79,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		amount = coins
 	}
 	// Construct the user's new/updated borrow with amount and interest factors
-	borrow := types.NewBorrow(borrower, amount, borrowInterestFactors)
+	borrow := types.NewBorrow(borrower, amount, interestFactors)
 
 	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
 	deposit, foundDeposit := k.GetDeposit(ctx, borrower)
