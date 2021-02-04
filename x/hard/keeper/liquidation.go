@@ -97,21 +97,30 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 	// Seize % of every deposit and send to the keeper
 	keeperRewardCoins := sdk.Coins{}
 	for _, depCoin := range deposit.Amount {
-		mm, _ := k.GetMoneyMarket(ctx, depCoin.Denom)
-		// No keeper rewards if liquidated by LTV index
-		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
-			keeperReward := mm.KeeperRewardPercentage.MulInt(depCoin.Amount).TruncateInt()
+		moneyMarket, foundMoneyMarket := k.GetMoneyMarket(ctx, depCoin.Denom)
+		if foundMoneyMarket {
+			keeperReward := moneyMarket.KeeperRewardPercentage.MulInt(depCoin.Amount).TruncateInt()
 			if keeperReward.GT(sdk.ZeroInt()) {
-				// Send keeper their reward
 				keeperCoin := sdk.NewCoin(depCoin.Denom, keeperReward)
 				keeperRewardCoins = append(keeperRewardCoins, keeperCoin)
 			}
 		}
 	}
 	if !keeperRewardCoins.Empty() {
-		err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins)
-		if err != nil {
-			return err
+		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
+			// Send to external keeper
+			err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, keeper, keeperRewardCoins)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Update module reserves
+			reserves, found := k.GetTotalReserves(ctx)
+			if found {
+				k.SetTotalReserves(ctx, reserves.Add(keeperRewardCoins...))
+			} else {
+				k.SetTotalReserves(ctx, keeperRewardCoins)
+			}
 		}
 	}
 
