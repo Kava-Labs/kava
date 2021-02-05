@@ -33,8 +33,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		getCmdDeposit(cdc),
 		getCmdWithdraw(cdc),
 		getCmdBorrow(cdc),
-		getCmdLiquidate(cdc),
 		getCmdRepay(cdc),
+		getCmdLiquidate(cdc),
 	)...)
 
 	return hardTxCmd
@@ -91,7 +91,7 @@ func getCmdWithdraw(cdc *codec.Codec) *cobra.Command {
 
 func getCmdBorrow(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "borrow [1000000000ukava]",
+		Use:   "borrow [amount]",
 		Short: "borrow tokens from the hard protocol",
 		Long:  strings.TrimSpace(`borrows tokens from the hard protocol`),
 		Args:  cobra.ExactArgs(1),
@@ -119,12 +119,12 @@ func getCmdBorrow(cdc *codec.Codec) *cobra.Command {
 
 func getCmdRepay(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "repay [1000000000ukava]",
+		Use:   "repay [amount] [owner]",
 		Short: "repay tokens to the hard protocol",
 		Long:  strings.TrimSpace(`repay tokens to the hard protocol`),
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		Example: fmt.Sprintf(
-			`%s tx %s repay 1000000000ukava,25000000000bnb --from <key>`, version.ClientName, types.ModuleName,
+			`%s tx %s repay 1000000000ukava,25000000000bnb kava1hgcfsuwc889wtdmt8pjy7qffua9dd2tralu64j --from <key>`, version.ClientName, types.ModuleName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -136,7 +136,12 @@ func getCmdRepay(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgRepay(cliCtx.GetFromAddress(), coins)
+			owner, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRepay(cliCtx.GetFromAddress(), owner, coins)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

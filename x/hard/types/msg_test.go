@@ -152,6 +152,7 @@ func (suite *MsgTestSuite) TestMsgBorrow() {
 func (suite *MsgTestSuite) TestMsgRepay() {
 	type args struct {
 		sender sdk.AccAddress
+		owner  sdk.AccAddress
 		amount sdk.Coins
 	}
 	addrs := []sdk.AccAddress{
@@ -167,6 +168,7 @@ func (suite *MsgTestSuite) TestMsgRepay() {
 			name: "valid",
 			args: args{
 				sender: addrs[0],
+				owner:  addrs[0],
 				amount: sdk.NewCoins(sdk.NewCoin("test", sdk.NewInt(1000000))),
 			},
 			expectPass:  true,
@@ -175,7 +177,7 @@ func (suite *MsgTestSuite) TestMsgRepay() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			msg := types.NewMsgRepay(tc.args.sender, tc.args.amount)
+			msg := types.NewMsgRepay(tc.args.sender, tc.args.owner, tc.args.amount)
 			err := msg.ValidateBasic()
 			if tc.expectPass {
 				suite.NoError(err)
