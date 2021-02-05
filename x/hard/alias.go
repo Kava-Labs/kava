@@ -21,7 +21,6 @@ const (
 	AttributeKeySender                 = types.AttributeKeySender
 	AttributeValueCategory             = types.AttributeValueCategory
 	DefaultParamspace                  = types.DefaultParamspace
-	DelegatorAccount                   = types.DelegatorAccount
 	EventTypeDeleteHardDeposit         = types.EventTypeDeleteHardDeposit
 	EventTypeHardLiquidation           = types.EventTypeHardLiquidation
 	EventTypeHardBorrow                = types.EventTypeHardBorrow
@@ -30,7 +29,6 @@ const (
 	EventTypeHardLPDistribution        = types.EventTypeHardLPDistribution
 	EventTypeHardRepay                 = types.EventTypeHardRepay
 	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
-	LPAccount                          = types.LPAccount
 	LiquidatorAccount                  = types.LiquidatorAccount
 	ModuleAccountName                  = types.ModuleAccountName
 	ModuleName                         = types.ModuleName

@@ -8,12 +8,6 @@ const (
 	// ModuleName name that will be used throughout the module
 	ModuleName = "hard"
 
-	// LPAccount LP distribution module account
-	LPAccount = "hard_lp_distribution"
-
-	// DelegatorAccount delegator distribution module account
-	DelegatorAccount = "hard_delegator_distribution"
-
 	// LiquidatorAccount module account for liquidator
 	LiquidatorAccount = "hard_liquidator"
 

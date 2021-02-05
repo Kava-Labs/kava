@@ -102,8 +102,6 @@ var (
 		bep3.ModuleName:             {supply.Minter, supply.Burner},
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
-		hard.LPAccount:              {supply.Minter, supply.Burner},
-		hard.DelegatorAccount:       {supply.Minter, supply.Burner},
 		hard.ModuleAccountName:      {supply.Minter, supply.Burner},
 		hard.LiquidatorAccount:      {supply.Minter, supply.Burner},
 	}
