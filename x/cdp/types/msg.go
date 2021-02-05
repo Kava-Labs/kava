@@ -16,6 +16,7 @@ var (
 	_ sdk.Msg = &MsgWithdraw{}
 	_ sdk.Msg = &MsgDrawDebt{}
 	_ sdk.Msg = &MsgRepayDebt{}
+	_ sdk.Msg = &MsgLiquidate{}
 )
 
 // MsgCreateCDP creates a cdp

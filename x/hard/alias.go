@@ -23,7 +23,7 @@ const (
 	DefaultParamspace                  = types.DefaultParamspace
 	DelegatorAccount                   = types.DelegatorAccount
 	EventTypeDeleteHardDeposit         = types.EventTypeDeleteHardDeposit
-	EventTypeDepositLiquidation        = types.EventTypeDepositLiquidation
+	EventTypeHardLiquidation           = types.EventTypeHardLiquidation
 	EventTypeHardBorrow                = types.EventTypeHardBorrow
 	EventTypeHardDelegatorDistribution = types.EventTypeHardDelegatorDistribution
 	EventTypeHardDeposit               = types.EventTypeHardDeposit
@@ -132,7 +132,6 @@ var (
 	ModuleCdc                        = types.ModuleCdc
 	MoneyMarketsPrefix               = types.MoneyMarketsPrefix
 	PreviousAccrualTimePrefix        = types.PreviousAccrualTimePrefix
-	PreviousBlockTimeKey             = types.PreviousBlockTimeKey
 	SuppliedCoinsPrefix              = types.SuppliedCoinsPrefix
 	SupplyInterestFactorPrefix       = types.SupplyInterestFactorPrefix
 	TotalReservesPrefix              = types.TotalReservesPrefix

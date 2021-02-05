@@ -107,6 +107,9 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, addr sdk.AccAddress, multiplier
 		}
 		rewardCoins = append(rewardCoins, sdk.NewCoin(coin.Denom, rewardAmount))
 	}
+	if rewardCoins.IsZero() {
+		return types.ErrZeroClaim
+	}
 	length, err := k.GetPeriodLength(ctx, multiplier)
 	if err != nil {
 		return err

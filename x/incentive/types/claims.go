@@ -458,6 +458,16 @@ func (mris MultiRewardIndexes) GetRewardIndex(denom string) (MultiRewardIndex, b
 	return MultiRewardIndex{}, false
 }
 
+// GetRewardIndexIndex fetches a specific reward index inside the array by its denom
+func (mris MultiRewardIndexes) GetRewardIndexIndex(denom string) (int, bool) {
+	for i, ri := range mris {
+		if ri.CollateralType == denom {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
 // Validate validation for reward indexes
 func (mris MultiRewardIndexes) Validate() error {
 	for _, mri := range mris {

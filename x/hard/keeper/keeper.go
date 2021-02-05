@@ -54,23 +54,6 @@ func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
 	return k
 }
 
-// GetPreviousBlockTime get the blocktime for the previous block
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get([]byte{})
-	if b == nil {
-		return time.Time{}, false
-	}
-	k.cdc.MustUnmarshalBinaryBare(b, &blockTime)
-	return blockTime, true
-}
-
-// SetPreviousBlockTime set the time of the previous block
-func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryBare(blockTime))
-}
-
 // GetDeposit returns a deposit from the store for a particular depositor address, deposit denom
 func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (types.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)

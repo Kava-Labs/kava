@@ -56,17 +56,22 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 		if !found {
 			supply = k.CreateNewAssetSupply(ctx, asset.Denom)
 		}
-		if asset.RateLimit.Active {
-			if asset.RateLimit.TimePeriod <= supply.TimeElapsed+timeElapsed {
-				supply.TimeElapsed = time.Duration(0)
-				supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
-			} else {
-				supply.TimeElapsed = supply.TimeElapsed + timeElapsed
-			}
-		} else {
+		if !asset.RateLimit.Active {
+			// rate limiting is not active, reset supply
 			supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
 			supply.TimeElapsed = time.Duration(0)
+			k.SetAssetSupply(ctx, supply, asset.Denom)
+			continue
 		}
+		if asset.RateLimit.TimePeriod > supply.TimeElapsed+timeElapsed {
+			// rate limiting is active, the rate-limiting period has not expired
+			supply.TimeElapsed = supply.TimeElapsed + timeElapsed
+			k.SetAssetSupply(ctx, supply, asset.Denom)
+			continue
+		}
+		// rate limiting is active, the rate-limiting period has expired, and is now reset
+		supply.TimeElapsed = time.Duration(0)
+		supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
 		k.SetAssetSupply(ctx, supply, asset.Denom)
 	}
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
