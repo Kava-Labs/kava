@@ -43,6 +43,17 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 		return err
 	}
 
+	// If any coin denoms have been completely repaid reset the denom's borrow index factor
+	for _, coin := range payment {
+		if coin.Amount.Equal(borrow.Amount.AmountOf(coin.Denom)) {
+			borrowIndex, removed := borrow.Index.RemoveInterestFactor(coin.Denom)
+			if !removed {
+				return sdkerrors.Wrapf(types.ErrInvalidIndexFactorDenom, "%s", coin.Denom)
+			}
+			borrow.Index = borrowIndex
+		}
+	}
+
 	// Update user's borrow in store
 	borrow.Amount = borrow.Amount.Sub(payment)
 
