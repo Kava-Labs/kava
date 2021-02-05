@@ -122,6 +122,16 @@ func (bifs BorrowInterestFactors) SetInterestFactor(denom string, factor sdk.Dec
 	return append(bifs, NewBorrowInterestFactor(denom, factor))
 }
 
+// RemoveInterestFactor removes a denom's interest factor value
+func (bifs BorrowInterestFactors) RemoveInterestFactor(denom string) (BorrowInterestFactors, bool) {
+	for i, bif := range bifs {
+		if bif.Denom == denom {
+			return append(bifs[:i], bifs[i+1:]...), true
+		}
+	}
+	return bifs, false
+}
+
 // Validate validates BorrowInterestFactors
 func (bifs BorrowInterestFactors) Validate() error {
 	for _, bif := range bifs {

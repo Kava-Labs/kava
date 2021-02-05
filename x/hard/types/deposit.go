@@ -122,6 +122,16 @@ func (sifs SupplyInterestFactors) SetInterestFactor(denom string, factor sdk.Dec
 	return append(sifs, NewSupplyInterestFactor(denom, factor))
 }
 
+// RemoveInterestFactor removes a denom's interest factor value
+func (sifs SupplyInterestFactors) RemoveInterestFactor(denom string) (SupplyInterestFactors, bool) {
+	for i, sif := range sifs {
+		if sif.Denom == denom {
+			return append(sifs[:i], sifs[i+1:]...), true
+		}
+	}
+	return sifs, false
+}
+
 // Validate validates SupplyInterestFactors
 func (sifs SupplyInterestFactors) Validate() error {
 	for _, sif := range sifs {
