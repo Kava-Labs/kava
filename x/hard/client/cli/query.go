@@ -142,8 +142,6 @@ func queryDepositsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = depositOwner
 			}
 
-			// Note: The 10 users with the lowest LTV ratio have their outstanding interest applied each block, so if
-			// testing with 10 or less addresses they'll all show their latest balance including outstanding interest.
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
@@ -203,8 +201,6 @@ func queryBorrowsCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 				owner = borrowOwner
 			}
 
-			// Note: The 10 users with the lowest LTV ratio have their outstanding debt applied each block, so if
-			// testing with 10 or less addresses they'll all show their latest balance including outstanding debt.
 			page := viper.GetInt(flags.FlagPage)
 			limit := viper.GetInt(flags.FlagLimit)
 
