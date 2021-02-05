@@ -86,5 +86,5 @@ func TestMigrateIncentive(t *testing.T) {
 	fmt.Printf("Number of incentive claims in kava-4: %d\nNumber of incentive Claims in kava-5: %d\n",
 		len(oldIncentiveGenState.Claims), len(newGenState.USDXMintingClaims),
 	)
-	fmt.Printf("Number of harvest claims: %d\n", len(oldHarvestGenState.Claims))
+	fmt.Printf("Number of harvest claims in kava-4: %d\nNumber of hard claims in kava-5: %d\n", len(oldHarvestGenState.Claims), len(newGenState.HardLiquidityProviderClaims))
 }

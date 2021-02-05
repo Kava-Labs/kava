@@ -179,12 +179,12 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 		usdxMintingRewardPeriods = append(usdxMintingRewardPeriods, newRP)
 	}
 
-	hardSupplyRewardPeriods := v0_13incentive.RewardPeriods{}
+	hardSupplyRewardPeriods := v0_13incentive.MultiRewardPeriods{}
 	for _, rp := range hardGS.Params.LiquidityProviderSchedules {
-		newRP := v0_13incentive.NewRewardPeriod(true, rp.DepositDenom, rp.Start, rp.End, rp.RewardsPerSecond)
+		newRP := v0_13incentive.NewMultiRewardPeriod(true, rp.DepositDenom, rp.Start, rp.End, sdk.NewCoins(rp.RewardsPerSecond))
 		hardSupplyRewardPeriods = append(hardSupplyRewardPeriods, newRP)
 	}
-	hardBorrowRewardPeriods := v0_13incentive.RewardPeriods{}
+	hardBorrowRewardPeriods := v0_13incentive.MultiRewardPeriods{}
 	hardDelegatorRewardPeriods := v0_13incentive.RewardPeriods{}
 	for _, rp := range hardGS.Params.DelegatorDistributionSchedules {
 		newRP := v0_13incentive.NewRewardPeriod(rp.DistributionSchedule.Active, rp.DistributionSchedule.DepositDenom, rp.DistributionSchedule.Start, rp.DistributionSchedule.End, rp.DistributionSchedule.RewardsPerSecond)
@@ -233,7 +233,7 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 			newClaim = v0_13incentive.NewUSDXMintingClaim(claim.Owner, claim.Reward, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec())})
 		} else {
 			newClaim.Reward = newClaim.Reward.Add(claim.Reward)
-			_, found := newClaim.RewardIndexes.GetIndex(claim.CollateralType)
+			_, found := newClaim.RewardIndexes.GetRewardIndex(claim.CollateralType)
 			if !found {
 				newClaim.RewardIndexes = append(newClaim.RewardIndexes, v0_13incentive.NewRewardIndex(claim.CollateralType, sdk.ZeroDec()))
 			}
@@ -255,24 +255,24 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 			// if claim.Type == "stake" -- hard delegator
 			// hard barrow always empty
 			delegatorIndexes := v0_13incentive.RewardIndexes{}
-			supplyIndexes := v0_13incentive.RewardIndexes{}
-			borrowIndexes := v0_13incentive.RewardIndexes{}
+			supplyIndexes := v0_13incentive.MultiRewardIndexes{}
+			borrowIndexes := v0_13incentive.MultiRewardIndexes{}
 			if claim.Type == v0_11hard.Stake {
 				delegatorIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
 			}
 			if claim.Type == v0_11hard.LP {
-				supplyIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
+				supplyIndexes = v0_13incentive.MultiRewardIndexes{v0_13incentive.NewMultiRewardIndex(claim.DepositDenom, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex("hard", sdk.ZeroDec())})}
 			}
-			newClaim = v0_13incentive.NewHardLiquidityProviderClaim(claim.Owner, claim.Amount, supplyIndexes, borrowIndexes, delegatorIndexes)
+			newClaim = v0_13incentive.NewHardLiquidityProviderClaim(claim.Owner, sdk.NewCoins(claim.Amount), supplyIndexes, borrowIndexes, delegatorIndexes)
 		} else {
-			newClaim.Reward = claim.Amount
+			newClaim.Reward = sdk.NewCoins(claim.Amount)
 			if claim.Type == v0_11hard.Stake {
 				newClaim.DelegatorRewardIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
 			}
 			if claim.Type == v0_11hard.LP {
-				_, found := newClaim.SupplyRewardIndexes.GetIndex(claim.DepositDenom)
+				_, found := newClaim.SupplyRewardIndexes.GetRewardIndex(claim.DepositDenom)
 				if !found {
-					newClaim.SupplyRewardIndexes = append(newClaim.SupplyRewardIndexes, v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec()))
+					newClaim.SupplyRewardIndexes = append(newClaim.SupplyRewardIndexes, v0_13incentive.NewMultiRewardIndex(claim.DepositDenom, v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex("hard", sdk.ZeroDec())}))
 				}
 			}
 		}
