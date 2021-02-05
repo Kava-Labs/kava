@@ -18,6 +18,12 @@ const (
 	// ModuleName name that will be used throughout the module
 	ModuleName = "harvest"
 
+	// LPAccount LP distribution module account
+	LPAccount = "harvest_lp_distribution"
+
+	// DelegatorAccount delegator distribution module account
+	DelegatorAccount = "harvest_delegator_distribution"
+
 	// ModuleAccountName name of module account used to hold deposits
 	ModuleAccountName = "harvest"
 )

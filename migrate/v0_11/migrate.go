@@ -595,13 +595,13 @@ func MigrateAuth(oldGenState v38_5auth.GenesisState) v39_1auth.GenesisState {
 	}
 
 	// ---- add harvest module accounts -------
-	lpMacc := v39_1supply.NewEmptyModuleAccount("hard_lp_distribution", v39_1supply.Minter, v39_1supply.Burner)
+	lpMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.LPAccount, v39_1supply.Minter, v39_1supply.Burner)
 	err = lpMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(80000000000000))))
 	if err != nil {
 		panic(err)
 	}
 	newAccounts = append(newAccounts, v39_1authexported.GenesisAccount(lpMacc))
-	delegatorMacc := v39_1supply.NewEmptyModuleAccount("hard_delegator_distribution", v39_1supply.Minter, v39_1supply.Burner)
+	delegatorMacc := v39_1supply.NewEmptyModuleAccount(v0_11harvest.DelegatorAccount, v39_1supply.Minter, v39_1supply.Burner)
 	err = delegatorMacc.SetCoins(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(40000000000000))))
 	if err != nil {
 		panic(err)
