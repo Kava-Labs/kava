@@ -9,12 +9,6 @@ import (
 
 // Repay borrowed funds
 func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, sender)
-	if err != nil {
-		return err
-	}
-
 	// Check borrow exists here to avoid duplicating store read in ValidateRepay
 	borrow, found := k.GetBorrow(ctx, sender)
 	if !found {
@@ -27,7 +21,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	k.SyncBorrowInterest(ctx, sender)
 
 	// Validate requested repay
-	err = k.ValidateRepay(ctx, sender, coins)
+	err := k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
 		return err
 	}
@@ -57,17 +51,11 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	// Update user's borrow in store
 	borrow.Amount = borrow.Amount.Sub(payment)
 
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
-	deposit, foundDeposit := k.GetDeposit(ctx, sender)
-	if !foundDeposit {
-		return types.ErrDepositNotFound
+	if borrow.Amount.Empty() {
+		k.DeleteBorrow(ctx, borrow)
+	} else {
+		k.SetBorrow(ctx, borrow)
 	}
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
-	}
-
-	k.UpdateBorrowAndLtvIndex(ctx, borrow, newLtv, prevLtv)
 
 	// Update total borrowed amount
 	k.DecrementBorrowedCoins(ctx, payment)
