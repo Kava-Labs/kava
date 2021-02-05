@@ -84,7 +84,7 @@ func handleMsgBorrow(ctx sdk.Context, k keeper.Keeper, msg types.MsgBorrow) (*sd
 }
 
 func handleMsgRepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgRepay) (*sdk.Result, error) {
-	err := k.Repay(ctx, msg.Owner, msg.Amount)
+	err := k.Repay(ctx, msg.Sender, msg.Owner, msg.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,6 @@ func handleMsgRepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgRepay) (*sdk.
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.Owner.String()),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	)

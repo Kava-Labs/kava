@@ -8,15 +8,15 @@ import (
 )
 
 // Repay borrowed funds
-func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.Coins) error {
 	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, sender)
+	prevLtv, err := k.GetStoreLTV(ctx, owner)
 	if err != nil {
 		return err
 	}
 
 	// Check borrow exists here to avoid duplicating store read in ValidateRepay
-	borrow, found := k.GetBorrow(ctx, sender)
+	borrow, found := k.GetBorrow(ctx, owner)
 	if !found {
 		return types.ErrBorrowNotFound
 	}
@@ -24,9 +24,9 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	k.BeforeBorrowModified(ctx, borrow)
 
 	// Sync borrow interest so loan is up-to-date
-	k.SyncBorrowInterest(ctx, sender)
+	k.SyncBorrowInterest(ctx, owner)
 
-	// Validate requested repay
+	// Validate that sender holds coins for repayment
 	err = k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
 		return err
@@ -81,6 +81,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 		sdk.NewEvent(
 			types.EventTypeHardRepay,
 			sdk.NewAttribute(types.AttributeKeySender, sender.String()),
+			sdk.NewAttribute(types.AttributeKeyOwner, owner.String()),
 			sdk.NewAttribute(types.AttributeKeyRepayCoins, payment.String()),
 		),
 	)
