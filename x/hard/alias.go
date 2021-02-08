@@ -55,7 +55,6 @@ var (
 	DefaultGenesisState           = types.DefaultGenesisState
 	DefaultParams                 = types.DefaultParams
 	DepositTypeIteratorKey        = types.DepositTypeIteratorKey
-	GetBorrowByLtvKey             = types.GetBorrowByLtvKey
 	GetTotalVestingPeriodLength   = types.GetTotalVestingPeriodLength
 	NewBorrow                     = types.NewBorrow
 	NewBorrowInterestFactor       = types.NewBorrowInterestFactor
@@ -89,7 +88,6 @@ var (
 	BorrowsKeyPrefix                 = types.BorrowsKeyPrefix
 	DefaultAccumulationTimes         = types.DefaultAccumulationTimes
 	DefaultBorrows                   = types.DefaultBorrows
-	DefaultCheckLtvIndexCount        = types.DefaultCheckLtvIndexCount
 	DefaultDeposits                  = types.DefaultDeposits
 	DefaultMoneyMarkets              = types.DefaultMoneyMarkets
 	DefaultTotalBorrowed             = types.DefaultTotalBorrowed
@@ -124,9 +122,7 @@ var (
 	ErrPriceNotFound                 = types.ErrPriceNotFound
 	ErrSuppliedCoinsNotFound         = types.ErrSuppliedCoinsNotFound
 	GovDenom                         = types.GovDenom
-	KeyCheckLtvIndexCount            = types.KeyCheckLtvIndexCount
 	KeyMoneyMarkets                  = types.KeyMoneyMarkets
-	LtvIndexPrefix                   = types.LtvIndexPrefix
 	ModuleCdc                        = types.ModuleCdc
 	MoneyMarketsPrefix               = types.MoneyMarketsPrefix
 	PreviousAccrualTimePrefix        = types.PreviousAccrualTimePrefix

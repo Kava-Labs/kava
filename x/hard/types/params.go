@@ -11,23 +11,20 @@ import (
 
 // Parameter keys and default values
 var (
-	KeyMoneyMarkets           = []byte("MoneyMarkets")
-	KeyCheckLtvIndexCount     = []byte("CheckLtvIndexCount")
-	DefaultMoneyMarkets       = MoneyMarkets{}
-	DefaultCheckLtvIndexCount = 10
-	GovDenom                  = cdptypes.DefaultGovDenom
-	DefaultAccumulationTimes  = GenesisAccumulationTimes{}
-	DefaultTotalSupplied      = sdk.Coins{}
-	DefaultTotalBorrowed      = sdk.Coins{}
-	DefaultTotalReserves      = sdk.Coins{}
-	DefaultDeposits           = Deposits{}
-	DefaultBorrows            = Borrows{}
+	KeyMoneyMarkets          = []byte("MoneyMarkets")
+	DefaultMoneyMarkets      = MoneyMarkets{}
+	GovDenom                 = cdptypes.DefaultGovDenom
+	DefaultAccumulationTimes = GenesisAccumulationTimes{}
+	DefaultTotalSupplied     = sdk.Coins{}
+	DefaultTotalBorrowed     = sdk.Coins{}
+	DefaultTotalReserves     = sdk.Coins{}
+	DefaultDeposits          = Deposits{}
+	DefaultBorrows           = Borrows{}
 )
 
 // Params governance parameters for hard module
 type Params struct {
-	MoneyMarkets       MoneyMarkets `json:"money_markets" yaml:"money_markets"`
-	CheckLtvIndexCount int          `json:"check_ltv_index_count" yaml:"check_ltv_index_count"`
+	MoneyMarkets MoneyMarkets `json:"money_markets" yaml:"money_markets"`
 }
 
 // BorrowLimit enforces restrictions on a money market
@@ -232,24 +229,22 @@ func (irm InterestRateModel) Equal(irmCompareTo InterestRateModel) bool {
 type InterestRateModels []InterestRateModel
 
 // NewParams returns a new params object
-func NewParams(moneyMarkets MoneyMarkets, checkLtvIndexCount int) Params {
+func NewParams(moneyMarkets MoneyMarkets) Params {
 	return Params{
-		MoneyMarkets:       moneyMarkets,
-		CheckLtvIndexCount: checkLtvIndexCount,
+		MoneyMarkets: moneyMarkets,
 	}
 }
 
 // DefaultParams returns default params for hard module
 func DefaultParams() Params {
-	return NewParams(DefaultMoneyMarkets, DefaultCheckLtvIndexCount)
+	return NewParams(DefaultMoneyMarkets)
 }
 
 // String implements fmt.Stringer
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
-	Money Markets %v
-	Check LTV Index Count: %v`,
-		p.MoneyMarkets, p.CheckLtvIndexCount)
+	Money Markets %v`,
+		p.MoneyMarkets)
 }
 
 // ParamKeyTable Key declaration for parameters
@@ -261,18 +256,12 @@ func ParamKeyTable() params.KeyTable {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyMoneyMarkets, &p.MoneyMarkets, validateMoneyMarketParams),
-		params.NewParamSetPair(KeyCheckLtvIndexCount, &p.CheckLtvIndexCount, validateCheckLtvIndexCount),
 	}
 }
 
 // Validate checks that the parameters have valid values.
 func (p Params) Validate() error {
-
-	if err := validateMoneyMarketParams(p.MoneyMarkets); err != nil {
-		return err
-	}
-
-	return validateCheckLtvIndexCount(p.CheckLtvIndexCount)
+	return validateMoneyMarketParams(p.MoneyMarkets)
 }
 
 func validateMoneyMarketParams(i interface{}) error {
@@ -282,17 +271,4 @@ func validateMoneyMarketParams(i interface{}) error {
 	}
 
 	return mm.Validate()
-}
-
-func validateCheckLtvIndexCount(i interface{}) error {
-	ltvCheckCount, ok := i.(int)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if ltvCheckCount < 0 {
-		return fmt.Errorf("CheckLtvIndexCount param must be positive, got: %d", ltvCheckCount)
-	}
-
-	return nil
 }

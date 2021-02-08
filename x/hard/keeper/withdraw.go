@@ -9,18 +9,16 @@ import (
 
 // Withdraw returns some or all of a deposit back to original depositor
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, depositor)
-	if err != nil {
-		return err
-	}
-
 	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
-	// Call incentive hook
+	// Call incentive hooks
 	k.BeforeDepositModified(ctx, deposit)
+	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
+	if hasExistingBorrow {
+		k.BeforeBorrowModified(ctx, existingBorrow)
+	}
 
 	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
@@ -61,12 +59,11 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	}
 
 	deposit.Amount = deposit.Amount.Sub(amount)
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
+	if deposit.Amount.Empty() {
+		k.DeleteDeposit(ctx, deposit)
+	} else {
+		k.SetDeposit(ctx, deposit)
 	}
-	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
-
 	// Update total supplied amount
 	k.DecrementSuppliedCoins(ctx, amount)
 
