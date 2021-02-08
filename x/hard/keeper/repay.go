@@ -21,7 +21,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	k.SyncBorrowInterest(ctx, owner)
 
 	// Validate that sender holds coins for repayment
-	err = k.ValidateRepay(ctx, sender, coins)
+	err := k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
 		return err
 	}
