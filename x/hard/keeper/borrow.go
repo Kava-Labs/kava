@@ -22,13 +22,11 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, borrower)
-	if err != nil {
-		return err
+	// Call incentive hooks
+	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, borrower)
+	if hasExistingDeposit {
+		k.BeforeDepositModified(ctx, existingDeposit)
 	}
-
-	// Call incentive hook
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
 	if hasExistingBorrow {
 		k.BeforeBorrowModified(ctx, existingBorrow)
@@ -38,7 +36,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	k.SyncBorrowInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
-	err = k.ValidateBorrow(ctx, borrower, coins)
+	err := k.ValidateBorrow(ctx, borrower, coins)
 	if err != nil {
 		return err
 	}
@@ -79,20 +77,14 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	} else {
 		amount = coins
 	}
+
 	// Construct the user's new/updated borrow with amount and interest factors
 	borrow := types.NewBorrow(borrower, amount, interestFactors)
-
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
-	deposit, foundDeposit := k.GetDeposit(ctx, borrower)
-	if !foundDeposit {
-		return types.ErrDepositNotFound
+	if borrow.Amount.Empty() {
+		k.DeleteBorrow(ctx, borrow)
+	} else {
+		k.SetBorrow(ctx, borrow)
 	}
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
-	}
-
-	k.UpdateBorrowAndLtvIndex(ctx, borrow, newLtv, prevLtv)
 
 	// Update total borrowed amount by newly borrowed coins. Don't add user's pending interest as
 	// it has already been included in the total borrowed coins by the BeginBlocker.

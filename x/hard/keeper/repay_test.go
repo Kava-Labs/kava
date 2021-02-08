@@ -155,7 +155,6 @@ func (suite *KeeperTestSuite) TestRepay() {
 						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
-				0, // LTV counter
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)

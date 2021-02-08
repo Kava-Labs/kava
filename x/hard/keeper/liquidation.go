@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -16,29 +14,8 @@ type LiqData struct {
 	conversionFactor sdk.Int
 }
 
-// AttemptIndexLiquidations attempts to liquidate the lowest LTV borrows
-func (k Keeper) AttemptIndexLiquidations(ctx sdk.Context) error {
-	params := k.GetParams(ctx)
-	borrowers := k.GetLtvIndexSlice(ctx, params.CheckLtvIndexCount)
-
-	for _, borrower := range borrowers {
-		err := k.AttemptKeeperLiquidation(ctx, sdk.AccAddress(types.LiquidatorAccount), borrower)
-		if err != nil {
-			if !errors.Is(err, types.ErrBorrowNotLiquidatable) && !errors.Is(err, types.ErrBorrowNotFound) {
-				panic(err)
-			}
-		}
-	}
-	return nil
-}
-
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
 func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress, borrower sdk.AccAddress) error {
-	prevLtv, err := k.GetStoreLTV(ctx, borrower)
-	if err != nil {
-		return err
-	}
-
 	deposit, found := k.GetDeposit(ctx, borrower)
 	if !found {
 		return types.ErrDepositNotFound
@@ -82,7 +59,8 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return err
 	}
 
-	k.DeleteDepositBorrowAndLtvIndex(ctx, deposit, borrow, prevLtv)
+	k.DeleteDeposit(ctx, deposit)
+	k.DeleteBorrow(ctx, borrow)
 	return nil
 }
 
@@ -319,35 +297,6 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 	}
 
 	return true, nil
-}
-
-// UpdateBorrowAndLtvIndex updates a borrow and its LTV index value in the store
-func (k Keeper) UpdateBorrowAndLtvIndex(ctx sdk.Context, borrow types.Borrow, newLtv, oldLtv sdk.Dec) {
-	k.RemoveFromLtvIndex(ctx, oldLtv, borrow.Borrower)
-	if borrow.Amount.Empty() {
-		k.DeleteBorrow(ctx, borrow)
-		return
-	}
-	k.SetBorrow(ctx, borrow)
-	k.InsertIntoLtvIndex(ctx, newLtv, borrow.Borrower)
-}
-
-// UpdateDepositAndLtvIndex updates a deposit and its LTV index value in the store
-func (k Keeper) UpdateDepositAndLtvIndex(ctx sdk.Context, deposit types.Deposit, newLtv, oldLtv sdk.Dec) {
-	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
-	if deposit.Amount.Empty() {
-		k.DeleteDeposit(ctx, deposit)
-		return
-	}
-	k.SetDeposit(ctx, deposit)
-	k.InsertIntoLtvIndex(ctx, newLtv, deposit.Depositor)
-}
-
-// DeleteDepositBorrowAndLtvIndex deletes deposit, borrow, and ltv index
-func (k Keeper) DeleteDepositBorrowAndLtvIndex(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow, oldLtv sdk.Dec) {
-	k.RemoveFromLtvIndex(ctx, oldLtv, deposit.Depositor)
-	k.DeleteDeposit(ctx, deposit)
-	k.DeleteBorrow(ctx, borrow)
 }
 
 // GetStoreLTV calculates the user's current LTV based on their deposits/borrows in the store

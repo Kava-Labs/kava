@@ -23,12 +23,6 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		}
 	}
 
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, depositor)
-	if err != nil {
-		return err
-	}
-
 	// Call incentive hook
 	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
 	if hasExistingDeposit {
@@ -39,7 +33,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
 
-	err = k.ValidateDeposit(ctx, coins)
+	err := k.ValidateDeposit(ctx, coins)
 	if err != nil {
 		return err
 	}
@@ -85,14 +79,12 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	// Update the depositer's amount and supply interest factors in the store
 	deposit := types.NewDeposit(depositor, amount, interestFactors)
 
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
-	borrow, _ := k.GetBorrow(ctx, depositor)
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
+	if deposit.Amount.Empty() {
+		k.DeleteDeposit(ctx, deposit)
+	} else {
+		k.SetDeposit(ctx, deposit)
 	}
 
-	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
 	k.IncrementSuppliedCoins(ctx, coins)
 	if !foundDeposit { // User's first deposit
 		k.AfterDepositCreated(ctx, deposit)

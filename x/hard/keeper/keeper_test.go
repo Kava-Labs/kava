@@ -134,69 +134,6 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 	suite.Require().Equal(setDenoms, seenDenoms)
 }
 
-func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
-	// LTV index should have 0 items
-	firstAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(0, len(firstAddrs))
-
-	// Add an item to the LTV index
-	addr := sdk.AccAddress("test")
-	ltv := sdk.MustNewDecFromStr("1.1")
-	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
-
-	// LTV index should have 1 item
-	secondAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(1, len(secondAddrs))
-
-	// Attempt to remove invalid item from LTV index
-	fakeLtv := sdk.MustNewDecFromStr("1.2")
-	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, fakeLtv, addr) })
-
-	// LTV index should still have 1 item
-	thirdAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(1, len(thirdAddrs))
-
-	// Attempt to remove valid item from LTV index
-	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, ltv, addr) })
-
-	// LTV index should still have 0 items
-	fourthAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(0, len(fourthAddrs))
-}
-
-func (suite *KeeperTestSuite) TestIterateLtvIndex() {
-	var setAddrs []sdk.AccAddress
-	for i := 1; i <= 20; i++ {
-		addr := sdk.AccAddress("test" + fmt.Sprint(i))
-		incrementalDec := sdk.NewDec(int64(i)).Quo(sdk.NewDec(10))
-		ltv := sdk.OneDec().Add(incrementalDec)
-
-		// Set the ltv-address pair in the store
-		suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
-
-		setAddrs = append(setAddrs, addr)
-	}
-
-	// Only the first 10 addresses should be returned
-	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(addressSort(setAddrs[10:20]), addressSort(sliceAddrs))
-
-	// Insert an additional item into the LTV index that should be returned in the first 10 elements
-	addr := sdk.AccAddress("test" + fmt.Sprint(21))
-	ltv := sdk.OneDec().Add(sdk.MustNewDecFromStr("15").Quo(sdk.NewDec(10)))
-	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
-
-	// Fetch the updated LTV index
-	updatedSliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	sawAddr := false
-	for _, updatedSliceAddr := range updatedSliceAddrs {
-		if updatedSliceAddr.Equals(addr) {
-			sawAddr = true
-		}
-	}
-	suite.Require().Equal(true, sawAddr)
-}
-
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
