@@ -356,7 +356,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 
 			// Repay the initial principal
-			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
+			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
 
 			// Attempted withdraw of all deposited coins fails as user hasn't repaid interest debt

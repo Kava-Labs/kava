@@ -211,7 +211,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
 
-			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.repayCoins)
+			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.borrower, tc.args.repayCoins)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				// If we overpaid expect an adjustment
