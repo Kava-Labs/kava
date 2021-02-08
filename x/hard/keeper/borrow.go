@@ -22,7 +22,11 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	// Call incentive hook
+	// Call incentive hooks
+	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, borrower)
+	if hasExistingDeposit {
+		k.BeforeDepositModified(ctx, existingDeposit)
+	}
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
 	if hasExistingBorrow {
 		k.BeforeBorrowModified(ctx, existingBorrow)

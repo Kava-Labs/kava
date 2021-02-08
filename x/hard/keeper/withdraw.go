@@ -13,8 +13,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
-	// Call incentive hook
+	// Call incentive hooks
 	k.BeforeDepositModified(ctx, deposit)
+	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
+	if hasExistingBorrow {
+		k.BeforeBorrowModified(ctx, existingBorrow)
+	}
 
 	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
