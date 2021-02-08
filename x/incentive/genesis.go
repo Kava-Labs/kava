@@ -33,9 +33,21 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 
 	// TODO: previous hard module accrual times/indexes should be set here
 
-	for _, gat := range gs.PreviousAccumulationTimes {
+	for _, gat := range gs.USDXAccumulationTimes {
 		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 		k.SetUSDXMintingRewardFactor(ctx, gat.CollateralType, gat.RewardFactor)
+	}
+
+	for _, gat := range gs.HardSupplyAccumulationTimes {
+		k.SetPreviousHardSupplyRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
+
+	for _, gat := range gs.HardBorrowAccumulationTimes {
+		k.SetPreviousHardBorrowRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
+	}
+
+	for _, gat := range gs.HardDelegatorAccumulationTimes {
+		k.SetPreviousHardDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
 	}
 
 	for _, claim := range gs.USDXMintingClaims {
@@ -48,7 +60,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, supplyKeeper types.SupplyKeep
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
-	claims := k.GetAllUSDXMintingClaims(ctx)
+	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
+	hardClaims := k.GetAllHardLiquidityProviderClaims(ctx)
 
 	var gats GenesisAccumulationTimes
 
@@ -65,5 +78,5 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		gats = append(gats, gat)
 	}
 
-	return types.NewGenesisState(params, gats, claims)
+	return types.NewGenesisState(params, gats, DefaultGenesisAccumulationTimes, DefaultGenesisAccumulationTimes, DefaultGenesisAccumulationTimes, usdxClaims, hardClaims)
 }
