@@ -1,18 +1,8 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
 const (
 	// ModuleName name that will be used throughout the module
 	ModuleName = "hard"
-
-	// LPAccount LP distribution module account
-	LPAccount = "hard_lp_distribution"
-
-	// DelegatorAccount delegator distribution module account
-	DelegatorAccount = "hard_delegator_distribution"
 
 	// LiquidatorAccount module account for liquidator
 	LiquidatorAccount = "hard_liquidator"
@@ -44,18 +34,12 @@ var (
 	BorrowInterestFactorPrefix    = []byte{0x08} // denom -> sdk.Dec
 	SupplyInterestFactorPrefix    = []byte{0x09} // denom -> sdk.Dec
 	DelegatorInterestFactorPrefix = []byte{0x10} // denom -> sdk.Dec
-	LtvIndexPrefix                = []byte{0x11}
 	sep                           = []byte(":")
 )
 
 // DepositTypeIteratorKey returns an interator prefix for interating over deposits by deposit denom
 func DepositTypeIteratorKey(denom string) []byte {
 	return createKey([]byte(denom))
-}
-
-// GetBorrowByLtvKey is used by the LTV index
-func GetBorrowByLtvKey(ltv sdk.Dec, borrower sdk.AccAddress) []byte {
-	return append(ltv.Bytes(), borrower...)
 }
 
 func createKey(bytes ...[]byte) (r []byte) {

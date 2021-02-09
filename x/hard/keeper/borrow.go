@@ -22,13 +22,11 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, borrower)
-	if err != nil {
-		return err
+	// Call incentive hooks
+	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, borrower)
+	if hasExistingDeposit {
+		k.BeforeDepositModified(ctx, existingDeposit)
 	}
-
-	// Call incentive hook
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
 	if hasExistingBorrow {
 		k.BeforeBorrowModified(ctx, existingBorrow)
@@ -38,7 +36,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	k.SyncBorrowInterest(ctx, borrower)
 
 	// Validate borrow amount within user and protocol limits
-	err = k.ValidateBorrow(ctx, borrower, coins)
+	err := k.ValidateBorrow(ctx, borrower, coins)
 	if err != nil {
 		return err
 	}
@@ -60,26 +58,15 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		}
 	}
 
-	// The first time a user borrows a denom we add it the user's borrow interest factor index
-	var borrowInterestFactors types.BorrowInterestFactors
+	interestFactors := types.BorrowInterestFactors{}
 	currBorrow, foundBorrow := k.GetBorrow(ctx, borrower)
-	// On user's first borrow, build borrow index list containing denoms and current global borrow index value
 	if foundBorrow {
-		// If the coin denom to be borrowed is not in the user's existing borrow, we add it borrow index
-		for _, coin := range coins {
-			if !sdk.NewCoins(coin).DenomsSubsetOf(currBorrow.Amount) {
-				borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
-				borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
-				borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
-			}
-		}
-		// Concatenate new borrow interest factors to existing borrow interest factors
-		borrowInterestFactors = append(borrowInterestFactors, currBorrow.Index...)
-	} else {
-		for _, coin := range coins {
-			borrowInterestFactorValue, _ := k.GetBorrowInterestFactor(ctx, coin.Denom)
-			borrowInterestFactor := types.NewBorrowInterestFactor(coin.Denom, borrowInterestFactorValue)
-			borrowInterestFactors = append(borrowInterestFactors, borrowInterestFactor)
+		interestFactors = currBorrow.Index
+	}
+	for _, coin := range coins {
+		interestFactorValue, foundValue := k.GetBorrowInterestFactor(ctx, coin.Denom)
+		if foundValue {
+			interestFactors = interestFactors.SetInterestFactor(coin.Denom, interestFactorValue)
 		}
 	}
 
@@ -90,20 +77,14 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	} else {
 		amount = coins
 	}
+
 	// Construct the user's new/updated borrow with amount and interest factors
-	borrow := types.NewBorrow(borrower, amount, borrowInterestFactors)
-
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
-	deposit, foundDeposit := k.GetDeposit(ctx, borrower)
-	if !foundDeposit {
-		return types.ErrDepositNotFound
+	borrow := types.NewBorrow(borrower, amount, interestFactors)
+	if borrow.Amount.Empty() {
+		k.DeleteBorrow(ctx, borrow)
+	} else {
+		k.SetBorrow(ctx, borrow)
 	}
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
-	}
-
-	k.UpdateBorrowAndLtvIndex(ctx, borrow, newLtv, prevLtv)
 
 	// Update total borrowed amount by newly borrowed coins. Don't add user's pending interest as
 	// it has already been included in the total borrowed coins by the BeginBlocker.

@@ -61,4 +61,6 @@ var (
 	ErrInvalidWithdrawDenom = sdkerrors.Register(ModuleName, 26, "no coins of this type deposited")
 	// ErrInvalidRepaymentDenom error for when user attempts to repay a non-borrowed coin type
 	ErrInvalidRepaymentDenom = sdkerrors.Register(ModuleName, 27, "no coins of this type borrowed")
+	// ErrInvalidIndexFactorDenom error for when index factor denom cannot be found
+	ErrInvalidIndexFactorDenom = sdkerrors.Register(ModuleName, 28, "no index factor found for denom")
 )

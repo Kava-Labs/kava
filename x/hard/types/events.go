@@ -26,4 +26,5 @@ const (
 	AttributeKeyLiquidatedCoins        = "liquidated_coins"
 	AttributeKeyKeeper                 = "keeper"
 	AttributeKeyKeeperRewardCoins      = "keeper_reward_coins"
+	AttributeKeyOwner                  = "owner"
 )

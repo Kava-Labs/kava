@@ -129,7 +129,6 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdk.NewInt(1000000), sdk.NewInt(KAVA_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(100000000), sdk.NewInt(BNB_CF*1000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
-				0, // LTV counter
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -283,7 +282,6 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 						reserveFactor,                  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
-				0, // LTV counter
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -358,7 +356,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 
 			// Repay the initial principal
-			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
+			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
 
 			// Attempted withdraw of all deposited coins fails as user hasn't repaid interest debt

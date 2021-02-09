@@ -8,15 +8,9 @@ import (
 )
 
 // Repay borrowed funds
-func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, sender)
-	if err != nil {
-		return err
-	}
-
+func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.Coins) error {
 	// Check borrow exists here to avoid duplicating store read in ValidateRepay
-	borrow, found := k.GetBorrow(ctx, sender)
+	borrow, found := k.GetBorrow(ctx, owner)
 	if !found {
 		return types.ErrBorrowNotFound
 	}
@@ -24,10 +18,10 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 	k.BeforeBorrowModified(ctx, borrow)
 
 	// Sync borrow interest so loan is up-to-date
-	k.SyncBorrowInterest(ctx, sender)
+	k.SyncBorrowInterest(ctx, owner)
 
-	// Validate requested repay
-	err = k.ValidateRepay(ctx, sender, coins)
+	// Validate that sender holds coins for repayment
+	err := k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
 		return err
 	}
@@ -43,20 +37,25 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 		return err
 	}
 
+	// If any coin denoms have been completely repaid reset the denom's borrow index factor
+	for _, coin := range payment {
+		if coin.Amount.Equal(borrow.Amount.AmountOf(coin.Denom)) {
+			borrowIndex, removed := borrow.Index.RemoveInterestFactor(coin.Denom)
+			if !removed {
+				return sdkerrors.Wrapf(types.ErrInvalidIndexFactorDenom, "%s", coin.Denom)
+			}
+			borrow.Index = borrowIndex
+		}
+	}
+
 	// Update user's borrow in store
 	borrow.Amount = borrow.Amount.Sub(payment)
 
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
-	deposit, foundDeposit := k.GetDeposit(ctx, sender)
-	if !foundDeposit {
-		return types.ErrDepositNotFound
+	if borrow.Amount.Empty() {
+		k.DeleteBorrow(ctx, borrow)
+	} else {
+		k.SetBorrow(ctx, borrow)
 	}
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
-	}
-
-	k.UpdateBorrowAndLtvIndex(ctx, borrow, newLtv, prevLtv)
 
 	// Update total borrowed amount
 	k.DecrementBorrowedCoins(ctx, payment)
@@ -70,6 +69,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) e
 		sdk.NewEvent(
 			types.EventTypeHardRepay,
 			sdk.NewAttribute(types.AttributeKeySender, sender.String()),
+			sdk.NewAttribute(types.AttributeKeyOwner, owner.String()),
 			sdk.NewAttribute(types.AttributeKeyRepayCoins, payment.String()),
 		),
 	)

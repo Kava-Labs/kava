@@ -47,6 +47,7 @@ type PostBorrowReq struct {
 type PostRepayReq struct {
 	BaseReq rest.BaseReq   `json:"base_req" yaml:"base_req"`
 	From    sdk.AccAddress `json:"from" yaml:"from"`
+	Owner   sdk.AccAddress `json:"owner" yaml:"owner"`
 	Amount  sdk.Coins      `json:"amount" yaml:"amount"`
 }
 

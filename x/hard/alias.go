@@ -21,7 +21,6 @@ const (
 	AttributeKeySender                 = types.AttributeKeySender
 	AttributeValueCategory             = types.AttributeValueCategory
 	DefaultParamspace                  = types.DefaultParamspace
-	DelegatorAccount                   = types.DelegatorAccount
 	EventTypeDeleteHardDeposit         = types.EventTypeDeleteHardDeposit
 	EventTypeHardLiquidation           = types.EventTypeHardLiquidation
 	EventTypeHardBorrow                = types.EventTypeHardBorrow
@@ -30,7 +29,6 @@ const (
 	EventTypeHardLPDistribution        = types.EventTypeHardLPDistribution
 	EventTypeHardRepay                 = types.EventTypeHardRepay
 	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
-	LPAccount                          = types.LPAccount
 	LiquidatorAccount                  = types.LiquidatorAccount
 	ModuleAccountName                  = types.ModuleAccountName
 	ModuleName                         = types.ModuleName
@@ -57,7 +55,6 @@ var (
 	DefaultGenesisState           = types.DefaultGenesisState
 	DefaultParams                 = types.DefaultParams
 	DepositTypeIteratorKey        = types.DepositTypeIteratorKey
-	GetBorrowByLtvKey             = types.GetBorrowByLtvKey
 	GetTotalVestingPeriodLength   = types.GetTotalVestingPeriodLength
 	NewBorrow                     = types.NewBorrow
 	NewBorrowInterestFactor       = types.NewBorrowInterestFactor
@@ -91,7 +88,6 @@ var (
 	BorrowsKeyPrefix                 = types.BorrowsKeyPrefix
 	DefaultAccumulationTimes         = types.DefaultAccumulationTimes
 	DefaultBorrows                   = types.DefaultBorrows
-	DefaultCheckLtvIndexCount        = types.DefaultCheckLtvIndexCount
 	DefaultDeposits                  = types.DefaultDeposits
 	DefaultMoneyMarkets              = types.DefaultMoneyMarkets
 	DefaultTotalBorrowed             = types.DefaultTotalBorrowed
@@ -126,9 +122,7 @@ var (
 	ErrPriceNotFound                 = types.ErrPriceNotFound
 	ErrSuppliedCoinsNotFound         = types.ErrSuppliedCoinsNotFound
 	GovDenom                         = types.GovDenom
-	KeyCheckLtvIndexCount            = types.KeyCheckLtvIndexCount
 	KeyMoneyMarkets                  = types.KeyMoneyMarkets
-	LtvIndexPrefix                   = types.LtvIndexPrefix
 	ModuleCdc                        = types.ModuleCdc
 	MoneyMarketsPrefix               = types.MoneyMarketsPrefix
 	PreviousAccrualTimePrefix        = types.PreviousAccrualTimePrefix

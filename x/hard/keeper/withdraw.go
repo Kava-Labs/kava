@@ -9,18 +9,16 @@ import (
 
 // Withdraw returns some or all of a deposit back to original depositor
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, depositor)
-	if err != nil {
-		return err
-	}
-
 	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
-	// Call incentive hook
+	// Call incentive hooks
 	k.BeforeDepositModified(ctx, deposit)
+	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
+	if hasExistingBorrow {
+		k.BeforeBorrowModified(ctx, existingBorrow)
+	}
 
 	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
@@ -49,13 +47,23 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	deposit.Amount = deposit.Amount.Sub(amount)
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
+	// If any coin denoms have been completely withdrawn reset the denom's supply index factor
+	for _, coin := range deposit.Amount {
+		if !sdk.NewCoins(coin).DenomsSubsetOf(proposedDeposit.Amount) {
+			depositIndex, removed := deposit.Index.RemoveInterestFactor(coin.Denom)
+			if !removed {
+				return sdkerrors.Wrapf(types.ErrInvalidIndexFactorDenom, "%s", coin.Denom)
+			}
+			deposit.Index = depositIndex
+		}
 	}
-	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
 
+	deposit.Amount = deposit.Amount.Sub(amount)
+	if deposit.Amount.Empty() {
+		k.DeleteDeposit(ctx, deposit)
+	} else {
+		k.SetDeposit(ctx, deposit)
+	}
 	// Update total supplied amount
 	k.DecrementSuppliedCoins(ctx, amount)
 

@@ -169,13 +169,15 @@ func (msg MsgBorrow) String() string {
 // MsgRepay repays funds to the hard module.
 type MsgRepay struct {
 	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
+	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`
 	Amount sdk.Coins      `json:"amount" yaml:"amount"`
 }
 
 // NewMsgRepay returns a new MsgRepay
-func NewMsgRepay(sender sdk.AccAddress, amount sdk.Coins) MsgRepay {
+func NewMsgRepay(sender, owner sdk.AccAddress, amount sdk.Coins) MsgRepay {
 	return MsgRepay{
 		Sender: sender,
+		Owner:  owner,
 		Amount: amount,
 	}
 }
@@ -190,6 +192,9 @@ func (msg MsgRepay) Type() string { return "hard_repay" }
 func (msg MsgRepay) ValidateBasic() error {
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+	}
+	if msg.Owner.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "repay amount %s", msg.Amount)
@@ -212,8 +217,9 @@ func (msg MsgRepay) GetSigners() []sdk.AccAddress {
 func (msg MsgRepay) String() string {
 	return fmt.Sprintf(`Repay Message:
 	Sender:         %s
+	Owner:         %s
 	Amount:   %s
-`, msg.Sender, msg.Amount)
+`, msg.Sender, msg.Owner, msg.Amount)
 }
 
 // MsgLiquidate attempts to liquidate a borrower's borrow

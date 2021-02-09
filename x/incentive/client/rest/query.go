@@ -128,6 +128,8 @@ func executeBothRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext,
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	var hardClaims types.HardLiquidityProviderClaims
+	cliCtx.Codec.MustUnmarshalJSON(hardRes, &hardClaims)
 
 	usdxMintingBz, err := cliCtx.Codec.MarshalJSON(usdxMintingParams)
 	if err != nil {
@@ -140,7 +142,26 @@ func executeBothRewardQueries(w http.ResponseWriter, cliCtx context.CLIContext,
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	var usdxMintingClaims types.USDXMintingClaims
+	cliCtx.Codec.MustUnmarshalJSON(usdxMintingRes, &usdxMintingClaims)
 
 	cliCtx = cliCtx.WithHeight(height)
-	rest.PostProcessResponse(w, cliCtx, append(hardRes, usdxMintingRes...))
+
+	type rewardResult struct {
+		HardClaims        types.HardLiquidityProviderClaims `json:"hard_claims" yaml:"hard_claims"`
+		UsdxMintingClaims types.USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
+	}
+
+	res := rewardResult{
+		HardClaims:        hardClaims,
+		UsdxMintingClaims: usdxMintingClaims,
+	}
+
+	resBz, err := cliCtx.Codec.MarshalJSON(res)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal result: %s", err))
+		return
+	}
+
+	rest.PostProcessResponse(w, cliCtx, resBz)
 }

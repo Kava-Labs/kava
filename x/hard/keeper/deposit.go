@@ -23,23 +23,21 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		}
 	}
 
-	// Get current stored LTV based on stored borrows/deposits
-	prevLtv, err := k.GetStoreLTV(ctx, depositor)
-	if err != nil {
-		return err
-	}
-
-	// Call incentive hook
+	// Call incentive hooks
 	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
 	if hasExistingDeposit {
 		k.BeforeDepositModified(ctx, existingDeposit)
 	}
+	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
+	if hasExistingBorrow {
+		k.BeforeBorrowModified(ctx, existingBorrow)
+	}
 
 	// Sync any outstanding interest
-	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
+	k.SyncBorrowInterest(ctx, depositor)
 
-	err = k.ValidateDeposit(ctx, coins)
+	err := k.ValidateDeposit(ctx, coins)
 	if err != nil {
 		return err
 	}
@@ -63,26 +61,15 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	// The first time a user deposits a denom we add it the user's supply interest factor index
-	var supplyInterestFactors types.SupplyInterestFactors
+	interestFactors := types.SupplyInterestFactors{}
 	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
-	// On user's first deposit, build deposit index list containing denoms and current global deposit index value
 	if foundDeposit {
-		// If the coin denom to be deposited is not in the user's existing deposit, we add it deposit index
-		for _, coin := range coins {
-			if !sdk.NewCoins(coin).DenomsSubsetOf(currDeposit.Amount) {
-				supplyInterestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
-				supplyInterestFactor := types.NewSupplyInterestFactor(coin.Denom, supplyInterestFactorValue)
-				supplyInterestFactors = append(supplyInterestFactors, supplyInterestFactor)
-			}
-		}
-		// Concatenate new deposit interest factors to existing deposit interest factors
-		supplyInterestFactors = append(supplyInterestFactors, currDeposit.Index...)
-	} else {
-		for _, coin := range coins {
-			supplyInterestFactorValue, _ := k.GetSupplyInterestFactor(ctx, coin.Denom)
-			supplyInterestFactor := types.NewSupplyInterestFactor(coin.Denom, supplyInterestFactorValue)
-			supplyInterestFactors = append(supplyInterestFactors, supplyInterestFactor)
+		interestFactors = currDeposit.Index
+	}
+	for _, coin := range coins {
+		interestFactorValue, foundValue := k.GetSupplyInterestFactor(ctx, coin.Denom)
+		if foundValue {
+			interestFactors = interestFactors.SetInterestFactor(coin.Denom, interestFactorValue)
 		}
 	}
 
@@ -94,16 +81,14 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		amount = coins
 	}
 	// Update the depositer's amount and supply interest factors in the store
-	deposit := types.NewDeposit(depositor, amount, supplyInterestFactors)
+	deposit := types.NewDeposit(depositor, amount, interestFactors)
 
-	// Calculate the new Loan-to-Value ratio of Deposit-to-Borrow
-	borrow, _ := k.GetBorrow(ctx, depositor)
-	newLtv, err := k.CalculateLtv(ctx, deposit, borrow)
-	if err != nil {
-		return err
+	if deposit.Amount.Empty() {
+		k.DeleteDeposit(ctx, deposit)
+	} else {
+		k.SetDeposit(ctx, deposit)
 	}
 
-	k.UpdateDepositAndLtvIndex(ctx, deposit, newLtv, prevLtv)
 	k.IncrementSuppliedCoins(ctx, coins)
 	if !foundDeposit { // User's first deposit
 		k.AfterDepositCreated(ctx, deposit)

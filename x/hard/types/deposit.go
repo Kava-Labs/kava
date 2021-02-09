@@ -100,6 +100,38 @@ func (sif SupplyInterestFactor) String() string {
 // SupplyInterestFactors is a slice of SupplyInterestFactor, because Amino won't marshal maps
 type SupplyInterestFactors []SupplyInterestFactor
 
+// GetInterestFactor returns a denom's interest factor value
+func (sifs SupplyInterestFactors) GetInterestFactor(denom string) (sdk.Dec, bool) {
+	for _, sif := range sifs {
+		if sif.Denom == denom {
+			return sif.Value, true
+		}
+	}
+	return sdk.ZeroDec(), false
+}
+
+// SetInterestFactor sets a denom's interest factor value
+func (sifs SupplyInterestFactors) SetInterestFactor(denom string, factor sdk.Dec) SupplyInterestFactors {
+	for i, sif := range sifs {
+		if sif.Denom == denom {
+			sif.Value = factor
+			sifs[i] = sif
+			return sifs
+		}
+	}
+	return append(sifs, NewSupplyInterestFactor(denom, factor))
+}
+
+// RemoveInterestFactor removes a denom's interest factor value
+func (sifs SupplyInterestFactors) RemoveInterestFactor(denom string) (SupplyInterestFactors, bool) {
+	for i, sif := range sifs {
+		if sif.Denom == denom {
+			return append(sifs[:i], sifs[i+1:]...), true
+		}
+	}
+	return sifs, false
+}
+
 // Validate validates SupplyInterestFactors
 func (sifs SupplyInterestFactors) Validate() error {
 	for _, sif := range sifs {
