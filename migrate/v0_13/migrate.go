@@ -108,42 +108,40 @@ func MigrateHard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
 		}
 	}
 
+	defaultInterestModel := v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("1.0"))
 	newParams := v0_13hard.NewParams(
 		v0_13hard.MoneyMarkets{
-			// btcb money market - TODO:
-			// 1. is auction size actually used/enforced?
-			// 2. What even is this interest rate model
+
 			v0_13hard.NewMoneyMarket("btcb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "btc:usd", sdk.NewInt(8), sdk.NewInt(100000000),
-				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
-				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// xrpb
 			v0_13hard.NewMoneyMarket("xrpb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "xrp:usd", sdk.NewInt(8), sdk.NewInt(10000000000000),
-				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
-				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// busd
 			v0_13hard.NewMoneyMarket("busd", v0_13hard.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000000"), sdk.MustNewDecFromStr("0.5")), "busd:usd", sdk.NewInt(8), sdk.NewInt(5000000000000),
-				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
-				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// usdx
 			v0_13hard.NewMoneyMarket("usdx", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.ZeroDec()), "usdx:usd", sdk.NewInt(6), sdk.NewInt(50000000000),
-				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
-				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// ukava
 			v0_13hard.NewMoneyMarket("ukava", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "kava:usd", sdk.NewInt(6), sdk.NewInt(10000000000),
-				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
-				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 			// hard
 			v0_13hard.NewMoneyMarket("hard", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "hard:usd", sdk.NewInt(6), sdk.NewInt(25000000000),
-				v0_13hard.NewInterestRateModel(sdk.ZeroDec(), sdk.MustNewDecFromStr("0.002"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.01")),
-				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.01"),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
 		},
-		10,
 	)
 
 	for _, newDep := range v13DepositorMap {
