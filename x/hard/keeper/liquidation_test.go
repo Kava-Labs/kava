@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 9500390),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11874430),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("bnb", 0),
@@ -137,7 +137,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              2,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11874254),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("btc", 0),
@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11875163),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              4,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 11876185),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("usdc", 0),
@@ -207,7 +207,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("bnb", 950000000),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
@@ -222,7 +222,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              2,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("btc", 95000000),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
@@ -237,7 +237,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("ukava", 47504818),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdc", 95000000), // $95.00
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("bnb", 0),
@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              2,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdt", 10552835), // $10.55
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("bnb", 0),
@@ -308,7 +308,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdt", 84447165), // $84.45
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("btc", 0),
@@ -323,7 +323,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              4,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdx", 21097866), // $21.10
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("btc", 0),
@@ -338,7 +338,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              5,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdx", 73902133), //$73.90
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("ukava", 0),
@@ -378,7 +378,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              1,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("dai", 263894126),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("usdt", 0),
@@ -393,7 +393,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              2,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("dai", 68605874),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("usdx", 0),
@@ -408,7 +408,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					auctypes.CollateralAuction{
 						BaseAuction: auctypes.BaseAuction{
 							ID:              3,
-							Initiator:       "hard_liquidator",
+							Initiator:       "hard",
 							Lot:             sdk.NewInt64Coin("usdc", 189999999),
 							Bidder:          nil,
 							Bid:             sdk.NewInt64Coin("usdx", 0),

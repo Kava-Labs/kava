@@ -76,14 +76,11 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 	keeperRewardCoins := sdk.Coins{}
 	for _, depCoin := range deposit.Amount {
 		mm, _ := k.GetMoneyMarket(ctx, depCoin.Denom)
-		// No keeper rewards if liquidated by LTV index
-		if !keeper.Equals(sdk.AccAddress(types.LiquidatorAccount)) {
-			keeperReward := mm.KeeperRewardPercentage.MulInt(depCoin.Amount).TruncateInt()
-			if keeperReward.GT(sdk.ZeroInt()) {
-				// Send keeper their reward
-				keeperCoin := sdk.NewCoin(depCoin.Denom, keeperReward)
-				keeperRewardCoins = append(keeperRewardCoins, keeperCoin)
-			}
+		keeperReward := mm.KeeperRewardPercentage.MulInt(depCoin.Amount).TruncateInt()
+		if keeperReward.GT(sdk.ZeroInt()) {
+			// Send keeper their reward
+			keeperCoin := sdk.NewCoin(depCoin.Denom, keeperReward)
+			keeperRewardCoins = append(keeperRewardCoins, keeperCoin)
 		}
 	}
 	if !keeperRewardCoins.Empty() {
@@ -179,11 +176,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				}
 
 				// Start auction: bid = full borrow amount, lot = maxLotSize
-				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
-				if err != nil {
-					return liquidatedCoins, err
-				}
-				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
+				_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.ModuleAccountName, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return liquidatedCoins, err
 				}
@@ -228,11 +221,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				}
 
 				// Start auction: bid = maxBid, lot = whole deposit amount
-				err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, types.LiquidatorAccount, sdk.NewCoins(lot))
-				if err != nil {
-					return liquidatedCoins, err
-				}
-				_, err = k.auctionKeeper.StartCollateralAuction(ctx, types.LiquidatorAccount, lot, bid, returnAddrs, weights, debt)
+				_, err := k.auctionKeeper.StartCollateralAuction(ctx, types.ModuleAccountName, lot, bid, returnAddrs, weights, debt)
 				if err != nil {
 					return liquidatedCoins, err
 				}

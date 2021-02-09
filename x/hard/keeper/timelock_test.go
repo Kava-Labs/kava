@@ -299,19 +299,19 @@ func (suite *KeeperTestSuite) TestSendTimeLockedCoinsToAccount() {
 				ak.SetAccount(ctx, pva)
 			}
 			supplyKeeper := tApp.GetSupplyKeeper()
-			supplyKeeper.MintCoins(ctx, types.LiquidatorAccount, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
+			supplyKeeper.MintCoins(ctx, types.ModuleAccountName, sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1000))))
 			keeper := tApp.GetHardKeeper()
 			suite.app = tApp
 			suite.ctx = ctx
 			suite.keeper = keeper
 
-			err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, types.LiquidatorAccount, tc.args.accArgs.addr, tc.args.period.Amount, tc.args.period.Length)
+			err := suite.keeper.SendTimeLockedCoinsToAccount(suite.ctx, types.ModuleAccountName, tc.args.accArgs.addr, tc.args.period.Amount, tc.args.period.Length)
 
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				acc := suite.getAccount(tc.args.accArgs.addr)
 				suite.Require().Equal(tc.args.expectedAccountBalance, acc.GetCoins())
-				mAcc := suite.getModuleAccount(types.LiquidatorAccount)
+				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(tc.args.expectedModAccountBalance, mAcc.GetCoins())
 				vacc, ok := acc.(*vesting.PeriodicVestingAccount)
 				if tc.args.accArgs.vestingAccountAfter {
