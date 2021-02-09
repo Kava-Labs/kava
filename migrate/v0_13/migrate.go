@@ -265,7 +265,7 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 			}
 			newClaim = v0_13incentive.NewHardLiquidityProviderClaim(claim.Owner, sdk.NewCoins(claim.Amount), supplyIndexes, borrowIndexes, delegatorIndexes)
 		} else {
-			newClaim.Reward = sdk.NewCoins(claim.Amount)
+			newClaim.Reward = newClaim.Reward.Add(claim.Amount)
 			if claim.Type == v0_11hard.Stake {
 				newClaim.DelegatorRewardIndexes = v0_13incentive.RewardIndexes{v0_13incentive.NewRewardIndex(claim.DepositDenom, sdk.ZeroDec())}
 			}
