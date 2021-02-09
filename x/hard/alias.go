@@ -29,7 +29,6 @@ const (
 	EventTypeHardLPDistribution        = types.EventTypeHardLPDistribution
 	EventTypeHardRepay                 = types.EventTypeHardRepay
 	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
-	LiquidatorAccount                  = types.LiquidatorAccount
 	ModuleAccountName                  = types.ModuleAccountName
 	ModuleName                         = types.ModuleName
 	QuerierRoute                       = types.QuerierRoute

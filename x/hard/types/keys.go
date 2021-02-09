@@ -4,9 +4,6 @@ const (
 	// ModuleName name that will be used throughout the module
 	ModuleName = "hard"
 
-	// LiquidatorAccount module account for liquidator
-	LiquidatorAccount = "hard_liquidator"
-
 	// ModuleAccountName name of module account used to hold deposits
 	ModuleAccountName = "hard"
 
