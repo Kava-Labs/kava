@@ -283,6 +283,9 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 		hardClaims = append(hardClaims, claim)
 	}
 
+	sort.Slice(hardClaims, func(i, j int) bool { return hardClaims[i].Owner.String() < hardClaims[j].Owner.String() })
+	sort.Slice(usdxClaims, func(i, j int) bool { return usdxClaims[i].Owner.String() < usdxClaims[j].Owner.String() })
+
 	return v0_13incentive.NewGenesisState(
 		params,
 		usdxGenAccumulationTimes,
