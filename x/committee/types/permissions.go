@@ -354,7 +354,7 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 		var foundCurrentCP bool
 		var currentCP cdptypes.CollateralParam
 		for _, p := range current {
-			if p.Denom != incomingCP.Denom {
+			if p.Type != incomingCP.Type {
 				continue
 			}
 			foundCurrentCP = true
