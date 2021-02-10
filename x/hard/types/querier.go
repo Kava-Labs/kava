@@ -12,6 +12,7 @@ const (
 	QueryGetTotalDeposited = "total-deposited"
 	QueryGetBorrows        = "borrows"
 	QueryGetTotalBorrowed  = "total-borrowed"
+	QueryGetInterestRate   = "interest-rate"
 )
 
 // QueryDepositsParams is the params for a filtered deposit query
@@ -89,3 +90,34 @@ func NewQueryTotalDepositedParams(denom string) QueryTotalDepositedParams {
 		Denom: denom,
 	}
 }
+
+// QueryInterestRateParams is the params for a filtered interest rate query
+type QueryInterestRateParams struct {
+	Denom string `json:"denom" yaml:"denom"`
+}
+
+// NewQueryInterestRateParams creates a new QueryInterestRateParams
+func NewQueryInterestRateParams(denom string) QueryInterestRateParams {
+	return QueryInterestRateParams{
+		Denom: denom,
+	}
+}
+
+// MoneyMarketInterestRate is a unique type returned by interest rate queries
+type MoneyMarketInterestRate struct {
+	Denom              string  `json:"denom" yaml:"denom"`
+	SupplyInterestRate sdk.Dec `json:"supply_interest_rate" yaml:"supply_interest_rate"`
+	BorrowInterestRate sdk.Dec `json:"borrow_interest_rate" yaml:"borrow_interest_rate"`
+}
+
+// NewMoneyMarketInterestRate returns a new instance of MoneyMarketInterestRate
+func NewMoneyMarketInterestRate(denom string, supplyInterestRate, borrowInterestRate sdk.Dec) MoneyMarketInterestRate {
+	return MoneyMarketInterestRate{
+		Denom:              denom,
+		SupplyInterestRate: supplyInterestRate,
+		BorrowInterestRate: borrowInterestRate,
+	}
+}
+
+// MoneyMarketInterestRates is a slice of MoneyMarketInterestRate
+type MoneyMarketInterestRates []MoneyMarketInterestRate

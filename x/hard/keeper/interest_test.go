@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -450,6 +451,81 @@ func (suite *InterestTestSuite) TestAPYToSPY() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(tc.args.expectedValue, spy)
 			}
+		})
+	}
+}
+
+func (suite *InterestTestSuite) TestSPYToEstimatedAPY() {
+	type args struct {
+		spy             sdk.Dec
+		expectedAPY     float64
+		acceptableRange float64
+	}
+
+	type test struct {
+		name string
+		args args
+	}
+
+	testCases := []test{
+		{
+			"lowest apy",
+			args{
+				spy:             sdk.MustNewDecFromStr("0.999999831991472557"),
+				expectedAPY:     0.005,   // Returned value: 0.004999999888241291
+				acceptableRange: 0.00001, // +/- 1/10000th of a precent
+			},
+		},
+		{
+			"lower apy",
+			args{
+				spy:             sdk.MustNewDecFromStr("0.999999905005957279"),
+				expectedAPY:     0.05,    // Returned value: 0.05000000074505806
+				acceptableRange: 0.00001, // +/- 1/10000th of a precent
+			},
+		},
+		{
+			"medium-low apy",
+			args{
+				spy:             sdk.MustNewDecFromStr("0.999999978020447332"),
+				expectedAPY:     0.5,     // Returned value: 0.5
+				acceptableRange: 0.00001, // +/- 1/10000th of a precent
+			},
+		},
+		{
+			"medium-high apy",
+			args{
+				spy:             sdk.MustNewDecFromStr("1.000000051034942717"),
+				expectedAPY:     5,       // Returned value: 5
+				acceptableRange: 0.00001, // +/- 1/10000th of a precent
+			},
+		},
+		{
+			"high apy",
+			args{
+				spy:             sdk.MustNewDecFromStr("1.000000124049443433"),
+				expectedAPY:     50,      // Returned value: 50
+				acceptableRange: 0.00001, // +/- 1/10000th of a precent
+			},
+		},
+		{
+			"highest apy",
+			args{
+				spy:             sdk.MustNewDecFromStr("1.000000146028999310"),
+				expectedAPY:     100,     // 100
+				acceptableRange: 0.00001, // +/- 1/10000th of a precent
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			// From SPY calculate APY and parse result from sdk.Dec to float64
+			calculatedAPY := hard.SPYToEstimatedAPY(tc.args.spy)
+			calculatedAPYFloat, err := strconv.ParseFloat(calculatedAPY.String(), 32)
+			suite.Require().NoError(err)
+
+			// Check that the calculated value is within an acceptable percentage range
+			suite.Require().InEpsilon(tc.args.expectedAPY, calculatedAPYFloat, tc.args.acceptableRange)
 		})
 	}
 }

@@ -28,6 +28,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryGetBorrows(ctx, req, k)
 		case types.QueryGetTotalBorrowed:
 			return queryGetTotalBorrowed(ctx, req, k)
+		case types.QueryGetInterestRate:
+			return queryGetInterestRate(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -258,6 +260,68 @@ func queryGetTotalDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	}
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, suppliedCoins)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryGetInterestRate(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryInterestRateParams
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	var moneyMarketInterestRates types.MoneyMarketInterestRates
+	var moneyMarkets types.MoneyMarkets
+	if len(params.Denom) > 0 {
+		moneyMarket, found := k.GetMoneyMarket(ctx, params.Denom)
+		if !found {
+			return nil, types.ErrMoneyMarketNotFound
+		}
+		moneyMarkets = append(moneyMarkets, moneyMarket)
+	} else {
+		moneyMarkets = k.GetAllMoneyMarkets(ctx)
+	}
+
+	// Calculate the borrow and supply APY interest rates for each money market
+	for _, moneyMarket := range moneyMarkets {
+		denom := moneyMarket.Denom
+		cash := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins().AmountOf(denom)
+
+		borrowed := sdk.NewCoin(denom, sdk.ZeroInt())
+		borrowedCoins, foundBorrowedCoins := k.GetBorrowedCoins(ctx)
+		if foundBorrowedCoins {
+			borrowed = sdk.NewCoin(denom, borrowedCoins.AmountOf(denom))
+		}
+
+		reserves, foundReserves := k.GetTotalReserves(ctx)
+		if !foundReserves {
+			reserves = sdk.NewCoins()
+		}
+
+		// CalculateBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
+		borrowAPY, err := CalculateBorrowRate(moneyMarket.InterestRateModel, sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		if err != nil {
+			return nil, err
+		}
+
+		utilRatio := CalculateUtilizationRatio(sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		fullSupplyAPY := borrowAPY.Mul(utilRatio)
+		realSupplyAPY := fullSupplyAPY.Mul(sdk.OneDec().Sub(moneyMarket.ReserveFactor))
+
+		moneyMarketInterestRate := types.MoneyMarketInterestRate{
+			Denom:              denom,
+			SupplyInterestRate: realSupplyAPY,
+			BorrowInterestRate: borrowAPY,
+		}
+
+		moneyMarketInterestRates = append(moneyMarketInterestRates, moneyMarketInterestRate)
+	}
+
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, moneyMarketInterestRates)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
