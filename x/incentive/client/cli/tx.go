@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -50,9 +51,15 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
 			owner, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
+			}
+
+			sender := cliCtx.GetFromAddress()
+			if !sender.Equals(owner) {
+				return sdkerrors.Wrapf(types.ErrInvalidClaimOwner, "tx sender %s does not match claim owner %s", sender, owner)
 			}
 
 			msg := types.NewMsgClaimUSDXMintingReward(owner, args[1])
@@ -81,9 +88,15 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+
 			owner, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
+			}
+
+			sender := cliCtx.GetFromAddress()
+			if !sender.Equals(owner) {
+				return sdkerrors.Wrapf(types.ErrInvalidClaimOwner, "tx sender %s does not match claim owner %s", sender, owner)
 			}
 
 			msg := types.NewMsgClaimHardLiquidityProviderReward(owner, args[1])
