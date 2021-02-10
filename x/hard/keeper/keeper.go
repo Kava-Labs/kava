@@ -235,6 +235,15 @@ func (k Keeper) IterateMoneyMarkets(ctx sdk.Context, cb func(denom string, money
 	}
 }
 
+// GetAllMoneyMarkets returns all money markets from the store
+func (k Keeper) GetAllMoneyMarkets(ctx sdk.Context) (moneyMarkets types.MoneyMarkets) {
+	k.IterateMoneyMarkets(ctx, func(denom string, moneyMarket types.MoneyMarket) bool {
+		moneyMarkets = append(moneyMarkets, moneyMarket)
+		return false
+	})
+	return
+}
+
 // GetPreviousAccrualTime returns the last time an individual market accrued interest
 func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, denom string) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
