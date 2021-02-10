@@ -300,6 +300,12 @@ func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
 	return root, nil
 }
 
+// SPYToEstimatedAPY converts the internal per second compounded interest rate into an estimated annual
+// interest rate. The returned value is an estimate  and should not be used for financial calculations.
+func SPYToEstimatedAPY(apy sdk.Dec) sdk.Dec {
+	return apy.Power(uint64(secondsPerYear))
+}
+
 // minInt64 returns the smaller of x or y
 func minDec(x, y sdk.Dec) sdk.Dec {
 	if x.GT(y) {

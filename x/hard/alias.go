@@ -45,6 +45,7 @@ const (
 var (
 	// function aliases
 	APYToSPY                      = keeper.APYToSPY
+	SPYToEstimatedAPY             = keeper.SPYToEstimatedAPY
 	CalculateBorrowInterestFactor = keeper.CalculateBorrowInterestFactor
 	CalculateBorrowRate           = keeper.CalculateBorrowRate
 	CalculateSupplyInterestFactor = keeper.CalculateSupplyInterestFactor
