@@ -716,7 +716,6 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                // Market ID
 						sdk.NewInt(KAVA_CF),       // Conversion Factor
-						sdk.NewInt(USDX_CF*1000),  // Auction Size
 						tc.args.interestRateModel, // Interest Rate Model
 						tc.args.reserveFactor,     // Reserve Factor
 						sdk.ZeroDec()),            // Keeper Reward Percentage
@@ -1123,7 +1122,6 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                // Market ID
 						sdk.NewInt(KAVA_CF),       // Conversion Factor
-						sdk.NewInt(USDX_CF*1000),  // Auction Size
 						tc.args.interestRateModel, // Interest Rate Model
 						tc.args.reserveFactor,     // Reserve Factor
 						sdk.ZeroDec()),            // Keeper Reward Percentage
@@ -1131,7 +1129,6 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"bnb:usd",                 // Market ID
 						sdk.NewInt(BNB_CF),        // Conversion Factor
-						sdk.NewInt(USDX_CF*1000),  // Auction Size
 						tc.args.interestRateModel, // Interest Rate Model
 						tc.args.reserveFactor,     // Reserve Factor
 						sdk.ZeroDec()),            // Keeper Reward Percentage

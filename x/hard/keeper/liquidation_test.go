@@ -29,7 +29,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 		liquidateAfter          int64
 		expectedLiquidatedCoins sdk.Coins
 		expectedBidCoins        sdk.Coins
-		auctionSize             sdk.Int
 		expectedKeeperCoins     sdk.Coins         // coins keeper address should have after successfully liquidating position
 		expectedBorrowerCoins   sdk.Coins         // additional coins (if any) the borrower address should have after successfully liquidating position
 		expectedAuctions        auctypes.Auctions // the auctions we should expect to find have been started
@@ -75,7 +74,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				liquidateAfter:          oneMonthInSeconds,
 				expectedLiquidatedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 9500390)),
 				expectedBidCoins:        sdk.NewCoins(sdk.NewInt64Coin("ukava", 8004766)),
-				auctionSize:             sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100500020))),
 				expectedBorrowerCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(98000001))), // initial - deposit + borrow + liquidation leftovers
 				expectedAuctions: auctypes.Auctions{
@@ -115,7 +113,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				liquidateAfter:          oneMonthInSeconds,
 				expectedLiquidatedCoins: sdk.NewCoins(sdk.NewInt64Coin("ukava", 47500032)),
 				expectedBidCoins:        sdk.NewCoins(sdk.NewInt64Coin("bnb", 200003287), sdk.NewInt64Coin("btc", 20000032), sdk.NewInt64Coin("ukava", 10000782), sdk.NewInt64Coin("usdc", 20003284)),
-				auctionSize:             sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102500001))),
 				expectedBorrowerCoins:   sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(20*KAVA_CF)), sdk.NewCoin("ukava", sdk.NewInt(60000002)), sdk.NewCoin("bnb", sdk.NewInt(2*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.2*BTCB_CF))), // initial - deposit + borrow + liquidation leftovers
 				expectedAuctions: auctypes.Auctions{
@@ -200,7 +197,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				liquidateAfter:          oneMonthInSeconds,
 				expectedLiquidatedCoins: sdk.NewCoins(sdk.NewInt64Coin("bnb", 950000000), sdk.NewInt64Coin("btc", 95000000), sdk.NewInt64Coin("ukava", 47504818)),
 				expectedBidCoins:        sdk.NewCoins(sdk.NewInt64Coin("ukava", 120112133)),
-				auctionSize:             sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(102500253)), sdk.NewCoin("bnb", sdk.NewInt(0.5*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(0.05*BTCB_CF))), // 5% of each seized coin + initial balances
 				expectedBorrowerCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(170.000001*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(90*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(99*BTCB_CF))),
 				expectedAuctions: auctypes.Auctions{
@@ -271,7 +267,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				liquidateAfter:          oneMonthInSeconds,
 				expectedLiquidatedCoins: sdk.NewCoins(sdk.NewInt64Coin("usdc", 95000000), sdk.NewInt64Coin("usdt", 95000000), sdk.NewInt64Coin("usdx", 94999999)),
 				expectedBidCoins:        sdk.NewCoins(sdk.NewInt64Coin("bnb", 1000082154), sdk.NewInt64Coin("btc", 100000821), sdk.NewInt64Coin("ukava", 35010052)),
-				auctionSize:             sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(5*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(5*KAVA_CF))), // 5% of each seized coin + initial balances
 				expectedBorrowerCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(135*KAVA_CF)), sdk.NewCoin("bnb", sdk.NewInt(10*BNB_CF)), sdk.NewCoin("btc", sdk.NewInt(1*BTCB_CF)), sdk.NewCoin("usdx", sdk.NewInt(0.000001*KAVA_CF))),
 				expectedAuctions: auctypes.Auctions{
@@ -371,7 +366,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				liquidateAfter:          oneMonthInSeconds,
 				expectedLiquidatedCoins: sdk.NewCoins(sdk.NewInt64Coin("dai", 332500000), sdk.NewInt64Coin("usdc", 189999999)),
 				expectedBidCoins:        sdk.NewCoins(sdk.NewInt64Coin("usdx", 245487894), sdk.NewInt64Coin("usdt", 250507897)),
-				auctionSize:             sdk.NewInt(KAVA_CF * 100000),
 				expectedKeeperCoins:     sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(1017.50*KAVA_CF)), sdk.NewCoin("usdt", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(1010*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*KAVA_CF))),
 				expectedBorrowerCoins:   sdk.NewCoins(sdk.NewCoin("dai", sdk.NewInt(650*KAVA_CF)), sdk.NewCoin("usdc", sdk.NewInt(800000001)), sdk.NewCoin("usdt", sdk.NewInt(1250*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1245*KAVA_CF))),
 				expectedAuctions: auctypes.Auctions{
@@ -441,7 +435,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				liquidateAfter:          oneMonthInSeconds,
 				expectedLiquidatedCoins: sdk.Coins{},
 				expectedBidCoins:        sdk.Coins{},
-				auctionSize:             sdk.NewInt(KAVA_CF * 1000),
 				expectedKeeperCoins:     sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100.5*KAVA_CF))),
 				expectedBorrowerCoins:   sdk.NewCoins(),
 				expectedAuctions:        auctypes.Auctions{},
@@ -472,7 +465,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
 						"usdx:usd",                   // Market ID
 						sdk.NewInt(KAVA_CF),          // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
@@ -480,7 +472,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
 						"usdt:usd",                   // Market ID
 						sdk.NewInt(KAVA_CF),          // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
@@ -488,7 +479,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
 						"usdc:usd",                   // Market ID
 						sdk.NewInt(KAVA_CF),          // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
@@ -496,7 +486,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
 						"dai:usd",                    // Market ID
 						sdk.NewInt(KAVA_CF),          // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
@@ -504,7 +493,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                   // Market ID
 						sdk.NewInt(KAVA_CF),          // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
@@ -512,7 +500,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"bnb:usd",                    // Market ID
 						sdk.NewInt(BNB_CF),           // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
@@ -520,7 +507,6 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*BTCB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"btc:usd",                    // Market ID
 						sdk.NewInt(BTCB_CF),          // Conversion Factor
-						tc.args.auctionSize,          // Auction Size
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
