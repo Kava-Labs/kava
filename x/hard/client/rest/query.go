@@ -21,6 +21,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(fmt.Sprintf("/%s/accounts", types.ModuleName), queryModAccountsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/borrows", types.ModuleName), queryBorrowsHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc(fmt.Sprintf("/%s/total-borrowed", types.ModuleName), queryTotalBorrowedHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/%s/interest-rate", types.ModuleName), queryInterestRateHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryParamsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -205,6 +206,44 @@ func queryTotalBorrowedHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetTotalBorrowed)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		cliCtx = cliCtx.WithHeight(height)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryInterestRateHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, _, _, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		// Parse the query height
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		var denom string
+
+		if x := r.URL.Query().Get(RestDenom); len(x) != 0 {
+			denom = strings.TrimSpace(x)
+		}
+
+		params := types.NewQueryInterestRateParams(denom)
+
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetInterestRate)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		cliCtx = cliCtx.WithHeight(height)
 		if err != nil {

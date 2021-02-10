@@ -120,6 +120,12 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	// Calculate borrow interest factor and update
 	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
 	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
+
+	if interestBorrowAccumulated.IsZero() && borrowRateApy.IsPositive() {
+		// don't accumulate if borrow interest is rounding to zero
+		return nil
+	}
+
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
 	reservesNew := interestBorrowAccumulated.ToDec().Mul(mm.ReserveFactor).TruncateInt()
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
@@ -292,6 +298,12 @@ func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
 		return sdk.ZeroDec(), err
 	}
 	return root, nil
+}
+
+// SPYToEstimatedAPY converts the internal per second compounded interest rate into an estimated annual
+// interest rate. The returned value is an estimate  and should not be used for financial calculations.
+func SPYToEstimatedAPY(apy sdk.Dec) sdk.Dec {
+	return apy.Power(uint64(secondsPerYear))
 }
 
 // minInt64 returns the smaller of x or y

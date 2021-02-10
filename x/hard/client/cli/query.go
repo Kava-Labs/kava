@@ -41,6 +41,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		queryTotalDepositedCmd(queryRoute, cdc),
 		queryBorrowsCmd(queryRoute, cdc),
 		queryTotalBorrowedCmd(queryRoute, cdc),
+		queryInterestRateCmd(queryRoute, cdc),
 	)...)
 
 	return hardQueryCmd
@@ -314,5 +315,48 @@ func queryTotalDepositedCmd(queryRoute string, cdc *codec.Codec) *cobra.Command 
 		},
 	}
 	cmd.Flags().String(flagDenom, "", "(optional) filter total deposited coins by denom")
+	return cmd
+}
+
+func queryInterestRateCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "interest-rate",
+		Short: "get current money market interest rates",
+		Long: strings.TrimSpace(`get current money market interest rates:
+
+		Example:
+		$ kvcli q hard interest-rate
+		$ kvcli q hard interest-rate --denom bnb`,
+		),
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			denom := viper.GetString(flagDenom)
+
+			// Construct query with params
+			params := types.NewQueryInterestRateParams(denom)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// Execute query
+			route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryGetInterestRate)
+			res, height, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+			cliCtx = cliCtx.WithHeight(height)
+
+			// Decode and print results
+			var moneyMarketInterestRates types.MoneyMarketInterestRates
+			if err := cdc.UnmarshalJSON(res, &moneyMarketInterestRates); err != nil {
+				return fmt.Errorf("failed to unmarshal money market interest rates: %w", err)
+			}
+			return cliCtx.PrintOutput(moneyMarketInterestRates)
+		},
+	}
+	cmd.Flags().String(flagDenom, "", "(optional) filter interest rates by denom")
 	return cmd
 }

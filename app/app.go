@@ -103,7 +103,6 @@ var (
 		kavadist.ModuleName:         {supply.Minter},
 		issuance.ModuleAccountName:  {supply.Minter, supply.Burner},
 		hard.ModuleAccountName:      {supply.Minter, supply.Burner},
-		hard.LiquidatorAccount:      {supply.Minter, supply.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens

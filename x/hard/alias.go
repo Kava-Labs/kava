@@ -29,7 +29,6 @@ const (
 	EventTypeHardLPDistribution        = types.EventTypeHardLPDistribution
 	EventTypeHardRepay                 = types.EventTypeHardRepay
 	EventTypeHardWithdrawal            = types.EventTypeHardWithdrawal
-	LiquidatorAccount                  = types.LiquidatorAccount
 	ModuleAccountName                  = types.ModuleAccountName
 	ModuleName                         = types.ModuleName
 	QuerierRoute                       = types.QuerierRoute
@@ -46,6 +45,7 @@ const (
 var (
 	// function aliases
 	APYToSPY                      = keeper.APYToSPY
+	SPYToEstimatedAPY             = keeper.SPYToEstimatedAPY
 	CalculateBorrowInterestFactor = keeper.CalculateBorrowInterestFactor
 	CalculateBorrowRate           = keeper.CalculateBorrowRate
 	CalculateSupplyInterestFactor = keeper.CalculateSupplyInterestFactor
