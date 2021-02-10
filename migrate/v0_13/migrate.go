@@ -11,6 +11,8 @@ import (
 
 	v0_13cdp "github.com/kava-labs/kava/x/cdp"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	v0_13committee "github.com/kava-labs/kava/x/committee"
+	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
 )
 
 // MigrateCDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
@@ -106,6 +108,73 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 
 	genesisState.Accounts = removeIndex(genesisState.Accounts, savingsRateMaccIndex)
 	return genesisState
+}
+
+func MigrateCommitte(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
+	committees := []v0_13committee.Committee{}
+	votes := []v0_13committee.Vote{}
+	proposals := []v0_13committee.Proposal{}
+
+	var newStabilityCommittee v0_13committee.Committee
+
+	for _, com := range genesisState.Committees {
+		if com.ID == 1 {
+			newStabilityCommittee.Description = com.Description
+			newStabilityCommittee.ID = com.ID
+			newStabilityCommittee.Members = com.Members
+			newStabilityCommittee.VoteThreshold = com.VoteThreshold
+			newStabilityCommittee.ProposalDuration = com.ProposalDuration
+			var newStabilityCommitteePermissions []v0_13committee.Permission
+			var newStabilitySubParamPermissions v0_13committee.SubParamChangePermission
+
+			for _, perm := range com.Permissions {
+				subPerm, ok := perm.(v0_11committee.SubParamChangePermission)
+				if ok {
+					v0_13committee.AllowedCollateralParams(subPerm.AllowedCollateralParams)
+					var newCollateralParams v0_13committee.AllowedCollateralParams
+					for _, cp := range subPerm.AllowedCollateralParams {
+						newCP := v0_13committee.AllowedCollateralParam(cp)
+						newCollateralParams = append(newCollateralParams, newCP)
+					}
+					newStabilitySubParamPermissions.AllowedCollateralParams = newCollateralParams
+
+					var newAssetParams v0_13committee.AllowedAssetParams
+					for _, ap := range subPerm.AllowedAssetParams {
+						newAP := v0_13committee.AllowedAssetParam{}
+						newAssetParams = append(newAssetParams, newAP)
+					}
+					newStabilitySubParamPermissions.AllowedAssetParams = newAssetParams
+
+					var newMarketParams v0_13committee.AllowedMarkets
+					for _, mp := range subPerm.AllowedMarkets {
+						newMP := v0_13committee.AllowedMarket(mp)
+						newMarketParams = append(newMarketParams, newMP)
+					}
+					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
+					newDP := v0_13committee.AllowedDebtParam{
+						Denom:            subPerm.AllowedDebtParam.Denom,
+						ReferenceAsset:   subPerm.AllowedDebtParam.ReferenceAsset,
+						ConversionFactor: subPerm.AllowedDebtParam.ConversionFactor,
+						DebtFloor:        subPerm.AllowedDebtParam.DebtFloor,
+					}
+					newStabilitySubParamPermissions.AllowedDebtParam = newDP
+
+				}
+
+			}
+
+		}
+	}
+
+	for _, v := range genesisState.Votes {
+		votes = append(votes, v0_13committee.Vote(v))
+	}
+
+	for _, p := range genesisState.Proposals {
+		proposals = append(proposals, v0_13committee.Proposal(p))
+	}
+	return v0_13committee.NewGenesisState(
+		genesisState.NextProposalID, v0_13committee.DefaultGenesisState().Committees, v0_13committee.DefaultGenesisState().Proposals, v0_13committee.DefaultGenesisState().Votes)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
