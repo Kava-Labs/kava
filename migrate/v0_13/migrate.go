@@ -9,6 +9,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
+	"github.com/kava-labs/kava/x/bep3"
 	v0_13cdp "github.com/kava-labs/kava/x/cdp"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
 )
@@ -106,6 +107,18 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 
 	genesisState.Accounts = removeIndex(genesisState.Accounts, savingsRateMaccIndex)
 	return genesisState
+}
+
+// Bep3 migrates a v0.11 bep3 genesis state to a v0.13 genesis state
+func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
+	var newSupplies bep3.AssetSupplies
+	for _, supply := range genesisState.Supplies {
+		if supply.GetDenom() == "bnb" {
+			supply.CurrentSupply = supply.CurrentSupply.Sub(sdk.NewCoin("bnb", sdk.NewInt(1000000000000)))
+		}
+		newSupplies = append(newSupplies, supply)
+	}
+	return bep3.NewGenesisState(genesisState.Params, genesisState.AtomicSwaps, newSupplies, genesisState.PreviousBlockTime)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
