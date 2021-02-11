@@ -15,8 +15,8 @@ import (
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
 )
 
-// MigrateCDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
-func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
+// CDP migrates from a v0.11 cdp genesis state to a v0.13 cdp genesis state
+func CDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 	var newCDPs v0_13cdp.CDPs
 	var newDeposits v0_13cdp.Deposits
 	var newCollateralParams v0_13cdp.CollateralParams

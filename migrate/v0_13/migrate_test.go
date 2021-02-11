@@ -34,7 +34,7 @@ func TestCDP(t *testing.T) {
 		cdc.MustUnmarshalJSON(bz, &oldGenState)
 	})
 
-	newGenState := MigrateCDP(oldGenState)
+	newGenState := CDP(oldGenState)
 	err = newGenState.Validate()
 	require.NoError(t, err)
 
