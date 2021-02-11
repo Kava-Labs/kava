@@ -80,8 +80,8 @@ func MigrateCDP(oldGenState v0_11cdp.GenesisState) v0_13cdp.GenesisState {
 	)
 }
 
-// MigrateAuth migrates from a v0.11 auth genesis state to a v0.13
-func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
+// Auth migrates from a v0.11 auth genesis state to a v0.13
+func Auth(genesisState auth.GenesisState) auth.GenesisState {
 	savingsRateMaccCoins := sdk.NewCoins()
 	savingsMaccAddr := supply.NewModuleAddress(v0_11cdp.SavingsRateMacc)
 	savingsRateMaccIndex := 0
@@ -110,8 +110,8 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 	return genesisState
 }
 
-// MigrateCommittee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis stat
-func MigrateCommittee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
+// Committee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis stat
+func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
 	committees := []v0_13committee.Committee{}
 	votes := []v0_13committee.Vote{}
 	proposals := []v0_13committee.Proposal{}

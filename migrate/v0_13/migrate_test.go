@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestMigrateCdp(t *testing.T) {
+func TestCDP(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-cdp-state-block-500000.json"))
 	require.NoError(t, err)
 	var oldGenState v0_11cdp.GenesisState
@@ -45,7 +45,7 @@ func TestMigrateCdp(t *testing.T) {
 
 }
 
-func TestMigrateAuth(t *testing.T) {
+func TestAuth(t *testing.T) {
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-auth-state-block-500000.json"))
 	require.NoError(t, err)
 	var oldGenState auth.GenesisState
@@ -53,7 +53,7 @@ func TestMigrateAuth(t *testing.T) {
 	require.NotPanics(t, func() {
 		cdc.MustUnmarshalJSON(bz, &oldGenState)
 	})
-	newGenState := MigrateAuth(oldGenState)
+	newGenState := Auth(oldGenState)
 	err = auth.ValidateGenesis(newGenState)
 	require.NoError(t, err)
 	require.Equal(t, len(oldGenState.Accounts), len(newGenState.Accounts)+1)
@@ -71,7 +71,7 @@ func TestCommittee(t *testing.T) {
 		cdc.MustUnmarshalJSON(bz, &oldGenState)
 	})
 
-	newGenState := MigrateCommittee(oldGenState)
+	newGenState := Committee(oldGenState)
 	err = newGenState.Validate()
 	require.NoError(t, err)
 
