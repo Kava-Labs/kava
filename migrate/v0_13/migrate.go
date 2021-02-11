@@ -16,6 +16,7 @@ import (
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
 	v0_13incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	"github.com/kava-labs/kava/x/kavadist"
 )
 
 var (
@@ -297,10 +298,24 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 
 // MigrateAuth migrates from a v0.11 auth genesis state to a v0.13
 func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
+
+	// moves cdp savings rate coins to liquidator account as part of deprecating savings rate
 	savingsRateMaccCoins := sdk.NewCoins()
 	savingsMaccAddr := supply.NewModuleAddress(v0_11cdp.SavingsRateMacc)
 	savingsRateMaccIndex := 0
 	liquidatorMaccIndex := 0
+
+	// moves hard distributions from hard module account to kavadist module account
+	hardDelegatorAddr := supply.NewModuleAddress(v0_11hard.DelegatorAccount)
+	hardDelegatorIdx := 0
+	hardDelegatorCoins := sdk.NewCoins()
+	hardLPAddr := supply.NewModuleAddress(v0_11hard.LPAccount)
+	hardLPIdx := 0
+	hardLPCoins := sdk.NewCoins()
+
+	kavaDistAddr := supply.NewModuleAddress(kavadist.KavaDistMacc)
+	kavaDistIdx := 0
+
 	for idx, acc := range genesisState.Accounts {
 		if acc.GetAddress().Equals(savingsMaccAddr) {
 			savingsRateMaccCoins = acc.GetCoins()
@@ -313,6 +328,17 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 		if acc.GetAddress().Equals(supply.NewModuleAddress(v0_13cdp.LiquidatorMacc)) {
 			liquidatorMaccIndex = idx
 		}
+		if acc.GetAddress().Equals(hardDelegatorAddr) {
+			hardDelegatorIdx = idx
+			hardDelegatorCoins = acc.GetCoins()
+		}
+		if acc.GetAddress().Equals(hardLPAddr) {
+			hardLPIdx = idx
+			hardLPCoins = acc.GetCoins()
+		}
+		if acc.GetAddress().Equals(kavaDistAddr) {
+			kavaDistIdx = idx
+		}
 	}
 	liquidatorAcc := genesisState.Accounts[liquidatorMaccIndex]
 	err := liquidatorAcc.SetCoins(liquidatorAcc.GetCoins().Add(savingsRateMaccCoins...))
@@ -321,12 +347,29 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 	}
 	genesisState.Accounts[liquidatorMaccIndex] = liquidatorAcc
 
-	genesisState.Accounts = removeIndex(genesisState.Accounts, savingsRateMaccIndex)
+	// add hard module accounts to kavadist
+	kavaDistAcc := genesisState.Accounts[kavaDistIdx]
+	err = kavaDistAcc.SetCoins(kavaDistAcc.GetCoins().Add(hardDelegatorCoins...).Add(hardLPCoins...))
+	if err != nil {
+		panic(err)
+	}
+	genesisState.Accounts[kavaDistIdx] = kavaDistAcc
+
+	// reverse sort indexes of accounts to remove so that re-numbering is irrelevant
+	indexesToRemove := []int{savingsRateMaccIndex, hardDelegatorIdx, hardLPIdx}
+	sort.Slice(indexesToRemove, func(i, j int) bool { return indexesToRemove[i] > indexesToRemove[j] })
+
+	// delete hard delegator, hard lp, and savings rate module accounts
+	for _, idx := range indexesToRemove {
+		genesisState.Accounts = removeIndex(genesisState.Accounts, idx)
+	}
+
 	return genesisState
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
 	ret := make(authexported.GenesisAccounts, 0)
 	ret = append(ret, accs[:index]...)
-	return append(ret, accs[index+1:]...)
+	newAccounts := append(ret, accs[index+1:]...)
+	return newAccounts
 }
