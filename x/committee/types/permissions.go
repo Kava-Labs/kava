@@ -625,8 +625,20 @@ type AllowedMoneyMarket struct {
 	ConversionFactor       bool   `json:"conversion_factor" yaml:"conversion_factor"`
 	InterestRateModel      bool   `json:"interest_rate_model" yaml:"interest_rate_model"`
 	ReserveFactor          bool   `json:"reserve_factor" yaml:"reserve_factor"`
-	AuctionSize            bool   `json:"auction_size" yaml:"auction_size"`
 	KeeperRewardPercentage bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
+}
+
+// NewAllowedMoneyMarket returns a new AllowedMoneyMarket
+func NewAllowedMoneyMarket(denom string, bl, sm, cf, irm, rf, kr bool) AllowedMoneyMarket {
+	return AllowedMoneyMarket{
+		Denom:                  denom,
+		BorrowLimit:            bl,
+		SpotMarketID:           sm,
+		ConversionFactor:       cf,
+		InterestRateModel:      irm,
+		ReserveFactor:          rf,
+		KeeperRewardPercentage: kr,
+	}
 }
 
 // Allows implement permission interface
@@ -636,7 +648,6 @@ func (amm AllowedMoneyMarket) Allows(current, incoming hard.MoneyMarket) bool {
 		((current.SpotMarketID == incoming.SpotMarketID) || amm.SpotMarketID) &&
 		((current.ConversionFactor.Equal(incoming.ConversionFactor)) || amm.ConversionFactor) &&
 		((current.InterestRateModel.Equal(incoming.InterestRateModel)) || amm.InterestRateModel) &&
-		((current.AuctionSize.Equal(incoming.AuctionSize)) || amm.AuctionSize) &&
 		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || amm.KeeperRewardPercentage)
 	return allowed
 }

@@ -110,12 +110,14 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 	return genesisState
 }
 
-func MigrateCommitte(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
+// MigrateCommittee migrates from a v0.11 (or v0.12) committee genesis state to a v0.13 committee genesis stat
+func MigrateCommittee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisState {
 	committees := []v0_13committee.Committee{}
 	votes := []v0_13committee.Vote{}
 	proposals := []v0_13committee.Proposal{}
 
 	var newStabilityCommittee v0_13committee.Committee
+	var newSafetyCommittee v0_13committee.Committee
 
 	for _, com := range genesisState.Committees {
 		if com.ID == 1 {
@@ -130,7 +132,15 @@ func MigrateCommitte(genesisState v0_11committee.GenesisState) v0_13committee.Ge
 			for _, perm := range com.Permissions {
 				subPerm, ok := perm.(v0_11committee.SubParamChangePermission)
 				if ok {
-					v0_13committee.AllowedCollateralParams(subPerm.AllowedCollateralParams)
+					// update AllowedParams
+					var newAllowedParams v0_13committee.AllowedParams
+					for _, ap := range subPerm.AllowedParams {
+						newAP := v0_13committee.AllowedParam(ap)
+						newAllowedParams = append(newAllowedParams, newAP)
+					}
+					newStabilitySubParamPermissions.AllowedParams = newAllowedParams
+
+					// update AllowedCollateralParams
 					var newCollateralParams v0_13committee.AllowedCollateralParams
 					for _, cp := range subPerm.AllowedCollateralParams {
 						newCP := v0_13committee.AllowedCollateralParam(cp)
@@ -138,19 +148,7 @@ func MigrateCommitte(genesisState v0_11committee.GenesisState) v0_13committee.Ge
 					}
 					newStabilitySubParamPermissions.AllowedCollateralParams = newCollateralParams
 
-					var newAssetParams v0_13committee.AllowedAssetParams
-					for _, ap := range subPerm.AllowedAssetParams {
-						newAP := v0_13committee.AllowedAssetParam{}
-						newAssetParams = append(newAssetParams, newAP)
-					}
-					newStabilitySubParamPermissions.AllowedAssetParams = newAssetParams
-
-					var newMarketParams v0_13committee.AllowedMarkets
-					for _, mp := range subPerm.AllowedMarkets {
-						newMP := v0_13committee.AllowedMarket(mp)
-						newMarketParams = append(newMarketParams, newMP)
-					}
-					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
+					// update AllowedDebtParam
 					newDP := v0_13committee.AllowedDebtParam{
 						Denom:            subPerm.AllowedDebtParam.Denom,
 						ReferenceAsset:   subPerm.AllowedDebtParam.ReferenceAsset,
@@ -159,10 +157,43 @@ func MigrateCommitte(genesisState v0_11committee.GenesisState) v0_13committee.Ge
 					}
 					newStabilitySubParamPermissions.AllowedDebtParam = newDP
 
+					// update AllowedAssetParams
+					var newAssetParams v0_13committee.AllowedAssetParams
+					for _, ap := range subPerm.AllowedAssetParams {
+						newAP := v0_13committee.AllowedAssetParam(ap)
+						newAssetParams = append(newAssetParams, newAP)
+					}
+					newStabilitySubParamPermissions.AllowedAssetParams = newAssetParams
+
+					// Update Allowed Markets
+					var newMarketParams v0_13committee.AllowedMarkets
+					for _, mp := range subPerm.AllowedMarkets {
+						newMP := v0_13committee.AllowedMarket(mp)
+						newMarketParams = append(newMarketParams, newMP)
+					}
+					newStabilitySubParamPermissions.AllowedMarkets = newMarketParams
+
+					// Add hard money market committee permissions
+					var newMoneyMarketParams v0_13committee.AllowedMoneyMarkets
+					hardMMDenoms := []string{"bnb", "busd", "btcb", "xrpb", "usdx", "kava", "hard"}
+					for _, mmDenom := range hardMMDenoms {
+						newMoneyMarketParam := v0_13committee.NewAllowedMoneyMarket(mmDenom, true, false, false, true, true, true)
+						newMoneyMarketParams = append(newMoneyMarketParams, newMoneyMarketParam)
+					}
+					newStabilitySubParamPermissions.AllowedMoneyMarkets = newMoneyMarketParams
+					newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, newStabilitySubParamPermissions)
 				}
-
 			}
-
+			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_13committee.TextPermission{})
+			committees = append(committees, newStabilityCommittee)
+		} else {
+			newSafetyCommittee.ID = com.ID
+			newSafetyCommittee.Description = com.Description
+			newSafetyCommittee.Members = com.Members
+			newSafetyCommittee.Permissions = []v0_13committee.Permission{v0_13committee.SoftwareUpgradePermission{}}
+			newSafetyCommittee.VoteThreshold = com.VoteThreshold
+			newSafetyCommittee.ProposalDuration = com.ProposalDuration
+			committees = append(committees, newSafetyCommittee)
 		}
 	}
 
@@ -171,10 +202,12 @@ func MigrateCommitte(genesisState v0_11committee.GenesisState) v0_13committee.Ge
 	}
 
 	for _, p := range genesisState.Proposals {
-		proposals = append(proposals, v0_13committee.Proposal(p))
+		newPubProp := v0_13committee.PubProposal(p.PubProposal)
+		newProp := v0_13committee.NewProposal(newPubProp, p.ID, p.CommitteeID, p.Deadline)
+		proposals = append(proposals, newProp)
 	}
 	return v0_13committee.NewGenesisState(
-		genesisState.NextProposalID, v0_13committee.DefaultGenesisState().Committees, v0_13committee.DefaultGenesisState().Proposals, v0_13committee.DefaultGenesisState().Votes)
+		genesisState.NextProposalID, committees, proposals, votes)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
