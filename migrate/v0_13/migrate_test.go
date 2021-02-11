@@ -76,14 +76,12 @@ func TestBep3(t *testing.T) {
 
 	for _, supply := range oldGenState.Supplies {
 		if supply.GetDenom() == "bnb" {
-			// fmt.Printf("old supply %s\n", supply)
 			oldBNBSupply = supply
 		}
 	}
 
 	for _, supply := range newGenState.Supplies {
 		if supply.GetDenom() == "bnb" {
-			// fmt.Printf("new supply %s\n", supply)
 			newBNBSupply = supply
 		}
 	}
