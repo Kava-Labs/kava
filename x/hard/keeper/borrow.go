@@ -233,10 +233,14 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	if !found {
 		return sdkerrors.Wrapf(types.ErrBorrowedCoinsNotFound, "cannot repay coins if no coins are currently borrowed")
 	}
-
-	updatedBorrowedCoins, isAnyNegative := borrowedCoins.SafeSub(coins)
-	if isAnyNegative {
-		return types.ErrNegativeBorrowedCoins
+	updatedBorrowedCoins := sdk.NewCoins()
+	for _, coin := range coins {
+		// decrement amount can be greater than total borrowed amount due to rounding
+		if coin.Amount.GTE(borrowedCoins.AmountOf(coin.Denom)) {
+			continue
+		}
+		updatedBorrowCoin := sdk.NewCoin(coin.Denom, borrowedCoins.AmountOf(coin.Denom).Sub(coin.Amount))
+		updatedBorrowedCoins = updatedBorrowedCoins.Add(updatedBorrowCoin)
 	}
 
 	k.SetBorrowedCoins(ctx, updatedBorrowedCoins)
