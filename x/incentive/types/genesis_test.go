@@ -32,7 +32,7 @@ func TestGenesisStateValidate(t *testing.T) {
 			args: args{
 				params:      DefaultParams(),
 				genAccTimes: DefaultGenesisAccumulationTimes,
-				claims:      DefaultClaims,
+				claims:      DefaultUSDXClaims,
 			},
 			errArgs: errArgs{
 				expectPass: true,
@@ -95,7 +95,7 @@ func TestGenesisStateValidate(t *testing.T) {
 						RewardFactor:   sdk.MustNewDecFromStr("-0.1"),
 					},
 				},
-				claims: DefaultClaims,
+				claims: DefaultUSDXClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -131,7 +131,7 @@ func TestGenesisStateValidate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gs := NewGenesisState(tc.args.params, tc.args.genAccTimes, tc.args.claims)
+			gs := NewGenesisState(tc.args.params, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.genAccTimes, tc.args.claims, DefaultHardClaims)
 			err := gs.Validate()
 			if tc.errArgs.expectPass {
 				require.NoError(t, err, tc.name)

@@ -94,7 +94,8 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	cdps := CDPs{}
 	deposits := Deposits{}
 	k.IterateAllCdps(ctx, func(cdp CDP) (stop bool) {
-		cdps = append(cdps, cdp)
+		syncedCdp := k.SynchronizeInterest(ctx, cdp)
+		cdps = append(cdps, syncedCdp)
 		k.IterateDeposits(ctx, cdp.ID, func(deposit Deposit) (stop bool) {
 			deposits = append(deposits, deposit)
 			return false

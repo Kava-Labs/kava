@@ -39,29 +39,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, supplyKeeper types.SupplyKeeper, gs 
 	k.SetTotalReserves(ctx, gs.TotalReserves)
 
 	// check if the module account exists
-	LPModuleAcc := supplyKeeper.GetModuleAccount(ctx, LPAccount)
-	if LPModuleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", LPAccount))
-	}
-
-	// check if the module account exists
-	DelegatorModuleAcc := supplyKeeper.GetModuleAccount(ctx, DelegatorAccount)
-	if DelegatorModuleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", DelegatorAccount))
-	}
-
-	// check if the module account exists
 	DepositModuleAccount := supplyKeeper.GetModuleAccount(ctx, ModuleAccountName)
 	if DepositModuleAccount == nil {
 		panic(fmt.Sprintf("%s module account has not been set", DepositModuleAccount))
 	}
-
-	// check if the module account exists
-	LiquidatorModuleAcc := supplyKeeper.GetModuleAccount(ctx, LiquidatorAccount)
-	if LiquidatorModuleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", LiquidatorAccount))
-	}
-
 }
 
 // ExportGenesis export genesis state for hard module
@@ -73,12 +54,20 @@ func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	borrows := types.Borrows{}
 
 	k.IterateDeposits(ctx, func(d types.Deposit) bool {
-		deposits = append(deposits, d)
+		syncedDeposit, found := k.GetSyncedDeposit(ctx, d.Depositor)
+		if !found {
+			panic(fmt.Sprintf("syncable deposit not found for %s", d.Depositor))
+		}
+		deposits = append(deposits, syncedDeposit)
 		return false
 	})
 
 	k.IterateBorrows(ctx, func(b types.Borrow) bool {
-		borrows = append(borrows, b)
+		syncedBorrow, found := k.GetSyncedBorrow(ctx, b.Borrower)
+		if !found {
+			panic(fmt.Sprintf("syncable borrow not found for %s", b.Borrower))
+		}
+		borrows = append(borrows, syncedBorrow)
 		return false
 	})
 

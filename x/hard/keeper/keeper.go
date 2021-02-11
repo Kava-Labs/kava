@@ -54,23 +54,6 @@ func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
 	return k
 }
 
-// GetPreviousBlockTime get the blocktime for the previous block
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get([]byte{})
-	if b == nil {
-		return time.Time{}, false
-	}
-	k.cdc.MustUnmarshalBinaryBare(b, &blockTime)
-	return blockTime, true
-}
-
-// SetPreviousBlockTime set the time of the previous block
-func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	store.Set([]byte{}, k.cdc.MustMarshalBinaryBare(blockTime))
-}
-
 // GetDeposit returns a deposit from the store for a particular depositor address, deposit denom
 func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (types.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
@@ -252,6 +235,15 @@ func (k Keeper) IterateMoneyMarkets(ctx sdk.Context, cb func(denom string, money
 	}
 }
 
+// GetAllMoneyMarkets returns all money markets from the store
+func (k Keeper) GetAllMoneyMarkets(ctx sdk.Context) (moneyMarkets types.MoneyMarkets) {
+	k.IterateMoneyMarkets(ctx, func(denom string, moneyMarket types.MoneyMarket) bool {
+		moneyMarkets = append(moneyMarkets, moneyMarket)
+		return false
+	})
+	return
+}
+
 // GetPreviousAccrualTime returns the last time an individual market accrued interest
 func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, denom string) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
@@ -331,47 +323,4 @@ func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInt
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
 	bz := k.cdc.MustMarshalBinaryBare(supplyInterestFactor)
 	store.Set([]byte(denom), bz)
-}
-
-// InsertIntoLtvIndex indexes a user's borrow object by its current LTV
-func (k Keeper) InsertIntoLtvIndex(ctx sdk.Context, ltv sdk.Dec, borrower sdk.AccAddress) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
-	store.Set(types.GetBorrowByLtvKey(ltv, borrower), borrower)
-}
-
-// RemoveFromLtvIndex removes a user's borrow object from the LTV index
-func (k Keeper) RemoveFromLtvIndex(ctx sdk.Context, ltv sdk.Dec, borrower sdk.AccAddress) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
-	store.Delete(types.GetBorrowByLtvKey(ltv, borrower))
-}
-
-// IterateLtvIndex provides an iterator over the borrowers ordered by LTV.
-// For results found before the cutoff count, the cb will be called and the item returned.
-func (k Keeper) IterateLtvIndex(ctx sdk.Context, cutoffCount int,
-	cb func(addr sdk.AccAddress) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.LtvIndexPrefix)
-	iterator := store.ReverseIterator(nil, nil)
-	count := 0
-
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-
-		// Stop iteration after first 10 items
-		count = count + 1
-		if count > cutoffCount {
-			break
-		}
-
-		id := iterator.Value()
-		cb(id)
-	}
-}
-
-// GetLtvIndexSlice returns the first 10 items in the LTV index from the store
-func (k Keeper) GetLtvIndexSlice(ctx sdk.Context, count int) (addrs []sdk.AccAddress) {
-	k.IterateLtvIndex(ctx, count, func(addr sdk.AccAddress) bool {
-		addrs = append(addrs, addr)
-		return false
-	})
-	return
 }

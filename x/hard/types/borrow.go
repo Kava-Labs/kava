@@ -100,6 +100,38 @@ func (bif BorrowInterestFactor) String() string {
 // BorrowInterestFactors is a slice of BorrowInterestFactor, because Amino won't marshal maps
 type BorrowInterestFactors []BorrowInterestFactor
 
+// GetInterestFactor returns a denom's interest factor value
+func (bifs BorrowInterestFactors) GetInterestFactor(denom string) (sdk.Dec, bool) {
+	for _, bif := range bifs {
+		if bif.Denom == denom {
+			return bif.Value, true
+		}
+	}
+	return sdk.ZeroDec(), false
+}
+
+// SetInterestFactor sets a denom's interest factor value
+func (bifs BorrowInterestFactors) SetInterestFactor(denom string, factor sdk.Dec) BorrowInterestFactors {
+	for i, bif := range bifs {
+		if bif.Denom == denom {
+			bif.Value = factor
+			bifs[i] = bif
+			return bifs
+		}
+	}
+	return append(bifs, NewBorrowInterestFactor(denom, factor))
+}
+
+// RemoveInterestFactor removes a denom's interest factor value
+func (bifs BorrowInterestFactors) RemoveInterestFactor(denom string) (BorrowInterestFactors, bool) {
+	for i, bif := range bifs {
+		if bif.Denom == denom {
+			return append(bifs[:i], bifs[i+1:]...), true
+		}
+	}
+	return bifs, false
+}
+
 // Validate validates BorrowInterestFactors
 func (bifs BorrowInterestFactors) Validate() error {
 	for _, bif := range bifs {

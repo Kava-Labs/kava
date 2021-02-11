@@ -142,7 +142,6 @@ func (suite *KeeperTestSuite) TestRepay() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*USDX_CF), sdk.MustNewDecFromStr("1")), // Borrow Limit
 						"usdx:usd",                     // Market ID
 						sdk.NewInt(USDX_CF),            // Conversion Factor
-						sdk.NewInt(1000*USDX_CF),       // Auction Size
 						model,                          // Interest Rate Model
 						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
@@ -150,12 +149,10 @@ func (suite *KeeperTestSuite) TestRepay() {
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                     // Market ID
 						sdk.NewInt(KAVA_CF),            // Conversion Factor
-						sdk.NewInt(1000*KAVA_CF),       // Auction Size
 						model,                          // Interest Rate Model
 						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
-				0, // LTV counter
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -212,7 +209,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 			err = suite.keeper.Borrow(suite.ctx, tc.args.borrower, tc.args.borrowCoins)
 			suite.Require().NoError(err)
 
-			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.repayCoins)
+			err = suite.keeper.Repay(suite.ctx, tc.args.borrower, tc.args.borrower, tc.args.repayCoins)
 			if tc.errArgs.expectPass {
 				suite.Require().NoError(err)
 				// If we overpaid expect an adjustment

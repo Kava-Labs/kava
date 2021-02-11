@@ -8,7 +8,7 @@ const (
 	EventTypeDeleteHardDeposit         = "delete_hard_deposit"
 	EventTypeHardWithdrawal            = "hard_withdrawal"
 	EventTypeHardBorrow                = "hard_borrow"
-	EventTypeDepositLiquidation        = "hard_liquidation"
+	EventTypeHardLiquidation           = "hard_liquidation"
 	EventTypeHardRepay                 = "hard_repay"
 	AttributeValueCategory             = ModuleName
 	AttributeKeyBlockHeight            = "block_height"
@@ -22,4 +22,9 @@ const (
 	AttributeKeyBorrowCoins            = "borrow_coins"
 	AttributeKeySender                 = "sender"
 	AttributeKeyRepayCoins             = "repay_coins"
+	AttributeKeyLiquidatedOwner        = "liquidated_owner"
+	AttributeKeyLiquidatedCoins        = "liquidated_coins"
+	AttributeKeyKeeper                 = "keeper"
+	AttributeKeyKeeperRewardCoins      = "keeper_reward_coins"
+	AttributeKeyOwner                  = "owner"
 )

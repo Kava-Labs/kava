@@ -49,19 +49,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.addrs = addrs
 }
 
-func (suite *KeeperTestSuite) TestGetSetPreviousBlockTime() {
-	now := tmtime.Now()
-
-	_, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.Require().False(f)
-
-	suite.NotPanics(func() { suite.keeper.SetPreviousBlockTime(suite.ctx, now) })
-
-	pbt, f := suite.keeper.GetPreviousBlockTime(suite.ctx)
-	suite.True(f)
-	suite.Equal(now, pbt)
-}
-
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
 		types.SupplyInterestFactors{types.NewSupplyInterestFactor("", sdk.MustNewDecFromStr("0"))})
@@ -99,7 +86,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {
 	denom := "test"
 	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
 	borrowLimit := types.NewBorrowLimit(false, sdk.MustNewDecFromStr("0.2"), sdk.MustNewDecFromStr("0.5"))
-	moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), sdk.NewInt(1000000000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
+	moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
 
 	_, f := suite.keeper.GetMoneyMarket(suite.ctx, denom)
 	suite.Require().False(f)
@@ -125,7 +112,7 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 		denom := testDenom + strconv.Itoa(i)
 		model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10"))
 		borrowLimit := types.NewBorrowLimit(false, sdk.MustNewDecFromStr("0.2"), sdk.MustNewDecFromStr("0.5"))
-		moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), sdk.NewInt(1000000000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
+		moneyMarket := types.NewMoneyMarket(denom, borrowLimit, denom+":usd", sdk.NewInt(1000000), model, sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec())
 
 		// Store money market in the module's store
 		suite.Require().NotPanics(func() { suite.keeper.SetMoneyMarket(suite.ctx, denom, moneyMarket) })
@@ -145,69 +132,6 @@ func (suite *KeeperTestSuite) TestIterateInterestRateModels() {
 
 	suite.Require().Equal(setMMs, seenMMs)
 	suite.Require().Equal(setDenoms, seenDenoms)
-}
-
-func (suite *KeeperTestSuite) TestSetDeleteLtvIndex() {
-	// LTV index should have 0 items
-	firstAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(0, len(firstAddrs))
-
-	// Add an item to the LTV index
-	addr := sdk.AccAddress("test")
-	ltv := sdk.MustNewDecFromStr("1.1")
-	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
-
-	// LTV index should have 1 item
-	secondAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(1, len(secondAddrs))
-
-	// Attempt to remove invalid item from LTV index
-	fakeLtv := sdk.MustNewDecFromStr("1.2")
-	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, fakeLtv, addr) })
-
-	// LTV index should still have 1 item
-	thirdAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(1, len(thirdAddrs))
-
-	// Attempt to remove valid item from LTV index
-	suite.Require().NotPanics(func() { suite.keeper.RemoveFromLtvIndex(suite.ctx, ltv, addr) })
-
-	// LTV index should still have 0 items
-	fourthAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(0, len(fourthAddrs))
-}
-
-func (suite *KeeperTestSuite) TestIterateLtvIndex() {
-	var setAddrs []sdk.AccAddress
-	for i := 1; i <= 20; i++ {
-		addr := sdk.AccAddress("test" + fmt.Sprint(i))
-		incrementalDec := sdk.NewDec(int64(i)).Quo(sdk.NewDec(10))
-		ltv := sdk.OneDec().Add(incrementalDec)
-
-		// Set the ltv-address pair in the store
-		suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
-
-		setAddrs = append(setAddrs, addr)
-	}
-
-	// Only the first 10 addresses should be returned
-	sliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	suite.Require().Equal(addressSort(setAddrs[10:20]), addressSort(sliceAddrs))
-
-	// Insert an additional item into the LTV index that should be returned in the first 10 elements
-	addr := sdk.AccAddress("test" + fmt.Sprint(21))
-	ltv := sdk.OneDec().Add(sdk.MustNewDecFromStr("15").Quo(sdk.NewDec(10)))
-	suite.Require().NotPanics(func() { suite.keeper.InsertIntoLtvIndex(suite.ctx, ltv, addr) })
-
-	// Fetch the updated LTV index
-	updatedSliceAddrs := suite.keeper.GetLtvIndexSlice(suite.ctx, 10)
-	sawAddr := false
-	for _, updatedSliceAddr := range updatedSliceAddrs {
-		if updatedSliceAddr.Equals(addr) {
-			sawAddr = true
-		}
-	}
-	suite.Require().Equal(true, sawAddr)
 }
 
 func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authexported.Account {

@@ -22,7 +22,7 @@ func NewGenesisState(prevBlockTime time.Time) GenesisState {
 
 // DefaultGenesisState - Return a default genesis state
 func DefaultGenesisState() GenesisState {
-	return NewGenesisState(tmtime.Canonical(time.Unix(0, 0)))
+	return NewGenesisState(tmtime.Canonical(time.Unix(1, 0)))
 }
 
 // Equal checks whether two gov GenesisState structs are equivalent

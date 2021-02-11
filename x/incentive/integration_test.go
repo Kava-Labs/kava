@@ -166,7 +166,11 @@ func NewIncentiveGenState(previousAccumTime, endTime time.Time, rewardPeriods ..
 			endTime,
 		),
 		accumulationTimes,
-		incentive.USDXMintingClaims{},
+		accumulationTimes,
+		accumulationTimes,
+		incentive.DefaultGenesisAccumulationTimes,
+		incentive.DefaultUSDXClaims,
+		incentive.DefaultHardClaims,
 	)
 	return app.GenesisState{incentive.ModuleName: incentive.ModuleCdc.MustMarshalJSON(genesis)}
 }

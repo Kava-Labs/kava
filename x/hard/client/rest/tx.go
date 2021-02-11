@@ -97,7 +97,12 @@ func postRepayHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgRepay(req.From, req.Amount)
+		owner := req.Owner
+		if owner.Empty() {
+			owner = req.From
+		}
+
+		msg := types.NewMsgRepay(req.From, owner, req.Amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
