@@ -737,7 +737,6 @@ func (amm AllowedMoneyMarket) Allows(current, incoming hard.MoneyMarket) bool {
 		((current.SpotMarketID == incoming.SpotMarketID) || amm.SpotMarketID) &&
 		((current.ConversionFactor.Equal(incoming.ConversionFactor)) || amm.ConversionFactor) &&
 		((current.InterestRateModel.Equal(incoming.InterestRateModel)) || amm.InterestRateModel) &&
-		((current.AuctionSize.Equal(incoming.AuctionSize)) || amm.AuctionSize) &&
 		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || amm.KeeperRewardPercentage)
 	return allowed
 }
