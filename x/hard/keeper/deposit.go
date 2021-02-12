@@ -156,7 +156,7 @@ func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 		updatedSuppliedCoins = updatedSuppliedCoins.Add(updatedSupplyCoin)
 	}
 
-	k.SetSuppliedCoins(ctx, suppliedCoins)
+	k.SetSuppliedCoins(ctx, updatedSuppliedCoins)
 	return nil
 }
 
