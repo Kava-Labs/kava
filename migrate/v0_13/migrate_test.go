@@ -15,6 +15,7 @@ import (
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
 	v0_13incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 
 	"github.com/stretchr/testify/require"
 )
@@ -48,6 +49,14 @@ func TestMigrateCdp(t *testing.T) {
 }
 
 func TestMigrateAuth(t *testing.T) {
+	validatorVestingChangeAddress, err := sdk.AccAddressFromBech32("kava1a3qmze57knfj29a5knqs5ptewh76v4fg23xsvn")
+	if err != nil {
+		panic(err)
+	}
+	validatorVestingUpdatedValAddress, err := sdk.ConsAddressFromBech32("kavavalcons1ucxhn6zh7y2zun49m36psjffrhmux7ukqxdcte")
+	if err != nil {
+		panic(err)
+	}
 	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-auth-state-block-500000.json"))
 	require.NoError(t, err)
 	var oldGenState auth.GenesisState
@@ -56,6 +65,13 @@ func TestMigrateAuth(t *testing.T) {
 		cdc.MustUnmarshalJSON(bz, &oldGenState)
 	})
 	newGenState := MigrateAuth(oldGenState)
+	for _, acc := range newGenState.Accounts {
+		if acc.GetAddress().Equals(validatorVestingChangeAddress) {
+			vacc := acc.(*validatorvesting.ValidatorVestingAccount)
+			require.Equal(t, int64(0), vacc.CurrentPeriodProgress.MissedBlocks)
+			require.Equal(t, validatorVestingUpdatedValAddress, vacc.ValidatorAddress)
+		}
+	}
 	err = auth.ValidateGenesis(newGenState)
 	require.NoError(t, err)
 	require.Equal(t, len(oldGenState.Accounts), len(newGenState.Accounts)+3)

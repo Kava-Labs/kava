@@ -17,6 +17,7 @@ import (
 	v0_13incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
 	"github.com/kava-labs/kava/x/kavadist"
+	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
 )
 
 var (
@@ -298,6 +299,14 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 
 // MigrateAuth migrates from a v0.11 auth genesis state to a v0.13
 func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
+	validatorVestingChangeAddress, err := sdk.AccAddressFromBech32("kava1a3qmze57knfj29a5knqs5ptewh76v4fg23xsvn")
+	if err != nil {
+		panic(err)
+	}
+	validatorVestingUpdatedValAddress, err := sdk.ConsAddressFromBech32("kavavalcons1ucxhn6zh7y2zun49m36psjffrhmux7ukqxdcte")
+	if err != nil {
+		panic(err)
+	}
 
 	// moves cdp savings rate coins to liquidator account as part of deprecating savings rate
 	savingsRateMaccCoins := sdk.NewCoins()
@@ -317,6 +326,15 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 	kavaDistIdx := 0
 
 	for idx, acc := range genesisState.Accounts {
+		// reset validator vesting missed blocks to zero (due to ongoing network issues in kava-4)
+		vvacc, ok := acc.(*validatorvesting.ValidatorVestingAccount)
+		if ok {
+			vvacc.CurrentPeriodProgress.MissedBlocks = 0
+			if vvacc.GetAddress().Equals(validatorVestingChangeAddress) {
+				// update validator vesting validator address for shiprekt
+				vvacc.ValidatorAddress = validatorVestingUpdatedValAddress
+			}
+		}
 		if acc.GetAddress().Equals(savingsMaccAddr) {
 			savingsRateMaccCoins = acc.GetCoins()
 			savingsRateMaccIndex = idx
@@ -341,7 +359,7 @@ func MigrateAuth(genesisState auth.GenesisState) auth.GenesisState {
 		}
 	}
 	liquidatorAcc := genesisState.Accounts[liquidatorMaccIndex]
-	err := liquidatorAcc.SetCoins(liquidatorAcc.GetCoins().Add(savingsRateMaccCoins...))
+	err = liquidatorAcc.SetCoins(liquidatorAcc.GetCoins().Add(savingsRateMaccCoins...))
 	if err != nil {
 		panic(err)
 	}
