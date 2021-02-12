@@ -122,6 +122,38 @@ func (suite *KeeperTestSuite) TestRepay() {
 				contains:     "account can only repay up to 50000000ukava",
 			},
 		},
+		{
+			"invalid: repaying a single coin type results in borrow position below the minimum USD value",
+			args{
+				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF))),
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
+				depositCoins:         []sdk.Coin{sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF))},
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(50*USDX_CF))),
+				repayCoins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(45*USDX_CF))),
+			},
+			errArgs{
+				expectPass:   false,
+				expectDelete: false,
+				contains:     "proposed borrow's USD value $5.000000000000000000 is below the minimum borrow limit",
+			},
+		},
+		{
+			"invalid: repaying multiple coin types results in borrow position below the minimum USD value",
+			args{
+				borrower:             sdk.AccAddress(crypto.AddressHash([]byte("test"))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF))),
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(1000*USDX_CF))),
+				depositCoins:         []sdk.Coin{sdk.NewCoin("usdx", sdk.NewInt(100*USDX_CF))},
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(50*USDX_CF)), sdk.NewCoin("ukava", sdk.NewInt(10*KAVA_CF))), // (50*$1)+(10*$2) = $70
+				repayCoins:           sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(45*USDX_CF)), sdk.NewCoin("ukava", sdk.NewInt(8*KAVA_CF))),  // (45*$1)+(8*2) = $61
+			},
+			errArgs{
+				expectPass:   false,
+				expectDelete: false,
+				contains:     "proposed borrow's USD value $9.000000000000000000 is below the minimum borrow limit",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -153,6 +185,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 						sdk.MustNewDecFromStr("0.05"),  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 				},
+				sdk.NewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
