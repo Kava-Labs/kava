@@ -181,7 +181,10 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 					return liquidatedCoins, err
 				}
 				// Decrement supplied coins and decrement borrowed coins optimistically
-				k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
+				err = k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
+				if err != nil {
+					return liquidatedCoins, err
+				}
 				err = k.DecrementBorrowedCoins(ctx, sdk.Coins{bid})
 				if err != nil {
 					return liquidatedCoins, err
@@ -229,7 +232,10 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 					return liquidatedCoins, err
 				}
 				// Decrement supplied coins and decrement borrowed coins optimistically
-				k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
+				err = k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
+				if err != nil {
+					return liquidatedCoins, err
+				}
 				err = k.DecrementBorrowedCoins(ctx, sdk.Coins{bid})
 				if err != nil {
 					return liquidatedCoins, err

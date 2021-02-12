@@ -145,12 +145,18 @@ func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 		return sdkerrors.Wrapf(types.ErrSuppliedCoinsNotFound, "cannot withdraw if no coins are deposited")
 	}
 
-	updatedSuppliedCoins, isAnyNegative := suppliedCoins.SafeSub(coins)
-	if isAnyNegative {
-		return types.ErrNegativeSuppliedCoins
+	updatedSuppliedCoins := sdk.NewCoins()
+	for _, coin := range coins {
+		// If amount is greater than total supplied amount due to rounding, set total supplied amount to 0
+		// by skipping the coin such that it's not included in the updatedSuppliedCoins object
+		if coin.Amount.GTE(suppliedCoins.AmountOf(coin.Denom)) {
+			continue
+		}
+		updatedSupplyCoin := sdk.NewCoin(coin.Denom, suppliedCoins.AmountOf(coin.Denom).Sub(coin.Amount))
+		updatedSuppliedCoins = updatedSuppliedCoins.Add(updatedSupplyCoin)
 	}
 
-	k.SetSuppliedCoins(ctx, updatedSuppliedCoins)
+	k.SetSuppliedCoins(ctx, suppliedCoins)
 	return nil
 }
 

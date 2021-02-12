@@ -64,8 +64,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	} else {
 		k.SetDeposit(ctx, deposit)
 	}
+
 	// Update total supplied amount
-	k.DecrementSuppliedCoins(ctx, amount)
+	err = k.DecrementSuppliedCoins(ctx, amount)
+	if err != nil {
+		return err
+	}
 
 	// Call incentive hook
 	k.AfterDepositModified(ctx, deposit)
