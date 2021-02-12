@@ -182,7 +182,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				}
 				// Decrement supplied coins and increment borrowed coins optimistically
 				k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
-				k.IncrementBorrowedCoins(ctx, sdk.Coins{bid})
+				k.DecrementBorrowedCoins(ctx, sdk.Coins{bid})
 
 				// Add lot to liquidated coins
 				liquidatedCoins = liquidatedCoins.Add(lot)
@@ -227,7 +227,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				}
 				// Decrement supplied coins and increment borrowed coins optimistically
 				k.DecrementSuppliedCoins(ctx, sdk.Coins{lot})
-				k.IncrementBorrowedCoins(ctx, sdk.Coins{bid})
+				k.DecrementBorrowedCoins(ctx, sdk.Coins{bid})
 
 				// Add lot to liquidated coins
 				liquidatedCoins = liquidatedCoins.Add(lot)

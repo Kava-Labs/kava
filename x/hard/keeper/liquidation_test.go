@@ -652,7 +652,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				suite.Require().Equal(suppliedCoinsPre.Sub(tc.args.expectedLiquidatedCoins), suppliedCoinsPost)
 				borrowedCoinsPost, _ := suite.keeper.GetBorrowedCoins(liqCtx)
 
-				suite.Require().Equal(borrowedCoinsPre.Add(tc.args.expectedBidCoins...), borrowedCoinsPost)
+				suite.Require().Equal(borrowedCoinsPre.Sub(tc.args.expectedBidCoins), borrowedCoinsPost)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
