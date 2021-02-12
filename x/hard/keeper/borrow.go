@@ -290,29 +290,3 @@ func (k Keeper) loadSyncedBorrow(ctx sdk.Context, borrow types.Borrow) types.Bor
 
 	return types.NewBorrow(borrow.Borrower, borrow.Amount.Add(totalNewInterest...), newBorrowIndexes)
 }
-
-// GetCurrentBorrowUSDValue returns a borrow object containing current balances and indexes
-func (k Keeper) GetCurrentBorrowUSDValue(ctx sdk.Context, borrower sdk.AccAddress) (sdk.Dec, error) {
-	borrow, found := k.GetBorrow(ctx, borrower)
-	if !found {
-		return sdk.ZeroDec(), nil
-	}
-
-	// Get the total USD value of user's existing borrows
-	existingBorrowUSDValue := sdk.ZeroDec()
-	if found {
-		for _, coin := range borrow.Amount {
-			moneyMarket, foundMoneyMarket := k.GetMoneyMarket(ctx, coin.Denom)
-			if foundMoneyMarket {
-				// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
-				assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
-				if err != nil {
-					return existingBorrowUSDValue, sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
-				}
-				coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
-				existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
-			}
-		}
-	}
-	return existingBorrowUSDValue, nil
-}
