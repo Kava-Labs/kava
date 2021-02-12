@@ -148,7 +148,7 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 
 	// If the proposed repayment would results in a borrowed USD value below the minimum borrow USD value, reject it.
 	// User can overpay their loan to close it out, but underpaying by such a margin that the USD value is in an
-	// invalid range is not allowed.
+	// invalid range is not allowed
 	proposedBorrowNewUSDValue := existingBorrowUSDValue.Sub(repayTotalUSDValue)
 	if proposedBorrowNewUSDValue.IsPositive() && proposedBorrowNewUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) {
 		return sdkerrors.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", proposedBorrowNewUSDValue, k.GetMinimumBorrowUSDValue(ctx))
