@@ -9,16 +9,19 @@ import (
 
 // Repay borrowed funds
 func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.Coins) error {
-	// Sync borrow interest so loan is up-to-date
-	k.SyncBorrowInterest(ctx, owner)
 
-	// Check borrow exists here to avoid duplicating store read in ValidateRepay
 	borrow, found := k.GetBorrow(ctx, owner)
 	if !found {
 		return types.ErrBorrowNotFound
 	}
 	// Call incentive hook
 	k.BeforeBorrowModified(ctx, borrow)
+
+	// Sync borrow interest so loan is up-to-date
+	k.SyncBorrowInterest(ctx, owner)
+
+	// refresh borrow after syncing interest
+	borrow, _ = k.GetBorrow(ctx, owner)
 
 	// Validate that sender holds coins for repayment
 	err := k.ValidateRepay(ctx, sender, coins)
