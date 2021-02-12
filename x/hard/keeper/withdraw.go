@@ -9,19 +9,24 @@ import (
 
 // Withdraw returns some or all of a deposit back to original depositor
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
-	deposit, found := k.GetDeposit(ctx, depositor)
+	// Call incentive hooks
+	existingDeposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
-	// Call incentive hooks
-	k.BeforeDepositModified(ctx, deposit)
+	k.BeforeDepositModified(ctx, existingDeposit)
+
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
 	if hasExistingBorrow {
 		k.BeforeBorrowModified(ctx, existingBorrow)
 	}
 
+	// Sync interest
 	k.SyncBorrowInterest(ctx, depositor)
 	k.SyncSupplyInterest(ctx, depositor)
+
+	// Refresh Deposit after syncing interest
+	deposit, _ := k.GetDeposit(ctx, depositor)
 
 	amount, err := k.CalculateWithdrawAmount(deposit.Amount, coins)
 	if err != nil {
