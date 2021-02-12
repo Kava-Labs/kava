@@ -26,7 +26,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	k.SyncSupplyInterest(ctx, depositor)
 
 	// Refresh Deposit after syncing interest
-	deposit, found := k.GetDeposit(ctx, depositor)
+	deposit, _ := k.GetDeposit(ctx, depositor)
 
 	amount, err := k.CalculateWithdrawAmount(deposit.Amount, coins)
 	if err != nil {
