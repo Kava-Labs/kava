@@ -63,4 +63,6 @@ var (
 	ErrInvalidRepaymentDenom = sdkerrors.Register(ModuleName, 28, "no coins of this type borrowed")
 	// ErrInvalidIndexFactorDenom error for when index factor denom cannot be found
 	ErrInvalidIndexFactorDenom = sdkerrors.Register(ModuleName, 29, "no index factor found for denom")
+	// ErrBelowMinimumBorrowValue error for when a proposed borrow position is less than the minimum USD value
+	ErrBelowMinimumBorrowValue = sdkerrors.Register(ModuleName, 30, "invalid proposed borrow value")
 )
