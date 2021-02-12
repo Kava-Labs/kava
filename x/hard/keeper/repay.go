@@ -20,6 +20,9 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	// Sync borrow interest so loan is up-to-date
 	k.SyncBorrowInterest(ctx, owner)
 
+	// Refresh borrow after syncing interest
+	borrow, _ = k.GetBorrow(ctx, owner)
+
 	// Validate that sender holds coins for repayment
 	err := k.ValidateRepay(ctx, sender, coins)
 	if err != nil {
