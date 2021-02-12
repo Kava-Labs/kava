@@ -58,7 +58,10 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	}
 
 	// Update total borrowed amount
-	k.DecrementBorrowedCoins(ctx, payment)
+	err = k.DecrementBorrowedCoins(ctx, payment)
+	if err != nil {
+		return err
+	}
 
 	// Call incentive hook
 	if !borrow.Amount.Empty() {
