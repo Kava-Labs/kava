@@ -208,6 +208,12 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		}
 	}
 
+	// Borrow's updated total USD value must be greater than the minimum global USD borrow limit
+	totalBorrowUSDValue := proprosedBorrowUSDValue.Add(existingBorrowUSDValue)
+	if totalBorrowUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) {
+		return sdkerrors.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", totalBorrowUSDValue, k.GetMinimumBorrowUSDValue(ctx))
+	}
+
 	// Validate that the proposed borrow's USD value is within user's borrowable limit
 	if proprosedBorrowUSDValue.GT(totalBorrowableAmount.Sub(existingBorrowUSDValue)) {
 		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s exceeds the allowable amount as determined by the collateralization ratio", amount)
