@@ -32,7 +32,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	)...)
 
 	return incentiveTxCmd
-
 }
 
 func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
@@ -40,7 +39,7 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 		Use:   "claim-cdp [owner] [multiplier]",
 		Short: "claim CDP rewards for cdp owner and collateral-type",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim any outstanding CDP rewards owned by owner for the input collateral-type and multiplier,
+			fmt.Sprintf(`Claim any outstanding CDP rewards owned by owner for the input collateral-type and multiplier
 
 			Example:
 			$ %s tx %s claim-cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw large
@@ -49,7 +48,7 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			owner, err := sdk.AccAddressFromBech32(args[0])
@@ -62,7 +61,9 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 				return sdkerrors.Wrapf(types.ErrInvalidClaimOwner, "tx sender %s does not match claim owner %s", sender, owner)
 			}
 
-			msg := types.NewMsgClaimUSDXMintingReward(owner, args[1])
+			multiplier := args[1]
+
+			msg := types.NewMsgClaimUSDXMintingReward(owner, multiplier)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -77,7 +78,7 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 		Use:   "claim-hard [owner] [multiplier]",
 		Short: "claim Hard rewards for deposit/borrow and delegating",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim owner's outstanding Hard rewards using given multiplier multiplier,
+			fmt.Sprintf(`Claim owner's outstanding Hard rewards using given multiplier
 
 			Example:
 			$ %s tx %s claim-hard kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw large
@@ -86,7 +87,7 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			owner, err := sdk.AccAddressFromBech32(args[0])
@@ -99,7 +100,9 @@ func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 				return sdkerrors.Wrapf(types.ErrInvalidClaimOwner, "tx sender %s does not match claim owner %s", sender, owner)
 			}
 
-			msg := types.NewMsgClaimHardLiquidityProviderReward(owner, args[1])
+			multiplier := args[1]
+
+			msg := types.NewMsgClaimHardLiquidityProviderReward(owner, multiplier)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
