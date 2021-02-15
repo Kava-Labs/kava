@@ -57,6 +57,9 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 			}
 		}
 	}
+	if err != nil {
+		return err
+	}
 
 	interestFactors := types.BorrowInterestFactors{}
 	currBorrow, foundBorrow := k.GetBorrow(ctx, borrower)
