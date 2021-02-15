@@ -113,6 +113,17 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		return types.ErrBorrowEmptyCoins
 	}
 
+	// The reserve coins aren't available for users to borrow
+	hardMaccCoins := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetCoins()
+	reserveCoins, foundReserveCoins := k.GetTotalReserves(ctx)
+	if !foundReserveCoins {
+		reserveCoins = sdk.NewCoins()
+	}
+	fundsAvailableToBorrow := hardMaccCoins.Sub(reserveCoins)
+	if amount.IsAnyGT(fundsAvailableToBorrow) {
+		return sdkerrors.Wrapf(types.ErrExceedsProtocolBorrowableBalance, "requested borrow %s > available to borrow %s", amount, fundsAvailableToBorrow)
+	}
+
 	// Get the proposed borrow USD value
 	moneyMarketCache := map[string]types.MoneyMarket{}
 	proprosedBorrowUSDValue := sdk.ZeroDec()
