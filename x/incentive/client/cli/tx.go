@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -32,38 +31,30 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	)...)
 
 	return incentiveTxCmd
-
 }
 
 func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim-cdp [owner] [multiplier]",
-		Short: "claim CDP rewards for cdp owner and collateral-type",
+		Use:   "claim-cdp [multiplier]",
+		Short: "claim CDP rewards using a given multiplier",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim any outstanding CDP rewards owned by owner for the input collateral-type and multiplier,
+			fmt.Sprintf(`Claim sender's outstanding CDP rewards using a given multiplier
 
 			Example:
-			$ %s tx %s claim-cdp kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw large
+			$ %s tx %s claim-cdp large
 		`, version.ClientName, types.ModuleName),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			owner, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
 			sender := cliCtx.GetFromAddress()
-			if !sender.Equals(owner) {
-				return sdkerrors.Wrapf(types.ErrInvalidClaimOwner, "tx sender %s does not match claim owner %s", sender, owner)
-			}
+			multiplier := args[0]
 
-			msg := types.NewMsgClaimUSDXMintingReward(owner, args[1])
-			err = msg.ValidateBasic()
+			msg := types.NewMsgClaimUSDXMintingReward(sender, multiplier)
+			err := msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
@@ -74,33 +65,26 @@ func getCmdClaimCdp(cdc *codec.Codec) *cobra.Command {
 
 func getCmdClaimHard(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "claim-hard [owner] [multiplier]",
-		Short: "claim Hard rewards for deposit/borrow and delegating",
+		Use:   "claim-hard [multiplier]",
+		Short: "claim sender's Hard module rewards using a given multiplier",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Claim owner's outstanding Hard rewards using given multiplier multiplier,
+			fmt.Sprintf(`Claim sender's outstanding Hard rewards for deposit/borrow/delegate using given multiplier
 
 			Example:
-			$ %s tx %s claim-hard kava15qdefkmwswysgg4qxgqpqr35k3m49pkx2jdfnw large
+			$ %s tx %s claim-hard large
 		`, version.ClientName, types.ModuleName),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			owner, err := sdk.AccAddressFromBech32(args[0])
-			if err != nil {
-				return err
-			}
-
 			sender := cliCtx.GetFromAddress()
-			if !sender.Equals(owner) {
-				return sdkerrors.Wrapf(types.ErrInvalidClaimOwner, "tx sender %s does not match claim owner %s", sender, owner)
-			}
+			multiplier := args[0]
 
-			msg := types.NewMsgClaimHardLiquidityProviderReward(owner, args[1])
-			err = msg.ValidateBasic()
+			msg := types.NewMsgClaimHardLiquidityProviderReward(sender, multiplier)
+			err := msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
