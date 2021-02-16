@@ -337,13 +337,40 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		}
 	}
 
+	// Check any MoneyMarket changes are alloed
+
+	var foundIncomingMMs bool
+	var incomingMMs hard.MoneyMarkets
+	for _, change := range proposal.Changes {
+		if !(change.Subspace == hard.ModuleName && change.Key == string(hard.KeyMoneyMarkets)) {
+			continue
+		}
+		foundIncomingMMs = true
+		if err := appCdc.UnmarshalJSON([]byte(change.Value), &incomingMMs); err != nil {
+			return false
+		}
+	}
+
+	if foundIncomingMMs {
+		subspace, found := pk.GetSubspace(hard.ModuleName)
+		if !found {
+			return false
+		}
+		var currentMMs hard.MoneyMarkets
+		subspace.Get(ctx, hard.KeyMoneyMarkets, &currentMMs)
+		mmChangesAllowed := perm.AllowedMoneyMarkets.Allows(currentMMs, incomingMMs)
+		if !mmChangesAllowed {
+			return false
+		}
+	}
+
 	return true
 }
 
 // AllowedCollateralParams slice of AllowedCollateralParam
 type AllowedCollateralParams []AllowedCollateralParam
 
-// Allows implement permission interface
+// Allows determine if collateral params changes are permitted
 func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.CollateralParams) bool {
 	allAllowed := true
 
@@ -394,40 +421,42 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 
 // AllowedCollateralParam permission struct for changes to collateral parameter keys (cdp module)
 type AllowedCollateralParam struct {
-	Type                string `json:"type" yaml:"type"`
-	Denom               bool   `json:"denom" yaml:"denom"`
-	LiquidationRatio    bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
-	DebtLimit           bool   `json:"debt_limit" yaml:"debt_limit"`
-	StabilityFee        bool   `json:"stability_fee" yaml:"stability_fee"`
-	AuctionSize         bool   `json:"auction_size" yaml:"auction_size"`
-	LiquidationPenalty  bool   `json:"liquidation_penalty" yaml:"liquidation_penalty"`
-	Prefix              bool   `json:"prefix" yaml:"prefix"`
-	SpotMarketID        bool   `json:"spot_market_id" yaml:"spot_market_id"`
-	LiquidationMarketID bool   `json:"liquidation_market_id" yaml:"liquidation_market_id"`
-	ConversionFactor    bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	Type                   string `json:"type" yaml:"type"`
+	Denom                  bool   `json:"denom" yaml:"denom"`
+	LiquidationRatio       bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
+	DebtLimit              bool   `json:"debt_limit" yaml:"debt_limit"`
+	StabilityFee           bool   `json:"stability_fee" yaml:"stability_fee"`
+	AuctionSize            bool   `json:"auction_size" yaml:"auction_size"`
+	LiquidationPenalty     bool   `json:"liquidation_penalty" yaml:"liquidation_penalty"`
+	Prefix                 bool   `json:"prefix" yaml:"prefix"`
+	SpotMarketID           bool   `json:"spot_market_id" yaml:"spot_market_id"`
+	LiquidationMarketID    bool   `json:"liquidation_market_id" yaml:"liquidation_market_id"`
+	ConversionFactor       bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	KeeperRewardPercentage bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
 }
 
 // NewAllowedCollateralParam return a new AllowedCollateralParam
 func NewAllowedCollateralParam(
 	ctype string, denom, liqRatio, debtLimit,
 	stabilityFee, auctionSize, liquidationPenalty,
-	prefix, spotMarket, liquidationMarket, conversionFactor bool) AllowedCollateralParam {
+	prefix, spotMarket, liquidationMarket, conversionFactor, keeperReward bool) AllowedCollateralParam {
 	return AllowedCollateralParam{
-		Type:                ctype,
-		Denom:               denom,
-		LiquidationRatio:    liqRatio,
-		DebtLimit:           debtLimit,
-		StabilityFee:        stabilityFee,
-		AuctionSize:         auctionSize,
-		LiquidationPenalty:  liquidationPenalty,
-		Prefix:              prefix,
-		SpotMarketID:        spotMarket,
-		LiquidationMarketID: liquidationMarket,
-		ConversionFactor:    conversionFactor,
+		Type:                   ctype,
+		Denom:                  denom,
+		LiquidationRatio:       liqRatio,
+		DebtLimit:              debtLimit,
+		StabilityFee:           stabilityFee,
+		AuctionSize:            auctionSize,
+		LiquidationPenalty:     liquidationPenalty,
+		Prefix:                 prefix,
+		SpotMarketID:           spotMarket,
+		LiquidationMarketID:    liquidationMarket,
+		ConversionFactor:       conversionFactor,
+		KeeperRewardPercentage: keeperReward,
 	}
 }
 
-// Allows implement permission interface
+// Allows determine if collateral param changes are permitted
 func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralParam) bool {
 	allowed := ((acp.Type == current.Type) && (acp.Type == incoming.Type)) && // require collateral types to be all equal
 		(current.Denom == incoming.Denom || acp.Denom) &&
@@ -439,6 +468,7 @@ func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralPa
 		((current.Prefix == incoming.Prefix) || acp.Prefix) &&
 		((current.SpotMarketID == incoming.SpotMarketID) || acp.SpotMarketID) &&
 		((current.LiquidationMarketID == incoming.LiquidationMarketID) || acp.LiquidationMarketID) &&
+		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || acp.KeeperRewardPercentage) &&
 		(current.ConversionFactor.Equal(incoming.ConversionFactor) || acp.ConversionFactor)
 	return allowed
 }
@@ -451,7 +481,7 @@ type AllowedDebtParam struct {
 	DebtFloor        bool `json:"debt_floor" yaml:"debt_floor"`
 }
 
-// Allows implement permission interface
+// Allows determines if debt params changes are permitted
 func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 	allowed := ((current.Denom == incoming.Denom) || adp.Denom) &&
 		((current.ReferenceAsset == incoming.ReferenceAsset) || adp.ReferenceAsset) &&
@@ -463,7 +493,7 @@ func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 // AllowedAssetParams slice of AllowedAssetParam
 type AllowedAssetParams []AllowedAssetParam
 
-// Allows implement permission interface
+// Allows determines if asset params changes are permitted
 func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) bool {
 	allAllowed := true
 
@@ -537,7 +567,7 @@ func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool
 // AllowedMarkets slice of AllowedMarket
 type AllowedMarkets []AllowedMarket
 
-// Allows implement permission interface
+// Allows determines if markets params changed are permitted
 func (ams AllowedMarkets) Allows(current, incoming pricefeedtypes.Markets) bool {
 	allAllowed := true
 
@@ -595,7 +625,7 @@ type AllowedMarket struct {
 	Active     bool   `json:"active" yaml:"active"`
 }
 
-// Allows implement permission interface
+// Allows determines if market param changes are permitted
 func (am AllowedMarket) Allows(current, incoming pricefeedtypes.Market) bool {
 	allowed := ((am.MarketID == current.MarketID) && (am.MarketID == incoming.MarketID)) && // require denoms to be all equal
 		((current.BaseAsset == incoming.BaseAsset) || am.BaseAsset) &&
@@ -641,13 +671,14 @@ func NewAllowedMoneyMarket(denom string, bl, sm, cf, irm, rf, kr bool) AllowedMo
 	}
 }
 
-// Allows implement permission interface
+// Allows determines if money market param changes are permitted
 func (amm AllowedMoneyMarket) Allows(current, incoming hard.MoneyMarket) bool {
 	allowed := ((amm.Denom == current.Denom) && (amm.Denom == incoming.Denom)) &&
 		((current.BorrowLimit.Equal(incoming.BorrowLimit)) || amm.BorrowLimit) &&
 		((current.SpotMarketID == incoming.SpotMarketID) || amm.SpotMarketID) &&
 		((current.ConversionFactor.Equal(incoming.ConversionFactor)) || amm.ConversionFactor) &&
 		((current.InterestRateModel.Equal(incoming.InterestRateModel)) || amm.InterestRateModel) &&
+		((current.ReserveFactor.Equal(incoming.ReserveFactor)) || amm.ReserveFactor) &&
 		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || amm.KeeperRewardPercentage)
 	return allowed
 }
@@ -655,7 +686,7 @@ func (amm AllowedMoneyMarket) Allows(current, incoming hard.MoneyMarket) bool {
 // AllowedMoneyMarkets slice of AllowedMoneyMarket
 type AllowedMoneyMarkets []AllowedMoneyMarket
 
-// Allows implement permission interface
+// Allows determins if money market params changes are permitted
 func (amms AllowedMoneyMarkets) Allows(current, incoming hard.MoneyMarkets) bool {
 	allAllowed := true
 
