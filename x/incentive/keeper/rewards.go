@@ -262,10 +262,12 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 	var supplyRewardIndexes types.MultiRewardIndexes
 	for _, coin := range deposit.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
-			continue
+		var multiRewardIndex types.MultiRewardIndex
+		if foundGlobalRewardIndexes {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+		} else {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 		}
-		multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 		supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 	}
 
