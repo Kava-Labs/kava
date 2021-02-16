@@ -122,6 +122,7 @@ var (
 	ErrPreviousAccrualTimeNotFound      = types.ErrPreviousAccrualTimeNotFound
 	ErrPriceNotFound                    = types.ErrPriceNotFound
 	ErrSuppliedCoinsNotFound            = types.ErrSuppliedCoinsNotFound
+	ErrReservesExceedCash               = types.ErrReservesExceedCash
 	GovDenom                            = types.GovDenom
 	KeyMoneyMarkets                     = types.KeyMoneyMarkets
 	ModuleCdc                           = types.ModuleCdc

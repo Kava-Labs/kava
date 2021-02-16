@@ -119,7 +119,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if !foundReserveCoins {
 		reserveCoins = sdk.NewCoins()
 	}
-	fundsAvailableToBorrow := hardMaccCoins.Sub(reserveCoins)
+	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins)
+	if isNegative {
+		return sdkerrors.Wrapf(types.ErrReservesExceedCash, "reserves %s > cash %s", reserveCoins, hardMaccCoins)
+	}
 	if amount.IsAnyGT(fundsAvailableToBorrow) {
 		return sdkerrors.Wrapf(types.ErrExceedsProtocolBorrowableBalance, "requested borrow %s > available to borrow %s", amount, fundsAvailableToBorrow)
 	}
