@@ -16,6 +16,7 @@ import (
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -25,13 +26,14 @@ import (
 type KeeperTestSuite struct {
 	suite.Suite
 
-	keeper         keeper.Keeper
-	hardKeeper     hardkeeper.Keeper
-	stakingKeeper  stakingkeeper.Keeper
-	app            app.TestApp
-	ctx            sdk.Context
-	addrs          []sdk.AccAddress
-	validatorAddrs []sdk.ValAddress
+	keeper          keeper.Keeper
+	hardKeeper      hardkeeper.Keeper
+	stakingKeeper   stakingkeeper.Keeper
+	committeeKeeper committeekeeper.Keeper
+	app             app.TestApp
+	ctx             sdk.Context
+	addrs           []sdk.AccAddress
+	validatorAddrs  []sdk.ValAddress
 }
 
 // The default state used by each test
