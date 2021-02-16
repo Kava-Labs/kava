@@ -220,14 +220,8 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 		NewHardGenStateMulti(),
 	)
 
-	suite.app = tApp
-	suite.ctx = ctx
-	suite.keeper = tApp.GetIncentiveKeeper()
-	suite.hardKeeper = tApp.GetHardKeeper()
-	suite.stakingKeeper = tApp.GetStakingKeeper()
-	suite.committeeKeeper = tApp.GetCommitteeKeeper()
-
 	// Set up a god committee
+	committeeModKeeper := tApp.GetCommitteeKeeper()
 	godCommittee := committeetypes.Committee{
 		ID:               12,
 		Description:      "This committee is for testing.",
@@ -236,5 +230,12 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 		VoteThreshold:    d("0.667"),
 		ProposalDuration: time.Hour * 24 * 7,
 	}
-	suite.committeeKeeper.SetCommittee(ctx, godCommittee)
+	committeeModKeeper.SetCommittee(ctx, godCommittee)
+
+	suite.app = tApp
+	suite.ctx = ctx
+	suite.keeper = tApp.GetIncentiveKeeper()
+	suite.hardKeeper = tApp.GetHardKeeper()
+	suite.stakingKeeper = tApp.GetStakingKeeper()
+	suite.committeeKeeper = committeeModKeeper
 }
