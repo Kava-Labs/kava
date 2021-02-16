@@ -118,7 +118,14 @@ func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
 		}
 		newSupplies = append(newSupplies, supply)
 	}
-	return bep3.NewGenesisState(genesisState.Params, genesisState.AtomicSwaps, newSupplies, genesisState.PreviousBlockTime)
+	var newSwaps bep3.AtomicSwaps
+	for _, swap := range genesisState.AtomicSwaps {
+		if swap.Status == bep3.Completed || swap.Status == bep3.Expired {
+			swap.ClosedBlock = 1              // reset closed block to one so expired swaps are removed from long term storage properly
+			newSwaps = append(newSwaps, swap) // don't migrate open swaps
+		}
+	}
+	return bep3.NewGenesisState(genesisState.Params, newSwaps, newSupplies, genesisState.PreviousBlockTime)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
