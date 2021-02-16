@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 			errArgs{
 				expectPass: false,
-				contains:   "exceeds module account balance:",
+				contains:   "exceeds borrowable module account balance",
 			},
 		},
 		{
