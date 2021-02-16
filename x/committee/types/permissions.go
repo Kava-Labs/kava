@@ -421,38 +421,40 @@ func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.Collateral
 
 // AllowedCollateralParam permission struct for changes to collateral parameter keys (cdp module)
 type AllowedCollateralParam struct {
-	Type                   string `json:"type" yaml:"type"`
-	Denom                  bool   `json:"denom" yaml:"denom"`
-	LiquidationRatio       bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
-	DebtLimit              bool   `json:"debt_limit" yaml:"debt_limit"`
-	StabilityFee           bool   `json:"stability_fee" yaml:"stability_fee"`
-	AuctionSize            bool   `json:"auction_size" yaml:"auction_size"`
-	LiquidationPenalty     bool   `json:"liquidation_penalty" yaml:"liquidation_penalty"`
-	Prefix                 bool   `json:"prefix" yaml:"prefix"`
-	SpotMarketID           bool   `json:"spot_market_id" yaml:"spot_market_id"`
-	LiquidationMarketID    bool   `json:"liquidation_market_id" yaml:"liquidation_market_id"`
-	ConversionFactor       bool   `json:"conversion_factor" yaml:"conversion_factor"`
-	KeeperRewardPercentage bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
+	Type                             string `json:"type" yaml:"type"`
+	Denom                            bool   `json:"denom" yaml:"denom"`
+	LiquidationRatio                 bool   `json:"liquidation_ratio" yaml:"liquidation_ratio"`
+	DebtLimit                        bool   `json:"debt_limit" yaml:"debt_limit"`
+	StabilityFee                     bool   `json:"stability_fee" yaml:"stability_fee"`
+	AuctionSize                      bool   `json:"auction_size" yaml:"auction_size"`
+	LiquidationPenalty               bool   `json:"liquidation_penalty" yaml:"liquidation_penalty"`
+	Prefix                           bool   `json:"prefix" yaml:"prefix"`
+	SpotMarketID                     bool   `json:"spot_market_id" yaml:"spot_market_id"`
+	LiquidationMarketID              bool   `json:"liquidation_market_id" yaml:"liquidation_market_id"`
+	ConversionFactor                 bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	KeeperRewardPercentage           bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
+	CheckCollateralizationIndexCount bool   `json:"check_collateralization_index_count" yaml:"check_collateralization_index_count"`
 }
 
 // NewAllowedCollateralParam return a new AllowedCollateralParam
 func NewAllowedCollateralParam(
 	ctype string, denom, liqRatio, debtLimit,
 	stabilityFee, auctionSize, liquidationPenalty,
-	prefix, spotMarket, liquidationMarket, conversionFactor, keeperReward bool) AllowedCollateralParam {
+	prefix, spotMarket, liquidationMarket, conversionFactor, keeperReward, ltvIndexCount bool) AllowedCollateralParam {
 	return AllowedCollateralParam{
-		Type:                   ctype,
-		Denom:                  denom,
-		LiquidationRatio:       liqRatio,
-		DebtLimit:              debtLimit,
-		StabilityFee:           stabilityFee,
-		AuctionSize:            auctionSize,
-		LiquidationPenalty:     liquidationPenalty,
-		Prefix:                 prefix,
-		SpotMarketID:           spotMarket,
-		LiquidationMarketID:    liquidationMarket,
-		ConversionFactor:       conversionFactor,
-		KeeperRewardPercentage: keeperReward,
+		Type:                             ctype,
+		Denom:                            denom,
+		LiquidationRatio:                 liqRatio,
+		DebtLimit:                        debtLimit,
+		StabilityFee:                     stabilityFee,
+		AuctionSize:                      auctionSize,
+		LiquidationPenalty:               liquidationPenalty,
+		Prefix:                           prefix,
+		SpotMarketID:                     spotMarket,
+		LiquidationMarketID:              liquidationMarket,
+		ConversionFactor:                 conversionFactor,
+		KeeperRewardPercentage:           keeperReward,
+		CheckCollateralizationIndexCount: ltvIndexCount,
 	}
 }
 
@@ -469,6 +471,7 @@ func (acp AllowedCollateralParam) Allows(current, incoming cdptypes.CollateralPa
 		((current.SpotMarketID == incoming.SpotMarketID) || acp.SpotMarketID) &&
 		((current.LiquidationMarketID == incoming.LiquidationMarketID) || acp.LiquidationMarketID) &&
 		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || acp.KeeperRewardPercentage) &&
+		((current.CheckCollateralizationIndexCount.Equal(incoming.CheckCollateralizationIndexCount)) || acp.CheckCollateralizationIndexCount) &&
 		(current.ConversionFactor.Equal(incoming.ConversionFactor) || acp.ConversionFactor)
 	return allowed
 }
