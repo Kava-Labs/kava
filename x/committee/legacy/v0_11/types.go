@@ -484,6 +484,26 @@ type AllowedCollateralParam struct {
 
 type AllowedCollateralParams []AllowedCollateralParam
 
+// NewAllowedCollateralParam return a new AllowedCollateralParam
+func NewAllowedCollateralParam(
+	ctype string, denom, liqRatio, debtLimit,
+	stabilityFee, auctionSize, liquidationPenalty,
+	prefix, spotMarket, liquidationMarket, conversionFactor bool) AllowedCollateralParam {
+	return AllowedCollateralParam{
+		Type:                ctype,
+		Denom:               denom,
+		LiquidationRatio:    liqRatio,
+		DebtLimit:           debtLimit,
+		StabilityFee:        stabilityFee,
+		AuctionSize:         auctionSize,
+		LiquidationPenalty:  liquidationPenalty,
+		Prefix:              prefix,
+		SpotMarketID:        spotMarket,
+		LiquidationMarketID: liquidationMarket,
+		ConversionFactor:    conversionFactor,
+	}
+}
+
 func (acps AllowedCollateralParams) Allows(current, incoming cdptypes.CollateralParams) bool {
 	allAllowed := true
 
