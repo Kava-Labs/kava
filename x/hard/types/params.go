@@ -51,8 +51,8 @@ func (bl BorrowLimit) Validate() error {
 	if bl.MaximumLimit.IsNegative() {
 		return fmt.Errorf("maximum limit USD cannot be negative: %s", bl.MaximumLimit)
 	}
-	if !bl.LoanToValue.IsPositive() {
-		return fmt.Errorf("loan-to-value must be a positive integer: %s", bl.LoanToValue)
+	if bl.LoanToValue.IsNegative() {
+		return fmt.Errorf("loan-to-value must be a non-negative decimal: %s", bl.LoanToValue)
 	}
 	if bl.LoanToValue.GT(sdk.OneDec()) {
 		return fmt.Errorf("loan-to-value cannot be greater than 1.0: %s", bl.LoanToValue)
