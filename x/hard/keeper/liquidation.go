@@ -284,11 +284,9 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 	}
 
 	totalBorrowableUSDAmount := sdk.ZeroDec()
-	totalDepositedUSDAmount := sdk.ZeroDec()
 	for _, depCoin := range deposit.Amount {
 		lData := liqMap[depCoin.Denom]
 		usdValue := sdk.NewDecFromInt(depCoin.Amount).Quo(sdk.NewDecFromInt(lData.conversionFactor)).Mul(lData.price)
-		totalDepositedUSDAmount = totalDepositedUSDAmount.Add(usdValue)
 		borrowableUSDAmountForDeposit := usdValue.Mul(lData.ltv)
 		totalBorrowableUSDAmount = totalBorrowableUSDAmount.Add(borrowableUSDAmountForDeposit)
 	}
