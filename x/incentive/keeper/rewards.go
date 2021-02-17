@@ -439,11 +439,13 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 	for _, coin := range deposit.Amount {
 		_, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
 		if !foundUserRewardIndexes {
-			globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-			if !foundGlobalRewardIndexes {
-				continue // No rewards for this coin type
+			globalSupplyRewardIndexes, foundGlobalSupplyRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+			var multiRewardIndex types.MultiRewardIndex
+			if foundGlobalSupplyRewardIndexes {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalSupplyRewardIndexes)
+			} else {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 			}
-			multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 			supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 		}
 	}
@@ -465,11 +467,13 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	for _, coin := range borrow.Amount {
 		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
 		if !foundUserRewardIndexes {
-			globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-			if !foundGlobalRewardIndexes {
-				continue // No rewards for this coin type
+			globalBorrowRewardIndexes, foundGlobalBorrowRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+			var multiRewardIndex types.MultiRewardIndex
+			if foundGlobalBorrowRewardIndexes {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalBorrowRewardIndexes)
+			} else {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 			}
-			multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 			borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 		}
 	}
