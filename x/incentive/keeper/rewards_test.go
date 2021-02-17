@@ -1574,6 +1574,193 @@ func (suite *KeeperTestSuite) TestUpdateHardSupplyIndexDenoms() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
+
+	type args struct {
+		moneyMarketRewardDenoms          map[string][]string
+		deposit                          sdk.Coins
+		borrow                           sdk.Coins
+		initialTime                      time.Time
+		expectedClaimBorrowRewardIndexes types.MultiRewardIndexes
+	}
+	type test struct {
+		name string
+		args args
+	}
+
+	standardMoneyMarketRewardDenoms := map[string][]string{
+		"bnb":  {"hard"},
+		"btcb": {"hard", "ukava"},
+		"xrp":  {},
+	}
+
+	testCases := []test{
+		{
+			"single deposit denom, single reward denom",
+			args{
+				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
+				deposit:                 cs(c("bnb", 1000000000000)),
+				borrow:                  cs(c("bnb", 100000000000)),
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
+					types.NewMultiRewardIndex(
+						"bnb",
+						types.RewardIndexes{
+							types.NewRewardIndex("hard", d("0.0")),
+						},
+					),
+				},
+			},
+		},
+		{
+			"single deposit denom, multiple reward denoms",
+			args{
+				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
+				deposit:                 cs(c("btcb", 1000000000000)),
+				borrow:                  cs(c("btcb", 100000000000)),
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
+					types.NewMultiRewardIndex(
+						"btcb",
+						types.RewardIndexes{
+							types.NewRewardIndex("hard", d("0.0")),
+							types.NewRewardIndex("ukava", d("0.0")),
+						},
+					),
+				},
+			},
+		},
+		{
+			"single deposit denom, no reward denoms",
+			args{
+				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
+				deposit:                 cs(c("xrp", 1000000000000)),
+				borrow:                  cs(c("xrp", 100000000000)),
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
+					types.NewMultiRewardIndex(
+						"xrp",
+						nil,
+					),
+				},
+			},
+		},
+		{
+			"multiple deposit denoms, multiple overlapping reward denoms",
+			args{
+				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
+				deposit:                 cs(c("bnb", 1000000000000), c("btcb", 1000000000000)),
+				borrow:                  cs(c("bnb", 100000000000), c("btcb", 100000000000)),
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
+					types.NewMultiRewardIndex(
+						"bnb",
+						types.RewardIndexes{
+							types.NewRewardIndex("hard", d("0.0")),
+						},
+					),
+					types.NewMultiRewardIndex(
+						"btcb",
+						types.RewardIndexes{
+							types.NewRewardIndex("hard", d("0.0")),
+							types.NewRewardIndex("ukava", d("0.0")),
+						},
+					),
+				},
+			},
+		},
+		{
+			"multiple deposit denoms, correct discrete reward denoms",
+			args{
+				moneyMarketRewardDenoms: standardMoneyMarketRewardDenoms,
+				deposit:                 cs(c("bnb", 1000000000000), c("xrp", 1000000000000)),
+				borrow:                  cs(c("bnb", 100000000000), c("xrp", 100000000000)),
+				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				expectedClaimBorrowRewardIndexes: types.MultiRewardIndexes{
+					types.NewMultiRewardIndex(
+						"bnb",
+						types.RewardIndexes{
+							types.NewRewardIndex("hard", d("0.0")),
+						},
+					),
+					types.NewMultiRewardIndex(
+						"xrp",
+						nil,
+					),
+				},
+			},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupWithGenState()
+			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
+
+			// Mint coins to hard module account
+			supplyKeeper := suite.app.GetSupplyKeeper()
+			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
+			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
+
+			userAddr := suite.addrs[3]
+
+			// ----------------------------------------------------------
+			// Prepare money market + reward params
+			i := 0
+			var multiRewardPeriods types.MultiRewardPeriods
+			var rewardPeriods types.RewardPeriods
+			for moneyMarketDenom, rewardDenoms := range tc.args.moneyMarketRewardDenoms {
+				// Set up multi reward periods for supply/borrow indexes with dynamic money market denoms/reward denoms
+				var rewardsPerSecond sdk.Coins
+				for _, rewardDenom := range rewardDenoms {
+					rewardsPerSecond = append(rewardsPerSecond, sdk.NewCoin(rewardDenom, sdk.OneInt()))
+				}
+				multiRewardPeriod := types.NewMultiRewardPeriod(true, moneyMarketDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), rewardsPerSecond)
+				multiRewardPeriods = append(multiRewardPeriods, multiRewardPeriod)
+
+				// Set up generic reward periods for usdx minting/delegator indexes
+				if i == 0 && len(rewardDenoms) > 0 {
+					rewardPeriod := types.NewRewardPeriod(true, moneyMarketDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), rewardsPerSecond[i])
+					rewardPeriods = append(rewardPeriods, rewardPeriod)
+					i++
+				}
+			}
+
+			// Initialize and set incentive params
+			params := types.NewParams(
+				rewardPeriods, multiRewardPeriods, multiRewardPeriods, rewardPeriods,
+				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
+				tc.args.initialTime.Add(time.Hour*24*365*5),
+			)
+			suite.keeper.SetParams(suite.ctx, params)
+
+			// Set each money market's previous accrual time and supply reward indexes
+			for moneyMarketDenom, rewardDenoms := range tc.args.moneyMarketRewardDenoms {
+				var rewardIndexes types.RewardIndexes
+				for _, rewardDenom := range rewardDenoms {
+					rewardIndex := types.NewRewardIndex(rewardDenom, sdk.ZeroDec())
+					rewardIndexes = append(rewardIndexes, rewardIndex)
+				}
+				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, moneyMarketDenom, tc.args.initialTime)
+				if len(rewardIndexes) > 0 {
+					suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, moneyMarketDenom, rewardIndexes)
+				}
+			}
+
+			hardKeeper := suite.app.GetHardKeeper()
+			// User deposits
+			err := hardKeeper.Deposit(suite.ctx, userAddr, tc.args.deposit)
+			suite.Require().NoError(err)
+			// User borrows
+			err = hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
+			suite.Require().NoError(err)
+
+			claim, foundClaim := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			suite.Require().True(foundClaim)
+			suite.Require().Equal(tc.args.expectedClaimBorrowRewardIndexes, claim.BorrowRewardIndexes)
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestUpdateHardBorrowIndexDenoms() {
 	type args struct {
 		initialDeposit            sdk.Coins

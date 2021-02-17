@@ -355,10 +355,12 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
-			continue
+		var multiRewardIndex types.MultiRewardIndex
+		if foundGlobalRewardIndexes {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+		} else {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 		}
-		multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 		borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 	}
 
