@@ -429,19 +429,21 @@ func (suite *PermissionsTestSuite) TestAllowedMarkets_Allows() {
 }
 
 func (suite *PermissionsTestSuite) TestAllowedCollateralParam_Allows() {
-	testCP := cdptypes.CollateralParam{
-		Type:                "bnb-a",
-		Denom:               "bnb",
-		LiquidationRatio:    d("1.5"),
-		DebtLimit:           c("usdx", 1000000000000),
-		StabilityFee:        d("1.000000001547125958"), // %5 apr
-		LiquidationPenalty:  d("0.05"),
-		AuctionSize:         i(100),
-		Prefix:              0x20,
-		ConversionFactor:    i(6),
-		SpotMarketID:        "bnb:usd",
-		LiquidationMarketID: "bnb:usd",
-	}
+	testCP := cdptypes.NewCollateralParam(
+		"bnb",
+		"bnb-a",
+		d("1.5"),
+		c("usdx", 1000000000000),
+		d("1.000000001547125958"), // %5 apr
+		i(10000000000000),
+		d("0.05"),
+		0x20,
+		"bnb:usd",
+		"bnb:usd",
+		d("0.01"),
+		i(10),
+		i(8),
+	)
 	newMarketIDCP := testCP
 	newMarketIDCP.SpotMarketID = "btc:usd"
 
