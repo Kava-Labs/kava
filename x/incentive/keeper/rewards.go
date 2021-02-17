@@ -382,8 +382,8 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
-		userRewardIndexes, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
-		if !foundUserRewardIndexes {
+		userMultiRewardIndex, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserMultiRewardIndex {
 			continue
 		}
 
@@ -394,9 +394,14 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
+				// User borrowed this coin type before it had rewards. When new rewards are added, legacy borrowers
+				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
+				// reward index denom and start their reward factor at 0.0
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
+				claim.BorrowRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
 			}
 
 			globalRewardFactor := globalRewardIndex.RewardFactor
@@ -410,7 +415,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 				continue
 			}
 
-			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
 				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue

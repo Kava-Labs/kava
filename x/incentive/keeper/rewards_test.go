@@ -370,12 +370,19 @@ func (suite *KeeperTestSuite) TestAccumulateHardBorrowRewards() {
 
 func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 	type args struct {
-		borrow                sdk.Coin
-		rewardsPerSecond      sdk.Coins
-		initialTime           time.Time
-		blockTimes            []int
-		expectedRewardIndexes types.RewardIndexes
-		expectedRewards       sdk.Coins
+		incentiveBorrowRewardDenom   string
+		borrow                       sdk.Coin
+		rewardsPerSecond             sdk.Coins
+		initialTime                  time.Time
+		blockTimes                   []int
+		expectedRewardIndexes        types.RewardIndexes
+		expectedRewards              sdk.Coins
+		updateRewardsViaCommmittee   bool
+		updatedBaseDenom             string
+		updatedRewardsPerSecond      sdk.Coins
+		updatedExpectedRewardIndexes types.RewardIndexes
+		updatedExpectedRewards       sdk.Coins
+		updatedTimeDuration          int
 	}
 	type test struct {
 		name string
@@ -386,32 +393,36 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 		{
 			"10 blocks",
 			args{
-				borrow:                c("bnb", 10000000000), // TODO: 2 decimal diff from TestAccumulateHardBorrowRewards's borrow
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:            []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("0.001223540000173228"))},
-				expectedRewards:       cs(c("hard", 12235400)),
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           cs(c("hard", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("0.001223540000173228"))},
+				expectedRewards:            cs(c("hard", 12235400)),
+				updateRewardsViaCommmittee: false,
 			},
 		},
 		{
 			"10 blocks - long block time",
 			args{
-				borrow:                c("bnb", 10000000000),
-				rewardsPerSecond:      cs(c("hard", 122354)),
-				initialTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:            []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
-				expectedRewardIndexes: types.RewardIndexes{types.NewRewardIndex("hard", d("10.571385603126235340"))},
-				expectedRewards:       cs(c("hard", 105713856031)),
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           cs(c("hard", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
+				expectedRewardIndexes:      types.RewardIndexes{types.NewRewardIndex("hard", d("10.571385603126235340"))},
+				expectedRewards:            cs(c("hard", 105713856031)),
 			},
 		},
 		{
 			"multiple reward denoms: 10 blocks",
 			args{
-				borrow:           c("bnb", 10000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:       []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.001223540000173228")),
 					types.NewRewardIndex("ukava", d("0.001223540000173228")),
@@ -422,10 +433,11 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 		{
 			"multiple reward denoms: 10 blocks - long block time",
 			args{
-				borrow:           c("bnb", 10000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 122354)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:       []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           cs(c("hard", 122354), c("ukava", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400, 86400},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("10.571385603126235340")),
 					types.NewRewardIndex("ukava", d("10.571385603126235340")),
@@ -436,15 +448,123 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 		{
 			"multiple reward denoms with different rewards per second: 10 blocks",
 			args{
-				borrow:           c("bnb", 10000000000),
-				rewardsPerSecond: cs(c("hard", 122354), c("ukava", 555555)),
-				initialTime:      time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				blockTimes:       []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           cs(c("hard", 122354), c("ukava", 555555)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
 				expectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("0.001223540000173228")),
 					types.NewRewardIndex("ukava", d("0.005555550000786558")),
 				},
 				expectedRewards: cs(c("hard", 12235400), c("ukava", 55555500)),
+			},
+		},
+		{
+			"denom is in incentive's hard borrow reward params but it has no rewards; add reward",
+			args{
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           sdk.Coins{},
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{100},
+				expectedRewardIndexes:      types.RewardIndexes{},
+				expectedRewards:            sdk.Coins{},
+				updateRewardsViaCommmittee: true,
+				updatedBaseDenom:           "bnb",
+				updatedRewardsPerSecond:    cs(c("hard", 100000)),
+				updatedExpectedRewards:     cs(c("hard", 8640000000)),
+				updatedExpectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.864000000049803065")),
+				},
+				updatedTimeDuration: 86400,
+			},
+		},
+		{
+			"denom is in incentive's hard borrow reward params and has rewards; add new reward type",
+			args{
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           cs(c("hard", 122354)),
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{86400},
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("1.057138560060101160")),
+				},
+				expectedRewards:            cs(c("hard", 10571385601)),
+				updateRewardsViaCommmittee: true,
+				updatedBaseDenom:           "bnb",
+				updatedRewardsPerSecond:    cs(c("hard", 122354), c("ukava", 100000)),
+				updatedExpectedRewards:     cs(c("hard", 31714156802), c("ukava", 8640000000)),
+				updatedExpectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("2.114277120120202320")),
+					types.NewRewardIndex("ukava", d("0.864000000049120715")),
+				},
+				updatedTimeDuration: 86400,
+			},
+		},
+		{
+			"denom is in hard's money market params but not in incentive's hard supply reward params; add reward",
+			args{
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("zzz", 10000000000),
+				rewardsPerSecond:           sdk.Coins{},
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{100},
+				expectedRewardIndexes:      types.RewardIndexes{},
+				expectedRewards:            sdk.Coins{},
+				updateRewardsViaCommmittee: true,
+				updatedBaseDenom:           "zzz",
+				updatedRewardsPerSecond:    cs(c("hard", 100000)),
+				updatedExpectedRewards:     cs(c("hard", 8640000000)),
+				updatedExpectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.864000000049803065")),
+				},
+				updatedTimeDuration: 86400,
+			},
+		},
+		{
+			"denom incentive's hard borrow reward params but it has no rewards; add multiple reward types",
+			args{
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("bnb", 10000000000),
+				rewardsPerSecond:           sdk.Coins{},
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{100},
+				expectedRewardIndexes:      types.RewardIndexes{},
+				expectedRewards:            sdk.Coins{},
+				updateRewardsViaCommmittee: true,
+				updatedBaseDenom:           "bnb",
+				updatedRewardsPerSecond:    cs(c("hard", 100000), c("ukava", 100500), c("swap", 500)),
+				updatedExpectedRewards:     cs(c("hard", 8640000000), c("ukava", 8683200001), c("swap", 43200000)),
+				updatedExpectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.864000000049803065")),
+					types.NewRewardIndex("ukava", d("0.868320000050052081")),
+					types.NewRewardIndex("swap", d("0.004320000000249015")),
+				},
+				updatedTimeDuration: 86400,
+			},
+		},
+		{
+			"denom is in hard's money market params but not in incentive's hard supply reward params; add multiple reward types",
+			args{
+				incentiveBorrowRewardDenom: "bnb",
+				borrow:                     c("zzz", 10000000000),
+				rewardsPerSecond:           sdk.Coins{},
+				initialTime:                time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				blockTimes:                 []int{100},
+				expectedRewardIndexes:      types.RewardIndexes{},
+				expectedRewards:            sdk.Coins{},
+				updateRewardsViaCommmittee: true,
+				updatedBaseDenom:           "zzz",
+				updatedRewardsPerSecond:    cs(c("hard", 100000), c("ukava", 100500), c("swap", 500)),
+				updatedExpectedRewards:     cs(c("hard", 8640000000), c("ukava", 8683200001), c("swap", 43200000)),
+				updatedExpectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.864000000049803065")),
+					types.NewRewardIndex("ukava", d("0.868320000050052081")),
+					types.NewRewardIndex("swap", d("0.004320000000249015")),
+				},
+				updatedTimeDuration: 86400,
 			},
 		},
 	}
@@ -458,23 +578,25 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			hardMaccCoins := sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(200000000)))
 			supplyKeeper.MintCoins(suite.ctx, hardtypes.ModuleAccountName, hardMaccCoins)
 
-			// setup incentive state
-			params := types.NewParams(
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
-				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond[0])},
+			// Set up incentive state
+			incentiveParams := types.NewParams(
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), sdk.Coins{})}, // Don't set any supply rewards for easier accounting
+				types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.rewardsPerSecond)},
+				types.RewardPeriods{types.NewRewardPeriod(true, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), c("hard", 1))},
 				types.Multipliers{types.NewMultiplier(types.MultiplierName("small"), 1, d("0.25")), types.NewMultiplier(types.MultiplierName("large"), 12, d("1.0"))},
 				tc.args.initialTime.Add(time.Hour*24*365*5),
 			)
-			suite.keeper.SetParams(suite.ctx, params)
-			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.borrow.Denom, tc.args.initialTime)
+			suite.keeper.SetParams(suite.ctx, incentiveParams)
+			suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.ctx, tc.args.incentiveBorrowRewardDenom, tc.args.initialTime)
 			var rewardIndexes types.RewardIndexes
 			for _, rewardCoin := range tc.args.rewardsPerSecond {
 				rewardIndex := types.NewRewardIndex(rewardCoin.Denom, sdk.ZeroDec())
 				rewardIndexes = append(rewardIndexes, rewardIndex)
 			}
-			suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom, rewardIndexes)
+			if len(rewardIndexes) > 0 {
+				suite.keeper.SetHardBorrowRewardIndexes(suite.ctx, tc.args.incentiveBorrowRewardDenom, rewardIndexes)
+			}
 
 			// Set up hard state (interest factor for the relevant denom)
 			suite.hardKeeper.SetSupplyInterestFactor(suite.ctx, tc.args.borrow.Denom, sdk.MustNewDecFromStr("1.0"))
@@ -490,7 +612,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
 			multiRewardIndex, _ := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
@@ -513,31 +635,142 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 
 				// Accumulate hard borrow-side rewards
 				multiRewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(blockCtx, tc.args.borrow.Denom)
-				suite.Require().True(found)
-				err := suite.keeper.AccumulateHardBorrowRewards(blockCtx, multiRewardPeriod)
-				suite.Require().NoError(err)
+				if found {
+					err := suite.keeper.AccumulateHardBorrowRewards(blockCtx, multiRewardPeriod)
+					suite.Require().NoError(err)
+				}
 			}
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// After we've accumulated, run synchronize
-			borrow, found := hardKeeper.GetBorrow(suite.ctx, suite.addrs[3])
+			borrow, found := hardKeeper.GetBorrow(suite.ctx, userAddr)
 			suite.Require().True(found)
 			suite.Require().NotPanics(func() {
 				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
 			})
 
 			// Check that the global reward index's reward factor and user's claim have been updated as expected
-			globalRewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
+			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
 			suite.Require().True(found)
-			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, suite.addrs[3])
+			globalRewardIndexes, foundGlobalRewardIndexes := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
+			if len(tc.args.rewardsPerSecond) > 0 {
+				suite.Require().True(foundGlobalRewardIndexes)
+				for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
+					// Check that global reward index has been updated as expected
+					globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
+					suite.Require().True(found)
+					suite.Require().Equal(expectedRewardIndex, globalRewardIndex)
+
+					// Check that the user's claim's reward index matches the corresponding global reward index
+					multiRewardIndex, found := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
+					suite.Require().True(found)
+					rewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
+					suite.Require().True(found)
+					suite.Require().Equal(expectedRewardIndex, rewardIndex)
+
+					// Check that the user's claim holds the expected amount of reward coins
+					suite.Require().Equal(
+						tc.args.expectedRewards.AmountOf(expectedRewardIndex.CollateralType),
+						claim.Reward.AmountOf(expectedRewardIndex.CollateralType),
+					)
+				}
+			}
+
+			// Only test cases with reward param updates continue past this point
+			if !tc.args.updateRewardsViaCommmittee {
+				return
+			}
+
+			// If are no initial rewards per second, add new rewards through a committee param change
+			// 1. Construct incentive's new HardBorrowRewardPeriods param
+			currIncentiveHardBorrowRewardPeriods := suite.keeper.GetParams(suite.ctx).HardBorrowRewardPeriods
+			multiRewardPeriod, found := currIncentiveHardBorrowRewardPeriods.GetMultiRewardPeriod(tc.args.borrow.Denom)
+			if found {
+				// Borrow denom's reward period exists, but it doesn't have any rewards per second
+				index, found := currIncentiveHardBorrowRewardPeriods.GetMultiRewardPeriodIndex(tc.args.borrow.Denom)
+				suite.Require().True(found)
+				multiRewardPeriod.RewardsPerSecond = tc.args.updatedRewardsPerSecond
+				currIncentiveHardBorrowRewardPeriods[index] = multiRewardPeriod
+			} else {
+				// Borrow denom's reward period does not exist
+				_, found := currIncentiveHardBorrowRewardPeriods.GetMultiRewardPeriodIndex(tc.args.borrow.Denom)
+				suite.Require().False(found)
+				newMultiRewardPeriod := types.NewMultiRewardPeriod(true, tc.args.borrow.Denom, tc.args.initialTime, tc.args.initialTime.Add(time.Hour*24*365*4), tc.args.updatedRewardsPerSecond)
+				currIncentiveHardBorrowRewardPeriods = append(currIncentiveHardBorrowRewardPeriods, newMultiRewardPeriod)
+			}
+
+			// 2. Construct the parameter change proposal to update HardBorrowRewardPeriods param
+			pubProposal := params.NewParameterChangeProposal(
+				"Update hard borrow rewards", "Adds a new reward coin to the incentive module's hard borrow rewards.",
+				[]params.ParamChange{
+					{
+						Subspace: types.ModuleName,                         // target incentive module
+						Key:      string(types.KeyHardBorrowRewardPeriods), // target hard borrow rewards key
+						Value:    string(suite.app.Codec().MustMarshalJSON(currIncentiveHardBorrowRewardPeriods)),
+					},
+				},
+			)
+
+			// 3. Ensure proposal is properly formed
+			err = suite.committeeKeeper.ValidatePubProposal(suite.ctx, pubProposal)
+			suite.Require().NoError(err)
+
+			// 4. Committee creates proposal
+			committeeMemberOne := suite.addrs[0]
+			committeeMemberTwo := suite.addrs[1]
+			proposalID, err := suite.committeeKeeper.SubmitProposal(suite.ctx, committeeMemberOne, 1, pubProposal)
+			suite.Require().NoError(err)
+
+			// 5. Committee votes and passes proposal
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberOne)
+			err = suite.committeeKeeper.AddVote(suite.ctx, proposalID, committeeMemberTwo)
+
+			// 6. Check proposal passed
+			proposalPasses, err := suite.committeeKeeper.GetProposalResult(suite.ctx, proposalID)
+			suite.Require().NoError(err)
+			suite.Require().True(proposalPasses)
+
+			// 7. Run committee module's begin blocker to enact proposal
+			suite.NotPanics(func() {
+				committee.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}, suite.committeeKeeper)
+			})
+
+			// We need to accumulate hard supply-side rewards again
+			multiRewardPeriod, found = suite.keeper.GetHardBorrowRewardPeriods(suite.ctx, tc.args.borrow.Denom)
 			suite.Require().True(found)
-			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
+
+			// But new borrow denoms don't have their PreviousHardBorrowRewardAccrualTime set yet,
+			// so we need to call the accumulation method once to set the initial reward accrual time
+			if tc.args.borrow.Denom != tc.args.incentiveBorrowRewardDenom {
+				err = suite.keeper.AccumulateHardBorrowRewards(suite.ctx, multiRewardPeriod)
+				suite.Require().NoError(err)
+			}
+
+			// Now we can jump forward in time and accumulate rewards
+			updatedBlockTime = previousBlockTime.Add(time.Duration(int(time.Second) * tc.args.updatedTimeDuration))
+			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
+			err = suite.keeper.AccumulateHardBorrowRewards(suite.ctx, multiRewardPeriod)
+			suite.Require().NoError(err)
+
+			// After we've accumulated, run synchronize
+			borrow, found = hardKeeper.GetBorrow(suite.ctx, userAddr)
+			suite.Require().True(found)
+			suite.Require().NotPanics(func() {
+				suite.keeper.SynchronizeHardBorrowReward(suite.ctx, borrow)
+			})
+
+			// Check that the global reward index's reward factor and user's claim have been updated as expected
+			globalRewardIndexes, found = suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
+			suite.Require().True(found)
+			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			suite.Require().True(found)
+
+			for _, expectedRewardIndex := range tc.args.updatedExpectedRewardIndexes {
 				// Check that global reward index has been updated as expected
 				globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
 				suite.Require().Equal(expectedRewardIndex, globalRewardIndex)
-
 				// Check that the user's claim's reward index matches the corresponding global reward index
 				multiRewardIndex, found := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 				suite.Require().True(found)
@@ -547,7 +780,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 
 				// Check that the user's claim holds the expected amount of reward coins
 				suite.Require().Equal(
-					tc.args.expectedRewards.AmountOf(expectedRewardIndex.CollateralType),
+					tc.args.updatedExpectedRewards.AmountOf(expectedRewardIndex.CollateralType),
 					claim.Reward.AmountOf(expectedRewardIndex.CollateralType),
 				)
 			}
