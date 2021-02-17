@@ -298,8 +298,8 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			continue
 		}
 
-		userRewardIndexes, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
-		if !foundUserRewardIndexes {
+		userMultiRewardIndex, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserMultiRewardIndex {
 			continue
 		}
 
@@ -310,9 +310,14 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
+				// User deposited this coin type before it had rewards. When new rewards are added, legacy depositors
+				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
+				// reward index denom and start their reward factor at 0.0
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
+				claim.SupplyRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
 			}
 
 			globalRewardFactor := globalRewardIndex.RewardFactor
@@ -326,7 +331,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 				continue
 			}
 
-			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
 				fmt.Printf("[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue

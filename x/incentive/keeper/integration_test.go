@@ -114,6 +114,7 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 				{MarketID: "xrp:usd", BaseAsset: "xrp", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "bnb:usd", BaseAsset: "bnb", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 				{MarketID: "busd:usd", BaseAsset: "busd", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+				{MarketID: "zzz:usd", BaseAsset: "zzz", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 			},
 		},
 		PostedPrices: []pricefeed.PostedPrice{
@@ -147,6 +148,12 @@ func NewPricefeedGenStateMulti() app.GenesisState {
 				Price:         sdk.OneDec(),
 				Expiry:        time.Now().Add(1 * time.Hour),
 			},
+			{
+				MarketID:      "zzz:usd",
+				OracleAddress: sdk.AccAddress{},
+				Price:         sdk.MustNewDecFromStr("2.00"),
+				Expiry:        time.Now().Add(1 * time.Hour),
+			},
 		},
 	}
 	return app.GenesisState{pricefeed.ModuleName: pricefeed.ModuleCdc.MustMarshalJSON(pfGenesis)}
@@ -163,6 +170,7 @@ func NewHardGenStateMulti() app.GenesisState {
 			hard.NewMoneyMarket("bnb", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "bnb:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 			hard.NewMoneyMarket("btcb", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "btc:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 			hard.NewMoneyMarket("xrp", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "xrp:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+			hard.NewMoneyMarket("zzz", hard.NewBorrowLimit(false, borrowLimit, loanToValue), "zzz:usd", sdk.NewInt(1000000), hard.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 		},
 		sdk.NewDec(10),
 	), hard.DefaultAccumulationTimes, hard.DefaultDeposits, hard.DefaultBorrows,
@@ -185,6 +193,7 @@ func NewAuthGenState(addresses []sdk.AccAddress, coins sdk.Coins) app.GenesisSta
 			sdk.NewCoin("ukava", sdk.NewInt(1000000000000000)),
 			sdk.NewCoin("btcb", sdk.NewInt(1000000000000000)),
 			sdk.NewCoin("xrp", sdk.NewInt(1000000000000000)),
+			sdk.NewCoin("zzz", sdk.NewInt(1000000000000000)),
 		)
 	}
 
@@ -223,7 +232,7 @@ func (suite *KeeperTestSuite) SetupWithGenState() {
 	// Set up a god committee
 	committeeModKeeper := tApp.GetCommitteeKeeper()
 	godCommittee := committeetypes.Committee{
-		ID:               12,
+		ID:               1,
 		Description:      "This committee is for testing.",
 		Members:          suite.addrs[:2],
 		Permissions:      []committeetypes.Permission{committeetypes.GodPermission{}},
