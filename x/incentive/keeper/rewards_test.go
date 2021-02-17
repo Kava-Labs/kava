@@ -773,7 +773,6 @@ func (suite *KeeperTestSuite) TestInitializeHardSupplyRewards() {
 
 			userAddr := suite.addrs[3]
 
-			// ----------------------------------------------------------
 			// Prepare money market + reward params
 			i := 0
 			var multiRewardPeriods types.MultiRewardPeriods
@@ -1703,7 +1702,6 @@ func (suite *KeeperTestSuite) TestInitializeHardBorrowRewards() {
 
 			userAddr := suite.addrs[3]
 
-			// ----------------------------------------------------------
 			// Prepare money market + reward params
 			i := 0
 			var multiRewardPeriods types.MultiRewardPeriods
