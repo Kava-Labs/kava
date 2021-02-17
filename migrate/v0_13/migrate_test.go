@@ -87,5 +87,6 @@ func TestBep3(t *testing.T) {
 	}
 
 	require.Equal(t, oldBNBSupply.CurrentSupply.Sub(sdk.NewCoin("bnb", sdk.NewInt(1000000000000))), newBNBSupply.CurrentSupply)
-
+	require.Equal(t, uint64(24686), newGenState.Params.AssetParams[0].MinBlockLock)
+	require.Equal(t, uint64(86400), newGenState.Params.AssetParams[0].MaxBlockLock)
 }

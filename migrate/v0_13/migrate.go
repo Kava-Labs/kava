@@ -125,7 +125,14 @@ func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
 			newSwaps = append(newSwaps, swap) // don't migrate open swaps
 		}
 	}
-	return bep3.NewGenesisState(genesisState.Params, newSwaps, newSupplies, genesisState.PreviousBlockTime)
+	var newAssetParams bep3.AssetParams
+	for _, ap := range genesisState.Params.AssetParams {
+		ap.MinBlockLock = uint64(24686)
+		ap.MaxBlockLock = uint64(86400)
+		newAssetParams = append(newAssetParams, ap)
+	}
+	newParams := bep3.NewParams(newAssetParams)
+	return bep3.NewGenesisState(newParams, newSwaps, newSupplies, genesisState.PreviousBlockTime)
 }
 
 func removeIndex(accs authexported.GenesisAccounts, index int) authexported.GenesisAccounts {
