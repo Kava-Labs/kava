@@ -495,7 +495,7 @@ func (suite *KeeperTestSuite) TestSynchronizeHardBorrowReward() {
 				updateRewardsViaCommmittee: true,
 				updatedBaseDenom:           "bnb",
 				updatedRewardsPerSecond:    cs(c("hard", 122354), c("ukava", 100000)),
-				updatedExpectedRewards:     cs(c("hard", 31714156802), c("ukava", 8640000000)),
+				updatedExpectedRewards:     cs(c("hard", 21142771202), c("ukava", 8640000000)),
 				updatedExpectedRewardIndexes: types.RewardIndexes{
 					types.NewRewardIndex("hard", d("2.114277120120202320")),
 					types.NewRewardIndex("ukava", d("0.864000000049120715")),

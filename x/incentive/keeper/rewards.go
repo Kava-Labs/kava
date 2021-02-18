@@ -382,7 +382,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
-		userMultiRewardIndex, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		userMultiRewardIndex, foundUserMultiRewardIndex := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
 		if !foundUserMultiRewardIndex {
 			continue
 		}
