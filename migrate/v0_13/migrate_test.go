@@ -12,6 +12,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	v0_13committee "github.com/kava-labs/kava/x/committee"
 	v0_11committee "github.com/kava-labs/kava/x/committee/legacy/v0_11"
 
 	"github.com/stretchr/testify/require"
@@ -76,4 +77,15 @@ func TestCommittee(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, len(oldGenState.Committees), len(newGenState.Committees))
+
+	for i := 0; i < len(oldGenState.Committees); i++ {
+		require.Equal(t, len(oldGenState.Committees[i].Permissions), len(newGenState.Committees[i].Permissions))
+	}
+
+	oldSPCP := oldGenState.Committees[0].Permissions[0].(v0_11committee.SubParamChangePermission)
+	newSPCP := newGenState.Committees[0].Permissions[0].(v0_13committee.SubParamChangePermission)
+	require.Equal(t, len(oldSPCP.AllowedParams), len(newSPCP.AllowedParams))
+	require.Equal(t, len(oldSPCP.AllowedAssetParams), len(newSPCP.AllowedAssetParams))
+	require.Equal(t, len(oldSPCP.AllowedCollateralParams), len(newSPCP.AllowedCollateralParams))
+	require.Equal(t, len(oldSPCP.AllowedMarkets), len(newSPCP.AllowedMarkets))
 }

@@ -143,7 +143,21 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 					// update AllowedCollateralParams
 					var newCollateralParams v0_13committee.AllowedCollateralParams
 					for _, cp := range subPerm.AllowedCollateralParams {
-						newCP := v0_13committee.AllowedCollateralParam(cp)
+						newCP := v0_13committee.NewAllowedCollateralParam(
+							cp.Type,
+							cp.Denom,
+							cp.LiquidationRatio,
+							cp.DebtLimit,
+							cp.StabilityFee,
+							cp.AuctionSize,
+							cp.LiquidationPenalty,
+							cp.Prefix,
+							cp.SpotMarketID,
+							cp.LiquidationMarketID,
+							cp.ConversionFactor,
+							true,
+							true,
+						)
 						newCollateralParams = append(newCollateralParams, newCP)
 					}
 					newStabilitySubParamPermissions.AllowedCollateralParams = newCollateralParams
@@ -185,6 +199,7 @@ func Committee(genesisState v0_11committee.GenesisState) v0_13committee.GenesisS
 				}
 			}
 			newStabilityCommitteePermissions = append(newStabilityCommitteePermissions, v0_13committee.TextPermission{})
+			newStabilityCommittee.Permissions = newStabilityCommitteePermissions
 			committees = append(committees, newStabilityCommittee)
 		} else {
 			newSafetyCommittee.ID = com.ID

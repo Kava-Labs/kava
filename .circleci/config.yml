@@ -2,7 +2,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.15
+      - image: circleci/golang:1.13
 
 commands:
   make:

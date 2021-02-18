@@ -337,7 +337,7 @@ func (perm SubParamChangePermission) Allows(ctx sdk.Context, appCdc *codec.Codec
 		}
 	}
 
-	// Check any MoneyMarket changes are alloed
+	// Check any MoneyMarket changes are allowed
 
 	var foundIncomingMMs bool
 	var incomingMMs hard.MoneyMarkets
