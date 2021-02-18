@@ -18,17 +18,6 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
-// GetMoneyMarketParam returns the corresponding Money Market param for a specific denom
-func (k Keeper) GetMoneyMarketParam(ctx sdk.Context, denom string) (types.MoneyMarket, bool) {
-	params := k.GetParams(ctx)
-	for _, mm := range params.MoneyMarkets {
-		if mm.Denom == denom {
-			return mm, true
-		}
-	}
-	return types.MoneyMarket{}, false
-}
-
 // GetMinimumBorrowUSDValue returns the minimum borrow USD value
 func (k Keeper) GetMinimumBorrowUSDValue(ctx sdk.Context) sdk.Dec {
 	params := k.GetParams(ctx)

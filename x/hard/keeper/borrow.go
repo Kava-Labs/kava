@@ -131,18 +131,11 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 
 	// Get the proposed borrow USD value
-	moneyMarketCache := map[string]types.MoneyMarket{}
 	proprosedBorrowUSDValue := sdk.ZeroDec()
 	for _, coin := range amount {
-		moneyMarket, ok := moneyMarketCache[coin.Denom]
-		// Fetch money market and store in local cache
-		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, coin.Denom)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", coin.Denom)
-			}
-			moneyMarketCache[coin.Denom] = newMoneyMarket
-			moneyMarket = newMoneyMarket
+		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 		}
 
 		// Calculate this coin's USD value and add it borrow's total USD value
@@ -177,16 +170,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
 	totalBorrowableAmount := sdk.ZeroDec()
-	for _, depCoin := range deposit.Amount {
-		moneyMarket, ok := moneyMarketCache[depCoin.Denom]
-		// Fetch money market and store in local cache
-		if !ok {
-			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, depCoin.Denom)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", depCoin.Denom)
-			}
-			moneyMarketCache[depCoin.Denom] = newMoneyMarket
-			moneyMarket = newMoneyMarket
+	for _, coin := range deposit.Amount {
+		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 		}
 
 		// Calculate the borrowable amount and add it to the user's total borrowable amount
@@ -194,7 +181,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		if err != nil {
 			return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
-		depositUSDValue := sdk.NewDecFromInt(depCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+		depositUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 		borrowableAmountForDeposit := depositUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue)
 		totalBorrowableAmount = totalBorrowableAmount.Add(borrowableAmountForDeposit)
 	}
@@ -203,16 +190,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	existingBorrowUSDValue := sdk.ZeroDec()
 	existingBorrow, found := k.GetBorrow(ctx, borrower)
 	if found {
-		for _, borrowedCoin := range existingBorrow.Amount {
-			moneyMarket, ok := moneyMarketCache[borrowedCoin.Denom]
-			// Fetch money market and store in local cache
-			if !ok {
-				newMoneyMarket, found := k.GetMoneyMarketParam(ctx, borrowedCoin.Denom)
-				if !found {
-					return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", borrowedCoin.Denom)
-				}
-				moneyMarketCache[borrowedCoin.Denom] = newMoneyMarket
-				moneyMarket = newMoneyMarket
+		for _, coin := range existingBorrow.Amount {
+			moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+			if !found {
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 			}
 
 			// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
@@ -220,7 +201,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 			if err != nil {
 				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 			}
-			coinUSDValue := sdk.NewDecFromInt(borrowedCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+			coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 			existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
 		}
 	}
