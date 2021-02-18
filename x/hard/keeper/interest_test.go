@@ -887,7 +887,7 @@ func (suite *KeeperTestSuite) TestBorrowInterest() {
 				// -------------------------------------------------------------------------------------
 
 				// Set up snapshot chain context and run begin blocker
-				runAtTime := time.Unix(prevCtx.BlockTime().Unix()+(snapshot.elapsedTime), 0)
+				runAtTime := prevCtx.BlockTime().Add(time.Duration(int64(time.Second) * snapshot.elapsedTime))
 				snapshotCtx := prevCtx.WithBlockTime(runAtTime)
 				hard.BeginBlocker(snapshotCtx, suite.keeper)
 
@@ -1317,7 +1317,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					// -------------------------------------------------------------------------------------
 
 					// Set up snapshot chain context and run begin blocker
-					runAtTime := time.Unix(prevCtx.BlockTime().Unix()+(snapshot.elapsedTime), 0)
+					runAtTime := prevCtx.BlockTime().Add(time.Duration(int64(time.Second) * snapshot.elapsedTime))
 					snapshotCtx := prevCtx.WithBlockTime(runAtTime)
 					hard.BeginBlocker(snapshotCtx, suite.keeper)
 
