@@ -117,6 +117,11 @@ func MigrateHard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
 				defaultInterestModel,
 				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
 			),
+			// bnb
+			v0_13hard.NewMoneyMarket("bnb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "bnb:usd", sdk.NewInt(100000000),
+				defaultInterestModel,
+				sdk.MustNewDecFromStr("0.025"), sdk.MustNewDecFromStr("0.02"),
+			),
 			// xrpb
 			v0_13hard.NewMoneyMarket("xrpb", v0_13hard.NewBorrowLimit(true, sdk.ZeroDec(), sdk.MustNewDecFromStr("0.5")), "xrp:usd", sdk.NewInt(100000000),
 				defaultInterestModel,
@@ -149,6 +154,9 @@ func MigrateHard(genesisState v0_11hard.GenesisState) v0_13hard.GenesisState {
 		v13Deposits = append(v13Deposits, newDep)
 		v13TotalSupplied = v13TotalSupplied.Add(newDep.Amount...)
 	}
+	sort.Slice(v13Deposits, func(i, j int) bool {
+		return v13Deposits[i].Depositor.String() > v13Deposits[j].Depositor.String()
+	})
 
 	for _, mm := range newParams.MoneyMarkets {
 		genAccumulationTime := v0_13hard.NewGenesisAccumulationTime(mm.Denom, GenesisTime, sdk.OneDec(), sdk.OneDec())
