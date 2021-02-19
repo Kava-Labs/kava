@@ -189,7 +189,7 @@ func MigrateIncentive(hardGS v0_11hard.GenesisState, incentiveGS v0_11incentive.
 		newRP := v0_13incentive.NewRewardPeriod(rp.DistributionSchedule.Active, rp.DistributionSchedule.DepositDenom, rp.DistributionSchedule.Start, rp.DistributionSchedule.End, rp.DistributionSchedule.RewardsPerSecond)
 		hardDelegatorRewardPeriods = append(hardDelegatorRewardPeriods, newRP)
 	}
-	params := v0_13incentive.NewParams(usdxMintingRewardPeriods, hardSupplyRewardPeriods, hardBorrowRewardPeriods, hardDelegatorRewardPeriods, v0_13incentive.Multipliers{v0_13incentive.NewMultiplier(v0_13incentive.Small, 1, sdk.MustNewDecFromStr("0.25")), v0_13incentive.NewMultiplier(v0_13incentive.Large, 12, sdk.MustNewDecFromStr("1.0"))}, ClaimEndTime)
+	params := v0_13incentive.NewParams(usdxMintingRewardPeriods, hardSupplyRewardPeriods, hardBorrowRewardPeriods, hardDelegatorRewardPeriods, v0_13incentive.Multipliers{v0_13incentive.NewMultiplier(v0_13incentive.Small, 1, sdk.MustNewDecFromStr("0.2")), v0_13incentive.NewMultiplier(v0_13incentive.Large, 12, sdk.MustNewDecFromStr("1.0"))}, ClaimEndTime)
 
 	usdxGenAccumulationTimes := v0_13incentive.GenesisAccumulationTimes{}
 
