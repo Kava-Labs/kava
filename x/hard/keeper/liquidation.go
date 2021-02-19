@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -406,5 +408,6 @@ func removeDuplicates(one []string, two []string) []string {
 	for key := range check {
 		res = append(res, key)
 	}
+	sort.Strings(res)
 	return res
 }
