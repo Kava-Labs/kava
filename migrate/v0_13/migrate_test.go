@@ -12,6 +12,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	v0_11cdp "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	v0_13hard "github.com/kava-labs/kava/x/hard"
 	v0_11hard "github.com/kava-labs/kava/x/hard/legacy/v0_11"
 	v0_13incentive "github.com/kava-labs/kava/x/incentive"
 	v0_11incentive "github.com/kava-labs/kava/x/incentive/legacy/v0_11"
@@ -87,4 +88,20 @@ func TestMigrateIncentive(t *testing.T) {
 		len(oldIncentiveGenState.Claims), len(newGenState.USDXMintingClaims),
 	)
 	fmt.Printf("Number of harvest claims in kava-4: %d\nNumber of hard claims in kava-5: %d\n", len(oldHarvestGenState.Claims), len(newGenState.HardLiquidityProviderClaims))
+}
+
+func TestHard(t *testing.T) {
+	cdc := app.MakeCodec()
+	bz, err := ioutil.ReadFile(filepath.Join("testdata", "kava-4-harvest-state.json"))
+	require.NoError(t, err)
+	var oldHarvestGenState v0_11hard.GenesisState
+	require.NotPanics(t, func() {
+		cdc.MustUnmarshalJSON(bz, &oldHarvestGenState)
+	})
+	newGenState := v0_13hard.GenesisState{}
+	require.NotPanics(t, func() {
+		newGenState = MigrateHard(oldHarvestGenState)
+	})
+	err = newGenState.Validate()
+	require.NoError(t, err)
 }
