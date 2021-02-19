@@ -124,6 +124,25 @@ func Bep3(genesisState bep3.GenesisState) bep3.GenesisState {
 			swap.ClosedBlock = 1              // reset closed block to one so expired swaps are removed from long term storage properly
 			newSwaps = append(newSwaps, swap) // don't migrate open swaps
 		}
+		if swap.Status == bep3.Open {
+			swap.Status = bep3.Expired
+			swap.ClosedBlock = 1
+			if swap.Direction == bep3.Outgoing {
+				for _, supply := range newSupplies {
+					if swap.Amount[0].Denom == supply.GetDenom() {
+						supply.OutgoingSupply = supply.OutgoingSupply.Sub(swap.Amount[0])
+					}
+				}
+			}
+			if swap.Direction == bep3.Incoming {
+				for _, supply := range newSupplies {
+					if swap.Amount[0].Denom == supply.GetDenom() {
+						supply.IncomingSupply = supply.IncomingSupply.Sub(swap.Amount[0])
+					}
+				}
+			}
+			newSwaps = append(newSwaps, swap)
+		}
 	}
 	var newAssetParams bep3.AssetParams
 	for _, ap := range genesisState.Params.AssetParams {
