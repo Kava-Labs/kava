@@ -15,6 +15,7 @@ import (
 
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/legacy/v0_11"
+	"github.com/kava-labs/kava/x/hard"
 	"github.com/kava-labs/kava/x/pricefeed"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -564,8 +565,10 @@ func (adp AllowedDebtParam) Allows(current, incoming cdptypes.DebtParam) bool {
 	return allowed
 }
 
+// AllowedAssetParams slice of AllowedAssetParam
 type AllowedAssetParams []AllowedAssetParam
 
+// Allows implement permission interface
 func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) bool {
 	allAllowed := true
 
@@ -614,19 +617,25 @@ func (aaps AllowedAssetParams) Allows(current, incoming bep3types.AssetParams) b
 	return allAllowed
 }
 
+// AllowedAssetParam bep3 asset parameters that can be changed by committee
 type AllowedAssetParam struct {
-	Denom  string `json:"denom" yaml:"denom"`
-	CoinID bool   `json:"coin_id" yaml:"coin_id"`
-	Limit  bool   `json:"limit" yaml:"limit"`
-	Active bool   `json:"active" yaml:"active"`
+	Denom         string `json:"denom" yaml:"denom"`
+	CoinID        bool   `json:"coin_id" yaml:"coin_id"`
+	Limit         bool   `json:"limit" yaml:"limit"`
+	Active        bool   `json:"active" yaml:"active"`
+	MaxSwapAmount bool   `json:"max_swap_amount" yaml:"max_swap_amount"`
+	MinBlockLock  bool   `json:"min_block_lock" yaml:"min_block_lock"`
 }
 
+// Allows bep3 AssetParam parameters than can be changed by committee
 func (aap AllowedAssetParam) Allows(current, incoming bep3types.AssetParam) bool {
 
 	allowed := ((aap.Denom == current.Denom) && (aap.Denom == incoming.Denom)) && // require denoms to be all equal
 		((current.CoinID == incoming.CoinID) || aap.CoinID) &&
 		(current.SupplyLimit.Equals(incoming.SupplyLimit) || aap.Limit) &&
-		((current.Active == incoming.Active) || aap.Active)
+		((current.Active == incoming.Active) || aap.Active) &&
+		((current.MaxSwapAmount.Equal(incoming.MaxSwapAmount)) || aap.MaxSwapAmount) &&
+		((current.MinBlockLock == incoming.MinBlockLock) || aap.MinBlockLock)
 	return allowed
 }
 
@@ -707,6 +716,75 @@ func addressesEqual(addrs1, addrs2 []sdk.AccAddress) bool {
 		areEqual = areEqual && addrs1[i].Equals(addrs2[i])
 	}
 	return areEqual
+}
+
+// AllowedMoneyMarket permission struct for money market parameters (hard module)
+type AllowedMoneyMarket struct {
+	Denom                  string `json:"denom" yaml:"denom"`
+	BorrowLimit            bool   `json:"borrow_limit" yaml:"borrow_limit"`
+	SpotMarketID           bool   `json:"spot_market_id" yaml:"spot_market_id"`
+	ConversionFactor       bool   `json:"conversion_factor" yaml:"conversion_factor"`
+	InterestRateModel      bool   `json:"interest_rate_model" yaml:"interest_rate_model"`
+	ReserveFactor          bool   `json:"reserve_factor" yaml:"reserve_factor"`
+	AuctionSize            bool   `json:"auction_size" yaml:"auction_size"`
+	KeeperRewardPercentage bool   `json:"keeper_reward_percentage" yaml:"keeper_reward_percentage"`
+}
+
+// Allows implement permission interface
+func (amm AllowedMoneyMarket) Allows(current, incoming hard.MoneyMarket) bool {
+	allowed := ((amm.Denom == current.Denom) && (amm.Denom == incoming.Denom)) &&
+		((current.BorrowLimit.Equal(incoming.BorrowLimit)) || amm.BorrowLimit) &&
+		((current.SpotMarketID == incoming.SpotMarketID) || amm.SpotMarketID) &&
+		((current.ConversionFactor.Equal(incoming.ConversionFactor)) || amm.ConversionFactor) &&
+		((current.InterestRateModel.Equal(incoming.InterestRateModel)) || amm.InterestRateModel) &&
+		((current.KeeperRewardPercentage.Equal(incoming.KeeperRewardPercentage)) || amm.KeeperRewardPercentage)
+	return allowed
+}
+
+// AllowedMoneyMarkets slice of AllowedMoneyMarket
+type AllowedMoneyMarkets []AllowedMoneyMarket
+
+// Allows implement permission interface
+func (amms AllowedMoneyMarkets) Allows(current, incoming hard.MoneyMarkets) bool {
+	allAllowed := true
+
+	if len(incoming) != len(current) {
+		return false
+	}
+
+	for _, incomingMM := range incoming {
+		var foundAllowedMM bool
+		var allowedMM AllowedMoneyMarket
+
+		for _, p := range amms {
+			if p.Denom != incomingMM.Denom {
+				continue
+			}
+			foundAllowedMM = true
+			allowedMM = p
+		}
+		if !foundAllowedMM {
+			return false
+		}
+
+		var foundCurrentMM bool
+		var currentMM hard.MoneyMarket
+
+		for _, p := range current {
+			if p.Denom != incomingMM.Denom {
+				continue
+			}
+			foundCurrentMM = true
+			currentMM = p
+		}
+		if !foundCurrentMM {
+			return false
+		}
+		allowed := allowedMM.Allows(currentMM, incomingMM)
+		allAllowed = allAllowed && allowed
+	}
+
+	return allAllowed
 }
 
 // DefaultNextProposalID is the starting poiint for proposal IDs.
