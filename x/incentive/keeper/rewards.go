@@ -262,10 +262,12 @@ func (k Keeper) InitializeHardSupplyReward(ctx sdk.Context, deposit hardtypes.De
 	var supplyRewardIndexes types.MultiRewardIndexes
 	for _, coin := range deposit.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
-			continue
+		var multiRewardIndex types.MultiRewardIndex
+		if foundGlobalRewardIndexes {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+		} else {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 		}
-		multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 		supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 	}
 
@@ -296,8 +298,8 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 			continue
 		}
 
-		userRewardIndexes, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
-		if !foundUserRewardIndexes {
+		userMultiRewardIndex, foundUserMultiRewardIndex := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserMultiRewardIndex {
 			continue
 		}
 
@@ -308,9 +310,14 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
+				// User deposited this coin type before it had rewards. When new rewards are added, legacy depositors
+				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
+				// reward index denom and start their reward factor at 0.0
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
+				claim.SupplyRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
 			}
 
 			globalRewardFactor := globalRewardIndex.RewardFactor
@@ -324,7 +331,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 				continue
 			}
 
-			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
 				fmt.Printf("[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
@@ -348,10 +355,12 @@ func (k Keeper) InitializeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bor
 	var borrowRewardIndexes types.MultiRewardIndexes
 	for _, coin := range borrow.Amount {
 		globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-		if !foundGlobalRewardIndexes {
-			continue
+		var multiRewardIndex types.MultiRewardIndex
+		if foundGlobalRewardIndexes {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
+		} else {
+			multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 		}
-		multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 		borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 	}
 
@@ -373,8 +382,8 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 			continue
 		}
 
-		userRewardIndexes, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
-		if !foundUserRewardIndexes {
+		userMultiRewardIndex, foundUserMultiRewardIndex := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
+		if !foundUserMultiRewardIndex {
 			continue
 		}
 
@@ -385,9 +394,14 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
-			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			userRewardIndex, foundUserRewardIndex := userMultiRewardIndex.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
+				// User borrowed this coin type before it had rewards. When new rewards are added, legacy borrowers
+				// should immediately begin earning rewards. Enable users to do so by updating their claim with the global
+				// reward index denom and start their reward factor at 0.0
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userMultiRewardIndex.RewardIndexes = append(userMultiRewardIndex.RewardIndexes, userRewardIndex)
+				claim.BorrowRewardIndexes[userRewardIndexIndex] = userMultiRewardIndex
 			}
 
 			globalRewardFactor := globalRewardIndex.RewardFactor
@@ -401,7 +415,7 @@ func (k Keeper) SynchronizeHardBorrowReward(ctx sdk.Context, borrow hardtypes.Bo
 				continue
 			}
 
-			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			factorIndex, foundFactorIndex := userMultiRewardIndex.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
 				fmt.Printf("\n[LOG]: factor index for %s should always be found", coin.Denom) // TODO: remove before production
 				continue
@@ -425,11 +439,13 @@ func (k Keeper) UpdateHardSupplyIndexDenoms(ctx sdk.Context, deposit hardtypes.D
 	for _, coin := range deposit.Amount {
 		_, foundUserRewardIndexes := claim.SupplyRewardIndexes.GetRewardIndex(coin.Denom)
 		if !foundUserRewardIndexes {
-			globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
-			if !foundGlobalRewardIndexes {
-				continue // No rewards for this coin type
+			globalSupplyRewardIndexes, foundGlobalSupplyRewardIndexes := k.GetHardSupplyRewardIndexes(ctx, coin.Denom)
+			var multiRewardIndex types.MultiRewardIndex
+			if foundGlobalSupplyRewardIndexes {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalSupplyRewardIndexes)
+			} else {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 			}
-			multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 			supplyRewardIndexes = append(supplyRewardIndexes, multiRewardIndex)
 		}
 	}
@@ -451,11 +467,13 @@ func (k Keeper) UpdateHardBorrowIndexDenoms(ctx sdk.Context, borrow hardtypes.Bo
 	for _, coin := range borrow.Amount {
 		_, foundUserRewardIndexes := claim.BorrowRewardIndexes.GetRewardIndex(coin.Denom)
 		if !foundUserRewardIndexes {
-			globalRewardIndexes, foundGlobalRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
-			if !foundGlobalRewardIndexes {
-				continue // No rewards for this coin type
+			globalBorrowRewardIndexes, foundGlobalBorrowRewardIndexes := k.GetHardBorrowRewardIndexes(ctx, coin.Denom)
+			var multiRewardIndex types.MultiRewardIndex
+			if foundGlobalBorrowRewardIndexes {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, globalBorrowRewardIndexes)
+			} else {
+				multiRewardIndex = types.NewMultiRewardIndex(coin.Denom, types.RewardIndexes{})
 			}
-			multiRewardIndex := types.NewMultiRewardIndex(coin.Denom, globalRewardIndexes)
 			borrowRewardIndexes = append(borrowRewardIndexes, multiRewardIndex)
 		}
 	}
@@ -678,14 +696,16 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 		userRewardIndexIndex, foundUserRewardIndexIndex := claim.SupplyRewardIndexes.GetRewardIndexIndex(ri.CollateralType)
 		if !foundUserRewardIndexIndex {
-			fmt.Printf("\n[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+			fmt.Printf("\n[LOG]: claim.SupplyRewardIndexes.GetRewardIndexIndex for %s should always be found", ri.CollateralType) // TODO: remove before production
 			continue
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
+				claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
 			}
 
 			globalRewardFactor := globalRewardIndex.RewardFactor
@@ -705,7 +725,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
-				fmt.Printf("[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				fmt.Printf("[LOG]: userRewardIndexes.RewardIndexes.GetFactorIndex for %s should always be found", globalRewardIndex.CollateralType) // TODO: remove before production
 				continue
 			}
 			claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
@@ -728,14 +748,16 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 		userRewardIndexIndex, foundUserRewardIndexIndex := claim.BorrowRewardIndexes.GetRewardIndexIndex(ri.CollateralType)
 		if !foundUserRewardIndexIndex {
-			fmt.Printf("\n[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+			fmt.Printf("\n[LOG]: claim.BorrowRewardIndexes.GetRewardIndexIndex for %s should always be found", ri.CollateralType) // TODO: remove before production
 			continue
 		}
 
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				continue
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
+				claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
 			}
 
 			globalRewardFactor := globalRewardIndex.RewardFactor
@@ -755,7 +777,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 
 			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
 			if !foundFactorIndex {
-				fmt.Printf("[LOG]: factor index for %s should always be found", ri.CollateralType) // TODO: remove before production
+				fmt.Printf("[LOG]: userRewardIndexes.RewardIndexes.GetFactorIndex for %s should always be found", globalRewardIndex.CollateralType) // TODO: remove before production
 				continue
 			}
 			claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
