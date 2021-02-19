@@ -85,36 +85,30 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 
 // ValidateRepay validates a requested loan repay
 func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.Coins) error {
-	moneyMarketCache := map[string]types.MoneyMarket{}
 	assetPriceCache := map[string]sdk.Dec{}
 
 	// Get the total USD value of user's existing borrows
 	existingBorrowUSDValue := sdk.ZeroDec()
 	existingBorrow, found := k.GetBorrow(ctx, owner)
 	if found {
-		for _, borrowedCoin := range existingBorrow.Amount {
-			moneyMarket, ok := moneyMarketCache[borrowedCoin.Denom]
-			if !ok { // Fetch money market and store in local cache
-				newMoneyMarket, found := k.GetMoneyMarketParam(ctx, borrowedCoin.Denom)
-				if !found {
-					return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", borrowedCoin.Denom)
-				}
-				moneyMarketCache[borrowedCoin.Denom] = newMoneyMarket
-				moneyMarket = newMoneyMarket
+		for _, coin := range existingBorrow.Amount {
+			moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
+			if !found {
+				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 			}
 
-			assetPrice, ok := assetPriceCache[borrowedCoin.Denom]
+			assetPrice, ok := assetPriceCache[coin.Denom]
 			if !ok { // Fetch current asset price and store in local cache
 				assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 				if err != nil {
 					return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 				}
-				assetPriceCache[borrowedCoin.Denom] = assetPriceInfo.Price
+				assetPriceCache[coin.Denom] = assetPriceInfo.Price
 				assetPrice = assetPriceInfo.Price
 			}
 
 			// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
-			coinUSDValue := sdk.NewDecFromInt(borrowedCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPrice)
+			coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPrice)
 			existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
 		}
 	}
@@ -128,14 +122,9 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 			return sdkerrors.Wrapf(types.ErrInsufficientBalanceForRepay, "account can only repay up to %s%s", senderCoins.AmountOf(repayCoin.Denom), repayCoin.Denom)
 		}
 
-		moneyMarket, ok := moneyMarketCache[repayCoin.Denom]
-		if !ok { // Fetch money market and store in local cache
-			newMoneyMarket, found := k.GetMoneyMarketParam(ctx, repayCoin.Denom)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", repayCoin.Denom)
-			}
-			moneyMarketCache[repayCoin.Denom] = newMoneyMarket
-			moneyMarket = newMoneyMarket
+		moneyMarket, found := k.GetMoneyMarket(ctx, repayCoin.Denom)
+		if !found {
+			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", repayCoin.Denom)
 		}
 
 		// Calculate this coin's USD value and add it to the repay's total USD value
