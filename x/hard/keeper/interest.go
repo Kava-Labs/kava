@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/x/hard/types"
@@ -64,7 +66,9 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 		return nil
 	}
 
-	timeElapsed := ctx.BlockTime().Unix() - previousAccrualTime.Unix()
+	timeElapsed := int64(math.RoundToEven(
+		ctx.BlockTime().Sub(previousAccrualTime).Seconds(),
+	))
 	if timeElapsed == 0 {
 		return nil
 	}
